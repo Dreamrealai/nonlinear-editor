@@ -117,6 +117,15 @@ const enrichTimelineWithSourceDurations = (
   };
 };
 
+const sanitizeFileName = (fileName: string) => {
+  const trimmed = fileName.trim();
+  if (!trimmed) {
+    return 'asset';
+  }
+  // Replace characters that could break storage paths or enable traversal
+  return trimmed.replace(/[^a-zA-Z0-9._-]/g, '_');
+};
+
 const extractStorageLocation = (storageUrl: string) => {
   const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
   const [bucket, ...parts] = normalized.split('/');
@@ -307,7 +316,21 @@ type UploadAssetArgs = {
 
 async function uploadAsset({ file, projectId, assetType }: UploadAssetArgs) {
   const supabase = createBrowserSupabaseClient();
-  const storageInfo = extractStorageLocation(file.name) ?? { bucket: 'assets', path: `${projectId}/${uuid()}-${file.name}` };
+  const { data: userResult, error: userError } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw userError;
+  }
+
+  const user = userResult?.user;
+
+  if (!user) {
+    throw new Error('User session is required to upload assets');
+  }
+
+  const sanitizedFileName = sanitizeFileName(file.name);
+  const defaultPath = `${user.id}/${projectId}/${uuid()}-${sanitizedFileName}`;
+  const storageInfo = extractStorageLocation(file.name) ?? { bucket: 'assets', path: defaultPath };
   const { bucket, path } = storageInfo;
 
   const arrayBuffer = await file.arrayBuffer();
@@ -322,8 +345,10 @@ async function uploadAsset({ file, projectId, assetType }: UploadAssetArgs) {
     throw uploadError;
   }
 
+  const displayFileName = file.name.trim() || extractFileName(path);
+
   const metadata: AssetMetadata = {
-    filename: extractFileName(path),
+    filename: displayFileName,
     mimeType: file.type,
   };
 
@@ -345,6 +370,7 @@ async function uploadAsset({ file, projectId, assetType }: UploadAssetArgs) {
     .insert({
       id: uuid(),
       project_id: projectId,
+      user_id: user.id,
       storage_url: `supabase://${bucket}/${path}`,
       type: assetType,
       metadata,
