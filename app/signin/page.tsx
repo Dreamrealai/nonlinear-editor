@@ -77,6 +77,26 @@ export default function SignInPage() {
     }
   };
 
+  const handleAnonymousSignIn = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      // Create client only when needed (not during render)
+      const supabase = createBrowserSupabaseClient();
+      const { error } = await supabase.auth.signInAnonymously();
+
+      if (error) throw error;
+
+      router.push('/');
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to sign in anonymously');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-50">
       <div className="w-full max-w-md space-y-8 rounded-xl border border-neutral-200 bg-white p-8 shadow-sm">
@@ -143,6 +163,24 @@ export default function SignInPage() {
             </button>
           </div>
         </form>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-neutral-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-white px-2 text-neutral-500">Or continue as</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleAnonymousSignIn}
+          disabled={loading}
+          className="w-full rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-2 text-sm font-semibold text-neutral-600 shadow-sm hover:bg-neutral-100 hover:border-neutral-400 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {loading ? 'Loading...' : 'Continue as Guest'}
+        </button>
       </div>
     </div>
   );
