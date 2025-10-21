@@ -39,7 +39,7 @@ export default async function HomePage() {
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-neutral-900">My Projects</h1>
           <Link
-            href="/api/auth/signout"
+            href="/logout"
             className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 shadow hover:bg-neutral-50"
           >
             Sign Out
