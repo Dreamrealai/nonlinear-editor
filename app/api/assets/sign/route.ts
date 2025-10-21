@@ -3,6 +3,14 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {
+    // SECURITY: Verify user authentication
+    const supabase = await createServerSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const storageUrl = searchParams.get('storageUrl');
     const ttl = parseInt(searchParams.get('ttl') || '3600', 10);
@@ -20,7 +28,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid storage URL' }, { status: 400 });
     }
 
-    const supabase = await createServerSupabaseClient();
+    // SECURITY: Verify user owns this asset (folder structure: bucket/userId/...)
+    const userFolder = pathParts[0];
+    if (userFolder !== user.id) {
+      return NextResponse.json({ error: 'Forbidden - asset does not belong to user' }, { status: 403 });
+    }
     const { data, error } = await supabase.storage
       .from(bucket)
       .createSignedUrl(path, ttl);

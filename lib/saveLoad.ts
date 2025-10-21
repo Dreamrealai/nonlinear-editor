@@ -2,6 +2,7 @@
 
 import type { Timeline } from '@/types/timeline';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
+import { browserLogger } from '@/lib/browserLogger';
 
 export async function loadTimeline(projectId: string): Promise<Timeline | null> {
   try {
@@ -15,13 +16,13 @@ export async function loadTimeline(projectId: string): Promise<Timeline | null> 
       .maybeSingle();
 
     if (error) {
-      console.error('Failed to load timeline', error);
+      browserLogger.error({ error, projectId }, 'Failed to load timeline');
       return null;
     }
 
     return (data?.timeline_data as Timeline) ?? null;
   } catch (error) {
-    console.error('Unexpected error loading timeline', error);
+    browserLogger.error({ error, projectId }, 'Unexpected error loading timeline');
     return null;
   }
 }
@@ -44,7 +45,7 @@ export async function saveTimeline(
       );
 
     if (error) {
-      console.error('Failed to save timeline', error);
+      browserLogger.error({ error, projectId }, 'Failed to save timeline');
       return;
     }
 
@@ -58,9 +59,9 @@ export async function saveTimeline(
       .eq('id', projectId);
 
     if (projectError) {
-      console.error('Failed to update project timeline', projectError);
+      browserLogger.error({ error: projectError, projectId }, 'Failed to update project timeline');
     }
   } catch (error) {
-    console.error('Unexpected error saving timeline', error);
+    browserLogger.error({ error, projectId }, 'Unexpected error saving timeline');
   }
 }
