@@ -428,6 +428,12 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const [sceneDetectPending, setSceneDetectPending] = useState(false);
 
+  // Audio generation state
+  const [activeTab, setActiveTab] = useState<'video' | 'audio'>('video');
+  const [showAudioModal, setShowAudioModal] = useState(false);
+  const [audioGenMode, setAudioGenMode] = useState<'suno' | 'elevenlabs' | null>(null);
+  const [audioGenPending, setAudioGenPending] = useState(false);
+
   const timeline = useEditorStore((state) => state.timeline);
   const setTimeline = useEditorStore((state) => state.setTimeline);
   const addClip = useEditorStore((state) => state.addClip);
@@ -780,6 +786,156 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
     }
   }, [assets, projectId, timeline, setTimeline]);
 
+  // Audio generation handlers
+  const handleGenerateSuno = useCallback(async (formData: { prompt: string; style?: string; title?: string; customMode?: boolean; instrumental?: boolean }) => {
+    setAudioGenPending(true);
+    toast.loading('Generating audio with Suno V5...', { id: 'generate-suno' });
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const res = await fetch('/api/audio/suno/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json.error || 'Audio generation failed');
+      }
+
+      const taskId = json.taskId;
+      toast.success('Audio generation started', { id: 'generate-suno' });
+
+      // Poll for completion
+      let attempts = 0;
+      const maxAttempts = 60; // 5 minutes max
+      const pollInterval = 5000; // 5 seconds
+
+      const poll = async (): Promise<void> => {
+        attempts++;
+        if (attempts > maxAttempts) {
+          throw new Error('Audio generation timed out');
+        }
+
+        const statusRes = await fetch(`/api/audio/suno/status?taskId=${taskId}`);
+        const statusJson = await statusRes.json();
+
+        if (!statusRes.ok) {
+          throw new Error(statusJson.error || 'Status check failed');
+        }
+
+        const task = statusJson.tasks?.[0];
+        if (!task) {
+          throw new Error('Task not found');
+        }
+
+        if (task.status === 'complete' && task.audioUrl) {
+          toast.success('Audio generated successfully!', { id: 'generate-suno' });
+
+          // Upload to Supabase and create asset
+          const audioRes = await fetch(task.audioUrl);
+          const audioBlob = await audioRes.blob();
+          const fileName = `suno_${Date.now()}.mp3`;
+          const filePath = `${user.id}/${projectId}/audio/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('assets')
+            .upload(filePath, audioBlob, { contentType: 'audio/mpeg' });
+
+          if (uploadError) throw uploadError;
+
+          const storageUrl = `supabase://assets/${filePath}`;
+          const { data: newAsset, error: assetError } = await supabase
+            .from('assets')
+            .insert({
+              project_id: projectId,
+              user_id: user.id,
+              storage_url: storageUrl,
+              type: 'audio',
+              source: 'genai',
+              mime_type: 'audio/mpeg',
+              duration_sec: task.duration ?? null,
+              metadata: {
+                filename: fileName,
+                provider: 'suno',
+                prompt: task.prompt,
+                title: task.title,
+                tags: task.tags,
+              },
+            })
+            .select()
+            .single();
+
+          if (assetError) throw assetError;
+
+          const mappedAsset = mapAssetRow(newAsset as Record<string, unknown>);
+          if (mappedAsset) {
+            setAssets((prev) => [mappedAsset, ...prev]);
+          }
+
+          setShowAudioModal(false);
+          setActiveTab('audio');
+        } else if (task.status === 'failed') {
+          throw new Error('Audio generation failed');
+        } else {
+          // Still processing, poll again
+          setTimeout(poll, pollInterval);
+        }
+      };
+
+      setTimeout(poll, pollInterval);
+    } catch (error) {
+      browserLogger.error({ error, projectId }, 'Suno audio generation failed');
+      toast.error(error instanceof Error ? error.message : 'Audio generation failed', { id: 'generate-suno' });
+      setAudioGenPending(false);
+    }
+  }, [supabase, projectId]);
+
+  const handleGenerateElevenLabs = useCallback(async (formData: { text: string; voiceId?: string; modelId?: string }) => {
+    setAudioGenPending(true);
+    toast.loading('Generating audio with ElevenLabs...', { id: 'generate-elevenlabs' });
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const res = await fetch('/api/audio/elevenlabs/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          projectId,
+          userId: user.id,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json.error || 'Audio generation failed');
+      }
+
+      toast.success('Audio generated successfully!', { id: 'generate-elevenlabs' });
+
+      const mappedAsset = mapAssetRow(json.asset as Record<string, unknown>);
+      if (mappedAsset) {
+        setAssets((prev) => [mappedAsset, ...prev]);
+      }
+
+      setShowAudioModal(false);
+      setActiveTab('audio');
+    } catch (error) {
+      browserLogger.error({ error, projectId }, 'ElevenLabs audio generation failed');
+      toast.error(error instanceof Error ? error.message : 'Audio generation failed', { id: 'generate-elevenlabs' });
+    } finally {
+      setAudioGenPending(false);
+    }
+  }, [supabase, projectId]);
+
   if (!timeline) {
     return (
       <div className="flex h-full w-full items-center justify-center">
@@ -801,7 +957,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
               ref={uploadInputRef}
               type="file"
               multiple
-              accept="video/*,audio/*,image/*"
+              accept={activeTab === 'video' ? 'video/*,image/*' : 'audio/*'}
               className="hidden"
               onChange={handleFileSelect}
             />
@@ -815,6 +971,43 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
             </button>
           </div>
         </div>
+
+        {/* Tabs */}
+        <div className="flex gap-2 border-b border-neutral-200">
+          <button
+            type="button"
+            onClick={() => setActiveTab('video')}
+            className={`px-3 py-2 text-xs font-medium transition ${
+              activeTab === 'video'
+                ? 'border-b-2 border-neutral-900 text-neutral-900'
+                : 'text-neutral-500 hover:text-neutral-700'
+            }`}
+          >
+            Video
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('audio')}
+            className={`px-3 py-2 text-xs font-medium transition ${
+              activeTab === 'audio'
+                ? 'border-b-2 border-neutral-900 text-neutral-900'
+                : 'text-neutral-500 hover:text-neutral-700'
+            }`}
+          >
+            Audio
+          </button>
+        </div>
+
+        {/* Audio Generation Button */}
+        {activeTab === 'audio' && (
+          <button
+            type="button"
+            onClick={() => setShowAudioModal(true)}
+            className="w-full rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-100"
+          >
+            + Generate Audio with AI
+          </button>
+        )}
         {assetError && (
           <div className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
             {assetError}
@@ -826,12 +1019,12 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
               Loading assets…
             </div>
           )}
-          {!loadingAssets && assets.length === 0 && (
+          {!loadingAssets && assets.filter((a) => activeTab === 'video' ? a.type === 'video' || a.type === 'image' : a.type === 'audio').length === 0 && (
             <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
-              No assets yet. Upload media to begin editing.
+              {activeTab === 'video' ? 'No video assets yet. Upload video to begin editing.' : 'No audio assets yet. Upload or generate audio.'}
             </div>
           )}
-          {assets.map((asset) => (
+          {assets.filter((a) => activeTab === 'video' ? a.type === 'video' || a.type === 'image' : a.type === 'audio').map((asset) => (
             <div key={asset.id} className="group relative">
               <button
                 type="button"
@@ -885,6 +1078,205 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
           />
         </section>
       </main>
+
+      {/* Audio Generation Modal */}
+      {showAudioModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-neutral-900">Generate Audio</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAudioModal(false);
+                  setAudioGenMode(null);
+                }}
+                disabled={audioGenPending}
+                className="rounded-lg p-1 text-neutral-500 hover:bg-neutral-100 disabled:cursor-not-allowed"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {!audioGenMode ? (
+              <div className="space-y-3">
+                <p className="text-sm text-neutral-600">Choose an AI provider to generate audio:</p>
+                <button
+                  type="button"
+                  onClick={() => setAudioGenMode('suno')}
+                  className="w-full rounded-lg border-2 border-neutral-200 bg-white p-4 text-left transition hover:border-neutral-300 hover:bg-neutral-50"
+                >
+                  <h4 className="font-semibold text-neutral-900">Suno V5</h4>
+                  <p className="mt-1 text-xs text-neutral-600">Generate music and songs with AI</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAudioGenMode('elevenlabs')}
+                  className="w-full rounded-lg border-2 border-neutral-200 bg-white p-4 text-left transition hover:border-neutral-300 hover:bg-neutral-50"
+                >
+                  <h4 className="font-semibold text-neutral-900">ElevenLabs</h4>
+                  <p className="mt-1 text-xs text-neutral-600">Generate speech from text with realistic voices</p>
+                </button>
+              </div>
+            ) : audioGenMode === 'suno' ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  void handleGenerateSuno({
+                    prompt: formData.get('prompt') as string,
+                    style: formData.get('style') as string,
+                    title: formData.get('title') as string,
+                    customMode: formData.get('customMode') === 'on',
+                    instrumental: formData.get('instrumental') === 'on',
+                  });
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label htmlFor="prompt" className="block text-sm font-medium text-neutral-700">
+                    Prompt *
+                  </label>
+                  <textarea
+                    id="prompt"
+                    name="prompt"
+                    required
+                    rows={3}
+                    placeholder="Describe the music you want to generate..."
+                    className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="style" className="block text-sm font-medium text-neutral-700">
+                    Style/Genre
+                  </label>
+                  <input
+                    id="style"
+                    name="style"
+                    type="text"
+                    placeholder="e.g., Jazz, Classical, Electronic"
+                    className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="title" className="block text-sm font-medium text-neutral-700">
+                    Title
+                  </label>
+                  <input
+                    id="title"
+                    name="title"
+                    type="text"
+                    placeholder="Optional title for the track"
+                    className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+                  />
+                </div>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" name="customMode" className="rounded" />
+                    <span className="text-sm text-neutral-700">Custom Mode</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" name="instrumental" className="rounded" />
+                    <span className="text-sm text-neutral-700">Instrumental</span>
+                  </label>
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setAudioGenMode(null)}
+                    disabled={audioGenPending}
+                    className="flex-1 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={audioGenPending}
+                    className="flex-1 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {audioGenPending ? 'Generating...' : 'Generate'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  void handleGenerateElevenLabs({
+                    text: formData.get('text') as string,
+                    voiceId: formData.get('voiceId') as string || undefined,
+                    modelId: formData.get('modelId') as string || undefined,
+                  });
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label htmlFor="text" className="block text-sm font-medium text-neutral-700">
+                    Text *
+                  </label>
+                  <textarea
+                    id="text"
+                    name="text"
+                    required
+                    rows={4}
+                    placeholder="Enter the text you want to convert to speech..."
+                    className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="voiceId" className="block text-sm font-medium text-neutral-700">
+                    Voice
+                  </label>
+                  <select
+                    id="voiceId"
+                    name="voiceId"
+                    className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+                  >
+                    <option value="">Default (Sarah)</option>
+                    <option value="EXAVITQu4vr4xnSDxMaL">Sarah</option>
+                    <option value="pNInz6obpgDQGcFmaJgB">Adam</option>
+                    <option value="21m00Tcm4TlvDq8ikWAM">Rachel</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="modelId" className="block text-sm font-medium text-neutral-700">
+                    Model
+                  </label>
+                  <select
+                    id="modelId"
+                    name="modelId"
+                    className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+                  >
+                    <option value="eleven_multilingual_v2">Multilingual v2 (High Quality)</option>
+                    <option value="eleven_flash_v2_5">Flash v2.5 (Fast, Low Latency)</option>
+                    <option value="eleven_turbo_v2_5">Turbo v2.5 (Balanced)</option>
+                  </select>
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setAudioGenMode(null)}
+                    disabled={audioGenPending}
+                    className="flex-1 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={audioGenPending}
+                    className="flex-1 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {audioGenPending ? 'Generating...' : 'Generate'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
