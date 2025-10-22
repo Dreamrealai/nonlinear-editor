@@ -24,11 +24,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (dbError) {
+      console.error('Database error creating project:', dbError);
       return NextResponse.json({ error: dbError.message }, { status: 500 });
     }
 
     return NextResponse.json(project);
-  } catch {
+  } catch (error) {
+    console.error('Error creating project:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
