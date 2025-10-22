@@ -70,16 +70,24 @@ export default function SignUpPage() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle user already registered error more gracefully
+        if (error.message.includes('already registered') || error.message.includes('already exists')) {
+          setError('This email is already registered. Please sign in instead or use a different email.');
+        } else {
+          setError(error.message);
+        }
+        return;
+      }
 
       // With autoconfirm enabled, user is automatically signed in
-      setSuccess('Account created successfully! Redirecting...');
+      setSuccess('Account created successfully! You are now signed in. Redirecting to your dashboard...');
 
       // Redirect to home page after a brief delay
       setTimeout(() => {
         router.push('/');
         router.refresh();
-      }, 1500);
+      }, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign up');
     } finally {
@@ -95,7 +103,7 @@ export default function SignUpPage() {
             Create Your Account
           </h2>
           <p className="mt-2 text-center text-sm text-neutral-600">
-            Start editing videos in minutes
+            No email confirmation needed - start editing immediately!
           </p>
         </div>
 
