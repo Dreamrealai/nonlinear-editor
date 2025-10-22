@@ -61,14 +61,26 @@ export default function ForgotPasswordPage() {
             Forgot Password?
           </h2>
           <p className="mt-2 text-center text-sm text-neutral-600">
-            No worries! Enter your email and we&apos;ll send you reset instructions.
+            Enter your email to request a password reset link.
           </p>
+          <div className="mt-3 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
+            <strong>Note:</strong> If you don&apos;t receive an email, try creating a new account with a different email address. Email delivery may be delayed.
+          </div>
         </div>
 
         {success ? (
           <div className="space-y-6">
             <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-600">
-              Password reset link sent! Please check your email.
+              Password reset request sent! Please check your email inbox and spam folder.
+            </div>
+            <div className="rounded-lg bg-yellow-50 border border-yellow-200 px-4 py-3 text-xs text-yellow-700">
+              <strong>Didn&apos;t receive an email?</strong>
+              <ul className="mt-2 list-disc list-inside space-y-1">
+                <li>Check your spam/junk folder</li>
+                <li>Wait a few minutes and check again</li>
+                <li>Try signing up with a different email address</li>
+                <li>Contact support if the problem persists</li>
+              </ul>
             </div>
             <div className="text-center">
               <Link
