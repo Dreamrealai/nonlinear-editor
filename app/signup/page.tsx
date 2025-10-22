@@ -4,10 +4,8 @@ import { useState, useEffect } from 'react';
 import { createBrowserSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 import { calculatePasswordStrength, getPasswordStrengthColor, validatePassword } from '@/lib/password-validation';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 export default function SignUpPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

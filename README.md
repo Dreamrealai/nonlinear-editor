@@ -109,6 +109,9 @@ NEXT_PUBLIC_SUPABASE_URL=your-project-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
+# Email (Recommended for production)
+RESEND_API_KEY=your-resend-api-key
+
 # AI Features (Optional)
 GEMINI_API_KEY=your-gemini-api-key
 
@@ -116,6 +119,8 @@ GEMINI_API_KEY=your-gemini-api-key
 AXIOM_TOKEN=your-axiom-token
 AXIOM_DATASET=your-dataset-name
 ```
+
+**Note:** Resend API key is used for reliable email delivery (signup confirmations, password resets). Configure SMTP settings in your Supabase dashboard after obtaining a Resend API key.
 
 4. Run the development server:
 ```bash
