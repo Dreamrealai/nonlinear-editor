@@ -70,7 +70,13 @@ export default function SignUpPage() {
 
       if (error) throw error;
 
-      setSuccess('Account created! Please check your email for a confirmation link.');
+      // Different message for local development
+      const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const message = isDevelopment
+        ? 'Account created! In local development, check the email testing server at http://127.0.0.1:54324 for your confirmation link.'
+        : 'Account created! Please check your email for a confirmation link.';
+
+      setSuccess(message);
       setEmail('');
       setPassword('');
       setConfirmPassword('');
