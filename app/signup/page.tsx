@@ -80,14 +80,11 @@ export default function SignUpPage() {
         return;
       }
 
-      // With autoconfirm enabled, user is automatically signed in
-      setSuccess('Account created successfully! You are now signed in. Redirecting to your dashboard...');
-
-      // Redirect to home page after a brief delay
-      setTimeout(() => {
-        router.push('/');
-        router.refresh();
-      }, 2000);
+      // Email confirmation required - user will receive email
+      setSuccess('Account created! Please check your email for a confirmation link to complete your signup.');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign up');
     } finally {
@@ -103,7 +100,7 @@ export default function SignUpPage() {
             Create Your Account
           </h2>
           <p className="mt-2 text-center text-sm text-neutral-600">
-            No email confirmation needed - start editing immediately!
+            Get started with professional video editing
           </p>
         </div>
 
