@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
+import { browserLogger } from '@/lib/browserLogger';
 import clsx from 'clsx';
 
 interface Message {
@@ -56,7 +57,7 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
         .order('created_at', { ascending: true });
 
       if (error) {
-        console.error('Failed to load chat messages:', error);
+        browserLogger.error({ error, projectId }, 'Failed to load chat messages');
         return;
       }
 
@@ -64,7 +65,7 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
         setMessages(data as Message[]);
       }
     } catch (error) {
-      console.error('Error loading chat messages:', error);
+      browserLogger.error({ error, projectId }, 'Error loading chat messages');
     } finally {
       setLoadingMessages(false);
     }

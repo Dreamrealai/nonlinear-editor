@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { SupabaseClient, User, Session } from '@supabase/supabase-js';
 import { createBrowserSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
+import { browserLogger } from '@/lib/browserLogger';
 
 interface SupabaseContext {
   supabaseClient: SupabaseClient | null;
@@ -34,7 +35,7 @@ export default function SupabaseProvider({ children, session: initialSession, en
     try {
       return createBrowserSupabaseClient();
     } catch (error) {
-      console.warn('Failed to create Supabase client:', error);
+      browserLogger.warn({ error }, 'Failed to create Supabase client');
       return null;
     }
   });
