@@ -59,7 +59,6 @@ const nextConfig: NextConfig = {
   },
 
   // Production-only optimizations
-  swcMinify: true,
   reactStrictMode: true,
 
   // Disable x-powered-by header
