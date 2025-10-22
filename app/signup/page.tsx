@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import { createBrowserSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 import { calculatePasswordStrength, getPasswordStrengthColor, validatePassword } from '@/lib/password-validation';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function SignUpPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -70,16 +72,14 @@ export default function SignUpPage() {
 
       if (error) throw error;
 
-      // Different message for local development
-      const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const message = isDevelopment
-        ? 'Account created! In local development, check the email testing server at http://127.0.0.1:54324 for your confirmation link.'
-        : 'Account created! Please check your email for a confirmation link.';
+      // With autoconfirm enabled, user is automatically signed in
+      setSuccess('Account created successfully! Redirecting...');
 
-      setSuccess(message);
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
+      // Redirect to home page after a brief delay
+      setTimeout(() => {
+        router.push('/');
+        router.refresh();
+      }, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign up');
     } finally {
