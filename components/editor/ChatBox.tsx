@@ -25,7 +25,7 @@ interface ChatBoxProps {
 }
 
 const GEMINI_MODELS = [
-  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', description: 'Latest & fastest' },
+  { id: 'gemini-flash-latest', name: 'Gemini Flash Latest', description: 'Latest & fastest' },
   { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', description: 'Advanced thinking & reasoning' },
 ] as const;
 
@@ -33,7 +33,7 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
   const { supabaseClient } = useSupabase();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash');
+  const [selectedModel, setSelectedModel] = useState<string>('gemini-flash-latest');
   const [isLoading, setIsLoading] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(true);
