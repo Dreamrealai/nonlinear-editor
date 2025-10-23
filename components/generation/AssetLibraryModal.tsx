@@ -92,6 +92,7 @@ export default function AssetLibraryModal({ projectId, onSelect, onClose }: Asse
                   onClick={() => onSelect(asset)}
                   className="group relative aspect-square overflow-hidden rounded-lg border-2 border-neutral-200 hover:border-blue-500 transition-colors"
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element -- Dynamic user asset library content */}
                   <img
                     src={asset.metadata?.thumbnail || asset.storage_url}
                     alt="Asset"

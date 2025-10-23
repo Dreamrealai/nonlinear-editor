@@ -283,6 +283,7 @@ export default function AssetPanel({
               className="flex w-full items-center gap-3 rounded-lg border border-transparent bg-neutral-50 px-3 py-2 text-left transition hover:border-neutral-200 hover:bg-white"
             >
               {asset.metadata?.thumbnail ? (
+                // eslint-disable-next-line @next/next/no-img-element -- Dynamic user-uploaded asset thumbnails
                 <img src={asset.metadata.thumbnail} alt="" className="h-16 w-28 rounded-md object-cover" />
               ) : (
                 <div className="flex h-16 w-28 items-center justify-center rounded-md bg-neutral-200 text-xs text-neutral-600">

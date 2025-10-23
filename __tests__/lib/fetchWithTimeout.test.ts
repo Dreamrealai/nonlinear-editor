@@ -9,7 +9,7 @@ class MockResponse {
   status: number
   headers: Map<string, string>
 
-  constructor(body?: any, init?: { status?: number; headers?: Record<string, string> }) {
+  constructor(body?: string, init?: { status?: number; headers?: Record<string, string> }) {
     this.status = init?.status || 200
     this.ok = this.status >= 200 && this.status < 300
     this.headers = new Map(Object.entries(init?.headers || {}))
@@ -22,7 +22,7 @@ class MockResponse {
 
 // Add Response to global if not available
 if (typeof Response === 'undefined') {
-  (global as any).Response = MockResponse
+  (global as { Response?: typeof MockResponse }).Response = MockResponse
 }
 
 describe('Fetch Utilities', () => {

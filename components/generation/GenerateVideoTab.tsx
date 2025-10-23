@@ -371,6 +371,7 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
 
               {imagePreviewUrl ? (
                 <div className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- Dynamic user-selected reference image preview */}
                   <img
                     src={imagePreviewUrl}
                     alt="Selected reference"

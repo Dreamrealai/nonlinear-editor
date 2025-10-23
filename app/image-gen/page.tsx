@@ -438,6 +438,7 @@ export default function ImageGenPage() {
                         {image.status === 'completed' && image.imageUrls && image.imageUrls.length > 0 ? (
                           <div className="grid grid-cols-2 gap-1 h-full w-full p-1">
                             {image.imageUrls.map((url, idx) => (
+                              // eslint-disable-next-line @next/next/no-img-element -- Dynamic API-generated images from external sources
                               <img
                                 key={idx}
                                 src={url}

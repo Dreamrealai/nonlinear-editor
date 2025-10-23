@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { browserLogger } from '@/lib/browserLogger';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -23,10 +24,19 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error boundary caught error:', error, errorInfo);
-
-    // TODO: Send to error reporting service
-    // sendErrorReport(error, errorInfo);
+    // Log to Axiom via browserLogger
+    browserLogger.error(
+      {
+        error: {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+        },
+        componentStack: errorInfo.componentStack,
+        type: 'react_error_boundary',
+      },
+      `React Error Boundary caught error: ${error.message}`
+    );
   }
 
   render() {
