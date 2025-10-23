@@ -595,10 +595,12 @@ export default function HorizontalTimeline({
           <button
             onClick={handleSplitAtPlayhead}
             disabled={!clipAtPlayhead}
-            className="rounded px-3 py-1 text-xs font-semibold bg-white border border-neutral-300 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded px-2 py-1 bg-white border border-neutral-300 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
             title="Split clip at playhead (S)"
           >
-            Split (S)
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
+            </svg>
           </button>
           {onDetectScenes && (
             <>
@@ -606,10 +608,19 @@ export default function HorizontalTimeline({
               <button
                 onClick={onDetectScenes}
                 disabled={sceneDetectPending}
-                className="rounded px-3 py-1 text-xs font-semibold bg-white border border-neutral-300 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded px-2 py-1 bg-white border border-neutral-300 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Detect scenes in video"
               >
-                {sceneDetectPending ? 'Detecting...' : 'Detect Scenes'}
+                {sceneDetectPending ? (
+                  <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+                  </svg>
+                )}
               </button>
             </>
           )}
@@ -618,10 +629,12 @@ export default function HorizontalTimeline({
               <div className="h-4 w-px bg-neutral-300" />
               <button
                 onClick={onAddText}
-                className="rounded px-3 py-1 text-xs font-semibold bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+                className="rounded px-2 py-1 bg-purple-600 text-white hover:bg-purple-700 transition-colors"
                 title="Add text overlay"
               >
-                Add Text
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
               </button>
             </>
           )}
@@ -630,10 +643,12 @@ export default function HorizontalTimeline({
               <div className="h-4 w-px bg-neutral-300" />
               <button
                 onClick={onAddTransition}
-                className="rounded px-3 py-1 text-xs font-semibold bg-amber-600 text-white hover:bg-amber-700 transition-colors"
+                className="rounded px-2 py-1 bg-amber-600 text-white hover:bg-amber-700 transition-colors"
                 title="Add transition to selected clips"
               >
-                Add Transition
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
               </button>
             </>
           )}
@@ -643,10 +658,19 @@ export default function HorizontalTimeline({
               <button
                 onClick={onUpscaleVideo}
                 disabled={upscaleVideoPending}
-                className="rounded px-3 py-1 text-xs font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded px-2 py-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Upscale selected video clip using Topaz AI"
               >
-                {upscaleVideoPending ? 'Upscaling...' : 'Upscale Video'}
+                {upscaleVideoPending ? (
+                  <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                  </svg>
+                )}
               </button>
             </>
           )}
@@ -655,10 +679,12 @@ export default function HorizontalTimeline({
               <div className="h-4 w-px bg-neutral-300" />
               <button
                 onClick={onExport}
-                className="rounded px-3 py-1 text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                className="rounded px-2 py-1 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                 title="Export/Render video"
               >
-                Export Video
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
               </button>
             </>
           )}
