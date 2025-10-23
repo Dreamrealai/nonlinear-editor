@@ -188,7 +188,29 @@ export async function generateVideo(params: VeoGenerateParams): Promise<VeoGener
 }
 
 /**
- * Check the status of a video generation operation using Veo's fetchPredictOperation
+ * Checks the status of a video generation operation.
+ *
+ * This function polls the Veo API to get the current status of a long-running
+ * video generation operation. Should be called periodically until done=true.
+ *
+ * Operation states:
+ * - In progress: done=false, metadata.progressPercentage shows progress
+ * - Completed: done=true, response.videos contains generated video(s)
+ * - Failed: done=true, error contains error details
+ * - Filtered: done=true, response.raiMediaFilteredReasons explains why content was blocked
+ *
+ * Recommended polling interval: 5-10 seconds
+ *
+ * @param operationName - Operation name from generateVideo() response
+ * @returns Current operation status
+ * @throws Error if status check request fails
+ *
+ * @example
+ * const status = await checkOperationStatus(operationName);
+ * if (status.done && status.response?.videos) {
+ *   const videoUri = status.response.videos[0].gcsUri;
+ *   // Download video from GCS
+ * }
  */
 export async function checkOperationStatus(operationName: string): Promise<VeoOperationResult> {
   const auth = getAuthClient();
@@ -199,7 +221,7 @@ export async function checkOperationStatus(operationName: string): Promise<VeoOp
     throw new Error('Could not extract project_id from GOOGLE_SERVICE_ACCOUNT');
   }
 
-  // Use Veo-specific status check endpoint
+  // Use Veo-specific status check endpoint (fetchPredictOperation)
   const endpoint = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/veo-3.1-generate-preview:fetchPredictOperation`;
 
   const response = await fetch(endpoint, {
@@ -223,12 +245,24 @@ export async function checkOperationStatus(operationName: string): Promise<VeoOp
 }
 
 /**
- * Cancel a running video generation operation
+ * Cancels a running video generation operation.
+ *
+ * Attempts to stop an in-progress video generation. Note that cancellation
+ * is not guaranteed if the operation is in a non-cancellable state.
+ *
+ * Use cases:
+ * - User-initiated cancellation
+ * - Timeout handling
+ * - Resource cleanup
+ *
+ * @param operationName - Full operation name to cancel
+ * @throws Error if cancellation request fails
  */
 export async function cancelOperation(operationName: string): Promise<void> {
   const auth = getAuthClient();
   const client = await auth.getClient();
 
+  // Standard Google Cloud Operations API cancellation endpoint
   const endpoint = `https://us-central1-aiplatform.googleapis.com/v1/${operationName}:cancel`;
 
   const response = await fetch(endpoint, {
