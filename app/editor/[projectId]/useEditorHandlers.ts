@@ -23,7 +23,7 @@ type UseEditorHandlersProps = {
   setTimeline: (timeline: TimelineType) => void;
   addClip: (clip: Clip) => void;
   setUploadPending: (pending: boolean) => void;
-  uploadInputRef: React.RefObject<HTMLInputElement>;
+  uploadInputRef: React.RefObject<HTMLInputElement | null>;
   pollingTimeoutsRef: React.MutableRefObject<Set<NodeJS.Timeout>>;
   abortControllersRef: React.MutableRefObject<Set<AbortController>>;
 };
