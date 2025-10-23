@@ -1571,6 +1571,74 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
     await handleGenerateAudioFromVideo(asset, model);
   }, [timeline, assets, handleGenerateAudioFromVideo]);
 
+  const handleSplitAudioFromClip = useCallback(async (clipId: string) => {
+    if (!timeline) return;
+    const clip = timeline.clips.find((c) => c.id === clipId);
+    if (!clip) return;
+
+    const asset = assets.find((a) => a.id === clip.assetId);
+    if (!asset) {
+      toast.error('Asset not found for clip');
+      return;
+    }
+
+    if (asset.type !== 'video') {
+      toast.error('Split audio only works with video clips');
+      return;
+    }
+
+    await handleSplitAudio(asset);
+  }, [timeline, assets, handleSplitAudio]);
+
+  const handleSplitScenesFromClip = useCallback(async (clipId: string) => {
+    if (!timeline) return;
+    const clip = timeline.clips.find((c) => c.id === clipId);
+    if (!clip) return;
+
+    const asset = assets.find((a) => a.id === clip.assetId);
+    if (!asset) {
+      toast.error('Asset not found for clip');
+      return;
+    }
+
+    if (asset.type !== 'video') {
+      toast.error('Split scenes only works with video clips');
+      return;
+    }
+
+    await handleSplitScenes(asset);
+  }, [timeline, assets, handleSplitScenes]);
+
+  const handleUpscaleVideoFromTimeline = useCallback(async () => {
+    if (!timeline) return;
+
+    // Get the first selected clip or error if no selection
+    const selectedClipId = Array.from(timeline.clips).find(c =>
+      useEditorStore.getState().selectedClipIds.has(c.id)
+    )?.id;
+
+    if (!selectedClipId) {
+      toast.error('Please select a video clip to upscale');
+      return;
+    }
+
+    const clip = timeline.clips.find((c) => c.id === selectedClipId);
+    if (!clip) return;
+
+    const asset = assets.find((a) => a.id === clip.assetId);
+    if (!asset) {
+      toast.error('Asset not found for clip');
+      return;
+    }
+
+    if (asset.type !== 'video') {
+      toast.error('Upscale only works with video clips');
+      return;
+    }
+
+    await handleUpscaleVideo(asset);
+  }, [timeline, assets, handleUpscaleVideo]);
+
   // Memoize filtered assets for each tab to avoid filtering on every render
   const filteredAssets = useMemo(() => {
     return assets.filter((a) =>
@@ -1854,6 +1922,12 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
             onAddText={handleAddText}
             onAddTransition={handleAddTransition}
             onGenerateAudioFromClip={handleGenerateAudioFromClip}
+            onUpscaleVideo={handleUpscaleVideoFromTimeline}
+            upscaleVideoPending={upscaleVideoPending}
+            onSplitAudioFromClip={handleSplitAudioFromClip}
+            onSplitScenesFromClip={handleSplitScenesFromClip}
+            splitAudioPending={splitAudioPending}
+            splitScenesPending={splitScenesPending}
           />
         </section>
       </main>

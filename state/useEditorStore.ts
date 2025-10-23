@@ -22,7 +22,7 @@
 
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { enableMapSet } from 'immer';
+import { enableMapSet, current } from 'immer';
 import type { Timeline, Clip, Marker, Track, TextOverlay, TransitionType } from '@/types/timeline';
 
 /** Maximum number of undo/redo states to keep in history */
@@ -138,14 +138,15 @@ type EditorStore = {
 
 /**
  * Deep clones a timeline for history snapshots.
- * Uses structuredClone for better performance and type preservation.
+ * Uses JSON serialization to safely clone Immer draft proxies.
  *
- * @param timeline - Timeline to clone
+ * @param timeline - Timeline to clone (may be an Immer draft)
  * @returns Deep copy of timeline
  */
 const cloneTimeline = (timeline: Timeline | null): Timeline | null => {
   if (!timeline) return null;
-  return structuredClone(timeline);
+  // JSON clone is safe for Immer drafts and all Timeline properties are serializable
+  return JSON.parse(JSON.stringify(timeline));
 };
 
 /**
