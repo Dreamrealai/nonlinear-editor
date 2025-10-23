@@ -115,9 +115,47 @@ export async function POST(req: NextRequest) {
 
     const client = new VideoIntelligenceServiceClient({ credentials });
 
-    // Perform shot detection
+    // Download video content from Supabase
+    console.log('Downloading video from Supabase...');
+    let videoBuffer: Buffer;
+    try {
+      const videoResponse = await fetch(videoUrl);
+      if (!videoResponse.ok) {
+        throw new Error(`Failed to download video: ${videoResponse.statusText}`);
+      }
+
+      const arrayBuffer = await videoResponse.arrayBuffer();
+      videoBuffer = Buffer.from(arrayBuffer);
+      console.log(`Downloaded video: ${(videoBuffer.length / 1024 / 1024).toFixed(2)} MB`);
+
+      // Check file size limit (10MB for Video Intelligence API)
+      const maxSizeMB = 10;
+      if (videoBuffer.length > maxSizeMB * 1024 * 1024) {
+        return NextResponse.json(
+          {
+            error: 'Video too large for scene detection',
+            message: `Video size (${(videoBuffer.length / 1024 / 1024).toFixed(2)} MB) exceeds the ${maxSizeMB} MB limit for direct analysis. Please use a smaller video or contact support.`,
+            details: 'The Google Cloud Video Intelligence API has size limitations for direct content analysis.'
+          },
+          { status: 413 }
+        );
+      }
+    } catch (downloadError) {
+      console.error('Failed to download video:', downloadError);
+      return NextResponse.json(
+        {
+          error: 'Video download failed',
+          message: downloadError instanceof Error ? downloadError.message : 'Could not download video from storage',
+          details: 'Unable to fetch video content from Supabase storage'
+        },
+        { status: 502 }
+      );
+    }
+
+    // Perform shot detection using inputContent instead of inputUri
+    // Note: inputContent is base64-encoded in the request
     const request = {
-      inputUri: videoUrl,
+      inputContent: videoBuffer.toString('base64'),
       features: [protos.google.cloud.videointelligence.v1.Feature.SHOT_CHANGE_DETECTION],
     };
 
@@ -131,7 +169,7 @@ export async function POST(req: NextRequest) {
         {
           error: 'Video analysis failed',
           message: apiError instanceof Error ? apiError.message : 'Google Cloud Video Intelligence API error',
-          details: 'The video may not be accessible or the API credentials may be invalid'
+          details: 'The video format may not be supported or the API credentials may be invalid'
         },
         { status: 502 }
       );

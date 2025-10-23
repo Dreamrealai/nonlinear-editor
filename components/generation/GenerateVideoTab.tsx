@@ -361,6 +361,83 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
               </p>
             </div>
 
+            {/* Image Input */}
+            <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+              <label className="block text-sm font-semibold text-neutral-900 mb-3">
+                Reference Image (Optional)
+              </label>
+
+              {imagePreviewUrl ? (
+                <div className="relative">
+                  <img
+                    src={imagePreviewUrl}
+                    alt="Selected reference"
+                    className="w-full max-h-64 object-contain rounded-lg border border-neutral-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleClearImage}
+                    className="absolute right-2 top-2 rounded-md bg-black/50 p-2 text-white hover:bg-black/70 transition-colors"
+                    title="Remove image"
+                  >
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-3">
+                    {/* Upload Button */}
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={generating || uploadingImage}
+                      className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6 hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <svg className="h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span className="text-xs font-medium text-neutral-700">Upload</span>
+                    </button>
+
+                    {/* Paste Hint */}
+                    <div className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6">
+                      <svg className="h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      <span className="text-xs font-medium text-neutral-700">Paste (Ctrl+V)</span>
+                    </div>
+
+                    {/* Asset Library Button */}
+                    <button
+                      type="button"
+                      onClick={() => setShowAssetLibrary(true)}
+                      disabled={generating || uploadingImage}
+                      className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6 hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <svg className="h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      </svg>
+                      <span className="text-xs font-medium text-neutral-700">From Library</span>
+                    </button>
+                  </div>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                  />
+
+                  <p className="text-xs text-neutral-500 text-center">
+                    Upload, paste, or select an image from your library to use as a reference
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* Basic Settings Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Model Selection */}
@@ -727,6 +804,116 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
               )}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Asset Library Modal */}
+      {showAssetLibrary && (
+        <AssetLibraryModal
+          projectId={projectId}
+          onSelect={handleAssetSelect}
+          onClose={() => setShowAssetLibrary(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+// Asset Library Modal Component
+interface AssetLibraryModalProps {
+  projectId: string;
+  onSelect: (asset: ImageAsset) => void;
+  onClose: () => void;
+}
+
+function AssetLibraryModal({ projectId, onSelect, onClose }: AssetLibraryModalProps) {
+  const [assets, setAssets] = useState<ImageAsset[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAssets = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/assets?projectId=${projectId}&type=image`);
+        if (!res.ok) {
+          throw new Error('Failed to fetch assets');
+        }
+        const data = await res.json();
+        setAssets(data.assets || []);
+      } catch (err) {
+        console.error('Error fetching assets:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load assets');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAssets();
+  }, [projectId]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-4xl rounded-lg bg-white shadow-xl">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-neutral-200 p-6">
+          <h2 className="text-xl font-semibold text-neutral-900">Select Image from Library</h2>
+          <button
+            onClick={onClose}
+            className="rounded-md p-2 text-neutral-500 hover:bg-neutral-100 transition-colors"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="max-h-[60vh] overflow-y-auto p-6">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-300 border-t-blue-600" />
+            </div>
+          ) : error ? (
+            <div className="rounded-lg bg-red-50 p-4 text-center">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          ) : assets.length === 0 ? (
+            <div className="text-center py-12">
+              <svg className="mx-auto h-12 w-12 text-neutral-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <p className="text-sm font-medium text-neutral-900 mb-1">No images found</p>
+              <p className="text-xs text-neutral-500">Upload an image to get started</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-4">
+              {assets.map((asset) => (
+                <button
+                  key={asset.id}
+                  onClick={() => onSelect(asset)}
+                  className="group relative aspect-square overflow-hidden rounded-lg border-2 border-neutral-200 hover:border-blue-500 transition-colors"
+                >
+                  <img
+                    src={asset.metadata?.thumbnail || asset.storage_url}
+                    alt="Asset"
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-neutral-200 p-6">
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
