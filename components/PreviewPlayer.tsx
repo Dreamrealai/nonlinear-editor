@@ -856,10 +856,29 @@ export default function PreviewPlayer() {
               )}
             </button>
 
+            {/* Centered Play/Pause Button */}
+            <button
+              type="button"
+              onClick={togglePlayPause}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full bg-white/90 hover:bg-white hover:scale-110 p-4 text-black transition-all disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 shadow-2xl"
+              disabled={!timeline.clips.length}
+              title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
+            >
+              {isPlaying ? (
+                <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                </svg>
+              ) : (
+                <svg className="h-8 w-8 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              )}
+            </button>
+
             {/* Bottom Controls Container */}
-            <div className="absolute bottom-0 left-0 right-0 px-6 pb-6">
+            <div className="absolute bottom-0 left-0 right-0 px-6 pb-2">
               {/* Progress Bar */}
-              <div className="mb-4">
+              <div className="mb-2">
                 <div
                   ref={progressBarRef}
                   className="h-1.5 w-full rounded-full bg-white/30 backdrop-blur-sm cursor-pointer hover:h-2 transition-all group"
@@ -881,38 +900,12 @@ export default function PreviewPlayer() {
                 </div>
               </div>
 
-              {/* Playback Controls */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={togglePlayPause}
-                    className="flex items-center justify-center gap-2 rounded-full bg-white hover:bg-white/90 px-6 py-3 text-sm font-bold text-black transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 shadow-lg"
-                    disabled={!timeline.clips.length}
-                    title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
-                  >
-                    {isPlaying ? (
-                      <>
-                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                        </svg>
-                        <span>Pause</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                        <span>Play</span>
-                      </>
-                    )}
-                  </button>
-
-                  <div className="flex items-center gap-2 text-sm font-mono font-semibold text-white drop-shadow-lg">
-                    <span>{formattedCurrent}</span>
-                    <span className="text-white/60">/</span>
-                    <span>{formattedTotal}</span>
-                  </div>
+              {/* Time Display */}
+              <div className="flex items-center justify-center">
+                <div className="flex items-center gap-2 text-xs font-mono font-semibold text-white drop-shadow-lg">
+                  <span>{formattedCurrent}</span>
+                  <span className="text-white/60">/</span>
+                  <span>{formattedTotal}</span>
                 </div>
               </div>
             </div>
