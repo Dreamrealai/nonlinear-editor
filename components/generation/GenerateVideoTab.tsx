@@ -73,32 +73,6 @@ const MODEL_CONFIGS: Record<string, ModelConfig> = {
     supportsEnhancePrompt: true,
     maxSampleCount: 4,
   },
-  'veo-3.0-generate-001': {
-    id: 'veo-3.0-generate-001',
-    name: 'Veo 3.0',
-    provider: 'google',
-    supportedAspectRatios: ['16:9', '9:16', '1:1'],
-    supportedDurations: [4, 5, 6, 8],
-    supportsResolution: true,
-    supportsAudio: true,
-    supportsNegativePrompt: true,
-    supportsReferenceImage: true,
-    supportsEnhancePrompt: true,
-    maxSampleCount: 4,
-  },
-  'veo-3.0-fast-generate-001': {
-    id: 'veo-3.0-fast-generate-001',
-    name: 'Veo 3.0 Fast',
-    provider: 'google',
-    supportedAspectRatios: ['16:9', '9:16', '1:1'],
-    supportedDurations: [4, 5, 6, 8],
-    supportsResolution: true,
-    supportsAudio: true,
-    supportsNegativePrompt: true,
-    supportsReferenceImage: true,
-    supportsEnhancePrompt: true,
-    maxSampleCount: 4,
-  },
   'veo-2.0-generate-001': {
     id: 'veo-2.0-generate-001',
     name: 'Veo 2.0',
@@ -140,14 +114,14 @@ const MODEL_CONFIGS: Record<string, ModelConfig> = {
     supportsEnhancePrompt: false,
     maxSampleCount: 1,
   },
-  // MiniMax Video-01-Live (via fal.ai)
-  'minimax-video-01-live': {
-    id: 'minimax-video-01-live',
-    name: 'MiniMax Video-01-Live',
+  // MiniMax Hailuo-02 Pro (via fal.ai)
+  'minimax-hailuo-02-pro': {
+    id: 'minimax-hailuo-02-pro',
+    name: 'MiniMax Hailuo-02 Pro',
     provider: 'minimax',
     supportedAspectRatios: ['16:9', '9:16', '1:1'],
-    supportedDurations: [5, 6],
-    supportsResolution: false,
+    supportedDurations: [5, 6, 10],
+    supportsResolution: true, // 1080p
     supportsAudio: false,
     supportsNegativePrompt: false,
     supportsReferenceImage: true,
@@ -527,20 +501,12 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
                   disabled={generating}
                   className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <optgroup label="Google Veo">
-                    <option value="veo-3.1-generate-preview">Veo 3.1 (Latest)</option>
-                    <option value="veo-3.1-fast-generate-preview">Veo 3.1 Fast</option>
-                    <option value="veo-3.0-generate-001">Veo 3.0</option>
-                    <option value="veo-3.0-fast-generate-001">Veo 3.0 Fast</option>
-                    <option value="veo-2.0-generate-001">Veo 2.0</option>
-                  </optgroup>
-                  <optgroup label="OpenAI">
-                    <option value="sora-2-pro">SORA 2 Pro</option>
-                  </optgroup>
-                  <optgroup label="Other Models">
-                    <option value="seedance-1.0-pro">SEEDANCE 1.0 Pro</option>
-                    <option value="minimax-video-01-live">MiniMax Video-01-Live</option>
-                  </optgroup>
+                  <option value="veo-3.1-generate-preview">Veo 3.1 (Latest)</option>
+                  <option value="veo-3.1-fast-generate-preview">Veo 3.1 Fast</option>
+                  <option value="veo-2.0-generate-001">Veo 2.0</option>
+                  <option value="sora-2-pro">SORA 2 Pro</option>
+                  <option value="seedance-1.0-pro">SEEDANCE 1.0 Pro</option>
+                  <option value="minimax-hailuo-02-pro">MiniMax Hailuo-02 Pro</option>
                 </select>
               </div>
 
