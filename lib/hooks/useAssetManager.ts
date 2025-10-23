@@ -9,7 +9,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { v4 as uuid } from 'uuid';
 import toast from 'react-hot-toast';
-import { createBrowserSupabaseClient } from '@/lib/supabase';
+import { createBrowserSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
 import { browserLogger } from '@/lib/browserLogger';
 import type { AssetMetadata, AssetRow } from '@/components/editor/AssetPanel';
 
@@ -189,7 +189,8 @@ const parseAssetMetadata = (metadata: Record<string, unknown> | null): AssetMeta
         : undefined;
 
   if (sourceUrl) {
-    result.sourceUrl = sourceUrl;
+    // Ensure the URL has the https:// protocol (fixes old records missing protocol)
+    result.sourceUrl = ensureHttpsProtocol(sourceUrl);
   }
 
   const durationCandidates = [
