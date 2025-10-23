@@ -8,6 +8,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import HorizontalTimeline from '@/components/HorizontalTimeline';
 import PreviewPlayer from '@/components/PreviewPlayer';
 import ExportModal from '@/components/ExportModal';
+import EditorHeader from '@/components/EditorHeader';
 import { useAutosave } from '@/lib/hooks/useAutosave';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { saveTimeline, loadTimeline } from '@/lib/saveLoad';
@@ -958,8 +959,10 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   }
 
   return (
-    <div className="grid h-full grid-cols-[280px_1fr] gap-6 p-6">
-      <Toaster position="bottom-right" />
+    <div className="flex h-full flex-col">
+      <EditorHeader projectId={projectId} currentTab="video-editor" />
+      <div className="grid h-full grid-cols-[280px_1fr] gap-6 p-6">
+        <Toaster position="bottom-right" />
       {/* Assets Panel */}
       <aside className="flex flex-col gap-4 overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
         <div className="flex items-center justify-between gap-2">
@@ -1298,6 +1301,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
         projectId={projectId}
         timeline={timeline}
       />
+      </div>
     </div>
   );
 }
