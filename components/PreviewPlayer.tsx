@@ -271,7 +271,9 @@ export default function PreviewPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isDraggingSlider, setIsDraggingSlider] = useState(false);
   const playerContainerRef = useRef<HTMLDivElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
 
   const sortedClips = useMemo(() => {
     if (!timeline) return [];
@@ -668,6 +670,38 @@ export default function PreviewPlayer() {
       console.error('Fullscreen error:', error);
     }
   }, []);
+
+  // Calculate time from mouse position on progress bar
+  const getTimeFromMouseEvent = useCallback((e: React.MouseEvent | MouseEvent) => {
+    if (!progressBarRef.current) return 0;
+
+    const rect = progressBarRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = clamp(x / rect.width, 0, 1);
+    return percentage * totalDuration;
+  }, [totalDuration]);
+
+  // Handle seeking by clicking or dragging the progress bar
+  const handleProgressBarMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDraggingSlider(true);
+
+    const newTime = getTimeFromMouseEvent(e);
+    setCurrentTime(newTime);
+
+    // Pause during seeking for smoother experience
+    if (isPlaying) {
+      stopPlayback({ finalTime: newTime });
+    }
+  }, [getTimeFromMouseEvent, setCurrentTime, isPlaying, stopPlayback]);
+
+  // Resume playback after dragging ends (if it was playing before)
+  const handleProgressBarMouseUp = useCallback((wasPlaying: boolean) => {
+    setIsDraggingSlider(false);
+    if (wasPlaying) {
+      void playAll();
+    }
+  }, [playAll]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
