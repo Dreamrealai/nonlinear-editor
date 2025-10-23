@@ -16,6 +16,7 @@ export default function VideoGenPage() {
 
   const [videoGenPending, setVideoGenPending] = useState(false);
   const [videoOperationName, setVideoOperationName] = useState<string | null>(null);
+  const [progress, setProgress] = useState<number>(0);
 
   // Track polling timeout IDs for cleanup
   const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -108,11 +109,18 @@ export default function VideoGenPage() {
             toast.success('Video generated successfully!', { id: 'generate-video' });
             setVideoGenPending(false);
             setVideoOperationName(null);
+            setProgress(0);
             pollingTimeoutRef.current = null;
 
             // Redirect back to editor
             router.push(`/editor/${projectId}`);
           } else {
+            // Update progress from API response
+            const currentProgress = statusJson.progress || statusJson.progressPercentage || 0;
+            if (isMountedRef.current) {
+              setProgress(currentProgress);
+            }
+
             // Continue polling - store timeout ID for cleanup
             pollingTimeoutRef.current = setTimeout(poll, pollInterval);
           }
@@ -122,6 +130,7 @@ export default function VideoGenPage() {
             toast.error(pollError instanceof Error ? pollError.message : 'Video generation failed', { id: 'generate-video' });
             setVideoGenPending(false);
             setVideoOperationName(null);
+            setProgress(0);
             pollingTimeoutRef.current = null;
           }
         }
@@ -134,6 +143,21 @@ export default function VideoGenPage() {
       toast.error(error instanceof Error ? error.message : 'Video generation failed', { id: 'generate-video' });
       setVideoGenPending(false);
     }
+  };
+
+  const handleCancelGeneration = () => {
+    // Clear polling timeout
+    if (pollingTimeoutRef.current) {
+      clearTimeout(pollingTimeoutRef.current);
+      pollingTimeoutRef.current = null;
+    }
+
+    // Reset state
+    setVideoGenPending(false);
+    setVideoOperationName(null);
+    setProgress(0);
+
+    toast.success('Video generation cancelled', { id: 'generate-video' });
   };
 
   return (
@@ -230,8 +254,43 @@ export default function VideoGenPage() {
             </button>
 
             {videoGenPending && videoOperationName && (
-              <div className="mt-4 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-600">
-                Video generation in progress. This may take several minutes. You can navigate away and come back later.
+              <div className="mt-4 space-y-3">
+                <div className="rounded-lg bg-blue-50 px-4 py-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium text-blue-900">
+                      Video generation in progress...
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleCancelGeneration}
+                      className="text-xs font-semibold text-blue-700 hover:text-blue-900"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="mt-3 mb-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-blue-700">
+                        {progress > 0 ? `${Math.round(progress)}% complete` : 'Starting...'}
+                      </span>
+                      <span className="text-xs text-blue-600">
+                        Attempt {pollingAttemptsRef.current}/{MAX_POLLING_ATTEMPTS}
+                      </span>
+                    </div>
+                    <div className="w-full bg-blue-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-blue-600 mt-2">
+                    This may take several minutes. You can navigate away and come back later.
+                  </p>
+                </div>
               </div>
             )}
 

@@ -145,13 +145,23 @@ export async function POST(req: NextRequest) {
 
       if (!response.ok) {
         const error = await response.text();
-        console.error('ElevenLabs API error:', error);
+        serverLogger.error({
+          error,
+          status: response.status,
+          voiceId,
+          modelId,
+          event: 'audio.tts.api_error'
+        }, 'ElevenLabs API error');
         return errorResponse('Failed to generate audio with ElevenLabs', response.status);
       }
     } catch (error) {
       clearTimeout(timeout);
       if (error instanceof Error && error.name === 'AbortError') {
-        console.error('ElevenLabs TTS timeout');
+        serverLogger.error({
+          voiceId,
+          modelId,
+          event: 'audio.tts.timeout'
+        }, 'ElevenLabs TTS timeout');
         return errorResponse('TTS generation timeout after 60s', 504);
       }
       throw error;
@@ -172,7 +182,12 @@ export async function POST(req: NextRequest) {
       });
 
     if (uploadError) {
-      console.error('Supabase upload error:', uploadError);
+      serverLogger.error({
+        uploadError,
+        filePath,
+        projectId,
+        event: 'audio.tts.upload_error'
+      }, 'Supabase upload error');
       return internalServerError('Failed to upload audio to storage');
     }
 
@@ -204,7 +219,12 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (assetError) {
-      console.error('Database error:', assetError);
+      serverLogger.error({
+        assetError,
+        projectId,
+        filePath,
+        event: 'audio.tts.db_error'
+      }, 'Database error');
       return internalServerError('Failed to save asset to database');
     }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { v4 as uuid } from 'uuid';
+import { serverLogger } from '@/lib/serverLogger';
 
 /**
  * GET /api/video/upscale-status?requestId=xxx&projectId=xxx
@@ -62,7 +63,12 @@ export async function GET(request: NextRequest) {
 
       if (!statusResponse.ok) {
         const errorText = await statusResponse.text();
-        console.error('fal.ai status check failed:', errorText);
+        serverLogger.error({
+          errorText,
+          requestId,
+          status: statusResponse.status,
+          event: 'video.upscale_status.check_failed'
+        }, 'fal.ai status check failed');
         return NextResponse.json(
           { error: 'Failed to check upscale status' },
           { status: 500 }
@@ -71,7 +77,10 @@ export async function GET(request: NextRequest) {
     } catch (error) {
       clearTimeout(timeout1);
       if (error instanceof Error && error.name === 'AbortError') {
-        console.error('FAL.ai status check timeout');
+        serverLogger.error({
+          requestId,
+          event: 'video.upscale_status.timeout'
+        }, 'FAL.ai status check timeout');
         return NextResponse.json(
           { error: 'Status check timeout after 60s' },
           { status: 504 }
@@ -187,7 +196,12 @@ export async function GET(request: NextRequest) {
         });
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
+        serverLogger.error({
+          uploadError,
+          storagePath,
+          projectId,
+          event: 'video.upscale_status.upload_error'
+        }, 'Upload error');
         return NextResponse.json(
           { error: 'Failed to upload upscaled video' },
           { status: 500 }
@@ -220,7 +234,12 @@ export async function GET(request: NextRequest) {
         .single();
 
       if (assetError) {
-        console.error('Asset creation error:', assetError);
+        serverLogger.error({
+          assetError,
+          storagePath,
+          projectId,
+          event: 'video.upscale_status.asset_error'
+        }, 'Asset creation error');
 
         // CRITICAL FIX: Clean up uploaded file if database insert fails
         const { error: cleanupError } = await supabase.storage
@@ -228,7 +247,13 @@ export async function GET(request: NextRequest) {
           .remove([storagePath]);
 
         if (cleanupError) {
-          console.error('Failed to clean up storage after DB insert failure:', cleanupError);
+          serverLogger.error({
+            cleanupError,
+            assetError,
+            storagePath,
+            projectId,
+            event: 'video.upscale_status.cleanup_failed'
+          }, 'Failed to clean up storage after DB insert failure');
           return NextResponse.json(
             { error: `Failed to create asset record: ${assetError.message}. Additionally, failed to clean up storage: ${cleanupError.message}` },
             { status: 500 }
@@ -240,6 +265,13 @@ export async function GET(request: NextRequest) {
           { status: 500 }
         );
       }
+
+      serverLogger.info({
+        requestId,
+        projectId,
+        assetId: newAsset.id,
+        event: 'video.upscale_status.success'
+      }, 'Video upscale completed successfully');
 
       return NextResponse.json({
         done: true,
@@ -253,7 +285,10 @@ export async function GET(request: NextRequest) {
       status: statusData.status || 'UNKNOWN',
     });
   } catch (error) {
-    console.error('Error checking upscale status:', error);
+    serverLogger.error({
+      error,
+      event: 'video.upscale_status.error'
+    }, 'Error checking upscale status');
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }

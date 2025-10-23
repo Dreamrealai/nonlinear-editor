@@ -20,7 +20,7 @@ const parseStorageUrl = (storageUrl: string) => {
   // SECURITY: Prevent path traversal attacks
   const path = parts.join('/');
   if (path.includes('..') || path.includes('//')) {
-    console.error('Path traversal attempt detected:', storageUrl);
+    serverLogger.error({ storageUrl }, 'Path traversal attempt detected');
     return null;
   }
 
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
         .createSignedUrl(location.path, 3600);
 
       if (signError || !signed?.signedUrl) {
-        console.error('Failed to create signed URL for scene detection', signError);
+        serverLogger.error({ signError, assetId, location }, 'Failed to create signed URL for scene detection');
         return NextResponse.json({ error: 'Unable to access video for scene detection' }, { status: 502 });
       }
 
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
     const credentialsJson = process.env.GOOGLE_SERVICE_ACCOUNT;
     if (!credentialsJson) {
       serverLogger.error({ assetId, projectId }, 'GOOGLE_SERVICE_ACCOUNT not configured');
-      console.warn('Scene detection unavailable: GOOGLE_SERVICE_ACCOUNT not configured');
+      serverLogger.warn({ assetId, projectId }, 'Scene detection unavailable: GOOGLE_SERVICE_ACCOUNT not configured');
       return NextResponse.json(
         {
           error: 'Scene detection unavailable',
@@ -144,7 +144,6 @@ export async function POST(req: NextRequest) {
       serverLogger.info({ projectId: credentials.project_id }, 'Parsed GCP credentials successfully');
     } catch (parseError) {
       serverLogger.error({ parseError, assetId, projectId }, 'Failed to parse GOOGLE_SERVICE_ACCOUNT');
-      console.error('Failed to parse GOOGLE_SERVICE_ACCOUNT:', parseError);
       return NextResponse.json(
         {
           error: 'Invalid Google Cloud credentials',
@@ -166,21 +165,20 @@ export async function POST(req: NextRequest) {
     try {
       const [exists] = await bucket.exists();
       if (!exists) {
-        console.log(`Creating GCS bucket: ${bucketName}`);
+        serverLogger.info({ bucketName, assetId, projectId }, 'Creating GCS bucket');
         await storageClient.createBucket(bucketName, {
           location: 'US',
           storageClass: 'STANDARD',
         });
-        console.log(`Bucket ${bucketName} created successfully`);
+        serverLogger.info({ bucketName, assetId, projectId }, 'GCS bucket created successfully');
       }
     } catch (bucketError) {
-      console.error('Bucket check/creation error:', bucketError);
+      serverLogger.error({ bucketError, bucketName, assetId, projectId }, 'Bucket check/creation error');
       // Continue anyway - the bucket might exist but we don't have permissions to check
     }
 
     // Upload video to GCS
     serverLogger.info({ videoUrl: videoUrl.substring(0, 50) + '...', assetId, projectId }, 'Downloading video from Supabase');
-    console.log('Downloading video from Supabase...');
     let gcsFilePath: string;
     let gcsFile;
 
@@ -193,14 +191,15 @@ export async function POST(req: NextRequest) {
 
       const arrayBuffer = await videoResponse.arrayBuffer();
       const videoBuffer = Buffer.from(arrayBuffer);
-      console.log(`Downloaded video: ${(videoBuffer.length / 1024 / 1024).toFixed(2)} MB`);
+      const videoSizeMB = (videoBuffer.length / 1024 / 1024).toFixed(2);
+      serverLogger.info({ videoSizeMB, assetId, projectId }, 'Downloaded video from Supabase');
 
       // Generate unique filename for GCS
       const timestamp = Date.now();
       gcsFilePath = `video-analysis/${assetId}-${timestamp}.mp4`;
       gcsFile = bucket.file(gcsFilePath);
 
-      console.log(`Uploading video to GCS: gs://${bucketName}/${gcsFilePath}`);
+      serverLogger.info({ gcsUri: `gs://${bucketName}/${gcsFilePath}`, assetId, projectId }, 'Uploading video to GCS');
       await gcsFile.save(videoBuffer, {
         metadata: {
           contentType: 'video/mp4',
@@ -213,10 +212,8 @@ export async function POST(req: NextRequest) {
       });
 
       serverLogger.info({ gcsFilePath, bucketName, assetId }, 'Video uploaded to GCS successfully');
-      console.log('Video uploaded to GCS successfully');
     } catch (uploadError) {
       serverLogger.error({ uploadError, assetId, projectId, bucketName }, 'Failed to upload video to GCS');
-      console.error('Failed to upload video to GCS:', uploadError);
       return NextResponse.json(
         {
           error: 'Video upload to GCS failed',
@@ -234,7 +231,7 @@ export async function POST(req: NextRequest) {
       features: [protos.google.cloud.videointelligence.v1.Feature.SHOT_CHANGE_DETECTION],
     };
 
-    console.log(`Starting video annotation for shot detection using: ${gcsUri}`);
+    serverLogger.info({ gcsUri, assetId, projectId }, 'Starting video annotation for shot detection');
     let results;
     try {
       // Add timeout to prevent function from hanging (45 seconds)
@@ -244,14 +241,14 @@ export async function POST(req: NextRequest) {
 
       results = await Promise.race([videoClient.annotateVideo(request), timeoutPromise]);
     } catch (apiError) {
-      console.error('Video Intelligence API error:', apiError);
+      serverLogger.error({ apiError, gcsUri, assetId, projectId }, 'Video Intelligence API error');
 
       // Clean up GCS file on error
       try {
         await gcsFile.delete();
-        console.log('Cleaned up GCS file after error');
+        serverLogger.info({ gcsFilePath, assetId, projectId }, 'Cleaned up GCS file after error');
       } catch (deleteError) {
-        console.error('Failed to clean up GCS file:', deleteError);
+        serverLogger.error({ deleteError, gcsFilePath, assetId, projectId }, 'Failed to clean up GCS file');
       }
 
       return NextResponse.json(
@@ -264,7 +261,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log('Processing video for shot detection...');
+    serverLogger.info({ assetId, projectId }, 'Processing video for shot detection');
 
     // Safely get the first operation
     if (!results || !results[0]) {
@@ -283,9 +280,9 @@ export async function POST(req: NextRequest) {
       // Clean up GCS file
       try {
         await gcsFile.delete();
-        console.log('Cleaned up GCS file (no scenes detected)');
+        serverLogger.info({ gcsFilePath, assetId, projectId }, 'Cleaned up GCS file (no scenes detected)');
       } catch (deleteError) {
-        console.error('Failed to clean up GCS file:', deleteError);
+        serverLogger.error({ deleteError, gcsFilePath, assetId, projectId }, 'Failed to clean up GCS file');
       }
 
       return NextResponse.json({
@@ -294,7 +291,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    console.log(`Detected ${shots.length} shots`);
+    serverLogger.info({ shotCount: shots.length, assetId, projectId }, 'Detected shots in video');
 
     // Create scenes in database
     const scenes = [];
@@ -318,7 +315,7 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (sceneError) {
-        console.error('Failed to create scene:', sceneError);
+        serverLogger.error({ sceneError, assetId, projectId, startMs, endMs }, 'Failed to create scene');
         continue;
       }
 
@@ -328,9 +325,9 @@ export async function POST(req: NextRequest) {
     // Clean up GCS file after successful processing
     try {
       await gcsFile.delete();
-      console.log('Cleaned up GCS file after successful processing');
+      serverLogger.info({ gcsFilePath, assetId, projectId, sceneCount: scenes.length }, 'Cleaned up GCS file after successful processing');
     } catch (deleteError) {
-      console.error('Failed to clean up GCS file:', deleteError);
+      serverLogger.error({ deleteError, gcsFilePath, assetId, projectId }, 'Failed to clean up GCS file');
       // Don't fail the request if cleanup fails
     }
 
@@ -341,13 +338,16 @@ export async function POST(req: NextRequest) {
       note: 'Scene frames can be extracted in the Keyframe Editor',
     });
   } catch (error) {
-    console.error('Scene split error:', error);
-
     // Provide detailed error information
     const errorMessage = error instanceof Error ? error.message : 'Failed to split scenes';
     const errorStack = error instanceof Error ? error.stack : undefined;
 
-    console.error('Error details:', { message: errorMessage, stack: errorStack });
+    serverLogger.error({
+      error,
+      errorMessage,
+      errorStack,
+      event: 'video.scene_detection.error'
+    }, 'Scene split error');
 
     return NextResponse.json(
       {

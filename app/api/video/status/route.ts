@@ -5,6 +5,7 @@ import { createServerSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase'
 import { v4 as uuidv4 } from 'uuid';
 import { GoogleAuth } from 'google-auth-library';
 import { unauthorizedResponse, validationError, errorResponse } from '@/lib/api/response';
+import { serverLogger } from '@/lib/serverLogger';
 
 const normalizeStorageUrl = (bucket: string, path: string) => `supabase://${bucket}/${path}`;
 
@@ -114,7 +115,12 @@ export async function GET(req: NextRequest) {
             .remove([storagePath]);
 
           if (cleanupError) {
-            console.error('Failed to clean up storage after DB insert failure:', cleanupError);
+            serverLogger.error({
+              cleanupError,
+              storagePath,
+              projectId,
+              event: 'video.status.cleanup_failed'
+            }, 'Failed to clean up storage after DB insert failure');
           }
 
           throw new Error(`Asset creation failed: ${assetError.message}`);
@@ -258,7 +264,13 @@ export async function GET(req: NextRequest) {
           .remove([storagePath]);
 
         if (cleanupError) {
-          console.error('Failed to clean up storage after DB insert failure:', cleanupError);
+          serverLogger.error({
+            cleanupError,
+            assetError,
+            storagePath,
+            projectId,
+            event: 'video.status.veo_cleanup_failed'
+          }, 'Failed to clean up storage after DB insert failure');
           // Return error with cleanup failure context
           throw new Error(`Asset creation failed: ${assetError.message}. Additionally, failed to clean up storage: ${cleanupError.message}`);
         }
@@ -293,7 +305,10 @@ export async function GET(req: NextRequest) {
       error: result.error?.message,
     });
   } catch (error) {
-    console.error('Status check error:', error);
+    serverLogger.error({
+      error,
+      event: 'video.status.error'
+    }, 'Status check error');
     return errorResponse(
       error instanceof Error ? error.message : 'Failed to check status',
       500

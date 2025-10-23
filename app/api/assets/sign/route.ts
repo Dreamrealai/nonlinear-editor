@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { safeArrayFirst } from '@/lib/utils/arrayUtils';
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { serverLogger } from '@/lib/serverLogger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -64,13 +65,28 @@ export async function GET(request: NextRequest) {
       .createSignedUrl(path, ttl);
 
     if (error) {
-      console.error('Failed to sign URL:', error);
+      serverLogger.error({
+        error,
+        bucket,
+        path: path.substring(0, 50) + '...',
+        ttl,
+        event: 'assets.sign.storage_error'
+      }, 'Failed to sign URL');
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    serverLogger.info({
+      bucket,
+      ttl,
+      event: 'assets.sign.success'
+    }, 'Signed URL created successfully');
+
     return NextResponse.json({ signedUrl: data.signedUrl, expiresIn: ttl });
   } catch (error) {
-    console.error('Sign URL error:', error);
+    serverLogger.error({
+      error,
+      event: 'assets.sign.error'
+    }, 'Sign URL error');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

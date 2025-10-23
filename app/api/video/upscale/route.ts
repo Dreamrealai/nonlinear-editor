@@ -4,6 +4,7 @@ import { fetchWithTimeout } from '@/lib/fetchWithTimeout';
 import { validateUUID, validateAll } from '@/lib/api/validation';
 import { errorResponse, unauthorizedResponse, validationError, internalServerError, notFoundResponse } from '@/lib/api/response';
 import { verifyAssetOwnership } from '@/lib/api/project-verification';
+import { serverLogger } from '@/lib/serverLogger';
 
 /**
  * POST /api/video/upscale
@@ -93,12 +94,22 @@ export async function POST(request: NextRequest) {
 
       if (!falResponse.ok) {
         const errorText = await falResponse.text();
-        console.error('fal.ai upscale request failed:', errorText);
+        serverLogger.error({
+          status: falResponse.status,
+          errorText,
+          assetId,
+          projectId,
+          event: 'video.upscale.fal_error'
+        }, 'fal.ai upscale request failed');
         return internalServerError('Failed to submit upscale request to fal.ai');
       }
     } catch (error) {
       if (error instanceof Error && /timeout/i.test(error.message)) {
-        console.error('FAL.ai upscale submission timeout');
+        serverLogger.error({
+          assetId,
+          projectId,
+          event: 'video.upscale.timeout'
+        }, 'FAL.ai upscale submission timeout');
         return errorResponse('Upscale submission timeout after 60s', 504);
       }
       throw error;
@@ -111,13 +122,25 @@ export async function POST(request: NextRequest) {
       return internalServerError('No request ID returned from fal.ai');
     }
 
+    // Log successful submission
+    serverLogger.info({
+      requestId,
+      assetId,
+      projectId,
+      upscaleFactor,
+      event: 'video.upscale.submitted'
+    }, 'Video upscale request submitted successfully');
+
     // Return the request ID for polling
     return NextResponse.json({
       requestId,
       message: 'Video upscale request submitted successfully',
     });
   } catch (error) {
-    console.error('Error in video upscale:', error);
+    serverLogger.error({
+      error,
+      event: 'video.upscale.error'
+    }, 'Error in video upscale');
     return internalServerError(error instanceof Error ? error.message : 'Internal server error');
   }
 }
