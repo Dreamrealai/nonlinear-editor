@@ -109,6 +109,19 @@ export async function GET(req: NextRequest) {
           throw new Error(`Asset creation failed: ${assetError.message}`);
         }
 
+        // Log to activity history
+        await supabase.from('user_activity_history').insert({
+          user_id: user.id,
+          project_id: projectId,
+          activity_type: 'video_generation',
+          title: 'Video Generated',
+          model: endpoint.includes('seedance') ? 'seedance-pro' : 'minimax-video-01-live',
+          asset_id: asset.id,
+          metadata: {
+            mimeType: falResult.result.video.content_type || 'video/mp4',
+          },
+        });
+
         return NextResponse.json({
           done: true,
           asset,
@@ -229,6 +242,19 @@ export async function GET(req: NextRequest) {
       if (assetError) {
         throw new Error(`Asset creation failed: ${assetError.message}`);
       }
+
+      // Log to activity history
+      await supabase.from('user_activity_history').insert({
+        user_id: user.id,
+        project_id: projectId,
+        activity_type: 'video_generation',
+        title: 'Video Generated',
+        model: 'veo-3-1',
+        asset_id: asset.id,
+        metadata: {
+          mimeType,
+        },
+      });
 
       return NextResponse.json({
         done: true,

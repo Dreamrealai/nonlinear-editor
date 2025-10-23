@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { SubscriptionManager } from '@/components/SubscriptionManager';
+import { ActivityHistory } from '@/components/ActivityHistory';
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function SettingsPage() {
@@ -144,6 +145,11 @@ export default function SettingsPage() {
               <p className="mt-1 text-sm text-neutral-900">{userEmail}</p>
             </div>
           </div>
+        </div>
+
+        {/* Activity History */}
+        <div className="mb-6">
+          <ActivityHistory />
         </div>
 
         {/* Change Password */}

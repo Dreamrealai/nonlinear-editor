@@ -230,6 +230,26 @@ export async function POST(request: NextRequest) {
       duration,
     }, `Asset uploaded successfully in ${duration}ms`);
 
+    // Log to activity history
+    const activityTypeMap: Record<string, string> = {
+      image: 'image_upload',
+      video: 'video_upload',
+      audio: 'audio_upload',
+    };
+
+    await supabase.from('user_activity_history').insert({
+      user_id: user.id,
+      project_id: projectId,
+      activity_type: activityTypeMap[type] || 'image_upload',
+      title: originalName || fileName,
+      description: `Uploaded ${type}`,
+      asset_id: assetId,
+      metadata: {
+        fileSize: file.size,
+        mimeType: file.type,
+      },
+    });
+
     return NextResponse.json({
       assetId,
       storageUrl,
