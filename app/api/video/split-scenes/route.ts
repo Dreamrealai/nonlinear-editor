@@ -4,12 +4,26 @@ import { VideoIntelligenceServiceClient, protos } from '@google-cloud/video-inte
 import { Storage } from '@google-cloud/storage';
 
 const parseStorageUrl = (storageUrl: string) => {
+  // SECURITY: Validate input format
+  if (!storageUrl || typeof storageUrl !== 'string') {
+    return null;
+  }
+
   const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
   const [bucket, ...parts] = normalized.split('/');
+
   if (!bucket || parts.length === 0) {
     return null;
   }
-  return { bucket, path: parts.join('/') };
+
+  // SECURITY: Prevent path traversal attacks
+  const path = parts.join('/');
+  if (path.includes('..') || path.includes('//')) {
+    console.error('Path traversal attempt detected:', storageUrl);
+    return null;
+  }
+
+  return { bucket, path };
 };
 
 export async function POST(req: NextRequest) {

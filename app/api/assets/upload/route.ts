@@ -25,6 +25,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Project ID required' }, { status: 400 });
     }
 
+    // SECURITY: File size validation (100MB max)
+    const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({
+        error: 'File too large',
+        details: 'Maximum file size is 100MB'
+      }, { status: 400 });
+    }
+
+    // SECURITY: MIME type validation
+    const ALLOWED_MIME_TYPES = {
+      image: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif'],
+      video: ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'],
+      audio: ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm'],
+    };
+
+    const allowedTypes = ALLOWED_MIME_TYPES[type as keyof typeof ALLOWED_MIME_TYPES] || ALLOWED_MIME_TYPES.image;
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json({
+        error: 'Invalid file type',
+        details: `Allowed types for ${type}: ${allowedTypes.join(', ')}`
+      }, { status: 400 });
+    }
+
     // Generate unique filename
     const fileExt = file.name.split('.').pop();
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
