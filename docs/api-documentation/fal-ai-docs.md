@@ -33,7 +33,7 @@ FAL.AI is a generative media platform providing ready-to-use APIs for AI models 
 - **Queue API:** `https://queue.fal.run`
 - **Synchronous API:** `https://fal.run`
 - **Documentation:** `https://docs.fal.ai`
-- **Model Explorer:** `https://fal.ai/models`
+- **Model Explorer:** `https://fal.ai/explore`
 
 ---
 
@@ -521,7 +521,7 @@ FAL.AI returns standardized error responses:
       "loc": ["body", "field_name"],
       "msg": "Human-readable error message",
       "type": "machine_readable_error_type",
-      "url": "https://docs.fal.ai/errors/#error_type",
+      "url": "https://docs.fal.ai/model-apis/errors",
       "ctx": {
         "additional": "context"
       },
@@ -863,7 +863,7 @@ result = fal_client.subscribe(model_id, arguments={
 - Error Reference: https://docs.fal.ai/model-apis/errors
 
 ### Tools
-- Model Explorer: https://fal.ai/models
+- Model Explorer: https://fal.ai/explore
 - Dashboard: https://fal.ai/dashboard
 - API Keys: https://fal.ai/dashboard/keys
 

@@ -1,0 +1,244 @@
+API Documentation Link Verification Report
+Generated: Thu Oct 23 15:32:14 EDT 2025
+========================================
+
+SUMMARY
+=======
+✅ Valid URLs: 68
+🔀 Redirected URLs: 49
+❌ Broken URLs (4xx/5xx): 53
+⚠️  Timeout/Error: 3
+
+❌ BROKEN URLS (Need Fixing):
+=============================
+  [404] https://api.axiom.co
+  [404] https://api.axiom.co
+  [404] https://api.axiom.co
+  [405] https://api.axiom.co/v1/datasets/my-dataset/ingest
+  [405] https://api.axiom.co/v1/datasets/my-dataset/ingest
+  [405] https://api.axiom.co/v1/datasets/my-dataset/query
+  [401] https://api.cometapi.com/suno/fetch/dcb812bd-40c5-4907-836e-3a7aa9a2e546
+  [404] https://api.elevenlabs.io/v1
+  [404] https://api.elevenlabs.io/v1/models
+  [405] https://api.elevenlabs.io/v1/sound-generation
+  [405] https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM
+  [401] https://api.elevenlabs.io/v1/voices/21m00Tcm4TlvDq8ikWAM
+  [404] https://api.eu.axiom.co
+  [404] https://api.eu.axiom.co
+  [401] https://api.resend.com/emails
+  [404] https://api.vercel.com/v1/projects/<project-id>/pause?teamId=<team-id>
+  [403] https://api.vercel.com/v10/projects/prj_abc123/env?teamId=team_xyz
+  [403] https://api.vercel.com/v11/projects
+  [400] https://api.vercel.com/v13/deployments
+  [403] https://api.vercel.com/v6/deployments
+  [403] https://api.vercel.com/v6/deployments?projectId=prj_xxx&limit=10
+  [403] https://api.vercel.com/v9/projects
+  [403] https://cdn1.suno.ai/image_..
+  [403] https://cdn1.suno.ai/video_..
+  [404] https://fal.ai/models/fal-ai/bytedance/seedance
+  [404] https://fal.ai/models/fal-ai/minimax/hailuo-0
+  [404] https://fal.run
+  [404] https://generativelanguage.googleapis.com/v1beta/
+  [404] https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  [404] https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse
+  [404] https://github.com/supabase/supabase/tree/master/examples/auth/react-auth
+  [404] https://github.com/user/repo
+  [404] https://github.com/user/repo
+  [404] https://LOCATION-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/LOCATION/publishers/google/models/MODEL_ID:generateContent
+  [404] https://LOCATION-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/LOCATION/publishers/google/models/MODEL_ID:predictLongRunning
+  [404] https://LOCATION-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/LOCATION/publishers/google/models/MODEL_ID:streamGenerateContent
+  [404] https://LOCATION-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/LOCATION/publishers/google/models/MODEL_VERSION:predict
+  [404] https://queue.fal.run
+  [405] https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-video
+  [405] https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-video/requests/80e732af-660e-45cd-bd63-580e4f2a94cc
+  [405] https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-video/requests/80e732af-660e-45cd-bd63-580e4f2a94cc/cancel
+  [405] https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-video/requests/80e732af-660e-45cd-bd63-580e4f2a94cc/status
+  [404] https://resend.com/dashboard
+  [403] https://storage.googleapis.com/example/image.png
+  [404] https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent
+  [404] https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/gemini-2.5-flash:streamGenerateContent
+  [404] https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/imagegeneration@002:predict
+  [404] https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/imagen-3.0-generate-002:predict
+  [404] https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/MODEL_ID:fetchPredictOperation
+  [404] https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/veo-3.0-generate-001:predictLongRunning
+  [404] https://v3.fal.media/files/kangaroo/video.mp4
+  [404] https://videointelligence.googleapis.com
+  [404] https://videointelligence.googleapis.com/v1/videos:annotate
+
+🔀 REDIRECTED URLS (Consider Updating):
+=======================================
+  [200] https://aistudio.google.com/
+       → https://aistudio.google.com/welcome
+
+  [200] https://aistudio.google.com/apikey
+       → https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Faistudio.google.com%2Fapikey&dsh=S-838358588%3A1761247937717904&followup=https%3A%2F%2Faistudio.google.com%2Fapikey&ifkv=ARESoU2m7AOP3zJZIcYEWptRuflJo0SRHskavn7LmwY5tn7GA6BR3vEVO42s-zcqVYZXnbbGPbR4dA&passive=1209600&flowName=WebLiteSignIn&flowEntry=ServiceLogin
+
+  [200] https://api.cometapi.com
+       → https://api.cometapi.com/
+
+  [200] https://api.cometapi.com
+       → https://api.cometapi.com/
+
+  [200] https://api.cometapi.com
+       → https://api.cometapi.com/
+
+  [200] https://api.resend.com
+       → https://api.resend.com/
+
+  [200] https://api.vercel.com
+       → https://vercel.com/docs/rest-api/reference
+
+  [200] https://app.axiom.co/axiom-abcd/datasets
+       → https://app.axiom.co/login?callbackUrl=%2Faxiom-abcd%2Fdatasets
+
+  [200] https://axiom.co/discord
+       → https://discord.com/invite/axiom-co
+
+  [200] https://axiom.co/docs
+       → https://axiom.co/docs/introduction
+
+  [200] https://axiom.co/docs
+       → https://axiom.co/docs/introduction
+
+  [200] https://billing.stripe.com/session/..
+       → https://stripe.com/billing
+
+  [200] https://blog.fal.ai
+       → https://blog.fal.ai/
+
+  [200] https://dashboard.stripe.com
+       → https://dashboard.stripe.com/login
+
+  [200] https://discord.gg/fal-ai
+       → https://discord.com/invite/fal-ai
+
+  [200] https://discord.supabase.com
+       → https://discord.com/invite/R7bSpeBSJE
+
+  [200] https://discuss.ai.google.dev/c/gemini-api/
+       → https://discuss.ai.google.dev/c/gemini-api/4
+
+  [200] https://docs.fal.ai
+       → https://docs.fal.ai/
+
+  [200] https://docs.fal.ai/errors/#error_type
+       → https://docs.fal.ai/model-apis/errors
+
+  [200] https://elevenlabs.io
+       → https://elevenlabs.io/
+
+  [200] https://elevenlabs.io/docs
+       → https://elevenlabs.io/docs/overview
+
+  [200] https://elevenlabs.io/docs/api-reference
+       → https://elevenlabs.io/docs/api-reference/introduction
+
+  [200] https://fal.ai/dashboard
+       → https://fal.ai/login?returnTo=/dashboard
+
+  [200] https://fal.ai/dashboard/keys
+       → https://fal.ai/login?returnTo=/dashboard/keys
+
+  [200] https://fal.ai/models
+       → https://fal.ai/explore
+
+  [200] https://issuetracker.google.com/
+       → https://issuetracker.google.com/issues
+
+  [200] https://ngrok.com/download
+       → https://ngrok.com/download/windows
+
+  [200] https://resend-status.com
+       → https://resend-status.com/
+
+  [200] https://resend.com/api-keys
+       → https://resend.com/login
+
+  [200] https://resend.com/docs
+       → https://resend.com/docs/introduction
+
+  [200] https://resend.com/docs
+       → https://resend.com/docs/introduction
+
+  [200] https://resend.com/docs/api-reference
+       → https://resend.com/docs/api-reference/introduction
+
+  [200] https://resend.com/docs/knowledge-base
+       → https://resend.com/docs/knowledge-base/introduction
+
+  [200] https://resend.com/domains
+       → https://resend.com/login
+
+  [200] https://resend.com/logs?status=429
+       → https://resend.com/login
+
+  [200] https://resend.com/webhooks
+       → https://resend.com/login
+
+  [200] https://status.axiom.co
+       → https://status.axiom.co/
+
+  [200] https://status.fal.ai
+       → https://status.fal.ai/
+
+  [200] https://stripe.com/docs/api
+       → https://docs.stripe.com/api
+
+  [200] https://stripe.com/docs/libraries
+       → https://docs.stripe.com/sdks
+
+  [200] https://stripe.com/docs/stripe-cli
+       → https://docs.stripe.com/stripe-cli
+
+  [200] https://stripe.com/docs/testing
+       → https://docs.stripe.com/testing
+
+  [200] https://supabase.com/docs/guides/api/generating-types
+       → https://supabase.com/docs/guides/api/rest/generating-types
+
+  [200] https://supabase.com/docs/guides/cli/local-development
+       → https://supabase.com/docs/guides/local-development/overview
+
+  [200] https://twitter.com/supabase
+       → https://x.com/supabase
+
+  [200] https://vercel.com/dashboard
+       → https://vercel.com/login?next=%2Fdashboard
+
+  [200] https://vercel.com/discord
+       → https://vercel.com/login?next=%2Fdiscord
+
+  [200] https://vercel.com/docs/rest-api
+       → https://vercel.com/docs/rest-api/reference
+
+  [200] https://vercel.com/support
+       → https://vercel.com/help
+
+⚠️  TIMEOUT/CONNECTION ERRORS:
+=============================
+  https://api.production.com
+  https://api.staging.com
+  https://optional.webhook.url/for/results
+
+✅ VALID URLS (First 20):
+=========================
+  ✓ https://ai.google.dev/api
+  ✓ https://ai.google.dev/gemini-api/docs
+  ✓ https://ai.google.dev/gemini-api/docs/quickstart?lang=go
+  ✓ https://ai.google.dev/gemini-api/docs/quickstart?lang=node
+  ✓ https://ai.google.dev/gemini-api/docs/quickstart?lang=python
+  ✓ https://api.cometapi.com/
+  ✓ https://api.cometapi.com/pricing
+  ✓ https://api.cometapi.com/suno/fetch
+  ✓ https://api.cometapi.com/suno/submit/concat
+  ✓ https://api.cometapi.com/suno/submit/lyrics
+  ✓ https://api.cometapi.com/suno/submit/music
+  ✓ https://api.cometapi.com/suno/submit/music
+  ✓ https://api.elevenlabs.io/v1/voices?page_size=20&search=rachel
+  ✓ https://api.elevenlabs.io/v1/voices
+  ✓ https://apidoc.cometapi.com/
+  ✓ https://apidoc.cometapi.com/-setting-suno-version-988461m0
+  ✓ https://apidoc.cometapi.com/retry-logic-documentation-for-cometapi-and-openai-official-api-928345m0
+  ✓ https://apidoc.cometapi.com/suno-api-scenario-application-guide-1252042m0
+  ✓ https://app.axiom.co/register
+  ✓ https://audiopipe.suno.ai/?item_id=..

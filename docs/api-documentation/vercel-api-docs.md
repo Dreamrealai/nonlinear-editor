@@ -1077,7 +1077,7 @@ deploy
 
 - [GitHub Discussions](https://github.com/vercel/vercel/discussions)
 - [Discord Community](https://vercel.com/discord)
-- [Support Portal](https://vercel.com/support)
+- [Support Portal](https://vercel.com/help)
 
 ---
 

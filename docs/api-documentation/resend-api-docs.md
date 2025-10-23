@@ -1,6 +1,6 @@
 # Resend API Documentation
 
-Complete reference documentation for the Resend Email API, compiled from official documentation at https://resend.com/docs.
+Complete reference documentation for the Resend Email API, compiled from official documentation at https://resend.com/docs/introduction
 
 ---
 

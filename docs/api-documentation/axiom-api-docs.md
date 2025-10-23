@@ -1144,4 +1144,4 @@ This documentation provides a comprehensive reference for working with the Axiom
 5. **Error Handling**: Implement robust retry logic and logging
 6. **Security**: Store tokens securely and rotate regularly
 
-For the most up-to-date information, always refer to the official Axiom documentation at https://axiom.co/docs.
+For the most up-to-date information, always refer to the official Axiom documentation at https://axiom.co/docs/introduction

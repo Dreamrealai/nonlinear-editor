@@ -1,0 +1,982 @@
+{
+  "summary": {
+    "total_urls": 192,
+    "valid": 0,
+    "redirected": 0,
+    "broken": 0,
+    "template": 28,
+    "example": 13,
+    "error": 151
+  },
+  "results": {
+    "valid": [],
+    "redirected": [],
+    "broken": [],
+    "template": [
+      [
+        "https://LOCATION-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/LOCATION/publishers/google/models/MODEL_ID:generateContent",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://LOCATION-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/LOCATION/publishers/google/models/MODEL_ID:predictLongRunning",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://LOCATION-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/LOCATION/publishers/google/models/MODEL_ID:streamGenerateContent",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://LOCATION-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/LOCATION/publishers/google/models/MODEL_VERSION:predict",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://api.axiom.co/v1/datasets/${dataset}/ingest",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://api.axiom.co/v1/datasets/{DATASET_NAME}/ingest",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://api.axiom.co/v1/datasets/{DATASET_NAME}/query",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://api.cometapi.com/suno/fetch/${taskId}",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://api.vercel.com/v6/deployments?teamId=[TEAM_ID]",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-video/requests/{request_id}",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-video/requests/{request_id}/cancel",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-video/requests/{request_id}/status/stream?logs=1",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-video/requests/{request_id}/status?logs=1",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://queue.fal.run/{model_id}",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://queue.fal.run/{model_id}/requests/{request_id}",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://queue.fal.run/{model_id}/requests/{request_id}/cancel",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://queue.fal.run/{model_id}/requests/{request_id}/status",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://queue.fal.run/{model_id}/requests/{request_id}/status/stream",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://queue.fal.run/{model_id}/{subpath}",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/MODEL_ID:fetchPredictOperation",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/gemini-2.5-flash:streamGenerateContent",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/imagegeneration@002:predict",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/imagen-3.0-generate-002:predict",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/veo-3.0-generate-001:predictLongRunning",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://videointelligence.googleapis.com/v1/{name=projects/*/locations/*/operations/*}",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://videointelligence.googleapis.com/v1/{name=projects/*/locations/*/operations/*}:cancel",
+        -1,
+        "TEMPLATE_URL"
+      ],
+      [
+        "https://videointelligence.googleapis.com/v1/{name=projects/*/locations/*}/operations",
+        -1,
+        "TEMPLATE_URL"
+      ]
+    ],
+    "example": [
+      [
+        "https://api.example.com",
+        -1,
+        "EXAMPLE_URL"
+      ],
+      [
+        "https://example.com/account",
+        -1,
+        "EXAMPLE_URL"
+      ],
+      [
+        "https://example.com/auth/callback",
+        -1,
+        "EXAMPLE_URL"
+      ],
+      [
+        "https://example.com/cancel",
+        -1,
+        "EXAMPLE_URL"
+      ],
+      [
+        "https://example.com/cat.jpg",
+        -1,
+        "EXAMPLE_URL"
+      ],
+      [
+        "https://example.com/image.png",
+        -1,
+        "EXAMPLE_URL"
+      ],
+      [
+        "https://example.com/reset-password",
+        -1,
+        "EXAMPLE_URL"
+      ],
+      [
+        "https://example.com/success",
+        -1,
+        "EXAMPLE_URL"
+      ],
+      [
+        "https://example.com/welcome",
+        -1,
+        "EXAMPLE_URL"
+      ],
+      [
+        "https://example123.ngrok.io/api/webhook",
+        -1,
+        "EXAMPLE_URL"
+      ],
+      [
+        "https://staging.api.example.com",
+        -1,
+        "EXAMPLE_URL"
+      ],
+      [
+        "https://xyzcompany.supabase.co",
+        -1,
+        "EXAMPLE_URL"
+      ],
+      [
+        "https://your-server.com/webhook/callback",
+        -1,
+        "EXAMPLE_URL"
+      ]
+    ],
+    "error": [
+      [
+        "https://ai.google.dev/api",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://ai.google.dev/gemini-api/docs",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://ai.google.dev/gemini-api/docs/quickstart?lang=go",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://ai.google.dev/gemini-api/docs/quickstart?lang=node",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://ai.google.dev/gemini-api/docs/quickstart?lang=python",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://aistudio.google.com/",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://aistudio.google.com/apikey",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.axiom.co",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.axiom.co/v1/datasets/my-dataset/ingest",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.axiom.co/v1/datasets/my-dataset/query",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.cometapi.com",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.cometapi.com/",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.cometapi.com/pricing",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.cometapi.com/suno/fetch",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.cometapi.com/suno/fetch/dcb812bd-40c5-4907-836e-3a7aa9a2e546",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.cometapi.com/suno/submit/concat",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.cometapi.com/suno/submit/lyrics",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.cometapi.com/suno/submit/music",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.elevenlabs.io/v1",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.elevenlabs.io/v1/models",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.elevenlabs.io/v1/sound-generation",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.elevenlabs.io/v1/voices/21m00Tcm4TlvDq8ikWAM",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.elevenlabs.io/v1/voices?page_size=20&search=rachel",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.eu.axiom.co",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.production.com",
+        -2,
+        "[Errno 8] nodename nor servname provided, or not known"
+      ],
+      [
+        "https://api.resend.com",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.resend.com/emails",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.staging.com",
+        -2,
+        "[Errno 8] nodename nor servname provided, or not known"
+      ],
+      [
+        "https://api.vercel.com",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.vercel.com/v1/projects/<project-id>/pause?teamId=<team-id>",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.vercel.com/v10/projects/prj_abc123/env?teamId=team_xyz",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.vercel.com/v11/projects",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.vercel.com/v13/deployments",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.vercel.com/v6/deployments",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.vercel.com/v6/deployments?projectId=prj_xxx&limit=10",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://api.vercel.com/v9/projects",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://apidoc.cometapi.com/",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://apidoc.cometapi.com/-setting-suno-version-988461m0",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://apidoc.cometapi.com/retry-logic-documentation-for-cometapi-and-openai-official-api-928345m0",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://apidoc.cometapi.com/suno-api-scenario-application-guide-1252042m0",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://app.axiom.co/axiom-abcd/datasets",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://app.axiom.co/register",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://audiopipe.suno.ai/?item_id=",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://audiopipe.suno.ai/?item_id=e9893d04-6a63-4007-8473-64b706eca4d1",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://axiom.co/discord",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://axiom.co/docs",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://axiom.co/docs",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://axiom.co/docs/apl/introduction",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://axiom.co/docs/restapi/api-limits",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://axiom.co/docs/restapi/introduction",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://billing.stripe.com/session/",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://blog.fal.ai",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://cdn1.suno.ai/image_",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://cdn1.suno.ai/image_e9893d04-6a63-4007-8473-64b706eca4d1.png",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://cdn1.suno.ai/image_large_e9893d04-6a63-4007-8473-64b706eca4d1.png",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://cdn1.suno.ai/video_",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://checkout.stripe.com/c/pay/cs_test_",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://cloud.google.com/docs/authentication",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://cloud.google.com/support",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://cloud.google.com/vertex-ai/generative-ai/docs/image/overview",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://cloud.google.com/vertex-ai/generative-ai/docs/video/overview",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://cloud.google.com/video-intelligence/docs",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://code.visualstudio.com/docs/debugtest/port-forwarding",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1000)"
+      ],
+      [
+        "https://dashboard.stripe.com",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://datatracker.ietf.org/doc/html/draft-ietf-httpapi-ratelimit-headers-06",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://discord.com/invite/HMpuV6FCrG",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://discord.gg/fal-ai",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://discord.supabase.com",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://discuss.ai.google.dev/c/gemini-api/",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://docs.fal.ai",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://docs.fal.ai/errors/#error_type",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://docs.fal.ai/model-apis",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://docs.fal.ai/model-apis/errors",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://docs.fal.ai/model-apis/model-endpoints/queue",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://docs.fal.ai/model-apis/support",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://elevenlabs.io",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://elevenlabs.io/docs",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://elevenlabs.io/docs/api-reference",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://elevenlabs.io/pricing/api",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://fal.ai/dashboard",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://fal.ai/dashboard/keys",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://fal.ai/enterprise",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://fal.ai/models",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://fal.ai/models/fal-ai/minimax/hailuo-02/standard/image-to-video",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://fal.ai/models/fal-ai/topaz/upscale/video",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://fal.ai/pricing",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://fal.run",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://generativelanguage.googleapis.com/v1beta/",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://github.com/elevenlabs/elevenlabs-js",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://github.com/elevenlabs/elevenlabs-python",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://github.com/google-gemini/cookbook",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://github.com/resend/resend-examples",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://github.com/resend/resend-examples/tree/main/with-webhooks",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://github.com/supabase/cli",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://github.com/supabase/supabase/discussions",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://github.com/supabase/supabase/tree/master/examples",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://github.com/supabase/supabase/tree/master/examples/auth/nextjs",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://github.com/supabase/supabase/tree/master/examples/auth/react-auth",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://github.com/user/repo",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://github.com/vercel/vercel/discussions",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://issuetracker.google.com/",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://ngrok.com/download",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://optional.webhook.url/for/results",
+        -2,
+        "[Errno 8] nodename nor servname provided, or not known"
+      ],
+      [
+        "https://queue.fal.run",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-video",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-video/requests/80e732af-660e-45cd-bd63-580e4f2a94cc",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-video/requests/80e732af-660e-45cd-bd63-580e4f2a94cc/cancel",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-video/requests/80e732af-660e-45cd-bd63-580e4f2a94cc/status",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://resend-status.com",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://resend-status.com/",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://resend.com/api-keys",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://resend.com/contact",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://resend.com/dashboard",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://resend.com/docs",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://resend.com/docs",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://resend.com/docs/api-reference",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://resend.com/docs/knowledge-base",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://resend.com/domains",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://resend.com/logs?status=429",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://resend.com/webhooks",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://status.axiom.co",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://status.fal.ai",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://storage.googleapis.com/example/image.png",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://stripe.com/docs/api",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://stripe.com/docs/libraries",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://stripe.com/docs/stripe-cli",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://stripe.com/docs/testing",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://supabase.com/docs",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://supabase.com/docs/guides/api/generating-types",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://supabase.com/docs/guides/cli/local-development",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://supabase.com/docs/reference",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://twitter.com/supabase",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://v3.fal.media/files/kangaroo/video.mp4",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://v3.fal.media/files/monkey/xF9OsLwGjjNURyAxD8RM1_output.mp4",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://vercel.com/dashboard",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://vercel.com/discord",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://vercel.com/docs/cli",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://vercel.com/docs/limits#rate-limits",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://vercel.com/docs/rest-api",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://vercel.com/docs/rest-api/reference/sdk",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://vercel.com/support",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://videointelligence.googleapis.com",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://videointelligence.googleapis.com/$discovery/rest?version=v1",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://videointelligence.googleapis.com/v1/videos:annotate",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://www.cometapi.com/",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://www.googleapis.com/auth/cloud-platform",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ],
+      [
+        "https://www.postgresql.org/docs/",
+        -2,
+        "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
+      ]
+    ]
+  }
+}

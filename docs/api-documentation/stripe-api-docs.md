@@ -816,11 +816,11 @@ All fields except `id` can be updated.
 
 ## Additional Resources
 
-- [Stripe API Reference](https://stripe.com/docs/api)
+- [Stripe API Reference](https://docs.stripe.com/api)
 - [Stripe Dashboard](https://dashboard.stripe.com)
-- [Stripe Testing](https://stripe.com/docs/testing)
-- [Stripe CLI](https://stripe.com/docs/stripe-cli)
-- [Stripe SDKs](https://stripe.com/docs/libraries)
+- [Stripe Testing](https://docs.stripe.com/testing)
+- [Stripe CLI](https://docs.stripe.com/stripe-cli)
+- [Stripe SDKs](https://docs.stripe.com/sdks)
 
 ### Test Cards
 

@@ -2024,13 +2024,13 @@ supabase storage download bucket-name/path/to/files
 
 - [Discord Community](https://discord.supabase.com)
 - [GitHub Discussions](https://github.com/supabase/supabase/discussions)
-- [Twitter](https://twitter.com/supabase)
+- [Twitter](https://x.com/supabase)
 
 ### Tools
 
 - [Supabase CLI](https://github.com/supabase/cli)
-- [Database Migrations](https://supabase.com/docs/guides/cli/local-development)
-- [Type Generation](https://supabase.com/docs/guides/api/generating-types)
+- [Database Migrations](https://supabase.com/docs/guides/local-development/overview)
+- [Type Generation](https://supabase.com/docs/guides/api/rest/generating-types)
 
 ### Example Projects
 

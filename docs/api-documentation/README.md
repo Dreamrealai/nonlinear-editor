@@ -69,10 +69,10 @@ console.log(result.data.video.url);
 All documentation was scraped from official FAL.AI sources on October 23, 2025:
 
 - https://docs.fal.ai - Main documentation
-- https://fal.ai/models - Model catalog
+- https://fal.ai/explore - Model catalog
 - https://docs.fal.ai/model-apis/model-endpoints/queue - Queue API
-- https://fal.ai/models/fal-ai/minimax/hailuo-02/standard/image-to-video - Model pages
-- https://fal.ai/models/fal-ai/topaz/upscale/video - Video upscaling
+- https://fal.ai/explore/fal-ai/minimax/hailuo-02/standard/image-to-video - Model pages
+- https://fal.ai/explore/fal-ai/topaz/upscale/video - Video upscaling
 
 ## Updates
 
