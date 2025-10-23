@@ -11,12 +11,14 @@
  * - Service account authentication (Vertex AI) or API key (Google AI Studio)
  *
  * Supported Models:
+ * - gemini-flash-latest: Latest Flash model (AI Studio)
  * - gemini-2.5-flash: Fast, balanced model for most use cases
  * - gemini-2.5-pro: More capable but slower model for complex tasks
  *
- * Required Environment Variables:
- * - GOOGLE_SERVICE_ACCOUNT: Service account JSON (default, for Vertex AI)
- * - GEMINI_API_KEY: Google AI Studio API key (fallback)
+ * Required Environment Variables (priority order):
+ * - AISTUDIO_API_KEY: Google AI Studio API key (preferred, supports "latest" aliases)
+ * - GEMINI_API_KEY: Google AI Studio API key (alternative)
+ * - GOOGLE_SERVICE_ACCOUNT: Service account JSON (fallback, for Vertex AI)
  *
  * @see https://ai.google.dev/gemini-api/docs
  */
@@ -33,13 +35,20 @@ type AIClient =
 
 /**
  * Creates an AI client instance.
- * Uses GOOGLE_SERVICE_ACCOUNT by default (Vertex AI), falls back to GEMINI_API_KEY (Google AI Studio).
+ * Priority: AISTUDIO_API_KEY > GEMINI_API_KEY > GOOGLE_SERVICE_ACCOUNT
  *
  * @returns Configured AI client
- * @throws Error if neither authentication method is available
+ * @throws Error if no authentication method is available
  */
 export async function makeAIClient(): Promise<AIClient> {
-  // Try service account first (default, already configured in production)
+  // Try AI Studio API key first (supports "latest" model aliases)
+  const aiStudioKey = process.env.AISTUDIO_API_KEY || process.env.GEMINI_API_KEY;
+
+  if (aiStudioKey) {
+    return { type: 'studio', client: new GoogleGenerativeAI(aiStudioKey) };
+  }
+
+  // Fallback to service account (Vertex AI)
   const serviceAccount = process.env.GOOGLE_SERVICE_ACCOUNT;
 
   if (serviceAccount) {
@@ -74,14 +83,7 @@ export async function makeAIClient(): Promise<AIClient> {
     }
   }
 
-  // Fallback to API key (Google AI Studio)
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  if (apiKey) {
-    return { type: 'studio', client: new GoogleGenerativeAI(apiKey) };
-  }
-
-  throw new Error('Either GOOGLE_SERVICE_ACCOUNT or GEMINI_API_KEY environment variable is required');
+  throw new Error('Either AISTUDIO_API_KEY, GEMINI_API_KEY, or GOOGLE_SERVICE_ACCOUNT environment variable is required');
 }
 
 /**
@@ -154,9 +156,6 @@ export async function chat(params: {
 }) {
   const aiClient = await makeAIClient();
 
-  // Normalize model name for Vertex AI compatibility
-  const normalizedModel = normalizeModelName(params.model);
-
   // Send message with timeout and retry logic
   const maxRetries = 3;
   const timeout = 60000; // 60 seconds
@@ -164,9 +163,10 @@ export async function chat(params: {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       if (aiClient.type === 'vertex') {
-        // Use Vertex AI SDK
+        // Use Vertex AI SDK - normalize model name for compatibility
+        const normalizedModel = normalizeModelName(params.model);
         const model = aiClient.client.getGenerativeModel({
-          model: params.model,
+          model: normalizedModel,
         });
 
         // Build message parts for Vertex AI

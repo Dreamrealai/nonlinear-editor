@@ -54,11 +54,11 @@ export async function POST(
       .from('frames')
       .getPublicUrl(frame.storage_path.replace('supabase://frames/', ''));
 
-    // Initialize Gemini
-    const apiKey = process.env.GEMINI_API_KEY;
+    // Initialize Gemini (check both AISTUDIO_API_KEY and GEMINI_API_KEY)
+    const apiKey = process.env.AISTUDIO_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'Gemini API key not configured' },
+        { error: 'Gemini API key not configured. Please set AISTUDIO_API_KEY or GEMINI_API_KEY environment variable.' },
         { status: 503 }
       );
     }

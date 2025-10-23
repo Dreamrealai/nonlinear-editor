@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
           {
             error: 'AI service not configured',
             details: chatError.message,
-            help: 'Please configure GOOGLE_SERVICE_ACCOUNT or GEMINI_API_KEY in environment variables'
+            help: 'Please configure GOOGLE_SERVICE_ACCOUNT, AISTUDIO_API_KEY, or GEMINI_API_KEY in environment variables'
           },
           { status: 503 }
         );
