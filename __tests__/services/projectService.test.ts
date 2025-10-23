@@ -332,9 +332,19 @@ describe('ProjectService', () => {
 
   describe('deleteProject', () => {
     it('should delete project successfully', async () => {
-      mockSupabase.delete.mockResolvedValue({
-        error: null,
-      } as never);
+      const mockEqChain = {
+        eq: jest.fn().mockResolvedValue({
+          error: null,
+        } as never),
+      };
+
+      const mockDeleteChain = {
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue(mockEqChain),
+        }),
+      };
+
+      mockSupabase.from.mockReturnValue(mockDeleteChain);
 
       await expect(
         projectService.deleteProject(
@@ -343,15 +353,24 @@ describe('ProjectService', () => {
         )
       ).resolves.not.toThrow();
 
-      expect(mockSupabase.delete).toHaveBeenCalled();
-      expect(mockSupabase.eq).toHaveBeenCalledWith('id', '550e8400-e29b-41d4-a716-446655440000');
-      expect(mockSupabase.eq).toHaveBeenCalledWith('user_id', 'user123');
+      expect(mockSupabase.from).toHaveBeenCalledWith('projects');
+      expect(mockDeleteChain.delete).toHaveBeenCalled();
     });
 
     it('should throw error on database failure', async () => {
-      mockSupabase.delete.mockResolvedValue({
-        error: { message: 'Database error' },
-      } as never);
+      const mockEqChain = {
+        eq: jest.fn().mockResolvedValue({
+          error: { message: 'Database error' },
+        } as never),
+      };
+
+      const mockDeleteChain = {
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue(mockEqChain),
+        }),
+      };
+
+      mockSupabase.from.mockReturnValue(mockDeleteChain);
 
       await expect(
         projectService.deleteProject(

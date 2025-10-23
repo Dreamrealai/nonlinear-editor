@@ -32,6 +32,7 @@ const customJestConfig = {
   testPathIgnorePatterns: [
     '/node_modules/',
     '/.next/',
+    '/e2e/',
   ],
   transformIgnorePatterns: [
     '/node_modules/',

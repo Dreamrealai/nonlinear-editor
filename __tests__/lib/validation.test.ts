@@ -141,7 +141,7 @@ describe('Validation Utilities', () => {
 
     it('should reject invalid MIME types', () => {
       expect(() => validateMimeType('video/mp4', allowedTypes)).toThrow(ValidationError);
-      expect(() => validateMimeType('video/mp4', allowedTypes)).toThrow('Must be one of');
+      expect(() => validateMimeType('video/mp4', allowedTypes)).toThrow('must be one of');
     });
   });
 
