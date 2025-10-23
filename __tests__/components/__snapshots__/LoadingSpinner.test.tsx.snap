@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`LoadingSpinner Snapshot Consistency should maintain structure with all props 1`] = `
+<div
+  class="flex items-center gap-2 custom-spinner"
+>
+  <div
+    aria-label="Loading"
+    class="animate-spin rounded-full border-gray-300 border-t-blue-600 w-8 h-8 border-3"
+    role="status"
+  />
+  <span
+    class="text-sm text-gray-600"
+  >
+    Loading data...
+  </span>
+</div>
+`;
+
+exports[`LoadingSpinner Snapshot Consistency should maintain structure with default props 1`] = `
+<div
+  class="flex items-center gap-2"
+>
+  <div
+    aria-label="Loading"
+    class="animate-spin rounded-full border-gray-300 border-t-blue-600 w-6 h-6 border-2"
+    role="status"
+  />
+</div>
+`;
