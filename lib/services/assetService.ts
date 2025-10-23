@@ -93,9 +93,9 @@ export class AssetService {
       }
 
       // Get public URL
-      const { data: { publicUrl } } = this.supabase.storage
-        .from('assets')
-        .getPublicUrl(storagePath);
+      const {
+        data: { publicUrl },
+      } = this.supabase.storage.from('assets').getPublicUrl(storagePath);
 
       // Create asset record
       const assetId = uuid();
@@ -134,7 +134,7 @@ export class AssetService {
               userId,
               projectId,
               filename,
-              message: 'Failed to clean up storage after DB insert failure'
+              message: 'Failed to clean up storage after DB insert failure',
             },
           });
         }
@@ -191,6 +191,70 @@ export class AssetService {
         category: ErrorCategory.DATABASE,
         severity: ErrorSeverity.MEDIUM,
         context: { projectId, userId },
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get paginated assets for a project
+   */
+  async getProjectAssetsPaginated(
+    projectId: string,
+    userId: string,
+    page: number = 0,
+    pageSize: number = 50
+  ): Promise<{ assets: Asset[]; totalCount: number; totalPages: number }> {
+    try {
+      validateUUID(projectId, 'Project ID');
+
+      // Validate pagination parameters
+      if (page < 0 || !Number.isInteger(page)) {
+        throw new Error('Invalid page number. Must be a non-negative integer.');
+      }
+
+      if (pageSize < 1 || pageSize > 100 || !Number.isInteger(pageSize)) {
+        throw new Error('Invalid page size. Must be between 1 and 100.');
+      }
+
+      // Calculate range
+      const rangeStart = page * pageSize;
+      const rangeEnd = rangeStart + pageSize - 1;
+
+      const {
+        data: assets,
+        error: dbError,
+        count,
+      } = await this.supabase
+        .from('assets')
+        .select('*', { count: 'exact' })
+        .eq('project_id', projectId)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .range(rangeStart, rangeEnd);
+
+      if (dbError) {
+        trackError(dbError, {
+          category: ErrorCategory.DATABASE,
+          severity: ErrorSeverity.MEDIUM,
+          context: { projectId, userId, page, pageSize },
+        });
+        throw new Error(`Failed to fetch assets: ${dbError.message}`);
+      }
+
+      const totalCount = count ?? 0;
+      const totalPages = Math.ceil(totalCount / pageSize);
+
+      return {
+        assets: (assets || []) as Asset[],
+        totalCount,
+        totalPages,
+      };
+    } catch (error) {
+      trackError(error, {
+        category: ErrorCategory.DATABASE,
+        severity: ErrorSeverity.MEDIUM,
+        context: { projectId, userId, page, pageSize },
       });
       throw error;
     }
@@ -298,5 +362,80 @@ export class AssetService {
     }
 
     return assets;
+  }
+
+  /**
+   * Get a single asset by ID
+   */
+  async getAssetById(assetId: string, userId: string): Promise<Asset | null> {
+    try {
+      validateUUID(assetId, 'Asset ID');
+
+      const { data: asset, error: dbError } = await this.supabase
+        .from('assets')
+        .select('*')
+        .eq('id', assetId)
+        .eq('user_id', userId)
+        .single();
+
+      if (dbError) {
+        trackError(dbError, {
+          category: ErrorCategory.DATABASE,
+          severity: ErrorSeverity.MEDIUM,
+          context: { assetId, userId },
+        });
+        // Return null for not found, throw for other errors
+        if (dbError.code === 'PGRST116') {
+          return null;
+        }
+        throw new Error(`Failed to fetch asset: ${dbError.message}`);
+      }
+
+      return asset as Asset;
+    } catch (error) {
+      trackError(error, {
+        category: ErrorCategory.DATABASE,
+        severity: ErrorSeverity.MEDIUM,
+        context: { assetId, userId },
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get all assets for a user (across all projects)
+   */
+  async getUserAssets(userId: string, type?: 'image' | 'video' | 'audio'): Promise<Asset[]> {
+    try {
+      let query = this.supabase
+        .from('assets')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (type) {
+        query = query.eq('type', type);
+      }
+
+      const { data: assets, error: dbError } = await query;
+
+      if (dbError) {
+        trackError(dbError, {
+          category: ErrorCategory.DATABASE,
+          severity: ErrorSeverity.MEDIUM,
+          context: { userId, type },
+        });
+        throw new Error(`Failed to fetch user assets: ${dbError.message}`);
+      }
+
+      return (assets || []) as Asset[];
+    } catch (error) {
+      trackError(error, {
+        category: ErrorCategory.DATABASE,
+        severity: ErrorSeverity.MEDIUM,
+        context: { userId, type },
+      });
+      throw error;
+    }
   }
 }

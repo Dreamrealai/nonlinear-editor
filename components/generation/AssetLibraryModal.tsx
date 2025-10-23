@@ -25,21 +25,35 @@ interface AssetLibraryModalProps {
   onClose: () => void;
 }
 
-export default function AssetLibraryModal({ projectId, onSelect, onClose }: AssetLibraryModalProps) {
+export default function AssetLibraryModal({
+  projectId,
+  onSelect,
+  onClose,
+}: AssetLibraryModalProps) {
   const [assets, setAssets] = useState<ImageAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 20;
 
   useEffect(() => {
     const fetchAssets = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/assets?projectId=${projectId}&type=image`);
+        const res = await fetch(
+          `/api/assets?projectId=${projectId}&type=image&page=${currentPage}&pageSize=${pageSize}`
+        );
         if (!res.ok) {
           throw new Error('Failed to fetch assets');
         }
         const data = await res.json();
         setAssets(data.assets || []);
+        if (data.pagination) {
+          setTotalPages(data.pagination.totalPages);
+          setTotalCount(data.pagination.totalCount);
+        }
       } catch (err) {
         const { browserLogger } = await import('@/lib/browserLogger');
         browserLogger.error({ error: err, projectId }, 'Error fetching assets');
@@ -50,7 +64,7 @@ export default function AssetLibraryModal({ projectId, onSelect, onClose }: Asse
     };
 
     fetchAssets();
-  }, [projectId]);
+  }, [projectId, currentPage]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -63,7 +77,12 @@ export default function AssetLibraryModal({ projectId, onSelect, onClose }: Asse
             className="rounded-md p-2 text-neutral-500 hover:bg-neutral-100 transition-colors"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -80,8 +99,18 @@ export default function AssetLibraryModal({ projectId, onSelect, onClose }: Asse
             </div>
           ) : assets.length === 0 ? (
             <div className="text-center py-12">
-              <svg className="mx-auto h-12 w-12 text-neutral-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <svg
+                className="mx-auto h-12 w-12 text-neutral-400 mb-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
               </svg>
               <p className="text-sm font-medium text-neutral-900 mb-1">No images found</p>
               <p className="text-xs text-neutral-500">Upload an image to get started</p>
@@ -110,12 +139,39 @@ export default function AssetLibraryModal({ projectId, onSelect, onClose }: Asse
 
         {/* Footer */}
         <div className="border-t border-neutral-200 p-6">
-          <button
-            onClick={onClose}
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
-          >
-            Cancel
-          </button>
+          <div className="flex items-center justify-between">
+            <button
+              onClick={onClose}
+              className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+            >
+              Cancel
+            </button>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-4">
+                <div className="text-xs text-neutral-600">
+                  Page {currentPage + 1} of {totalPages} ({totalCount} total)
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
+                    disabled={currentPage === 0 || loading}
+                    className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))}
+                    disabled={currentPage >= totalPages - 1 || loading}
+                    className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

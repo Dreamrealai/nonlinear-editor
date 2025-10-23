@@ -81,242 +81,96 @@ const parseGcsUri = (uri: string) => {
  * }
  */
 export const GET = withErrorHandling(async (req: NextRequest) => {
-    const supabase = await createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+  // Check authentication
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      return unauthorizedResponse();
-    }
+  if (authError || !user) {
+    return unauthorizedResponse();
+  }
 
-    // TIER 3 RATE LIMITING: Status/polling operations (30/min)
-    const rateLimitResult = await checkRateLimit(
-      `video-status:${user.id}`,
-      RATE_LIMITS.tier3_status_read
-    );
+  // TIER 3 RATE LIMITING: Status/polling operations (30/min)
+  const rateLimitResult = await checkRateLimit(
+    `video-status:${user.id}`,
+    RATE_LIMITS.tier3_status_read
+  );
 
-    if (!rateLimitResult.success) {
-      serverLogger.warn({
+  if (!rateLimitResult.success) {
+    serverLogger.warn(
+      {
         event: 'video.status.rate_limited',
         userId: user.id,
         limit: rateLimitResult.limit,
-      }, 'Video status check rate limit exceeded');
+      },
+      'Video status check rate limit exceeded'
+    );
 
-      return NextResponse.json(
-        {
-          error: 'Rate limit exceeded',
-          limit: rateLimitResult.limit,
-          remaining: rateLimitResult.remaining,
-          resetAt: rateLimitResult.resetAt,
+    return NextResponse.json(
+      {
+        error: 'Rate limit exceeded',
+        limit: rateLimitResult.limit,
+        remaining: rateLimitResult.remaining,
+        resetAt: rateLimitResult.resetAt,
+      },
+      {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+          'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+          'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
         },
-        {
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
-            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-            'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
-          },
-        }
-      );
+      }
+    );
+  }
+
+  const { searchParams } = new URL(req.url);
+  const operationName = searchParams.get('operationName');
+  const projectId = searchParams.get('projectId');
+
+  if (!operationName) {
+    return validationError('Operation name is required', 'operationName');
+  }
+
+  if (!projectId) {
+    return validationError('Project ID is required', 'projectId');
+  }
+
+  // Determine if this is a FAL operation or Veo operation
+  const isFalOperation = operationName.startsWith('fal:');
+
+  if (isFalOperation) {
+    // Parse FAL operation name: fal:endpoint:requestId
+    const parts = operationName.split(':');
+    if (parts.length < 3) {
+      return validationError('Invalid FAL operation name format', 'operationName');
     }
+    const endpoint = parts.slice(1, -1).join(':'); // Reconstruct endpoint (may contain colons)
+    const requestId = parts[parts.length - 1];
 
-    const { searchParams } = new URL(req.url);
-    const operationName = searchParams.get('operationName');
-    const projectId = searchParams.get('projectId');
+    // Check FAL operation status
+    const falResult = await checkFalVideoStatus(requestId, endpoint);
 
-    if (!operationName) {
-      return validationError('Operation name is required', 'operationName');
-    }
+    if (falResult.done && falResult.result) {
+      // Download video from FAL URL and upload to Supabase
+      const videoUrl = falResult.result.video.url;
 
-    if (!projectId) {
-      return validationError('Project ID is required', 'projectId');
-    }
-
-    // Determine if this is a FAL operation or Veo operation
-    const isFalOperation = operationName.startsWith('fal:');
-
-    if (isFalOperation) {
-      // Parse FAL operation name: fal:endpoint:requestId
-      const parts = operationName.split(':');
-      if (parts.length < 3) {
-        return validationError('Invalid FAL operation name format', 'operationName');
-      }
-      const endpoint = parts.slice(1, -1).join(':'); // Reconstruct endpoint (may contain colons)
-      const requestId = parts[parts.length - 1];
-
-      // Check FAL operation status
-      const falResult = await checkFalVideoStatus(requestId, endpoint);
-
-      if (falResult.done && falResult.result) {
-        // Download video from FAL URL and upload to Supabase
-        const videoUrl = falResult.result.video.url;
-
-        const videoResponse = await fetch(videoUrl);
-        if (!videoResponse.ok) {
-          throw new Error(`Failed to download FAL video: ${videoResponse.status}`);
-        }
-
-        const videoBinary = Buffer.from(await videoResponse.arrayBuffer());
-        const fileName = `${uuidv4()}.mp4`;
-        const storagePath = `${user.id}/${projectId}/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('assets')
-          .upload(storagePath, videoBinary, {
-            contentType: falResult.result.video.content_type || 'video/mp4',
-            upsert: false,
-          });
-
-        if (uploadError) {
-          throw new Error(`Storage upload failed: ${uploadError.message}`);
-        }
-
-        const {
-          data: { publicUrl: rawPublicUrl },
-        } = supabase.storage.from('assets').getPublicUrl(storagePath);
-        const publicUrl = ensureHttpsProtocol(rawPublicUrl);
-
-        const storageUrl = normalizeStorageUrl('assets', storagePath);
-
-        const { data: asset, error: assetError } = await supabase
-          .from('assets')
-          .insert({
-            user_id: user.id,
-            project_id: projectId,
-            type: 'video',
-            source: 'genai',
-            storage_url: storageUrl,
-            metadata: {
-              filename: fileName,
-              mimeType: falResult.result.video.content_type || 'video/mp4',
-              sourceUrl: publicUrl,
-              generator: endpoint.includes('seedance') ? 'seedance-pro' : 'minimax-video-01-live',
-            },
-          })
-          .select()
-          .single();
-
-        if (assetError) {
-          // Clean up uploaded file if database insert fails
-          const { error: cleanupError } = await supabase.storage
-            .from('assets')
-            .remove([storagePath]);
-
-          if (cleanupError) {
-            serverLogger.error({
-              cleanupError,
-              storagePath,
-              projectId,
-              event: 'video.status.cleanup_failed'
-            }, 'Failed to clean up storage after DB insert failure');
-          }
-
-          throw new Error(`Asset creation failed: ${assetError.message}`);
-        }
-
-        // Log to activity history
-        await supabase.from('user_activity_history').insert({
-          user_id: user.id,
-          project_id: projectId,
-          activity_type: 'video_generation',
-          title: 'Video Generated',
-          model: endpoint.includes('seedance') ? 'seedance-pro' : 'minimax-video-01-live',
-          asset_id: asset.id,
-          metadata: {
-            mimeType: falResult.result.video.content_type || 'video/mp4',
-          },
-        });
-
-        return NextResponse.json({
-          done: true,
-          asset,
-          storageUrl: publicUrl,
-        });
+      const videoResponse = await fetch(videoUrl);
+      if (!videoResponse.ok) {
+        throw new Error(`Failed to download FAL video: ${videoResponse.status}`);
       }
 
-      if (falResult.error) {
-        return NextResponse.json({
-          done: true,
-          error: falResult.error,
-        });
-      }
-
-      // Still processing
-      return NextResponse.json({
-        done: false,
-        progress: 0,
-      });
-    }
-
-    // Check Veo operation status
-    const result = await checkOperationStatus(operationName);
-
-    if (result.done && result.response) {
-      const videoArtifact = result.response.videos?.[0];
-      const mimeType = videoArtifact?.mimeType || 'video/mp4';
-      let videoBinary: Buffer | null = null;
-
-      if (videoArtifact?.bytesBase64Encoded) {
-        videoBinary = Buffer.from(videoArtifact.bytesBase64Encoded, 'base64');
-      }
-
-      const gcsUri = videoArtifact?.gcsUri;
-
-      if (!videoBinary && gcsUri) {
-        const parsed = parseGcsUri(gcsUri);
-        if (!parsed) {
-          throw new Error('Invalid GCS URI returned by Veo');
-        }
-
-        const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT;
-        if (!serviceAccountJson) {
-          throw new Error('GOOGLE_SERVICE_ACCOUNT environment variable is required to download Veo output');
-        }
-
-        const serviceAccount = JSON.parse(serviceAccountJson);
-        const auth = new GoogleAuth({
-          credentials: serviceAccount,
-          scopes: ['https://www.googleapis.com/auth/cloud-platform'],
-        });
-
-        const client = await auth.getClient();
-        const { token } = await client.getAccessToken();
-
-        if (!token) {
-          throw new Error('Failed to obtain Google access token');
-        }
-
-        const downloadUrl = `https://storage.googleapis.com/storage/v1/b/${encodeURIComponent(parsed.bucket)}/o/${encodeURIComponent(parsed.objectPath)}?alt=media`;
-        const downloadResponse = await fetch(downloadUrl, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!downloadResponse.ok) {
-          const detail = await downloadResponse.text().catch(() => '');
-          throw new Error(`Failed to download Veo video: ${downloadResponse.status} ${detail}`.trim());
-        }
-
-        const arrayBuffer = await downloadResponse.arrayBuffer();
-        videoBinary = Buffer.from(arrayBuffer);
-      }
-
-      if (!videoBinary) {
-        throw new Error('No downloadable video returned by Veo operation');
-      }
-
+      const videoBinary = Buffer.from(await videoResponse.arrayBuffer());
       const fileName = `${uuidv4()}.mp4`;
       const storagePath = `${user.id}/${projectId}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('assets')
         .upload(storagePath, videoBinary, {
-          contentType: mimeType,
+          contentType: falResult.result.video.content_type || 'video/mp4',
           upsert: false,
         });
 
@@ -341,9 +195,9 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
           storage_url: storageUrl,
           metadata: {
             filename: fileName,
-            mimeType,
+            mimeType: falResult.result.video.content_type || 'video/mp4',
             sourceUrl: publicUrl,
-            generator: 'veo-3-1',
+            generator: endpoint.includes('seedance') ? 'seedance-pro' : 'minimax-video-01-live',
           },
         })
         .select()
@@ -351,20 +205,18 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
 
       if (assetError) {
         // Clean up uploaded file if database insert fails
-        const { error: cleanupError } = await supabase.storage
-          .from('assets')
-          .remove([storagePath]);
+        const { error: cleanupError } = await supabase.storage.from('assets').remove([storagePath]);
 
         if (cleanupError) {
-          serverLogger.error({
-            cleanupError,
-            assetError,
-            storagePath,
-            projectId,
-            event: 'video.status.veo_cleanup_failed'
-          }, 'Failed to clean up storage after DB insert failure');
-          // Return error with cleanup failure context
-          throw new Error(`Asset creation failed: ${assetError.message}. Additionally, failed to clean up storage: ${cleanupError.message}`);
+          serverLogger.error(
+            {
+              cleanupError,
+              storagePath,
+              projectId,
+              event: 'video.status.cleanup_failed',
+            },
+            'Failed to clean up storage after DB insert failure'
+          );
         }
 
         throw new Error(`Asset creation failed: ${assetError.message}`);
@@ -376,10 +228,10 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
         project_id: projectId,
         activity_type: 'video_generation',
         title: 'Video Generated',
-        model: 'veo-3-1',
+        model: endpoint.includes('seedance') ? 'seedance-pro' : 'minimax-video-01-live',
         asset_id: asset.id,
         metadata: {
-          mimeType,
+          mimeType: falResult.result.video.content_type || 'video/mp4',
         },
       });
 
@@ -390,10 +242,169 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
       });
     }
 
-    // Still processing or error
+    if (falResult.error) {
+      return NextResponse.json({
+        done: true,
+        error: falResult.error,
+      });
+    }
+
+    // Still processing
     return NextResponse.json({
-      done: result.done,
-      progress: result.metadata?.progressPercentage || 0,
-      error: result.error?.message,
+      done: false,
+      progress: 0,
     });
+  }
+
+  // Check Veo operation status
+  const result = await checkOperationStatus(operationName);
+
+  if (result.done && result.response) {
+    const videoArtifact = result.response.videos?.[0];
+    const mimeType = videoArtifact?.mimeType || 'video/mp4';
+    let videoBinary: Buffer | null = null;
+
+    if (videoArtifact?.bytesBase64Encoded) {
+      videoBinary = Buffer.from(videoArtifact.bytesBase64Encoded, 'base64');
+    }
+
+    const gcsUri = videoArtifact?.gcsUri;
+
+    if (!videoBinary && gcsUri) {
+      const parsed = parseGcsUri(gcsUri);
+      if (!parsed) {
+        throw new Error('Invalid GCS URI returned by Veo');
+      }
+
+      const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT;
+      if (!serviceAccountJson) {
+        throw new Error(
+          'GOOGLE_SERVICE_ACCOUNT environment variable is required to download Veo output'
+        );
+      }
+
+      const serviceAccount = JSON.parse(serviceAccountJson);
+      const auth = new GoogleAuth({
+        credentials: serviceAccount,
+        scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+      });
+
+      const client = await auth.getClient();
+      const { token } = await client.getAccessToken();
+
+      if (!token) {
+        throw new Error('Failed to obtain Google access token');
+      }
+
+      const downloadUrl = `https://storage.googleapis.com/storage/v1/b/${encodeURIComponent(parsed.bucket)}/o/${encodeURIComponent(parsed.objectPath)}?alt=media`;
+      const downloadResponse = await fetch(downloadUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!downloadResponse.ok) {
+        const detail = await downloadResponse.text().catch(() => '');
+        throw new Error(
+          `Failed to download Veo video: ${downloadResponse.status} ${detail}`.trim()
+        );
+      }
+
+      const arrayBuffer = await downloadResponse.arrayBuffer();
+      videoBinary = Buffer.from(arrayBuffer);
+    }
+
+    if (!videoBinary) {
+      throw new Error('No downloadable video returned by Veo operation');
+    }
+
+    const fileName = `${uuidv4()}.mp4`;
+    const storagePath = `${user.id}/${projectId}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('assets')
+      .upload(storagePath, videoBinary, {
+        contentType: mimeType,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      throw new Error(`Storage upload failed: ${uploadError.message}`);
+    }
+
+    const {
+      data: { publicUrl: rawPublicUrl },
+    } = supabase.storage.from('assets').getPublicUrl(storagePath);
+    const publicUrl = ensureHttpsProtocol(rawPublicUrl);
+
+    const storageUrl = normalizeStorageUrl('assets', storagePath);
+
+    const { data: asset, error: assetError } = await supabase
+      .from('assets')
+      .insert({
+        user_id: user.id,
+        project_id: projectId,
+        type: 'video',
+        source: 'genai',
+        storage_url: storageUrl,
+        metadata: {
+          filename: fileName,
+          mimeType,
+          sourceUrl: publicUrl,
+          generator: 'veo',
+        },
+      })
+      .select()
+      .single();
+
+    if (assetError) {
+      // Clean up uploaded file if database insert fails
+      const { error: cleanupError } = await supabase.storage.from('assets').remove([storagePath]);
+
+      if (cleanupError) {
+        serverLogger.error(
+          {
+            cleanupError,
+            assetError,
+            storagePath,
+            projectId,
+            event: 'video.status.veo_cleanup_failed',
+          },
+          'Failed to clean up storage after DB insert failure'
+        );
+        // Return error with cleanup failure context
+        throw new Error(
+          `Asset creation failed: ${assetError.message}. Additionally, failed to clean up storage: ${cleanupError.message}`
+        );
+      }
+
+      throw new Error(`Asset creation failed: ${assetError.message}`);
+    }
+
+    // Log to activity history
+    await supabase.from('user_activity_history').insert({
+      user_id: user.id,
+      project_id: projectId,
+      activity_type: 'video_generation',
+      title: 'Video Generated',
+      model: 'veo',
+      asset_id: asset.id,
+      metadata: {
+        mimeType,
+      },
+    });
+
+    return NextResponse.json({
+      done: true,
+      asset,
+      storageUrl: publicUrl,
+    });
+  }
+
+  // Still processing or error
+  return NextResponse.json({
+    done: result.done,
+    progress: result.metadata?.progressPercentage || 0,
+    error: result.error?.message,
+  });
 });

@@ -116,7 +116,9 @@ export function successResponse<T = unknown>(
  * @example
  * if (!user) return unauthorizedResponse();
  */
-export function unauthorizedResponse(message: string = 'Unauthorized'): NextResponse<ErrorResponse> {
+export function unauthorizedResponse(
+  message: string = 'Unauthorized'
+): NextResponse<ErrorResponse> {
   return errorResponse(message, HttpStatusCode.UNAUTHORIZED);
 }
 
@@ -273,10 +275,15 @@ export function withErrorHandling<T extends unknown[]>(
       if (typeof process !== 'undefined' && process.env) {
         const { serverLogger } = await import('../serverLogger');
         serverLogger.error({ error }, 'Handler error');
+      } else {
+        console.error('Handler error:', error);
       }
 
       if (error instanceof Error) {
-        return internalServerError(error.message, error.stack);
+        const isDevelopment = process?.env?.NODE_ENV !== 'production';
+        const publicMessage = isDevelopment ? error.message : undefined;
+        const details = isDevelopment ? { name: error.name, stack: error.stack } : undefined;
+        return internalServerError(publicMessage, details);
       }
 
       return internalServerError();

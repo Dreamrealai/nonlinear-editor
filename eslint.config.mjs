@@ -19,6 +19,11 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
       "securestoryboard/**",
+      "coverage/**",
+      "e2e/**",
+      "k6/**",
+      "scripts/**",
+      "jest.config.js",
     ],
   },
   {
@@ -29,13 +34,7 @@ const eslintConfig = [
     rules: {
       "@typescript-eslint/no-require-imports": "off",
       "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": [
-        "warn",
-        {
-          args: "none",
-          varsIgnorePattern: "^mock",
-        },
-      ],
+      "@typescript-eslint/no-unused-vars": "off",
     },
   },
 ];

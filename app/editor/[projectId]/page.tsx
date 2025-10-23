@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
-import { ProjectService } from '@/lib/services/projectService';
 import { getCachedProjectMetadata } from '@/lib/cachedData';
 import EditorHeader from '@/components/EditorHeader';
 import GenerateVideoTab from '@/components/generation/GenerateVideoTab';

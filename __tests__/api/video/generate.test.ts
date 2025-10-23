@@ -56,9 +56,7 @@ jest.mock('@/lib/api/response', () => {
     });
 
   return {
-    unauthorizedResponse: jest.fn(() =>
-      jsonResponse({ error: 'Unauthorized' }, { status: 401 })
-    ),
+    unauthorizedResponse: jest.fn(() => jsonResponse({ error: 'Unauthorized' }, { status: 401 })),
     errorResponse: jest.fn((message: string, status: number) =>
       jsonResponse({ error: message }, { status })
     ),
@@ -73,12 +71,12 @@ jest.mock('@/lib/api/response', () => {
 });
 
 jest.mock('@/lib/api/validation', () => ({
-  validateString: jest.fn((value: any) => ({ valid: true })),
-  validateUUID: jest.fn((value: any) => ({ valid: true })),
-  validateAspectRatio: jest.fn((value: any) => ({ valid: true })),
-  validateDuration: jest.fn((value: any) => ({ valid: true })),
-  validateSeed: jest.fn((value: any) => ({ valid: true })),
-  validateSampleCount: jest.fn((value: any) => ({ valid: true })),
+  validateString: jest.fn((_value: unknown) => ({ valid: true })),
+  validateUUID: jest.fn((_value: unknown) => ({ valid: true })),
+  validateAspectRatio: jest.fn((_value: unknown) => ({ valid: true })),
+  validateDuration: jest.fn((_value: unknown) => ({ valid: true })),
+  validateSeed: jest.fn((_value: unknown) => ({ valid: true })),
+  validateSampleCount: jest.fn((_value: unknown) => ({ valid: true })),
   validateAll: jest.fn(() => ({ valid: true, errors: [] })),
 }));
 
@@ -166,7 +164,7 @@ describe('POST /api/video/generate', () => {
         body: JSON.stringify({
           prompt: 'test prompt',
           projectId: 'test-project-id',
-          model: 'veo-3-1',
+          model: 'veo-3.1-generate-preview',
         }),
       });
 
@@ -215,7 +213,7 @@ describe('POST /api/video/generate', () => {
         body: JSON.stringify({
           prompt: 'test prompt',
           projectId: 'test-project-id',
-          model: 'veo-3-1',
+          model: 'veo-3.1-generate-preview',
           aspectRatio: '16:9',
           duration: 5,
         }),
@@ -287,7 +285,7 @@ describe('POST /api/video/generate', () => {
         body: JSON.stringify({
           prompt: 'A beautiful sunset',
           projectId: 'test-project-id',
-          model: 'veo-3-1',
+          model: 'veo-3.1-generate-preview',
           aspectRatio: '16:9',
           duration: 5,
         }),
@@ -302,7 +300,7 @@ describe('POST /api/video/generate', () => {
       expect(generateVideo).toHaveBeenCalledWith(
         expect.objectContaining({
           prompt: 'A beautiful sunset',
-          model: 'veo-3-1',
+          model: 'veo-3.1-generate-preview',
           aspectRatio: '16:9',
           duration: 5,
         })
@@ -322,7 +320,7 @@ describe('POST /api/video/generate', () => {
         body: JSON.stringify({
           prompt: 'Test video',
           projectId: 'test-project-id',
-          model: 'veo-3-1',
+          model: 'veo-3.1-generate-preview',
           aspectRatio: '16:9',
           duration: 5,
           resolution: '1080p',
@@ -341,7 +339,7 @@ describe('POST /api/video/generate', () => {
       expect(generateVideo).toHaveBeenCalledWith(
         expect.objectContaining({
           prompt: 'Test video',
-          model: 'veo-3-1',
+          model: 'veo-3.1-generate-preview',
           negativePrompt: 'blurry, low quality',
           personGeneration: true,
           enhancePrompt: true,
@@ -414,8 +412,10 @@ describe('POST /api/video/generate', () => {
   describe('Image-to-Video Generation', () => {
     it('should generate video from image asset', async () => {
       mockAuthenticatedUser(mockSupabase);
-      const { verifyProjectOwnership, verifyAssetOwnership } =
-        require('@/lib/api/project-verification');
+      const {
+        verifyProjectOwnership,
+        verifyAssetOwnership,
+      } = require('@/lib/api/project-verification');
       verifyProjectOwnership.mockResolvedValue({ hasAccess: true });
 
       const mockAsset = createMockAsset({
@@ -441,7 +441,7 @@ describe('POST /api/video/generate', () => {
         body: JSON.stringify({
           prompt: 'Animate this image',
           projectId: 'test-project-id',
-          model: 'veo-3-1',
+          model: 'veo-3.1-generate-preview',
           imageAssetId: 'image-asset-id',
         }),
       });
@@ -462,8 +462,10 @@ describe('POST /api/video/generate', () => {
 
     it('should return 404 when image asset not found', async () => {
       mockAuthenticatedUser(mockSupabase);
-      const { verifyProjectOwnership, verifyAssetOwnership } =
-        require('@/lib/api/project-verification');
+      const {
+        verifyProjectOwnership,
+        verifyAssetOwnership,
+      } = require('@/lib/api/project-verification');
       verifyProjectOwnership.mockResolvedValue({ hasAccess: true });
       verifyAssetOwnership.mockResolvedValue({
         hasAccess: false,
@@ -500,7 +502,7 @@ describe('POST /api/video/generate', () => {
         body: JSON.stringify({
           prompt: 'test prompt',
           projectId: 'test-project-id',
-          model: 'veo-3-1',
+          model: 'veo-3.1-generate-preview',
         }),
       });
 
@@ -539,7 +541,7 @@ describe('POST /api/video/generate', () => {
         body: JSON.stringify({
           prompt: 'test prompt',
           projectId: 'test-project-id',
-          model: 'veo-3-1',
+          model: 'veo-3.1-generate-preview',
         }),
       });
 

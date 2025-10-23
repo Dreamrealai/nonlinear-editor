@@ -1,122 +1,46 @@
 /**
  * AssetPanel Component
- *
- * Displays and manages assets (videos, images, audio) for a project.
- * Provides upload, delete, and organization functionality with tabbed interface.
+ * Displays and manages project assets (video, audio, images)
  */
 'use client';
 
 import { type ChangeEvent, useRef } from 'react';
+import NextImage from 'next/image';
 import Link from 'next/link';
-import Image from 'next/image';
+import type { AssetRow } from './editorUtils';
+import { extractFileName } from './editorUtils';
 
-/**
- * Metadata associated with media assets.
- */
-export type AssetMetadata = {
-  filename?: string;
-  mimeType?: string;
-  thumbnail?: string;
-  sourceUrl?: string;
-  durationSeconds?: number | null;
-  format?: string;
-  videoCodec?: string;
-  audioCodec?: string;
-  bitrate?: number;
-};
-
-/**
- * Represents a media asset stored in the database.
- */
-export type AssetRow = {
-  id: string;
-  storage_url: string;
-  duration_seconds: number | null;
-  metadata: AssetMetadata | null;
-  rawMetadata: Record<string, unknown> | null;
-  created_at: string | null;
-  type: 'video' | 'audio' | 'image';
-};
-
-interface AssetPanelProps {
-  /** List of all assets */
-  assets: AssetRow[];
-  /** ID of the current project */
+type AssetPanelProps = {
   projectId: string;
-  /** Whether assets are currently loading */
-  loadingAssets: boolean;
-  /** Error message if asset loading failed */
-  assetError: string | null;
-  /** Whether an upload is in progress */
-  uploadPending: boolean;
-  /** Current active tab */
   activeTab: 'video' | 'audio' | 'image';
-  /** Callback when tab changes */
+  assets: AssetRow[];
+  loadingAssets: boolean;
+  assetError: string | null;
+  uploadPending: boolean;
   onTabChange: (tab: 'video' | 'audio' | 'image') => void;
-  /** Callback when file is selected for upload */
-  onFileSelect: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
-  /** Callback when asset is clicked to add to timeline */
-  onAssetAdd: (asset: AssetRow) => Promise<void>;
-  /** Callback when asset delete is requested */
-  onAssetDelete: (asset: AssetRow) => Promise<void>;
-  /** Current page number (0-indexed) */
+  onAssetClick: (asset: AssetRow) => void;
+  onAssetDelete: (asset: AssetRow) => void;
+  onFileSelect: (event: ChangeEvent<HTMLInputElement>) => void;
   currentPage?: number;
-  /** Total number of pages */
   totalPages?: number;
-  /** Total number of assets */
   totalCount?: number;
-  /** Whether there is a next page */
   hasNextPage?: boolean;
-  /** Whether there is a previous page */
   hasPreviousPage?: boolean;
-  /** Load next page */
-  onNextPage?: () => Promise<void>;
-  /** Load previous page */
-  onPreviousPage?: () => Promise<void>;
-}
-
-/**
- * Extracts the file name from a storage URL.
- */
-const extractFileName = (storageUrl: string) => {
-  const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
-  const segments = normalized.split('/');
-  return segments[segments.length - 1] ?? normalized;
+  onNextPage?: () => void;
+  onPreviousPage?: () => void;
 };
 
-/**
- * Extracts the file extension from a filename and returns it in .ext format.
- */
-const extractFileExtension = (filename: string) => {
-  const lastDot = filename.lastIndexOf('.');
-  if (lastDot === -1 || lastDot === filename.length - 1) return '';
-  return filename.slice(lastDot); // Returns .ext format
-};
-
-/**
- * Extracts the file extension from a MIME type (e.g., "video/mp4" -> ".mp4").
- */
-const extractExtensionFromMimeType = (mimeType: string) => {
-  const parts = mimeType.split('/');
-  if (parts.length !== 2) return '';
-  const extension = parts[1];
-  // Handle special cases
-  if (extension === 'quicktime') return '.mov';
-  if (extension === 'x-msvideo') return '.avi';
-  return `.${extension}`;
-};
-
-export default function AssetPanel({
-  assets,
+export function AssetPanel({
   projectId,
+  activeTab,
+  assets,
   loadingAssets,
   assetError,
   uploadPending,
-  activeTab,
   onTabChange,
-  onFileSelect,
-  onAssetAdd,
+  onAssetClick,
   onAssetDelete,
+  onFileSelect,
   currentPage = 0,
   totalPages = 1,
   totalCount = 0,
@@ -172,7 +96,7 @@ export default function AssetPanel({
               : 'text-neutral-500 hover:text-neutral-700'
           }`}
         >
-          Videos
+          Video
         </button>
         <button
           type="button"
@@ -341,11 +265,11 @@ export default function AssetPanel({
           <div key={asset.id} className="group relative flex flex-col gap-2">
             <button
               type="button"
-              onClick={() => void onAssetAdd(asset)}
+              onClick={() => onAssetClick(asset)}
               className="flex w-full items-center gap-3 rounded-lg border border-transparent bg-neutral-50 px-3 py-2 text-left transition hover:border-neutral-200 hover:bg-white"
             >
               {asset.metadata?.thumbnail ? (
-                <Image
+                <NextImage
                   src={asset.metadata.thumbnail}
                   alt=""
                   width={112}
@@ -363,15 +287,11 @@ export default function AssetPanel({
                   {asset.metadata?.filename ?? extractFileName(asset.storage_url)}
                 </p>
                 <p className="text-neutral-500">
-                  {extractFileExtension(
-                    asset.metadata?.filename ?? extractFileName(asset.storage_url)
-                  ) ||
-                    (asset.metadata?.mimeType
-                      ? extractExtensionFromMimeType(asset.metadata.mimeType)
-                      : '') ||
-                    (asset.metadata?.format && asset.metadata.format.includes('/')
-                      ? extractExtensionFromMimeType(asset.metadata.format)
-                      : asset.metadata?.format) ||
+                  {asset.metadata?.mimeType ??
+                    asset.metadata?.format ??
+                    (asset.metadata?.videoCodec
+                      ? `${asset.metadata.videoCodec}/${asset.metadata.audioCodec ?? 'no audio'}`
+                      : null) ??
                     `${asset.type} file`}
                 </p>
               </div>
@@ -379,11 +299,11 @@ export default function AssetPanel({
 
             {/* Delete button - always visible */}
             <button
-              onClick={() => void onAssetDelete(asset)}
-              className="absolute right-2 top-1 z-10 rounded-md bg-red-500 p-1 text-white shadow-lg transition-all hover:bg-red-600"
+              onClick={() => onAssetDelete(asset)}
+              className="absolute right-2 top-2 z-10 rounded-md bg-red-500 p-1.5 text-white shadow-lg transition-all hover:bg-red-600"
               title="Delete asset"
             >
-              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"

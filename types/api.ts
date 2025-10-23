@@ -231,7 +231,7 @@ export interface SplitAudioRequest {
   projectId: string;
 }
 
-export interface SplitAudioResponse extends Asset {}
+export type SplitAudioResponse = Asset;
 
 export interface UpscaleVideoRequest {
   assetId: string;

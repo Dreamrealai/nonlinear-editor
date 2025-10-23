@@ -142,12 +142,22 @@ export class VideoService {
         };
       } else {
         // Use Google Veo for Google models
+        // Veo only supports 720p and 1080p, filter out 480p if provided
+        const veoSupportedResolutions = ['720p', '1080p'] as const;
+        const resolution =
+          options.resolution &&
+          veoSupportedResolutions.includes(
+            options.resolution as (typeof veoSupportedResolutions)[number]
+          )
+            ? (options.resolution as '720p' | '1080p')
+            : undefined;
+
         const result = await generateVideo({
           prompt: options.prompt,
           model: options.model,
           aspectRatio: options.aspectRatio,
           duration: options.duration,
-          resolution: options.resolution,
+          resolution,
           negativePrompt: options.negativePrompt,
           personGeneration: options.personGeneration,
           enhancePrompt: options.enhancePrompt,

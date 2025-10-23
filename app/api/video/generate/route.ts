@@ -21,7 +21,16 @@ import {
   withErrorHandling,
 } from '@/lib/api/response';
 import { verifyProjectOwnership, verifyAssetOwnership } from '@/lib/api/project-verification';
-import { isFalModel } from '@/lib/config/models';
+
+const MODEL_DEFINITIONS = {
+  'veo-3.1-generate-preview': { provider: 'veo', supportsAudio: true },
+  'veo-3.1-fast-generate-preview': { provider: 'veo', supportsAudio: true },
+  'veo-2.0-generate-001': { provider: 'veo', supportsAudio: false },
+  'seedance-1.0-pro': { provider: 'fal', supportsAudio: false },
+  'minimax-hailuo-02-pro': { provider: 'fal', supportsAudio: false },
+} as const;
+
+type SupportedVideoModel = keyof typeof MODEL_DEFINITIONS;
 
 /**
  * Generate a video from a text prompt using AI models (Google Veo, FAL.ai Seedance, or MiniMax).
@@ -102,71 +111,94 @@ import { isFalModel } from '@/lib/config/models';
 export const POST = withErrorHandling(async (req: NextRequest) => {
   const startTime = Date.now();
 
-  serverLogger.info({
-    event: 'video.generate.request_started',
-  }, 'Video generation request received');
+  serverLogger.info(
+    {
+      event: 'video.generate.request_started',
+    },
+    'Video generation request received'
+  );
 
-    const supabase = await createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+  // Check authentication
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      serverLogger.warn({
+  if (authError || !user) {
+    serverLogger.warn(
+      {
         event: 'video.generate.unauthorized',
         error: authError?.message,
-      }, 'Unauthorized video generation attempt');
-      return unauthorizedResponse();
-    }
+      },
+      'Unauthorized video generation attempt'
+    );
+    return unauthorizedResponse();
+  }
 
-    serverLogger.debug({
+  serverLogger.debug(
+    {
       event: 'video.generate.user_authenticated',
       userId: user.id,
-    }, 'User authenticated for video generation');
+    },
+    'User authenticated for video generation'
+  );
 
-    // TIER 2 RATE LIMITING: Resource creation - video generation (10/min)
-    // Prevents resource exhaustion and controls AI API costs
-    const rateLimitResult = await checkRateLimit(`video-gen:${user.id}`, RATE_LIMITS.tier2_resource_creation);
+  // TIER 2 RATE LIMITING: Resource creation - video generation (10/min)
+  // Prevents resource exhaustion and controls AI API costs
+  const rateLimitResult = await checkRateLimit(
+    `video-gen:${user.id}`,
+    RATE_LIMITS.tier2_resource_creation
+  );
 
-    if (!rateLimitResult.success) {
-      serverLogger.warn({
+  if (!rateLimitResult.success) {
+    serverLogger.warn(
+      {
         event: 'video.generate.rate_limited',
         userId: user.id,
         limit: rateLimitResult.limit,
         remaining: rateLimitResult.remaining,
         resetAt: rateLimitResult.resetAt,
-      }, 'Video generation rate limit exceeded');
-      return rateLimitResponse(rateLimitResult.limit, rateLimitResult.remaining, rateLimitResult.resetAt);
-    }
+      },
+      'Video generation rate limit exceeded'
+    );
+    return rateLimitResponse(
+      rateLimitResult.limit,
+      rateLimitResult.remaining,
+      rateLimitResult.resetAt
+    );
+  }
 
-    serverLogger.debug({
+  serverLogger.debug(
+    {
       event: 'video.generate.rate_limit_ok',
       userId: user.id,
       remaining: rateLimitResult.remaining,
-    }, 'Rate limit check passed');
+    },
+    'Rate limit check passed'
+  );
 
-    const body = await req.json();
-    const {
-      prompt,
-      model,
-      aspectRatio,
-      duration,
-      resolution,
-      negativePrompt,
-      personGeneration,
-      enhancePrompt,
-      generateAudio,
-      seed,
-      sampleCount,
-      compressionQuality,
-      projectId,
-      imageAssetId,
-    } = body;
+  const body = await req.json();
+  const {
+    prompt,
+    model,
+    aspectRatio,
+    duration,
+    resolution,
+    negativePrompt,
+    personGeneration,
+    enhancePrompt,
+    generateAudio,
+    seed,
+    sampleCount,
+    compressionQuality,
+    projectId,
+    imageAssetId,
+  } = body;
 
-    serverLogger.debug({
+  serverLogger.debug(
+    {
       event: 'video.generate.params_received',
       userId: user.id,
       model,
@@ -176,69 +208,90 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       promptLength: prompt?.length,
       hasImageAsset: !!imageAssetId,
       projectId,
-    }, 'Video generation parameters received');
+    },
+    'Video generation parameters received'
+  );
 
-    // Validate all inputs using centralized validation utilities
-    const validation = validateAll([
-      validateString(prompt, 'prompt', { minLength: 3, maxLength: 1000 }),
-      validateUUID(projectId, 'projectId'),
-      validateAspectRatio(aspectRatio),
-      validateDuration(duration),
-      validateSeed(seed),
-      validateSampleCount(sampleCount, 4), // Max 4 for video
-      validateString(negativePrompt, 'negativePrompt', { required: false, maxLength: 1000 }),
-      imageAssetId ? validateUUID(imageAssetId, 'imageAssetId') : null,
-    ]);
+  const modelConfig = MODEL_DEFINITIONS[model as SupportedVideoModel];
 
-    if (!validation.valid) {
-      const firstError = validation.errors[0];
-      serverLogger.warn({
+  if (!modelConfig) {
+    serverLogger.warn(
+      {
+        event: 'video.generate.unsupported_model',
+        userId: user.id,
+        model,
+      },
+      'Unsupported video generation model requested'
+    );
+    return validationError('Unsupported video generation model', 'model');
+  }
+
+  // Validate all inputs using centralized validation utilities
+  const validation = validateAll([
+    validateString(prompt, 'prompt', { minLength: 3, maxLength: 1000 }),
+    validateUUID(projectId, 'projectId'),
+    validateAspectRatio(aspectRatio),
+    validateDuration(duration),
+    validateSeed(seed),
+    validateSampleCount(sampleCount, 4), // Max 4 for video
+    validateString(negativePrompt, 'negativePrompt', { required: false, maxLength: 1000 }),
+    imageAssetId ? validateUUID(imageAssetId, 'imageAssetId') : null,
+  ]);
+
+  if (!validation.valid) {
+    const firstError = validation.errors[0];
+    serverLogger.warn(
+      {
         event: 'video.generate.validation_error',
         userId: user.id,
         field: firstError.field,
         error: firstError.message,
-      }, `Validation error: ${firstError.message}`);
-      return validationError(firstError.message, firstError.field);
-    }
+      },
+      `Validation error: ${firstError.message}`
+    );
+    return validationError(firstError.message, firstError.field);
+  }
 
-    // Verify user owns the project using centralized verification
-    const projectVerification = await verifyProjectOwnership(supabase, projectId, user.id);
-    if (!projectVerification.hasAccess) {
-      serverLogger.warn({
+  // Verify user owns the project using centralized verification
+  const projectVerification = await verifyProjectOwnership(supabase, projectId, user.id);
+  if (!projectVerification.hasAccess) {
+    serverLogger.warn(
+      {
         event: 'video.generate.project_not_found',
         userId: user.id,
         projectId,
-      }, projectVerification.error);
-      return errorResponse(projectVerification.error!, projectVerification.status!);
+      },
+      projectVerification.error
+    );
+    return errorResponse(projectVerification.error!, projectVerification.status!);
+  }
+
+  // Fetch image URL if imageAssetId is provided
+  let imageUrl: string | undefined;
+  if (imageAssetId) {
+    const assetVerification = await verifyAssetOwnership(supabase, imageAssetId, user.id);
+    if (!assetVerification.hasAccess) {
+      return errorResponse(assetVerification.error!, assetVerification.status!);
     }
 
-    // Fetch image URL if imageAssetId is provided
-    let imageUrl: string | undefined;
-    if (imageAssetId) {
-      const assetVerification = await verifyAssetOwnership(supabase, imageAssetId, user.id);
-      if (!assetVerification.hasAccess) {
-        return errorResponse(assetVerification.error!, assetVerification.status!);
-      }
+    const imageAsset = assetVerification.asset!;
 
-      const imageAsset = assetVerification.asset!;
+    // Parse storage URL and get public URL
+    const storageUrl = imageAsset.storage_url!.replace(/^supabase:\/\//, '');
+    const [bucket, ...pathParts] = storageUrl.split('/');
+    const path = pathParts.join('/');
 
-      // Parse storage URL and get public URL
-      const storageUrl = imageAsset.storage_url!.replace(/^supabase:\/\//, '');
-      const [bucket, ...pathParts] = storageUrl.split('/');
-      const path = pathParts.join('/');
+    const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(path);
 
-      const { data: publicUrlData } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(path);
+    imageUrl = publicUrlData.publicUrl;
+  }
 
-      imageUrl = publicUrlData.publicUrl;
-    }
+  // Route to appropriate provider based on model
+  const provider = modelConfig.provider;
+  const shouldGenerateAudio = modelConfig.supportsAudio ? generateAudio !== false : false;
 
-    // Route to appropriate provider based on model
-    const isModelFal = isFalModel(model);
-    const provider = isModelFal ? 'fal' : 'veo';
-
-    serverLogger.info({
+  serverLogger.info(
+    {
       event: 'video.generate.starting',
       userId: user.id,
       projectId,
@@ -248,22 +301,25 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       duration,
       hasImageUrl: !!imageUrl,
       promptLength: prompt.length,
-    }, `Starting video generation with ${provider}`);
+    },
+    `Starting video generation with ${provider}`
+  );
 
-    if (isModelFal) {
-      // Use FAL.ai for Seedance and MiniMax models
-      const result = await generateFalVideo({
-        prompt,
-        model,
-        aspectRatio,
-        duration,
-        resolution,
-        imageUrl,
-        promptOptimizer: enhancePrompt,
-      });
+  if (provider === 'fal') {
+    // Use FAL.ai for Seedance and MiniMax models
+    const result = await generateFalVideo({
+      prompt,
+      model,
+      aspectRatio,
+      duration,
+      resolution,
+      imageUrl,
+      promptOptimizer: enhancePrompt,
+    });
 
-      const duration_ms = Date.now() - startTime;
-      serverLogger.info({
+    const duration_ms = Date.now() - startTime;
+    serverLogger.info(
+      {
         event: 'video.generate.fal_started',
         userId: user.id,
         projectId,
@@ -272,45 +328,50 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
         requestId: result.requestId,
         endpoint: result.endpoint,
         duration: duration_ms,
-      }, `FAL video generation initiated in ${duration_ms}ms`);
+      },
+      `FAL video generation initiated in ${duration_ms}ms`
+    );
 
-      return NextResponse.json({
-        operationName: `fal:${result.endpoint}:${result.requestId}`,
-        status: 'processing',
-        message: 'Video generation started. Use the operation name to check status.',
-      });
-    } else {
-      // Use Google Veo for Google models
-      const result = await generateVideo({
-        prompt,
-        model,
-        aspectRatio,
-        duration,
-        resolution,
-        negativePrompt,
-        personGeneration,
-        enhancePrompt,
-        generateAudio,
-        seed,
-        sampleCount,
-        compressionQuality,
-        imageUrl,
-      });
+    return NextResponse.json({
+      operationName: `fal:${result.endpoint}:${result.requestId}`,
+      status: 'processing',
+      message: 'Video generation started. Use the operation name to check status.',
+    });
+  } else {
+    // Use Google Veo for Google models
+    const result = await generateVideo({
+      prompt,
+      model,
+      aspectRatio,
+      duration,
+      resolution,
+      negativePrompt,
+      personGeneration,
+      enhancePrompt,
+      generateAudio: shouldGenerateAudio,
+      seed,
+      sampleCount,
+      compressionQuality,
+      imageUrl,
+    });
 
-      const duration_ms = Date.now() - startTime;
-      serverLogger.info({
+    const duration_ms = Date.now() - startTime;
+    serverLogger.info(
+      {
         event: 'video.generate.veo_started',
         userId: user.id,
         projectId,
         model,
         operationName: result.name,
         duration: duration_ms,
-      }, `Veo video generation initiated in ${duration_ms}ms`);
+      },
+      `Veo video generation initiated in ${duration_ms}ms`
+    );
 
-      return NextResponse.json({
-        operationName: result.name,
-        status: 'processing',
-        message: 'Video generation started. Use the operation name to check status.',
-      });
-    }
+    return NextResponse.json({
+      operationName: result.name,
+      status: 'processing',
+      message: 'Video generation started. Use the operation name to check status.',
+    });
+  }
 });

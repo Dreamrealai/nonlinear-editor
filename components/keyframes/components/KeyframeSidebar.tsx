@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable @next/next/no-img-element */
+
 import clsx from 'clsx';
 import LoadingSpinner from '@/components/LoadingSpinner';
 

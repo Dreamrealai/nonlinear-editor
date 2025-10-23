@@ -12,9 +12,6 @@ export const VIDEO_MODELS = {
   VEO_3_1_FAST_GENERATE: 'veo-3.1-fast-generate-preview',
   VEO_2_0_GENERATE: 'veo-2.0-generate-001',
 
-  // OpenAI SORA
-  SORA_2_PRO: 'sora-2-pro',
-
   // SEEDANCE (via fal.ai)
   SEEDANCE_1_0_PRO: 'seedance-1.0-pro',
 
@@ -22,7 +19,7 @@ export const VIDEO_MODELS = {
   MINIMAX_HAILUO_02_PRO: 'minimax-hailuo-02-pro',
 } as const;
 
-export type VideoModel = typeof VIDEO_MODELS[keyof typeof VIDEO_MODELS];
+export type VideoModel = (typeof VIDEO_MODELS)[keyof typeof VIDEO_MODELS];
 
 /**
  * Image Generation Models
@@ -33,7 +30,7 @@ export const IMAGE_MODELS = {
   IMAGEN_4_0: 'imagen-4.0-generate-001',
 } as const;
 
-export type ImageModel = typeof IMAGE_MODELS[keyof typeof IMAGE_MODELS];
+export type ImageModel = (typeof IMAGE_MODELS)[keyof typeof IMAGE_MODELS];
 
 /**
  * Audio Generation Models
@@ -47,7 +44,7 @@ export const AUDIO_MODELS = {
   SUNO_CHIRP_CROW: 'chirp-crow', // Suno V5
 } as const;
 
-export type AudioModel = typeof AUDIO_MODELS[keyof typeof AUDIO_MODELS];
+export type AudioModel = (typeof AUDIO_MODELS)[keyof typeof AUDIO_MODELS];
 
 /**
  * Text Generation Models (for prompt enhancement)
@@ -57,22 +54,21 @@ export const TEXT_MODELS = {
   GEMINI_FLASH: 'gemini-flash',
 } as const;
 
-export type TextModel = typeof TEXT_MODELS[keyof typeof TEXT_MODELS];
+export type TextModel = (typeof TEXT_MODELS)[keyof typeof TEXT_MODELS];
 
 /**
  * Model Providers
  */
 export const MODEL_PROVIDERS = {
   GOOGLE: 'google',
-  OPENAI: 'openai',
+  FAL: 'fal',
   SEEDANCE: 'seedance',
   MINIMAX: 'minimax',
-  FAL: 'fal',
   ELEVENLABS: 'elevenlabs',
   SUNO: 'suno',
 } as const;
 
-export type ModelProvider = typeof MODEL_PROVIDERS[keyof typeof MODEL_PROVIDERS];
+export type ModelProvider = (typeof MODEL_PROVIDERS)[keyof typeof MODEL_PROVIDERS];
 
 /**
  * Default Models
@@ -145,23 +141,10 @@ export const VIDEO_MODEL_CONFIGS: Record<string, ModelConfig> = {
     supportsEnhancePrompt: true,
     maxSampleCount: 4,
   },
-  [VIDEO_MODELS.SORA_2_PRO]: {
-    id: VIDEO_MODELS.SORA_2_PRO,
-    name: 'SORA 2 Pro',
-    provider: MODEL_PROVIDERS.OPENAI,
-    supportedAspectRatios: ['16:9', '9:16', '1:1'],
-    supportedDurations: [5, 10],
-    supportsResolution: false,
-    supportsAudio: false,
-    supportsNegativePrompt: false,
-    supportsReferenceImage: true,
-    supportsEnhancePrompt: false,
-    maxSampleCount: 1,
-  },
   [VIDEO_MODELS.SEEDANCE_1_0_PRO]: {
     id: VIDEO_MODELS.SEEDANCE_1_0_PRO,
     name: 'SEEDANCE 1.0 Pro',
-    provider: MODEL_PROVIDERS.SEEDANCE,
+    provider: MODEL_PROVIDERS.FAL,
     supportedAspectRatios: ['16:9', '9:16', '1:1'],
     supportedDurations: [5],
     supportsResolution: true,
@@ -174,7 +157,7 @@ export const VIDEO_MODEL_CONFIGS: Record<string, ModelConfig> = {
   [VIDEO_MODELS.MINIMAX_HAILUO_02_PRO]: {
     id: VIDEO_MODELS.MINIMAX_HAILUO_02_PRO,
     name: 'MiniMax Hailuo-02 Pro',
-    provider: MODEL_PROVIDERS.MINIMAX,
+    provider: MODEL_PROVIDERS.FAL,
     supportedAspectRatios: ['16:9', '9:16', '1:1'],
     supportedDurations: [5, 6, 10],
     supportsResolution: true,

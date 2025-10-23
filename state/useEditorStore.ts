@@ -22,7 +22,7 @@
 
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { enableMapSet, current } from 'immer';
+import { enableMapSet } from 'immer';
 import type { Timeline, Clip, Marker, Track, TextOverlay, TransitionType } from '@/types/timeline';
 
 /** Maximum number of undo/redo states to keep in history */
@@ -244,7 +244,9 @@ export const useEditorStore = create<EditorStore>()(
           Object.assign(clip, patch);
 
           // Ensure numeric validity
-          clip.timelinePosition = Number.isFinite(clip.timelinePosition) ? Math.max(0, clip.timelinePosition) : 0;
+          clip.timelinePosition = Number.isFinite(clip.timelinePosition)
+            ? Math.max(0, clip.timelinePosition)
+            : 0;
           clip.start = Number.isFinite(clip.start) ? Math.max(0, clip.start) : 0;
           clip.end = Number.isFinite(clip.end) ? clip.end : clip.start + MIN_CLIP_DURATION;
 
@@ -529,9 +531,7 @@ export const useEditorStore = create<EditorStore>()(
     copyClips: () =>
       set((state) => {
         if (!state.timeline) return;
-        const selected = state.timeline.clips.filter((clip) =>
-          state.selectedClipIds.has(clip.id)
-        );
+        const selected = state.timeline.clips.filter((clip) => state.selectedClipIds.has(clip.id));
         state.copiedClips = structuredClone(selected);
       }),
 

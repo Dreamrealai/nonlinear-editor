@@ -6,7 +6,7 @@ import {
   errorResponse,
   withErrorHandling,
   rateLimitResponse,
-  successResponse
+  successResponse,
 } from '@/lib/api/response';
 import { validateString, validateAll } from '@/lib/api/validation';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
@@ -58,17 +58,25 @@ import { invalidateUserProjects } from '@/lib/cacheInvalidation';
 export const POST = withErrorHandling(async (request: NextRequest) => {
   const startTime = Date.now();
 
-  serverLogger.info({
-    event: 'projects.create.request_started',
-  }, 'Project creation request received');
+  serverLogger.info(
+    {
+      event: 'projects.create.request_started',
+    },
+    'Project creation request received'
+  );
 
   const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    serverLogger.warn({
-      event: 'projects.create.unauthorized',
-    }, 'Unauthorized project creation attempt');
+    serverLogger.warn(
+      {
+        event: 'projects.create.unauthorized',
+      },
+      'Unauthorized project creation attempt'
+    );
     return unauthorizedResponse();
   }
 
@@ -79,11 +87,14 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   );
 
   if (!rateLimitResult.success) {
-    serverLogger.warn({
-      event: 'projects.create.rate_limited',
-      userId: user.id,
-      limit: rateLimitResult.limit,
-    }, 'Project creation rate limit exceeded');
+    serverLogger.warn(
+      {
+        event: 'projects.create.rate_limited',
+        userId: user.id,
+        limit: rateLimitResult.limit,
+      },
+      'Project creation rate limit exceeded'
+    );
 
     return rateLimitResponse(
       rateLimitResult.limit,
@@ -105,41 +116,46 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     }
   }
 
-  serverLogger.debug({
-    event: 'projects.create.creating',
-    userId: user.id,
-    title,
-  }, 'Creating new project');
-
-  const { data: project, error: dbError } = await supabase
-    .from('projects')
-    .insert({
-      title,
-      user_id: user.id,
-      timeline_state_jsonb: {}
-    })
-    .select()
-    .single();
-
-  if (dbError) {
-    serverLogger.error({
-      event: 'projects.create.db_error',
+  serverLogger.debug(
+    {
+      event: 'projects.create.creating',
       userId: user.id,
       title,
-      error: dbError.message,
-      code: dbError.code,
-    }, 'Database error creating project');
-    return errorResponse(dbError.message, 500);
+    },
+    'Creating new project'
+  );
+
+  // Use ProjectService for project creation
+  const { ProjectService } = await import('@/lib/services/projectService');
+  const projectService = new ProjectService(supabase);
+
+  let project;
+  try {
+    project = await projectService.createProject(user.id, { title });
+  } catch (error) {
+    serverLogger.error(
+      {
+        event: 'projects.create.service_error',
+        userId: user.id,
+        title,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      'Service error creating project'
+    );
+    return errorResponse(error instanceof Error ? error.message : 'Failed to create project', 500);
   }
 
   const duration = Date.now() - startTime;
-  serverLogger.info({
-    event: 'projects.create.success',
-    userId: user.id,
-    projectId: project.id,
-    title,
-    duration,
-  }, `Project created successfully in ${duration}ms`);
+  serverLogger.info(
+    {
+      event: 'projects.create.success',
+      userId: user.id,
+      projectId: project.id,
+      title,
+      duration,
+    },
+    `Project created successfully in ${duration}ms`
+  );
 
   // Invalidate user's projects cache after creation
   await invalidateUserProjects(user.id);

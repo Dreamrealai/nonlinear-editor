@@ -31,7 +31,7 @@ jest.mock('next/server', () => {
             'Content-Type': 'application/json',
             ...init?.headers,
           },
-        }) as any;
+        }) as Response & { json: () => Promise<unknown> };
 
         // Add custom json() method for testing
         response.json = () => Promise.resolve(body);

@@ -34,9 +34,7 @@ jest.mock('@/lib/api/response', () => {
     });
 
   return {
-    unauthorizedResponse: jest.fn(() =>
-      jsonResponse({ error: 'Unauthorized' }, { status: 401 })
-    ),
+    unauthorizedResponse: jest.fn(() => jsonResponse({ error: 'Unauthorized' }, { status: 401 })),
     validationError: jest.fn((message: string, field: string) =>
       jsonResponse({ error: message, field }, { status: 400 })
     ),
@@ -103,9 +101,7 @@ describe('GET /api/video/status', () => {
   describe('Input Validation', () => {
     it('should return 400 when operationName is missing', async () => {
       mockAuthenticatedUser(mockSupabase);
-      mockRequest = new NextRequest(
-        'http://localhost/api/video/status?projectId=123'
-      );
+      mockRequest = new NextRequest('http://localhost/api/video/status?projectId=123');
 
       const response = await GET(mockRequest);
 
@@ -116,9 +112,7 @@ describe('GET /api/video/status', () => {
 
     it('should return 400 when projectId is missing', async () => {
       mockAuthenticatedUser(mockSupabase);
-      mockRequest = new NextRequest(
-        'http://localhost/api/video/status?operationName=test'
-      );
+      mockRequest = new NextRequest('http://localhost/api/video/status?operationName=test');
 
       const response = await GET(mockRequest);
 
@@ -144,10 +138,7 @@ describe('GET /api/video/status', () => {
       const response = await GET(mockRequest);
 
       expect(response.status).toBe(200);
-      expect(checkFalVideoStatus).toHaveBeenCalledWith(
-        'request-123',
-        'seedance-1.0-pro'
-      );
+      expect(checkFalVideoStatus).toHaveBeenCalledWith('request-123', 'seedance-1.0-pro');
       const data = await response.json();
       expect(data.done).toBe(false);
     });
@@ -171,7 +162,7 @@ describe('GET /api/video/status', () => {
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1024)),
-      }) as any;
+      }) as unknown as typeof fetch;
 
       // Mock database insert
       mockSupabase.insert.mockReturnThis();
@@ -328,7 +319,7 @@ describe('GET /api/video/status', () => {
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1024)),
-      }) as any;
+      }) as unknown as typeof fetch;
 
       mockSupabase.insert.mockReturnThis();
       mockSupabase.select.mockReturnThis();
@@ -495,7 +486,7 @@ describe('GET /api/video/status', () => {
         expect.objectContaining({
           activity_type: 'video_generation',
           title: 'Video Generated',
-          model: 'veo-3-1',
+          model: 'veo',
         })
       );
     });

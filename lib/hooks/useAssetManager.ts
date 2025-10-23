@@ -223,9 +223,10 @@ const isAssetType = (value: unknown): value is AssetRow['type'] =>
 const mapAssetRow = (row: Record<string, unknown>): AssetRow | null => {
   const id = typeof row.id === 'string' ? row.id : null;
   const storageUrl = typeof row.storage_url === 'string' ? row.storage_url : null;
-  const duration = typeof row.duration_seconds === 'number' && Number.isFinite(row.duration_seconds)
-    ? row.duration_seconds
-    : null;
+  const duration =
+    typeof row.duration_seconds === 'number' && Number.isFinite(row.duration_seconds)
+      ? row.duration_seconds
+      : null;
   const createdAt = typeof row.created_at === 'string' ? row.created_at : null;
   const type = isAssetType(row.type) ? row.type : null;
 
@@ -233,7 +234,9 @@ const mapAssetRow = (row: Record<string, unknown>): AssetRow | null => {
     return null;
   }
 
-  const parsedMetadata = parseAssetMetadata((row.metadata ?? null) as Record<string, unknown> | null);
+  const parsedMetadata = parseAssetMetadata(
+    (row.metadata ?? null) as Record<string, unknown> | null
+  );
   const rawMetadata = (row.rawMetadata ?? null) as Record<string, unknown> | null;
   const metadataDuration = parsedMetadata?.durationSeconds ?? null;
   return {
@@ -269,18 +272,20 @@ async function uploadAsset(
   }
 
   const sanitizedFileName = sanitizeFileName(file.name);
-  const folder = file.type.startsWith('audio') ? 'audio' : file.type.startsWith('image') ? 'image' : 'video';
+  const folder = file.type.startsWith('audio')
+    ? 'audio'
+    : file.type.startsWith('image')
+      ? 'image'
+      : 'video';
   const defaultPath = `${user.id}/${projectId}/${folder}/${uuid()}-${sanitizedFileName}`;
   const bucket = 'assets';
   const path = defaultPath;
 
   const arrayBuffer = await file.arrayBuffer();
-  const { error: uploadError } = await supabase.storage
-    .from(bucket)
-    .upload(path, arrayBuffer, {
-      contentType: file.type,
-      upsert: true,
-    });
+  const { error: uploadError } = await supabase.storage.from(bucket).upload(path, arrayBuffer, {
+    contentType: file.type,
+    upsert: true,
+  });
 
   if (uploadError) {
     throw uploadError;
@@ -344,52 +349,86 @@ export interface UseAssetManagerReturn {
   /** Upload a new asset */
   uploadAsset: (file: File) => Promise<void>;
   /** Delete an asset */
-  deleteAsset: (asset: AssetRow, timeline: { clips: Array<{ assetId: string }> } | null, setTimeline: (timeline: { clips: Array<{ assetId: string }> }) => void) => Promise<void>;
+  deleteAsset: (
+    asset: AssetRow,
+    timeline: { clips: Array<{ assetId: string }> } | null,
+    setTimeline: (timeline: { clips: Array<{ assetId: string }> }) => void
+  ) => Promise<void>;
   /** Reload assets from database */
   reloadAssets: () => Promise<void>;
+  /** Current page number (0-indexed) */
+  currentPage: number;
+  /** Total number of pages */
+  totalPages: number;
+  /** Total number of assets */
+  totalCount: number;
+  /** Whether there is a next page */
+  hasNextPage: boolean;
+  /** Whether there is a previous page */
+  hasPreviousPage: boolean;
+  /** Load next page */
+  loadNextPage: () => Promise<void>;
+  /** Load previous page */
+  loadPreviousPage: () => Promise<void>;
+  /** Go to specific page */
+  goToPage: (page: number) => Promise<void>;
 }
 
 /**
  * Hook to manage assets for a project.
  */
-export function useAssetManager(projectId: string): UseAssetManagerReturn {
+export function useAssetManager(projectId: string, pageSize: number = 50): UseAssetManagerReturn {
   const supabase = createBrowserSupabaseClient();
   const [assets, setAssets] = useState<AssetRow[]>([]);
   const [loadingAssets, setLoadingAssets] = useState(false);
   const [assetError, setAssetError] = useState<string | null>(null);
   const [assetsLoaded, setAssetsLoaded] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
   const processedThumbnailIdsRef = useRef<Set<string>>(new Set());
 
-  const loadAssets = useCallback(async () => {
-    setLoadingAssets(true);
-    setAssetError(null);
-    try {
-      const { data, error } = await supabase
-        .from('assets')
-        .select('*')
-        .eq('project_id', projectId)
-        .order('created_at', { ascending: false });
+  const loadAssets = useCallback(
+    async (page: number = 0) => {
+      setLoadingAssets(true);
+      setAssetError(null);
+      try {
+        const rangeStart = page * pageSize;
+        const rangeEnd = rangeStart + pageSize - 1;
 
-      if (error) {
-        throw error;
+        const { data, error, count } = await supabase
+          .from('assets')
+          .select('*', { count: 'exact' })
+          .eq('project_id', projectId)
+          .order('created_at', { ascending: false })
+          .range(rangeStart, rangeEnd);
+
+        if (error) {
+          throw error;
+        }
+
+        const mapped = (data ?? [])
+          .map((row) => mapAssetRow(row as Record<string, unknown>))
+          .filter((asset): asset is AssetRow => Boolean(asset));
+
+        setAssets(mapped);
+        setCurrentPage(page);
+        const total = count ?? 0;
+        setTotalCount(total);
+        setTotalPages(Math.ceil(total / pageSize));
+      } catch (error) {
+        browserLogger.error({ error, projectId }, 'Failed to load assets');
+        setAssetError('Failed to load assets. Please try again later.');
+      } finally {
+        setLoadingAssets(false);
+        setAssetsLoaded(true);
       }
-
-      const mapped = (data ?? [])
-        .map((row) => mapAssetRow(row as Record<string, unknown>))
-        .filter((asset): asset is AssetRow => Boolean(asset));
-
-      setAssets(mapped);
-    } catch (error) {
-      browserLogger.error({ error, projectId }, 'Failed to load assets');
-      setAssetError('Failed to load assets. Please try again later.');
-    } finally {
-      setLoadingAssets(false);
-      setAssetsLoaded(true);
-    }
-  }, [projectId, supabase]);
+    },
+    [projectId, supabase, pageSize]
+  );
 
   useEffect(() => {
-    void loadAssets();
+    void loadAssets(0);
   }, [loadAssets]);
 
   // Generate thumbnails for assets that don't have them
@@ -417,13 +456,21 @@ export function useAssetManager(projectId: string): UseAssetManagerReturn {
           const urlParts = asset.storage_url.replace('supabase://', '').split('/');
           const bucket = safeArrayFirst(urlParts);
           if (!bucket) {
-            browserLogger.error({ storageUrl: asset.storage_url, assetId: asset.id }, 'Invalid storage URL format');
+            browserLogger.error(
+              { storageUrl: asset.storage_url, assetId: asset.id },
+              'Invalid storage URL format'
+            );
             continue;
           }
 
-          const signedUrlResponse = await supabase.storage
-            .from(bucket)
-            .createSignedUrl(asset.storage_url.replace(/^supabase:\/\//, '').split('/').slice(1).join('/'), 600);
+          const signedUrlResponse = await supabase.storage.from(bucket).createSignedUrl(
+            asset.storage_url
+              .replace(/^supabase:\/\//, '')
+              .split('/')
+              .slice(1)
+              .join('/'),
+            600
+          );
 
           if (!signedUrlResponse.data?.signedUrl) {
             continue;
@@ -461,8 +508,8 @@ export function useAssetManager(projectId: string): UseAssetManagerReturn {
                       thumbnail,
                     },
                   }
-                : entry,
-            ),
+                : entry
+            )
           );
         } catch (error) {
           browserLogger.error({ error, assetId: asset.id }, 'Failed to generate thumbnail');
@@ -479,25 +526,34 @@ export function useAssetManager(projectId: string): UseAssetManagerReturn {
           ? 'image'
           : 'video';
       try {
-        const result = await uploadAsset(file, projectId, type);
-        setAssets((prev) => [result, ...prev]);
+        await uploadAsset(file, projectId, type);
+        // Reload the current page to show the new asset
+        await loadAssets(currentPage);
         toast.success('Asset uploaded');
       } catch (error) {
         browserLogger.error({ error, projectId, fileName: file.name }, 'Failed to upload asset');
         toast.error('Failed to upload asset');
       }
     },
-    [projectId],
+    [projectId, loadAssets, currentPage]
   );
 
   const handleAssetDelete = useCallback(
-    async (asset: AssetRow, timeline: { clips: Array<{ assetId: string }> } | null, setTimeline: (timeline: { clips: Array<{ assetId: string }> }) => void) => {
+    async (
+      asset: AssetRow,
+      timeline: { clips: Array<{ assetId: string }> } | null,
+      setTimeline: (timeline: { clips: Array<{ assetId: string }> }) => void
+    ) => {
       if (!confirm(`Delete "${asset.metadata?.filename ?? asset.id}"?`)) {
         return;
       }
 
       try {
-        const { error } = await supabase.from('assets').delete().eq('id', asset.id).eq('project_id', projectId);
+        const { error } = await supabase
+          .from('assets')
+          .delete()
+          .eq('id', asset.id)
+          .eq('project_id', projectId);
 
         if (error) {
           browserLogger.error({ error, assetId: asset.id }, 'Failed to delete asset');
@@ -523,8 +579,36 @@ export function useAssetManager(projectId: string): UseAssetManagerReturn {
         toast.error('Failed to delete asset');
       }
     },
-    [projectId, supabase],
+    [projectId, supabase]
   );
+
+  const loadNextPage = useCallback(async () => {
+    if (currentPage < totalPages - 1) {
+      await loadAssets(currentPage + 1);
+    }
+  }, [currentPage, totalPages, loadAssets]);
+
+  const loadPreviousPage = useCallback(async () => {
+    if (currentPage > 0) {
+      await loadAssets(currentPage - 1);
+    }
+  }, [currentPage, loadAssets]);
+
+  const goToPage = useCallback(
+    async (page: number) => {
+      if (page >= 0 && page < totalPages) {
+        await loadAssets(page);
+      }
+    },
+    [totalPages, loadAssets]
+  );
+
+  const hasNextPage = currentPage < totalPages - 1;
+  const hasPreviousPage = currentPage > 0;
+
+  const reloadAssets = useCallback(async () => {
+    await loadAssets(currentPage);
+  }, [currentPage, loadAssets]);
 
   return {
     assets,
@@ -533,6 +617,14 @@ export function useAssetManager(projectId: string): UseAssetManagerReturn {
     assetsLoaded,
     uploadAsset: handleAssetUpload,
     deleteAsset: handleAssetDelete,
-    reloadAssets: loadAssets,
+    reloadAssets,
+    currentPage,
+    totalPages,
+    totalCount,
+    hasNextPage,
+    hasPreviousPage,
+    loadNextPage,
+    loadPreviousPage,
+    goToPage,
   };
 }

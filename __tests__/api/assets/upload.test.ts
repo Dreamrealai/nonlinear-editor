@@ -67,7 +67,7 @@ describe('POST /api/assets/upload', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
-        body: formData as any,
+        body: formData as unknown as BodyInit,
       });
 
       const response = await POST(mockRequest);
@@ -87,7 +87,7 @@ describe('POST /api/assets/upload', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
-        body: formData as any,
+        body: formData as unknown as BodyInit,
       });
 
       const response = await POST(mockRequest);
@@ -105,7 +105,7 @@ describe('POST /api/assets/upload', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
-        body: formData as any,
+        body: formData as unknown as BodyInit,
       });
 
       const response = await POST(mockRequest);
@@ -134,7 +134,7 @@ describe('POST /api/assets/upload', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
-        body: formData as any,
+        body: formData as unknown as BodyInit,
       });
 
       const response = await POST(mockRequest);
@@ -150,17 +150,13 @@ describe('POST /api/assets/upload', () => {
       mockQuerySuccess(mockSupabase, createMockProject());
 
       const formData = new FormData();
-      formData.append(
-        'file',
-        new Blob(['test'], { type: 'application/exe' }),
-        'test.exe'
-      );
+      formData.append('file', new Blob(['test'], { type: 'application/exe' }), 'test.exe');
       formData.append('projectId', 'test-project-id');
       formData.append('type', 'image');
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
-        body: formData as any,
+        body: formData as unknown as BodyInit,
       });
 
       const response = await POST(mockRequest);
@@ -177,13 +173,7 @@ describe('POST /api/assets/upload', () => {
       mockSupabase.insert.mockReturnThis();
       mockSupabase.eq.mockResolvedValue({ error: null });
 
-      const validTypes = [
-        'image/jpeg',
-        'image/png',
-        'image/gif',
-        'image/webp',
-        'image/avif',
-      ];
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif'];
 
       for (const mimeType of validTypes) {
         const formData = new FormData();
@@ -255,7 +245,7 @@ describe('POST /api/assets/upload', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
-        body: formData as any,
+        body: formData as unknown as BodyInit,
       });
 
       const response = await POST(mockRequest);
@@ -284,7 +274,7 @@ describe('POST /api/assets/upload', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
-        body: formData as any,
+        body: formData as unknown as BodyInit,
       });
 
       const response = await POST(mockRequest);
@@ -311,7 +301,7 @@ describe('POST /api/assets/upload', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
-        body: formData as any,
+        body: formData as unknown as BodyInit,
       });
 
       await POST(mockRequest);
@@ -341,7 +331,7 @@ describe('POST /api/assets/upload', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
-        body: formData as any,
+        body: formData as unknown as BodyInit,
       });
 
       const response = await POST(mockRequest);
@@ -378,7 +368,7 @@ describe('POST /api/assets/upload', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
-        body: formData as any,
+        body: formData as unknown as BodyInit,
       });
 
       await POST(mockRequest);
@@ -410,7 +400,7 @@ describe('POST /api/assets/upload', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
-        body: formData as any,
+        body: formData as unknown as BodyInit,
       });
 
       await POST(mockRequest);
@@ -441,7 +431,7 @@ describe('POST /api/assets/upload', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
-        body: formData as any,
+        body: formData as unknown as BodyInit,
       });
 
       const response = await POST(mockRequest);
@@ -472,7 +462,7 @@ describe('POST /api/assets/upload', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
-        body: formData as any,
+        body: formData as unknown as BodyInit,
       });
 
       const response = await POST(mockRequest);
@@ -507,7 +497,7 @@ describe('POST /api/assets/upload', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
-        body: formData as any,
+        body: formData as unknown as BodyInit,
       });
 
       const response = await POST(mockRequest);
@@ -534,7 +524,7 @@ describe('POST /api/assets/upload', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
-        body: formData as any,
+        body: formData as unknown as BodyInit,
       });
 
       const response = await POST(mockRequest);
@@ -565,7 +555,7 @@ describe('POST /api/assets/upload', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
-        body: formData as any,
+        body: formData as unknown as BodyInit,
       });
 
       await POST(mockRequest);

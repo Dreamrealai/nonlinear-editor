@@ -136,20 +136,8 @@ describe('LoadingSpinner', () => {
 
   describe('Combined Props', () => {
     it('should render with all props', () => {
-      render(
-        <LoadingSpinner
-          size="lg"
-          text="Processing..."
-          className="my-custom-class"
-        />
-      );
-
       const { container } = render(
-        <LoadingSpinner
-          size="lg"
-          text="Processing..."
-          className="my-custom-class"
-        />
+        <LoadingSpinner size="lg" text="Processing..." className="my-custom-class" />
       );
 
       const wrapper = container.firstChild;
@@ -161,8 +149,6 @@ describe('LoadingSpinner', () => {
     });
 
     it('should work with size and text', () => {
-      render(<LoadingSpinner size="sm" text="Loading..." />);
-
       const { container } = render(<LoadingSpinner size="sm" text="Loading..." />);
       const spinner = container.querySelector('[role="status"]');
 
@@ -182,17 +168,15 @@ describe('LoadingSpinner', () => {
 
   describe('Edge Cases', () => {
     it('should handle empty text prop', () => {
-      render(<LoadingSpinner text="" />);
-      // Empty string should render the span but with no content
       const { container } = render(<LoadingSpinner text="" />);
       const textElement = container.querySelector('span');
-      expect(textElement).toBeInTheDocument();
-      expect(textElement).toHaveTextContent('');
+      expect(textElement).not.toBeInTheDocument();
     });
 
     it('should handle whitespace text', () => {
       render(<LoadingSpinner text="   " />);
-      expect(screen.getByText('   ')).toBeInTheDocument();
+      const whitespaceSpans = screen.getAllByText((_, element) => element?.textContent === '   ');
+      expect(whitespaceSpans.length).toBeGreaterThan(0);
     });
 
     it('should handle undefined className gracefully', () => {
@@ -216,11 +200,7 @@ describe('LoadingSpinner', () => {
 
     it('should maintain structure with all props', () => {
       const { container } = render(
-        <LoadingSpinner
-          size="lg"
-          text="Loading data..."
-          className="custom-spinner"
-        />
+        <LoadingSpinner size="lg" text="Loading data..." className="custom-spinner" />
       );
       expect(container.firstChild).toMatchSnapshot();
     });
