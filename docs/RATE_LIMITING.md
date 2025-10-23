@@ -10,57 +10,71 @@ This application implements distributed rate limiting using PostgreSQL via Supab
 
 Located in `lib/rateLimit.ts`:
 
+**Updated to VERY GENEROUS limits for production use (10-20x increase)**
+
 ```typescript
 export const RATE_LIMITS = {
-  // 10 requests per 10 seconds - for authentication and sensitive operations
-  strict: { max: 10, windowMs: 10 * 1000 },
+  // 100 requests per 10 seconds - for authentication and sensitive operations (10x increase)
+  strict: { max: 100, windowMs: 10 * 1000 },
 
-  // 30 requests per minute - for standard API operations
-  moderate: { max: 30, windowMs: 60 * 1000 },
+  // 300 requests per minute - for standard API operations (10x increase)
+  moderate: { max: 300, windowMs: 60 * 1000 },
 
-  // 100 requests per minute - for read operations and status checks
-  relaxed: { max: 100, windowMs: 60 * 1000 },
+  // 1000 requests per minute - for read operations and status checks (10x increase)
+  relaxed: { max: 1000, windowMs: 60 * 1000 },
 
-  // 5 requests per minute - for expensive AI generation operations
-  expensive: { max: 5, windowMs: 60 * 1000 },
+  // 100 requests per minute - for expensive AI generation operations (20x increase)
+  expensive: { max: 100, windowMs: 60 * 1000 },
 }
 ```
 
 ## Protected Endpoints
 
-### AI Generation Endpoints (EXPENSIVE: 5 req/min)
+### AI Generation Endpoints (EXPENSIVE: 100 req/min)
 
-All AI generation endpoints are rate limited to **5 requests per minute per user** to prevent abuse and manage API costs.
+All AI generation endpoints are rate limited to **100 requests per minute per user** (20x increase from previous 5 req/min limit).
 
 #### Video Generation
 - **Endpoint**: `POST /api/video/generate`
 - **Rate Limit Key**: `video-gen:{userId}`
-- **Limit**: 5 requests per minute
+- **Limit**: 100 requests per minute
 - **Applies to**: Google Veo, Seedance, MiniMax models
 
 #### Image Generation
 - **Endpoint**: `POST /api/image/generate`
 - **Rate Limit Key**: `image-gen:{userId}`
-- **Limit**: 5 requests per minute
+- **Limit**: 100 requests per minute
 - **Applies to**: Google Imagen models
 
 #### Audio TTS Generation
 - **Endpoint**: `POST /api/audio/elevenlabs/generate`
 - **Rate Limit Key**: `audio-tts:{userId}`
-- **Limit**: 5 requests per minute
+- **Limit**: 100 requests per minute
 - **Applies to**: ElevenLabs text-to-speech
 
 #### Music Generation
 - **Endpoint**: `POST /api/audio/suno/generate`
 - **Rate Limit Key**: `audio-music:{userId}`
-- **Limit**: 5 requests per minute
+- **Limit**: 100 requests per minute
 - **Applies to**: Suno music generation via Comet API
 
 #### Sound Effects Generation
 - **Endpoint**: `POST /api/audio/elevenlabs/sfx`
 - **Rate Limit Key**: `audio-sfx:{userId}`
-- **Limit**: 5 requests per minute
+- **Limit**: 100 requests per minute
 - **Applies to**: ElevenLabs sound effects
+
+### Standard API Endpoints (MODERATE: 300 req/min)
+
+#### Voice Listing
+- **Endpoint**: `GET /api/audio/elevenlabs/voices`
+- **Limit**: 300 requests per minute (10x increase from previous 30 req/min)
+
+### Read Operations (RELAXED: 1000 req/min)
+
+#### Client Logging
+- **Endpoint**: `POST /api/logs`
+- **Limit**: 1000 requests per minute (10x increase from previous 100 req/min)
 
 ## Implementation Details
 
@@ -141,7 +155,7 @@ When rate limit is exceeded, the API returns:
 
 ### Response Headers
 ```
-X-RateLimit-Limit: 5
+X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 0
 X-RateLimit-Reset: 2025-01-23T12:00:00.000Z
 Retry-After: 45
@@ -170,7 +184,7 @@ All rate limit events are logged with structured logging:
 {
   "event": "image.generate.rate_limited",
   "userId": "user-uuid",
-  "limit": 5,
+  "limit": 100,
   "remaining": 0,
   "resetAt": 1705923600000,
   "level": "warn"
@@ -217,7 +231,7 @@ CREATE INDEX idx_rate_limits_reset_time ON rate_limits(reset_time);
 
 ```bash
 # Test image generation rate limit
-for i in {1..6}; do
+for i in {1..101}; do
   curl -X POST https://your-app.com/api/image/generate \
     -H "Authorization: Bearer YOUR_TOKEN" \
     -H "Content-Type: application/json" \
@@ -226,7 +240,7 @@ for i in {1..6}; do
 done
 ```
 
-Expected: First 5 succeed, 6th returns 429.
+Expected: First 100 succeed, 101st returns 429.
 
 ### Unit Testing
 
@@ -236,10 +250,10 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 // Should allow requests within limit
 const result1 = await checkRateLimit('test:user', RATE_LIMITS.expensive);
 expect(result1.success).toBe(true);
-expect(result1.remaining).toBe(4);
+expect(result1.remaining).toBe(99);
 
 // Should reject after limit exceeded
-for (let i = 0; i < 5; i++) {
+for (let i = 0; i < 100; i++) {
   await checkRateLimit('test:user', RATE_LIMITS.expensive);
 }
 const result2 = await checkRateLimit('test:user', RATE_LIMITS.expensive);

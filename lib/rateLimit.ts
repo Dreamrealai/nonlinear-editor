@@ -4,11 +4,11 @@
  * Supports multiple server instances and horizontal scaling
  *
  * Rate Limit Endpoints Mapping:
- * - video-gen:userId - Video generation (expensive: 5/min)
- * - image-gen:userId - Image generation (expensive: 5/min)
- * - audio-tts:userId - Audio TTS generation (expensive: 5/min)
- * - audio-music:userId - Music generation (expensive: 5/min)
- * - audio-sfx:userId - Sound effects generation (expensive: 5/min)
+ * - video-gen:userId - Video generation (expensive: 100/min)
+ * - image-gen:userId - Image generation (expensive: 100/min)
+ * - audio-tts:userId - Audio TTS generation (expensive: 100/min)
+ * - audio-music:userId - Music generation (expensive: 100/min)
+ * - audio-sfx:userId - Sound effects generation (expensive: 100/min)
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -253,18 +253,20 @@ export function checkRateLimitSync(
  * - MODERATE: Standard API operations
  * - RELAXED: Read operations, status checks
  * - STRICT: Authentication, sensitive operations
+ *
+ * Updated to VERY GENEROUS limits for production use (10-20x increase)
  */
 export const RATE_LIMITS = {
-  // 10 requests per 10 seconds - for authentication and sensitive operations
-  strict: { max: 10, windowMs: 10 * 1000 },
+  // 100 requests per 10 seconds - for authentication and sensitive operations (10x increase)
+  strict: { max: 100, windowMs: 10 * 1000 },
 
-  // 30 requests per minute - for standard API operations
-  moderate: { max: 30, windowMs: 60 * 1000 },
+  // 300 requests per minute - for standard API operations (10x increase)
+  moderate: { max: 300, windowMs: 60 * 1000 },
 
-  // 100 requests per minute - for read operations and status checks
-  relaxed: { max: 100, windowMs: 60 * 1000 },
+  // 1000 requests per minute - for read operations and status checks (10x increase)
+  relaxed: { max: 1000, windowMs: 60 * 1000 },
 
-  // 5 requests per minute - for expensive AI generation operations
+  // 100 requests per minute - for expensive AI generation operations (20x increase)
   // Used by: video-gen, image-gen, audio-tts, audio-music, audio-sfx
-  expensive: { max: 5, windowMs: 60 * 1000 },
+  expensive: { max: 100, windowMs: 60 * 1000 },
 };
