@@ -169,17 +169,17 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
   const [videoQueue, setVideoQueue] = useState<VideoQueueItemData[]>([]);
   const pollingIntervalsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
-  // Form state
+  // Form state - Configured with loosest/most permissive settings for Veo 3.1
   const [prompt, setPrompt] = useState('');
   const [model, setModel] = useState<string>('veo-3.1-generate-preview');
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16' | '1:1'>('16:9');
   const [duration, setDuration] = useState<4 | 5 | 6 | 8 | 10>(8);
-  const [resolution, setResolution] = useState<'720p' | '1080p'>('720p');
-  const [negativePrompt, setNegativePrompt] = useState('');
-  const [personGeneration, setPersonGeneration] = useState<'allow_adult' | 'dont_allow'>('allow_adult');
-  const [enhancePrompt, setEnhancePrompt] = useState(true);
-  const [generateAudio, setGenerateAudio] = useState(true);
-  const [seed, setSeed] = useState<string>('');
+  const [resolution, setResolution] = useState<'720p' | '1080p'>('1080p'); // Highest quality
+  const [negativePrompt, setNegativePrompt] = useState(''); // No restrictions
+  const [personGeneration, setPersonGeneration] = useState<'allow_adult' | 'dont_allow'>('allow_adult'); // Allow people
+  const [enhancePrompt, setEnhancePrompt] = useState(true); // Enable AI enhancement
+  const [generateAudio, setGenerateAudio] = useState(true); // Enable audio generation
+  const [seed, setSeed] = useState<string>(''); // Random seed for variety
   const [sampleCount, setSampleCount] = useState<1 | 2 | 3 | 4>(1);
   const [showAdvanced, setShowAdvanced] = useState(false);
 

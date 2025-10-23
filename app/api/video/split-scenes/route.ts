@@ -224,12 +224,11 @@ export async function POST(req: NextRequest) {
     let results;
     try {
       // Add timeout to prevent function from hanging (45 seconds)
-      const annotationPromise = videoClient.annotateVideo(request);
-      const timeoutPromise = new Promise((_, reject) =>
+      const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Video analysis timed out after 45 seconds')), 45000)
       );
 
-      results = await Promise.race([annotationPromise, timeoutPromise]) as Awaited<ReturnType<typeof videoClient.annotateVideo>>;
+      results = await Promise.race([videoClient.annotateVideo(request), timeoutPromise]);
     } catch (apiError) {
       console.error('Video Intelligence API error:', apiError);
 
