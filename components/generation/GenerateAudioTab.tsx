@@ -115,6 +115,73 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
     }
   }, [projectId, prompt, style, title, customMode, instrumental]);
 
+  // Fetch available voices when switching to voice tab
+  useEffect(() => {
+    const fetchVoices = async () => {
+      if (audioType === 'voice' && voices.length === 0) {
+        setLoadingVoices(true);
+        try {
+          const res = await fetch('/api/audio/elevenlabs/voices');
+          const json = await res.json();
+
+          if (res.ok && json.voices) {
+            setVoices(json.voices);
+          } else {
+            console.error('Failed to fetch voices:', json.error);
+            toast.error('Failed to load voices');
+          }
+        } catch (error) {
+          console.error('Error fetching voices:', error);
+          toast.error('Failed to load voices');
+        } finally {
+          setLoadingVoices(false);
+        }
+      }
+    };
+
+    fetchVoices();
+  }, [audioType, voices.length]);
+
+  const handleGenerateVoice = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!voiceText.trim()) {
+      toast.error('Please enter text to convert to speech');
+      return;
+    }
+
+    setGenerating(true);
+    toast.loading('Generating voice...', { id: 'generate-voice' });
+
+    try {
+      const res = await fetch('/api/audio/elevenlabs/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          text: voiceText,
+          voiceId: selectedVoice,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json.error || 'Voice generation failed');
+      }
+
+      toast.success('Voice generated successfully!', { id: 'generate-voice' });
+
+      // Reset form
+      setVoiceText('');
+    } catch (error) {
+      console.error('Voice generation failed:', error);
+      toast.error(error instanceof Error ? error.message : 'Voice generation failed', { id: 'generate-voice' });
+    } finally {
+      setGenerating(false);
+    }
+  }, [projectId, voiceText, selectedVoice]);
+
   return (
     <div className="flex h-full flex-col">
       <Toaster position="bottom-right" />
@@ -150,9 +217,8 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
                   ? 'bg-neutral-900 text-white shadow-sm'
                   : 'text-neutral-600 hover:text-neutral-900'
               }`}
-              disabled
             >
-              Voice / TTS (Coming Soon)
+              Voice / TTS (ElevenLabs)
             </button>
           </div>
 
@@ -329,23 +395,95 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
             </form>
           )}
 
-          {/* Voice Generation (Coming Soon) */}
+          {/* Voice Generation Form (ElevenLabs) */}
           {audioType === 'voice' && (
-            <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center">
-              <div className="flex flex-col items-center gap-4">
-                <div className="rounded-full bg-neutral-100 p-4">
-                  <svg className="h-12 w-12 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-neutral-900">Voice Generation Coming Soon</h3>
-                  <p className="mt-2 text-sm text-neutral-600">
-                    Text-to-speech with ElevenLabs will be available in a future update.
-                  </p>
-                </div>
+            <form onSubmit={handleGenerateVoice} className="space-y-4">
+              {/* Text Input */}
+              <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                <label htmlFor="voiceText" className="block text-sm font-semibold text-neutral-900 mb-2">
+                  Text to Convert to Speech *
+                </label>
+                <textarea
+                  id="voiceText"
+                  value={voiceText}
+                  onChange={(e) => setVoiceText(e.target.value)}
+                  placeholder="Enter the text you want to convert to speech..."
+                  rows={6}
+                  disabled={generating}
+                  className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  required
+                />
+                <p className="mt-2 text-xs text-neutral-500">
+                  Enter the text you want to convert to natural-sounding speech
+                </p>
               </div>
-            </div>
+
+              {/* Voice Selection */}
+              <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                <label htmlFor="voice" className="block text-sm font-semibold text-neutral-900 mb-2">
+                  Voice Selection
+                </label>
+                {loadingVoices ? (
+                  <div className="flex items-center gap-2 text-sm text-neutral-600">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-600" />
+                    Loading voices...
+                  </div>
+                ) : (
+                  <select
+                    id="voice"
+                    value={selectedVoice}
+                    onChange={(e) => setSelectedVoice(e.target.value)}
+                    disabled={generating}
+                    className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {voices.length === 0 ? (
+                      <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Default)</option>
+                    ) : (
+                      voices.map((voice) => (
+                        <option key={voice.voice_id} value={voice.voice_id}>
+                          {voice.name}{voice.category ? ` - ${voice.category}` : ''}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                )}
+                <p className="mt-2 text-xs text-neutral-500">
+                  Select a voice for your text-to-speech generation
+                </p>
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                <div className="flex-1">
+                  {generating && (
+                    <p className="text-sm text-neutral-600">
+                      Generating voice... This should take just a few seconds.
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  disabled={generating || !voiceText.trim()}
+                  className="rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-md transition-all hover:from-blue-600 hover:to-cyan-600 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:from-blue-500 disabled:hover:to-cyan-500"
+                >
+                  <div className="flex items-center gap-2">
+                    {generating ? (
+                      <>
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                        </svg>
+                        Generate Voice
+                      </>
+                    )}
+                  </div>
+                </button>
+              </div>
+            </form>
           )}
         </div>
       </div>

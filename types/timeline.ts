@@ -52,7 +52,7 @@ export type Marker = {
   id: string;
   time: number; // Position in seconds
   label: string; // Marker name/description
-  color?: string; // Hex color (e.g., '#ff0000')
+  color?: string; // Hex color (e.g., '#000000')
 };
 
 export type TextOverlay = {
