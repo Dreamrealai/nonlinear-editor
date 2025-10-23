@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
       sampleCount,
       compressionQuality,
       projectId,
+      imageAssetId,
     } = body;
 
     if (!prompt || typeof prompt !== 'string') {
@@ -53,6 +54,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Project not found or access denied' }, { status: 403 });
     }
 
+    // Fetch image URL if imageAssetId is provided
+    let imageUrl: string | undefined;
+    if (imageAssetId) {
+      const { data: imageAsset, error: imageError } = await supabase
+        .from('assets')
+        .select('storage_url, user_id')
+        .eq('id', imageAssetId)
+        .single();
+
+      if (imageError || !imageAsset) {
+        return NextResponse.json({ error: 'Image asset not found' }, { status: 404 });
+      }
+
+      // Verify user owns the image asset
+      if (imageAsset.user_id !== user.id) {
+        return NextResponse.json({ error: 'Image asset access denied' }, { status: 403 });
+      }
+
+      // Parse storage URL and get public URL
+      const storageUrl = imageAsset.storage_url.replace(/^supabase:\/\//, '');
+      const [bucket, ...pathParts] = storageUrl.split('/');
+      const path = pathParts.join('/');
+
+      const { data: publicUrlData } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(path);
+
+      imageUrl = publicUrlData.publicUrl;
+    }
+
     // Start video generation with specified Veo model
     const result = await generateVideo({
       prompt,
@@ -67,6 +98,7 @@ export async function POST(req: NextRequest) {
       seed,
       sampleCount,
       compressionQuality,
+      imageUrl,
     });
 
     return NextResponse.json({

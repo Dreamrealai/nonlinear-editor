@@ -71,6 +71,16 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
     };
   }, []);
 
+  // Handle image file (from paste or upload)
+  const handleImageFile = useCallback((file: File) => {
+    setSelectedImage(file);
+    setImageAssetId(null); // Clear asset library selection
+
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreviewUrl(previewUrl);
+  }, []);
+
   // Handle paste events for images
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
@@ -91,17 +101,7 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
 
     window.addEventListener('paste', handlePaste);
     return () => window.removeEventListener('paste', handlePaste);
-  }, []);
-
-  // Handle image file (from paste or upload)
-  const handleImageFile = useCallback((file: File) => {
-    setSelectedImage(file);
-    setImageAssetId(null); // Clear asset library selection
-
-    // Create preview URL
-    const previewUrl = URL.createObjectURL(file);
-    setImagePreviewUrl(previewUrl);
-  }, []);
+  }, [handleImageFile]);
 
   // Handle file input change
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

@@ -583,6 +583,15 @@ export default function HorizontalTimeline({ onDetectScenes, sceneDetectPending 
                       +
                     </button>
                   )}
+                  {trackIndex === numTracks - 1 && numTracks > MIN_TRACKS && timeline.clips.filter(c => c.trackIndex === trackIndex).length === 0 && (
+                    <button
+                      onClick={() => setForcedTrackCount(Math.max(MIN_TRACKS, numTracks - 1))}
+                      className="rounded px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white hover:bg-red-600 transition-colors"
+                      title="Delete this track"
+                    >
+                      −
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -686,22 +695,6 @@ export default function HorizontalTimeline({ onDetectScenes, sceneDetectPending 
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Add Track Button */}
-      <div className="flex justify-center pt-2">
-        <button
-          onClick={handleAddTrack}
-          className="rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-2 text-xs font-semibold text-neutral-600 transition-all hover:border-neutral-400 hover:bg-neutral-100 hover:text-neutral-800"
-          title="Add new track"
-        >
-          <span className="flex items-center gap-2">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Add Track
-          </span>
-        </button>
       </div>
 
       {/* Context Menu */}

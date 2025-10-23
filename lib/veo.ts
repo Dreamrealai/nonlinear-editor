@@ -49,6 +49,8 @@ interface VeoGenerateParams {
   sampleCount?: number;
   /** Compression quality (optimized or lossless) */
   compressionQuality?: 'optimized' | 'lossless';
+  /** URL of reference image for image-to-video generation */
+  imageUrl?: string;
 }
 
 /**
@@ -207,13 +209,21 @@ export async function generateVideo(params: VeoGenerateParams): Promise<VeoGener
     parameters.compressionQuality = params.compressionQuality;
   }
 
+  // Build instances with optional image reference
+  const instance: Record<string, unknown> = {
+    prompt: params.prompt,
+  };
+
+  // Add reference image if provided (for image-to-video generation)
+  if (params.imageUrl !== undefined) {
+    instance.image = {
+      gcsUri: params.imageUrl,
+    };
+  }
+
   // Build request body
   const requestBody = {
-    instances: [
-      {
-        prompt: params.prompt,
-      },
-    ],
+    instances: [instance],
     parameters,
   };
 
