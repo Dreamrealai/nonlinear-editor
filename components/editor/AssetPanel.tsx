@@ -70,6 +70,15 @@ const extractFileName = (storageUrl: string) => {
   return segments[segments.length - 1] ?? normalized;
 };
 
+/**
+ * Extracts the file extension from a filename and returns it in .ext format.
+ */
+const extractFileExtension = (filename: string) => {
+  const lastDot = filename.lastIndexOf('.');
+  if (lastDot === -1 || lastDot === filename.length - 1) return '';
+  return filename.slice(lastDot); // Returns .ext format
+};
+
 export default function AssetPanel({
   assets,
   projectId,
@@ -125,7 +134,7 @@ export default function AssetPanel({
               : 'text-neutral-500 hover:text-neutral-700'
           }`}
         >
-          Video
+          Videos
         </button>
         <button
           type="button"
@@ -284,9 +293,8 @@ export default function AssetPanel({
                   {asset.metadata?.filename ?? extractFileName(asset.storage_url)}
                 </p>
                 <p className="text-neutral-500">
-                  {asset.metadata?.mimeType ??
-                   asset.metadata?.format ??
-                   (asset.metadata?.videoCodec ? `${asset.metadata.videoCodec}/${asset.metadata.audioCodec ?? 'no audio'}` : null) ??
+                  {extractFileExtension(asset.metadata?.filename ?? extractFileName(asset.storage_url)) ||
+                   asset.metadata?.format ||
                    `${asset.type} file`}
                 </p>
               </div>
@@ -295,10 +303,10 @@ export default function AssetPanel({
             {/* Delete button - always visible */}
             <button
               onClick={() => void onAssetDelete(asset)}
-              className="absolute right-2 top-2 z-10 rounded-md bg-red-500 p-1.5 text-white shadow-lg transition-all hover:bg-red-600"
+              className="absolute right-2 top-1 z-10 rounded-md bg-red-500 p-1 text-white shadow-lg transition-all hover:bg-red-600"
               title="Delete asset"
             >
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </button>
