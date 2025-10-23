@@ -18,6 +18,15 @@ interface VideoQueueItem {
   createdAt: number;
 }
 
+interface ImageAsset {
+  id: string;
+  storage_url: string;
+  metadata?: {
+    thumbnail?: string;
+  };
+  created_at: string;
+}
+
 /**
  * Generate Video Tab Component
  *
@@ -45,6 +54,14 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
   const [sampleCount, setSampleCount] = useState<1 | 2 | 3 | 4>(1);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
+  // Image input state
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [imageAssetId, setImageAssetId] = useState<string | null>(null);
+  const [showAssetLibrary, setShowAssetLibrary] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Cleanup polling intervals on unmount
   useEffect(() => {
     const intervals = pollingIntervalsRef.current;
@@ -53,6 +70,90 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
       intervals.clear();
     };
   }, []);
+
+  // Handle paste events for images
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile();
+          if (file) {
+            handleImageFile(file);
+            toast.success('Image pasted from clipboard!');
+          }
+        }
+      }
+    };
+
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, []);
+
+  // Handle image file (from paste or upload)
+  const handleImageFile = useCallback((file: File) => {
+    setSelectedImage(file);
+    setImageAssetId(null); // Clear asset library selection
+
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreviewUrl(previewUrl);
+  }, []);
+
+  // Handle file input change
+  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleImageFile(file);
+      toast.success('Image selected!');
+    }
+  }, [handleImageFile]);
+
+  // Handle asset library image selection
+  const handleAssetSelect = useCallback((asset: ImageAsset) => {
+    setSelectedImage(null); // Clear file upload
+    setImageAssetId(asset.id);
+    setImagePreviewUrl(asset.metadata?.thumbnail || asset.storage_url);
+    setShowAssetLibrary(false);
+    toast.success('Image selected from library!');
+  }, []);
+
+  // Clear selected image
+  const handleClearImage = useCallback(() => {
+    setSelectedImage(null);
+    setImageAssetId(null);
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+    }
+    setImagePreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [imagePreviewUrl]);
+
+  // Upload image to Supabase storage
+  const uploadImageToStorage = useCallback(async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('projectId', projectId);
+    formData.append('type', 'image');
+
+    const uploadRes = await fetch('/api/assets/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!uploadRes.ok) {
+      const errorData = await uploadRes.json();
+      throw new Error(errorData.error || 'Failed to upload image');
+    }
+
+    const { assetId } = await uploadRes.json();
+    return assetId;
+  }, [projectId]);
 
   // Start polling for a specific video
   const startPolling = useCallback((videoId: string, operationName: string) => {
@@ -140,6 +241,16 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
     setGenerating(true);
 
     try {
+      let imageAssetIdToUse = imageAssetId;
+
+      // If a file is selected, upload it first
+      if (selectedImage) {
+        setUploadingImage(true);
+        toast.success('Uploading image...');
+        imageAssetIdToUse = await uploadImageToStorage(selectedImage);
+        setUploadingImage(false);
+      }
+
       const res = await fetch('/api/video/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -156,6 +267,7 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
           generateAudio,
           seed: seed.trim() ? parseInt(seed) : undefined,
           sampleCount,
+          imageAssetId: imageAssetIdToUse || undefined,
         }),
       });
 
@@ -179,6 +291,7 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
       setPrompt('');
       setNegativePrompt('');
       setSeed('');
+      handleClearImage();
     } catch (error) {
       console.error('Video generation failed:', error);
       toast.error(error instanceof Error ? error.message : 'Video generation failed');
@@ -191,8 +304,9 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
       ));
     } finally {
       setGenerating(false);
+      setUploadingImage(false);
     }
-  }, [projectId, prompt, model, aspectRatio, duration, resolution, negativePrompt, personGeneration, enhancePrompt, generateAudio, seed, sampleCount, videoQueue.length, startPolling]);
+  }, [projectId, prompt, model, aspectRatio, duration, resolution, negativePrompt, personGeneration, enhancePrompt, generateAudio, seed, sampleCount, videoQueue.length, startPolling, selectedImage, imageAssetId, uploadImageToStorage, handleClearImage]);
 
   const handleRemoveVideo = useCallback((videoId: string) => {
     // Clear polling interval if exists

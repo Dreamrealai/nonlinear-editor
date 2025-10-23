@@ -107,14 +107,6 @@ export async function POST(
 
     fullPrompt += 'Provide specific, actionable editing instructions that could be used to transform the image.';
 
-    // Generate content with Gemini
-    const result = await model.generateContent([
-      { text: fullPrompt },
-      ...imageParts,
-    ]);
-
-    const editDescription = result.response.text();
-
     // Get the current version number for this frame
     const { data: existingEdits } = await supabase
       .from('frame_edits')
@@ -123,55 +115,78 @@ export async function POST(
       .order('version', { ascending: false })
       .limit(1);
 
-    const nextVersion = (existingEdits?.[0]?.version || 0) + 1;
+    let nextVersion = (existingEdits?.[0]?.version || 0) + 1;
 
-    // For now, save the edit metadata
-    // In production with Imagen 3, you would:
-    // 1. Call Imagen 3 API with the instructions
-    // 2. Get the generated image
-    // 3. Upload to storage
-    // 4. Save the storage path
+    // Generate multiple variations
+    const edits = [];
+    for (let i = 0; i < variations; i++) {
+      // Add variation to prompt to encourage different results
+      const variationPrompt = variations > 1
+        ? `${fullPrompt}\n\nVariation ${i + 1}: Provide a unique interpretation of this request.`
+        : fullPrompt;
 
-    const editId = uuid();
-    const editStoragePath = `supabase://frames/${user.id}/${frame.project_id}/${editId}.jpg`;
+      // Generate content with Gemini
+      const result = await model.generateContent([
+        { text: variationPrompt },
+        ...imageParts,
+      ]);
 
-    // Create the edit record
-    const { data: edit, error: editError } = await supabase
-      .from('frame_edits')
-      .insert({
-        id: editId,
-        frame_id: frameId,
-        project_id: frame.project_id,
-        asset_id: frame.asset_id,
-        version: nextVersion,
-        mode,
-        prompt,
-        model: 'gemini-2.5-flash',
-        crop_x: cropX,
-        crop_y: cropY,
-        crop_size: cropSize,
-        feather,
-        output_storage_path: editStoragePath,
-        metadata: {
-          description: editDescription,
-          referenceImages: referenceImages.length,
-          note: 'Using Gemini 2.5 Flash for analysis. Upgrade to Imagen 3 for actual image generation.',
-        },
-      })
-      .select()
-      .single();
+      const editDescription = result.response.text();
 
-    if (editError) {
-      console.error('Failed to create edit:', editError);
-      return NextResponse.json({ error: 'Failed to save edit' }, { status: 500 });
+      // For now, save the edit metadata
+      // In production with Imagen 3, you would:
+      // 1. Call Imagen 3 API with the instructions
+      // 2. Get the generated image
+      // 3. Upload to storage
+      // 4. Save the storage path
+
+      const editId = uuid();
+      const editStoragePath = `supabase://frames/${user.id}/${frame.project_id}/${editId}.jpg`;
+
+      // Create the edit record
+      const { data: edit, error: editError } = await supabase
+        .from('frame_edits')
+        .insert({
+          id: editId,
+          frame_id: frameId,
+          project_id: frame.project_id,
+          asset_id: frame.asset_id,
+          version: nextVersion,
+          mode,
+          prompt,
+          model: 'gemini-2.5-flash',
+          crop_x: cropX,
+          crop_y: cropY,
+          crop_size: cropSize,
+          feather,
+          output_storage_path: editStoragePath,
+          metadata: {
+            description: editDescription,
+            referenceImages: referenceImages.length,
+            variation: i + 1,
+            note: 'Using Gemini 2.5 Flash for analysis. Upgrade to Imagen 3 for actual image generation.',
+          },
+        })
+        .select()
+        .single();
+
+      if (editError) {
+        console.error('Failed to create edit:', editError);
+        // Continue with other variations even if one fails
+        continue;
+      }
+
+      edits.push({
+        ...edit,
+        description: editDescription,
+      });
+      nextVersion++;
     }
 
     return NextResponse.json({
       success: true,
-      edit: {
-        ...edit,
-        description: editDescription,
-      },
+      edits,
+      count: edits.length,
       note: 'This is using Gemini 2.5 Flash for image analysis. For actual image generation, Imagen 3 or Gemini 2.5 Flash Image Preview would be used.',
     });
   } catch (error) {

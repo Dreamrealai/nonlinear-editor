@@ -646,7 +646,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   const [splitScenesPending, setSplitScenesPending] = useState(false);
   const [upscaleVideoPending, setUpscaleVideoPending] = useState(false);
   const [generateAudioPending, setGenerateAudioPending] = useState(false);
-  const [showAudioModelMenu, setShowAudioModelMenu] = useState<string | null>(null);
 
   // Export state
   const [showExportModal, setShowExportModal] = useState(false);
@@ -1022,6 +1021,38 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
     }
     setShowExportModal(true);
   }, [timeline]);
+
+  const handleAddText = useCallback(() => {
+    const addTextOverlay = useEditorStore.getState().addTextOverlay;
+    const currentTime = useEditorStore.getState().currentTime;
+    addTextOverlay({
+      id: `text-${Date.now()}`,
+      text: 'New Text',
+      timelinePosition: currentTime,
+      duration: 5,
+      x: 50,
+      y: 50,
+      fontSize: 32,
+      color: '#ffffff',
+      backgroundColor: 'transparent',
+      fontFamily: 'sans-serif',
+      align: 'center',
+      opacity: 1,
+    });
+    toast.success('Text overlay added at playhead');
+  }, []);
+
+  const handleAddTransition = useCallback(() => {
+    const addTransitionToSelectedClips = useEditorStore.getState().addTransitionToSelectedClips;
+    const selectedClipIds = useEditorStore.getState().selectedClipIds;
+    if (selectedClipIds.size === 0) {
+      toast.error('Select clips to add transition');
+      return;
+    }
+    addTransitionToSelectedClips('crossfade', 0.5);
+    toast.success('Transition added to selected clips');
+  }, []);
+
 
   // Audio generation handlers
   const handleGenerateSuno = useCallback(async (formData: { prompt: string; style?: string; title?: string; customMode?: boolean; instrumental?: boolean }) => {
@@ -1457,7 +1488,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
 
   const handleGenerateAudioFromVideo = useCallback(async (asset: AssetRow, model: 'minimax' | 'mureka-1.5' | 'kling-turbo-2.5') => {
     setGenerateAudioPending(true);
-    setShowAudioModelMenu(null);
 
     const modelNames = {
       'minimax': 'MiniMax',
@@ -1530,6 +1560,22 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
       setGenerateAudioPending(false);
     }
   }, [supabase, projectId]);
+
+  const handleGenerateAudioFromClip = useCallback(async (clipId: string) => {
+    if (!timeline) return;
+    const clip = timeline.clips.find((c) => c.id === clipId);
+    if (!clip) return;
+
+    const asset = assets.find((a) => a.id === clip.assetId);
+    if (!asset) {
+      toast.error('Asset not found for clip');
+      return;
+    }
+
+    // Default to minimax
+    const model = 'minimax';
+    await handleGenerateAudioFromVideo(asset, model);
+  }, [timeline, assets, handleGenerateAudioFromVideo]);
 
   if (!timeline) {
     return (
@@ -1767,55 +1813,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
                   >
                     {upscaleVideoPending ? 'Upscaling...' : 'Upscale Video'}
                   </button>
-
-                  {/* Generate Audio from Video with Model Dropdown */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowAudioModelMenu(showAudioModelMenu === asset.id ? null : asset.id)}
-                      disabled={generateAudioPending}
-                      className="w-full rounded-md bg-gradient-to-r from-orange-500 to-amber-500 px-2 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:from-orange-600 hover:to-amber-600 disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-1"
-                      title="Generate audio from video"
-                    >
-                      {generateAudioPending ? 'Generating Audio...' : (
-                        <>
-                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                          </svg>
-                          <span>Generate Audio</span>
-                          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </>
-                      )}
-                    </button>
-
-                    {/* Dropdown Menu */}
-                    {showAudioModelMenu === asset.id && !generateAudioPending && (
-                      <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-neutral-200 bg-white shadow-lg">
-                        <button
-                          onClick={() => void handleGenerateAudioFromVideo(asset, 'minimax')}
-                          className="w-full rounded-t-md px-3 py-2 text-left text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-100"
-                        >
-                          <div className="font-semibold">MiniMax</div>
-                          <div className="text-[10px] text-neutral-500">High quality audio generation</div>
-                        </button>
-                        <button
-                          onClick={() => void handleGenerateAudioFromVideo(asset, 'mureka-1.5')}
-                          className="w-full border-t border-neutral-100 px-3 py-2 text-left text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-100"
-                        >
-                          <div className="font-semibold">Mureka 1.5</div>
-                          <div className="text-[10px] text-neutral-500">Advanced audio synthesis</div>
-                        </button>
-                        <button
-                          onClick={() => void handleGenerateAudioFromVideo(asset, 'kling-turbo-2.5')}
-                          className="w-full rounded-b-md border-t border-neutral-100 px-3 py-2 text-left text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-100"
-                        >
-                          <div className="font-semibold">Kling Turbo 2.5</div>
-                          <div className="text-[10px] text-neutral-500">Fast audio generation</div>
-                        </button>
-                      </div>
-                    )}
-                  </div>
                 </div>
               )}
 
@@ -1844,6 +1841,9 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
             onDetectScenes={handleDetectScenes}
             sceneDetectPending={sceneDetectPending}
             onExport={handleExportClick}
+            onAddText={handleAddText}
+            onAddTransition={handleAddTransition}
+            onGenerateAudioFromClip={handleGenerateAudioFromClip}
           />
         </section>
       </main>

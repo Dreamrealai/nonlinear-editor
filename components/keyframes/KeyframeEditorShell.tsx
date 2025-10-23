@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useMemo, useState, useRef, type CSSProperties } from 'react';
 import clsx from 'clsx';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface AssetRow {
   id: string;
@@ -318,6 +319,7 @@ function KeyframeEditorContent({ assets, supabase }: KeyframeEditorShellProps & 
           crop: mode === 'crop' ? crop : undefined,
           featherPx: mode === 'crop' ? feather : undefined,
           refImages: refImageUrls,
+          numVariations: 4, // Generate 4 variations by default
         }),
       });
 
@@ -866,8 +868,8 @@ function KeyframeEditorContent({ assets, supabase }: KeyframeEditorShellProps & 
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-full items-center justify-center bg-neutral-100 text-[10px] text-neutral-400">
-                          Loading...
+                        <div className="flex h-full items-center justify-center bg-neutral-100">
+                          <LoadingSpinner size="sm" />
                         </div>
                       )}
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-1.5 py-1">
@@ -1159,11 +1161,12 @@ function KeyframeEditorContent({ assets, supabase }: KeyframeEditorShellProps & 
               </button>
               <button
                 type="button"
-                className="rounded bg-neutral-900 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-400"
+                className="rounded bg-neutral-900 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-400 flex items-center gap-2"
                 onClick={() => void handleSubmit()}
                 disabled={isSubmitting || !selectedFrameId}
               >
-                {isSubmitting ? 'Generating…' : 'Generate Edit'}
+                {isSubmitting && <LoadingSpinner size="sm" className="text-white" />}
+                {isSubmitting ? 'Generating 4 Variations…' : 'Generate 4 Edits'}
               </button>
             </div>
           </div>
@@ -1219,10 +1222,7 @@ export default function KeyframeEditorShell({ assets }: KeyframeEditorShellProps
   if (isLoading || !supabaseClient) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-900 mx-auto" />
-          <p className="mt-4 text-sm text-neutral-600">Loading keyframe editor...</p>
-        </div>
+        <LoadingSpinner size="lg" text="Loading keyframe editor..." />
       </div>
     );
   }
