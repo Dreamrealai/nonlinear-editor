@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
-import KeyFrameEditorClient from './KeyFrameEditorClient';
+import KeyframePageClient from './KeyframePageClient';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -31,5 +31,5 @@ export default async function KeyFrameEditorPage({ params }: { params: Promise<{
     redirect('/');
   }
 
-  return <KeyFrameEditorClient projectId={projectId} />;
+  return <KeyframePageClient projectId={projectId} />;
 }
