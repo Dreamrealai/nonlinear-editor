@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
+import UserMenu from '@/components/UserMenu';
 import toast from 'react-hot-toast';
 
 interface EditorHeaderProps {
@@ -224,6 +225,11 @@ export default function EditorHeader({ projectId, currentTab }: EditorHeaderProp
             Key Frame Editor
           </Link>
         </nav>
+
+        {/* User Menu */}
+        <div>
+          <UserMenu />
+        </div>
       </div>
     </header>
   );

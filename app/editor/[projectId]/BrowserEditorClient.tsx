@@ -1419,15 +1419,25 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
               type="button"
               onClick={() => uploadInputRef.current?.click()}
               disabled={uploadPending}
-              className="w-full rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-75"
+              className="group w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700 transition-all hover:border-blue-300 hover:bg-blue-100 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-75"
             >
-              {uploadPending ? 'Uploading…' : '+ Upload Video/Image'}
+              <div className="flex items-center justify-center gap-2">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                {uploadPending ? 'Uploading…' : 'Upload Video/Image'}
+              </div>
             </button>
             <Link
               href={`/video-gen?projectId=${projectId}`}
-              className="w-full rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-xs font-medium text-neutral-700 text-center transition hover:border-neutral-400 hover:bg-neutral-100"
+              className="group w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-xs font-semibold text-white text-center shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg"
             >
-              + Generate Video with AI
+              <div className="flex items-center justify-center gap-2">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+                Generate Video with AI
+              </div>
             </Link>
           </div>
         )}
@@ -1439,15 +1449,25 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
               type="button"
               onClick={() => uploadInputRef.current?.click()}
               disabled={uploadPending}
-              className="w-full rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-75"
+              className="group w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700 transition-all hover:border-blue-300 hover:bg-blue-100 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-75"
             >
-              {uploadPending ? 'Uploading…' : '+ Upload Audio'}
+              <div className="flex items-center justify-center gap-2">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                {uploadPending ? 'Uploading…' : 'Upload Audio'}
+              </div>
             </button>
             <Link
               href={`/audio-gen?projectId=${projectId}`}
-              className="w-full rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-xs font-medium text-neutral-700 text-center transition hover:border-neutral-400 hover:bg-neutral-100"
+              className="group w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-xs font-semibold text-white text-center shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg"
             >
-              + Generate Audio with AI
+              <div className="flex items-center justify-center gap-2">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+                Generate Audio with AI
+              </div>
             </Link>
           </div>
         )}
