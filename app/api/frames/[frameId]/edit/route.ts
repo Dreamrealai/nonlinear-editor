@@ -18,11 +18,14 @@ export async function POST(
 
     const { frameId } = await params;
     const body = await request.json();
-    const { prompt, mode = 'global', cropX, cropY, cropSize, feather, referenceImages = [] } = body;
+    const { prompt, mode = 'global', cropX, cropY, cropSize, feather, referenceImages = [], numVariations = 4 } = body;
 
     if (!prompt || typeof prompt !== 'string') {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
+
+    // Validate numVariations
+    const variations = Math.max(1, Math.min(numVariations, 8)); // Limit between 1 and 8
 
     // Get the frame from database
     const { data: frame, error: frameError } = await supabase

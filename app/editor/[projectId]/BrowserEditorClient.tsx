@@ -973,7 +973,10 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
       const json = await res.json();
 
       if (!res.ok) {
-        throw new Error(json.error || 'Scene detection failed');
+        const errorMsg = json.details
+          ? `${json.error || 'Scene detection failed'}: ${json.details}`
+          : (json.error || 'Scene detection failed');
+        throw new Error(errorMsg);
       }
 
       browserLogger.info({ projectId, assetId: latestVideo.id, sceneCount: json.scenes?.length }, 'Scenes detected successfully');
@@ -1367,7 +1370,10 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
       const json = await res.json();
 
       if (!res.ok) {
-        throw new Error(json.error || 'Scene splitting failed');
+        const errorMsg = json.details
+          ? `${json.error || 'Scene splitting failed'}: ${json.details}`
+          : (json.error || 'Scene splitting failed');
+        throw new Error(errorMsg);
       }
 
       toast.success(json.message || 'Scene splitting initiated', { id: 'split-scenes' });

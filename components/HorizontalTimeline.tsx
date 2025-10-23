@@ -8,6 +8,7 @@ import type { Clip } from '@/types/timeline';
 const TRACK_HEIGHT = 80;
 const RULER_HEIGHT = 30;
 const MIN_TRACKS = 3;
+const MAX_TRACKS = 10;
 const SNAP_INTERVAL = 0.1; // seconds
 const SNAP_THRESHOLD = SNAP_INTERVAL / 2;
 
@@ -30,9 +31,12 @@ type HorizontalTimelineProps = {
   onDetectScenes?: () => void;
   sceneDetectPending?: boolean;
   onExport?: () => void;
+  onAddText?: () => void;
+  onAddTransition?: () => void;
+  onGenerateAudioFromClip?: (clipId: string) => void;
 };
 
-export default function HorizontalTimeline({ onDetectScenes, sceneDetectPending = false, onExport }: HorizontalTimelineProps = {}) {
+export default function HorizontalTimeline({ onDetectScenes, sceneDetectPending = false, onExport, onAddText, onAddTransition, onGenerateAudioFromClip }: HorizontalTimelineProps = {}) {
   const timeline = useEditorStore((state) => state.timeline);
   const currentTime = useEditorStore((state) => state.currentTime);
   const zoom = useEditorStore((state) => state.zoom);
@@ -52,6 +56,7 @@ export default function HorizontalTimeline({ onDetectScenes, sceneDetectPending 
   const canRedo = useEditorStore((state) => state.canRedo);
 
   const [forcedTrackCount, setForcedTrackCount] = useState<number | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ clipId: string; x: number; y: number } | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [draggingClip, setDraggingClip] = useState<{ id: string; offsetX: number; offsetY: number; duration: number } | null>(null);
@@ -393,6 +398,21 @@ export default function HorizontalTimeline({ onDetectScenes, sceneDetectPending 
     return currentTime > clipStart && currentTime < clipEnd;
   });
 
+  // Close context menu when clicking elsewhere
+  useEffect(() => {
+    const handleClick = () => setContextMenu(null);
+    if (contextMenu) {
+      window.addEventListener('click', handleClick);
+      return () => window.removeEventListener('click', handleClick);
+    }
+  }, [contextMenu]);
+
+  const handleClipContextMenu = useCallback((e: React.MouseEvent, clip: Clip) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ clipId: clip.id, x: e.clientX, y: e.clientY });
+  }, []);
+
   if (!timeline || timeline.clips.length === 0) {
     return (
       <div className="rounded-xl border-2 border-dashed border-neutral-300 bg-white/60 p-8 text-center">
@@ -467,6 +487,30 @@ export default function HorizontalTimeline({ onDetectScenes, sceneDetectPending 
               </button>
             </>
           )}
+          {onAddText && (
+            <>
+              <div className="h-4 w-px bg-neutral-300" />
+              <button
+                onClick={onAddText}
+                className="rounded px-3 py-1 text-xs font-semibold bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+                title="Add text overlay"
+              >
+                Add Text
+              </button>
+            </>
+          )}
+          {onAddTransition && (
+            <>
+              <div className="h-4 w-px bg-neutral-300" />
+              <button
+                onClick={onAddTransition}
+                className="rounded px-3 py-1 text-xs font-semibold bg-amber-600 text-white hover:bg-amber-700 transition-colors"
+                title="Add transition to selected clips"
+              >
+                Add Transition
+              </button>
+            </>
+          )}
           {onExport && (
             <>
               <div className="h-4 w-px bg-neutral-300" />
@@ -526,9 +570,20 @@ export default function HorizontalTimeline({ onDetectScenes, sceneDetectPending 
                   backgroundColor: trackIndex % 2 === 0 ? '#fafafa' : '#ffffff',
                 }}
               >
-                <span className="absolute left-2 top-2 text-xs font-semibold text-neutral-400">
-                  Track {trackIndex + 1}
-                </span>
+                <div className="absolute left-2 top-2 flex items-center gap-2">
+                  <span className="text-xs font-semibold text-neutral-400">
+                    Track {trackIndex + 1}
+                  </span>
+                  {trackIndex === numTracks - 1 && numTracks < MAX_TRACKS && (
+                    <button
+                      onClick={() => setForcedTrackCount(numTracks + 1)}
+                      className="rounded px-1.5 py-0.5 text-[10px] font-bold bg-green-500 text-white hover:bg-green-600 transition-colors"
+                      title="Add new track"
+                    >
+                      +
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
 
@@ -555,6 +610,7 @@ export default function HorizontalTimeline({ onDetectScenes, sceneDetectPending 
                   }}
                   onMouseDown={(e) => handleClipMouseDown(e, clip)}
                   onClick={(e) => handleClipClick(e, clip)}
+                  onContextMenu={(e) => handleClipContextMenu(e, clip)}
                 >
                   <div className="relative h-full w-full select-none">
                     {thumbnail ? (
@@ -647,6 +703,28 @@ export default function HorizontalTimeline({ onDetectScenes, sceneDetectPending 
           </span>
         </button>
       </div>
+
+      {/* Context Menu */}
+      {contextMenu && onGenerateAudioFromClip && (
+        <div
+          className="fixed z-50 rounded-md border border-neutral-200 bg-white shadow-lg"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => {
+              onGenerateAudioFromClip(contextMenu.clipId);
+              setContextMenu(null);
+            }}
+            className="w-full rounded-md px-4 py-2 text-left text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 flex items-center gap-2"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+            </svg>
+            <span>Generate Audio</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

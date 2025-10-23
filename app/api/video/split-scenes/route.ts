@@ -99,7 +99,20 @@ export async function POST(req: NextRequest) {
     }
 
     // Initialize Video Intelligence client
-    const credentials = JSON.parse(credentialsJson);
+    let credentials;
+    try {
+      credentials = JSON.parse(credentialsJson);
+    } catch (parseError) {
+      console.error('Failed to parse GOOGLE_SERVICE_ACCOUNT:', parseError);
+      return NextResponse.json(
+        {
+          error: 'Invalid Google Cloud credentials',
+          message: 'GOOGLE_SERVICE_ACCOUNT is not valid JSON'
+        },
+        { status: 503 }
+      );
+    }
+
     const client = new VideoIntelligenceServiceClient({ credentials });
 
     // Perform shot detection
@@ -108,9 +121,23 @@ export async function POST(req: NextRequest) {
       features: [protos.google.cloud.videointelligence.v1.Feature.SHOT_CHANGE_DETECTION],
     };
 
-    const results = await client.annotateVideo(request);
-    console.log('Processing video for shot detection...');
+    console.log('Starting video annotation for shot detection...');
+    let results;
+    try {
+      results = await client.annotateVideo(request);
+    } catch (apiError) {
+      console.error('Video Intelligence API error:', apiError);
+      return NextResponse.json(
+        {
+          error: 'Video analysis failed',
+          message: apiError instanceof Error ? apiError.message : 'Google Cloud Video Intelligence API error',
+          details: 'The video may not be accessible or the API credentials may be invalid'
+        },
+        { status: 502 }
+      );
+    }
 
+    console.log('Processing video for shot detection...');
     const operation = results[0];
     const operationResult = await operation.promise();
     const shots = operationResult?.[0]?.annotationResults?.[0]?.shotAnnotations || [];
@@ -161,8 +188,18 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error('Scene split error:', error);
+
+    // Provide detailed error information
+    const errorMessage = error instanceof Error ? error.message : 'Failed to split scenes';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
+    console.error('Error details:', { message: errorMessage, stack: errorStack });
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to split scenes' },
+      {
+        error: errorMessage,
+        details: 'An unexpected error occurred during scene detection. Check server logs for more information.'
+      },
       { status: 500 }
     );
   }
