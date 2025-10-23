@@ -43,6 +43,7 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
   const [generateAudio, setGenerateAudio] = useState(true);
   const [seed, setSeed] = useState<string>('');
   const [sampleCount, setSampleCount] = useState<1 | 2 | 3 | 4>(1);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Cleanup polling intervals on unmount
   useEffect(() => {

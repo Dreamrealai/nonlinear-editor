@@ -643,6 +643,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   // Video processing state
   const [splitAudioPending, setSplitAudioPending] = useState(false);
   const [splitScenesPending, setSplitScenesPending] = useState(false);
+  const [upscaleVideoPending, setUpscaleVideoPending] = useState(false);
 
   // Export state
   const [showExportModal, setShowExportModal] = useState(false);
@@ -1366,6 +1367,76 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
     }
   }, [supabase, projectId]);
 
+  const handleUpscaleVideo = useCallback(async (asset: AssetRow) => {
+    setUpscaleVideoPending(true);
+    toast.loading('Upscaling video with Topaz AI...', { id: 'upscale-video' });
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Submit upscale request
+      const res = await fetch('/api/video/upscale', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assetId: asset.id,
+          projectId,
+          upscaleFactor: 2,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json.error || 'Video upscale failed');
+      }
+
+      const requestId = json.requestId;
+      toast.loading('Video upscaling in progress... This may take several minutes.', { id: 'upscale-video' });
+
+      // Poll for completion
+      const pollInterval = 10000; // 10 seconds
+      const poll = async () => {
+        try {
+          const statusRes = await fetch(
+            `/api/video/upscale-status?requestId=${encodeURIComponent(requestId)}&projectId=${projectId}`
+          );
+          const statusJson = await statusRes.json();
+
+          if (statusJson.done) {
+            if (statusJson.error) {
+              throw new Error(statusJson.error);
+            }
+
+            toast.success('Video upscaled successfully!', { id: 'upscale-video' });
+
+            const mappedAsset = mapAssetRow(statusJson.asset as Record<string, unknown>);
+            if (mappedAsset) {
+              setAssets((prev) => [mappedAsset, ...prev]);
+            }
+
+            setUpscaleVideoPending(false);
+            setActiveTab('video');
+          } else {
+            // Continue polling
+            setTimeout(poll, pollInterval);
+          }
+        } catch (pollError) {
+          browserLogger.error({ error: pollError, projectId }, 'Video upscale polling failed');
+          toast.error(pollError instanceof Error ? pollError.message : 'Video upscale failed', { id: 'upscale-video' });
+          setUpscaleVideoPending(false);
+        }
+      };
+
+      setTimeout(poll, pollInterval);
+    } catch (error) {
+      browserLogger.error({ error, projectId }, 'Video upscale failed');
+      toast.error(error instanceof Error ? error.message : 'Video upscale failed', { id: 'upscale-video' });
+      setUpscaleVideoPending(false);
+    }
+  }, [supabase, projectId]);
+
   if (!timeline) {
     return (
       <div className="flex h-full w-full items-center justify-center">
@@ -1377,7 +1448,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <EditorHeader projectId={projectId} currentTab="generate-video" />
+      <EditorHeader projectId={projectId} currentTab="video-editor" />
       <div className="grid h-full grid-cols-[280px_1fr] gap-6 p-6">
         <Toaster position="bottom-right" />
       {/* Assets Panel */}
@@ -1575,22 +1646,32 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
 
               {/* Video Action Buttons */}
               {asset.type === 'video' && (
-                <div className="flex gap-1.5">
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={() => void handleSplitAudio(asset)}
+                      disabled={splitAudioPending}
+                      className="flex-1 rounded-md bg-blue-500 px-2 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+                      title="Extract audio from video"
+                    >
+                      Split Audio
+                    </button>
+                    <button
+                      onClick={() => void handleSplitScenes(asset)}
+                      disabled={splitScenesPending}
+                      className="flex-1 rounded-md bg-purple-500 px-2 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
+                      title="Split video into scenes"
+                    >
+                      Split Scenes
+                    </button>
+                  </div>
                   <button
-                    onClick={() => void handleSplitAudio(asset)}
-                    disabled={splitAudioPending}
-                    className="flex-1 rounded-md bg-blue-500 px-2 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
-                    title="Extract audio from video"
+                    onClick={() => void handleUpscaleVideo(asset)}
+                    disabled={upscaleVideoPending}
+                    className="w-full rounded-md bg-gradient-to-r from-emerald-500 to-teal-500 px-2 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:from-emerald-600 hover:to-teal-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    title="Upscale video using Topaz AI (2x resolution)"
                   >
-                    Split Audio
-                  </button>
-                  <button
-                    onClick={() => void handleSplitScenes(asset)}
-                    disabled={splitScenesPending}
-                    className="flex-1 rounded-md bg-purple-500 px-2 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
-                    title="Split video into scenes"
-                  >
-                    Split Scenes
+                    {upscaleVideoPending ? 'Upscaling...' : 'Upscale Video'}
                   </button>
                 </div>
               )}
