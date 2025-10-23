@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
 import crypto from 'crypto';
 import { serverLogger } from '@/lib/serverLogger';
 
@@ -166,10 +166,11 @@ export async function POST(request: NextRequest) {
       fileSize: file.size,
     }, 'File uploaded to storage successfully');
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    // Get public URL and ensure it has the https:// protocol
+    const { data: { publicUrl: rawPublicUrl } } = supabase.storage
       .from('assets')
       .getPublicUrl(filePath);
+    const publicUrl = ensureHttpsProtocol(rawPublicUrl);
 
     // Get image dimensions if it's an image
     // Note: In a production app, you might want to use an image processing library

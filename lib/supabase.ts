@@ -288,3 +288,31 @@ export const createSupabaseClientWithFallback = async () => {
     return await createServerSupabaseClient();
   }
 };
+
+/**
+ * Ensures a URL has the https:// protocol
+ *
+ * In some cases, Supabase's getPublicUrl() may return URLs without the protocol.
+ * This utility ensures all URLs have the correct https:// prefix.
+ *
+ * @param url - URL to normalize (may or may not include protocol)
+ * @returns URL with https:// protocol
+ *
+ * @example
+ * ensureHttpsProtocol('wrximmuaibfjmjrfriej.supabase.co/storage/...')
+ * // Returns: 'https://wrximmuaibfjmjrfriej.supabase.co/storage/...'
+ *
+ * ensureHttpsProtocol('https://wrximmuaibfjmjrfriej.supabase.co/storage/...')
+ * // Returns: 'https://wrximmuaibfjmjrfriej.supabase.co/storage/...'
+ */
+export const ensureHttpsProtocol = (url: string): string => {
+  if (!url) return url;
+
+  // If URL already has a protocol, return as-is
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:')) {
+    return url;
+  }
+
+  // Add https:// protocol
+  return `https://${url}`;
+};

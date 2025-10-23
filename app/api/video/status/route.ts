@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkOperationStatus } from '@/lib/veo';
 import { checkFalVideoStatus } from '@/lib/fal-video';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import { GoogleAuth } from 'google-auth-library';
 
@@ -82,8 +82,9 @@ export async function GET(req: NextRequest) {
         }
 
         const {
-          data: { publicUrl },
+          data: { publicUrl: rawPublicUrl },
         } = supabase.storage.from('assets').getPublicUrl(storagePath);
+        const publicUrl = ensureHttpsProtocol(rawPublicUrl);
 
         const storageUrl = normalizeStorageUrl('assets', storagePath);
 
@@ -216,8 +217,9 @@ export async function GET(req: NextRequest) {
       }
 
       const {
-        data: { publicUrl },
+        data: { publicUrl: rawPublicUrl },
       } = supabase.storage.from('assets').getPublicUrl(storagePath);
+      const publicUrl = ensureHttpsProtocol(rawPublicUrl);
 
       const storageUrl = normalizeStorageUrl('assets', storagePath);
 

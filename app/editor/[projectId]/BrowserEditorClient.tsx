@@ -24,7 +24,7 @@ import ExportModal from '@/components/ExportModal';
 import EditorHeader from '@/components/EditorHeader';
 import { useAutosave } from '@/lib/hooks/useAutosave';
 import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts';
-import { createBrowserSupabaseClient } from '@/lib/supabase';
+import { createBrowserSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
 import { saveTimeline, loadTimeline } from '@/lib/saveLoad';
 import type { Clip, Timeline as TimelineType } from '@/types/timeline';
 import { useEditorStore } from '@/state/useEditorStore';
@@ -1338,7 +1338,8 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
 
-      const { data: { publicUrl } } = supabase.storage.from('assets').getPublicUrl(storagePath);
+      const { data: { publicUrl: rawPublicUrl } } = supabase.storage.from('assets').getPublicUrl(storagePath);
+      const publicUrl = ensureHttpsProtocol(rawPublicUrl);
 
       // Create asset record
       const { data: newAsset, error: assetError } = await supabase
@@ -1879,10 +1880,10 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
 
       {/* Main Editor */}
       <main className="flex h-full flex-col gap-4 overflow-hidden">
-        <section className="flex-[3] overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+        <section className="flex-[18] overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
           <PreviewPlayer />
         </section>
-        <section className="flex-1 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+        <section className="flex-[5] rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
           <HorizontalTimeline
             onDetectScenes={handleDetectScenes}
             sceneDetectPending={sceneDetectPending}

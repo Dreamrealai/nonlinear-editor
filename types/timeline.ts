@@ -1,4 +1,4 @@
-export type TransitionType = 'none' | 'crossfade' | 'fade-in' | 'fade-out';
+export type TransitionType = 'none' | 'crossfade' | 'fade-in' | 'fade-out' | 'slide-left' | 'slide-right' | 'slide-up' | 'slide-down' | 'wipe-left' | 'wipe-right' | 'zoom-in' | 'zoom-out';
 
 export type CropRect = {
   x: number;
@@ -6,6 +6,20 @@ export type CropRect = {
   width: number;
   height: number;
 } | null;
+
+export type ColorCorrection = {
+  brightness: number; // 0-200, default 100 (100 = no change)
+  contrast: number;   // 0-200, default 100 (100 = no change)
+  saturation: number; // 0-200, default 100 (100 = no change)
+  hue: number;        // 0-360, default 0 (degrees rotation)
+};
+
+export type Transform = {
+  rotation: number;       // 0-360, default 0 (degrees)
+  flipHorizontal: boolean; // default false
+  flipVertical: boolean;   // default false
+  scale: number;          // 0.1-3, default 1.0
+};
 
 export type Clip = {
   id: string;
@@ -26,6 +40,8 @@ export type Clip = {
   opacity?: number; // Clip opacity (0-1, default 1.0)
   muted?: boolean; // Clip muted flag (default false)
   speed?: number; // Playback speed multiplier (0.25-4, default 1.0)
+  colorCorrection?: ColorCorrection; // Color correction settings
+  transform?: Transform; // Transform settings (rotation, flip, scale)
 };
 
 export type OutputSpec = {

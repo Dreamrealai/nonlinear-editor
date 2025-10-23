@@ -30,14 +30,14 @@ export default function EditorLayout({
       {/* Toggle Button */}
       <button
         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-        className="fixed right-4 top-4 z-50 rounded-lg bg-white border border-neutral-200 p-2 shadow-lg hover:bg-neutral-50"
+        className="fixed right-4 top-20 z-50 rounded-lg bg-white border border-neutral-200 p-2 shadow-lg hover:bg-neutral-50"
         title={sidebarCollapsed ? 'Show DreamReal Assistant' : 'Hide DreamReal Assistant'}
       >
         <svg className="h-5 w-5 text-neutral-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           {sidebarCollapsed ? (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-          ) : (
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
           )}
         </svg>
       </button>

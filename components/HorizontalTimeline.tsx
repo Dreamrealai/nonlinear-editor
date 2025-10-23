@@ -4,6 +4,7 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip, TextOverlay } from '@/types/timeline';
+import { AudioWaveform } from './AudioWaveform';
 
 const TRACK_HEIGHT = 80;
 const RULER_HEIGHT = 30;
@@ -158,6 +159,18 @@ const ClipRenderer = React.memo<ClipRendererProps>(function ClipRenderer({
           <div className="h-full w-full bg-gradient-to-br from-blue-200 via-blue-100 to-blue-200" />
         )}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/40" />
+
+        {/* Audio Waveform */}
+        {clip.hasAudio && (
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0" style={{ height: '30%' }}>
+            <AudioWaveform
+              clip={clip}
+              width={clipWidth}
+              height={Math.floor((TRACK_HEIGHT - 16) * 0.3)}
+              className="opacity-80"
+            />
+          </div>
+        )}
 
         {/* Trim Handles */}
         <div

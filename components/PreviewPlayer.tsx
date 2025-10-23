@@ -18,7 +18,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
-import type { Clip } from '@/types/timeline';
+import type { Clip, ColorCorrection, Transform } from '@/types/timeline';
 import TextOverlayRenderer from './TextOverlayRenderer';
 import TextOverlayEditor from './TextOverlayEditor';
 
@@ -53,6 +53,73 @@ type ClipMeta = {
  * @returns Clamped value
  */
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+
+/**
+ * Generates CSS filter string from color correction settings.
+ * @param colorCorrection - Color correction settings (optional)
+ * @returns CSS filter string
+ */
+const generateCSSFilter = (colorCorrection?: ColorCorrection): string => {
+  if (!colorCorrection) {
+    return 'none';
+  }
+
+  const filters: string[] = [];
+
+  // Brightness: 0-200% (100 = no change)
+  if (colorCorrection.brightness !== 100) {
+    filters.push(`brightness(${colorCorrection.brightness}%)`);
+  }
+
+  // Contrast: 0-200% (100 = no change)
+  if (colorCorrection.contrast !== 100) {
+    filters.push(`contrast(${colorCorrection.contrast}%)`);
+  }
+
+  // Saturation: 0-200% (100 = no change)
+  if (colorCorrection.saturation !== 100) {
+    filters.push(`saturate(${colorCorrection.saturation}%)`);
+  }
+
+  // Hue: 0-360 degrees (0 = no change)
+  if (colorCorrection.hue !== 0) {
+    filters.push(`hue-rotate(${colorCorrection.hue}deg)`);
+  }
+
+  return filters.length > 0 ? filters.join(' ') : 'none';
+};
+
+/**
+ * Generates CSS transform string from transform settings.
+ * @param transform - Transform settings (optional)
+ * @returns CSS transform string
+ */
+const generateCSSTransform = (transform?: Transform): string => {
+  if (!transform) {
+    return 'translateZ(0)';
+  }
+
+  const transforms: string[] = ['translateZ(0)']; // Always include for GPU acceleration
+
+  // Scale: 0.1-3 (1 = no change)
+  if (transform.scale !== 1.0) {
+    transforms.push(`scale(${transform.scale})`);
+  }
+
+  // Rotation: 0-360 degrees (0 = no change)
+  if (transform.rotation !== 0) {
+    transforms.push(`rotate(${transform.rotation}deg)`);
+  }
+
+  // Flip horizontal/vertical
+  const scaleX = transform.flipHorizontal ? -1 : 1;
+  const scaleY = transform.flipVertical ? -1 : 1;
+  if (scaleX !== 1 || scaleY !== 1) {
+    transforms.push(`scale(${scaleX * (transform.scale || 1)}, ${scaleY * (transform.scale || 1)})`);
+  }
+
+  return transforms.join(' ');
+};
 
 /**
  * Computes playback metadata for all clips including transition effects.
@@ -403,8 +470,9 @@ export default function PreviewPlayer() {
           // Remove CSS transition - RAF will handle opacity smoothly
           video.style.transition = 'none';
           video.style.zIndex = String(1000 - clip.trackIndex);
-          video.style.willChange = 'opacity, transform';
-          video.style.transform = 'translateZ(0)';
+          video.style.willChange = 'opacity, transform, filter';
+          video.style.transform = generateCSSTransform(clip.transform);
+          video.style.filter = generateCSSFilter(clip.colorCorrection);
           video.style.backfaceVisibility = 'hidden';
           // Mute non-primary tracks to prevent browser audio throttling
           video.muted = clip.trackIndex !== 0;
@@ -475,6 +543,9 @@ export default function PreviewPlayer() {
         }
         video.pause();
         video.style.opacity = computeOpacity(meta, localProgress).toString();
+        // Apply color correction and transforms
+        video.style.filter = generateCSSFilter(clip.colorCorrection);
+        video.style.transform = generateCSSTransform(clip.transform);
       });
     },
     [sortedClips, clipMetas],
@@ -583,6 +654,10 @@ export default function PreviewPlayer() {
 
         const opacity = computeOpacity(meta, localProgress);
         video.style.opacity = opacity.toString();
+
+        // Apply color correction and transforms
+        video.style.filter = generateCSSFilter(clip.colorCorrection);
+        video.style.transform = generateCSSTransform(clip.transform);
 
         if (play) {
           if (video.paused && video.readyState >= 3) {
