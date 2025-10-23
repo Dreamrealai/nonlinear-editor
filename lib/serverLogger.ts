@@ -1,96 +1,109 @@
 /**
- * Server-side logger for API routes and server components
- * Uses console with structured logging format
+ * Ultra-thin Pino-based server logger with Axiom integration
+ *
+ * Features:
+ * - High-performance JSON logging with Pino
+ * - Automatic Axiom ingest with batching
+ * - Pretty printing in development
+ * - Optimized for serverless (Next.js/Vercel)
+ * - Child loggers for contextual logging
+ *
+ * Usage:
+ * ```typescript
+ * import { serverLogger } from '@/lib/serverLogger';
+ *
+ * serverLogger.info('Server started');
+ * serverLogger.error({ error: err, userId: '123' }, 'Failed to save');
+ *
+ * // Create child logger with context
+ * const routeLogger = serverLogger.child({ route: '/api/users' });
+ * routeLogger.info('Route accessed');
+ * ```
  */
 
-type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+import pino from 'pino';
+import { axiomTransport } from './axiomTransport';
+import { Writable } from 'stream';
 
-interface LogData {
-  [key: string]: unknown;
-}
+const isDevelopment = process.env.NODE_ENV === 'development';
 
-class ServerLogger {
-  private createLogEntry(level: LogLevel, data: LogData | undefined, message: string) {
-    const timestamp = new Date().toISOString();
-    const logEntry = {
-      timestamp,
-      level,
-      message,
-      ...data,
-    };
-    return logEntry;
-  }
-
-  trace(data: LogData | undefined, message: string) {
-    const entry = this.createLogEntry('trace', data, message);
-    console.debug('[TRACE]', JSON.stringify(entry));
-  }
-
-  debug(data: LogData | undefined, message: string) {
-    const entry = this.createLogEntry('debug', data, message);
-    console.debug('[DEBUG]', JSON.stringify(entry));
-  }
-
-  info(data: LogData | undefined, message: string) {
-    const entry = this.createLogEntry('info', data, message);
-    console.log('[INFO]', JSON.stringify(entry));
-  }
-
-  warn(data: LogData | undefined, message: string) {
-    const entry = this.createLogEntry('warn', data, message);
-    console.warn('[WARN]', JSON.stringify(entry));
-  }
-
-  error(data: LogData | undefined, message: string) {
-    const entry = this.createLogEntry('error', data, message);
-    console.error('[ERROR]', JSON.stringify(entry));
-  }
-
-  fatal(data: LogData | undefined, message: string) {
-    const entry = this.createLogEntry('fatal', data, message);
-    console.error('[FATAL]', JSON.stringify(entry));
-  }
-
-  child(data: LogData) {
-    return new ChildLogger(this, data);
+/**
+ * Custom writable stream that sends logs to Axiom transport.
+ * This stream parses the JSON log entries and forwards them to Axiom.
+ */
+class AxiomStream extends Writable {
+  _write(chunk: Buffer, encoding: string, callback: () => void) {
+    // Parse and send to Axiom (async, non-blocking)
+    if (process.env.AXIOM_TOKEN && process.env.AXIOM_DATASET) {
+      try {
+        const log = JSON.parse(chunk.toString());
+        axiomTransport.write(log);
+      } catch {
+        // Ignore parse errors
+      }
+    }
+    callback();
   }
 }
 
-class ChildLogger extends ServerLogger {
-  constructor(
-    private parent: ServerLogger,
-    private context: LogData
-  ) {
-    super();
-  }
+// Create Axiom stream instance
+const axiomStream = new AxiomStream();
 
-  private mergeContext(data: LogData | undefined): LogData {
-    return { ...this.context, ...data };
-  }
+// Create base Pino logger with multistream
+const baseLogger = pino(
+  {
+    level: isDevelopment ? 'debug' : 'info',
 
-  trace(data: LogData | undefined, message: string) {
-    super.trace(this.mergeContext(data), message);
-  }
+    // Custom serializers for common objects
+    serializers: {
+      error: pino.stdSerializers.err,
+      req: pino.stdSerializers.req,
+      res: pino.stdSerializers.res,
+    },
 
-  debug(data: LogData | undefined, message: string) {
-    super.debug(this.mergeContext(data), message);
-  }
+    // Base metadata
+    base: {
+      env: process.env.NODE_ENV,
+      service: 'genai-video-production',
+    },
 
-  info(data: LogData | undefined, message: string) {
-    super.info(this.mergeContext(data), message);
-  }
+    // Timestamp configuration
+    timestamp: () => `,"time":${Date.now()}`,
+  },
+  isDevelopment
+    ? pino.multistream([
+        // Pretty print to console in development
+        {
+          level: 'debug',
+          stream: pino.transport({
+            target: 'pino-pretty',
+            options: {
+              colorize: true,
+              translateTime: 'HH:MM:ss',
+              ignore: 'pid,hostname',
+            },
+          }),
+        },
+        // Also send to Axiom
+        { level: 'debug', stream: axiomStream },
+      ])
+    : // In production, send to both stdout and Axiom
+      pino.multistream([
+        { level: 'info', stream: process.stdout },
+        { level: 'info', stream: axiomStream },
+      ])
+);
 
-  warn(data: LogData | undefined, message: string) {
-    super.warn(this.mergeContext(data), message);
-  }
+/**
+ * Singleton server logger instance
+ *
+ * @example
+ * serverLogger.info({ userId: '123' }, 'User logged in');
+ * serverLogger.error({ error: err }, 'Database connection failed');
+ */
+export const serverLogger = baseLogger;
 
-  error(data: LogData | undefined, message: string) {
-    super.error(this.mergeContext(data), message);
-  }
-
-  fatal(data: LogData | undefined, message: string) {
-    super.fatal(this.mergeContext(data), message);
-  }
-}
-
-export const serverLogger = new ServerLogger();
+/**
+ * Type export for compatibility
+ */
+export type Logger = typeof baseLogger;

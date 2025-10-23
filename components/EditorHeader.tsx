@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 
 interface EditorHeaderProps {
   projectId: string;
-  currentTab: 'generate-video' | 'generate-audio' | 'image-editor';
+  currentTab: 'video-editor' | 'generate-video' | 'generate-audio' | 'image-editor';
 }
 
 interface Project {

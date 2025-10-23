@@ -1487,6 +1487,17 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
                 {uploadPending ? 'Uploading…' : 'Upload Images'}
               </div>
             </button>
+            <Link
+              href={`/image-gen?projectId=${projectId}`}
+              className="group w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-xs font-semibold text-white text-center shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg"
+            >
+              <div className="flex items-center justify-center gap-2">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Generate Images with AI
+              </div>
+            </Link>
           </div>
         )}
 
