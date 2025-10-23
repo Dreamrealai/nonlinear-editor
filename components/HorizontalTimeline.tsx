@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useCallback, useRef, useState, useEffect } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip } from '@/types/timeline';
 
@@ -26,6 +26,113 @@ const getClipFileName = (clip: Clip): string => {
   const leaf = segments[segments.length - 1];
   return leaf && leaf.length > 0 ? leaf : 'Clip';
 };
+
+/**
+ * Memoized clip renderer component for performance optimization
+ */
+type ClipRendererProps = {
+  clip: Clip;
+  zoom: number;
+  isSelected: boolean;
+  onMouseDown: (e: React.MouseEvent, clip: Clip) => void;
+  onClick: (e: React.MouseEvent, clip: Clip) => void;
+  onContextMenu: (e: React.MouseEvent, clip: Clip) => void;
+  onTrimHandleMouseDown: (e: React.MouseEvent, clip: Clip, handle: 'left' | 'right') => void;
+  onRemove: (id: string) => void;
+};
+
+const ClipRenderer = React.memo<ClipRendererProps>(function ClipRenderer({
+  clip,
+  zoom,
+  isSelected,
+  onMouseDown,
+  onClick,
+  onContextMenu,
+  onTrimHandleMouseDown,
+  onRemove,
+}) {
+  const clipDuration = clip.end - clip.start;
+  const clipWidth = clipDuration * zoom;
+  const clipLeft = clip.timelinePosition * zoom;
+  const clipTop = clip.trackIndex * TRACK_HEIGHT;
+  const thumbnail = clip.thumbnailUrl;
+
+  return (
+    <div
+      className={`absolute rounded-lg border-2 overflow-hidden cursor-move hover:shadow-lg transition-all ${
+        isSelected ? 'border-yellow-400 ring-2 ring-yellow-400/50' : 'border-blue-500 hover:border-blue-600'
+      }`}
+      style={{
+        left: clipLeft,
+        top: clipTop + 8,
+        width: clipWidth,
+        height: TRACK_HEIGHT - 16,
+      }}
+      onMouseDown={(e) => onMouseDown(e, clip)}
+      onClick={(e) => onClick(e, clip)}
+      onContextMenu={(e) => onContextMenu(e, clip)}
+    >
+      <div className="relative h-full w-full select-none">
+        {thumbnail ? (
+          <img
+            src={thumbnail}
+            alt={`${getClipFileName(clip)} thumbnail`}
+            className="pointer-events-none h-full w-full object-cover"
+            loading="lazy"
+            onError={(event) => {
+              (event.currentTarget as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        ) : (
+          <div className="h-full w-full bg-gradient-to-br from-blue-200 via-blue-100 to-blue-200" />
+        )}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/40" />
+
+        {/* Trim Handles */}
+        <div
+          className="absolute left-0 top-0 bottom-0 w-2 bg-white/30 hover:bg-white/50 cursor-ew-resize pointer-events-auto"
+          onMouseDown={(e) => onTrimHandleMouseDown(e, clip, 'left')}
+          title="Trim start"
+        />
+        <div
+          className="absolute right-0 top-0 bottom-0 w-2 bg-white/30 hover:bg-white/50 cursor-ew-resize pointer-events-auto"
+          onMouseDown={(e) => onTrimHandleMouseDown(e, clip, 'right')}
+          title="Trim end"
+        />
+
+        <div className="absolute inset-0 flex h-full flex-col justify-between p-2 text-white pointer-events-none">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-semibold">
+                {getClipFileName(clip)}
+              </p>
+              <p className="text-[10px] font-medium text-white/70">
+                {clipDuration.toFixed(1)}s
+              </p>
+            </div>
+            <button
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                onRemove(clip.id);
+              }}
+              className="flex-shrink-0 rounded bg-white/20 p-0.5 text-white hover:bg-red-500 pointer-events-auto"
+            >
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          {clip.transitionToNext && (
+            <div className="text-[9px] font-medium text-white/80">
+              ⟿ {clip.transitionToNext.type}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
 
 type HorizontalTimelineProps = {
   onDetectScenes?: () => void;
@@ -593,91 +700,19 @@ export default function HorizontalTimeline({ onDetectScenes, sceneDetectPending 
             ))}
 
             {/* Clips */}
-            {timeline.clips.map((clip) => {
-              const clipDuration = clip.end - clip.start;
-              const clipWidth = clipDuration * zoom;
-              const clipLeft = clip.timelinePosition * zoom;
-              const clipTop = clip.trackIndex * TRACK_HEIGHT;
-              const thumbnail = clip.thumbnailUrl;
-              const isSelected = selectedClipIds.has(clip.id);
-
-              return (
-                <div
-                  key={clip.id}
-                  className={`absolute rounded-lg border-2 overflow-hidden cursor-move hover:shadow-lg transition-all ${
-                    isSelected ? 'border-yellow-400 ring-2 ring-yellow-400/50' : 'border-blue-500 hover:border-blue-600'
-                  }`}
-                  style={{
-                    left: clipLeft,
-                    top: clipTop + 8,
-                    width: clipWidth,
-                    height: TRACK_HEIGHT - 16,
-                  }}
-                  onMouseDown={(e) => handleClipMouseDown(e, clip)}
-                  onClick={(e) => handleClipClick(e, clip)}
-                  onContextMenu={(e) => handleClipContextMenu(e, clip)}
-                >
-                  <div className="relative h-full w-full select-none">
-                    {thumbnail ? (
-                      <img
-                        src={thumbnail}
-                        alt={`${getClipFileName(clip)} thumbnail`}
-                        className="pointer-events-none h-full w-full object-cover"
-                        loading="lazy"
-                        onError={(event) => {
-                          (event.currentTarget as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <div className="h-full w-full bg-gradient-to-br from-blue-200 via-blue-100 to-blue-200" />
-                    )}
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/40" />
-
-                    {/* Trim Handles */}
-                    <div
-                      className="absolute left-0 top-0 bottom-0 w-2 bg-white/30 hover:bg-white/50 cursor-ew-resize pointer-events-auto"
-                      onMouseDown={(e) => handleTrimHandleMouseDown(e, clip, 'left')}
-                      title="Trim start"
-                    />
-                    <div
-                      className="absolute right-0 top-0 bottom-0 w-2 bg-white/30 hover:bg-white/50 cursor-ew-resize pointer-events-auto"
-                      onMouseDown={(e) => handleTrimHandleMouseDown(e, clip, 'right')}
-                      title="Trim end"
-                    />
-
-                    <div className="absolute inset-0 flex h-full flex-col justify-between p-2 text-white pointer-events-none">
-                      <div className="flex items-start justify-between gap-1">
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-xs font-semibold">
-                            {getClipFileName(clip)}
-                          </p>
-                          <p className="text-[10px] font-medium text-white/70">
-                            {clipDuration.toFixed(1)}s
-                          </p>
-                        </div>
-                        <button
-                          onMouseDown={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            removeClip(clip.id);
-                          }}
-                          className="flex-shrink-0 rounded bg-white/20 p-0.5 text-white hover:bg-red-500 pointer-events-auto"
-                        >
-                          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                      {clip.transitionToNext && (
-                        <div className="text-[9px] font-medium text-white/80">
-                          ⟿ {clip.transitionToNext.type}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {timeline.clips.map((clip) => (
+              <ClipRenderer
+                key={clip.id}
+                clip={clip}
+                zoom={zoom}
+                isSelected={selectedClipIds.has(clip.id)}
+                onMouseDown={handleClipMouseDown}
+                onClick={handleClipClick}
+                onContextMenu={handleClipContextMenu}
+                onTrimHandleMouseDown={handleTrimHandleMouseDown}
+                onRemove={removeClip}
+              />
+            ))}
 
             {/* Playhead */}
             <div

@@ -43,12 +43,23 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { assetId, projectId } = body;
 
+    // Validate assetId format (UUID)
     if (!assetId) {
       return NextResponse.json({ error: 'Asset ID is required' }, { status: 400 });
     }
 
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(assetId)) {
+      return NextResponse.json({ error: 'Invalid asset ID format' }, { status: 400 });
+    }
+
+    // Validate projectId format (UUID)
     if (!projectId) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
+    }
+
+    if (!uuidRegex.test(projectId)) {
+      return NextResponse.json({ error: 'Invalid project ID format' }, { status: 400 });
     }
 
     // Get the video asset

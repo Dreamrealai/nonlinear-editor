@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
       userId: bodyUserId,
     } = body;
 
+    // Validate text
     if (!text) {
       return NextResponse.json(
         { error: 'Text is required' },
@@ -42,11 +43,54 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (typeof text !== 'string' || text.length < 1 || text.length > 5000) {
+      return NextResponse.json(
+        { error: 'Text must be between 1 and 5000 characters' },
+        { status: 400 }
+      );
+    }
+
+    // Validate projectId format (UUID)
     if (!projectId) {
       return NextResponse.json(
         { error: 'Project ID is required' },
         { status: 400 }
       );
+    }
+
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(projectId)) {
+      return NextResponse.json({ error: 'Invalid project ID format' }, { status: 400 });
+    }
+
+    // Validate voiceId format (alphanumeric)
+    if (voiceId && typeof voiceId === 'string') {
+      if (!/^[a-zA-Z0-9_-]{1,100}$/.test(voiceId)) {
+        return NextResponse.json(
+          { error: 'Invalid voice ID format' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate stability (0-1)
+    if (stability !== undefined) {
+      if (typeof stability !== 'number' || stability < 0 || stability > 1) {
+        return NextResponse.json(
+          { error: 'Stability must be a number between 0 and 1' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate similarity (0-1)
+    if (similarity !== undefined) {
+      if (typeof similarity !== 'number' || similarity < 0 || similarity > 1) {
+        return NextResponse.json(
+          { error: 'Similarity must be a number between 0 and 1' },
+          { status: 400 }
+        );
+      }
     }
 
     const supabase = await createServerSupabaseClient();
@@ -77,33 +121,52 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Call ElevenLabs API
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-      {
-        method: 'POST',
-        headers: {
-          'xi-api-key': apiKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text,
-          model_id: modelId,
-          voice_settings: {
-            stability,
-            similarity_boost: similarity,
-          },
-        }),
-      }
-    );
+    // Call ElevenLabs API with timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('ElevenLabs API error:', error);
-      return NextResponse.json(
-        { error: 'Failed to generate audio with ElevenLabs' },
-        { status: response.status }
+    let response;
+    try {
+      response = await fetch(
+        `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+        {
+          method: 'POST',
+          headers: {
+            'xi-api-key': apiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text,
+            model_id: modelId,
+            voice_settings: {
+              stability,
+              similarity_boost: similarity,
+            },
+          }),
+          signal: controller.signal,
+        }
       );
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error('ElevenLabs API error:', error);
+        return NextResponse.json(
+          { error: 'Failed to generate audio with ElevenLabs' },
+          { status: response.status }
+        );
+      }
+    } catch (error) {
+      clearTimeout(timeout);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('ElevenLabs TTS timeout');
+        return NextResponse.json(
+          { error: 'TTS generation timeout after 60s' },
+          { status: 504 }
+        );
+      }
+      throw error;
     }
 
     // Get the audio data as ArrayBuffer

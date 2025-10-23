@@ -33,12 +33,89 @@ export async function POST(req: NextRequest) {
       projectId,
     } = body;
 
+    // Validate prompt
     if (!prompt || typeof prompt !== 'string') {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
 
+    if (prompt.length < 3 || prompt.length > 1000) {
+      return NextResponse.json(
+        { error: 'Prompt must be between 3 and 1000 characters' },
+        { status: 400 }
+      );
+    }
+
+    // Validate projectId format (UUID)
     if (!projectId) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
+    }
+
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(projectId)) {
+      return NextResponse.json({ error: 'Invalid project ID format' }, { status: 400 });
+    }
+
+    // Validate aspectRatio
+    if (aspectRatio) {
+      const validAspectRatios = ['16:9', '9:16', '1:1', '4:3', '3:4'];
+      if (!validAspectRatios.includes(aspectRatio)) {
+        return NextResponse.json(
+          { error: 'Invalid aspect ratio. Must be one of: 16:9, 9:16, 1:1, 4:3, 3:4' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate sampleCount
+    if (sampleCount !== undefined) {
+      if (!Number.isInteger(sampleCount) || sampleCount < 1 || sampleCount > 8) {
+        return NextResponse.json(
+          { error: 'Invalid sample count. Must be an integer between 1 and 8' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate seed
+    if (seed !== undefined) {
+      if (!Number.isInteger(seed) || seed < 0 || seed > 4294967295) {
+        return NextResponse.json(
+          { error: 'Invalid seed. Must be an integer between 0 and 4294967295' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate negativePrompt length
+    if (negativePrompt && typeof negativePrompt === 'string') {
+      if (negativePrompt.length > 1000) {
+        return NextResponse.json(
+          { error: 'Negative prompt must not exceed 1000 characters' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate safetyFilterLevel
+    if (safetyFilterLevel !== undefined) {
+      const validSafetyLevels = ['block_none', 'block_few', 'block_some', 'block_most'];
+      if (!validSafetyLevels.includes(safetyFilterLevel)) {
+        return NextResponse.json(
+          { error: 'Invalid safety filter level. Must be one of: block_none, block_few, block_some, block_most' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate personGeneration
+    if (personGeneration !== undefined) {
+      const validPersonGeneration = ['dont_allow', 'allow_adult', 'allow_all'];
+      if (!validPersonGeneration.includes(personGeneration)) {
+        return NextResponse.json(
+          { error: 'Invalid person generation. Must be one of: dont_allow, allow_adult, allow_all' },
+          { status: 400 }
+        );
+      }
     }
 
     // Verify user owns the project
