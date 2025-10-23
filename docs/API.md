@@ -241,6 +241,368 @@ Submit browser logs for centralized logging.
 
 ---
 
+## Video Generation API
+
+### POST /api/video/generate
+Generate video using Google Veo 3.1.
+
+**Request Body:**
+```json
+{
+  "prompt": "A sunset over mountains",
+  "projectId": "uuid",
+  "model": "veo-004",
+  "aspectRatio": "16:9",
+  "duration": "5s",
+  "resolution": "1080p",
+  "negativePrompt": "blurry, low quality",
+  "personGeneration": "dont_allow",
+  "enhancePrompt": true,
+  "generateAudio": false,
+  "seed": 12345,
+  "sampleCount": 1,
+  "compressionQuality": 90,
+  "imageAssetId": "uuid"
+}
+```
+
+**Response:**
+```json
+{
+  "operationName": "projects/xxx/locations/us-central1/operations/xxx",
+  "status": "processing",
+  "message": "Video generation started. Use the operation name to check status."
+}
+```
+
+**Rate Limit:** 5 requests per minute per user
+
+---
+
+### GET /api/video/status
+Check video generation status.
+
+**Query Parameters:**
+- `operationName` (required) - Operation name from generate endpoint
+
+**Response (Processing):**
+```json
+{
+  "status": "processing",
+  "progress": 45,
+  "message": "Generating video..."
+}
+```
+
+**Response (Completed):**
+```json
+{
+  "status": "completed",
+  "assetId": "uuid",
+  "message": "Video generated successfully",
+  "asset": {
+    "id": "uuid",
+    "storage_url": "supabase://assets/...",
+    "metadata": { ... }
+  }
+}
+```
+
+---
+
+### POST /api/video/split-scenes
+Detect scenes in a video using Google Video Intelligence.
+
+**Request Body:**
+```json
+{
+  "assetId": "uuid",
+  "projectId": "uuid"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Successfully detected 15 scenes",
+  "scenes": [
+    {
+      "id": "uuid",
+      "asset_id": "uuid",
+      "start_ms": 0,
+      "end_ms": 3500,
+      "created_at": "2025-01-23T12:00:00Z"
+    }
+  ],
+  "count": 15,
+  "note": "Scene frames can be extracted in the Keyframe Editor"
+}
+```
+
+**Note:** Requires `GOOGLE_SERVICE_ACCOUNT` environment variable.
+
+---
+
+### POST /api/video/upscale
+Upscale video using fal.ai Topaz Video Upscale.
+
+**Request Body:**
+```json
+{
+  "assetId": "uuid",
+  "projectId": "uuid",
+  "upscaleFactor": 2,
+  "targetFps": 60,
+  "h264Output": false
+}
+```
+
+**Response:**
+```json
+{
+  "requestId": "xxx-xxx-xxx",
+  "message": "Video upscale request submitted successfully"
+}
+```
+
+---
+
+### GET /api/video/upscale-status
+Check video upscale status.
+
+**Query Parameters:**
+- `requestId` (required) - Request ID from upscale endpoint
+
+**Response:**
+```json
+{
+  "status": "completed",
+  "videoUrl": "https://...",
+  "progress": 100
+}
+```
+
+---
+
+## Image Generation API
+
+### POST /api/image/generate
+Generate images using Google Imagen.
+
+**Request Body:**
+```json
+{
+  "prompt": "A futuristic city at night",
+  "projectId": "uuid",
+  "model": "imagen-3.0-generate-001",
+  "aspectRatio": "16:9",
+  "negativePrompt": "blurry",
+  "sampleCount": 1,
+  "seed": 42,
+  "safetyFilterLevel": "block_some",
+  "personGeneration": "dont_allow",
+  "addWatermark": false,
+  "language": "en",
+  "outputMimeType": "image/png"
+}
+```
+
+**Response:**
+```json
+{
+  "assets": [
+    {
+      "id": "uuid",
+      "storage_url": "supabase://assets/...",
+      "type": "image",
+      "metadata": {
+        "provider": "imagen",
+        "prompt": "A futuristic city at night",
+        "model": "imagen-3.0-generate-001"
+      }
+    }
+  ],
+  "message": "Generated 1 image(s) successfully"
+}
+```
+
+---
+
+## Audio Generation API
+
+### POST /api/audio/suno/generate
+Generate music using Suno V5.
+
+**Request Body:**
+```json
+{
+  "prompt": "Upbeat electronic music",
+  "projectId": "uuid",
+  "style": "electronic, energetic",
+  "title": "Energy Boost",
+  "customMode": true,
+  "instrumental": false
+}
+```
+
+**Response:**
+```json
+{
+  "taskId": "xxx-xxx-xxx",
+  "message": "Audio generation started"
+}
+```
+
+---
+
+### GET /api/audio/suno/status
+Check Suno audio generation status.
+
+**Query Parameters:**
+- `taskId` (required) - Task ID from generate endpoint
+
+**Response:**
+```json
+{
+  "status": "completed",
+  "audioUrl": "https://...",
+  "clips": [
+    {
+      "id": "xxx",
+      "audio_url": "https://...",
+      "title": "Energy Boost",
+      "duration": 180
+    }
+  ]
+}
+```
+
+---
+
+### POST /api/audio/elevenlabs/generate
+Generate voiceover using ElevenLabs TTS.
+
+**Request Body:**
+```json
+{
+  "text": "Welcome to our video editor",
+  "voiceId": "21m00Tcm4TlvDq8ikWAM",
+  "projectId": "uuid",
+  "modelId": "eleven_monolingual_v1",
+  "stability": 0.5,
+  "similarityBoost": 0.75
+}
+```
+
+**Response:**
+```json
+{
+  "assetId": "uuid",
+  "message": "Audio generated successfully"
+}
+```
+
+---
+
+### GET /api/audio/elevenlabs/voices
+List available ElevenLabs voices.
+
+**Response:**
+```json
+{
+  "voices": [
+    {
+      "voice_id": "21m00Tcm4TlvDq8ikWAM",
+      "name": "Rachel",
+      "labels": {
+        "accent": "american",
+        "age": "young",
+        "gender": "female"
+      }
+    }
+  ]
+}
+```
+
+---
+
+### POST /api/audio/elevenlabs/sfx
+Generate sound effects using ElevenLabs.
+
+**Request Body:**
+```json
+{
+  "prompt": "Door opening",
+  "projectId": "uuid",
+  "duration": 3
+}
+```
+
+**Response:**
+```json
+{
+  "assetId": "uuid",
+  "message": "Sound effect generated successfully"
+}
+```
+
+---
+
+## Assets API
+
+### GET /api/assets
+Get all assets for a project.
+
+**Query Parameters:**
+- `projectId` (required) - Project ID
+- `type` (optional) - Filter by type: video, audio, image
+
+**Response:**
+```json
+{
+  "assets": [
+    {
+      "id": "uuid",
+      "project_id": "uuid",
+      "type": "video",
+      "storage_url": "supabase://assets/...",
+      "metadata": { ... },
+      "created_at": "2025-01-23T12:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+### POST /api/assets/upload
+Upload asset file.
+
+**Request (multipart/form-data):**
+```
+file: File
+projectId: string
+type: "video" | "audio" | "image"
+```
+
+**Response:**
+```json
+{
+  "assetId": "uuid",
+  "storageUrl": "supabase://assets/user/project/file.mp4",
+  "publicUrl": "https://...",
+  "success": true
+}
+```
+
+**Validation:**
+- Max file size: 100MB
+- Allowed video types: mp4, webm, quicktime
+- Allowed audio types: mp3, wav, ogg
+- Allowed image types: jpeg, png, gif, webp
+
+---
+
 ## Frame Editing API
 
 ### POST /api/frames/[frameId]/edit
@@ -264,6 +626,48 @@ Edit a video frame (AI-powered).
 ```
 
 **Note:** This endpoint is a placeholder for future AI-powered frame editing features.
+
+---
+
+## Video Audio Processing
+
+### POST /api/video/generate-audio
+Generate audio for video using fal.ai.
+
+**Request Body:**
+```json
+{
+  "videoAssetId": "uuid",
+  "projectId": "uuid",
+  "prompt": "Add ambient nature sounds",
+  "seed": 42
+}
+```
+
+**Response:**
+```json
+{
+  "requestId": "xxx-xxx-xxx",
+  "message": "Audio generation started for video"
+}
+```
+
+---
+
+### GET /api/video/generate-audio-status
+Check video audio generation status.
+
+**Query Parameters:**
+- `requestId` (required) - Request ID from generate-audio endpoint
+
+**Response:**
+```json
+{
+  "status": "completed",
+  "audioUrl": "https://...",
+  "assetId": "uuid"
+}
+```
 
 ---
 

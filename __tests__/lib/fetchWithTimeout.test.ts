@@ -56,16 +56,25 @@ describe('Fetch Utilities', () => {
     })
 
     it('should timeout when request takes too long', async () => {
+      // Mock a fetch that will be aborted
       ;(global.fetch as jest.Mock).mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve(new Response()), 5000))
+        (_url, options) => {
+          return new Promise((_resolve, reject) => {
+            options.signal.addEventListener('abort', () => {
+              const error = new Error('Aborted')
+              error.name = 'AbortError'
+              reject(error)
+            })
+          })
+        }
       )
 
-      const promise = fetchWithTimeout('https://example.com', { timeout: 1000 })
+      const promise = fetchWithTimeout('https://example.com', { timeout: 100 })
 
-      // Fast-forward past timeout
-      jest.advanceTimersByTime(1001)
+      // Fast-forward past timeout to trigger abort
+      jest.advanceTimersByTime(101)
 
-      await expect(promise).rejects.toThrow('Request timeout after 1000ms')
+      await expect(promise).rejects.toThrow('Request timeout after 100ms')
     })
 
     it('should use default timeout of 60000ms', async () => {

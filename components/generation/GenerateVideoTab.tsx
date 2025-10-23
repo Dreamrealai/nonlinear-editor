@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
+import VideoQueueItem from './VideoQueueItem';
+import AssetLibraryModal from './AssetLibraryModal';
 
 interface GenerateVideoTabProps {
   projectId: string;
 }
 
-interface VideoQueueItem {
+interface VideoQueueItemData {
   id: string;
   prompt: string;
   operationName: string | null;
@@ -28,97 +30,6 @@ interface ImageAsset {
 }
 
 /**
- * Memoized VideoQueueItem component for performance
- */
-type VideoQueueItemProps = {
-  video: VideoQueueItem;
-  onRemove: (videoId: string) => void;
-};
-
-const VideoQueueItemComponent = React.memo<VideoQueueItemProps>(function VideoQueueItemComponent({
-  video,
-  onRemove,
-}) {
-  return (
-    <div className="group relative flex flex-col rounded-lg border border-neutral-200 bg-white shadow-sm overflow-hidden">
-      {/* Video Preview */}
-      <div className="relative aspect-video bg-neutral-100">
-        {video.status === 'completed' && video.videoUrl ? (
-          <video
-            src={video.videoUrl}
-            controls
-            className="h-full w-full object-cover"
-            poster={video.thumbnailUrl}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            {video.status === 'queued' && (
-              <div className="text-center">
-                <div className="mx-auto h-8 w-8 rounded-full border-4 border-neutral-300 border-t-neutral-600" />
-                <p className="mt-2 text-xs text-neutral-600">Queued</p>
-              </div>
-            )}
-            {video.status === 'generating' && (
-              <div className="text-center">
-                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-neutral-300 border-t-purple-600" />
-                <p className="mt-2 text-xs text-neutral-600">Generating...</p>
-              </div>
-            )}
-            {video.status === 'failed' && (
-              <div className="text-center p-4">
-                <svg className="mx-auto h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="mt-2 text-xs text-red-600">Failed</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Video Info */}
-      <div className="p-3">
-        <p className="text-xs text-neutral-700 line-clamp-2 mb-2">
-          {video.prompt}
-        </p>
-
-        {video.error && (
-          <p className="text-xs text-red-600 mb-2">
-            {video.error}
-          </p>
-        )}
-
-        {/* Status Badge */}
-        <div className="flex items-center gap-2">
-          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-            video.status === 'completed' ? 'bg-green-100 text-green-700' :
-            video.status === 'generating' ? 'bg-blue-100 text-blue-700' :
-            video.status === 'failed' ? 'bg-red-100 text-red-700' :
-            'bg-neutral-100 text-neutral-700'
-          }`}>
-            {video.status === 'completed' ? 'Completed' :
-             video.status === 'generating' ? 'Generating' :
-             video.status === 'failed' ? 'Failed' :
-             'Queued'}
-          </span>
-        </div>
-      </div>
-
-      {/* Remove Button */}
-      <button
-        onClick={() => onRemove(video.id)}
-        className="absolute right-2 top-2 z-10 rounded-md bg-black/50 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100"
-        title="Remove from queue"
-      >
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-  );
-});
-
-/**
  * Generate Video Tab Component
  *
  * Provides a comprehensive interface for generating videos using Google Vertex AI Veo models.
@@ -128,7 +39,7 @@ const VideoQueueItemComponent = React.memo<VideoQueueItemProps>(function VideoQu
  */
 export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
   const [generating, setGenerating] = useState(false);
-  const [videoQueue, setVideoQueue] = useState<VideoQueueItem[]>([]);
+  const [videoQueue, setVideoQueue] = useState<VideoQueueItemData[]>([]);
   const pollingIntervalsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   // Form state
@@ -812,9 +723,9 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
               ) : (
                 <div className="grid grid-cols-2 gap-4">
                   {videoQueue.map((video) => (
-                    <VideoQueueItemComponent
+                    <VideoQueueItem
                       key={video.id}
-                      video={video}
+                      {...video}
                       onRemove={handleRemoveVideo}
                     />
                   ))}
@@ -833,107 +744,6 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
           onClose={() => setShowAssetLibrary(false)}
         />
       )}
-    </div>
-  );
-}
-
-// Asset Library Modal Component
-interface AssetLibraryModalProps {
-  projectId: string;
-  onSelect: (asset: ImageAsset) => void;
-  onClose: () => void;
-}
-
-function AssetLibraryModal({ projectId, onSelect, onClose }: AssetLibraryModalProps) {
-  const [assets, setAssets] = useState<ImageAsset[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchAssets = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`/api/assets?projectId=${projectId}&type=image`);
-        if (!res.ok) {
-          throw new Error('Failed to fetch assets');
-        }
-        const data = await res.json();
-        setAssets(data.assets || []);
-      } catch (err) {
-        console.error('Error fetching assets:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load assets');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAssets();
-  }, [projectId]);
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-4xl rounded-lg bg-white shadow-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-neutral-200 p-6">
-          <h2 className="text-xl font-semibold text-neutral-900">Select Image from Library</h2>
-          <button
-            onClick={onClose}
-            className="rounded-md p-2 text-neutral-500 hover:bg-neutral-100 transition-colors"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="max-h-[60vh] overflow-y-auto p-6">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-300 border-t-blue-600" />
-            </div>
-          ) : error ? (
-            <div className="rounded-lg bg-red-50 p-4 text-center">
-              <p className="text-sm text-red-600">{error}</p>
-            </div>
-          ) : assets.length === 0 ? (
-            <div className="text-center py-12">
-              <svg className="mx-auto h-12 w-12 text-neutral-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <p className="text-sm font-medium text-neutral-900 mb-1">No images found</p>
-              <p className="text-xs text-neutral-500">Upload an image to get started</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-4">
-              {assets.map((asset) => (
-                <button
-                  key={asset.id}
-                  onClick={() => onSelect(asset)}
-                  className="group relative aspect-square overflow-hidden rounded-lg border-2 border-neutral-200 hover:border-blue-500 transition-colors"
-                >
-                  <img
-                    src={asset.metadata?.thumbnail || asset.storage_url}
-                    alt="Asset"
-                    className="h-full w-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="border-t border-neutral-200 p-6">
-          <button
-            onClick={onClose}
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
