@@ -11,7 +11,6 @@ interface KeyframePageClientProps {
 
 interface AssetRow {
   id: string;
-  title?: string | null;
   storage_url: string;
   metadata: Record<string, unknown> | null;
 }
@@ -27,7 +26,7 @@ export default function KeyframePageClient({ projectId }: KeyframePageClientProp
     try {
       const { data, error } = await supabaseClient
         .from('assets')
-        .select('id, title, storage_url, metadata')
+        .select('id, storage_url, metadata')
         .eq('project_id', projectId)
         .eq('type', 'video')
         .order('created_at', { ascending: false });
