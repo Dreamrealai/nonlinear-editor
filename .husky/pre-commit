@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run lint-staged (Prettier + ESLint on staged files)
+npx lint-staged
+
+# Run type checking (warn but don't block on errors for now)
+echo "Running type check..."
+if ! npx tsc --noEmit; then
+  echo "Warning: TypeScript errors detected. Consider fixing them before pushing."
+  # Uncomment the line below to make type errors block commits:
+  # exit 1
+fi
