@@ -1,0 +1,2 @@
+# Proxy API requests to RunPod backend
+/api/*  https://1gzil140hljn6x-8888.proxy.runpod.net/:splat  200

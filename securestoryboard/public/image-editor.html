@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DreamReal Image Editor</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23666'><path d='M19 18H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h.71C7.37 7.69 9.48 6 12 6c3.04 0 5.5 2.46 5.5 5.5v.5H19c1.66 0 3 1.34 3 3s-1.34 3-3 3z'/></svg>" type="image/svg+xml">
+    
+    <!-- Icons -->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    
+    <!-- Import main stylesheet for consistency -->
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        /* Override and extend styles for image editor */
+        .app {
+            grid-template-columns: 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--primary-bg);
+        }
+
+        /* Header consistent with main app */
+        .editor-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px 4px 12px;
+            background: var(--header-bg);
+            border-bottom: 1px solid var(--header-border);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-left svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .header-left h2 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 0.1px;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+
+
+        .clear-all-btn,
+        .back-btn {
+            background: var(--primary-bg);
+            color: var(--primary-text);
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: 18px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+        }
+
+        .clear-all-btn:hover,
+        .back-btn:hover {
+            background: var(--secondary-bg);
+            border-color: var(--accent-color);
+        }
+
+        .clear-all-btn {
+            color: var(--error-text, #dc3545);
+        }
+
+        .clear-all-btn:hover {
+            background: rgba(220, 53, 69, 0.1);
+            border-color: var(--error-text, #dc3545);
+        }
+
+        /* Main content area */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            background: var(--primary-bg);
+        }
+
+        .left-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--secondary-bg);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .image-display {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            background: var(--secondary-bg);
+            padding: 20px;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            background: var(--primary-bg);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            max-width: 500px;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-color);
+            background: var(--secondary-bg);
+        }
+
+        .upload-area.drag-over {
+            border-color: var(--accent-color);
+            background: var(--secondary-bg);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: var(--accent-color);
+            margin-bottom: 16px;
+        }
+
+        .upload-area h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-text);
+        }
+
+        .upload-area p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--secondary-text);
+            line-height: 1.4;
+        }
+
+        /* Side by side results */
+        .results-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .result-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: var(--primary-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .result-header {
+            padding: 12px 16px;
+            background: var(--header-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-header h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary-text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-badge {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 500;
+            background: transparent;
+            color: black;
+        }
+
+        .result-image-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .result-image-container.selected {
+            box-shadow: inset 0 0 0 3px var(--accent-color);
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .result-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .result-image-container.selected .result-image {
+            transform: scale(0.95);
+        }
+        
+        .upload-controls {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .image-display:hover .upload-controls {
+            opacity: 1;
+        }
+
+        .result-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            color: var(--secondary-text);
+        }
+
+        .result-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--secondary-bg);
+            border-top: 3px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .result-error {
+            color: var(--error-text);
+            text-align: center;
+            padding: 20px;
+        }
+
+        .result-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .result-image-container:hover .result-controls {
+            opacity: 1;
+        }
+
+        .result-btn {
+            background: rgba(0,0,0,0.65);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .result-btn:hover {
+            background: rgba(0,0,0,0.85);
+        }
+
+        /* Original image preview when results are shown */
+        .original-preview {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 120px;
+            height: 120px;
+            background: var(--primary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .original-preview:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .original-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .original-preview-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 4px;
+            text-align: center;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* Chat area matching main app */
+        .chat-area {
+            display: flex;
+            align-items: stretch;
+            gap: 6px;
+            padding: 10px 10px 5px 12px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--secondary-bg);
+        }
+
+        .prompt-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s ease;
+        }
+
+        .prompt-container.drag-over {
+            background: var(--secondary-bg);
+            border-radius: 22px;
+            box-shadow: 0 0 0 2px var(--accent-color);
+        }
+
+        .reference-images {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+            min-height: 0;
+        }
+
+        .reference-image-item {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: var(--primary-bg);
+        }
+
+        .reference-image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .reference-image-remove {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 20px;
+            height: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            opacity: 1;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .reference-image-remove:hover {
+            background: rgba(220, 53, 69, 0.9);
+            transform: scale(1.1);
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 18px 24px;
+            border-radius: 22px;
+            border: 1px solid var(--border-color);
+            resize: none;
+            max-height: 300px;
+            min-height: 80px;
+            font-size: 15px;
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            line-height: 1.5;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .chat-input::placeholder {
+            color: var(--secondary-text);
+            opacity: 0.7;
+            font-size: 14px;
+        }
+
+        .chat-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+        }
+
+        .attach-btn,
+        .send-btn {
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            background-color: transparent;
+            border: none;
+            color: var(--icon-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s ease;
+            align-self: center;
+        }
+
+        .attach-btn:hover,
+        .send-btn:hover {
+            color: var(--accent-hover);
+        }
+
+        .attach-btn:disabled,
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .attach-btn i,
+        .send-btn i {
+            font-size: 15px;
+        }
+
+        /* Right panel for gallery */
+        .right-panel {
+            width: 300px;
+            background: var(--secondary-bg);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        .right-panel.collapsed {
+            width: 0;
+            overflow: hidden;
+        }
+
+        .gallery-header {
+            padding: 12px 16px;
+            background: var(--header-bg);
+            border-bottom: 1px solid var(--header-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .gallery-header h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary-text);
+        }
+
+        .gallery-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .gallery-btn {
+            background: var(--accent-color);
+            color: var(--button-text);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .gallery-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .toggle-gallery-btn {
+            background: transparent;
+            color: var(--icon-color);
+            border: none;
+            padding: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .gallery {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            align-content: start;
+        }
+
+        .gallery-item {
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            background: var(--primary-bg);
+            border: 2px solid var(--border-color);
+        }
+
+        .gallery-item.selected {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 1px var(--accent-color), 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: var(--accent-color);
+        }
+
+        .gallery-item-header {
+            padding: 8px 12px;
+            background: var(--header-bg);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--secondary-text);
+        }
+
+        .gallery-item-image-single {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            overflow: hidden;
+        }
+
+        .gallery-item-image-single img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-item-label {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 500;
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-align: center;
+            z-index: 1000;
+            max-width: 500px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateX(-50%) translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.error {
+            background: var(--error-bg);
+            color: var(--error-text);
+            border: 1px solid var(--error-border);
+        }
+
+        .toast.success {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+
+        /* Paste area overlay */
+        .paste-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            font-weight: 600;
+            z-index: 50;
+        }
+
+        .paste-area.show {
+            display: flex;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Empty gallery state */
+        .empty-gallery {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--secondary-text);
+            font-size: 14px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .empty-gallery i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .selected-image {
+            box-shadow: 0 0 0 3px var(--accent-color), 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .selection-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Loading states */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .right-panel {
+                width: 250px;
+            }
+            
+            .results-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .right-panel {
+                width: 100%;
+                height: 200px;
+                border-left: none;
+                border-top: 1px solid var(--border-color);
+            }
+            
+            .right-panel.collapsed {
+                height: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="editor-header">
+            <div class="header-left">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 18H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h.71C7.37 7.69 9.48 6 12 6c3.04 0 5.5 2.46 5.5 5.5v.5H19c1.66 0 3 1.34 3 3s-1.34 3-3 3z"/>
+                </svg>
+                <h2>DreamReal Image Editor</h2>
+            </div>
+            <div class="header-controls">
+                <button class="clear-all-btn" onclick="clearAll()" title="Clear all images and history">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Clear All</span>
+                </button>
+                <a href="index.html" class="back-btn" onclick="saveStateAndReturn(event)">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Storyboard</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main content area -->
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="image-display" id="imageDisplay">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h3>Upload or paste an image</h3>
+                        <p>Supports JPG, PNG, GIF, WebP</p>
+                        <p style="margin-top: 8px; font-size: 13px;">
+                            Click to browse, drag & drop, or paste (Ctrl+V)
+                        </p>
+                    </div>
+                    <div class="paste-area" id="pasteArea">
+                        <i class="fas fa-paste"></i>&nbsp; Paste your image here!
+                    </div>
+                </div>
+                
+                <div class="chat-area">
+                    <div class="prompt-container" id="promptContainer">
+                        <div class="reference-images" id="referenceImages"></div>
+                        <textarea 
+                            id="chatInput" 
+                            class="chat-input" 
+                            placeholder="Describe what you want to change about an image or attach an image to explore multi-image capabilities..."
+                            rows="1"
+                        ></textarea>
+                    </div>
+                    <button class="attach-btn" id="attachBtn" onclick="attachReferenceImage()" title="Attach reference image">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <button class="send-btn" id="sendBtn" onclick="processImage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <input type="file" id="referenceInput" accept="image/*" style="display: none;">
+            </div>
+
+            <div class="right-panel" id="rightPanel">
+                <div class="gallery-header">
+                    <h3>History</h3>
+                    <div class="gallery-controls">
+                        <button class="gallery-btn" onclick="downloadAll()">
+                            <i class="fas fa-download"></i> All
+                        </button>
+                        <button class="toggle-gallery-btn" onclick="toggleGallery()">
+                            <i class="fas fa-chevron-right" id="galleryToggleIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="gallery" id="gallery">
+                    <div class="empty-gallery">
+                        <i class="fas fa-history"></i>
+                        <p>Your edit history will appear here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file input -->
+    <input type="file" id="fileInput" accept="image/*" multiple>
+
+    <script src="js/api.js?v=20250530"></script>
+    <script>
+        // Global state
+        let currentImage = null;
+        let editHistory = [];
+        let isProcessing = false;
+        let currentResults = null;
+        let selectedImage = null; // Track which image is selected for editing
+        let selectedType = null; // 'original', 'gemini', 'flux', or 'history-X'
+        let referenceImages = []; // Array to store reference images
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            setupPasteHandling();
+            restoreState();
+            
+            // Save state before unload
+            window.addEventListener('beforeunload', saveState);
+        });
+        
+        // Save state and return to storyboard
+        function saveStateAndReturn(event) {
+            event.preventDefault();
+            saveState();
+            window.location.href = 'index.html';
+        }
+        
+        // Save image editor state
+        function saveState() {
+            const editorState = {
+                currentImage: currentImage,
+                editHistory: editHistory,
+                timestamp: Date.now()
+            };
+            
+            localStorage.setItem('imageEditorState', JSON.stringify(editorState));
+        }
+        
+        // Restore image editor state
+        function restoreState() {
+            const savedState = localStorage.getItem('imageEditorState');
+            if (savedState) {
+                try {
+                    const state = JSON.parse(savedState);
+                    
+                    // Check if state is recent (within 24 hours)
+                    const stateAge = Date.now() - state.timestamp;
+                    if (stateAge < 24 * 60 * 60 * 1000) {
+                        // Restore state variables
+                        if (state.currentImage) {
+                            currentImage = state.currentImage;
+                            showResultsView();
+                        }
+                        
+                        if (state.editHistory) {
+                            editHistory = state.editHistory;
+                            updateGallery();
+                        }
+                        
+                        showSuccess('Previous session restored');
+                    } else {
+                        // State is too old, clear it
+                        localStorage.removeItem('imageEditorState');
+                    }
+                } catch (e) {
+                    console.error('Failed to restore state:', e);
+                    localStorage.removeItem('imageEditorState');
+                }
+            }
+        }
+
+        function setupEventListeners() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const chatInput = document.getElementById('chatInput');
+            const referenceInput = document.getElementById('referenceInput');
+            const promptContainer = document.getElementById('promptContainer');
+
+            // Upload area click
+            uploadArea.addEventListener('click', () => fileInput.click());
+
+            // File input change
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Reference input change
+            referenceInput.addEventListener('change', handleReferenceSelect);
+
+            // Drag and drop for main image
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('drop', handleDrop);
+            uploadArea.addEventListener('dragenter', handleDragEnter);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+
+            // Drag and drop for reference images in prompt area
+            promptContainer.addEventListener('dragover', handlePromptDragOver);
+            promptContainer.addEventListener('drop', handlePromptDrop);
+            promptContainer.addEventListener('dragenter', handlePromptDragEnter);
+            promptContainer.addEventListener('dragleave', handlePromptDragLeave);
+
+            // Chat input auto-resize
+            chatInput.addEventListener('input', autoResize);
+            chatInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    processImage();
+                }
+            });
+
+            // Paste handling for prompt area
+            promptContainer.addEventListener('paste', handlePromptPaste);
+        }
+
+        function setupPasteHandling() {
+            document.addEventListener('paste', handlePaste);
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+                    // Only show paste area if not focused in chat area
+                    const isInChatArea = document.getElementById('promptContainer').contains(document.activeElement) || 
+                                        document.activeElement === document.getElementById('chatInput');
+                    
+                    if (!isInChatArea) {
+                        const pasteArea = document.getElementById('pasteArea');
+                        pasteArea.classList.add('show');
+                        setTimeout(() => {
+                            pasteArea.classList.remove('show');
+                        }, 1500);
+                    }
+                }
+            });
+        }
+
+        function handlePaste(e) {
+            const items = e.clipboardData.items;
+            
+            // Check if the paste is happening in the chat input area
+            const isInChatArea = document.getElementById('promptContainer').contains(e.target) || 
+                                e.target === document.getElementById('chatInput');
+            
+            for (let item of items) {
+                if (item.type.indexOf('image') !== -1) {
+                    e.preventDefault();
+                    const file = item.getAsFile();
+                    if (file) {
+                        if (isInChatArea) {
+                            // Paste in chat area = add as reference image
+                            addReferenceImage(file);
+                        } else {
+                            // Paste elsewhere = set as main image
+                            displayImage(file);
+                            document.getElementById('pasteArea').classList.remove('show');
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files);
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                displayImage(files[0]);
+            }
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            document.getElementById('uploadArea').classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            if (e.target === document.getElementById('uploadArea')) {
+                document.getElementById('uploadArea').classList.remove('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            document.getElementById('uploadArea').classList.remove('drag-over');
+            
+            const files = Array.from(e.dataTransfer.files);
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                displayImage(files[0]);
+            }
+        }
+
+        function displayImage(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentImage = {
+                    data: e.target.result,
+                    name: file.name,
+                    timestamp: Date.now()
+                };
+                showResultsView();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showResultsView() {
+            const imageDisplay = document.getElementById('imageDisplay');
+            
+            // Keep the original image front and center initially
+            imageDisplay.innerHTML = `
+                <img src="${currentImage.data}" class="result-image" id="mainDisplay" style="cursor: pointer;" onclick="selectImage('original')">
+                <div class="upload-controls" style="position: absolute; top: 20px; right: 20px; display: flex; gap: 8px;">
+                    <button class="result-btn" onclick="downloadImage()">
+                        <i class="fas fa-download"></i> Download Original
+                    </button>
+                    <button class="result-btn" onclick="clearAndReset()">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+            `;
+            
+            // Set the original as selected by default
+            selectedImage = currentImage.data;
+            selectedType = 'original';
+        }
+        
+        function transitionToSplitView() {
+            const imageDisplay = document.getElementById('imageDisplay');
+            imageDisplay.innerHTML = `
+                <div class="results-container">
+                    <div class="result-panel">
+                        <div class="result-header">
+                            <h3>
+                                <span class="result-badge">Version 1</span>
+                            </h3>
+                        </div>
+                        <div class="result-image-container" id="geminiResult" onclick="selectImage('gemini')">
+                            <div class="result-placeholder">
+                                <div class="result-spinner"></div>
+                                <p>Generating...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="result-panel">
+                        <div class="result-header">
+                            <h3>
+                                <span class="result-badge">Version 2</span>
+                            </h3>
+                        </div>
+                        <div class="result-image-container" id="fluxResult" onclick="selectImage('flux')">
+                            <div class="result-placeholder">
+                                <div class="result-spinner"></div>
+                                <p>Generating...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showOriginalFullsize() {
+            // Toggle between results and original view
+            const imageDisplay = document.getElementById('imageDisplay');
+            if (imageDisplay.querySelector('.results-container')) {
+                // Show original
+                imageDisplay.innerHTML = `
+                    <img src="${currentImage.data}" class="result-image" style="cursor: pointer;" onclick="transitionToSplitView()">
+                    <div class="upload-controls" style="position: absolute; top: 20px; right: 20px; display: flex; gap: 8px;">
+                        <button class="result-btn" onclick="downloadImage()">
+                            <i class="fas fa-download"></i> Download Original
+                        </button>
+                        <button class="result-btn" onclick="clearAndReset()">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
+                `;
+                
+                // Add click hint
+                setTimeout(() => {
+                    const img = imageDisplay.querySelector('img');
+                    if (img) {
+                        img.title = 'Click to return to results';
+                    }
+                }, 100);
+            } else {
+                // Show results
+                transitionToSplitView();
+                if (currentResults) {
+                    // Restore results if they exist
+                    if (currentResults.gemini) {
+                        displayResult('gemini', currentResults.gemini);
+                    } else {
+                        displayResultError('gemini', 'Not available');
+                    }
+                    if (currentResults.flux) {
+                        displayResult('flux', currentResults.flux);
+                    } else {
+                        displayResultError('flux', 'Not available');
+                    }
+                }
+            }
+        }
+
+        async function processImage() {
+            const prompt = document.getElementById('chatInput').value.trim();
+            
+            if (!prompt) {
+                showError('Please enter a description of what you want to change.');
+                return;
+            }
+            
+            if (!currentImage) {
+                showError('Please upload an image first.');
+                return;
+            }
+            
+            if (isProcessing) {
+                return;
+            }
+            
+            isProcessing = true;
+            document.getElementById('sendBtn').disabled = true;
+            
+            // If we're editing a previously generated image, use that as the source
+            const imageToEdit = selectedImage || currentImage.data;
+            
+            // Transition to split view with loading states
+            transitionToSplitView();
+            
+            // Reset current results
+            currentResults = { prompt };
+            
+            // Process both in parallel using the selected image
+            const promises = [
+                processWithGemini(imageToEdit, prompt),
+                processWithFlux(imageToEdit, prompt)
+            ];
+            
+            // Wait for all results to complete (success or failure)
+            const results = await Promise.allSettled(promises);
+            
+            // Handle both results at the same time
+            if (results[0].status === 'fulfilled' && results[0].value) {
+                currentResults.gemini = results[0].value.image;
+            }
+            
+            if (results[1].status === 'fulfilled' && results[1].value) {
+                currentResults.flux = results[1].value.image;
+            }
+            
+            // Display both results simultaneously
+            if (results[0].status === 'fulfilled' && results[0].value) {
+                displayResult('gemini', results[0].value.image);
+            } else {
+                displayResultError('gemini', results[0].reason?.message || results[0].reason || 'Failed to generate');
+            }
+            
+            if (results[1].status === 'fulfilled' && results[1].value) {
+                displayResult('flux', results[1].value.image);
+            } else {
+                displayResultError('flux', results[1].reason?.message || results[1].reason || 'Failed to generate');
+            }
+            
+            // Add to history if at least one succeeded
+            if (currentResults.gemini || currentResults.flux) {
+                addToHistory(currentResults);
+                document.getElementById('chatInput').value = '';
+                autoResize();
+                
+                // Auto-select the Version 1 (left) result if available
+                if (currentResults.gemini) {
+                    setTimeout(() => selectImage('gemini'), 100);
+                }
+            }
+            
+            isProcessing = false;
+            document.getElementById('sendBtn').disabled = false;
+        }
+
+        function downloadImage() {
+            if (!currentImage) {
+                showError('No image to download');
+                return;
+            }
+            
+            const link = document.createElement('a');
+            link.download = currentImage.name || 'original_image.jpg';
+            link.href = currentImage.data;
+            link.click();
+        }
+        
+        function clearAndReset() {
+            currentImage = null;
+            currentResults = null;
+            const imageDisplay = document.getElementById('imageDisplay');
+            imageDisplay.innerHTML = `
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>Upload or paste an image</h3>
+                    <p>Supports JPG, PNG, GIF, WebP</p>
+                    <p style="margin-top: 8px; font-size: 13px;">
+                        Click to browse, drag & drop, or paste (Ctrl+V)
+                    </p>
+                </div>
+                <div class="paste-area" id="pasteArea">
+                    <i class="fas fa-paste"></i>&nbsp; Paste your image here!
+                </div>
+            `;
+            
+            // Re-attach event listeners to the new upload area
+            const uploadArea = document.getElementById('uploadArea');
+            uploadArea.addEventListener('click', () => document.getElementById('fileInput').click());
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('drop', handleDrop);
+            uploadArea.addEventListener('dragenter', handleDragEnter);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+        }
+
+        function displayResult(type, imageUrl) {
+            const container = document.getElementById(`${type}Result`);
+            container.innerHTML = `
+                <img src="${imageUrl}" class="result-image" alt="${type} result">
+                <div class="result-controls">
+                    <button class="result-btn" onclick="downloadResult('${type}', '${imageUrl}')">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+            `;
+        }
+
+        function displayResultError(type, message) {
+            const container = document.getElementById(`${type}Result`);
+            // Extract error message if it's an object
+            let errorMsg = message;
+            if (typeof message === 'object' && message !== null) {
+                errorMsg = message.message || message.error || JSON.stringify(message);
+            }
+            container.innerHTML = `
+                <div class="result-error">
+                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    <p>${errorMsg}</p>
+                </div>
+            `;
+        }
+
+        async function processWithGemini(imageData, prompt) {
+            try {
+                const base64Match = imageData.match(/^data:([^;]+);base64,(.+)$/);
+                if (!base64Match) {
+                    throw new Error('Invalid image data format');
+                }
+                
+                const mimeType = base64Match[1];
+                const base64Data = base64Match[2];
+                
+                const requestBody = {
+                    prompt: `Keeping everything else exactly the same Edit this image: ${prompt}`,
+                    imageData: base64Data,
+                    mimeType: mimeType
+                };
+
+                // Add reference images to prompt if available
+                if (referenceImages.length > 0) {
+                    requestBody.additionalImages = referenceImages.map(img => {
+                        const match = img.data.match(/^data:[^;]+;base64,(.+)$/);
+                        return match ? match[1] : null;
+                    }).filter(Boolean);
+                }
+
+                const result = await apiCall('gemini-image-edit', 'POST', requestBody);
+                
+                if (result && result.image) {
+                    return { image: result.image };
+                }
+                
+                throw new Error('No image generated from Gemini');
+            } catch (error) {
+                console.error('Gemini processing error:', error);
+                throw error;
+            }
+        }
+
+        async function processWithFlux(imageData, prompt) {
+            try {
+                const base64Match = imageData.match(/^data:[^;]+;base64,(.+)$/);
+                if (!base64Match) {
+                    throw new Error('Invalid image data format');
+                }
+                
+                const base64Data = base64Match[1];
+                
+                const requestBody = {
+                    prompt: `Keeping everything else exactly the same ${prompt}`,
+                    imageData: base64Data
+                };
+
+                // Add reference images if available
+                if (referenceImages.length > 0) {
+                    requestBody.referenceImages = referenceImages.map(img => {
+                        const match = img.data.match(/^data:[^;]+;base64,(.+)$/);
+                        return match ? match[1] : null;
+                    }).filter(Boolean);
+                }
+
+                console.log('Using FAL Flux Kontext Max with safety tolerance 5...');
+                
+                const result = await apiCall('flux-image-edit', 'POST', requestBody);
+                
+                if (result && result.image) {
+                    // If the image is a URL, fetch and convert it
+                    if (result.image.startsWith('http')) {
+                        try {
+                            const response = await fetch(result.image);
+                            const blob = await response.blob();
+                            const reader = new FileReader();
+                            return new Promise((resolve, reject) => {
+                                reader.onloadend = () => resolve({ image: reader.result });
+                                reader.onerror = reject;
+                                reader.readAsDataURL(blob);
+                            });
+                        } catch (fetchError) {
+                            console.error('Failed to fetch Flux image:', fetchError);
+                            return { image: result.image };
+                        }
+                    }
+                    return { image: result.image };
+                }
+                
+                throw new Error('No image generated from Flux');
+            } catch (error) {
+                console.error('FAL Flux Kontext Max error:', error);
+                console.error('Error details:', error.message || error);
+                
+                // Try to extract a meaningful error message
+                let errorMessage = error.message || 'Failed to generate image';
+                
+                if (error.response) {
+                    errorMessage = error.response.message || error.response.error || errorMessage;
+                }
+                
+                if (errorMessage.includes('Flux service not configured')) {
+                    errorMessage = 'FAL Kontext Max API is not configured. Please ensure FAL_KEY is set.';
+                }
+                
+                throw new Error(errorMessage);
+            }
+        }
+
+        function downloadResult(type, imageUrl) {
+            const link = document.createElement('a');
+            link.download = `${type}_${Date.now()}.jpg`;
+            link.href = imageUrl;
+            link.click();
+        }
+
+        function selectImage(type, imageUrl = null) {
+            // Remove previous selections
+            document.querySelectorAll('.result-image-container.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.querySelectorAll('.gallery-item.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // Handle different selection types
+            if (type === 'original') {
+                selectedImage = currentImage.data;
+                selectedType = 'original';
+            } else if (type === 'gemini' && currentResults?.gemini) {
+                const geminiContainer = document.getElementById('geminiResult');
+                if (geminiContainer) geminiContainer.classList.add('selected');
+                selectedImage = currentResults.gemini;
+                selectedType = 'gemini';
+                // Don't update left panel when selecting from split view
+            } else if (type === 'flux' && currentResults?.flux) {
+                const fluxContainer = document.getElementById('fluxResult');
+                if (fluxContainer) fluxContainer.classList.add('selected');
+                selectedImage = currentResults.flux;
+                selectedType = 'flux';
+                // Don't update left panel when selecting from split view
+            } else if (type === 'history' && imageUrl) {
+                selectedImage = imageUrl;
+                selectedType = 'history';
+                // Update gallery selection
+                editHistory.forEach((item, index) => {
+                    if (item.image === imageUrl) {
+                        const galleryItems = document.querySelectorAll('.gallery-item');
+                        if (galleryItems[index]) {
+                            galleryItems[index].classList.add('selected');
+                        }
+                    }
+                });
+            }
+            
+            showSuccess(`Selected image for editing`);
+        }
+
+        function addToHistory(results) {
+            // Add original image first if this is the first edit
+            if (editHistory.length === 0) {
+                editHistory.push({
+                    image: currentImage.data,
+                    type: 'original',
+                    prompt: 'Original',
+                    timestamp: Date.now()
+                });
+            }
+            
+            // Add generated images as separate history items
+            if (results.gemini) {
+                editHistory.push({
+                    image: results.gemini,
+                    type: 'version1',
+                    prompt: results.prompt,
+                    timestamp: Date.now()
+                });
+            }
+            
+            if (results.flux) {
+                editHistory.push({
+                    image: results.flux,
+                    type: 'version2',
+                    prompt: results.prompt,
+                    timestamp: Date.now() + 1 // Ensure different timestamp
+                });
+            }
+            
+            updateGallery();
+        }
+
+        function updateGallery() {
+            const gallery = document.getElementById('gallery');
+            
+            if (editHistory.length === 0) {
+                gallery.innerHTML = `
+                    <div class="empty-gallery">
+                        <i class="fas fa-history"></i>
+                        <p>Your edit history will appear here</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            gallery.innerHTML = editHistory.map((item, index) => {
+                const isSelected = selectedImage === item.image;
+                
+                return `
+                    <div class="gallery-item ${isSelected ? 'selected' : ''}" onclick="selectFromHistory(${index})">
+                        <div class="gallery-item-header">
+                            ${item.prompt}
+                        </div>
+                        <div class="gallery-item-image-single">
+                            <img src="${item.image}" alt="${item.type}">
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateLeftPanel(imageUrl) {
+            const imageDisplay = document.getElementById('imageDisplay');
+            imageDisplay.innerHTML = `
+                <img src="${imageUrl}" class="result-image selected-image" id="mainDisplay">
+                <div class="upload-controls" style="position: absolute; top: 20px; right: 20px; display: flex; gap: 8px;">
+                    <button class="result-btn" onclick="downloadSelectedImage()">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                    <button class="result-btn" onclick="clearAndReset()">
+                        <i class="fas fa-times"></i> Clear All
+                    </button>
+                </div>
+                <div class="selection-indicator">
+                    <i class="fas fa-check-circle"></i> Selected for editing
+                </div>
+            `;
+        }
+
+        function downloadSelectedImage() {
+            if (!selectedImage) {
+                showError('No image selected');
+                return;
+            }
+            
+            const link = document.createElement('a');
+            link.download = `edited_${Date.now()}.jpg`;
+            link.href = selectedImage;
+            link.click();
+        }
+
+        function downloadAll() {
+            if (editHistory.length === 0) {
+                showError('No images in history to download');
+                return;
+            }
+            
+            editHistory.forEach((item, index) => {
+                setTimeout(() => {
+                    const link = document.createElement('a');
+                    const label = item.type === 'original' ? 'original' : 
+                                 item.type === 'version1' ? 'version1' : 'version2';
+                    link.download = `${item.prompt}_${label}_${index + 1}.jpg`;
+                    link.href = item.image;
+                    link.click();
+                }, index * 200);
+            });
+            
+            showSuccess(`Downloading ${editHistory.length} images...`);
+        }
+
+        function toggleGallery() {
+            const rightPanel = document.getElementById('rightPanel');
+            const icon = document.getElementById('galleryToggleIcon');
+            
+            rightPanel.classList.toggle('collapsed');
+            
+            if (rightPanel.classList.contains('collapsed')) {
+                icon.className = 'fas fa-chevron-left';
+            } else {
+                icon.className = 'fas fa-chevron-right';
+            }
+        }
+
+        function autoResize() {
+            const textarea = document.getElementById('chatInput');
+            textarea.style.height = 'auto';
+            const newHeight = Math.min(textarea.scrollHeight, 300);
+            textarea.style.height = newHeight + 'px';
+        }
+
+        function showError(message) {
+            showToast(message, 'error');
+        }
+
+        function showSuccess(message) {
+            showToast(message, 'success');
+        }
+
+        function showToast(message, type = 'info') {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideDown 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, type === 'error' ? 5000 : 3000);
+        }
+
+        function selectFromHistory(index) {
+            const item = editHistory[index];
+            selectImage('history', item.image);
+            updateLeftPanel(item.image);
+        }
+
+        function clearAll() {
+            if (confirm('Are you sure you want to clear all images and history? This cannot be undone.')) {
+                // Clear all state
+                currentImage = null;
+                editHistory = [];
+                currentResults = null;
+                selectedImage = null;
+                selectedType = null;
+                referenceImages = [];
+                
+                // Clear localStorage
+                localStorage.removeItem('imageEditorState');
+                
+                // Reset the UI to initial state
+                const imageDisplay = document.getElementById('imageDisplay');
+                imageDisplay.innerHTML = `
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h3>Upload or paste an image</h3>
+                        <p>Supports JPG, PNG, GIF, WebP</p>
+                        <p style="margin-top: 8px; font-size: 13px;">
+                            Click to browse, drag & drop, or paste (Ctrl+V)
+                        </p>
+                    </div>
+                    <div class="paste-area" id="pasteArea">
+                        <i class="fas fa-paste"></i>&nbsp; Paste your image here!
+                    </div>
+                `;
+                
+                // Re-attach event listeners to the new upload area
+                const uploadArea = document.getElementById('uploadArea');
+                uploadArea.addEventListener('click', () => document.getElementById('fileInput').click());
+                uploadArea.addEventListener('dragover', handleDragOver);
+                uploadArea.addEventListener('drop', handleDrop);
+                uploadArea.addEventListener('dragenter', handleDragEnter);
+                uploadArea.addEventListener('dragleave', handleDragLeave);
+                
+                // Clear reference images display
+                updateReferenceDisplay();
+                
+                // Update gallery
+                updateGallery();
+                
+                // Clear chat input
+                document.getElementById('chatInput').value = '';
+                autoResize();
+                
+                showSuccess('All images and history cleared');
+            }
+        }
+
+        // Reference image functions
+        function attachReferenceImage() {
+            document.getElementById('referenceInput').click();
+        }
+
+        function handleReferenceSelect(e) {
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    addReferenceImage(file);
+                }
+            });
+            e.target.value = ''; // Reset input
+        }
+
+        function addReferenceImage(file) {
+            if (referenceImages.length >= 1) {
+                showError('Maximum 1 reference image allowed');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageData = e.target.result;
+                referenceImages.push({
+                    data: imageData,
+                    name: file.name
+                });
+                updateReferenceDisplay();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateReferenceDisplay() {
+            const container = document.getElementById('referenceImages');
+            container.innerHTML = referenceImages.map((img, index) => `
+                <div class="reference-image-item">
+                    <img src="${img.data}" alt="Reference ${index + 1}">
+                    <button class="reference-image-remove" onclick="removeReferenceImage(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function removeReferenceImage(index) {
+            referenceImages.splice(index, 1);
+            updateReferenceDisplay();
+        }
+
+        // Prompt area drag and drop handlers
+        function handlePromptDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        }
+
+        function handlePromptDragEnter(e) {
+            e.preventDefault();
+            document.getElementById('promptContainer').classList.add('drag-over');
+        }
+
+        function handlePromptDragLeave(e) {
+            if (e.target === document.getElementById('promptContainer')) {
+                document.getElementById('promptContainer').classList.remove('drag-over');
+            }
+        }
+
+        function handlePromptDrop(e) {
+            e.preventDefault();
+            document.getElementById('promptContainer').classList.remove('drag-over');
+            
+            const files = Array.from(e.dataTransfer.files);
+            files.forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    addReferenceImage(file);
+                }
+            });
+        }
+
+        // Prompt area paste handler
+        function handlePromptPaste(e) {
+            // Only handle paste if focus is in prompt container
+            if (!document.getElementById('promptContainer').contains(document.activeElement)) {
+                return;
+            }
+
+            const items = e.clipboardData.items;
+            
+            for (let item of items) {
+                if (item.type.indexOf('image') !== -1) {
+                    e.preventDefault();
+                    const file = item.getAsFile();
+                    if (file) {
+                        addReferenceImage(file);
+                        showSuccess('Image added as reference for multi-image capabilities');
+                    }
+                    break;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

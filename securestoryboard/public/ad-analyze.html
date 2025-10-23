@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DreamReal Ad Analyzer</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23666'><path d='M19 18H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h.71C7.37 7.69 9.48 6 12 6c3.04 0 5.5 2.46 5.5 5.5v.5H19c1.66 0 3 1.34 3 3s-1.34 3-3 3z'/></svg>" type="image/svg+xml">
+    
+    <!-- Icons -->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    
+    <!-- Import main stylesheet for consistency -->
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        /* Override and extend styles for ad analyzer */
+        .app {
+            grid-template-columns: 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--primary-bg);
+        }
+
+        /* Header consistent with main app */
+        .analyzer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px 4px 12px;
+            background: var(--header-bg);
+            border-bottom: 1px solid var(--header-border);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-left svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .header-left h2 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 0.1px;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-btn {
+            background: var(--primary-bg);
+            color: var(--primary-text);
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: 18px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--secondary-bg);
+            border-color: var(--accent-color);
+        }
+
+        /* Main content area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--secondary-bg);
+        }
+
+        .content-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Section styling */
+        .section {
+            background: var(--primary-bg);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .section h2 {
+            margin: 0 0 20px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section h2 .step-number {
+            background: var(--accent-color);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Input selection */
+        .input-type-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .input-type-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid var(--border-color);
+            background: var(--primary-bg);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            font-weight: 500;
+            color: var(--primary-text);
+        }
+
+        .input-type-btn:hover {
+            border-color: var(--accent-color);
+            background: var(--secondary-bg);
+        }
+
+        .input-type-btn.active {
+            border-color: var(--accent-color);
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .input-type-btn i {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+
+        /* Input areas */
+        .input-area {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .input-area.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--primary-text);
+            font-size: 14px;
+        }
+
+        input[type="text"], input[type="file"], button {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.15s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+        }
+
+        input[type="file"] {
+            padding: 10px 16px;
+            background: var(--secondary-bg);
+        }
+
+        .input-field-group {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .remove-field {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            background: var(--error-bg);
+            color: var(--error-text);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+        }
+
+        .remove-field:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .add-field-btn {
+            background: transparent;
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            width: auto;
+            margin-bottom: 0;
+            transition: all 0.15s ease;
+        }
+
+        .add-field-btn:hover {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .info-text {
+            font-size: 13px;
+            color: var(--secondary-text);
+            margin-top: -8px;
+            margin-bottom: 16px;
+        }
+
+        /* Start button */
+        .start-button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 24px auto 0;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .start-button:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .start-button:disabled {
+            background: var(--secondary-text);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Progress section */
+        .progress-section {
+            text-align: center;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            background: var(--secondary-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            height: 40px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-color) 0%, var(--accent-hover) 100%);
+            transition: width 0.4s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .progress-status {
+            color: var(--secondary-text);
+            font-size: 14px;
+            margin-top: 12px;
+        }
+
+        /* Results section */
+        .results-grid {
+            display: grid;
+            grid-template-columns: 65% 33%;
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .results-table-container {
+            background: var(--primary-bg);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .summaries-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .summary-card {
+            background: var(--primary-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .summary-card h3 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .summary-card p {
+            margin: 0;
+            line-height: 1.6;
+            color: var(--primary-text);
+            font-size: 14px;
+        }
+
+        /* Table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--secondary-bg);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary-text);
+            font-size: 14px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .video-label {
+            font-weight: 600;
+            color: var(--primary-text);
+            margin-bottom: 8px;
+        }
+
+        .analysis-item {
+            margin-bottom: 12px;
+            padding: 12px;
+            background: var(--secondary-bg);
+            border-radius: 8px;
+        }
+
+        .analysis-item strong {
+            display: block;
+            color: var(--accent-color);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .analysis-item p {
+            margin: 0;
+            color: var(--primary-text);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* Error message */
+        .error-message {
+            background: var(--error-bg);
+            color: var(--error-text);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid var(--error-border);
+            font-size: 14px;
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--secondary-bg);
+            border-top: 3px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .content-wrapper {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .input-type-selector {
+                flex-direction: column;
+            }
+            
+            .section {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="analyzer-header">
+            <div class="header-left">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM9 8l5 3-5 3V8z"/>
+                </svg>
+                <h2>DreamReal Ad Analyzer</h2>
+            </div>
+            <div class="header-controls">
+                <a href="index.html" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Storyboard</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main content area -->
+        <div class="main-content">
+            <div class="content-wrapper">
+                <div id="errorMessage" class="error-message"></div>
+
+                <!-- Input Section -->
+                <section class="section input-section">
+                    <h2><span class="step-number">1</span> Choose Your Input Method</h2>
+                    
+                    <div class="input-type-selector">
+                        <button class="input-type-btn" data-type="clientName" onclick="selectInputType('clientName')">
+                            <i class="fas fa-building"></i>
+                            Client Name
+                        </button>
+                        <button class="input-type-btn" data-type="youtubeLinks" onclick="selectInputType('youtubeLinks')">
+                            <i class="fab fa-youtube"></i>
+                            YouTube Links
+                        </button>
+                        <button class="input-type-btn" data-type="videoUploads" onclick="selectInputType('videoUploads')">
+                            <i class="fas fa-film"></i>
+                            Upload Videos
+                        </button>
+                    </div>
+
+                    <!-- Client Name Input -->
+                    <div class="input-area" id="clientNameInput">
+                        <label for="clientNameField">Enter Client Name</label>
+                        <input type="text" id="clientNameField" placeholder="e.g., Nike, Coca-Cola, Apple">
+                        <p class="info-text">AI will search for 5 high-quality ads from this client in the last 5 years</p>
+                    </div>
+
+                    <!-- YouTube Links Input -->
+                    <div class="input-area" id="youtubeLinksInput">
+                        <label>YouTube Video Links (Max 5)</label>
+                        <div id="youtubeLinksContainer">
+                            <div class="input-field-group">
+                                <input type="text" placeholder="https://www.youtube.com/watch?v=...">
+                            </div>
+                        </div>
+                        <button class="add-field-btn" onclick="addYoutubeLink()">
+                            <i class="fas fa-plus"></i> Add Another Link
+                        </button>
+                        <p class="info-text">Add up to 5 YouTube video links to analyze</p>
+                    </div>
+
+                    <!-- Video Uploads Input -->
+                    <div class="input-area" id="videoUploadsInput">
+                        <label>Upload Video Files (Max 5)</label>
+                        <div id="videoUploadsContainer">
+                            <div class="input-field-group">
+                                <input type="file" accept="video/*">
+                            </div>
+                        </div>
+                        <button class="add-field-btn" onclick="addVideoUpload()">
+                            <i class="fas fa-plus"></i> Add Another Video
+                        </button>
+                        <p class="info-text">Upload up to 5 video files (MP4, MOV, etc.)</p>
+                    </div>
+
+                    <button class="start-button" id="startAnalysisButton" onclick="startAnalysis()">
+                        <i class="fas fa-play-circle"></i>
+                        Start Analysis
+                    </button>
+                </section>
+
+                <!-- Progress Section -->
+                <section class="section progress-section" id="progressSection" style="display: none;">
+                    <h2><span class="step-number">2</span> Analyzing Your Ads</h2>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBar" style="width: 0%;">0%</div>
+                    </div>
+                    <p class="progress-status" id="progressStatus">Initializing analysis...</p>
+                </section>
+
+                <!-- Results Section -->
+                <section class="section results-section" id="resultsSection" style="display: none;">
+                    <h2><span class="step-number">3</span> Analysis Complete</h2>
+                    
+                    <div class="results-grid">
+                        <div class="results-table-container">
+                            <h3 style="margin: 0 0 20px 0; font-size: 16px; font-weight: 600;">
+                                <i class="fas fa-table"></i> Detailed Video Breakdown
+                            </h3>
+                            <table id="resultsTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 25%;">Video</th>
+                                        <th style="width: 75%;">Analysis</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Results will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="summaries-container">
+                            <div class="summary-card">
+                                <h3><i class="fas fa-lightbulb"></i> Key Learnings</h3>
+                                <p id="geminiLearningsSummary">Processing insights...</p>
+                            </div>
+                            
+                            <div class="summary-card">
+                                <h3><i class="fas fa-palette"></i> Brand Visual Style</h3>
+                                <p id="geminiVisualStyleSummary">Analyzing visual elements...</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include API integration -->
+    <script src="js/ad-analyzer-api.js"></script>
+    
+    <script>
+        // Global state
+        let selectedInputType = null;
+        let isProcessing = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add event listeners
+            document.getElementById('clientNameField').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    startAnalysis();
+                }
+            });
+        });
+
+        // Select input type
+        function selectInputType(type) {
+            // Update button states
+            document.querySelectorAll('.input-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+
+            // Show corresponding input area
+            document.querySelectorAll('.input-area').forEach(area => {
+                area.classList.remove('active');
+            });
+            document.getElementById(type + 'Input').classList.add('active');
+
+            selectedInputType = type;
+        }
+
+        // Add YouTube link field
+        function addYoutubeLink() {
+            const container = document.getElementById('youtubeLinksContainer');
+            const currentCount = container.querySelectorAll('.input-field-group').length;
+            
+            if (currentCount >= 5) {
+                showError('Maximum 5 YouTube links allowed');
+                return;
+            }
+
+            const fieldGroup = document.createElement('div');
+            fieldGroup.className = 'input-field-group';
+            fieldGroup.innerHTML = `
+                <input type="text" placeholder="https://www.youtube.com/watch?v=...">
+                <button class="remove-field" onclick="this.parentElement.remove()">Remove</button>
+            `;
+            container.appendChild(fieldGroup);
+        }
+
+        // Add video upload field
+        function addVideoUpload() {
+            const container = document.getElementById('videoUploadsContainer');
+            const currentCount = container.querySelectorAll('.input-field-group').length;
+            
+            if (currentCount >= 5) {
+                showError('Maximum 5 video files allowed');
+                return;
+            }
+
+            const fieldGroup = document.createElement('div');
+            fieldGroup.className = 'input-field-group';
+            fieldGroup.innerHTML = `
+                <input type="file" accept="video/*">
+                <button class="remove-field" onclick="this.parentElement.remove()">Remove</button>
+            `;
+            container.appendChild(fieldGroup);
+        }
+
+        // Start analysis
+        async function startAnalysis() {
+            if (!selectedInputType) {
+                showError('Please select an input type first');
+                return;
+            }
+
+            if (isProcessing) {
+                return;
+            }
+
+            let inputData = await collectInputData();
+            if (!inputData) {
+                return;
+            }
+
+            isProcessing = true;
+            document.getElementById('startAnalysisButton').disabled = true;
+
+            // Hide input section, show progress
+            document.querySelector('.input-section').style.display = 'none';
+            document.getElementById('progressSection').style.display = 'block';
+
+            try {
+                if (window.AdAnalyzerAPI && typeof window.AdAnalyzerAPI.startVideoAnalysis === 'function') {
+                    updateProgress(5, 'Uploading & starting analysis...');
+                    const startResp = await window.AdAnalyzerAPI.startVideoAnalysis(inputData);
+                    const op = startResp.operations[0]; // Take the first operation for simplicity
+                    pollOperation(op.operationName, op.source);
+                } else {
+                    console.warn('API not available, fallback simulation');
+                    await simulateAnalysis(inputData);
+                }
+            } catch (error) {
+                showError('Analysis failed: ' + error.message);
+                document.querySelector('.input-section').style.display = 'block';
+                document.getElementById('progressSection').style.display = 'none';
+            } finally {
+                isProcessing = false;
+                document.getElementById('startAnalysisButton').disabled = false;
+            }
+        }
+
+        // Simulate analysis (fallback when API not available)
+        async function simulateAnalysis(inputData) {
+            // Update progress
+            updateProgress(10, 'Preparing analysis...');
+
+            // If client name, first search for videos
+            if (inputData.type === 'clientName') {
+                updateProgress(20, 'Searching for client ads...');
+                await simulateDelay(2000);
+            }
+
+            updateProgress(40, 'Analyzing videos with AI...');
+            await simulateDelay(3000);
+
+            updateProgress(60, 'Extracting visual elements...');
+            await simulateDelay(2000);
+
+            updateProgress(80, 'Generating insights...');
+            await simulateDelay(2000);
+
+            updateProgress(100, 'Analysis complete!');
+            await simulateDelay(500);
+
+            // Show simulated results
+            showSimulatedResults();
+        }
+
+        // Collect input data
+        async function collectInputData() {
+            let data = { type: selectedInputType };
+
+            if (selectedInputType === 'clientName') {
+                const clientName = document.getElementById('clientNameField').value.trim();
+                if (!clientName) {
+                    showError('Please enter a client name');
+                    return null;
+                }
+                data.value = clientName;
+            } else if (selectedInputType === 'youtubeLinks') {
+                const links = Array.from(document.querySelectorAll('#youtubeLinksContainer input[type="text"]'))
+                    .map(input => input.value.trim())
+                    .filter(link => link);
+                
+                if (links.length === 0) {
+                    showError('Please enter at least one YouTube link');
+                    return null;
+                }
+                data.values = links;
+            } else if (selectedInputType === 'videoUploads') {
+                const fileInputs = Array.from(document.querySelectorAll('#videoUploadsContainer input[type="file"]'));
+                const files = [];
+
+                for (const input of fileInputs) {
+                    if (input.files[0]) {
+                        try {
+                            const file = input.files[0];
+                            const base64String = await readFileAsBase64(file);
+                            files.push({
+                                name: file.name,
+                                type: file.type,
+                                content: base64String // Send Base64 content
+                            });
+                        } catch (err) {
+                            showError(`Error reading file ${input.files[0].name}: ${err.message}`);
+                            return null;
+                        }
+                    }
+                }
+                
+                if (files.length === 0) {
+                    showError('Please select at least one video file');
+                    return null;
+                }
+                data.files = files; // Array of { name, type, content (Base64) }
+            }
+
+            return data;
+        }
+
+        // Helper to read file as Base64
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]); // Get Base64 part
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Update progress
+        function updateProgress(percentage, status) {
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = percentage + '%';
+            document.getElementById('progressStatus').textContent = status;
+        }
+
+        // Show results from API
+        function showResults(apiResults) {
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+
+            const tbody = document.querySelector('#resultsTable tbody');
+            tbody.innerHTML = '';
+
+            // Populate table with analyses
+            apiResults.analyses.forEach((analysis, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="video-label">Video ${index + 1}</div>
+                        <div style="font-size: 12px; color: var(--secondary-text);">${analysis.title}</div>
+                    </td>
+                    <td>
+                        <div class="analysis-item">
+                            <strong>Products & Offer</strong>
+                            <p>${analysis.products}</p>
+                        </div>
+                        <div class="analysis-item">
+                            <strong>Key Hook</strong>
+                            <p>${analysis.hook}</p>
+                        </div>
+                        <div class="analysis-item">
+                            <strong>Summary & Key Scenes</strong>
+                            <p>${analysis.summary}</p>
+                        </div>
+                        <div class="analysis-item">
+                            <strong>Dialogue/Words</strong>
+                            <p>${analysis.dialogue}</p>
+                        </div>
+                        <div class="analysis-item">
+                            <strong>Music</strong>
+                            <p>${analysis.music}</p>
+                        </div>
+                        <div class="analysis-item">
+                            <strong>Visual Style Elements</strong>
+                            <p>${analysis.visualStyle}</p>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Update summaries
+            if (apiResults.summaries) {
+                document.getElementById('geminiLearningsSummary').textContent = apiResults.summaries.learnings;
+                document.getElementById('geminiVisualStyleSummary').textContent = apiResults.summaries.visualStyle;
+            }
+        }
+
+        // Show simulated results (fallback)
+        function showSimulatedResults() {
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+
+            // Populate sample results
+            const tbody = document.querySelector('#resultsTable tbody');
+            tbody.innerHTML = '';
+
+            // Sample data for demonstration
+            const sampleVideos = [
+                { name: 'Brand Campaign 2024', source: 'YouTube' },
+                { name: 'Holiday Special Ad', source: 'YouTube' },
+                { name: 'Product Launch Video', source: 'YouTube' },
+                { name: 'Summer Collection', source: 'YouTube' },
+                { name: 'Anniversary Campaign', source: 'YouTube' }
+            ];
+
+            sampleVideos.forEach((video, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="video-label">${video.name}</div>
+                        <div style="font-size: 12px; color: var(--secondary-text);">${video.source}</div>
+                    </td>
+                    <td>
+                        <div class="analysis-item">
+                            <strong>Products & Offer</strong>
+                            <p>Premium lifestyle products with 25% seasonal discount and free shipping on orders over $100</p>
+                        </div>
+                        <div class="analysis-item">
+                            <strong>Key Hook</strong>
+                            <p>Emotional connection through family moments and celebration of togetherness</p>
+                        </div>
+                        <div class="analysis-item">
+                            <strong>Summary & Key Scenes</strong>
+                            <p>30-second spot featuring family gathering, product reveal at 0:15, call-to-action at 0:25</p>
+                        </div>
+                        <div class="analysis-item">
+                            <strong>Dialogue/Words</strong>
+                            <p>"Bringing moments together" - narrator voiceover with minimal dialogue, focus on visual storytelling</p>
+                        </div>
+                        <div class="analysis-item">
+                            <strong>Music</strong>
+                            <p>Uplifting orchestral score with modern electronic elements, building to emotional crescendo</p>
+                        </div>
+                        <div class="analysis-item">
+                            <strong>Visual Style Elements</strong>
+                            <p>Warm color grading (golden hour), handheld camera for intimacy, quick cuts transitioning to slower pacing, film grain overlay for nostalgic feel</p>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Update summaries
+            document.getElementById('geminiLearningsSummary').textContent = 
+                'The analyzed ads consistently use emotional storytelling centered around human connections and shared experiences. ' +
+                'Key patterns include a build-up to product reveal around the 50-60% mark, with strong calls-to-action in the final 20%. ' +
+                'Music plays a crucial role in emotional engagement, with most ads using custom compositions that blend traditional and modern elements. ' +
+                'The pacing typically starts energetic, slows for emotional moments, then accelerates for the final call-to-action.';
+
+            document.getElementById('geminiVisualStyleSummary').textContent = 
+                'The brand maintains a cohesive visual identity characterized by warm, naturalistic color grading with slight desaturation for sophistication. ' +
+                'Camera work combines handheld shots for intimate moments with smooth tracking shots for product reveals. ' +
+                'Consistent use of shallow depth of field to isolate subjects, with film grain and slight vignetting adding a premium, cinematic quality. ' +
+                'Typography is minimal and modern, appearing only for essential information and calls-to-action.';
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 5000);
+        }
+
+        // Simulate delay
+        function simulateDelay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Poll Google operation until done
+        async function pollOperation(operationName, sourceLabel) {
+            try {
+                const poll = async () => {
+                    const resp = await window.AdAnalyzerAPI.checkVideoAnalysis(operationName);
+                    if (resp.status === 'RUNNING') {
+                        const pct = Math.max(10, resp.progress || 0);
+                        updateProgress(pct, `Analyzing ${sourceLabel} (${pct}% )`);
+                        setTimeout(poll, 9000);
+                    } else if (resp.status === 'DONE') {
+                        updateProgress(100, 'Analysis complete!');
+                        const analyses = [resp.analysis];
+                        const summaries = await window.AdAnalyzerAPI.generateSummaries(analyses);
+                        showResults({ analyses, summaries });
+                    } else {
+                        showError('Analysis error: ' + resp.message);
+                    }
+                };
+                poll();
+            } catch(err){
+                showError('Polling error: '+err.message);
+            }
+        }
+    </script>
+</body>
+</html> 

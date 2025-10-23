@@ -1,0 +1,30 @@
+{
+  "name": "secure-storyboard",
+  "version": "1.0.0",
+  "description": "Secure Visual Storyboard Tool",
+  "main": "index.js",
+  "scripts": {
+    "dev": "netlify dev",
+    "test-frontend": "http-server public -p 3000 -c-1",
+    "build": "echo 'No build step required for static files'",
+    "update-version": "node update-version.js",
+    "deploy": "node update-version.js && git add public/index.html && git commit -m 'Update version timestamp' && git push origin main"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^7.4.0",
+    "@netlify/functions": "^2.4.0",
+    "cookie": "^0.6.0",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^9.0.1",
+    "@google-cloud/video-intelligence": "^5.1.0",
+    "@google/generative-ai": "^0.1.3",
+    "@google-cloud/storage": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "netlify-cli": "^17.10.1"
+  }
+}

@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DreamReal Digital Twinning Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #ffffff;
+            color: #1a202c;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1a202c;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .api-status {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .api-status.connected {
+            background: #d1fae5;
+            border-color: #6ee7b7;
+            color: #047857;
+        }
+        
+        .api-status.error {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #dc2626;
+        }
+        
+        .api-config {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .api-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .api-button {
+            background: #374151;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .api-button:hover {
+            background: #1f2937;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 480px 1fr;
+            gap: 30px;
+        }
+        
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .panel {
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .panel-title {
+            font-size: 16px;
+            color: #374151;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area:hover {
+            border-color: #9ca3af;
+        }
+        
+        .upload-area.has-file {
+            border-color: #374151;
+        }
+        
+        .upload-placeholder {
+            color: #9ca3af;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .upload-preview {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+        
+        .button {
+            background: #000000;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 24px;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+        
+        .button:hover {
+            background: #374151;
+        }
+        
+        .button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .options-panel {
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .options-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .options-header:hover {
+            opacity: 0.8;
+        }
+        
+        .options-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #1f2937;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .expand-icon {
+            transition: transform 0.3s;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .expand-icon.expanded {
+            transform: rotate(180deg);
+        }
+        
+        .options-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .options-content.expanded {
+            max-height: 800px;
+            transition: max-height 0.3s ease-in;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-top: 15px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #000000;
+            cursor: pointer;
+        }
+        
+        .checkbox-item label {
+            color: #374151;
+            font-size: 14px;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .video-player {
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            height: 725px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .video-content {
+            flex: 1;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .video-placeholder {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 18px;
+        }
+        
+        .video-element {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+        
+        .controls-panel {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin: 0 20px 20px;
+            padding: 20px;
+            display: none;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .play-button {
+            background: #000000;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            width: 60px;
+            height: 40px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .play-button:hover {
+            background: #374151;
+        }
+        
+        .video-slider {
+            flex: 1;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #e5e7eb;
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .video-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #374151;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .video-slider::-webkit-slider-thumb:hover {
+            background: #1f2937;
+        }
+        
+        .download-button {
+            background: #6b7280;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 20px;
+            font-size: 14;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .download-button:hover {
+            background: #4b5563;
+        }
+        
+        .process-button {
+            background: #000000;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: calc(100% - 40px);
+            margin: 0 20px 20px;
+            transition: background-color 0.2s;
+        }
+        
+        .process-button:hover {
+            background: #374151;
+        }
+        
+        .process-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .processing-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .processing-modal {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #000000;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .quality-slider {
+            width: 100%;
+            margin-top: 8px;
+        }
+        
+        .quality-value {
+            text-align: center;
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        
+        .quality-hint {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        
+        .error-message {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 10px;
+            padding: 10px;
+            background: #fee2e2;
+            border-radius: 6px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">☁ DreamReal Digital Twinning Tool</h1>
+        
+        <!-- API Configuration -->
+        <div class="api-config">
+            <input type="text" id="api-url" class="api-input" 
+                   placeholder="Enter API URL (e.g., https://your-runpod-url.proxy.runpod.net)" 
+                   value="">
+            <button class="api-button" onclick="testConnection()">Test Connection</button>
+        </div>
+        
+        <div class="api-status" id="api-status">
+            <strong>Status:</strong> <span id="status-text">Not connected. Please enter your API URL above.</span>
+        </div>
+        
+        <div class="content">
+            <div class="left-column">
+                <!-- Source Image Panel -->
+                <div class="panel">
+                    <div class="panel-title">Source Image (Face to use):</div>
+                    <div class="upload-area" id="source-upload" onclick="document.getElementById('source-input').click()">
+                        <div class="upload-placeholder" id="source-placeholder">
+                            Click to select source image
+                        </div>
+                        <img class="upload-preview" id="source-preview">
+                        <input type="file" id="source-input" accept="image/*" onchange="handleSourceUpload(event)">
+                    </div>
+                    <button class="button" onclick="document.getElementById('source-input').click()">
+                        Choose Source Image
+                    </button>
+                </div>
+                
+                <!-- Target Video Panel -->
+                <div class="panel">
+                    <div class="panel-title">Target Video (Video to apply face to):</div>
+                    <div class="upload-area" id="target-upload" onclick="document.getElementById('target-input').click()">
+                        <div class="upload-placeholder" id="target-placeholder">
+                            Click to select target video
+                        </div>
+                        <video class="upload-preview" id="target-preview"></video>
+                        <input type="file" id="target-input" accept="video/*" onchange="handleTargetUpload(event)">
+                    </div>
+                    <button class="button" onclick="document.getElementById('target-input').click()">
+                        Choose Target Video
+                    </button>
+                </div>
+                
+                <!-- Processing Options Panel -->
+                <div class="options-panel">
+                    <div class="options-header" onclick="toggleOptions()">
+                        <div class="options-title">Processing Options</div>
+                        <span class="expand-icon" id="expand-icon">▼</span>
+                    </div>
+                    <div class="options-content" id="options-content">
+                        <div class="checkbox-group">
+                            <div class="quality-slider">
+                                <label style="font-size: 13px; color: #374151; margin-bottom: 6px; display: block;">Video Quality:</label>
+                                <input type="range" id="video-quality" class="video-slider" 
+                                       min="0" max="51" value="10" 
+                                       oninput="document.getElementById('quality-value').textContent = this.value"
+                                       style="width: 100%;">
+                                <div class="quality-value" id="quality-value">10</div>
+                                <div class="quality-hint">Lower values = better quality, larger file size</div>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="many-faces" name="many-faces">
+                                <label for="many-faces">Process many faces</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="face-enhancer" name="face-enhancer" checked>
+                                <label for="face-enhancer">Face enhancement (GFPGAN)</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="mouth-mask" name="mouth-mask">
+                                <label for="mouth-mask">Preserve original mouth</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="map-faces" name="map-faces">
+                                <label for="map-faces">Map faces</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="keep-fps" name="keep-fps" checked>
+                                <label for="keep-fps">Keep original FPS</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="keep-audio" name="keep-audio">
+                                <label for="keep-audio">Keep audio</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="video-player">
+                <div class="video-content">
+                    <div class="video-placeholder" id="video-placeholder">
+                        🎬<br><br>Processed video will appear here
+                    </div>
+                    <video class="video-element" id="output-video"></video>
+                </div>
+                
+                <div class="controls-panel" id="controls-panel">
+                    <button class="play-button" id="play-button" onclick="togglePlayback()">▶</button>
+                    <input type="range" class="video-slider" id="video-slider" 
+                           min="0" max="100" value="0" onchange="seekVideo(this.value)">
+                    <button class="download-button" onclick="downloadVideo()">Download</button>
+                </div>
+                
+                <button class="process-button" id="process-button" onclick="startProcessing()" disabled>
+                    Start Processing
+                </button>
+                
+                <div class="error-message" id="error-message"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Processing Overlay -->
+    <div class="processing-overlay" id="processing-overlay">
+        <div class="processing-modal">
+            <div class="spinner"></div>
+            <h2>Processing Video</h2>
+            <p>This may take several minutes...</p>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let API_URL = '';
+        let sourceFile = null;
+        let targetFile = null;
+        let outputVideoUrl = null;
+        let isPlaying = false;
+        let isConnected = false;
+        
+        // Load saved API URL from localStorage
+        window.addEventListener('load', () => {
+            const savedUrl = localStorage.getItem('dreamreal_api_url');
+            if (savedUrl) {
+                document.getElementById('api-url').value = savedUrl;
+                API_URL = savedUrl;
+                testConnection();
+            }
+        });
+        
+        async function testConnection() {
+            const urlInput = document.getElementById('api-url');
+            const statusDiv = document.getElementById('api-status');
+            const statusText = document.getElementById('status-text');
+            
+            API_URL = urlInput.value.trim();
+            
+            if (!API_URL) {
+                statusDiv.className = 'api-status error';
+                statusText.textContent = 'Please enter an API URL';
+                isConnected = false;
+                checkCanProcess();
+                return;
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('dreamreal_api_url', API_URL);
+            
+            statusText.textContent = 'Testing connection...';
+            statusDiv.className = 'api-status';
+            
+            try {
+                // Test the health endpoint
+                const response = await fetch(`${API_URL}/health`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.className = 'api-status connected';
+                    statusText.textContent = `Connected to ${data.service || 'API'}`;
+                    isConnected = true;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Connection test failed:', error);
+                
+                // Try the test endpoint as fallback
+                try {
+                    const response = await fetch(`${API_URL}/test`, {
+                        method: 'GET',
+                        mode: 'cors',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        statusDiv.className = 'api-status connected';
+                        statusText.textContent = 'Connected to DreamReal API';
+                        isConnected = true;
+                    } else {
+                        throw new Error('Connection failed');
+                    }
+                } catch (fallbackError) {
+                    statusDiv.className = 'api-status error';
+                    statusText.textContent = `Connection failed. Make sure the API server is running and CORS is enabled.`;
+                    isConnected = false;
+                }
+            }
+            
+            checkCanProcess();
+        }
+        
+        function toggleOptions() {
+            const content = document.getElementById('options-content');
+            const icon = document.getElementById('expand-icon');
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                icon.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                icon.classList.add('expanded');
+            }
+        }
+        
+        function handleSourceUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            sourceFile = file;
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                const preview = document.getElementById('source-preview');
+                const placeholder = document.getElementById('source-placeholder');
+                const uploadArea = document.getElementById('source-upload');
+                
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+                uploadArea.classList.add('has-file');
+                
+                checkCanProcess();
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        function handleTargetUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            targetFile = file;
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                const preview = document.getElementById('target-preview');
+                const placeholder = document.getElementById('target-placeholder');
+                const uploadArea = document.getElementById('target-upload');
+                
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+                uploadArea.classList.add('has-file');
+                
+                checkCanProcess();
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        function checkCanProcess() {
+            const button = document.getElementById('process-button');
+            button.disabled = !(sourceFile && targetFile && isConnected);
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        async function startProcessing() {
+            if (!isConnected) {
+                showError('Please connect to an API server first');
+                return;
+            }
+            
+            const overlay = document.getElementById('processing-overlay');
+            overlay.style.display = 'flex';
+            
+            try {
+                const formData = new FormData();
+                formData.append('source', sourceFile);
+                formData.append('target', targetFile);
+                
+                // Add parameters
+                formData.append('many_faces', document.getElementById('many-faces').checked);
+                formData.append('face_enhancer', document.getElementById('face-enhancer').checked);
+                formData.append('keep_fps', document.getElementById('keep-fps').checked);
+                formData.append('keep_audio', document.getElementById('keep-audio').checked);
+                formData.append('video_quality', document.getElementById('video-quality').value);
+                formData.append('mouth_mask', document.getElementById('mouth-mask').checked);
+                formData.append('map_faces', document.getElementById('map-faces').checked);
+                
+                console.log('Sending request to:', `${API_URL}/faceswap`);
+                
+                const response = await fetch(`${API_URL}/faceswap`, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'cors'
+                });
+                
+                if (response.ok) {
+                    const contentType = response.headers.get('content-type');
+                    
+                    if (contentType && contentType.includes('video')) {
+                        // Handle video response
+                        const blob = await response.blob();
+                        outputVideoUrl = URL.createObjectURL(blob);
+                        
+                        // Show video
+                        const video = document.getElementById('output-video');
+                        const placeholder = document.getElementById('video-placeholder');
+                        const controls = document.getElementById('controls-panel');
+                        
+                        video.src = outputVideoUrl;
+                        video.style.display = 'block';
+                        placeholder.style.display = 'none';
+                        controls.style.display = 'flex';
+                        
+                        // Setup video slider
+                        video.addEventListener('loadedmetadata', () => {
+                            const slider = document.getElementById('video-slider');
+                            slider.max = video.duration;
+                        });
+                    } else {
+                        // Handle JSON error response
+                        const error = await response.json();
+                        throw new Error(error.error || 'Processing failed');
+                    }
+                } else {
+                    let errorMessage = 'Processing failed';
+                    try {
+                        const error = await response.json();
+                        errorMessage = error.error || errorMessage;
+                    } catch (e) {
+                        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                    }
+                    throw new Error(errorMessage);
+                }
+                
+            } catch (error) {
+                console.error('Processing error:', error);
+                showError('Error: ' + error.message);
+            } finally {
+                overlay.style.display = 'none';
+            }
+        }
+        
+        function togglePlayback() {
+            const video = document.getElementById('output-video');
+            const button = document.getElementById('play-button');
+            
+            if (!video.src) return;
+            
+            if (isPlaying) {
+                video.pause();
+                button.textContent = '▶';
+            } else {
+                video.play();
+                button.textContent = '⏸';
+            }
+            
+            isPlaying = !isPlaying;
+        }
+        
+        function seekVideo(value) {
+            const video = document.getElementById('output-video');
+            if (video.src && video.duration) {
+                video.currentTime = value;
+            }
+        }
+        
+        function downloadVideo() {
+            if (!outputVideoUrl) return;
+            
+            const a = document.createElement('a');
+            a.href = outputVideoUrl;
+            a.download = `faceswap_${Date.now()}.mp4`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+        
+        // Update slider during playback
+        const video = document.getElementById('output-video');
+        video.addEventListener('timeupdate', () => {
+            const slider = document.getElementById('video-slider');
+            slider.value = video.currentTime;
+        });
+        
+        video.addEventListener('ended', () => {
+            const button = document.getElementById('play-button');
+            button.textContent = '▶';
+            isPlaying = false;
+        });
+    </script>
+</body>
+</html>
