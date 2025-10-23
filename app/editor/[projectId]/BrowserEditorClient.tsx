@@ -1862,38 +1862,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
                 </div>
               </button>
 
-              {/* Video Action Buttons */}
-              {asset.type === 'video' && (
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex gap-1.5">
-                    <button
-                      onClick={() => void handleSplitAudio(asset)}
-                      disabled={splitAudioPending}
-                      className="flex-1 rounded-md bg-blue-500 px-2 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
-                      title="Extract audio from video"
-                    >
-                      Split Audio
-                    </button>
-                    <button
-                      onClick={() => void handleSplitScenes(asset)}
-                      disabled={splitScenesPending}
-                      className="flex-1 rounded-md bg-purple-500 px-2 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
-                      title="Split video into scenes"
-                    >
-                      Split Scenes
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => void handleUpscaleVideo(asset)}
-                    disabled={upscaleVideoPending}
-                    className="w-full rounded-md bg-gradient-to-r from-emerald-500 to-teal-500 px-2 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:from-emerald-600 hover:to-teal-600 disabled:cursor-not-allowed disabled:opacity-50"
-                    title="Upscale video using Topaz AI (2x resolution)"
-                  >
-                    {upscaleVideoPending ? 'Upscaling...' : 'Upscale Video'}
-                  </button>
-                </div>
-              )}
-
               {/* Delete button - always visible */}
               <button
                 onClick={() => void handleAssetDelete(asset)}

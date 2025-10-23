@@ -26,6 +26,9 @@ const parseStorageUrl = (storageUrl: string) => {
   return { bucket, path };
 };
 
+// Set max duration for Vercel serverless function (10 seconds on hobby, 60 on pro)
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
@@ -115,10 +118,12 @@ export async function POST(req: NextRequest) {
     // Check for Google Cloud credentials
     const credentialsJson = process.env.GOOGLE_SERVICE_ACCOUNT;
     if (!credentialsJson) {
+      console.warn('Scene detection unavailable: GOOGLE_SERVICE_ACCOUNT not configured');
       return NextResponse.json(
         {
-          error: 'Google Cloud Video Intelligence not configured',
-          message: 'GOOGLE_SERVICE_ACCOUNT environment variable is required'
+          error: 'Scene detection unavailable',
+          message: 'Google Cloud Video Intelligence is not configured on this deployment. Please configure the GOOGLE_SERVICE_ACCOUNT environment variable.',
+          details: 'Contact your administrator to enable scene detection features.'
         },
         { status: 503 }
       );
@@ -218,7 +223,13 @@ export async function POST(req: NextRequest) {
     console.log(`Starting video annotation for shot detection using: ${gcsUri}`);
     let results;
     try {
-      results = await videoClient.annotateVideo(request);
+      // Add timeout to prevent function from hanging (45 seconds)
+      const annotationPromise = videoClient.annotateVideo(request);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Video analysis timed out after 45 seconds')), 45000)
+      );
+
+      results = await Promise.race([annotationPromise, timeoutPromise]) as Awaited<ReturnType<typeof videoClient.annotateVideo>>;
     } catch (apiError) {
       console.error('Video Intelligence API error:', apiError);
 
