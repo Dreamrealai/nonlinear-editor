@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
-import { v4 as uuid } from 'uuid';
 
 /**
  * POST /api/video/upscale

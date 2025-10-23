@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     const fileName = `sfx-${Date.now()}-${prompt.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '-')}.mp3`;
     const filePath = `${user.id}/${projectId}/${fileName}`;
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('assets')
       .upload(filePath, audioBuffer, {
         contentType: 'audio/mpeg',

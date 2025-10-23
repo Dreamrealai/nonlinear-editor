@@ -645,7 +645,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   const [splitAudioPending, setSplitAudioPending] = useState(false);
   const [splitScenesPending, setSplitScenesPending] = useState(false);
   const [upscaleVideoPending, setUpscaleVideoPending] = useState(false);
-  const [generateAudioPending, setGenerateAudioPending] = useState(false);
 
   // Export state
   const [showExportModal, setShowExportModal] = useState(false);
@@ -1487,8 +1486,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   }, [supabase, projectId]);
 
   const handleGenerateAudioFromVideo = useCallback(async (asset: AssetRow, model: 'minimax' | 'mureka-1.5' | 'kling-turbo-2.5') => {
-    setGenerateAudioPending(true);
-
     const modelNames = {
       'minimax': 'MiniMax',
       'mureka-1.5': 'Mureka 1.5',
@@ -1538,7 +1535,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
               setAssets((prev) => [mappedAsset, ...prev]);
             }
 
-            setGenerateAudioPending(false);
             setActiveTab('audio');
           } else if (statusJson.status === 'failed') {
             throw new Error(statusJson.error || 'Audio generation failed');
@@ -1549,7 +1545,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
         } catch (pollError) {
           browserLogger.error({ error: pollError, projectId }, 'Audio generation polling failed');
           toast.error(pollError instanceof Error ? pollError.message : 'Audio generation failed', { id: 'generate-audio' });
-          setGenerateAudioPending(false);
         }
       };
 
@@ -1557,7 +1552,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
     } catch (error) {
       browserLogger.error({ error, projectId }, 'Audio generation failed');
       toast.error(error instanceof Error ? error.message : 'Audio generation failed', { id: 'generate-audio' });
-      setGenerateAudioPending(false);
     }
   }, [supabase, projectId]);
 
@@ -1585,12 +1579,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
       a.type === 'audio'
     );
   }, [assets, activeTab]);
-
-  // Memoize enriched timeline to avoid expensive recalculation
-  const enrichedTimeline = useMemo(() => {
-    if (!timeline || !assetsLoaded) return timeline;
-    return enrichTimelineWithSourceDurations(timeline, assets);
-  }, [timeline, assets, assetsLoaded]);
 
   if (!timeline) {
     return (
