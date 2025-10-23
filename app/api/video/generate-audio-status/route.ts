@@ -42,39 +42,76 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check status with fal.ai
-    const statusResponse = await fetch(`https://queue.fal.run/requests/${requestId}/status`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Key ${falKey}`,
-      },
-    });
+    // Check status with fal.ai with timeout
+    const controller1 = new AbortController();
+    const timeout1 = setTimeout(() => controller1.abort(), 60000); // 60 second timeout
 
-    if (!statusResponse.ok) {
-      const errorText = await statusResponse.text();
-      console.error('fal.ai status check failed:', errorText);
-      return NextResponse.json(
-        { error: 'Failed to check generation status' },
-        { status: statusResponse.status }
-      );
+    let statusResponse;
+    try {
+      statusResponse = await fetch(`https://queue.fal.run/requests/${requestId}/status`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Key ${falKey}`,
+        },
+        signal: controller1.signal,
+      });
+
+      clearTimeout(timeout1);
+
+      if (!statusResponse.ok) {
+        const errorText = await statusResponse.text();
+        console.error('fal.ai status check failed:', errorText);
+        return NextResponse.json(
+          { error: 'Failed to check generation status' },
+          { status: statusResponse.status }
+        );
+      }
+    } catch (error) {
+      clearTimeout(timeout1);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('FAL.ai status check timeout');
+        return NextResponse.json(
+          { error: 'Status check timeout after 60s' },
+          { status: 504 }
+        );
+      }
+      throw error;
     }
 
     const statusData = await statusResponse.json();
 
     // If completed, fetch the result
     if (statusData.status === 'COMPLETED') {
-      const resultResponse = await fetch(`https://queue.fal.run/requests/${requestId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Key ${falKey}`,
-        },
-      });
+      const controller2 = new AbortController();
+      const timeout2 = setTimeout(() => controller2.abort(), 60000);
 
-      if (!resultResponse.ok) {
-        return NextResponse.json(
-          { error: 'Failed to fetch generation result' },
-          { status: resultResponse.status }
-        );
+      let resultResponse;
+      try {
+        resultResponse = await fetch(`https://queue.fal.run/requests/${requestId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Key ${falKey}`,
+          },
+          signal: controller2.signal,
+        });
+
+        clearTimeout(timeout2);
+
+        if (!resultResponse.ok) {
+          return NextResponse.json(
+            { error: 'Failed to fetch generation result' },
+            { status: resultResponse.status }
+          );
+        }
+      } catch (error) {
+        clearTimeout(timeout2);
+        if (error instanceof Error && error.name === 'AbortError') {
+          return NextResponse.json(
+            { error: 'Result fetch timeout after 60s' },
+            { status: 504 }
+          );
+        }
+        throw error;
       }
 
       const result = await resultResponse.json();
@@ -87,13 +124,33 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // Download and upload audio to Supabase Storage
-      const audioResponse = await fetch(audioUrl);
-      if (!audioResponse.ok) {
-        return NextResponse.json(
-          { error: 'Failed to download generated audio' },
-          { status: 500 }
-        );
+      // Download and upload audio to Supabase Storage with timeout
+      const controller3 = new AbortController();
+      const timeout3 = setTimeout(() => controller3.abort(), 60000);
+
+      let audioResponse;
+      try {
+        audioResponse = await fetch(audioUrl, {
+          signal: controller3.signal,
+        });
+
+        clearTimeout(timeout3);
+
+        if (!audioResponse.ok) {
+          return NextResponse.json(
+            { error: 'Failed to download generated audio' },
+            { status: 500 }
+          );
+        }
+      } catch (error) {
+        clearTimeout(timeout3);
+        if (error instanceof Error && error.name === 'AbortError') {
+          return NextResponse.json(
+            { error: 'Audio download timeout after 60s' },
+            { status: 504 }
+          );
+        }
+        throw error;
       }
 
       const audioBuffer = await audioResponse.arrayBuffer();

@@ -101,26 +101,45 @@ export async function POST(request: NextRequest) {
 
     const endpoint = modelEndpoints[model];
 
-    // Submit video-to-audio request to fal.ai
-    const falResponse = await fetch(`https://queue.fal.run/${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Key ${falKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        video_url: videoUrl,
-        ...(prompt && { prompt }),
-      }),
-    });
+    // Submit video-to-audio request to fal.ai with timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-    if (!falResponse.ok) {
-      const errorText = await falResponse.text();
-      console.error('fal.ai video-to-audio request failed:', errorText);
-      return NextResponse.json(
-        { error: `Failed to submit video-to-audio request: ${errorText}` },
-        { status: falResponse.status }
-      );
+    let falResponse;
+    try {
+      falResponse = await fetch(`https://queue.fal.run/${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Key ${falKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          video_url: videoUrl,
+          ...(prompt && { prompt }),
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      if (!falResponse.ok) {
+        const errorText = await falResponse.text();
+        console.error('fal.ai video-to-audio request failed:', errorText);
+        return NextResponse.json(
+          { error: `Failed to submit video-to-audio request: ${errorText}` },
+          { status: falResponse.status }
+        );
+      }
+    } catch (error) {
+      clearTimeout(timeout);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('FAL.ai video-to-audio submission timeout');
+        return NextResponse.json(
+          { error: 'Video-to-audio submission timeout after 60s' },
+          { status: 504 }
+        );
+      }
+      throw error;
     }
 
     const falData = await falResponse.json();

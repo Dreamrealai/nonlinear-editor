@@ -227,22 +227,37 @@ export async function generateVideo(params: VeoGenerateParams): Promise<VeoGener
     parameters,
   };
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${await client.getAccessToken().then(token => token.token)}`,
-    },
-    body: JSON.stringify(requestBody),
-  });
+  // Add timeout handling for long-running video generation
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Veo API error: ${response.status} - ${error}`);
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${await client.getAccessToken().then(token => token.token)}`,
+      },
+      body: JSON.stringify(requestBody),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Veo API error: ${response.status} - ${error}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    clearTimeout(timeout);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Video generation request timeout after 60 seconds');
+    }
+    throw error;
   }
-
-  const result = await response.json();
-  return result;
 }
 
 /**
@@ -286,24 +301,39 @@ export async function checkOperationStatus(operationName: string, model?: string
   // Use Veo-specific status check endpoint (fetchPredictOperation)
   const endpoint = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/${modelName}:fetchPredictOperation`;
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${await client.getAccessToken().then(token => token.token)}`,
-    },
-    body: JSON.stringify({
-      operationName: operationName,
-    }),
-  });
+  // Add timeout handling
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Operation status check failed: ${response.status} - ${error}`);
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${await client.getAccessToken().then(token => token.token)}`,
+      },
+      body: JSON.stringify({
+        operationName: operationName,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Operation status check failed: ${response.status} - ${error}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    clearTimeout(timeout);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Veo status check timeout after 60s');
+    }
+    throw error;
   }
-
-  const result = await response.json();
-  return result;
 }
 
 /**
@@ -327,15 +357,30 @@ export async function cancelOperation(operationName: string): Promise<void> {
   // Standard Google Cloud Operations API cancellation endpoint
   const endpoint = `https://us-central1-aiplatform.googleapis.com/v1/${operationName}:cancel`;
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${await client.getAccessToken().then(token => token.token)}`,
-    },
-  });
+  // Add timeout handling
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Operation cancellation failed: ${response.status} - ${error}`);
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${await client.getAccessToken().then(token => token.token)}`,
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Operation cancellation failed: ${response.status} - ${error}`);
+    }
+  } catch (error) {
+    clearTimeout(timeout);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Operation cancellation timeout after 60s');
+    }
+    throw error;
   }
 }

@@ -15,7 +15,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { v4 as uuid } from 'uuid';
 import toast, { Toaster } from 'react-hot-toast';
 import Link from 'next/link';
@@ -915,7 +915,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
     [projectId, timeline, setTimeline, supabase],
   );
 
-  const handleClipAdd = async (asset: AssetRow) => {
+  const handleClipAdd = useCallback(async (asset: AssetRow) => {
     if (!timeline) {
       toast.error('Timeline not ready');
       return;
@@ -950,7 +950,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
       clips: [...timeline.clips, clip],
     });
     toast.success('Clip added to timeline');
-  };
+  }, [timeline, addClip, setTimeline]);
 
   const handleDetectScenes = useCallback(async () => {
     const latestVideo = assets.find((asset) => asset.type === 'video');
@@ -1577,6 +1577,21 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
     await handleGenerateAudioFromVideo(asset, model);
   }, [timeline, assets, handleGenerateAudioFromVideo]);
 
+  // Memoize filtered assets for each tab to avoid filtering on every render
+  const filteredAssets = useMemo(() => {
+    return assets.filter((a) =>
+      activeTab === 'video' ? a.type === 'video' :
+      activeTab === 'image' ? a.type === 'image' :
+      a.type === 'audio'
+    );
+  }, [assets, activeTab]);
+
+  // Memoize enriched timeline to avoid expensive recalculation
+  const enrichedTimeline = useMemo(() => {
+    if (!timeline || !assetsLoaded) return timeline;
+    return enrichTimelineWithSourceDurations(timeline, assets);
+  }, [timeline, assets, assetsLoaded]);
+
   if (!timeline) {
     return (
       <div className="flex h-full w-full items-center justify-center">
@@ -1752,12 +1767,12 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
               Loading assets…
             </div>
           )}
-          {!loadingAssets && assets.filter((a) => activeTab === 'video' ? a.type === 'video' : activeTab === 'image' ? a.type === 'image' : a.type === 'audio').length === 0 && (
+          {!loadingAssets && filteredAssets.length === 0 && (
             <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
               {activeTab === 'video' ? 'No video assets yet. Upload video to begin editing.' : activeTab === 'image' ? 'No image assets yet. Upload images.' : 'No audio assets yet. Upload or generate audio.'}
             </div>
           )}
-          {assets.filter((a) => activeTab === 'video' ? a.type === 'video' : activeTab === 'image' ? a.type === 'image' : a.type === 'audio').map((asset) => (
+          {filteredAssets.map((asset) => (
             <div key={asset.id} className="group relative flex flex-col gap-2">
               <button
                 type="button"

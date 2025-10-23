@@ -16,7 +16,7 @@
  */
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip, TextOverlay } from '@/types/timeline';
 import TextOverlayRenderer from './TextOverlayRenderer';
@@ -533,8 +533,18 @@ export default function PreviewPlayer() {
     }
   }, [timeline]);
 
+  // Track last sync time to throttle updates during RAF loop
+  const lastSyncTimeRef = useRef<number>(0);
+
   const syncClipsAtTime = useCallback(
     (time: number, play: boolean) => {
+      // Throttle sync during playback to every 16ms (60fps max)
+      const now = performance.now();
+      if (play && now - lastSyncTimeRef.current < 16) {
+        return;
+      }
+      lastSyncTimeRef.current = now;
+
       sortedClips.forEach((clip) => {
         const meta = clipMetas.get(clip.id);
         const video = videoMapRef.current.get(clip.id);

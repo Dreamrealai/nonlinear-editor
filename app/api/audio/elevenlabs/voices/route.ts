@@ -26,28 +26,46 @@ export async function GET() {
       );
     }
 
-    // Call ElevenLabs API to get available voices
-    const response = await fetch('https://api.elevenlabs.io/v1/voices', {
-      method: 'GET',
-      headers: {
-        'xi-api-key': apiKey,
-      },
-    });
+    // Call ElevenLabs API to get available voices with timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('ElevenLabs API error:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch voices' },
-        { status: response.status }
-      );
+    try {
+      const response = await fetch('https://api.elevenlabs.io/v1/voices', {
+        method: 'GET',
+        headers: {
+          'xi-api-key': apiKey,
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error('ElevenLabs API error:', error);
+        return NextResponse.json(
+          { error: 'Failed to fetch voices' },
+          { status: response.status }
+        );
+      }
+
+        const result: VoicesResponse = await response.json();
+
+      return NextResponse.json({
+        voices: result.voices,
+      });
+    } catch (error) {
+      clearTimeout(timeout);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('ElevenLabs API timeout');
+        return NextResponse.json(
+          { error: 'Request timeout after 60s' },
+          { status: 504 }
+        );
+      }
+      throw error;
     }
-
-    const result: VoicesResponse = await response.json();
-
-    return NextResponse.json({
-      voices: result.voices,
-    });
   } catch (error) {
     console.error('Error fetching ElevenLabs voices:', error);
     return NextResponse.json(

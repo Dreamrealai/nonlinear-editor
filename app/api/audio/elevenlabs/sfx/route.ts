@@ -26,6 +26,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // Validate prompt length
+    if (typeof prompt !== 'string' || prompt.length < 3 || prompt.length > 500) {
+      return NextResponse.json({ error: 'Prompt must be between 3 and 500 characters' }, { status: 400 });
+    }
+
+    // Validate duration
+    if (typeof duration !== 'number' || duration < 0.5 || duration > 22) {
+      return NextResponse.json({ error: 'Duration must be between 0.5 and 22 seconds' }, { status: 400 });
+    }
+
     // Verify user owns the project
     const { data: project, error: projectError } = await supabase
       .from('projects')
@@ -43,27 +53,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'ElevenLabs API key not configured' }, { status: 500 });
     }
 
-    // Call ElevenLabs Sound Generation API
-    const response = await fetch('https://api.elevenlabs.io/v1/sound-generation', {
-      method: 'POST',
-      headers: {
-        'xi-api-key': apiKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text: prompt,
-        duration_seconds: duration,
-        prompt_influence: 0.3,
-      }),
-    });
+    // Call ElevenLabs Sound Generation API with timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('ElevenLabs SFX API error:', errorText);
-      return NextResponse.json(
-        { error: `ElevenLabs API error: ${response.statusText}` },
-        { status: response.status }
-      );
+    let response;
+    try {
+      response = await fetch('https://api.elevenlabs.io/v1/sound-generation', {
+        method: 'POST',
+        headers: {
+          'xi-api-key': apiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: prompt,
+          duration_seconds: duration,
+          prompt_influence: 0.3,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('ElevenLabs SFX API error:', errorText);
+        return NextResponse.json(
+          { error: `ElevenLabs API error: ${response.statusText}` },
+          { status: response.status }
+        );
+      }
+    } catch (error) {
+      clearTimeout(timeout);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('ElevenLabs SFX timeout');
+        return NextResponse.json(
+          { error: 'SFX generation timeout after 60s' },
+          { status: 504 }
+        );
+      }
+      throw error;
     }
 
     // Get the audio data as ArrayBuffer

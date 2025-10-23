@@ -78,28 +78,47 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Submit upscale request to fal.ai
-    const falResponse = await fetch('https://queue.fal.run/fal-ai/topaz/upscale/video', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Key ${falKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        video_url: urlData.publicUrl,
-        upscale_factor: upscaleFactor,
-        ...(targetFps && { target_fps: targetFps }),
-        ...(h264Output && { H264_output: h264Output }),
-      }),
-    });
+    // Submit upscale request to fal.ai with timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-    if (!falResponse.ok) {
-      const errorText = await falResponse.text();
-      console.error('fal.ai upscale request failed:', errorText);
-      return NextResponse.json(
-        { error: 'Failed to submit upscale request to fal.ai' },
-        { status: 500 }
-      );
+    let falResponse;
+    try {
+      falResponse = await fetch('https://queue.fal.run/fal-ai/topaz/upscale/video', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Key ${falKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          video_url: urlData.publicUrl,
+          upscale_factor: upscaleFactor,
+          ...(targetFps && { target_fps: targetFps }),
+          ...(h264Output && { H264_output: h264Output }),
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      if (!falResponse.ok) {
+        const errorText = await falResponse.text();
+        console.error('fal.ai upscale request failed:', errorText);
+        return NextResponse.json(
+          { error: 'Failed to submit upscale request to fal.ai' },
+          { status: 500 }
+        );
+      }
+    } catch (error) {
+      clearTimeout(timeout);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('FAL.ai upscale submission timeout');
+        return NextResponse.json(
+          { error: 'Upscale submission timeout after 60s' },
+          { status: 504 }
+        );
+      }
+      throw error;
     }
 
     const falData = await falResponse.json();

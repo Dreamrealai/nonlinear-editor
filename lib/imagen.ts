@@ -156,23 +156,38 @@ export async function generateImage(params: ImagenGenerateParams): Promise<Image
 
   const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${model}:predict`;
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken.token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      instances,
-      parameters,
-    }),
-  });
+  // Add timeout handling
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Imagen API error: ${response.status} ${errorText}`);
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        instances,
+        parameters,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Imagen API error: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return result as ImagenGenerateResponse;
+  } catch (error) {
+    clearTimeout(timeout);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Imagen API request timeout after 60s');
+    }
+    throw error;
   }
-
-  const result = await response.json();
-  return result as ImagenGenerateResponse;
 }

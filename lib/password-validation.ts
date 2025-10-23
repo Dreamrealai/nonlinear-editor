@@ -61,9 +61,21 @@ export function validatePassword(
     return 'Password must be at least 8 characters long';
   }
 
-  const strength = calculatePasswordStrength(password);
-  if (strength.score < 3) {
-    return 'Please use a stronger password';
+  // Enforce specific character types for stronger security
+  if (!/[a-z]/.test(password)) {
+    return 'Password must contain at least one lowercase letter';
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    return 'Password must contain at least one uppercase letter';
+  }
+
+  if (!/[0-9]/.test(password)) {
+    return 'Password must contain at least one number';
+  }
+
+  if (!/[^a-zA-Z0-9]/.test(password)) {
+    return 'Password must contain at least one special character';
   }
 
   if (confirmPassword !== undefined && password !== confirmPassword) {

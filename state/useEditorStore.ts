@@ -31,8 +31,22 @@ const MAX_HISTORY = 50;
 /** Minimum duration for a clip in seconds (prevents zero-length clips) */
 const MIN_CLIP_DURATION = 0.1;
 
+/** Debounce delay for history saves in milliseconds */
+const HISTORY_DEBOUNCE_MS = 300;
+
 // Enable Immer to proxy Map/Set instances (required for selectedClipIds Set)
 enableMapSet();
+
+/**
+ * Debounce helper to reduce excessive history saves
+ */
+let historyDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+const debouncedSaveHistory = (callback: () => void) => {
+  if (historyDebounceTimer) {
+    clearTimeout(historyDebounceTimer);
+  }
+  historyDebounceTimer = setTimeout(callback, HISTORY_DEBOUNCE_MS);
+};
 
 /**
  * EditorStore type definition.
@@ -124,14 +138,14 @@ type EditorStore = {
 
 /**
  * Deep clones a timeline for history snapshots.
- * Uses JSON serialization for simplicity.
+ * Uses structuredClone for better performance and type preservation.
  *
  * @param timeline - Timeline to clone
  * @returns Deep copy of timeline
  */
 const cloneTimeline = (timeline: Timeline | null): Timeline | null => {
   if (!timeline) return null;
-  return JSON.parse(JSON.stringify(timeline));
+  return structuredClone(timeline);
 };
 
 /**
@@ -259,17 +273,22 @@ export const useEditorStore = create<EditorStore>()(
             state.timeline.clips = dedupeClips(state.timeline.clips);
           }
 
-          // Save to history
-          const cloned = cloneTimeline(state.timeline);
-          if (cloned) {
-            state.history = state.history.slice(0, state.historyIndex + 1);
-            state.history.push(cloned);
-            if (state.history.length > MAX_HISTORY) {
-              state.history.shift();
-            } else {
-              state.historyIndex++;
+          // Debounced save to history (reduces frequent updates during drag operations)
+          debouncedSaveHistory(() => {
+            const currentState = useEditorStore.getState();
+            const cloned = cloneTimeline(currentState.timeline);
+            if (cloned) {
+              useEditorStore.setState((s) => {
+                s.history = s.history.slice(0, s.historyIndex + 1);
+                s.history.push(cloned);
+                if (s.history.length > MAX_HISTORY) {
+                  s.history.shift();
+                } else {
+                  s.historyIndex++;
+                }
+              });
             }
-          }
+          });
         }
       }),
     removeClip: (id) =>

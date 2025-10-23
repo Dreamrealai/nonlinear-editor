@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import type { TextOverlay } from '@/types/timeline';
 
 /**
@@ -7,6 +8,7 @@ import type { TextOverlay } from '@/types/timeline';
  *
  * Renders text overlays on the video preview player.
  * Displays text at specified positions with customizable styling.
+ * Memoized for performance optimization.
  */
 
 interface TextOverlayRendererProps {
@@ -14,10 +16,10 @@ interface TextOverlayRendererProps {
   currentTime: number;
 }
 
-export default function TextOverlayRenderer({
+const TextOverlayRenderer = React.memo<TextOverlayRendererProps>(({
   textOverlays,
   currentTime,
-}: TextOverlayRendererProps) {
+}) => {
   // Filter overlays that should be visible at the current time
   const visibleOverlays = textOverlays.filter(
     (overlay) =>
@@ -72,4 +74,8 @@ export default function TextOverlayRenderer({
       })}
     </div>
   );
-}
+});
+
+TextOverlayRenderer.displayName = 'TextOverlayRenderer';
+
+export default TextOverlayRenderer;

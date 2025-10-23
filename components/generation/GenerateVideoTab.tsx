@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 
 interface GenerateVideoTabProps {
@@ -26,6 +26,97 @@ interface ImageAsset {
   };
   created_at: string;
 }
+
+/**
+ * Memoized VideoQueueItem component for performance
+ */
+type VideoQueueItemProps = {
+  video: VideoQueueItem;
+  onRemove: (videoId: string) => void;
+};
+
+const VideoQueueItemComponent = React.memo<VideoQueueItemProps>(function VideoQueueItemComponent({
+  video,
+  onRemove,
+}) {
+  return (
+    <div className="group relative flex flex-col rounded-lg border border-neutral-200 bg-white shadow-sm overflow-hidden">
+      {/* Video Preview */}
+      <div className="relative aspect-video bg-neutral-100">
+        {video.status === 'completed' && video.videoUrl ? (
+          <video
+            src={video.videoUrl}
+            controls
+            className="h-full w-full object-cover"
+            poster={video.thumbnailUrl}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            {video.status === 'queued' && (
+              <div className="text-center">
+                <div className="mx-auto h-8 w-8 rounded-full border-4 border-neutral-300 border-t-neutral-600" />
+                <p className="mt-2 text-xs text-neutral-600">Queued</p>
+              </div>
+            )}
+            {video.status === 'generating' && (
+              <div className="text-center">
+                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-neutral-300 border-t-purple-600" />
+                <p className="mt-2 text-xs text-neutral-600">Generating...</p>
+              </div>
+            )}
+            {video.status === 'failed' && (
+              <div className="text-center p-4">
+                <svg className="mx-auto h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="mt-2 text-xs text-red-600">Failed</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Video Info */}
+      <div className="p-3">
+        <p className="text-xs text-neutral-700 line-clamp-2 mb-2">
+          {video.prompt}
+        </p>
+
+        {video.error && (
+          <p className="text-xs text-red-600 mb-2">
+            {video.error}
+          </p>
+        )}
+
+        {/* Status Badge */}
+        <div className="flex items-center gap-2">
+          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+            video.status === 'completed' ? 'bg-green-100 text-green-700' :
+            video.status === 'generating' ? 'bg-blue-100 text-blue-700' :
+            video.status === 'failed' ? 'bg-red-100 text-red-700' :
+            'bg-neutral-100 text-neutral-700'
+          }`}>
+            {video.status === 'completed' ? 'Completed' :
+             video.status === 'generating' ? 'Generating' :
+             video.status === 'failed' ? 'Failed' :
+             'Queued'}
+          </span>
+        </div>
+      </div>
+
+      {/* Remove Button */}
+      <button
+        onClick={() => onRemove(video.id)}
+        className="absolute right-2 top-2 z-10 rounded-md bg-black/50 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100"
+        title="Remove from queue"
+      >
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  );
+});
 
 /**
  * Generate Video Tab Component
@@ -721,84 +812,11 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
               ) : (
                 <div className="grid grid-cols-2 gap-4">
                   {videoQueue.map((video) => (
-                    <div
+                    <VideoQueueItemComponent
                       key={video.id}
-                      className="group relative flex flex-col rounded-lg border border-neutral-200 bg-white shadow-sm overflow-hidden"
-                    >
-                      {/* Video Preview */}
-                      <div className="relative aspect-video bg-neutral-100">
-                        {video.status === 'completed' && video.videoUrl ? (
-                          <video
-                            src={video.videoUrl}
-                            controls
-                            className="h-full w-full object-cover"
-                            poster={video.thumbnailUrl}
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center">
-                            {video.status === 'queued' && (
-                              <div className="text-center">
-                                <div className="mx-auto h-8 w-8 rounded-full border-4 border-neutral-300 border-t-neutral-600" />
-                                <p className="mt-2 text-xs text-neutral-600">Queued</p>
-                              </div>
-                            )}
-                            {video.status === 'generating' && (
-                              <div className="text-center">
-                                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-neutral-300 border-t-purple-600" />
-                                <p className="mt-2 text-xs text-neutral-600">Generating...</p>
-                              </div>
-                            )}
-                            {video.status === 'failed' && (
-                              <div className="text-center p-4">
-                                <svg className="mx-auto h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <p className="mt-2 text-xs text-red-600">Failed</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Video Info */}
-                      <div className="p-3">
-                        <p className="text-xs text-neutral-700 line-clamp-2 mb-2">
-                          {video.prompt}
-                        </p>
-
-                        {video.error && (
-                          <p className="text-xs text-red-600 mb-2">
-                            {video.error}
-                          </p>
-                        )}
-
-                        {/* Status Badge */}
-                        <div className="flex items-center gap-2">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                            video.status === 'completed' ? 'bg-green-100 text-green-700' :
-                            video.status === 'generating' ? 'bg-blue-100 text-blue-700' :
-                            video.status === 'failed' ? 'bg-red-100 text-red-700' :
-                            'bg-neutral-100 text-neutral-700'
-                          }`}>
-                            {video.status === 'completed' ? 'Completed' :
-                             video.status === 'generating' ? 'Generating' :
-                             video.status === 'failed' ? 'Failed' :
-                             'Queued'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Remove Button */}
-                      <button
-                        onClick={() => handleRemoveVideo(video.id)}
-                        className="absolute right-2 top-2 z-10 rounded-md bg-black/50 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100"
-                        title="Remove from queue"
-                      >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
+                      video={video}
+                      onRemove={handleRemoveVideo}
+                    />
                   ))}
                 </div>
               )}

@@ -45,6 +45,7 @@ export function makeGenAI() {
  * - temperature: 0.7 (creativity/randomness, 0=deterministic, 1=creative)
  * - topP: 0.9 (nucleus sampling threshold)
  * - topK: 40 (limits token selection pool)
+ * - timeout: 60s with exponential backoff retry (3 attempts)
  *
  * @param params - Chat parameters
  * @param params.model - Gemini model to use (e.g., "gemini-2.5-flash")
@@ -120,7 +121,48 @@ export async function chat(params: {
     },
   });
 
-  // Send message and return text response
-  const result = await chatSession.sendMessage(parts);
-  return result.response.text();
+  // Send message with timeout and retry logic
+  const maxRetries = 3;
+  const timeout = 60000; // 60 seconds
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+      // Create promise that rejects on timeout
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        controller.signal.addEventListener('abort', () => {
+          reject(new Error('Gemini API request timeout after 60s'));
+        });
+      });
+
+      // Race between API call and timeout
+      const result = await Promise.race([
+        chatSession.sendMessage(parts),
+        timeoutPromise,
+      ]);
+
+      clearTimeout(timeoutId);
+      return result.response.text();
+    } catch (error) {
+      const isLastAttempt = attempt === maxRetries - 1;
+
+      if (error instanceof Error && error.message.includes('timeout')) {
+        if (isLastAttempt) {
+          throw new Error(`Gemini API timeout after ${maxRetries} attempts`);
+        }
+        // Exponential backoff: 1s, 2s, 4s
+        const backoffDelay = Math.pow(2, attempt) * 1000;
+        await new Promise(resolve => setTimeout(resolve, backoffDelay));
+        continue;
+      }
+
+      // For non-timeout errors, throw immediately
+      throw error;
+    }
+  }
+
+  throw new Error('Gemini API request failed after all retry attempts');
 }
