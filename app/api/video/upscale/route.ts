@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { fetchWithTimeout } from '@/lib/fetchWithTimeout';
 
 /**
  * POST /api/video/upscale
@@ -78,12 +79,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Submit upscale request to fal.ai with timeout
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
-
     let falResponse;
     try {
-      falResponse = await fetch('https://queue.fal.run/fal-ai/topaz/upscale/video', {
+      falResponse = await fetchWithTimeout('https://queue.fal.run/fal-ai/topaz/upscale/video', {
         method: 'POST',
         headers: {
           'Authorization': `Key ${falKey}`,
@@ -95,10 +93,8 @@ export async function POST(request: NextRequest) {
           ...(targetFps && { target_fps: targetFps }),
           ...(h264Output && { H264_output: h264Output }),
         }),
-        signal: controller.signal,
+        timeout: 60000,
       });
-
-      clearTimeout(timeout);
 
       if (!falResponse.ok) {
         const errorText = await falResponse.text();
@@ -109,8 +105,7 @@ export async function POST(request: NextRequest) {
         );
       }
     } catch (error) {
-      clearTimeout(timeout);
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (error instanceof Error && /timeout/i.test(error.message)) {
         console.error('FAL.ai upscale submission timeout');
         return NextResponse.json(
           { error: 'Upscale submission timeout after 60s' },

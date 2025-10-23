@@ -279,9 +279,10 @@ async function uploadAsset(
   }
 
   const sanitizedFileName = sanitizeFileName(file.name);
-  const defaultPath = `${user.id}/${projectId}/${uuid()}-${sanitizedFileName}`;
-  const storageInfo = extractStorageLocation(file.name) ?? { bucket: 'assets', path: defaultPath };
-  const { bucket, path } = storageInfo;
+  const folder = file.type.startsWith('audio') ? 'audio' : file.type.startsWith('image') ? 'image' : 'video';
+  const defaultPath = `${user.id}/${projectId}/${folder}/${uuid()}-${sanitizedFileName}`;
+  const bucket = 'assets';
+  const path = defaultPath;
 
   const arrayBuffer = await file.arrayBuffer();
   const { error: uploadError } = await supabase.storage

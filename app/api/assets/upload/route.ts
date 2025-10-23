@@ -14,8 +14,8 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const projectId = formData.get('projectId') as string;
-    const type = formData.get('type') as string || 'image';
+    const projectId = (formData.get('projectId') as string) || '';
+    const type = (formData.get('type') as string) || 'image';
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -23,6 +23,18 @@ export async function POST(request: NextRequest) {
 
     if (!projectId) {
       return NextResponse.json({ error: 'Project ID required' }, { status: 400 });
+    }
+
+    // SECURITY: Verify user owns the project
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('id', projectId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (projectError || !project) {
+      return NextResponse.json({ error: 'Project not found or unauthorized' }, { status: 404 });
     }
 
     // SECURITY: File size validation (100MB max)
@@ -49,10 +61,14 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Generate unique filename
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${crypto.randomUUID()}.${fileExt}`;
-    const filePath = `${user.id}/${projectId}/${fileName}`;
+    // Generate unique filename with safe extension fallback
+    const originalName = (file.name || '').trim();
+    const extFromName = originalName.includes('.') ? originalName.split('.').pop() : '';
+    const extFromMime = file.type?.split('/')[1];
+    const resolvedExt = (extFromName || extFromMime || 'bin').replace(/[^a-zA-Z0-9]/g, '');
+    const fileName = `${crypto.randomUUID()}.${resolvedExt}`;
+    const folder = type === 'audio' ? 'audio' : type === 'video' ? 'video' : 'image';
+    const filePath = `${user.id}/${projectId}/${folder}/${fileName}`;
 
     // Convert File to ArrayBuffer then to Buffer for upload
     const arrayBuffer = await file.arrayBuffer();
@@ -82,7 +98,7 @@ export async function POST(request: NextRequest) {
     const width: number | null = null;
     const height: number | null = null;
 
-    // Create asset record in database
+    // Create asset record in database (schema alignment)
     const assetId = crypto.randomUUID();
     const storageUrl = `supabase://assets/${filePath}`;
 
@@ -94,13 +110,14 @@ export async function POST(request: NextRequest) {
         user_id: user.id,
         storage_url: storageUrl,
         type,
-        file_path: filePath,
         mime_type: file.type,
         width,
         height,
         source: 'upload',
         metadata: {
-          filename: file.name,
+          filename: originalName || fileName,
+          mimeType: file.type,
+          sourceUrl: publicUrl,
           size: file.size,
         },
       });

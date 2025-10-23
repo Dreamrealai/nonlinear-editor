@@ -527,9 +527,10 @@ async function uploadAsset({ file, projectId, assetType }: UploadAssetArgs) {
 
   // Generate safe storage path: userId/projectId/uuid-filename
   const sanitizedFileName = sanitizeFileName(file.name);
-  const defaultPath = `${user.id}/${projectId}/${uuid()}-${sanitizedFileName}`;
-  const storageInfo = extractStorageLocation(file.name) ?? { bucket: 'assets', path: defaultPath };
-  const { bucket, path } = storageInfo;
+  const folder = file.type.startsWith('audio') ? 'audio' : file.type.startsWith('image') ? 'image' : 'video';
+  const defaultPath = `${user.id}/${projectId}/${folder}/${uuid()}-${sanitizedFileName}`;
+  const bucket = 'assets';
+  const path = defaultPath;
 
   // Upload file to Supabase storage
   const arrayBuffer = await file.arrayBuffer();
