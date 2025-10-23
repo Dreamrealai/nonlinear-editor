@@ -13,6 +13,8 @@ const mockSupabaseClient = {
   from: jest.fn(),
 };
 
+const locationAssignSpy = jest.spyOn(window.location, 'assign').mockImplementation(() => {});
+
 jest.mock('@/components/providers/SupabaseProvider', () => ({
   useSupabase: () => ({
     supabaseClient: mockSupabaseClient,
@@ -79,6 +81,7 @@ describe('SubscriptionManager', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockReset();
+    locationAssignSpy.mockClear();
   });
 
   const setupMocks = (profile: UserProfile | null) => {
@@ -139,7 +142,8 @@ describe('SubscriptionManager', () => {
       render(<SubscriptionManager />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Upgrade to Premium/)).toBeInTheDocument();
+        const buttons = screen.getAllByRole('button', { name: /Upgrade to Premium/ });
+        expect(buttons.length).toBeGreaterThan(0);
       });
     });
 
@@ -234,7 +238,9 @@ describe('SubscriptionManager', () => {
       render(<SubscriptionManager />);
 
       await waitFor(() => {
-        expect(screen.queryByText('Unlock powerful features and higher limits')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('Unlock powerful features and higher limits')
+        ).not.toBeInTheDocument();
       });
     });
   });
@@ -254,7 +260,9 @@ describe('SubscriptionManager', () => {
       render(<SubscriptionManager />);
 
       await waitFor(() => {
-        expect(screen.getByText('You have admin access with unlimited resources')).toBeInTheDocument();
+        expect(
+          screen.getByText('You have admin access with unlimited resources')
+        ).toBeInTheDocument();
       });
     });
 
@@ -334,11 +342,18 @@ describe('SubscriptionManager', () => {
     });
 
     it('should show loading state when upgrade is in progress', async () => {
-      (global.fetch as jest.Mock).mockImplementation(() =>
-        new Promise(resolve => setTimeout(() => resolve({
-          ok: true,
-          json: async () => ({ url: 'https://checkout.stripe.com/session' }),
-        }), 1000))
+      (global.fetch as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  ok: true,
+                  json: async () => ({ url: 'https://checkout.stripe.com/session' }),
+                }),
+              1000
+            )
+          )
       );
 
       const user = userEvent.setup();
@@ -352,9 +367,12 @@ describe('SubscriptionManager', () => {
       const upgradeButton = screen.getAllByText(/Upgrade to Premium/)[0];
       await user.click(upgradeButton);
 
-      await waitFor(() => {
-        expect(screen.getByText('Loading...')).toBeInTheDocument();
-      }, { timeout: 100 });
+      await waitFor(
+        () => {
+          expect(screen.getByText('Loading...')).toBeInTheDocument();
+        },
+        { timeout: 100 }
+      );
     });
   });
 
@@ -382,11 +400,18 @@ describe('SubscriptionManager', () => {
     });
 
     it('should show loading state when manage is in progress', async () => {
-      (global.fetch as jest.Mock).mockImplementation(() =>
-        new Promise(resolve => setTimeout(() => resolve({
-          ok: true,
-          json: async () => ({ url: 'https://billing.stripe.com/portal' }),
-        }), 1000))
+      (global.fetch as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  ok: true,
+                  json: async () => ({ url: 'https://billing.stripe.com/portal' }),
+                }),
+              1000
+            )
+          )
       );
 
       const user = userEvent.setup();
@@ -400,9 +425,12 @@ describe('SubscriptionManager', () => {
       const manageButton = screen.getByText('Manage Subscription');
       await user.click(manageButton);
 
-      await waitFor(() => {
-        expect(screen.getByText('Loading...')).toBeInTheDocument();
-      }, { timeout: 100 });
+      await waitFor(
+        () => {
+          expect(screen.getByText('Loading...')).toBeInTheDocument();
+        },
+        { timeout: 100 }
+      );
     });
   });
 
