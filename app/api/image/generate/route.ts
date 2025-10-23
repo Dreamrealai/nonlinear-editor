@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateImage } from '@/lib/imagen';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
 import { v4 as uuid } from 'uuid';
 
 export async function POST(req: NextRequest) {
@@ -172,10 +172,11 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Get public URL and ensure it has the https:// protocol
+      const { data: { publicUrl: rawPublicUrl } } = supabase.storage
         .from('assets')
         .getPublicUrl(storagePath);
+      const publicUrl = ensureHttpsProtocol(rawPublicUrl);
 
       // Create thumbnail (use the image itself as thumbnail)
       const thumbnailDataUrl = `data:${prediction.mimeType};base64,${prediction.bytesBase64Encoded}`;

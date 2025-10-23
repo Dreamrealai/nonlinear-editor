@@ -22,6 +22,7 @@ import HorizontalTimeline from '@/components/HorizontalTimeline';
 import PreviewPlayer from '@/components/PreviewPlayer';
 import ExportModal from '@/components/ExportModal';
 import EditorHeader from '@/components/EditorHeader';
+import ClipPropertiesPanel from '@/components/editor/ClipPropertiesPanel';
 import { useAutosave } from '@/lib/hooks/useAutosave';
 import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts';
 import { createBrowserSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
@@ -1661,7 +1662,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   return (
     <div className="flex h-full flex-col">
       <EditorHeader projectId={projectId} currentTab="video-editor" onExport={handleExportClick} />
-      <div className="grid h-full grid-cols-[280px_1fr] gap-6 p-6">
+      <div className="grid h-full grid-cols-[280px_1fr_320px] gap-6 p-6">
         <Toaster position="bottom-right" />
       {/* Assets Panel */}
       <aside className="flex flex-col gap-4 overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
@@ -1899,6 +1900,9 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
           />
         </section>
       </main>
+
+      {/* Clip Properties Panel */}
+      <ClipPropertiesPanel />
 
       {/* Audio Generation Modal */}
       {showAudioModal && (
