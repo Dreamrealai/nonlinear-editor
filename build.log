@@ -33,3 +33,73 @@ Import trace for requested module:
 
  ✓ Compiled successfully in 10.1s
    Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/43) ...
+   Generating static pages (10/43) 
+   Generating static pages (21/43) 
+   Generating static pages (32/43) 
+ ✓ Generating static pages (43/43)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                      223 B         102 kB
+├ ○ /_not-found                             1 kB         103 kB
+├ ○ /admin                               2.34 kB         168 kB
+├ ○ /api-docs                            1.54 kB         103 kB
+├ ƒ /api/admin/cache                       223 B         102 kB
+├ ƒ /api/admin/change-tier                 223 B         102 kB
+├ ƒ /api/admin/delete-user                 223 B         102 kB
+├ ƒ /api/ai/chat                           223 B         102 kB
+├ ƒ /api/assets                            223 B         102 kB
+├ ƒ /api/assets/sign                       223 B         102 kB
+├ ƒ /api/assets/upload                     223 B         102 kB
+├ ƒ /api/audio/elevenlabs/generate         223 B         102 kB
+├ ƒ /api/audio/elevenlabs/sfx              223 B         102 kB
+├ ƒ /api/audio/elevenlabs/voices           223 B         102 kB
+├ ƒ /api/audio/suno/generate               223 B         102 kB
+├ ƒ /api/audio/suno/status                 223 B         102 kB
+├ ƒ /api/auth/signout                      223 B         102 kB
+├ ƒ /api/export                            223 B         102 kB
+├ ƒ /api/frames/[frameId]/edit             223 B         102 kB
+├ ƒ /api/history                           223 B         102 kB
+├ ƒ /api/image/generate                    223 B         102 kB
+├ ƒ /api/logs                              223 B         102 kB
+├ ƒ /api/projects                          223 B         102 kB
+├ ƒ /api/stripe/checkout                   223 B         102 kB
+├ ƒ /api/stripe/portal                     223 B         102 kB
+├ ƒ /api/stripe/webhook                    223 B         102 kB
+├ ƒ /api/user/delete-account               223 B         102 kB
+├ ƒ /api/video/generate                    223 B         102 kB
+├ ƒ /api/video/generate-audio              223 B         102 kB
+├ ƒ /api/video/generate-audio-status       223 B         102 kB
+├ ƒ /api/video/split-audio                 223 B         102 kB
+├ ƒ /api/video/split-scenes                223 B         102 kB
+├ ƒ /api/video/status                      223 B         102 kB
+├ ƒ /api/video/upscale                     223 B         102 kB
+├ ƒ /api/video/upscale-status              223 B         102 kB
+├ ○ /audio-gen                           4.49 kB         168 kB
+├ ƒ /auth/callback                         223 B         102 kB
+├ ƒ /editor/[projectId]                   8.5 kB         183 kB
+├ ƒ /editor/[projectId]/generate-audio   4.21 kB         173 kB
+├ ƒ /editor/[projectId]/keyframe         9.91 kB         179 kB
+├ ƒ /editor/[projectId]/timeline         23.2 kB         197 kB
+├ ○ /forgot-password                     1.81 kB         160 kB
+├ ○ /image-gen                           5.47 kB         121 kB
+├ ○ /logout                              1.49 kB         157 kB
+├ ○ /reset-password                       3.2 kB         162 kB
+├ ○ /settings                            7.52 kB         174 kB
+├ ƒ /signin                              2.82 kB         161 kB
+├ ○ /signup                              3.08 kB         162 kB
+└ ○ /video-gen                            4.1 kB         168 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/1255-acddf03a4ca96e66.js      45.3 kB
+  ├ chunks/4bd1b696-182b6b13bdad92e3.js  54.2 kB
+  └ other shared chunks (total)           2.3 kB
+
+
+ƒ Middleware                             79.5 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
