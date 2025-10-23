@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Nonlinear Editor",
   description: "Browser-based video editor with keyframe editing",
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({

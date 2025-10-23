@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 
 interface EditorHeaderProps {
   projectId: string;
-  currentTab: 'video-editor' | 'keyframe-editor';
+  currentTab: 'generate-video' | 'generate-audio' | 'image-editor';
 }
 
 interface Project {
@@ -50,7 +50,8 @@ export default function EditorHeader({ projectId, currentTab }: EditorHeaderProp
     router.push(`/editor/${newProjectId}`);
   };
 
-  const handleRenameClick = () => {
+  const handleRenameClick = (e?: React.MouseEvent) => {
+    e?.stopPropagation(); // Prevent dropdown from toggling
     setRenameValue(currentProject?.title || '');
     setIsRenaming(true);
     setIsDropdownOpen(false);
@@ -151,26 +152,15 @@ export default function EditorHeader({ projectId, currentTab }: EditorHeaderProp
           </div>
 
           {!isRenaming && (
-            <>
-              <button
-                onClick={handleRenameClick}
-                className="rounded-lg border border-neutral-300 bg-white p-2 text-neutral-600 hover:bg-neutral-50 transition-colors"
-                title="Rename project"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-              </button>
-              <button
-                onClick={() => void handleDeleteProject()}
-                className="rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50 transition-colors"
-                title="Delete project"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </>
+            <button
+              onClick={() => void handleDeleteProject()}
+              className="rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50 transition-colors"
+              title="Delete project"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
           )}
 
           {isDropdownOpen && (
@@ -187,12 +177,17 @@ export default function EditorHeader({ projectId, currentTab }: EditorHeaderProp
                     projects.map((project) => (
                       <button
                         key={project.id}
-                        onClick={() => handleProjectChange(project.id)}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-neutral-50 transition-colors ${
+                        onClick={() => project.id === projectId ? handleRenameClick() : handleProjectChange(project.id)}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-neutral-50 transition-colors flex items-center justify-between group ${
                           project.id === projectId ? 'bg-blue-50 text-blue-700 font-medium' : 'text-neutral-900'
                         }`}
                       >
-                        {project.title}
+                        <span>{project.title}</span>
+                        {project.id === projectId && (
+                          <svg className="h-3.5 w-3.5 text-blue-500 opacity-60 group-hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        )}
                       </button>
                     ))
                   )}
@@ -207,22 +202,32 @@ export default function EditorHeader({ projectId, currentTab }: EditorHeaderProp
           <Link
             href={`/editor/${projectId}`}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-              currentTab === 'video-editor'
+              currentTab === 'generate-video'
                 ? 'bg-white text-neutral-900 shadow-sm'
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
           >
-            Video Editor
+            Generate Video
           </Link>
           <Link
-            href={`/editor/${projectId}/keyframe`}
+            href={`/editor/${projectId}/generate-audio`}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-              currentTab === 'keyframe-editor'
+              currentTab === 'generate-audio'
                 ? 'bg-white text-neutral-900 shadow-sm'
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
           >
-            Key Frame Editor
+            Generate Audio
+          </Link>
+          <Link
+            href={`/editor/${projectId}/image-editor`}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+              currentTab === 'image-editor'
+                ? 'bg-white text-neutral-900 shadow-sm'
+                : 'text-neutral-600 hover:text-neutral-900'
+            }`}
+          >
+            Image Editor
           </Link>
         </nav>
 

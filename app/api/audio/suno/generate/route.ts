@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '@/lib/supabase';
 
 export const runtime = 'edge';
 
@@ -8,6 +9,7 @@ interface SunoGenerateRequest {
   title?: string;
   customMode?: boolean;
   instrumental?: boolean;
+  projectId: string;
 }
 
 interface SunoTaskResponse {
@@ -29,8 +31,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body: SunoGenerateRequest = await req.json();
-    const { prompt, style, title, customMode = false, instrumental = false } = body;
+    const { prompt, style, title, customMode = false, instrumental = false, projectId } = body;
 
     if (!prompt && !customMode) {
       return NextResponse.json(
@@ -44,6 +56,27 @@ export async function POST(req: NextRequest) {
         { error: 'Style is required for custom mode' },
         { status: 400 }
       );
+    }
+
+    if (!projectId) {
+      return NextResponse.json(
+        { error: 'Project ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('user_id')
+      .eq('id', projectId)
+      .maybeSingle();
+
+    if (projectError || !project) {
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    }
+
+    if (project.user_id !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Prepare request payload for Suno V5 (chirp-crow)

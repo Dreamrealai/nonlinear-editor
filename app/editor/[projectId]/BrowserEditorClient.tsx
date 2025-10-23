@@ -1019,7 +1019,10 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
       const res = await fetch('/api/audio/suno/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          projectId,
+        }),
       });
 
       const json = await res.json();
@@ -1042,7 +1045,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
           throw new Error('Audio generation timed out');
         }
 
-        const statusRes = await fetch(`/api/audio/suno/status?taskId=${taskId}`);
+          const statusRes = await fetch(`/api/audio/suno/status?taskId=${taskId}&projectId=${projectId}`);
         const statusJson = await statusRes.json();
 
         if (!statusRes.ok) {
@@ -1243,8 +1246,23 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
 
       if (!signData) throw new Error('Asset not found');
 
-      // Use client-side audio extraction with Web Audio API
-      const videoUrl = asset.metadata?.sourceUrl || signData.storage_url;
+      // Resolve a fetchable URL for the video asset
+      let videoUrl = asset.metadata?.sourceUrl;
+      if (!videoUrl) {
+        const location = typeof signData.storage_url === 'string' ? extractStorageLocation(signData.storage_url) : null;
+        if (!location) {
+          throw new Error('Invalid storage location for asset');
+        }
+        const { data: signed, error: signError } = await supabase.storage
+          .from(location.bucket)
+          .createSignedUrl(location.path, 600);
+
+        if (signError || !signed?.signedUrl) {
+          throw new Error('Failed to create signed URL for asset');
+        }
+
+        videoUrl = signed.signedUrl;
+      }
 
       // Fetch the video
       const videoResponse = await fetch(videoUrl);
@@ -1284,7 +1302,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
           project_id: projectId,
           type: 'audio',
           source: 'upload',
-          storage_url: storagePath,
+          storage_url: `supabase://assets/${storagePath}`,
           metadata: {
             filename: fileName,
             mimeType: 'audio/wav',
@@ -1359,7 +1377,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <EditorHeader projectId={projectId} currentTab="video-editor" />
+      <EditorHeader projectId={projectId} currentTab="generate-video" />
       <div className="grid h-full grid-cols-[280px_1fr] gap-6 p-6">
         <Toaster position="bottom-right" />
       {/* Assets Panel */}

@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { checkOperationStatus } from '@/lib/veo';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
+import { GoogleAuth } from 'google-auth-library';
+
+const normalizeStorageUrl = (bucket: string, path: string) => `supabase://${bucket}/${path}`;
+
+const parseGcsUri = (uri: string) => {
+  const normalized = uri.replace(/^gs:\/\//, '');
+  const [bucket, ...rest] = normalized.split('/');
+  if (!bucket || rest.length === 0) {
+    return null;
+  }
+  return { bucket, objectPath: rest.join('/') };
+};
 
 export async function GET(req: NextRequest) {
   try {
@@ -33,64 +45,107 @@ export async function GET(req: NextRequest) {
     const result = await checkOperationStatus(operationName);
 
     if (result.done && result.response) {
-      // Video generation completed - save to Supabase
-      const videoUrl = result.response.videos?.[0]?.gcsUri;
-      const mimeType = result.response.videos?.[0]?.mimeType || 'video/mp4';
+      const videoArtifact = result.response.videos?.[0];
+      const mimeType = videoArtifact?.mimeType || 'video/mp4';
+      let videoBinary: Buffer | null = null;
 
-      if (videoUrl) {
-        // Download the video from Google's URL
-        const videoResponse = await fetch(videoUrl);
-        const videoBuffer = await videoResponse.arrayBuffer();
-
-        // Upload to Supabase storage
-        const fileName = `${uuidv4()}.mp4`;
-        const storagePath = `${user.id}/${projectId}/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('assets')
-          .upload(storagePath, videoBuffer, {
-            contentType: mimeType,
-            upsert: false,
-          });
-
-        if (uploadError) {
-          throw new Error(`Storage upload failed: ${uploadError.message}`);
-        }
-
-        // Get public URL
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from('assets').getPublicUrl(storagePath);
-
-        // Create asset record
-        const { data: asset, error: assetError } = await supabase
-          .from('assets')
-          .insert({
-            user_id: user.id,
-            project_id: projectId,
-            type: 'video',
-            source: 'genai',
-            storage_url: storagePath,
-            metadata: {
-              filename: fileName,
-              mimeType: mimeType,
-              sourceUrl: publicUrl,
-              generator: 'veo-3-1',
-            },
-          })
-          .select()
-          .single();
-
-        if (assetError) {
-          throw new Error(`Asset creation failed: ${assetError.message}`);
-        }
-
-        return NextResponse.json({
-          done: true,
-          asset,
-          storageUrl: publicUrl,
-        });
+      if (videoArtifact?.bytesBase64Encoded) {
+        videoBinary = Buffer.from(videoArtifact.bytesBase64Encoded, 'base64');
       }
+
+      const gcsUri = videoArtifact?.gcsUri;
+
+      if (!videoBinary && gcsUri) {
+        const parsed = parseGcsUri(gcsUri);
+        if (!parsed) {
+          throw new Error('Invalid GCS URI returned by Veo');
+        }
+
+        const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT;
+        if (!serviceAccountJson) {
+          throw new Error('GOOGLE_SERVICE_ACCOUNT environment variable is required to download Veo output');
+        }
+
+        const serviceAccount = JSON.parse(serviceAccountJson);
+        const auth = new GoogleAuth({
+          credentials: serviceAccount,
+          scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+        });
+
+        const client = await auth.getClient();
+        const { token } = await client.getAccessToken();
+
+        if (!token) {
+          throw new Error('Failed to obtain Google access token');
+        }
+
+        const downloadUrl = `https://storage.googleapis.com/storage/v1/b/${encodeURIComponent(parsed.bucket)}/o/${encodeURIComponent(parsed.objectPath)}?alt=media`;
+        const downloadResponse = await fetch(downloadUrl, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!downloadResponse.ok) {
+          const detail = await downloadResponse.text().catch(() => '');
+          throw new Error(`Failed to download Veo video: ${downloadResponse.status} ${detail}`.trim());
+        }
+
+        const arrayBuffer = await downloadResponse.arrayBuffer();
+        videoBinary = Buffer.from(arrayBuffer);
+      }
+
+      if (!videoBinary) {
+        throw new Error('No downloadable video returned by Veo operation');
+      }
+
+      const fileName = `${uuidv4()}.mp4`;
+      const storagePath = `${user.id}/${projectId}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('assets')
+        .upload(storagePath, videoBinary, {
+          contentType: mimeType,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        throw new Error(`Storage upload failed: ${uploadError.message}`);
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('assets').getPublicUrl(storagePath);
+
+      const storageUrl = normalizeStorageUrl('assets', storagePath);
+
+      const { data: asset, error: assetError } = await supabase
+        .from('assets')
+        .insert({
+          user_id: user.id,
+          project_id: projectId,
+          type: 'video',
+          source: 'genai',
+          storage_url: storageUrl,
+          metadata: {
+            filename: fileName,
+            mimeType,
+            sourceUrl: publicUrl,
+            generator: 'veo-3-1',
+          },
+        })
+        .select()
+        .single();
+
+      if (assetError) {
+        throw new Error(`Asset creation failed: ${assetError.message}`);
+      }
+
+      return NextResponse.json({
+        done: true,
+        asset,
+        storageUrl: publicUrl,
+      });
     }
 
     // Still processing or error

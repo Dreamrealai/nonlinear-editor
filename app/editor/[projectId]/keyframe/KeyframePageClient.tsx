@@ -54,7 +54,7 @@ export default function KeyframePageClient({ projectId }: KeyframePageClientProp
   if (loading) {
     return (
       <div className="flex h-full flex-col">
-        <EditorHeader projectId={projectId} currentTab="keyframe-editor" />
+        <EditorHeader projectId={projectId} currentTab="image-editor" />
         <div className="flex h-full items-center justify-center">
           <div className="text-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-900 mx-auto" />
@@ -68,7 +68,7 @@ export default function KeyframePageClient({ projectId }: KeyframePageClientProp
   if (assets.length === 0) {
     return (
       <div className="flex h-full flex-col">
-        <EditorHeader projectId={projectId} currentTab="keyframe-editor" />
+        <EditorHeader projectId={projectId} currentTab="image-editor" />
         <div className="flex h-full items-center justify-center bg-neutral-50">
           <div className="text-center max-w-md">
             <div className="mb-4 flex h-16 w-16 mx-auto items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-blue-100">
@@ -88,7 +88,7 @@ export default function KeyframePageClient({ projectId }: KeyframePageClientProp
 
   return (
     <div className="flex h-full flex-col">
-      <EditorHeader projectId={projectId} currentTab="keyframe-editor" />
+      <EditorHeader projectId={projectId} currentTab="image-editor" />
       <KeyframeEditorShell assets={assets} />
     </div>
   );

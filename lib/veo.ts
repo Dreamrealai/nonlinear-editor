@@ -27,12 +27,28 @@ import { GoogleAuth } from 'google-auth-library';
 interface VeoGenerateParams {
   /** Text prompt describing the video to generate */
   prompt: string;
+  /** Veo model to use for generation */
+  model?: string;
   /** Aspect ratio for the generated video */
   aspectRatio?: '9:16' | '16:9' | '1:1';
-  /** Duration in seconds (typically 5 or 8) */
+  /** Duration in seconds (4, 5, 6, or 8) */
   duration?: number;
-  /** Random seed for reproducible generation (optional) */
+  /** Resolution for Veo 3 models (720p or 1080p) */
+  resolution?: '720p' | '1080p';
+  /** Negative prompt - elements to avoid in the video */
+  negativePrompt?: string;
+  /** Person generation safety setting */
+  personGeneration?: 'allow_adult' | 'dont_allow';
+  /** Use Gemini to enhance the prompt */
+  enhancePrompt?: boolean;
+  /** Generate audio for the video (Veo 3 only) */
+  generateAudio?: boolean;
+  /** Random seed for reproducible generation (0-4294967295) */
   seed?: number;
+  /** Number of videos to generate (1-4) */
+  sampleCount?: number;
+  /** Compression quality (optimized or lossless) */
+  compressionQuality?: 'optimized' | 'lossless';
 }
 
 /**
@@ -151,22 +167,54 @@ export async function generateVideo(params: VeoGenerateParams): Promise<VeoGener
     throw new Error('Could not extract project_id from GOOGLE_SERVICE_ACCOUNT');
   }
 
-  // Veo 3.1 API endpoint (uses predictLongRunning for async video generation)
-  const endpoint = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/veo-3.1-generate-preview:predictLongRunning`;
+  // Use specified model or default to veo-3.1-generate-preview
+  const model = params.model || 'veo-3.1-generate-preview';
+  const endpoint = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/${model}:predictLongRunning`;
 
-  // Build request body according to Veo API specification
+  // Build parameters according to Veo API specification
+  const parameters: Record<string, unknown> = {
+    aspectRatio: params.aspectRatio || '16:9',
+    durationSeconds: params.duration || 8,
+    enhancePrompt: params.enhancePrompt !== undefined ? params.enhancePrompt : true,
+  };
+
+  // Add optional parameters
+  if (params.resolution !== undefined) {
+    parameters.resolution = params.resolution;
+  }
+
+  if (params.negativePrompt !== undefined && params.negativePrompt.trim()) {
+    parameters.negativePrompt = params.negativePrompt.trim();
+  }
+
+  if (params.personGeneration !== undefined) {
+    parameters.personGeneration = params.personGeneration;
+  }
+
+  if (params.generateAudio !== undefined) {
+    parameters.generateAudio = params.generateAudio;
+  }
+
+  if (params.seed !== undefined) {
+    parameters.seed = params.seed;
+  }
+
+  if (params.sampleCount !== undefined) {
+    parameters.sampleCount = params.sampleCount;
+  }
+
+  if (params.compressionQuality !== undefined) {
+    parameters.compressionQuality = params.compressionQuality;
+  }
+
+  // Build request body
   const requestBody = {
     instances: [
       {
         prompt: params.prompt,
       },
     ],
-    parameters: {
-      aspectRatio: params.aspectRatio || '16:9',
-      durationSeconds: params.duration || 8,
-      generateAudio: true, // Veo 3.1+ supports synchronized audio generation
-      ...(params.seed !== undefined && { seed: params.seed }),
-    },
+    parameters,
   };
 
   const response = await fetch(endpoint, {
@@ -212,7 +260,7 @@ export async function generateVideo(params: VeoGenerateParams): Promise<VeoGener
  *   // Download video from GCS
  * }
  */
-export async function checkOperationStatus(operationName: string): Promise<VeoOperationResult> {
+export async function checkOperationStatus(operationName: string, model?: string): Promise<VeoOperationResult> {
   const auth = getAuthClient();
   const client = await auth.getClient();
   const projectId = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT || '{}').project_id;
@@ -221,8 +269,12 @@ export async function checkOperationStatus(operationName: string): Promise<VeoOp
     throw new Error('Could not extract project_id from GOOGLE_SERVICE_ACCOUNT');
   }
 
+  // Extract model from operation name if not provided
+  // Operation name format: projects/{project}/locations/{location}/publishers/google/models/{model}/operations/{id}
+  const modelName = model || operationName.split('/models/')[1]?.split('/operations/')[0] || 'veo-3.1-generate-preview';
+
   // Use Veo-specific status check endpoint (fetchPredictOperation)
-  const endpoint = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/veo-3.1-generate-preview:fetchPredictOperation`;
+  const endpoint = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/${modelName}:fetchPredictOperation`;
 
   const response = await fetch(endpoint, {
     method: 'POST',

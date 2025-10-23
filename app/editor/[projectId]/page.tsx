@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
-import { BrowserEditorClient } from './BrowserEditorClient';
+import EditorHeader from '@/components/EditorHeader';
+import GenerateVideoTab from '@/components/generation/GenerateVideoTab';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -31,5 +32,10 @@ export default async function EditorPage({ params }: { params: Promise<{ project
     redirect('/');
   }
 
-  return <BrowserEditorClient projectId={projectId} />;
+  return (
+    <div className="flex h-full flex-col">
+      <EditorHeader projectId={projectId} currentTab="generate-video" />
+      <GenerateVideoTab projectId={projectId} />
+    </div>
+  );
 }

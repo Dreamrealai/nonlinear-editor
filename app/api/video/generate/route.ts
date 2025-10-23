@@ -17,7 +17,21 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { prompt, aspectRatio, duration, seed, projectId } = body;
+    const {
+      prompt,
+      model,
+      aspectRatio,
+      duration,
+      resolution,
+      negativePrompt,
+      personGeneration,
+      enhancePrompt,
+      generateAudio,
+      seed,
+      sampleCount,
+      compressionQuality,
+      projectId,
+    } = body;
 
     if (!prompt || typeof prompt !== 'string') {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
@@ -39,12 +53,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Project not found or access denied' }, { status: 403 });
     }
 
-    // Start video generation with Veo 3.1
+    // Start video generation with specified Veo model
     const result = await generateVideo({
       prompt,
-      aspectRatio: aspectRatio || '16:9',
-      duration: duration || 8,
+      model,
+      aspectRatio,
+      duration,
+      resolution,
+      negativePrompt,
+      personGeneration,
+      enhancePrompt,
+      generateAudio,
       seed,
+      sampleCount,
+      compressionQuality,
     });
 
     return NextResponse.json({

@@ -10,7 +10,7 @@ interface ElevenLabsGenerateRequest {
   stability?: number;
   similarity?: number;
   projectId: string;
-  userId: string;
+  userId?: string; // kept for backward compatibility; ignored in favor of session user
 }
 
 export async function POST(req: NextRequest) {
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       stability = 0.5,
       similarity = 0.75,
       projectId,
-      userId,
+      userId: bodyUserId,
     } = body;
 
     if (!text) {
@@ -42,11 +42,39 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!projectId || !userId) {
+    if (!projectId) {
       return NextResponse.json(
-        { error: 'Project ID and User ID are required' },
+        { error: 'Project ID is required' },
         { status: 400 }
       );
+    }
+
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (bodyUserId && bodyUserId !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('user_id')
+      .eq('id', projectId)
+      .maybeSingle();
+
+    if (projectError || !project) {
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    }
+
+    if (project.user_id !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Call ElevenLabs API
@@ -81,11 +109,9 @@ export async function POST(req: NextRequest) {
     // Get the audio data as ArrayBuffer
     const audioData = await response.arrayBuffer();
 
-    // Upload to Supabase Storage
-    const supabase = await createServerSupabaseClient();
     const timestamp = Date.now();
     const fileName = `elevenlabs_${timestamp}.mp3`;
-    const filePath = `${userId}/${projectId}/audio/${fileName}`;
+    const filePath = `${user.id}/${projectId}/audio/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from('assets')
@@ -103,13 +129,16 @@ export async function POST(req: NextRequest) {
     }
 
     const storageUrl = `supabase://assets/${filePath}`;
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('assets').getPublicUrl(filePath);
 
     // Save asset to database
     const { data: assetData, error: assetError } = await supabase
       .from('assets')
       .insert({
         project_id: projectId,
-        user_id: userId,
+        user_id: user.id,
         storage_url: storageUrl,
         type: 'audio',
         source: 'genai',
@@ -120,6 +149,7 @@ export async function POST(req: NextRequest) {
           voiceId,
           modelId,
           text: text.substring(0, 200), // Store first 200 chars
+          sourceUrl: publicUrl ?? undefined,
         },
       })
       .select()

@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { VideoIntelligenceServiceClient, protos } from '@google-cloud/video-intelligence';
 
+const parseStorageUrl = (storageUrl: string) => {
+  const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
+  const [bucket, ...parts] = normalized.split('/');
+  if (!bucket || parts.length === 0) {
+    return null;
+  }
+  return { bucket, path: parts.join('/') };
+};
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
@@ -58,9 +67,23 @@ export async function POST(req: NextRequest) {
     }
 
     // Get the video URL
-    const videoUrl = (asset.metadata as { sourceUrl?: string })?.sourceUrl;
+    let videoUrl = (asset.metadata as { sourceUrl?: string })?.sourceUrl;
     if (!videoUrl) {
-      return NextResponse.json({ error: 'Video URL not found in metadata' }, { status: 400 });
+      const location = typeof asset.storage_url === 'string' ? parseStorageUrl(asset.storage_url) : null;
+      if (!location) {
+        return NextResponse.json({ error: 'Video storage location invalid' }, { status: 400 });
+      }
+
+      const { data: signed, error: signError } = await supabase.storage
+        .from(location.bucket)
+        .createSignedUrl(location.path, 3600);
+
+      if (signError || !signed?.signedUrl) {
+        console.error('Failed to create signed URL for scene detection', signError);
+        return NextResponse.json({ error: 'Unable to access video for scene detection' }, { status: 502 });
+      }
+
+      videoUrl = signed.signedUrl;
     }
 
     // Check for Google Cloud credentials
