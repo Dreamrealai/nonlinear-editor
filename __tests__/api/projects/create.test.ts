@@ -13,7 +13,7 @@ import {
   mockQuerySuccess,
   mockQueryError,
   resetAllMocks,
-} from '@/__tests__/utils/mockSupabase';
+} from '@/test-utils/mockSupabase';
 
 // Mock the Supabase module
 jest.mock('@/lib/supabase', () => ({
@@ -41,9 +41,7 @@ jest.mock('@/lib/api/response', () => {
     });
 
   return {
-    unauthorizedResponse: jest.fn(() =>
-      jsonResponse({ error: 'Unauthorized' }, { status: 401 })
-    ),
+    unauthorizedResponse: jest.fn(() => jsonResponse({ error: 'Unauthorized' }, { status: 401 })),
     errorResponse: jest.fn((message: string, status: number) =>
       jsonResponse({ error: message }, { status })
     ),

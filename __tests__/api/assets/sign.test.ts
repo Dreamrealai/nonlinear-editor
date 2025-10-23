@@ -10,7 +10,7 @@ import {
   mockAuthenticatedUser,
   mockUnauthenticatedUser,
   resetAllMocks,
-} from '@/__tests__/utils/mockSupabase';
+} from '@/test-utils/mockSupabase';
 
 // Mock modules
 jest.mock('@/lib/supabase', () => ({
@@ -77,9 +77,7 @@ describe('GET /api/assets/sign', () => {
 
     it('should return 400 when storageUrl is invalid', async () => {
       mockAuthenticatedUser(mockSupabase);
-      mockRequest = new NextRequest(
-        'http://localhost/api/assets/sign?storageUrl=invalid-url'
-      );
+      mockRequest = new NextRequest('http://localhost/api/assets/sign?storageUrl=invalid-url');
 
       const response = await GET(mockRequest);
 
@@ -114,9 +112,7 @@ describe('GET /api/assets/sign', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/assets/sign?assetId=asset-123'
-      );
+      mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=asset-123');
 
       const response = await GET(mockRequest);
 
@@ -132,9 +128,7 @@ describe('GET /api/assets/sign', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/assets/sign?assetId=nonexistent'
-      );
+      mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=nonexistent');
 
       const response = await GET(mockRequest);
 
@@ -155,9 +149,7 @@ describe('GET /api/assets/sign', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/assets/sign?assetId=asset-123'
-      );
+      mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=asset-123');
 
       const response = await GET(mockRequest);
 
@@ -205,9 +197,7 @@ describe('GET /api/assets/sign', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/assets/sign?assetId=asset-123'
-      );
+      mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=asset-123');
 
       const response = await GET(mockRequest);
 
@@ -240,10 +230,7 @@ describe('GET /api/assets/sign', () => {
       const response = await GET(mockRequest);
 
       expect(response.status).toBe(200);
-      expect(mockSupabase.storage.createSignedUrl).toHaveBeenCalledWith(
-        expect.any(String),
-        7200
-      );
+      expect(mockSupabase.storage.createSignedUrl).toHaveBeenCalledWith(expect.any(String), 7200);
     });
 
     it('should parse storage URL correctly', async () => {
@@ -293,9 +280,7 @@ describe('GET /api/assets/sign', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/assets/sign?assetId=asset-123'
-      );
+      mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=asset-123');
 
       await GET(mockRequest);
 
@@ -343,9 +328,7 @@ describe('GET /api/assets/sign', () => {
         error: { message: 'Database error' },
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/assets/sign?assetId=asset-123'
-      );
+      mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=asset-123');
 
       const response = await GET(mockRequest);
 

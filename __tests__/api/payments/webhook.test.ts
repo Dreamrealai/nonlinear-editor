@@ -4,15 +4,12 @@
 
 import { NextRequest } from 'next/server';
 import { POST } from '@/app/api/stripe/webhook/route';
-import {
-  createMockUserProfile,
-  createMockSupabaseClient,
-} from '@/__tests__/utils/mockSupabase';
+import { createMockUserProfile, createMockSupabaseClient } from '@/test-utils/mockSupabase';
 import {
   createMockCheckoutSession,
   createMockSubscription,
   createMockWebhookEvent,
-} from '@/__tests__/utils/mockStripe';
+} from '@/test-utils/mockStripe';
 
 // Mock Stripe
 const stripeMocks: {
@@ -156,11 +153,7 @@ describe('POST /api/stripe/webhook', () => {
 
       const response = await POST(mockRequest);
 
-      expect(mockConstructEvent).toHaveBeenCalledWith(
-        body,
-        'valid-signature',
-        'whsec_test_secret'
-      );
+      expect(mockConstructEvent).toHaveBeenCalledWith(body, 'valid-signature', 'whsec_test_secret');
       expect(response.status).toBe(200);
     });
   });

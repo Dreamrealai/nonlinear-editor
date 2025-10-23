@@ -87,7 +87,7 @@ export function createMockUserProfile(overrides: Partial<UserProfile> = {}): Use
  * Wait for async operations to complete
  */
 export function waitForAsync(ms = 0) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -116,11 +116,7 @@ export function createMockFetchResponse<T>(data: T, ok = true, status = 200) {
 /**
  * Create mock file for upload testing
  */
-export function createMockFile(
-  name = 'test.mp4',
-  type = 'video/mp4',
-  size = 1024
-): File {
+export function createMockFile(name = 'test.mp4', type = 'video/mp4', size = 1024): File {
   const blob = new Blob(['x'.repeat(size)], { type });
   return new File([blob], name, { type });
 }
@@ -216,7 +212,7 @@ export const customMatchers = {
    */
   toHaveTailwindClasses(element: HTMLElement, ...classes: string[]) {
     const classList = Array.from(element.classList);
-    const missingClasses = classes.filter(cls => !classList.includes(cls));
+    const missingClasses = classes.filter((cls) => !classList.includes(cls));
 
     if (missingClasses.length > 0) {
       return {
@@ -242,7 +238,7 @@ export function setupTestEnvironment() {
   // Mock window.matchMedia
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
-    value: jest.fn().mockImplementation(query => ({
+    value: jest.fn().mockImplementation((query) => ({
       matches: false,
       media: query,
       onchange: null,
@@ -297,16 +293,12 @@ export const asyncUtils = {
   /**
    * Flush all pending promises
    */
-  flushPromises: () => new Promise(resolve => setImmediate(resolve)),
+  flushPromises: () => new Promise((resolve) => setImmediate(resolve)),
 
   /**
    * Wait for condition to be true
    */
-  waitForCondition: async (
-    condition: () => boolean,
-    timeout = 5000,
-    interval = 50
-  ) => {
+  waitForCondition: async (condition: () => boolean, timeout = 5000, interval = 50) => {
     const startTime = Date.now();
     while (!condition()) {
       if (Date.now() - startTime > timeout) {

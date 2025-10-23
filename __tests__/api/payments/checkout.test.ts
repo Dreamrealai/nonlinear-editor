@@ -13,11 +13,8 @@ import {
   mockQuerySuccess,
   mockQueryError,
   resetAllMocks,
-} from '@/__tests__/utils/mockSupabase';
-import {
-  createMockCheckoutSession,
-  createMockStripeClient,
-} from '@/__tests__/utils/mockStripe';
+} from '@/test-utils/mockSupabase';
+import { createMockCheckoutSession, createMockStripeClient } from '@/test-utils/mockStripe';
 
 // Mock Stripe
 jest.mock('@/lib/stripe', () => ({
@@ -139,12 +136,9 @@ describe('POST /api/stripe/checkout', () => {
       });
       mockQuerySuccess(mockSupabase, mockProfile);
 
-      const { createCheckoutSession, getOrCreateStripeCustomer } =
-        require('@/lib/stripe');
+      const { createCheckoutSession, getOrCreateStripeCustomer } = require('@/lib/stripe');
       getOrCreateStripeCustomer.mockResolvedValue('cus_test_123');
-      createCheckoutSession.mockResolvedValue(
-        createMockCheckoutSession({ id: 'cs_test_123' })
-      );
+      createCheckoutSession.mockResolvedValue(createMockCheckoutSession({ id: 'cs_test_123' }));
 
       mockRequest = new NextRequest('http://localhost/api/stripe/checkout', {
         method: 'POST',
@@ -165,12 +159,9 @@ describe('POST /api/stripe/checkout', () => {
       });
       mockQuerySuccess(mockSupabase, mockProfile);
 
-      const { createCheckoutSession, getOrCreateStripeCustomer } =
-        require('@/lib/stripe');
+      const { createCheckoutSession, getOrCreateStripeCustomer } = require('@/lib/stripe');
       getOrCreateStripeCustomer.mockResolvedValue('cus_test_123');
-      createCheckoutSession.mockResolvedValue(
-        createMockCheckoutSession({ id: 'cs_test_123' })
-      );
+      createCheckoutSession.mockResolvedValue(createMockCheckoutSession({ id: 'cs_test_123' }));
 
       mockRequest = new NextRequest('http://localhost/api/stripe/checkout', {
         method: 'POST',
@@ -196,8 +187,7 @@ describe('POST /api/stripe/checkout', () => {
       mockSupabase.update.mockReturnThis();
       mockSupabase.eq.mockResolvedValue({ error: null });
 
-      const { createCheckoutSession, getOrCreateStripeCustomer } =
-        require('@/lib/stripe');
+      const { createCheckoutSession, getOrCreateStripeCustomer } = require('@/lib/stripe');
       getOrCreateStripeCustomer.mockResolvedValue('cus_new_123');
       createCheckoutSession.mockResolvedValue(
         createMockCheckoutSession({ customer: 'cus_new_123' })
@@ -228,8 +218,7 @@ describe('POST /api/stripe/checkout', () => {
       });
       mockQuerySuccess(mockSupabase, mockProfile);
 
-      const { createCheckoutSession, getOrCreateStripeCustomer } =
-        require('@/lib/stripe');
+      const { createCheckoutSession, getOrCreateStripeCustomer } = require('@/lib/stripe');
       getOrCreateStripeCustomer.mockResolvedValue('cus_existing_123');
       createCheckoutSession.mockResolvedValue(
         createMockCheckoutSession({ customer: 'cus_existing_123' })
@@ -260,8 +249,7 @@ describe('POST /api/stripe/checkout', () => {
       });
       mockQuerySuccess(mockSupabase, mockProfile);
 
-      const { createCheckoutSession, getOrCreateStripeCustomer } =
-        require('@/lib/stripe');
+      const { createCheckoutSession, getOrCreateStripeCustomer } = require('@/lib/stripe');
       getOrCreateStripeCustomer.mockResolvedValue('cus_test_123');
       const mockSession = createMockCheckoutSession();
       createCheckoutSession.mockResolvedValue(mockSession);
@@ -295,8 +283,7 @@ describe('POST /api/stripe/checkout', () => {
       });
       mockQuerySuccess(mockSupabase, mockProfile);
 
-      const { createCheckoutSession, getOrCreateStripeCustomer } =
-        require('@/lib/stripe');
+      const { createCheckoutSession, getOrCreateStripeCustomer } = require('@/lib/stripe');
       getOrCreateStripeCustomer.mockResolvedValue('cus_test_123');
       createCheckoutSession.mockResolvedValue(createMockCheckoutSession());
 
@@ -349,12 +336,9 @@ describe('POST /api/stripe/checkout', () => {
       });
       mockQuerySuccess(mockSupabase, mockProfile);
 
-      const { createCheckoutSession, getOrCreateStripeCustomer } =
-        require('@/lib/stripe');
+      const { createCheckoutSession, getOrCreateStripeCustomer } = require('@/lib/stripe');
       getOrCreateStripeCustomer.mockResolvedValue('cus_test_123');
-      createCheckoutSession.mockRejectedValue(
-        new Error('Stripe API error')
-      );
+      createCheckoutSession.mockRejectedValue(new Error('Stripe API error'));
 
       mockRequest = new NextRequest('http://localhost/api/stripe/checkout', {
         method: 'POST',
@@ -393,8 +377,7 @@ describe('POST /api/stripe/checkout', () => {
       });
       mockQuerySuccess(mockSupabase, mockProfile);
 
-      const { createCheckoutSession, getOrCreateStripeCustomer } =
-        require('@/lib/stripe');
+      const { createCheckoutSession, getOrCreateStripeCustomer } = require('@/lib/stripe');
       getOrCreateStripeCustomer.mockResolvedValue('cus_test_123');
       const mockSession = createMockCheckoutSession({
         id: 'cs_test_456',
@@ -426,8 +409,7 @@ describe('POST /api/stripe/checkout', () => {
       });
       mockQuerySuccess(mockSupabase, mockProfile);
 
-      const { createCheckoutSession, getOrCreateStripeCustomer } =
-        require('@/lib/stripe');
+      const { createCheckoutSession, getOrCreateStripeCustomer } = require('@/lib/stripe');
       getOrCreateStripeCustomer.mockResolvedValue('cus_test_123');
       createCheckoutSession.mockResolvedValue(createMockCheckoutSession());
 
@@ -456,8 +438,7 @@ describe('POST /api/stripe/checkout', () => {
       });
       mockQuerySuccess(mockSupabase, mockProfile);
 
-      const { createCheckoutSession, getOrCreateStripeCustomer } =
-        require('@/lib/stripe');
+      const { createCheckoutSession, getOrCreateStripeCustomer } = require('@/lib/stripe');
       getOrCreateStripeCustomer.mockResolvedValue('cus_test_123');
       createCheckoutSession.mockResolvedValue(createMockCheckoutSession());
 

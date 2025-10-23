@@ -13,7 +13,7 @@ import {
   mockUnauthenticatedUser,
   mockQuerySuccess,
   resetAllMocks,
-} from '@/__tests__/utils/mockSupabase';
+} from '@/test-utils/mockSupabase';
 
 // Mock modules
 jest.mock('@/lib/supabase', () => ({

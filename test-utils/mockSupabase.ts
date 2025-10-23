@@ -33,7 +33,7 @@ export interface MockSupabaseChain {
  * Creates a mock Supabase client with chainable methods
  */
 export function createMockSupabaseClient(): jest.Mocked<SupabaseClient> & MockSupabaseChain {
-  const mockClient: any = {
+  const mockClient = {
     from: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
     insert: jest.fn().mockReturnThis(),
@@ -64,7 +64,7 @@ export function createMockSupabaseClient(): jest.Mocked<SupabaseClient> & MockSu
 /**
  * Creates a mock authenticated user
  */
-export function createMockUser(overrides?: Partial<any>) {
+export function createMockUser(overrides?: Record<string, unknown>) {
   return {
     id: 'test-user-id',
     email: 'test@example.com',
@@ -79,7 +79,7 @@ export function createMockUser(overrides?: Partial<any>) {
 /**
  * Creates a mock project
  */
-export function createMockProject(overrides?: Partial<any>) {
+export function createMockProject(overrides?: Record<string, unknown>) {
   return {
     id: 'test-project-id',
     user_id: 'test-user-id',
@@ -94,7 +94,7 @@ export function createMockProject(overrides?: Partial<any>) {
 /**
  * Creates a mock asset
  */
-export function createMockAsset(overrides?: Partial<any>) {
+export function createMockAsset(overrides?: Record<string, unknown>) {
   return {
     id: 'test-asset-id',
     project_id: 'test-project-id',
@@ -119,7 +119,7 @@ export function createMockAsset(overrides?: Partial<any>) {
 /**
  * Creates a mock user profile
  */
-export function createMockUserProfile(overrides?: Partial<any>) {
+export function createMockUserProfile(overrides?: Record<string, unknown>) {
   return {
     id: 'test-user-id',
     email: 'test@example.com',
@@ -142,7 +142,7 @@ export function createMockUserProfile(overrides?: Partial<any>) {
  */
 export function mockAuthenticatedUser(
   mockClient: MockSupabaseChain,
-  user?: any
+  user?: Record<string, unknown>
 ) {
   const mockUser = user || createMockUser();
   mockClient.auth.getUser.mockResolvedValue({
@@ -167,7 +167,7 @@ export function mockUnauthenticatedUser(mockClient: MockSupabaseChain) {
  */
 export function mockQuerySuccess(
   mockClient: MockSupabaseChain,
-  data: any,
+  data: Record<string, unknown>,
   method: 'single' | 'maybeSingle' | 'order' = 'single'
 ) {
   mockClient[method].mockResolvedValue({
@@ -203,10 +203,7 @@ export function mockStorageUploadSuccess(mockClient: MockSupabaseChain) {
 /**
  * Helper to mock storage upload error
  */
-export function mockStorageUploadError(
-  mockClient: MockSupabaseChain,
-  errorMessage: string
-) {
+export function mockStorageUploadError(mockClient: MockSupabaseChain, errorMessage: string) {
   mockClient.storage.upload.mockResolvedValue({
     data: null,
     error: { message: errorMessage, name: 'StorageError' },

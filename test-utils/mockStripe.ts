@@ -67,9 +67,7 @@ export function createMockSubscription(
 /**
  * Creates a mock Stripe customer
  */
-export function createMockCustomer(
-  overrides?: Partial<Stripe.Customer>
-): Stripe.Customer {
+export function createMockCustomer(overrides?: Partial<Stripe.Customer>): Stripe.Customer {
   return {
     id: 'cus_test_123',
     object: 'customer',
@@ -82,10 +80,7 @@ export function createMockCustomer(
 /**
  * Creates a mock Stripe webhook event
  */
-export function createMockWebhookEvent(
-  type: string,
-  data: any
-): Stripe.Event {
+export function createMockWebhookEvent(type: string, data: Record<string, unknown>): Stripe.Event {
   return {
     id: 'evt_test_123',
     object: 'event',
