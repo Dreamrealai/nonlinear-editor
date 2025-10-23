@@ -155,10 +155,6 @@ export default function HorizontalTimeline({ onDetectScenes, sceneDetectPending 
 
   const numTracks = Math.max(maxTrack + 1, MIN_TRACKS, forcedTrackCount ?? 0);
 
-  const handleAddTrack = () => {
-    setForcedTrackCount((prev) => Math.max(prev ?? numTracks, numTracks) + 1);
-  };
-
   // Zoom controls
   const handleZoomIn = () => setZoom(zoom * 1.2);
   const handleZoomOut = () => setZoom(zoom / 1.2);
