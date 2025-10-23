@@ -3,7 +3,7 @@
 
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
-import type { Clip } from '@/types/timeline';
+import type { Clip, TextOverlay } from '@/types/timeline';
 
 const TRACK_HEIGHT = 80;
 const RULER_HEIGHT = 30;
@@ -26,6 +26,77 @@ const getClipFileName = (clip: Clip): string => {
   const leaf = segments[segments.length - 1];
   return leaf && leaf.length > 0 ? leaf : 'Clip';
 };
+
+/**
+ * Memoized text overlay renderer for timeline
+ */
+type TextOverlayTimelineRendererProps = {
+  overlay: TextOverlay;
+  zoom: number;
+  isSelected: boolean;
+  onClick: (e: React.MouseEvent, overlay: TextOverlay) => void;
+  onRemove: (id: string) => void;
+};
+
+const TextOverlayTimelineRenderer = React.memo<TextOverlayTimelineRendererProps>(function TextOverlayTimelineRenderer({
+  overlay,
+  zoom,
+  isSelected,
+  onClick,
+  onRemove,
+}) {
+  const overlayWidth = overlay.duration * zoom;
+  const overlayLeft = overlay.timelinePosition * zoom;
+
+  return (
+    <div
+      className={`absolute rounded-lg border-2 overflow-hidden cursor-pointer hover:shadow-lg transition-all ${
+        isSelected ? 'border-purple-400 ring-2 ring-purple-400/50' : 'border-purple-500 hover:border-purple-600'
+      }`}
+      style={{
+        left: overlayLeft,
+        top: 8,
+        width: overlayWidth,
+        height: 40,
+        backgroundColor: 'rgba(147, 51, 234, 0.15)', // purple with transparency
+      }}
+      onClick={(e) => onClick(e, overlay)}
+    >
+      <div className="relative h-full w-full select-none">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-purple-300/30 via-purple-200/20 to-purple-300/30" />
+
+        <div className="absolute inset-0 flex h-full items-center justify-between px-2 text-purple-900 pointer-events-none">
+          <div className="min-w-0 flex-1 flex items-center gap-1">
+            <svg className="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p className="truncate text-xs font-semibold">
+              {overlay.text}
+            </p>
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onRemove(overlay.id);
+            }}
+            className="flex-shrink-0 rounded bg-white/30 p-0.5 text-purple-900 hover:bg-red-500 hover:text-white pointer-events-auto"
+          >
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="absolute bottom-0 left-0 right-0 text-center pointer-events-none">
+          <p className="text-[9px] font-medium text-purple-900/70">
+            {overlay.duration.toFixed(1)}s
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+});
 
 /**
  * Memoized clip renderer component for performance optimization
@@ -178,9 +249,11 @@ export default function HorizontalTimeline({
   const redo = useEditorStore((state) => state.redo);
   const canUndo = useEditorStore((state) => state.canUndo);
   const canRedo = useEditorStore((state) => state.canRedo);
+  const removeTextOverlay = useEditorStore((state) => state.removeTextOverlay);
 
   const [forcedTrackCount, setForcedTrackCount] = useState<number | null>(null);
   const [contextMenu, setContextMenu] = useState<{ clipId: string; x: number; y: number } | null>(null);
+  const [selectedTextOverlayId, setSelectedTextOverlayId] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [draggingClip, setDraggingClip] = useState<{ id: string; offsetX: number; offsetY: number; duration: number } | null>(null);
@@ -269,9 +342,15 @@ export default function HorizontalTimeline({
   );
 
   // Calculate timeline duration
-  const timelineDuration = timeline?.clips.length
-    ? Math.max(...timeline.clips.map((c) => c.timelinePosition + (c.end - c.start)), 30)
-    : 30;
+  const textOverlays = timeline?.textOverlays ?? [];
+  const clipEndTimes = timeline?.clips.length
+    ? timeline.clips.map((c) => c.timelinePosition + (c.end - c.start))
+    : [];
+  const overlayEndTimes = textOverlays.length
+    ? textOverlays.map((o) => o.timelinePosition + o.duration)
+    : [];
+  const allEndTimes = [...clipEndTimes, ...overlayEndTimes];
+  const timelineDuration = allEndTimes.length ? Math.max(...allEndTimes, 30) : 30;
 
   const maxTrack = timeline?.clips.length
     ? Math.max(...timeline.clips.map((c) => c.trackIndex), MIN_TRACKS - 1)
@@ -486,6 +565,14 @@ export default function HorizontalTimeline({
     e.stopPropagation();
     const isMulti = e.metaKey || e.ctrlKey || e.shiftKey;
     selectClip(clip.id, isMulti);
+    setSelectedTextOverlayId(null);
+  };
+
+  // Click to select text overlay
+  const handleTextOverlayClick = (e: React.MouseEvent, overlay: TextOverlay) => {
+    e.stopPropagation();
+    setSelectedTextOverlayId(overlay.id);
+    clearSelection();
   };
 
   // Split clip at playhead
@@ -509,6 +596,7 @@ export default function HorizontalTimeline({
     const time = Math.max(0, x / zoom);
     setCurrentTime(time);
     clearSelection();
+    setSelectedTextOverlayId(null);
   };
 
   // Check if playhead is over any clip (for split button)
@@ -700,6 +788,36 @@ export default function HorizontalTimeline({
               ))}
             </div>
           </div>
+
+          {/* Text Overlay Track */}
+          {textOverlays.length > 0 && (
+            <div
+              className="relative border-b-2 border-purple-300 bg-gradient-to-b from-purple-50 to-purple-100/50"
+              style={{ minWidth: timelineWidth, height: 56 }}
+              onClick={handleTimelineClick}
+            >
+              <div className="absolute left-2 top-2 flex items-center gap-2">
+                <svg className="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span className="text-xs font-semibold text-purple-700">
+                  Text Overlays
+                </span>
+              </div>
+
+              {/* Text Overlays */}
+              {textOverlays.map((overlay) => (
+                <TextOverlayTimelineRenderer
+                  key={overlay.id}
+                  overlay={overlay}
+                  zoom={zoom}
+                  isSelected={selectedTextOverlayId === overlay.id}
+                  onClick={handleTextOverlayClick}
+                  onRemove={removeTextOverlay}
+                />
+              ))}
+            </div>
+          )}
 
           {/* Tracks */}
           <div
