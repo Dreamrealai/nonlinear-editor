@@ -158,7 +158,9 @@ const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
     const fadeOutBase =
       transition?.type === 'fade-out' ? Math.max(0.05, transition.duration || 0.5) : 0;
     const crossfadeOut =
-      transition?.type === 'crossfade' ? Math.min(length, Math.max(0.05, transition.duration || 0.5)) : 0;
+      transition?.type === 'crossfade'
+        ? Math.min(length, Math.max(0.05, transition.duration || 0.5))
+        : 0;
 
     return {
       length,
@@ -289,7 +291,9 @@ async function ensureBuffered(video: HTMLVideoElement, timeout = 10000): Promise
   return new Promise<void>((resolve, reject) => {
     const timeoutId = setTimeout(() => {
       cleanup();
-      reject(new Error(`Video buffering timeout after ${timeout}ms (readyState: ${video.readyState})`));
+      reject(
+        new Error(`Video buffering timeout after ${timeout}ms (readyState: ${video.readyState})`)
+      );
     }, timeout);
 
     const cleanup = () => {
@@ -394,144 +398,198 @@ export default function PreviewPlayer() {
   }, []);
 
   const locateClipSrc = useCallback(async (clip: Clip) => {
-    if (!clip.filePath) {
-      throw new Error('Clip is missing file path information.');
-    }
+    try {
+      if (!clip.filePath) {
+        throw new Error('Clip is missing file path information.');
+      }
 
-    const directUrl = typeof clip.previewUrl === 'string' ? clip.previewUrl.trim() : '';
-    if (directUrl && (directUrl.startsWith('http') || directUrl.startsWith('blob:'))) {
-      return directUrl;
-    }
+      const directUrl = typeof clip.previewUrl === 'string' ? clip.previewUrl.trim() : '';
+      if (directUrl && (directUrl.startsWith('http') || directUrl.startsWith('blob:'))) {
+        return directUrl;
+      }
 
-    if (clip.filePath.startsWith('http') || clip.filePath.startsWith('blob:')) {
-      return clip.filePath;
-    }
+      if (clip.filePath.startsWith('http') || clip.filePath.startsWith('blob:')) {
+        return clip.filePath;
+      }
 
-    const cacheKey = clip.assetId ?? clip.filePath;
-    const cached = signedUrlCacheRef.current.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) {
-      return cached.url;
-    }
+      const cacheKey = clip.assetId ?? clip.filePath;
+      const cached = signedUrlCacheRef.current.get(cacheKey);
+      if (cached && cached.expiresAt > Date.now()) {
+        return cached.url;
+      }
 
-    const pending = signedUrlRequestRef.current.get(cacheKey);
-    if (pending) {
-      const result = await pending;
-      if (!result) {
+      const pending = signedUrlRequestRef.current.get(cacheKey);
+      if (pending) {
+        const result = await pending;
+        if (!result) {
+          throw new Error('Unable to resolve signed URL');
+        }
+        return result;
+      }
+
+      const params = new URLSearchParams(
+        clip.assetId ? { assetId: clip.assetId } : { storageUrl: clip.filePath }
+      );
+
+      const request = (async () => {
+        try {
+          const response = await fetch(`/api/assets/sign?${params.toString()}`);
+          if (!response.ok) {
+            const detail = await response.text().catch(() => '');
+            throw new Error(`Sign request failed (${response.status}) ${detail}`.trim());
+          }
+
+          const payload = (await response.json()) as { signedUrl?: string; expiresIn?: number };
+          if (typeof payload.signedUrl !== 'string' || payload.signedUrl.length === 0) {
+            throw new Error('Sign response missing signedUrl');
+          }
+          const expiresInSeconds =
+            typeof payload.expiresIn === 'number' && Number.isFinite(payload.expiresIn)
+              ? payload.expiresIn
+              : SIGNED_URL_TTL_DEFAULT;
+          const expiresAt =
+            Date.now() + Math.max(0, expiresInSeconds * 1000 - SIGNED_URL_BUFFER_MS);
+          signedUrlCacheRef.current.set(cacheKey, { url: payload.signedUrl, expiresAt });
+          return payload.signedUrl;
+        } catch (error) {
+          browserLogger.error(
+            { assetId: clip.assetId, error },
+            'Failed to fetch signed URL for clip'
+          );
+          return null;
+        } finally {
+          signedUrlRequestRef.current.delete(cacheKey);
+        }
+      })();
+
+      signedUrlRequestRef.current.set(cacheKey, request);
+      const resolved = await request;
+      if (!resolved) {
         throw new Error('Unable to resolve signed URL');
       }
-      return result;
+      return resolved;
+    } catch (error) {
+      browserLogger.error(
+        {
+          clipId: clip.id,
+          assetId: clip.assetId,
+          filePath: clip.filePath,
+          error,
+        },
+        'Failed to locate clip source'
+      );
+      throw error;
     }
-
-    const params = new URLSearchParams(
-      clip.assetId ? { assetId: clip.assetId } : { storageUrl: clip.filePath },
-    );
-
-    const request = (async () => {
-      try {
-        const response = await fetch(`/api/assets/sign?${params.toString()}`);
-        if (!response.ok) {
-          const detail = await response.text().catch(() => '');
-          throw new Error(`Sign request failed (${response.status}) ${detail}`.trim());
-        }
-
-        const payload = (await response.json()) as { signedUrl?: string; expiresIn?: number };
-        if (typeof payload.signedUrl !== 'string' || payload.signedUrl.length === 0) {
-          throw new Error('Sign response missing signedUrl');
-        }
-        const expiresInSeconds =
-          typeof payload.expiresIn === 'number' && Number.isFinite(payload.expiresIn)
-            ? payload.expiresIn
-            : SIGNED_URL_TTL_DEFAULT;
-        const expiresAt = Date.now() + Math.max(0, expiresInSeconds * 1000 - SIGNED_URL_BUFFER_MS);
-        signedUrlCacheRef.current.set(cacheKey, { url: payload.signedUrl, expiresAt });
-        return payload.signedUrl;
-      } catch (error) {
-        browserLogger.error({ assetId: clip.assetId, error }, 'Failed to fetch signed URL for clip');
-        return null;
-      } finally {
-        signedUrlRequestRef.current.delete(cacheKey);
-      }
-    })();
-
-    signedUrlRequestRef.current.set(cacheKey, request);
-    const resolved = await request;
-    if (!resolved) {
-      throw new Error('Unable to resolve signed URL');
-    }
-    return resolved;
   }, []);
 
   const ensureClipElement = useCallback(
     async (clip: Clip): Promise<HTMLVideoElement> => {
-      const existing = videoMapRef.current.get(clip.id);
-      if (existing) {
-        return existing;
+      try {
+        const existing = videoMapRef.current.get(clip.id);
+        if (existing) {
+          return existing;
+        }
+
+        let pending = videoPromisesRef.current.get(clip.id);
+        if (!pending) {
+          pending = (async () => {
+            try {
+              const container = containerRef.current;
+              if (!container) {
+                throw new Error('Preview container not mounted');
+              }
+
+              // Get video from pool or create new one
+              const video = videoPoolRef.current.pop() ?? document.createElement('video');
+              video.playsInline = true;
+              video.preload = 'auto';
+              video.controls = false;
+              video.disablePictureInPicture = true;
+              video.style.position = 'absolute';
+              video.style.inset = '0';
+              video.style.width = '100%';
+              video.style.height = '100%';
+              video.style.objectFit = 'contain';
+              video.style.pointerEvents = 'none';
+              video.style.opacity = '0';
+              // Remove CSS transition - RAF will handle opacity smoothly
+              video.style.transition = 'none';
+              video.style.zIndex = String(1000 - clip.trackIndex);
+              video.style.willChange = 'opacity, transform, filter';
+              video.style.transform = generateCSSTransform(clip.transform);
+              video.style.filter = generateCSSFilter(clip.colorCorrection);
+              video.style.backfaceVisibility = 'hidden';
+              // Mute non-primary tracks to prevent browser audio throttling
+              video.muted = clip.trackIndex !== 0;
+
+              const source = await locateClipSrc(clip);
+              // Set crossOrigin BEFORE src to avoid CORS issues
+              video.crossOrigin = 'anonymous';
+              video.src = source;
+
+              // Store error handler for cleanup
+              const errorHandler = (error: Event) => {
+                browserLogger.error(
+                  {
+                    clipId: clip.id,
+                    src: source,
+                    error,
+                    videoError: video.error,
+                    readyState: video.readyState,
+                    networkState: video.networkState,
+                  },
+                  'Video playback error'
+                );
+              };
+              video.addEventListener('error', errorHandler);
+              videoErrorHandlersRef.current.set(clip.id, errorHandler);
+
+              // Wait for video to buffer enough data for smooth playback
+              await ensureBuffered(video).catch((bufferError) => {
+                browserLogger.error(
+                  {
+                    clipId: clip.id,
+                    src: source,
+                    error: bufferError,
+                    readyState: video.readyState,
+                    networkState: video.networkState,
+                  },
+                  'Video buffering failed'
+                );
+                throw bufferError;
+              });
+
+              videoMapRef.current.set(clip.id, video);
+              container.appendChild(video);
+              return video;
+            } catch (error) {
+              browserLogger.error(
+                {
+                  clipId: clip.id,
+                  error,
+                },
+                'Failed to create video element for clip'
+              );
+              throw error;
+            }
+          })();
+
+          videoPromisesRef.current.set(clip.id, pending);
+        }
+
+        return pending;
+      } catch (error) {
+        browserLogger.error(
+          {
+            clipId: clip.id,
+            error,
+          },
+          'Failed to ensure clip element'
+        );
+        throw error;
       }
-
-      let pending = videoPromisesRef.current.get(clip.id);
-      if (!pending) {
-        pending = (async () => {
-          const container = containerRef.current;
-          if (!container) {
-            throw new Error('Preview container not mounted');
-          }
-
-          // Get video from pool or create new one
-          const video = videoPoolRef.current.pop() ?? document.createElement('video');
-          video.playsInline = true;
-          video.preload = 'auto';
-          video.controls = false;
-          video.disablePictureInPicture = true;
-          video.style.position = 'absolute';
-          video.style.inset = '0';
-          video.style.width = '100%';
-          video.style.height = '100%';
-          video.style.objectFit = 'contain';
-          video.style.pointerEvents = 'none';
-          video.style.opacity = '0';
-          // Remove CSS transition - RAF will handle opacity smoothly
-          video.style.transition = 'none';
-          video.style.zIndex = String(1000 - clip.trackIndex);
-          video.style.willChange = 'opacity, transform, filter';
-          video.style.transform = generateCSSTransform(clip.transform);
-          video.style.filter = generateCSSFilter(clip.colorCorrection);
-          video.style.backfaceVisibility = 'hidden';
-          // Mute non-primary tracks to prevent browser audio throttling
-          video.muted = clip.trackIndex !== 0;
-
-          const source = await locateClipSrc(clip);
-          // Set crossOrigin BEFORE src to avoid CORS issues
-          video.crossOrigin = 'anonymous';
-          video.src = source;
-
-          // Store error handler for cleanup
-          const errorHandler = (error: Event) => {
-            browserLogger.error({
-              clipId: clip.id,
-              src: source,
-              error,
-              videoError: video.error,
-              readyState: video.readyState,
-              networkState: video.networkState,
-            }, 'Video playback error');
-          };
-          video.addEventListener('error', errorHandler);
-          videoErrorHandlersRef.current.set(clip.id, errorHandler);
-
-          // Wait for video to buffer enough data for smooth playback
-          await ensureBuffered(video);
-
-          videoMapRef.current.set(clip.id, video);
-          container.appendChild(video);
-          return video;
-        })();
-
-        videoPromisesRef.current.set(clip.id, pending);
-      }
-
-      return pending;
     },
-    [locateClipSrc],
+    [locateClipSrc]
   );
 
   const stopPlayback = useCallback(
@@ -558,7 +616,7 @@ export default function PreviewPlayer() {
         const targetTime = clamp(
           clip.start + localProgress,
           clip.start,
-          clipEnd > clip.start ? clipEnd - 0.001 : clip.start,
+          clipEnd > clip.start ? clipEnd - 0.001 : clip.start
         );
         if (Math.abs(video.currentTime - targetTime) > 0.05) {
           video.currentTime = targetTime;
@@ -570,7 +628,7 @@ export default function PreviewPlayer() {
         video.style.transform = generateCSSTransform(clip.transform);
       });
     },
-    [sortedClips, clipMetas],
+    [sortedClips, clipMetas]
   );
 
   // Component unmount cleanup
@@ -616,7 +674,7 @@ export default function PreviewPlayer() {
     const validKeys = new Set(
       clips
         .map((clip) => clip.assetId ?? clip.filePath)
-        .filter((key): key is string => typeof key === 'string' && key.length > 0),
+        .filter((key): key is string => typeof key === 'string' && key.length > 0)
     );
 
     signedUrlCacheRef.current.forEach((_, key) => {
@@ -668,7 +726,7 @@ export default function PreviewPlayer() {
         const targetTime = clamp(
           clip.start + localProgress,
           clip.start,
-          clipEnd > clip.start ? clipEnd - 0.001 : clip.start,
+          clipEnd > clip.start ? clipEnd - 0.001 : clip.start
         );
 
         // Increased threshold from 0.05s to 0.3s to reduce excessive seeking
@@ -695,12 +753,15 @@ export default function PreviewPlayer() {
           if (video.paused && video.readyState >= 3) {
             // Only play if video has buffered enough data
             video.play().catch((error) => {
-              browserLogger.warn({
-                clipId: clip.id,
-                error: error.message,
-                readyState: video.readyState,
-                networkState: video.networkState,
-              }, `Video play failed for clip ${clip.id}`);
+              browserLogger.warn(
+                {
+                  clipId: clip.id,
+                  error: error.message,
+                  readyState: video.readyState,
+                  networkState: video.networkState,
+                },
+                `Video play failed for clip ${clip.id}`
+              );
             });
           }
         } else if (!video.paused) {
@@ -708,49 +769,68 @@ export default function PreviewPlayer() {
         }
       });
     },
-    [sortedClips, clipMetas],
+    [sortedClips, clipMetas]
   );
 
   const playAll = useCallback(async () => {
-    if (!timeline || timeline.clips.length === 0) {
-      return;
-    }
-
-    await Promise.all(sortedClips.map((clip) => ensureClipElement(clip).catch((error) => {
-      browserLogger.error({ clipId: clip.id, error }, 'Failed to prepare clip for preview');
-    })));
-
-    const start = clamp(currentTime, 0, totalDuration);
-    syncClipsAtTime(start, false);
-
-    playingRef.current = true;
-    setIsPlaying(true);
-    startTimeRef.current = start;
-    playStartRef.current = performance.now();
-    globalTimeRef.current = start;
-
-    const loop = () => {
-      if (!playingRef.current) {
+    try {
+      if (!timeline || timeline.clips.length === 0) {
         return;
       }
 
-      const elapsedSeconds = (performance.now() - playStartRef.current) / 1000;
-      const timelineTime = startTimeRef.current + elapsedSeconds;
-      globalTimeRef.current = timelineTime;
+      await Promise.all(
+        sortedClips.map((clip) =>
+          ensureClipElement(clip).catch((error) => {
+            browserLogger.error({ clipId: clip.id, error }, 'Failed to prepare clip for preview');
+          })
+        )
+      );
 
-      if (timelineTime >= totalDuration) {
-        setCurrentTime(totalDuration);
-        stopPlayback({ finalTime: totalDuration });
-        return;
-      }
+      const start = clamp(currentTime, 0, totalDuration);
+      syncClipsAtTime(start, false);
 
-      syncClipsAtTime(timelineTime, true);
-      setCurrentTime(timelineTime);
+      playingRef.current = true;
+      setIsPlaying(true);
+      startTimeRef.current = start;
+      playStartRef.current = performance.now();
+      globalTimeRef.current = start;
+
+      const loop = () => {
+        if (!playingRef.current) {
+          return;
+        }
+
+        const elapsedSeconds = (performance.now() - playStartRef.current) / 1000;
+        const timelineTime = startTimeRef.current + elapsedSeconds;
+        globalTimeRef.current = timelineTime;
+
+        if (timelineTime >= totalDuration) {
+          setCurrentTime(totalDuration);
+          stopPlayback({ finalTime: totalDuration });
+          return;
+        }
+
+        syncClipsAtTime(timelineTime, true);
+        setCurrentTime(timelineTime);
+        playbackRafRef.current = requestAnimationFrame(loop);
+      };
+
       playbackRafRef.current = requestAnimationFrame(loop);
-    };
-
-    playbackRafRef.current = requestAnimationFrame(loop);
-  }, [timeline, sortedClips, ensureClipElement, currentTime, totalDuration, syncClipsAtTime, setCurrentTime, stopPlayback]);
+    } catch (error) {
+      browserLogger.error({ error }, 'Failed to start playback');
+      // Stop playback on error
+      stopPlayback({ finalTime: currentTime });
+    }
+  }, [
+    timeline,
+    sortedClips,
+    ensureClipElement,
+    currentTime,
+    totalDuration,
+    syncClipsAtTime,
+    setCurrentTime,
+    stopPlayback,
+  ]);
 
   // Auto-hide controls after inactivity
   const resetHideControlsTimeout = useCallback(() => {
@@ -772,7 +852,9 @@ export default function PreviewPlayer() {
     if (isPlaying) {
       stopPlayback({ finalTime: currentTime });
     } else {
-      void playAll();
+      playAll().catch((error) => {
+        browserLogger.error({ error }, 'Playback failed in togglePlayPause');
+      });
     }
   }, [isPlaying, currentTime, stopPlayback, playAll]);
 
@@ -793,36 +875,47 @@ export default function PreviewPlayer() {
   }, []);
 
   // Calculate time from mouse position on progress bar
-  const getTimeFromMouseEvent = useCallback((e: React.MouseEvent | MouseEvent) => {
-    if (!progressBarRef.current) return 0;
+  const getTimeFromMouseEvent = useCallback(
+    (e: React.MouseEvent | MouseEvent) => {
+      if (!progressBarRef.current) return 0;
 
-    const rect = progressBarRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const percentage = clamp(x / rect.width, 0, 1);
-    return percentage * totalDuration;
-  }, [totalDuration]);
+      const rect = progressBarRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const percentage = clamp(x / rect.width, 0, 1);
+      return percentage * totalDuration;
+    },
+    [totalDuration]
+  );
 
   // Handle seeking by clicking or dragging the progress bar
-  const handleProgressBarMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDraggingSlider(true);
+  const handleProgressBarMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      setIsDraggingSlider(true);
 
-    const newTime = getTimeFromMouseEvent(e);
-    setCurrentTime(newTime);
+      const newTime = getTimeFromMouseEvent(e);
+      setCurrentTime(newTime);
 
-    // Pause during seeking for smoother experience
-    if (isPlaying) {
-      stopPlayback({ finalTime: newTime });
-    }
-  }, [getTimeFromMouseEvent, setCurrentTime, isPlaying, stopPlayback]);
+      // Pause during seeking for smoother experience
+      if (isPlaying) {
+        stopPlayback({ finalTime: newTime });
+      }
+    },
+    [getTimeFromMouseEvent, setCurrentTime, isPlaying, stopPlayback]
+  );
 
   // Resume playback after dragging ends (if it was playing before)
-  const handleProgressBarMouseUp = useCallback((wasPlaying: boolean) => {
-    setIsDraggingSlider(false);
-    if (wasPlaying) {
-      void playAll();
-    }
-  }, [playAll]);
+  const handleProgressBarMouseUp = useCallback(
+    (wasPlaying: boolean) => {
+      setIsDraggingSlider(false);
+      if (wasPlaying) {
+        playAll().catch((error) => {
+          browserLogger.error({ error }, 'Playback failed after progress bar drag');
+        });
+      }
+    },
+    [playAll]
+  );
 
   // Handle mouse move and mouse up for slider dragging
   useEffect(() => {
@@ -846,7 +939,13 @@ export default function PreviewPlayer() {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDraggingSlider, isPlaying, getTimeFromMouseEvent, setCurrentTime, handleProgressBarMouseUp]);
+  }, [
+    isDraggingSlider,
+    isPlaying,
+    getTimeFromMouseEvent,
+    setCurrentTime,
+    handleProgressBarMouseUp,
+  ]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -916,22 +1015,32 @@ export default function PreviewPlayer() {
 
     let cancelled = false;
     (async () => {
-      const targets = timeline.clips.filter((clip) => {
-        const meta = clipMetas.get(clip.id);
-        if (!meta) return false;
-        const localProgress = currentTime - meta.effectiveStart;
-        return localProgress >= -2 && localProgress <= meta.length + 2;
-      });
+      try {
+        const targets = timeline.clips.filter((clip) => {
+          const meta = clipMetas.get(clip.id);
+          if (!meta) return false;
+          const localProgress = currentTime - meta.effectiveStart;
+          return localProgress >= -2 && localProgress <= meta.length + 2;
+        });
 
-      await Promise.all(targets.map((clip) => ensureClipElement(clip).catch((error) => {
-        browserLogger.error({ clipId: clip.id, error }, 'Failed to warm clip for preview');
-      })));
+        await Promise.all(
+          targets.map((clip) =>
+            ensureClipElement(clip).catch((error) => {
+              browserLogger.error({ clipId: clip.id, error }, 'Failed to warm clip for preview');
+            })
+          )
+        );
 
-      if (cancelled) {
-        return;
+        if (cancelled) {
+          return;
+        }
+
+        syncClipsAtTime(currentTime, false);
+      } catch (error) {
+        if (!cancelled) {
+          browserLogger.error({ error, currentTime }, 'Failed to warm clips at current time');
+        }
       }
-
-      syncClipsAtTime(currentTime, false);
     })();
 
     return () => {
@@ -973,7 +1082,6 @@ export default function PreviewPlayer() {
           </>
         )}
 
-
         {/* Overlay Controls - Auto-hide on play */}
         {showControls && (
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 transition-opacity duration-300 z-[1050]">
@@ -986,11 +1094,21 @@ export default function PreviewPlayer() {
             >
               {isFullscreen ? (
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25"
+                  />
                 </svg>
               ) : (
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
+                  />
                 </svg>
               )}
             </button>
@@ -1061,7 +1179,12 @@ export default function PreviewPlayer() {
             title="Show controls"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+              />
             </svg>
           </button>
         )}
