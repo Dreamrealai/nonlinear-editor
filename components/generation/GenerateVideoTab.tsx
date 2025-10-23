@@ -613,41 +613,34 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <div className="grid grid-cols-3 gap-3">
-                      {/* Upload Button */}
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={generating || uploadingImage}
-                        className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6 hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <svg className="h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span className="text-xs font-medium text-neutral-700">Upload</span>
-                      </button>
-
-                      {/* Paste Hint */}
-                      <div className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6">
-                        <svg className="h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                        <span className="text-xs font-medium text-neutral-700">Paste (Ctrl+V)</span>
+                    {/* Single unified box for all actions */}
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={generating || uploadingImage}
+                      className="w-full flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-8 hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <svg className="h-10 w-10 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <div className="flex flex-col items-center gap-2">
+                        <span className="text-sm font-medium text-neutral-700">
+                          Click to upload, paste (Ctrl+V), or{' '}
+                          <span
+                            className="text-blue-600 hover:text-blue-700 cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowAssetLibrary(true);
+                            }}
+                          >
+                            select from library
+                          </span>
+                        </span>
+                        <span className="text-xs text-neutral-500">
+                          Upload, paste, or select an image from your library to use as a reference
+                        </span>
                       </div>
-
-                      {/* Asset Library Button */}
-                      <button
-                        type="button"
-                        onClick={() => setShowAssetLibrary(true)}
-                        disabled={generating || uploadingImage}
-                        className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6 hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <svg className="h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                        </svg>
-                        <span className="text-xs font-medium text-neutral-700">From Library</span>
-                      </button>
-                    </div>
+                    </button>
 
                     <input
                       ref={fileInputRef}
@@ -656,10 +649,6 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
                       onChange={handleFileInputChange}
                       className="hidden"
                     />
-
-                    <p className="text-xs text-neutral-500 text-center">
-                      Upload, paste, or select an image from your library to use as a reference
-                    </p>
                   </div>
                 )}
               </div>

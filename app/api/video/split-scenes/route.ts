@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { VideoIntelligenceServiceClient, protos } from '@google-cloud/video-intelligence';
 import { Storage } from '@google-cloud/storage';
+import { serverLogger } from '@/lib/serverLogger';
 
 const parseStorageUrl = (storageUrl: string) => {
   // SECURITY: Validate input format
@@ -31,6 +32,7 @@ export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
+    serverLogger.info('Scene detection request received');
     const supabase = await createServerSupabaseClient();
 
     // Check authentication
@@ -40,8 +42,11 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      serverLogger.warn({ authError }, 'Unauthorized scene detection attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    serverLogger.info({ userId: user.id }, 'User authenticated for scene detection');
 
     const body = await req.json();
     const { assetId, projectId } = body;
@@ -118,6 +123,7 @@ export async function POST(req: NextRequest) {
     // Check for Google Cloud credentials
     const credentialsJson = process.env.GOOGLE_SERVICE_ACCOUNT;
     if (!credentialsJson) {
+      serverLogger.error({ assetId, projectId }, 'GOOGLE_SERVICE_ACCOUNT not configured');
       console.warn('Scene detection unavailable: GOOGLE_SERVICE_ACCOUNT not configured');
       return NextResponse.json(
         {
@@ -129,11 +135,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    serverLogger.info({ assetId, projectId }, 'Google Cloud credentials found');
+
     // Initialize Video Intelligence client
     let credentials;
     try {
       credentials = JSON.parse(credentialsJson);
+      serverLogger.info({ projectId: credentials.project_id }, 'Parsed GCP credentials successfully');
     } catch (parseError) {
+      serverLogger.error({ parseError, assetId, projectId }, 'Failed to parse GOOGLE_SERVICE_ACCOUNT');
       console.error('Failed to parse GOOGLE_SERVICE_ACCOUNT:', parseError);
       return NextResponse.json(
         {
@@ -169,6 +179,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Upload video to GCS
+    serverLogger.info({ videoUrl: videoUrl.substring(0, 50) + '...', assetId, projectId }, 'Downloading video from Supabase');
     console.log('Downloading video from Supabase...');
     let gcsFilePath: string;
     let gcsFile;
@@ -176,6 +187,7 @@ export async function POST(req: NextRequest) {
     try {
       const videoResponse = await fetch(videoUrl);
       if (!videoResponse.ok) {
+        serverLogger.error({ status: videoResponse.status, statusText: videoResponse.statusText, assetId }, 'Failed to download video from Supabase');
         throw new Error(`Failed to download video: ${videoResponse.statusText}`);
       }
 
