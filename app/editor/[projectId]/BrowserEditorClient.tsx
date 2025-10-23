@@ -630,7 +630,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   const [sceneDetectPending, setSceneDetectPending] = useState(false);
 
   // Audio generation state
-  const [activeTab, setActiveTab] = useState<'video' | 'audio'>('video');
+  const [activeTab, setActiveTab] = useState<'video' | 'audio' | 'image'>('video');
   const [showAudioModal, setShowAudioModal] = useState(false);
   const [audioGenMode, setAudioGenMode] = useState<'suno' | 'elevenlabs' | null>(null);
   const [audioGenPending, setAudioGenPending] = useState(false);
@@ -1389,7 +1389,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
               ref={uploadInputRef}
               type="file"
               multiple
-              accept={activeTab === 'video' ? 'video/*,image/*' : 'audio/*'}
+              accept={activeTab === 'video' ? 'video/*' : activeTab === 'image' ? 'image/*' : 'audio/*'}
               className="hidden"
               onChange={handleFileSelect}
             />
@@ -1416,6 +1416,17 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
             }`}
           >
             Video
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('image')}
+            className={`px-3 py-2 text-xs font-medium transition ${
+              activeTab === 'image'
+                ? 'border-b-2 border-neutral-900 text-neutral-900'
+                : 'text-neutral-500 hover:text-neutral-700'
+            }`}
+          >
+            Images
           </button>
           <button
             type="button"
@@ -1460,6 +1471,25 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
           </div>
         )}
 
+        {/* Images Tab Buttons */}
+        {activeTab === 'image' && (
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => uploadInputRef.current?.click()}
+              disabled={uploadPending}
+              className="group w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700 transition-all hover:border-blue-300 hover:bg-blue-100 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-75"
+            >
+              <div className="flex items-center justify-center gap-2">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                {uploadPending ? 'Uploading…' : 'Upload Images'}
+              </div>
+            </button>
+          </div>
+        )}
+
         {/* Audio Tab Buttons */}
         {activeTab === 'audio' && (
           <div className="flex flex-col gap-2">
@@ -1500,12 +1530,12 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
               Loading assets…
             </div>
           )}
-          {!loadingAssets && assets.filter((a) => activeTab === 'video' ? a.type === 'video' || a.type === 'image' : a.type === 'audio').length === 0 && (
+          {!loadingAssets && assets.filter((a) => activeTab === 'video' ? a.type === 'video' : activeTab === 'image' ? a.type === 'image' : a.type === 'audio').length === 0 && (
             <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
-              {activeTab === 'video' ? 'No video assets yet. Upload video to begin editing.' : 'No audio assets yet. Upload or generate audio.'}
+              {activeTab === 'video' ? 'No video assets yet. Upload video to begin editing.' : activeTab === 'image' ? 'No image assets yet. Upload images.' : 'No audio assets yet. Upload or generate audio.'}
             </div>
           )}
-          {assets.filter((a) => activeTab === 'video' ? a.type === 'video' || a.type === 'image' : a.type === 'audio').map((asset) => (
+          {assets.filter((a) => activeTab === 'video' ? a.type === 'video' : activeTab === 'image' ? a.type === 'image' : a.type === 'audio').map((asset) => (
             <div key={asset.id} className="group relative flex flex-col gap-2">
               <button
                 type="button"

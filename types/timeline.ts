@@ -55,10 +55,26 @@ export type Marker = {
   color?: string; // Hex color (e.g., '#ff0000')
 };
 
+export type TextOverlay = {
+  id: string;
+  text: string;
+  timelinePosition: number; // Start time in seconds
+  duration: number; // How long the text appears (seconds)
+  x: number; // X position (0-100, percentage of video width)
+  y: number; // Y position (0-100, percentage of video height)
+  fontSize?: number; // Font size in pixels (default 24)
+  color?: string; // Text color (default white)
+  backgroundColor?: string; // Background color (default transparent)
+  fontFamily?: string; // Font family (default sans-serif)
+  align?: 'left' | 'center' | 'right'; // Text alignment (default center)
+  opacity?: number; // Text opacity (0-1, default 1.0)
+};
+
 export type Timeline = {
   projectId: string;
   clips: Clip[];
   output: OutputSpec;
   tracks?: Track[]; // Track configurations
   markers?: Marker[]; // Timeline markers
+  textOverlays?: TextOverlay[]; // Text overlays
 };

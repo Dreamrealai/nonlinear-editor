@@ -18,7 +18,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
-import type { Clip } from '@/types/timeline';
+import type { Clip, TextOverlay } from '@/types/timeline';
+import TextOverlayRenderer from './TextOverlayRenderer';
+import VideoPlayerHoverMenu from './VideoPlayerHoverMenu';
 
 /** Default TTL for signed URLs in seconds (10 minutes) */
 const SIGNED_URL_TTL_DEFAULT = 600;
@@ -247,6 +249,9 @@ export default function PreviewPlayer() {
   const timeline = useEditorStore((state) => state.timeline);
   const currentTime = useEditorStore((state) => state.currentTime);
   const setCurrentTime = useEditorStore((state) => state.setCurrentTime);
+  const addTextOverlay = useEditorStore((state) => state.addTextOverlay);
+  const addTransitionToSelectedClips = useEditorStore((state) => state.addTransitionToSelectedClips);
+  const selectedClipIds = useEditorStore((state) => state.selectedClipIds);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const videoMapRef = useRef<Map<string, HTMLVideoElement>>(new Map());
@@ -730,6 +735,36 @@ export default function PreviewPlayer() {
     };
   }, [timeline, currentTime, ensureClipElement, syncClipsAtTime, clipMetas]);
 
+  // Handler for adding text overlay from hover menu
+  const handleAddText = useCallback(
+    (x: number, y: number) => {
+      const newTextOverlay: TextOverlay = {
+        id: `text-${Date.now()}`,
+        text: 'New Text',
+        timelinePosition: currentTime,
+        duration: 3, // Default 3 seconds
+        x,
+        y,
+        fontSize: 48,
+        color: '#ffffff',
+        backgroundColor: 'transparent',
+        fontFamily: 'sans-serif',
+        align: 'center',
+        opacity: 1.0,
+      };
+      addTextOverlay(newTextOverlay);
+    },
+    [currentTime, addTextOverlay]
+  );
+
+  // Handler for adding transition to selected clips from hover menu
+  const handleAddTransition = useCallback(() => {
+    if (selectedClipIds.size > 0) {
+      // Default to crossfade with 0.5s duration
+      addTransitionToSelectedClips('crossfade', 0.5);
+    }
+  }, [selectedClipIds, addTransitionToSelectedClips]);
+
   if (!timeline) {
     return null;
   }
@@ -748,6 +783,20 @@ export default function PreviewPlayer() {
       {/* Video Preview with overlay controls */}
       <div className="relative flex-1 overflow-hidden rounded-xl bg-black">
         <div ref={containerRef} className="absolute inset-0" />
+
+        {/* Text Overlays */}
+        {timeline.textOverlays && timeline.textOverlays.length > 0 && (
+          <TextOverlayRenderer textOverlays={timeline.textOverlays} currentTime={currentTime} />
+        )}
+
+        {/* Hover Menu for Adding Text and Transitions */}
+        {!isPlaying && (
+          <VideoPlayerHoverMenu
+            onAddText={handleAddText}
+            onAddTransition={handleAddTransition}
+            currentTime={currentTime}
+          />
+        )}
 
         {/* Overlay Controls - Auto-hide on play */}
         {showControls && (

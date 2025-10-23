@@ -23,7 +23,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { enableMapSet } from 'immer';
-import type { Timeline, Clip, Marker, Track } from '@/types/timeline';
+import type { Timeline, Clip, Marker, Track, TextOverlay, TransitionType } from '@/types/timeline';
 
 /** Maximum number of undo/redo states to keep in history */
 const MAX_HISTORY = 50;
@@ -86,6 +86,18 @@ type EditorStore = {
   // ===== Track Actions =====
   /** Update or create a track (auto-creates if not exists) */
   updateTrack: (trackIndex: number, patch: Partial<Track>) => void;
+
+  // ===== Text Overlay Actions =====
+  /** Add a text overlay to the timeline */
+  addTextOverlay: (textOverlay: TextOverlay) => void;
+  /** Remove a text overlay */
+  removeTextOverlay: (id: string) => void;
+  /** Update text overlay properties */
+  updateTextOverlay: (id: string, patch: Partial<TextOverlay>) => void;
+
+  // ===== Transition Actions =====
+  /** Add a transition to selected clips */
+  addTransitionToSelectedClips: (transitionType: TransitionType, duration: number) => void;
 
   // ===== Selection Actions =====
   /** Select/deselect clip (multi=true for multi-select) */
@@ -375,6 +387,91 @@ export const useEditorStore = create<EditorStore>()(
 
         Object.assign(track, patch);
       }),
+
+    // ===== Text Overlay Actions =====
+    addTextOverlay: (textOverlay) =>
+      set((state) => {
+        if (!state.timeline) return;
+        if (!state.timeline.textOverlays) {
+          state.timeline.textOverlays = [];
+        }
+        state.timeline.textOverlays.push(textOverlay);
+
+        // Save to history
+        const cloned = cloneTimeline(state.timeline);
+        if (cloned) {
+          state.history = state.history.slice(0, state.historyIndex + 1);
+          state.history.push(cloned);
+          if (state.history.length > MAX_HISTORY) {
+            state.history.shift();
+          } else {
+            state.historyIndex++;
+          }
+        }
+      }),
+    removeTextOverlay: (id) =>
+      set((state) => {
+        if (!state.timeline?.textOverlays) return;
+        state.timeline.textOverlays = state.timeline.textOverlays.filter((t) => t.id !== id);
+
+        // Save to history
+        const cloned = cloneTimeline(state.timeline);
+        if (cloned) {
+          state.history = state.history.slice(0, state.historyIndex + 1);
+          state.history.push(cloned);
+          if (state.history.length > MAX_HISTORY) {
+            state.history.shift();
+          } else {
+            state.historyIndex++;
+          }
+        }
+      }),
+    updateTextOverlay: (id, patch) =>
+      set((state) => {
+        const textOverlay = state.timeline?.textOverlays?.find((t) => t.id === id);
+        if (textOverlay) {
+          Object.assign(textOverlay, patch);
+
+          // Save to history
+          const cloned = cloneTimeline(state.timeline);
+          if (cloned) {
+            state.history = state.history.slice(0, state.historyIndex + 1);
+            state.history.push(cloned);
+            if (state.history.length > MAX_HISTORY) {
+              state.history.shift();
+            } else {
+              state.historyIndex++;
+            }
+          }
+        }
+      }),
+
+    // ===== Transition Actions =====
+    addTransitionToSelectedClips: (transitionType, duration) =>
+      set((state) => {
+        if (!state.timeline) return;
+
+        // Add transition to all selected clips
+        state.selectedClipIds.forEach((clipId) => {
+          const clip = state.timeline!.clips.find((c) => c.id === clipId);
+          if (clip) {
+            clip.transitionToNext = { type: transitionType, duration };
+          }
+        });
+
+        // Save to history
+        const cloned = cloneTimeline(state.timeline);
+        if (cloned) {
+          state.history = state.history.slice(0, state.historyIndex + 1);
+          state.history.push(cloned);
+          if (state.history.length > MAX_HISTORY) {
+            state.history.shift();
+          } else {
+            state.historyIndex++;
+          }
+        }
+      }),
+
     selectClip: (id, multi = false) =>
       set((state) => {
         if (multi) {
