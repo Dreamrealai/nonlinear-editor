@@ -24,6 +24,7 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
   const [title, setTitle] = useState('');
   const [customMode, setCustomMode] = useState(false);
   const [instrumental, setInstrumental] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleGenerateMusic = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,105 +146,124 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
 
           {/* Music Generation Form */}
           {audioType === 'music' && (
-            <form onSubmit={handleGenerateMusic} className="space-y-6">
-              {/* Mode Selection */}
+            <form onSubmit={handleGenerateMusic} className="space-y-4">
+              {/* Prompt */}
               <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-                <div className="flex items-center gap-4 mb-4">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      checked={!customMode}
-                      onChange={() => setCustomMode(false)}
-                      disabled={generating}
-                      className="h-4 w-4"
-                    />
-                    <span className="text-sm font-medium text-neutral-900">Simple Mode</span>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      checked={customMode}
-                      onChange={() => setCustomMode(true)}
-                      disabled={generating}
-                      className="h-4 w-4"
-                    />
-                    <span className="text-sm font-medium text-neutral-900">Custom Mode</span>
-                  </label>
-                </div>
+                <label htmlFor="prompt" className="block text-sm font-semibold text-neutral-900 mb-2">
+                  {customMode ? 'Lyrics / Description' : 'Music Description *'}
+                </label>
+                <textarea
+                  id="prompt"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder={customMode
+                    ? "Enter your lyrics or description here..."
+                    : "An upbeat electronic track with synth melodies, perfect for a tech video"
+                  }
+                  rows={4}
+                  disabled={generating}
+                  className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  required={!customMode}
+                />
+                <p className="mt-2 text-xs text-neutral-500">
+                  Describe the music you want to generate
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Left Column */}
-                <div className="space-y-6">
-                  {/* Prompt */}
-                  <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-                    <label htmlFor="prompt" className="block text-sm font-semibold text-neutral-900 mb-2">
-                      {customMode ? 'Lyrics / Description' : 'Music Description *'}
-                    </label>
-                    <textarea
-                      id="prompt"
-                      value={prompt}
-                      onChange={(e) => setPrompt(e.target.value)}
-                      placeholder={customMode
-                        ? "Enter your lyrics or description here..."
-                        : "An upbeat electronic track with synth melodies, perfect for a tech video"
-                      }
-                      rows={6}
-                      disabled={generating}
-                      className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                      required={!customMode}
-                    />
-                    <p className="mt-2 text-xs text-neutral-500">
-                      {customMode
-                        ? 'Provide lyrics or a detailed description for your custom track.'
-                        : 'Describe the music you want to generate. Be specific about genre, mood, and instruments.'}
-                    </p>
-                  </div>
+              {/* Title */}
+              <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+                <label htmlFor="title" className="block text-xs font-medium text-neutral-700 mb-2">
+                  Title (optional)
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="My Awesome Track"
+                  disabled={generating}
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
 
-                  {/* Title */}
-                  <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-                    <label htmlFor="title" className="block text-sm font-semibold text-neutral-900 mb-2">
-                      Title (optional)
-                    </label>
-                    <input
-                      type="text"
-                      id="title"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="My Awesome Track"
-                      disabled={generating}
-                      className="w-full rounded-lg border border-neutral-300 px-4 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                    />
+              {/* Advanced Settings Collapsible */}
+              <div className="rounded-lg border border-neutral-200 bg-white shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="w-full flex items-center justify-between p-4 text-left hover:bg-neutral-50 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <svg
+                      className={`h-4 w-4 text-neutral-500 transition-transform ${showAdvanced ? 'rotate-90' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    <span className="text-sm font-semibold text-neutral-900">Advanced Settings</span>
                   </div>
-                </div>
+                  <span className="text-xs text-neutral-500">
+                    {showAdvanced ? 'Hide' : 'Show'}
+                  </span>
+                </button>
 
-                {/* Right Column */}
-                <div className="space-y-6">
-                  {/* Style (Custom Mode) */}
-                  {customMode && (
-                    <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-                      <label htmlFor="style" className="block text-sm font-semibold text-neutral-900 mb-2">
-                        Style / Genre *
+                {showAdvanced && (
+                  <div className="border-t border-neutral-200 p-6 space-y-4">
+                    {/* Mode Selection */}
+                    <div>
+                      <label className="block text-xs font-medium text-neutral-700 mb-2">
+                        Generation Mode
                       </label>
-                      <input
-                        type="text"
-                        id="style"
-                        value={style}
-                        onChange={(e) => setStyle(e.target.value)}
-                        placeholder="electronic, synth-pop, upbeat"
-                        disabled={generating}
-                        className="w-full rounded-lg border border-neutral-300 px-4 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                        required={customMode}
-                      />
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            checked={!customMode}
+                            onChange={() => setCustomMode(false)}
+                            disabled={generating}
+                            className="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500/20"
+                          />
+                          <span className="text-sm text-neutral-700">Simple Mode</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            checked={customMode}
+                            onChange={() => setCustomMode(true)}
+                            disabled={generating}
+                            className="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500/20"
+                          />
+                          <span className="text-sm text-neutral-700">Custom Mode</span>
+                        </label>
+                      </div>
                       <p className="mt-2 text-xs text-neutral-500">
-                        Specify the musical style or genre (e.g., &quot;pop rock&quot;, &quot;lo-fi hip-hop&quot;, &quot;orchestral&quot;).
+                        Simple mode auto-generates lyrics. Custom mode lets you provide your own.
                       </p>
                     </div>
-                  )}
 
-                  {/* Settings */}
-                  <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm space-y-4">
-                    <h3 className="text-sm font-semibold text-neutral-900">Settings</h3>
+                    {/* Style (Custom Mode) */}
+                    {customMode && (
+                      <div>
+                        <label htmlFor="style" className="block text-xs font-medium text-neutral-700 mb-2">
+                          Style / Genre *
+                        </label>
+                        <input
+                          type="text"
+                          id="style"
+                          value={style}
+                          onChange={(e) => setStyle(e.target.value)}
+                          placeholder="electronic, synth-pop, upbeat"
+                          disabled={generating}
+                          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                          required={customMode}
+                        />
+                        <p className="mt-1 text-xs text-neutral-500">
+                          e.g., &quot;pop rock&quot;, &quot;lo-fi hip-hop&quot;, &quot;orchestral&quot;
+                        </p>
+                      </div>
+                    )}
 
                     {/* Instrumental */}
                     <div className="flex items-center gap-3">
@@ -253,32 +273,14 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
                         checked={instrumental}
                         onChange={(e) => setInstrumental(e.target.checked)}
                         disabled={generating}
-                        className="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900"
+                        className="h-4 w-4 rounded border-neutral-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20"
                       />
                       <label htmlFor="instrumental" className="text-sm text-neutral-700">
                         Make instrumental (no vocals)
                       </label>
                     </div>
                   </div>
-
-                  {/* Info Box */}
-                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                    <div className="flex gap-3">
-                      <svg className="h-5 w-5 text-blue-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <div className="text-xs text-blue-900">
-                        <p className="font-semibold mb-1">Generation Tips:</p>
-                        <ul className="space-y-1 list-disc list-inside">
-                          <li>Simple mode: AI generates lyrics automatically</li>
-                          <li>Custom mode: Provide your own lyrics/style</li>
-                          <li>Be specific about mood and instruments</li>
-                          <li>Generation typically takes 1-2 minutes</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* Submit Button */}
