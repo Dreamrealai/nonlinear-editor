@@ -29,9 +29,10 @@ const getClipFileName = (clip: Clip): string => {
 type HorizontalTimelineProps = {
   onDetectScenes?: () => void;
   sceneDetectPending?: boolean;
+  onExport?: () => void;
 };
 
-export default function HorizontalTimeline({ onDetectScenes, sceneDetectPending = false }: HorizontalTimelineProps = {}) {
+export default function HorizontalTimeline({ onDetectScenes, sceneDetectPending = false, onExport }: HorizontalTimelineProps = {}) {
   const timeline = useEditorStore((state) => state.timeline);
   const currentTime = useEditorStore((state) => state.currentTime);
   const zoom = useEditorStore((state) => state.zoom);
@@ -463,6 +464,18 @@ export default function HorizontalTimeline({ onDetectScenes, sceneDetectPending 
                 title="Detect scenes in video"
               >
                 {sceneDetectPending ? 'Detecting...' : 'Detect Scenes'}
+              </button>
+            </>
+          )}
+          {onExport && (
+            <>
+              <div className="h-4 w-px bg-neutral-300" />
+              <button
+                onClick={onExport}
+                className="rounded px-3 py-1 text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                title="Export/Render video"
+              >
+                Export Video
               </button>
             </>
           )}

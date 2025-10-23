@@ -7,6 +7,7 @@ import { v4 as uuid } from 'uuid';
 import toast, { Toaster } from 'react-hot-toast';
 import HorizontalTimeline from '@/components/HorizontalTimeline';
 import PreviewPlayer from '@/components/PreviewPlayer';
+import ExportModal from '@/components/ExportModal';
 import { useAutosave } from '@/lib/hooks/useAutosave';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { saveTimeline, loadTimeline } from '@/lib/saveLoad';
@@ -434,6 +435,9 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   const [audioGenMode, setAudioGenMode] = useState<'suno' | 'elevenlabs' | null>(null);
   const [audioGenPending, setAudioGenPending] = useState(false);
 
+  // Export state
+  const [showExportModal, setShowExportModal] = useState(false);
+
   const timeline = useEditorStore((state) => state.timeline);
   const setTimeline = useEditorStore((state) => state.setTimeline);
   const addClip = useEditorStore((state) => state.addClip);
@@ -786,6 +790,14 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
     }
   }, [assets, projectId, timeline, setTimeline]);
 
+  const handleExportClick = useCallback(() => {
+    if (!timeline || timeline.clips.length === 0) {
+      toast.error('Add clips to timeline before exporting');
+      return;
+    }
+    setShowExportModal(true);
+  }, [timeline]);
+
   // Audio generation handlers
   const handleGenerateSuno = useCallback(async (formData: { prompt: string; style?: string; title?: string; customMode?: boolean; instrumental?: boolean }) => {
     setAudioGenPending(true);
@@ -1075,6 +1087,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
           <HorizontalTimeline
             onDetectScenes={handleDetectScenes}
             sceneDetectPending={sceneDetectPending}
+            onExport={handleExportClick}
           />
         </section>
       </main>
@@ -1277,6 +1290,14 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
           </div>
         </div>
       )}
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        projectId={projectId}
+        timeline={timeline}
+      />
     </div>
   );
 }

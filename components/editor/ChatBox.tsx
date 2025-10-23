@@ -265,7 +265,7 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
         >
           {GEMINI_MODELS.map(model => (
             <option key={model.id} value={model.id}>
-              {model.name} - {model.description}
+              {model.name}
             </option>
           ))}
         </select>
