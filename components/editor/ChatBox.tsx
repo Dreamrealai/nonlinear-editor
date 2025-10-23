@@ -250,12 +250,7 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
             </svg>
           </div>
-          <div>
-            <div className="text-sm font-semibold text-neutral-900">AI Assistant</div>
-            <div className="text-xs text-neutral-500">
-              {GEMINI_MODELS.find(m => m.id === selectedModel)?.name}
-            </div>
-          </div>
+          <div className="text-sm font-semibold text-neutral-900">DreamReal Assistant</div>
         </div>
       </div>
 

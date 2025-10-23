@@ -31,7 +31,7 @@ export default function EditorLayout({
       <button
         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
         className="fixed right-4 top-4 z-50 rounded-lg bg-white border border-neutral-200 p-2 shadow-lg hover:bg-neutral-50"
-        title={sidebarCollapsed ? 'Show AI Assistant' : 'Hide AI Assistant'}
+        title={sidebarCollapsed ? 'Show DreamReal Assistant' : 'Hide DreamReal Assistant'}
       >
         <svg className="h-5 w-5 text-neutral-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           {sidebarCollapsed ? (

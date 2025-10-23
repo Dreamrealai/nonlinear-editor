@@ -8,6 +8,7 @@
 - ✅ API routes created (`/api/stripe/checkout`, `/api/stripe/webhook`, `/api/stripe/portal`)
 - ✅ `STRIPE_SECRET_KEY` added to Vercel (Production, Preview, Development)
 - ✅ `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` added to Vercel (Production, Preview, Development)
+- ✅ `STRIPE_WEBHOOK_SECRET` added to Vercel (Production, Preview, Development)
 - ✅ Webhook endpoints created in Stripe Dashboard
 
 ## 🚀 Quick Setup (3 Steps)
@@ -127,7 +128,7 @@ stripe logs tail
 |----------|--------|--------------|
 | `STRIPE_SECRET_KEY` | ✅ Set | Production, Preview, Development |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | ✅ Set | Production, Preview, Development |
-| `STRIPE_WEBHOOK_SECRET` | ⚠️ **Need to add** | Production, Preview, Development |
+| `STRIPE_WEBHOOK_SECRET` | ✅ Set | Production, Preview, Development |
 | `STRIPE_PREMIUM_PRICE_ID` | ⚠️ **Optional** | Production, Preview, Development |
 
 ## 🎯 Subscription Flow
