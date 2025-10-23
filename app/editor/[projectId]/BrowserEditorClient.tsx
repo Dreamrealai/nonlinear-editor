@@ -23,7 +23,7 @@ import {
   LazyHorizontalTimeline,
   LazyPreviewPlayer,
   LazyExportModal,
-  LazyClipPropertiesPanel
+  LazyClipPropertiesPanel,
 } from '@/components/LazyComponents';
 import EditorHeader from '@/components/EditorHeader'; // Keep eager-loaded for faster header display
 import TimelineCorrectionsMenu from '@/components/editor/TimelineCorrectionsMenu';
@@ -35,6 +35,7 @@ import type { Clip, Timeline as TimelineType } from '@/types/timeline';
 import { useEditorStore } from '@/state/useEditorStore';
 import { browserLogger } from '@/lib/browserLogger';
 import { safeArrayMax, safeArrayGet, safeArrayLast } from '@/lib/utils/arrayUtils';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 /**
  * Metadata associated with media assets.
@@ -154,12 +155,14 @@ const enrichTimelineWithSourceDurations = (
         }
       }
       return [asset.id, duration];
-    }),
+    })
   );
 
   // Update each clip with duration and normalize trim points
   const clips = timeline.clips.map((clip) => {
-    const assetDuration = assetDurations.has(clip.assetId) ? assetDurations.get(clip.assetId) ?? null : clip.sourceDuration ?? null;
+    const assetDuration = assetDurations.has(clip.assetId)
+      ? (assetDurations.get(clip.assetId) ?? null)
+      : (clip.sourceDuration ?? null);
     const normalizedDuration =
       typeof assetDuration === 'number' && Number.isFinite(assetDuration)
         ? Math.max(assetDuration, MIN_CLIP_DURATION)
@@ -167,7 +170,7 @@ const enrichTimelineWithSourceDurations = (
 
     const next: Clip = {
       ...clip,
-      sourceDuration: normalizedDuration ?? (clip.sourceDuration ?? null),
+      sourceDuration: normalizedDuration ?? clip.sourceDuration ?? null,
     };
 
     // Ensure trim points (start/end) are within valid bounds
@@ -561,9 +564,10 @@ async function uploadAsset({ file, projectId, assetType }: UploadAssetArgs) {
 const mapAssetRow = (row: Record<string, unknown>): AssetRow | null => {
   const id = typeof row.id === 'string' ? row.id : null;
   const storageUrl = typeof row.storage_url === 'string' ? row.storage_url : null;
-  const duration = typeof row.duration_seconds === 'number' && Number.isFinite(row.duration_seconds)
-    ? row.duration_seconds
-    : null;
+  const duration =
+    typeof row.duration_seconds === 'number' && Number.isFinite(row.duration_seconds)
+      ? row.duration_seconds
+      : null;
   const createdAt = typeof row.created_at === 'string' ? row.created_at : null;
   const type = isAssetType(row.type) ? row.type : null;
 
@@ -571,7 +575,9 @@ const mapAssetRow = (row: Record<string, unknown>): AssetRow | null => {
     return null;
   }
 
-  const parsedMetadata = parseAssetMetadata((row.metadata ?? null) as Record<string, unknown> | null);
+  const parsedMetadata = parseAssetMetadata(
+    (row.metadata ?? null) as Record<string, unknown> | null
+  );
   const rawMetadata = (row.rawMetadata ?? null) as Record<string, unknown> | null;
   const metadataDuration = parsedMetadata?.durationSeconds ?? null;
   return {
@@ -649,7 +655,9 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   const addClip = useEditorStore((state) => state.addClip);
 
   // Play/pause state ref for keyboard shortcuts
-  const playPauseStateRef = useRef<{ isPlaying: boolean; togglePlayPause: () => void } | null>(null);
+  const playPauseStateRef = useRef<{ isPlaying: boolean; togglePlayPause: () => void } | null>(
+    null
+  );
 
   // Enable keyboard shortcuts with proper play/pause integration
   useKeyboardShortcuts({
@@ -768,12 +776,20 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
     void (async () => {
       for (const asset of missingThumbnails) {
         try {
-          const bucketName = safeArrayGet(asset.storage_url.replace('supabase://', '').split('/'), 0);
+          const bucketName = safeArrayGet(
+            asset.storage_url.replace('supabase://', '').split('/'),
+            0
+          );
           if (!bucketName) continue;
 
-          const signedUrlResponse = await supabase.storage
-            .from(bucketName)
-            .createSignedUrl(asset.storage_url.replace(/^supabase:\/\//, '').split('/').slice(1).join('/'), 600);
+          const signedUrlResponse = await supabase.storage.from(bucketName).createSignedUrl(
+            asset.storage_url
+              .replace(/^supabase:\/\//, '')
+              .split('/')
+              .slice(1)
+              .join('/'),
+            600
+          );
 
           if (!signedUrlResponse.data?.signedUrl) {
             continue;
@@ -811,8 +827,8 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
                       thumbnail,
                     },
                   }
-                : entry,
-            ),
+                : entry
+            )
           );
         } catch (error) {
           browserLogger.error({ error, assetId: asset.id }, 'Failed to generate thumbnail');
@@ -822,22 +838,18 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   }, [assets, assetsLoaded, timeline, supabase]);
 
   // Autosave timeline
-  useAutosave(
-    projectId,
-    2000,
-    async (projectIdParam, timelineToSave) => {
-      if (!timelineToSave) {
-        return;
-      }
-      try {
-        await saveTimeline(projectIdParam, timelineToSave);
-        toast.success('Timeline saved');
-      } catch (error) {
-        browserLogger.error({ error, projectId: projectIdParam }, 'Failed to autosave timeline');
-        toast.error('Failed to autosave timeline');
-      }
-    },
-  );
+  useAutosave(projectId, 2000, async (projectIdParam, timelineToSave) => {
+    if (!timelineToSave) {
+      return;
+    }
+    try {
+      await saveTimeline(projectIdParam, timelineToSave);
+      toast.success('Timeline saved');
+    } catch (error) {
+      browserLogger.error({ error, projectId: projectIdParam }, 'Failed to autosave timeline');
+      toast.error('Failed to autosave timeline');
+    }
+  });
 
   const handleAssetUpload = useCallback(
     async (file: File) => {
@@ -855,7 +867,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
         toast.error('Failed to upload asset');
       }
     },
-    [projectId],
+    [projectId]
   );
 
   const handleFileSelect = useCallback(
@@ -876,7 +888,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
         }
       }
     },
-    [handleAssetUpload],
+    [handleAssetUpload]
   );
 
   const handleAssetDelete = useCallback(
@@ -886,7 +898,11 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
       }
 
       try {
-        const { error } = await supabase.from('assets').delete().eq('id', asset.id).eq('project_id', projectId);
+        const { error } = await supabase
+          .from('assets')
+          .delete()
+          .eq('id', asset.id)
+          .eq('project_id', projectId);
 
         if (error) {
           browserLogger.error({ error, assetId: asset.id }, 'Failed to delete asset');
@@ -914,45 +930,55 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
         toast.error('Failed to delete asset');
       }
     },
-    [projectId, timeline, setTimeline, supabase],
+    [projectId, timeline, setTimeline, supabase]
   );
 
-  const handleClipAdd = useCallback(async (asset: AssetRow) => {
-    if (!timeline) {
-      toast.error('Timeline not ready');
-      return;
-    }
+  const handleClipAdd = useCallback(
+    async (asset: AssetRow) => {
+      if (!timeline) {
+        toast.error('Timeline not ready');
+        return;
+      }
 
-    const assetDuration =
-      typeof asset.duration_seconds === 'number' && Number.isFinite(asset.duration_seconds)
-        ? asset.duration_seconds
-        : typeof asset.metadata?.durationSeconds === 'number' && Number.isFinite(asset.metadata.durationSeconds)
-          ? asset.metadata.durationSeconds
-          : null;
-    const clip: Clip = {
-      id: uuid(),
-      assetId: asset.id,
-      filePath: asset.storage_url,
-      mime: asset.metadata?.mimeType ?? 'video/mp4',
-      start: 0,
-      end: assetDuration ?? 5,
-      sourceDuration: assetDuration,
-      timelinePosition: timeline.clips.length > 0 ? safeArrayMax(timeline.clips.map((c) => c.timelinePosition + (c.end - c.start)), 0) : 0,
-      trackIndex: 0,
-      crop: null,
-      transitionToNext: { type: 'none', duration: 0.5 },
-      previewUrl: asset.metadata?.sourceUrl ?? null,
-      thumbnailUrl: asset.metadata?.thumbnail ?? null,
-      hasAudio: asset.type !== 'image',
-    };
+      const assetDuration =
+        typeof asset.duration_seconds === 'number' && Number.isFinite(asset.duration_seconds)
+          ? asset.duration_seconds
+          : typeof asset.metadata?.durationSeconds === 'number' &&
+              Number.isFinite(asset.metadata.durationSeconds)
+            ? asset.metadata.durationSeconds
+            : null;
+      const clip: Clip = {
+        id: uuid(),
+        assetId: asset.id,
+        filePath: asset.storage_url,
+        mime: asset.metadata?.mimeType ?? 'video/mp4',
+        start: 0,
+        end: assetDuration ?? 5,
+        sourceDuration: assetDuration,
+        timelinePosition:
+          timeline.clips.length > 0
+            ? safeArrayMax(
+                timeline.clips.map((c) => c.timelinePosition + (c.end - c.start)),
+                0
+              )
+            : 0,
+        trackIndex: 0,
+        crop: null,
+        transitionToNext: { type: 'none', duration: 0.5 },
+        previewUrl: asset.metadata?.sourceUrl ?? null,
+        thumbnailUrl: asset.metadata?.thumbnail ?? null,
+        hasAudio: asset.type !== 'image',
+      };
 
-    addClip(clip);
-    setTimeline({
-      ...timeline,
-      clips: [...timeline.clips, clip],
-    });
-    toast.success('Clip added to timeline');
-  }, [timeline, addClip, setTimeline]);
+      addClip(clip);
+      setTimeline({
+        ...timeline,
+        clips: [...timeline.clips, clip],
+      });
+      toast.success('Clip added to timeline');
+    },
+    [timeline, addClip, setTimeline]
+  );
 
   const handleDetectScenes = useCallback(async () => {
     const latestVideo = assets.find((asset) => asset.type === 'video');
@@ -976,31 +1002,45 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
       if (!res.ok) {
         const errorMsg = json.details
           ? `${json.error || 'Scene detection failed'}: ${json.details}`
-          : (json.error || 'Scene detection failed');
+          : json.error || 'Scene detection failed';
         throw new Error(errorMsg);
       }
 
-      browserLogger.info({ projectId, assetId: latestVideo.id, sceneCount: json.scenes?.length }, 'Scenes detected successfully');
+      browserLogger.info(
+        { projectId, assetId: latestVideo.id, sceneCount: json.scenes?.length },
+        'Scenes detected successfully'
+      );
       toast.success(`Detected ${json.scenes?.length ?? 0} scenes`, { id: 'detect-scenes' });
 
       // Optionally: add scenes as clips to timeline
       if (json.scenes && Array.isArray(json.scenes) && timeline) {
-        const newClips: Clip[] = json.scenes.map((scene: { startTime: number; endTime: number }, index: number) => ({
-          id: uuid(),
-          assetId: latestVideo.id,
-          filePath: latestVideo.storage_url,
-          mime: latestVideo.metadata?.mimeType ?? 'video/mp4',
-          start: scene.startTime,
-          end: scene.endTime,
-          sourceDuration: latestVideo.duration_seconds,
-          timelinePosition: index > 0 ? json.scenes.slice(0, index).reduce((acc: number, s: { startTime: number; endTime: number }) => acc + (s.endTime - s.startTime), 0) : 0,
-          trackIndex: 0,
-          crop: null,
-          transitionToNext: { type: 'none', duration: 0.5 },
-          previewUrl: latestVideo.metadata?.sourceUrl ?? null,
-          thumbnailUrl: latestVideo.metadata?.thumbnail ?? null,
-          hasAudio: latestVideo.type !== 'image',
-        }));
+        const newClips: Clip[] = json.scenes.map(
+          (scene: { startTime: number; endTime: number }, index: number) => ({
+            id: uuid(),
+            assetId: latestVideo.id,
+            filePath: latestVideo.storage_url,
+            mime: latestVideo.metadata?.mimeType ?? 'video/mp4',
+            start: scene.startTime,
+            end: scene.endTime,
+            sourceDuration: latestVideo.duration_seconds,
+            timelinePosition:
+              index > 0
+                ? json.scenes
+                    .slice(0, index)
+                    .reduce(
+                      (acc: number, s: { startTime: number; endTime: number }) =>
+                        acc + (s.endTime - s.startTime),
+                      0
+                    )
+                : 0,
+            trackIndex: 0,
+            crop: null,
+            transitionToNext: { type: 'none', duration: 0.5 },
+            previewUrl: latestVideo.metadata?.sourceUrl ?? null,
+            thumbnailUrl: latestVideo.metadata?.thumbnail ?? null,
+            hasAudio: latestVideo.type !== 'image',
+          })
+        );
 
         setTimeline({
           ...timeline,
@@ -1010,7 +1050,9 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
       }
     } catch (error) {
       browserLogger.error({ error, projectId }, 'Scene detection failed');
-      toast.error(error instanceof Error ? error.message : 'Scene detection failed', { id: 'detect-scenes' });
+      toast.error(error instanceof Error ? error.message : 'Scene detection failed', {
+        id: 'detect-scenes',
+      });
     } finally {
       setSceneDetectPending(false);
     }
@@ -1055,595 +1097,683 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
     toast.success('Transition added to selected clips');
   }, []);
 
-
   // Audio generation handlers
-  const handleGenerateSuno = useCallback(async (formData: { prompt: string; style?: string; title?: string; customMode?: boolean; instrumental?: boolean }) => {
-    setAudioGenPending(true);
-    toast.loading('Generating audio with Suno V5...', { id: 'generate-suno' });
+  const handleGenerateSuno = useCallback(
+    async (formData: {
+      prompt: string;
+      style?: string;
+      title?: string;
+      customMode?: boolean;
+      instrumental?: boolean;
+    }) => {
+      setAudioGenPending(true);
+      toast.loading('Generating audio with Suno V5...', { id: 'generate-suno' });
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
 
-      const res = await fetch('/api/audio/suno/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          projectId,
-        }),
-      });
-
-      const json = await res.json();
-
-      if (!res.ok) {
-        throw new Error(json.error || 'Audio generation failed');
-      }
-
-      const taskId = json.taskId;
-      toast.success('Audio generation started', { id: 'generate-suno' });
-
-      // Poll for completion
-      let attempts = 0;
-      const maxAttempts = 60; // 5 minutes max
-      const pollInterval = 5000; // 5 seconds
-
-      const poll = async (): Promise<void> => {
-        attempts++;
-        if (attempts > maxAttempts) {
-          throw new Error('Audio generation timed out');
-        }
-
-          const statusRes = await fetch(`/api/audio/suno/status?taskId=${taskId}&projectId=${projectId}`);
-        const statusJson = await statusRes.json();
-
-        if (!statusRes.ok) {
-          throw new Error(statusJson.error || 'Status check failed');
-        }
-
-        const task = statusJson.tasks?.[0];
-        if (!task) {
-          throw new Error('Task not found');
-        }
-
-        if (task.status === 'complete' && task.audioUrl) {
-          toast.success('Audio generated successfully!', { id: 'generate-suno' });
-
-          // Upload to Supabase and create asset
-          const audioRes = await fetch(task.audioUrl);
-          const audioBlob = await audioRes.blob();
-          const fileName = `suno_${Date.now()}.mp3`;
-          const filePath = `${user.id}/${projectId}/audio/${fileName}`;
-
-          const { error: uploadError } = await supabase.storage
-            .from('assets')
-            .upload(filePath, audioBlob, { contentType: 'audio/mpeg' });
-
-          if (uploadError) throw uploadError;
-
-          const storageUrl = `supabase://assets/${filePath}`;
-          const { data: newAsset, error: assetError } = await supabase
-            .from('assets')
-            .insert({
-              project_id: projectId,
-              user_id: user.id,
-              storage_url: storageUrl,
-              type: 'audio',
-              source: 'genai',
-              mime_type: 'audio/mpeg',
-              duration_sec: task.duration ?? null,
-              metadata: {
-                filename: fileName,
-                provider: 'suno',
-                prompt: task.prompt,
-                title: task.title,
-                tags: task.tags,
-              },
-            })
-            .select()
-            .single();
-
-          if (assetError) throw assetError;
-
-          const mappedAsset = mapAssetRow(newAsset as Record<string, unknown>);
-          if (mappedAsset) {
-            setAssets((prev) => [mappedAsset, ...prev]);
-          }
-
-          setShowAudioModal(false);
-          setActiveTab('audio');
-        } else if (task.status === 'failed') {
-          throw new Error('Audio generation failed');
-        } else {
-          // Still processing, poll again - track timeout for cleanup
-          const timeout = setTimeout(poll, pollInterval);
-          pollingTimeoutsRef.current.add(timeout);
-        }
-      };
-
-      // Start polling - track timeout for cleanup
-      const initialTimeout = setTimeout(poll, pollInterval);
-      pollingTimeoutsRef.current.add(initialTimeout);
-    } catch (error) {
-      browserLogger.error({ error, projectId }, 'Suno audio generation failed');
-      toast.error(error instanceof Error ? error.message : 'Audio generation failed', { id: 'generate-suno' });
-      setAudioGenPending(false);
-    }
-  }, [supabase, projectId]);
-
-  const handleGenerateElevenLabs = useCallback(async (formData: { text: string; voiceId?: string; modelId?: string }) => {
-    setAudioGenPending(true);
-    toast.loading('Generating audio with ElevenLabs...', { id: 'generate-elevenlabs' });
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const res = await fetch('/api/audio/elevenlabs/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          projectId,
-          userId: user.id,
-        }),
-      });
-
-      const json = await res.json();
-
-      if (!res.ok) {
-        throw new Error(json.error || 'Audio generation failed');
-      }
-
-      toast.success('Audio generated successfully!', { id: 'generate-elevenlabs' });
-
-      const mappedAsset = mapAssetRow(json.asset as Record<string, unknown>);
-      if (mappedAsset) {
-        setAssets((prev) => [mappedAsset, ...prev]);
-      }
-
-      setShowAudioModal(false);
-      setActiveTab('audio');
-    } catch (error) {
-      browserLogger.error({ error, projectId }, 'ElevenLabs audio generation failed');
-      toast.error(error instanceof Error ? error.message : 'Audio generation failed', { id: 'generate-elevenlabs' });
-    } finally {
-      setAudioGenPending(false);
-    }
-  }, [supabase, projectId]);
-
-  const handleGenerateVideo = useCallback(async (formData: { prompt: string; aspectRatio?: '9:16' | '16:9' | '1:1'; duration?: number }) => {
-    setVideoGenPending(true);
-    toast.loading('Generating video with Veo 3.1...', { id: 'generate-video' });
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const res = await fetch('/api/video/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          projectId,
-        }),
-      });
-
-      const json = await res.json();
-
-      if (!res.ok) {
-        throw new Error(json.error || 'Video generation failed');
-      }
-
-      setVideoOperationName(json.operationName);
-      toast.loading('Video generation in progress... This may take several minutes.', { id: 'generate-video' });
-
-      // Poll for video generation status with cleanup tracking
-      const pollInterval = 10000; // 10 seconds
-      const poll = async () => {
-        try {
-          // Create AbortController and track it
-          const controller = new AbortController();
-          abortControllersRef.current.add(controller);
-
-          const statusRes = await fetch(
-            `/api/video/status?operationName=${encodeURIComponent(json.operationName)}&projectId=${projectId}`,
-            { signal: controller.signal }
-          );
-          const statusJson = await statusRes.json();
-
-          // Remove controller after successful fetch
-          abortControllersRef.current.delete(controller);
-
-          if (statusJson.done) {
-            if (statusJson.error) {
-              throw new Error(statusJson.error);
-            }
-
-            toast.success('Video generated successfully!', { id: 'generate-video' });
-
-            const mappedAsset = mapAssetRow(statusJson.asset as Record<string, unknown>);
-            if (mappedAsset) {
-              setAssets((prev) => [mappedAsset, ...prev]);
-            }
-
-            setShowVideoModal(false);
-            setVideoGenPending(false);
-            setVideoOperationName(null);
-            setActiveTab('video');
-          } else {
-            // Continue polling with tracked timeout
-            const timeout = setTimeout(poll, pollInterval);
-            pollingTimeoutsRef.current.add(timeout);
-          }
-        } catch (pollError) {
-          // Ignore abort errors
-          if (pollError instanceof Error && pollError.name === 'AbortError') {
-            return;
-          }
-
-          browserLogger.error({ error: pollError, projectId }, 'Video generation polling failed');
-          toast.error(pollError instanceof Error ? pollError.message : 'Video generation failed', { id: 'generate-video' });
-          setVideoGenPending(false);
-          setVideoOperationName(null);
-        }
-      };
-
-      const initialTimeout = setTimeout(poll, pollInterval);
-      pollingTimeoutsRef.current.add(initialTimeout);
-    } catch (error) {
-      browserLogger.error({ error, projectId }, 'Video generation failed');
-      toast.error(error instanceof Error ? error.message : 'Video generation failed', { id: 'generate-video' });
-      setVideoGenPending(false);
-    }
-  }, [supabase, projectId]);
-
-  const handleSplitAudio = useCallback(async (asset: AssetRow) => {
-    setSplitAudioPending(true);
-    toast.loading('Extracting audio from video...', { id: 'split-audio' });
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      // Get signed URL for the video
-      const { data: signData } = await supabase
-        .from('assets')
-        .select('storage_url, metadata')
-        .eq('id', asset.id)
-        .single();
-
-      if (!signData) throw new Error('Asset not found');
-
-      // Resolve a fetchable URL for the video asset
-      let videoUrl = asset.metadata?.sourceUrl;
-      if (!videoUrl) {
-        const location = typeof signData.storage_url === 'string' ? extractStorageLocation(signData.storage_url) : null;
-        if (!location) {
-          throw new Error('Invalid storage location for asset');
-        }
-        const { data: signed, error: signError } = await supabase.storage
-          .from(location.bucket)
-          .createSignedUrl(location.path, 600);
-
-        if (signError || !signed?.signedUrl) {
-          throw new Error('Failed to create signed URL for asset');
-        }
-
-        videoUrl = signed.signedUrl;
-      }
-
-      // Fetch the video
-      const videoResponse = await fetch(videoUrl);
-      const videoBlob = await videoResponse.blob();
-
-      // Create audio context
-      const audioContext = new (window.AudioContext || (window as never)['webkitAudioContext'])();
-      const arrayBuffer = await videoBlob.arrayBuffer();
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-      // Convert to WAV
-      const wav = audioBufferToWav(audioBuffer);
-      const audioBlob = new Blob([wav], { type: 'audio/wav' });
-
-      // Upload to Supabase
-      const fileName = `${uuid()}.wav`;
-      const storagePath = `${user.id}/${projectId}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('assets')
-        .upload(storagePath, audioBlob, {
-          contentType: 'audio/wav',
-          upsert: false,
+        const res = await fetch('/api/audio/suno/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...formData,
+            projectId,
+          }),
         });
 
-      if (uploadError) {
-        throw new Error(`Upload failed: ${uploadError.message}`);
-      }
+        const json = await res.json();
 
-      const { data: { publicUrl: rawPublicUrl } } = supabase.storage.from('assets').getPublicUrl(storagePath);
-      const publicUrl = ensureHttpsProtocol(rawPublicUrl);
-
-      // Create asset record
-      const { data: newAsset, error: assetError } = await supabase
-        .from('assets')
-        .insert({
-          user_id: user.id,
-          project_id: projectId,
-          type: 'audio',
-          source: 'upload',
-          storage_url: `supabase://assets/${storagePath}`,
-          metadata: {
-            filename: fileName,
-            mimeType: 'audio/wav',
-            sourceUrl: publicUrl,
-            extractedFrom: asset.id,
-          },
-        })
-        .select()
-        .single();
-
-      if (assetError) {
-        throw new Error(`Asset creation failed: ${assetError.message}`);
-      }
-
-      toast.success('Audio extracted successfully!', { id: 'split-audio' });
-
-      const mappedAsset = mapAssetRow(newAsset as Record<string, unknown>);
-      if (mappedAsset) {
-        setAssets((prev) => [mappedAsset, ...prev]);
-      }
-
-      setActiveTab('audio');
-    } catch (error) {
-      browserLogger.error({ error, projectId }, 'Audio extraction failed');
-      toast.error(error instanceof Error ? error.message : 'Failed to extract audio', { id: 'split-audio' });
-    } finally {
-      setSplitAudioPending(false);
-    }
-  }, [supabase, projectId]);
-
-  const handleSplitScenes = useCallback(async (asset: AssetRow) => {
-    setSplitScenesPending(true);
-    toast.loading('Splitting video into scenes...', { id: 'split-scenes' });
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const res = await fetch('/api/video/split-scenes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          assetId: asset.id,
-          projectId,
-          threshold: 0.5,
-        }),
-      });
-
-      const json = await res.json();
-
-      if (!res.ok) {
-        const errorMsg = json.details
-          ? `${json.error || 'Scene splitting failed'}: ${json.details}`
-          : (json.error || 'Scene splitting failed');
-        throw new Error(errorMsg);
-      }
-
-      toast.success(json.message || 'Scene splitting initiated', { id: 'split-scenes' });
-    } catch (error) {
-      browserLogger.error({ error, projectId }, 'Scene splitting failed');
-      toast.error(error instanceof Error ? error.message : 'Failed to split scenes', { id: 'split-scenes' });
-    } finally {
-      setSplitScenesPending(false);
-    }
-  }, [supabase, projectId]);
-
-  const handleUpscaleVideo = useCallback(async (asset: AssetRow) => {
-    setUpscaleVideoPending(true);
-    toast.loading('Upscaling video with Topaz AI...', { id: 'upscale-video' });
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      // Submit upscale request
-      const res = await fetch('/api/video/upscale', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          assetId: asset.id,
-          projectId,
-          upscaleFactor: 2,
-        }),
-      });
-
-      const json = await res.json();
-
-      if (!res.ok) {
-        throw new Error(json.error || 'Video upscale failed');
-      }
-
-      const requestId = json.requestId;
-      toast.loading('Video upscaling in progress... This may take several minutes.', { id: 'upscale-video' });
-
-      // Poll for completion
-      const pollInterval = 10000; // 10 seconds
-      const poll = async () => {
-        try {
-          const statusRes = await fetch(
-            `/api/video/upscale-status?requestId=${encodeURIComponent(requestId)}&projectId=${projectId}`
-          );
-          const statusJson = await statusRes.json();
-
-          if (statusJson.done) {
-            if (statusJson.error) {
-              throw new Error(statusJson.error);
-            }
-
-            toast.success('Video upscaled successfully!', { id: 'upscale-video' });
-
-            const mappedAsset = mapAssetRow(statusJson.asset as Record<string, unknown>);
-            if (mappedAsset) {
-              setAssets((prev) => [mappedAsset, ...prev]);
-            }
-
-            setUpscaleVideoPending(false);
-            setActiveTab('video');
-          } else {
-            // Continue polling - track timeout for cleanup
-            const timeout = setTimeout(poll, pollInterval);
-            pollingTimeoutsRef.current.add(timeout);
-          }
-        } catch (pollError) {
-          browserLogger.error({ error: pollError, projectId }, 'Video upscale polling failed');
-          toast.error(pollError instanceof Error ? pollError.message : 'Video upscale failed', { id: 'upscale-video' });
-          setUpscaleVideoPending(false);
+        if (!res.ok) {
+          throw new Error(json.error || 'Audio generation failed');
         }
-      };
 
-      // Start polling - track timeout for cleanup
-      const initialTimeout = setTimeout(poll, pollInterval);
-      pollingTimeoutsRef.current.add(initialTimeout);
-    } catch (error) {
-      browserLogger.error({ error, projectId }, 'Video upscale failed');
-      toast.error(error instanceof Error ? error.message : 'Video upscale failed', { id: 'upscale-video' });
-      setUpscaleVideoPending(false);
-    }
-  }, [supabase, projectId]);
+        const taskId = json.taskId;
+        toast.success('Audio generation started', { id: 'generate-suno' });
 
-  const handleGenerateAudioFromVideo = useCallback(async (asset: AssetRow, model: 'minimax' | 'mureka-1.5' | 'kling-turbo-2.5') => {
-    const modelNames = {
-      'minimax': 'MiniMax',
-      'mureka-1.5': 'Mureka 1.5',
-      'kling-turbo-2.5': 'Kling Turbo 2.5',
-    };
+        // Poll for completion
+        let attempts = 0;
+        const maxAttempts = 60; // 5 minutes max
+        const pollInterval = 5000; // 5 seconds
 
-    toast.loading(`Generating audio with ${modelNames[model]}...`, { id: 'generate-audio' });
+        const poll = async (): Promise<void> => {
+          attempts++;
+          if (attempts > maxAttempts) {
+            throw new Error('Audio generation timed out');
+          }
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      // Submit audio generation request
-      const res = await fetch('/api/video/generate-audio', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          assetId: asset.id,
-          projectId,
-          model,
-        }),
-      });
-
-      const json = await res.json();
-
-      if (!res.ok) {
-        throw new Error(json.error || 'Audio generation failed');
-      }
-
-      const requestId = json.requestId;
-      toast.loading('Audio generation in progress... This may take a few minutes.', { id: 'generate-audio' });
-
-      // Poll for completion
-      const pollInterval = 5000; // 5 seconds
-      const poll = async () => {
-        try {
           const statusRes = await fetch(
-            `/api/video/generate-audio-status?requestId=${encodeURIComponent(requestId)}&projectId=${projectId}&assetId=${asset.id}`
+            `/api/audio/suno/status?taskId=${taskId}&projectId=${projectId}`
           );
           const statusJson = await statusRes.json();
 
-          if (statusJson.status === 'completed') {
-            toast.success('Audio generated successfully!', { id: 'generate-audio' });
+          if (!statusRes.ok) {
+            throw new Error(statusJson.error || 'Status check failed');
+          }
 
-            const mappedAsset = mapAssetRow(statusJson.asset as Record<string, unknown>);
+          const task = statusJson.tasks?.[0];
+          if (!task) {
+            throw new Error('Task not found');
+          }
+
+          if (task.status === 'complete' && task.audioUrl) {
+            toast.success('Audio generated successfully!', { id: 'generate-suno' });
+
+            // Upload to Supabase and create asset
+            const audioRes = await fetch(task.audioUrl);
+            const audioBlob = await audioRes.blob();
+            const fileName = `suno_${Date.now()}.mp3`;
+            const filePath = `${user.id}/${projectId}/audio/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+              .from('assets')
+              .upload(filePath, audioBlob, { contentType: 'audio/mpeg' });
+
+            if (uploadError) throw uploadError;
+
+            const storageUrl = `supabase://assets/${filePath}`;
+            const { data: newAsset, error: assetError } = await supabase
+              .from('assets')
+              .insert({
+                project_id: projectId,
+                user_id: user.id,
+                storage_url: storageUrl,
+                type: 'audio',
+                source: 'genai',
+                mime_type: 'audio/mpeg',
+                duration_sec: task.duration ?? null,
+                metadata: {
+                  filename: fileName,
+                  provider: 'suno',
+                  prompt: task.prompt,
+                  title: task.title,
+                  tags: task.tags,
+                },
+              })
+              .select()
+              .single();
+
+            if (assetError) throw assetError;
+
+            const mappedAsset = mapAssetRow(newAsset as Record<string, unknown>);
             if (mappedAsset) {
               setAssets((prev) => [mappedAsset, ...prev]);
             }
 
+            setShowAudioModal(false);
             setActiveTab('audio');
-          } else if (statusJson.status === 'failed') {
-            throw new Error(statusJson.error || 'Audio generation failed');
+          } else if (task.status === 'failed') {
+            throw new Error('Audio generation failed');
           } else {
-            // Continue polling - track timeout for cleanup
+            // Still processing, poll again - track timeout for cleanup
             const timeout = setTimeout(poll, pollInterval);
             pollingTimeoutsRef.current.add(timeout);
           }
-        } catch (pollError) {
-          browserLogger.error({ error: pollError, projectId }, 'Audio generation polling failed');
-          toast.error(pollError instanceof Error ? pollError.message : 'Audio generation failed', { id: 'generate-audio' });
+        };
+
+        // Start polling - track timeout for cleanup
+        const initialTimeout = setTimeout(poll, pollInterval);
+        pollingTimeoutsRef.current.add(initialTimeout);
+      } catch (error) {
+        browserLogger.error({ error, projectId }, 'Suno audio generation failed');
+        toast.error(error instanceof Error ? error.message : 'Audio generation failed', {
+          id: 'generate-suno',
+        });
+        setAudioGenPending(false);
+      }
+    },
+    [supabase, projectId]
+  );
+
+  const handleGenerateElevenLabs = useCallback(
+    async (formData: { text: string; voiceId?: string; modelId?: string }) => {
+      setAudioGenPending(true);
+      toast.loading('Generating audio with ElevenLabs...', { id: 'generate-elevenlabs' });
+
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+
+        const res = await fetch('/api/audio/elevenlabs/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...formData,
+            projectId,
+            userId: user.id,
+          }),
+        });
+
+        const json = await res.json();
+
+        if (!res.ok) {
+          throw new Error(json.error || 'Audio generation failed');
         }
+
+        toast.success('Audio generated successfully!', { id: 'generate-elevenlabs' });
+
+        const mappedAsset = mapAssetRow(json.asset as Record<string, unknown>);
+        if (mappedAsset) {
+          setAssets((prev) => [mappedAsset, ...prev]);
+        }
+
+        setShowAudioModal(false);
+        setActiveTab('audio');
+      } catch (error) {
+        browserLogger.error({ error, projectId }, 'ElevenLabs audio generation failed');
+        toast.error(error instanceof Error ? error.message : 'Audio generation failed', {
+          id: 'generate-elevenlabs',
+        });
+      } finally {
+        setAudioGenPending(false);
+      }
+    },
+    [supabase, projectId]
+  );
+
+  const handleGenerateVideo = useCallback(
+    async (formData: {
+      prompt: string;
+      aspectRatio?: '9:16' | '16:9' | '1:1';
+      duration?: number;
+    }) => {
+      setVideoGenPending(true);
+      toast.loading('Generating video with Veo 3.1...', { id: 'generate-video' });
+
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+
+        const res = await fetch('/api/video/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...formData,
+            projectId,
+          }),
+        });
+
+        const json = await res.json();
+
+        if (!res.ok) {
+          throw new Error(json.error || 'Video generation failed');
+        }
+
+        setVideoOperationName(json.operationName);
+        toast.loading('Video generation in progress... This may take several minutes.', {
+          id: 'generate-video',
+        });
+
+        // Poll for video generation status with cleanup tracking
+        const pollInterval = 10000; // 10 seconds
+        const poll = async () => {
+          try {
+            // Create AbortController and track it
+            const controller = new AbortController();
+            abortControllersRef.current.add(controller);
+
+            const statusRes = await fetch(
+              `/api/video/status?operationName=${encodeURIComponent(json.operationName)}&projectId=${projectId}`,
+              { signal: controller.signal }
+            );
+            const statusJson = await statusRes.json();
+
+            // Remove controller after successful fetch
+            abortControllersRef.current.delete(controller);
+
+            if (statusJson.done) {
+              if (statusJson.error) {
+                throw new Error(statusJson.error);
+              }
+
+              toast.success('Video generated successfully!', { id: 'generate-video' });
+
+              const mappedAsset = mapAssetRow(statusJson.asset as Record<string, unknown>);
+              if (mappedAsset) {
+                setAssets((prev) => [mappedAsset, ...prev]);
+              }
+
+              setShowVideoModal(false);
+              setVideoGenPending(false);
+              setVideoOperationName(null);
+              setActiveTab('video');
+            } else {
+              // Continue polling with tracked timeout
+              const timeout = setTimeout(poll, pollInterval);
+              pollingTimeoutsRef.current.add(timeout);
+            }
+          } catch (pollError) {
+            // Ignore abort errors
+            if (pollError instanceof Error && pollError.name === 'AbortError') {
+              return;
+            }
+
+            browserLogger.error({ error: pollError, projectId }, 'Video generation polling failed');
+            toast.error(
+              pollError instanceof Error ? pollError.message : 'Video generation failed',
+              { id: 'generate-video' }
+            );
+            setVideoGenPending(false);
+            setVideoOperationName(null);
+          }
+        };
+
+        const initialTimeout = setTimeout(poll, pollInterval);
+        pollingTimeoutsRef.current.add(initialTimeout);
+      } catch (error) {
+        browserLogger.error({ error, projectId }, 'Video generation failed');
+        toast.error(error instanceof Error ? error.message : 'Video generation failed', {
+          id: 'generate-video',
+        });
+        setVideoGenPending(false);
+      }
+    },
+    [supabase, projectId]
+  );
+
+  const handleSplitAudio = useCallback(
+    async (asset: AssetRow) => {
+      setSplitAudioPending(true);
+      toast.loading('Extracting audio from video...', { id: 'split-audio' });
+
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+
+        // Get signed URL for the video
+        const { data: signData } = await supabase
+          .from('assets')
+          .select('storage_url, metadata')
+          .eq('id', asset.id)
+          .single();
+
+        if (!signData) throw new Error('Asset not found');
+
+        // Resolve a fetchable URL for the video asset
+        let videoUrl = asset.metadata?.sourceUrl;
+        if (!videoUrl) {
+          const location =
+            typeof signData.storage_url === 'string'
+              ? extractStorageLocation(signData.storage_url)
+              : null;
+          if (!location) {
+            throw new Error('Invalid storage location for asset');
+          }
+          const { data: signed, error: signError } = await supabase.storage
+            .from(location.bucket)
+            .createSignedUrl(location.path, 600);
+
+          if (signError || !signed?.signedUrl) {
+            throw new Error('Failed to create signed URL for asset');
+          }
+
+          videoUrl = signed.signedUrl;
+        }
+
+        // Fetch the video
+        const videoResponse = await fetch(videoUrl);
+        const videoBlob = await videoResponse.blob();
+
+        // Create audio context
+        const audioContext = new (window.AudioContext || (window as never)['webkitAudioContext'])();
+        const arrayBuffer = await videoBlob.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+        // Convert to WAV
+        const wav = audioBufferToWav(audioBuffer);
+        const audioBlob = new Blob([wav], { type: 'audio/wav' });
+
+        // Upload to Supabase
+        const fileName = `${uuid()}.wav`;
+        const storagePath = `${user.id}/${projectId}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('assets')
+          .upload(storagePath, audioBlob, {
+            contentType: 'audio/wav',
+            upsert: false,
+          });
+
+        if (uploadError) {
+          throw new Error(`Upload failed: ${uploadError.message}`);
+        }
+
+        const {
+          data: { publicUrl: rawPublicUrl },
+        } = supabase.storage.from('assets').getPublicUrl(storagePath);
+        const publicUrl = ensureHttpsProtocol(rawPublicUrl);
+
+        // Create asset record
+        const { data: newAsset, error: assetError } = await supabase
+          .from('assets')
+          .insert({
+            user_id: user.id,
+            project_id: projectId,
+            type: 'audio',
+            source: 'upload',
+            storage_url: `supabase://assets/${storagePath}`,
+            metadata: {
+              filename: fileName,
+              mimeType: 'audio/wav',
+              sourceUrl: publicUrl,
+              extractedFrom: asset.id,
+            },
+          })
+          .select()
+          .single();
+
+        if (assetError) {
+          throw new Error(`Asset creation failed: ${assetError.message}`);
+        }
+
+        toast.success('Audio extracted successfully!', { id: 'split-audio' });
+
+        const mappedAsset = mapAssetRow(newAsset as Record<string, unknown>);
+        if (mappedAsset) {
+          setAssets((prev) => [mappedAsset, ...prev]);
+        }
+
+        setActiveTab('audio');
+      } catch (error) {
+        browserLogger.error({ error, projectId }, 'Audio extraction failed');
+        toast.error(error instanceof Error ? error.message : 'Failed to extract audio', {
+          id: 'split-audio',
+        });
+      } finally {
+        setSplitAudioPending(false);
+      }
+    },
+    [supabase, projectId]
+  );
+
+  const handleSplitScenes = useCallback(
+    async (asset: AssetRow) => {
+      setSplitScenesPending(true);
+      toast.loading('Splitting video into scenes...', { id: 'split-scenes' });
+
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+
+        const res = await fetch('/api/video/split-scenes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            assetId: asset.id,
+            projectId,
+            threshold: 0.5,
+          }),
+        });
+
+        const json = await res.json();
+
+        if (!res.ok) {
+          const errorMsg = json.details
+            ? `${json.error || 'Scene splitting failed'}: ${json.details}`
+            : json.error || 'Scene splitting failed';
+          throw new Error(errorMsg);
+        }
+
+        toast.success(json.message || 'Scene splitting initiated', { id: 'split-scenes' });
+      } catch (error) {
+        browserLogger.error({ error, projectId }, 'Scene splitting failed');
+        toast.error(error instanceof Error ? error.message : 'Failed to split scenes', {
+          id: 'split-scenes',
+        });
+      } finally {
+        setSplitScenesPending(false);
+      }
+    },
+    [supabase, projectId]
+  );
+
+  const handleUpscaleVideo = useCallback(
+    async (asset: AssetRow) => {
+      setUpscaleVideoPending(true);
+      toast.loading('Upscaling video with Topaz AI...', { id: 'upscale-video' });
+
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+
+        // Submit upscale request
+        const res = await fetch('/api/video/upscale', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            assetId: asset.id,
+            projectId,
+            upscaleFactor: 2,
+          }),
+        });
+
+        const json = await res.json();
+
+        if (!res.ok) {
+          throw new Error(json.error || 'Video upscale failed');
+        }
+
+        const requestId = json.requestId;
+        toast.loading('Video upscaling in progress... This may take several minutes.', {
+          id: 'upscale-video',
+        });
+
+        // Poll for completion
+        const pollInterval = 10000; // 10 seconds
+        const poll = async () => {
+          try {
+            const statusRes = await fetch(
+              `/api/video/upscale-status?requestId=${encodeURIComponent(requestId)}&projectId=${projectId}`
+            );
+            const statusJson = await statusRes.json();
+
+            if (statusJson.done) {
+              if (statusJson.error) {
+                throw new Error(statusJson.error);
+              }
+
+              toast.success('Video upscaled successfully!', { id: 'upscale-video' });
+
+              const mappedAsset = mapAssetRow(statusJson.asset as Record<string, unknown>);
+              if (mappedAsset) {
+                setAssets((prev) => [mappedAsset, ...prev]);
+              }
+
+              setUpscaleVideoPending(false);
+              setActiveTab('video');
+            } else {
+              // Continue polling - track timeout for cleanup
+              const timeout = setTimeout(poll, pollInterval);
+              pollingTimeoutsRef.current.add(timeout);
+            }
+          } catch (pollError) {
+            browserLogger.error({ error: pollError, projectId }, 'Video upscale polling failed');
+            toast.error(pollError instanceof Error ? pollError.message : 'Video upscale failed', {
+              id: 'upscale-video',
+            });
+            setUpscaleVideoPending(false);
+          }
+        };
+
+        // Start polling - track timeout for cleanup
+        const initialTimeout = setTimeout(poll, pollInterval);
+        pollingTimeoutsRef.current.add(initialTimeout);
+      } catch (error) {
+        browserLogger.error({ error, projectId }, 'Video upscale failed');
+        toast.error(error instanceof Error ? error.message : 'Video upscale failed', {
+          id: 'upscale-video',
+        });
+        setUpscaleVideoPending(false);
+      }
+    },
+    [supabase, projectId]
+  );
+
+  const handleGenerateAudioFromVideo = useCallback(
+    async (asset: AssetRow, model: 'minimax' | 'mureka-1.5' | 'kling-turbo-2.5') => {
+      const modelNames = {
+        minimax: 'MiniMax',
+        'mureka-1.5': 'Mureka 1.5',
+        'kling-turbo-2.5': 'Kling Turbo 2.5',
       };
 
-      // Start polling - track timeout for cleanup
-      const initialTimeout = setTimeout(poll, pollInterval);
-      pollingTimeoutsRef.current.add(initialTimeout);
-    } catch (error) {
-      browserLogger.error({ error, projectId }, 'Audio generation failed');
-      toast.error(error instanceof Error ? error.message : 'Audio generation failed', { id: 'generate-audio' });
-    }
-  }, [supabase, projectId]);
+      toast.loading(`Generating audio with ${modelNames[model]}...`, { id: 'generate-audio' });
 
-  const handleGenerateAudioFromClip = useCallback(async (clipId: string) => {
-    if (!timeline) return;
-    const clip = timeline.clips.find((c) => c.id === clipId);
-    if (!clip) return;
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
 
-    const asset = assets.find((a) => a.id === clip.assetId);
-    if (!asset) {
-      toast.error('Asset not found for clip');
-      return;
-    }
+        // Submit audio generation request
+        const res = await fetch('/api/video/generate-audio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            assetId: asset.id,
+            projectId,
+            model,
+          }),
+        });
 
-    // Default to minimax
-    const model = 'minimax';
-    await handleGenerateAudioFromVideo(asset, model);
-  }, [timeline, assets, handleGenerateAudioFromVideo]);
+        const json = await res.json();
 
-  const handleSplitAudioFromClip = useCallback(async (clipId: string) => {
-    if (!timeline) return;
-    const clip = timeline.clips.find((c) => c.id === clipId);
-    if (!clip) return;
+        if (!res.ok) {
+          throw new Error(json.error || 'Audio generation failed');
+        }
 
-    const asset = assets.find((a) => a.id === clip.assetId);
-    if (!asset) {
-      toast.error('Asset not found for clip');
-      return;
-    }
+        const requestId = json.requestId;
+        toast.loading('Audio generation in progress... This may take a few minutes.', {
+          id: 'generate-audio',
+        });
 
-    if (asset.type !== 'video') {
-      toast.error('Split audio only works with video clips');
-      return;
-    }
+        // Poll for completion
+        const pollInterval = 5000; // 5 seconds
+        const poll = async () => {
+          try {
+            const statusRes = await fetch(
+              `/api/video/generate-audio-status?requestId=${encodeURIComponent(requestId)}&projectId=${projectId}&assetId=${asset.id}`
+            );
+            const statusJson = await statusRes.json();
 
-    await handleSplitAudio(asset);
-  }, [timeline, assets, handleSplitAudio]);
+            if (statusJson.status === 'completed') {
+              toast.success('Audio generated successfully!', { id: 'generate-audio' });
 
-  const handleSplitScenesFromClip = useCallback(async (clipId: string) => {
-    if (!timeline) return;
-    const clip = timeline.clips.find((c) => c.id === clipId);
-    if (!clip) return;
+              const mappedAsset = mapAssetRow(statusJson.asset as Record<string, unknown>);
+              if (mappedAsset) {
+                setAssets((prev) => [mappedAsset, ...prev]);
+              }
 
-    const asset = assets.find((a) => a.id === clip.assetId);
-    if (!asset) {
-      toast.error('Asset not found for clip');
-      return;
-    }
+              setActiveTab('audio');
+            } else if (statusJson.status === 'failed') {
+              throw new Error(statusJson.error || 'Audio generation failed');
+            } else {
+              // Continue polling - track timeout for cleanup
+              const timeout = setTimeout(poll, pollInterval);
+              pollingTimeoutsRef.current.add(timeout);
+            }
+          } catch (pollError) {
+            browserLogger.error({ error: pollError, projectId }, 'Audio generation polling failed');
+            toast.error(
+              pollError instanceof Error ? pollError.message : 'Audio generation failed',
+              { id: 'generate-audio' }
+            );
+          }
+        };
 
-    if (asset.type !== 'video') {
-      toast.error('Split scenes only works with video clips');
-      return;
-    }
+        // Start polling - track timeout for cleanup
+        const initialTimeout = setTimeout(poll, pollInterval);
+        pollingTimeoutsRef.current.add(initialTimeout);
+      } catch (error) {
+        browserLogger.error({ error, projectId }, 'Audio generation failed');
+        toast.error(error instanceof Error ? error.message : 'Audio generation failed', {
+          id: 'generate-audio',
+        });
+      }
+    },
+    [supabase, projectId]
+  );
 
-    await handleSplitScenes(asset);
-  }, [timeline, assets, handleSplitScenes]);
+  const handleGenerateAudioFromClip = useCallback(
+    async (clipId: string) => {
+      if (!timeline) return;
+      const clip = timeline.clips.find((c) => c.id === clipId);
+      if (!clip) return;
+
+      const asset = assets.find((a) => a.id === clip.assetId);
+      if (!asset) {
+        toast.error('Asset not found for clip');
+        return;
+      }
+
+      // Default to minimax
+      const model = 'minimax';
+      await handleGenerateAudioFromVideo(asset, model);
+    },
+    [timeline, assets, handleGenerateAudioFromVideo]
+  );
+
+  const handleSplitAudioFromClip = useCallback(
+    async (clipId: string) => {
+      if (!timeline) return;
+      const clip = timeline.clips.find((c) => c.id === clipId);
+      if (!clip) return;
+
+      const asset = assets.find((a) => a.id === clip.assetId);
+      if (!asset) {
+        toast.error('Asset not found for clip');
+        return;
+      }
+
+      if (asset.type !== 'video') {
+        toast.error('Split audio only works with video clips');
+        return;
+      }
+
+      await handleSplitAudio(asset);
+    },
+    [timeline, assets, handleSplitAudio]
+  );
+
+  const handleSplitScenesFromClip = useCallback(
+    async (clipId: string) => {
+      if (!timeline) return;
+      const clip = timeline.clips.find((c) => c.id === clipId);
+      if (!clip) return;
+
+      const asset = assets.find((a) => a.id === clip.assetId);
+      if (!asset) {
+        toast.error('Asset not found for clip');
+        return;
+      }
+
+      if (asset.type !== 'video') {
+        toast.error('Split scenes only works with video clips');
+        return;
+      }
+
+      await handleSplitScenes(asset);
+    },
+    [timeline, assets, handleSplitScenes]
+  );
 
   const handleUpscaleVideoFromTimeline = useCallback(async () => {
     if (!timeline) return;
 
     // Get the first selected clip or error if no selection
-    const selectedClipId = Array.from(timeline.clips).find(c =>
+    const selectedClipId = Array.from(timeline.clips).find((c) =>
       useEditorStore.getState().selectedClipIds.has(c.id)
     )?.id;
 
@@ -1672,9 +1802,11 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   // Memoize filtered assets for each tab to avoid filtering on every render
   const filteredAssets = useMemo(() => {
     return assets.filter((a) =>
-      activeTab === 'video' ? a.type === 'video' :
-      activeTab === 'image' ? a.type === 'image' :
-      a.type === 'audio'
+      activeTab === 'video'
+        ? a.type === 'video'
+        : activeTab === 'image'
+          ? a.type === 'image'
+          : a.type === 'audio'
     );
   }, [assets, activeTab]);
 
@@ -1692,559 +1824,675 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
       <EditorHeader projectId={projectId} currentTab="video-editor" onExport={handleExportClick} />
       <div className="grid h-full grid-cols-[280px_1fr_320px] gap-6 p-6">
         <Toaster position="bottom-right" />
-      {/* Assets Panel */}
-      <aside className="flex flex-col gap-4 overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold text-neutral-900">Assets</h2>
-          <div className="flex items-center gap-2">
-            <input
-              ref={uploadInputRef}
-              type="file"
-              multiple
-              accept={activeTab === 'video' ? 'video/*' : activeTab === 'image' ? 'image/*' : 'audio/*'}
-              className="hidden"
-              onChange={handleFileSelect}
-            />
-            <button
-              type="button"
-              onClick={() => uploadInputRef.current?.click()}
-              disabled={uploadPending}
-              className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-75"
-            >
-              {uploadPending ? 'Uploading…' : 'Upload'}
-            </button>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-2 border-b border-neutral-200">
-          <button
-            type="button"
-            onClick={() => setActiveTab('video')}
-            className={`px-3 py-2 text-xs font-medium transition ${
-              activeTab === 'video'
-                ? 'border-b-2 border-neutral-900 text-neutral-900'
-                : 'text-neutral-500 hover:text-neutral-700'
-            }`}
-          >
-            Video
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('image')}
-            className={`px-3 py-2 text-xs font-medium transition ${
-              activeTab === 'image'
-                ? 'border-b-2 border-neutral-900 text-neutral-900'
-                : 'text-neutral-500 hover:text-neutral-700'
-            }`}
-          >
-            Images
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('audio')}
-            className={`px-3 py-2 text-xs font-medium transition ${
-              activeTab === 'audio'
-                ? 'border-b-2 border-neutral-900 text-neutral-900'
-                : 'text-neutral-500 hover:text-neutral-700'
-            }`}
-          >
-            Audio
-          </button>
-        </div>
-
-        {/* Video Tab Buttons */}
-        {activeTab === 'video' && (
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => uploadInputRef.current?.click()}
-              disabled={uploadPending}
-              className="group w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700 transition-all hover:border-blue-300 hover:bg-blue-100 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-75"
-            >
-              <div className="flex items-center justify-center gap-2">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                {uploadPending ? 'Uploading…' : 'Upload Video/Image'}
-              </div>
-            </button>
-            <Link
-              href={`/video-gen?projectId=${projectId}`}
-              className="group w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-xs font-semibold text-white text-center shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg"
-            >
-              <div className="flex items-center justify-center gap-2">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                </svg>
-                Generate Video with AI
-              </div>
-            </Link>
-          </div>
-        )}
-
-        {/* Images Tab Buttons */}
-        {activeTab === 'image' && (
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => uploadInputRef.current?.click()}
-              disabled={uploadPending}
-              className="group w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700 transition-all hover:border-blue-300 hover:bg-blue-100 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-75"
-            >
-              <div className="flex items-center justify-center gap-2">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                {uploadPending ? 'Uploading…' : 'Upload Images'}
-              </div>
-            </button>
-            <Link
-              href={`/image-gen?projectId=${projectId}`}
-              className="group w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-xs font-semibold text-white text-center shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg"
-            >
-              <div className="flex items-center justify-center gap-2">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                Generate Images with AI
-              </div>
-            </Link>
-          </div>
-        )}
-
-        {/* Audio Tab Buttons */}
-        {activeTab === 'audio' && (
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => uploadInputRef.current?.click()}
-              disabled={uploadPending}
-              className="group w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700 transition-all hover:border-blue-300 hover:bg-blue-100 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-75"
-            >
-              <div className="flex items-center justify-center gap-2">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                {uploadPending ? 'Uploading…' : 'Upload Audio'}
-              </div>
-            </button>
-            <Link
-              href={`/audio-gen?projectId=${projectId}`}
-              className="group w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-xs font-semibold text-white text-center shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg"
-            >
-              <div className="flex items-center justify-center gap-2">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                </svg>
-                Generate Audio with AI
-              </div>
-            </Link>
-          </div>
-        )}
-        {assetError && (
-          <div className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
-            {assetError}
-          </div>
-        )}
-        <div className="flex-1 overflow-y-auto space-y-3">
-          {loadingAssets && (
-            <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
-              Loading assets…
-            </div>
-          )}
-          {!loadingAssets && filteredAssets.length === 0 && (
-            <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
-              {activeTab === 'video' ? 'No video assets yet. Upload video to begin editing.' : activeTab === 'image' ? 'No image assets yet. Upload images.' : 'No audio assets yet. Upload or generate audio.'}
-            </div>
-          )}
-          {filteredAssets.map((asset) => (
-            <div key={asset.id} className="group relative flex flex-col gap-2">
+        {/* Assets Panel */}
+        <aside className="flex flex-col gap-4 overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-neutral-900">Assets</h2>
+            <div className="flex items-center gap-2">
+              <input
+                ref={uploadInputRef}
+                type="file"
+                multiple
+                accept={
+                  activeTab === 'video' ? 'video/*' : activeTab === 'image' ? 'image/*' : 'audio/*'
+                }
+                className="hidden"
+                onChange={handleFileSelect}
+              />
               <button
                 type="button"
-                onClick={() => void handleClipAdd(asset)}
-                className="flex w-full items-center gap-3 rounded-lg border border-transparent bg-neutral-50 px-3 py-2 text-left transition hover:border-neutral-200 hover:bg-white"
+                onClick={() => uploadInputRef.current?.click()}
+                disabled={uploadPending}
+                className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-75"
               >
-                {asset.metadata?.thumbnail ? (
-                  <NextImage
-                    src={asset.metadata.thumbnail}
-                    alt=""
-                    width={112}
-                    height={64}
-                    className="h-16 w-28 rounded-md object-cover"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="flex h-16 w-28 items-center justify-center rounded-md bg-neutral-200 text-xs text-neutral-600">
-                    {asset.type.toUpperCase()}
-                  </div>
-                )}
-                <div className="flex-1 text-xs">
-                  <p className="font-medium text-neutral-900">
-                    {asset.metadata?.filename ?? extractFileName(asset.storage_url)}
-                  </p>
-                  <p className="text-neutral-500">
-                    {asset.metadata?.mimeType ??
-                     asset.metadata?.format ??
-                     (asset.metadata?.videoCodec ? `${asset.metadata.videoCodec}/${asset.metadata.audioCodec ?? 'no audio'}` : null) ??
-                     `${asset.type} file`}
-                  </p>
-                </div>
-              </button>
-
-              {/* Delete button - always visible */}
-              <button
-                onClick={() => void handleAssetDelete(asset)}
-                className="absolute right-2 top-2 z-10 rounded-md bg-red-500 p-1.5 text-white shadow-lg transition-all hover:bg-red-600"
-                title="Delete asset"
-              >
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
+                {uploadPending ? 'Uploading…' : 'Upload'}
               </button>
             </div>
-          ))}
-        </div>
-      </aside>
+          </div>
 
-      {/* Main Editor */}
-      <main className="flex h-full flex-col gap-4 overflow-hidden">
-        <section className="flex-[18] overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
-          <LazyPreviewPlayer />
-        </section>
-        <section className="flex-[5] rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
-          <LazyHorizontalTimeline
-            onDetectScenes={handleDetectScenes}
-            sceneDetectPending={sceneDetectPending}
-            onAddText={handleAddText}
-            onAddTransition={handleAddTransition}
-            onGenerateAudioFromClip={handleGenerateAudioFromClip}
-            onUpscaleVideo={handleUpscaleVideoFromTimeline}
-            upscaleVideoPending={upscaleVideoPending}
-            onSplitAudioFromClip={handleSplitAudioFromClip}
-            onSplitScenesFromClip={handleSplitScenesFromClip}
-            splitAudioPending={splitAudioPending}
-            splitScenesPending={splitScenesPending}
-          />
-        </section>
+          {/* Tabs */}
+          <div className="flex gap-2 border-b border-neutral-200">
+            <button
+              type="button"
+              onClick={() => setActiveTab('video')}
+              className={`px-3 py-2 text-xs font-medium transition ${
+                activeTab === 'video'
+                  ? 'border-b-2 border-neutral-900 text-neutral-900'
+                  : 'text-neutral-500 hover:text-neutral-700'
+              }`}
+            >
+              Video
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('image')}
+              className={`px-3 py-2 text-xs font-medium transition ${
+                activeTab === 'image'
+                  ? 'border-b-2 border-neutral-900 text-neutral-900'
+                  : 'text-neutral-500 hover:text-neutral-700'
+              }`}
+            >
+              Images
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('audio')}
+              className={`px-3 py-2 text-xs font-medium transition ${
+                activeTab === 'audio'
+                  ? 'border-b-2 border-neutral-900 text-neutral-900'
+                  : 'text-neutral-500 hover:text-neutral-700'
+              }`}
+            >
+              Audio
+            </button>
+          </div>
 
-        {/* Advanced Corrections Menu - Collapsible panel below timeline */}
-        <TimelineCorrectionsMenu />
-      </main>
-
-      {/* Clip Properties Panel */}
-      <LazyClipPropertiesPanel />
-
-      {/* Audio Generation Modal */}
-      {showAudioModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-900">Generate Audio</h3>
+          {/* Video Tab Buttons */}
+          {activeTab === 'video' && (
+            <div className="flex flex-col gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  setShowAudioModal(false);
-                  setAudioGenMode(null);
-                }}
-                disabled={audioGenPending}
-                className="rounded-lg p-1 text-neutral-500 hover:bg-neutral-100 disabled:cursor-not-allowed"
+                onClick={() => uploadInputRef.current?.click()}
+                disabled={uploadPending}
+                className="group w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700 transition-all hover:border-blue-300 hover:bg-blue-100 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-75"
               >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
+                  </svg>
+                  {uploadPending ? 'Uploading…' : 'Upload Video/Image'}
+                </div>
               </button>
+              <Link
+                href={`/video-gen?projectId=${projectId}`}
+                className="group w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-xs font-semibold text-white text-center shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                    />
+                  </svg>
+                  Generate Video with AI
+                </div>
+              </Link>
             </div>
+          )}
 
-            {!audioGenMode ? (
-              <div className="space-y-3">
-                <p className="text-sm text-neutral-600">Choose an AI provider to generate audio:</p>
-                <button
-                  type="button"
-                  onClick={() => setAudioGenMode('suno')}
-                  className="w-full rounded-lg border-2 border-neutral-200 bg-white p-4 text-left transition hover:border-neutral-300 hover:bg-neutral-50"
-                >
-                  <h4 className="font-semibold text-neutral-900">Suno V5</h4>
-                  <p className="mt-1 text-xs text-neutral-600">Generate music and songs with AI</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAudioGenMode('elevenlabs')}
-                  className="w-full rounded-lg border-2 border-neutral-200 bg-white p-4 text-left transition hover:border-neutral-300 hover:bg-neutral-50"
-                >
-                  <h4 className="font-semibold text-neutral-900">ElevenLabs</h4>
-                  <p className="mt-1 text-xs text-neutral-600">Generate speech from text with realistic voices</p>
-                </button>
+          {/* Images Tab Buttons */}
+          {activeTab === 'image' && (
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => uploadInputRef.current?.click()}
+                disabled={uploadPending}
+                className="group w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700 transition-all hover:border-blue-300 hover:bg-blue-100 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-75"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
+                  </svg>
+                  {uploadPending ? 'Uploading…' : 'Upload Images'}
+                </div>
+              </button>
+              <Link
+                href={`/image-gen?projectId=${projectId}`}
+                className="group w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-xs font-semibold text-white text-center shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Generate Images with AI
+                </div>
+              </Link>
+            </div>
+          )}
+
+          {/* Audio Tab Buttons */}
+          {activeTab === 'audio' && (
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => uploadInputRef.current?.click()}
+                disabled={uploadPending}
+                className="group w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700 transition-all hover:border-blue-300 hover:bg-blue-100 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-75"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
+                  </svg>
+                  {uploadPending ? 'Uploading…' : 'Upload Audio'}
+                </div>
+              </button>
+              <Link
+                href={`/audio-gen?projectId=${projectId}`}
+                className="group w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-xs font-semibold text-white text-center shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                    />
+                  </svg>
+                  Generate Audio with AI
+                </div>
+              </Link>
+            </div>
+          )}
+          {assetError && (
+            <div className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{assetError}</div>
+          )}
+          <div className="flex-1 overflow-y-auto space-y-3">
+            {loadingAssets && (
+              <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+                Loading assets…
               </div>
-            ) : audioGenMode === 'suno' ? (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.currentTarget);
-                  void handleGenerateSuno({
-                    prompt: formData.get('prompt') as string,
-                    style: formData.get('style') as string,
-                    title: formData.get('title') as string,
-                    customMode: formData.get('customMode') === 'on',
-                    instrumental: formData.get('instrumental') === 'on',
-                  });
-                }}
-                className="space-y-4"
-              >
-                <div>
-                  <label htmlFor="prompt" className="block text-sm font-medium text-neutral-700">
-                    Prompt *
-                  </label>
-                  <textarea
-                    id="prompt"
-                    name="prompt"
-                    required
-                    rows={3}
-                    placeholder="Describe the music you want to generate..."
-                    className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="style" className="block text-sm font-medium text-neutral-700">
-                    Style/Genre
-                  </label>
-                  <input
-                    id="style"
-                    name="style"
-                    type="text"
-                    placeholder="e.g., Jazz, Classical, Electronic"
-                    className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-neutral-700">
-                    Title
-                  </label>
-                  <input
-                    id="title"
-                    name="title"
-                    type="text"
-                    placeholder="Optional title for the track"
-                    className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
-                  />
-                </div>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" name="customMode" className="rounded" />
-                    <span className="text-sm text-neutral-700">Custom Mode</span>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" name="instrumental" className="rounded" />
-                    <span className="text-sm text-neutral-700">Instrumental</span>
-                  </label>
-                </div>
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setAudioGenMode(null)}
-                    disabled={audioGenPending}
-                    className="flex-1 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Back
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={audioGenPending}
-                    className="flex-1 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {audioGenPending ? 'Generating...' : 'Generate'}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.currentTarget);
-                  void handleGenerateElevenLabs({
-                    text: formData.get('text') as string,
-                    voiceId: formData.get('voiceId') as string || undefined,
-                    modelId: formData.get('modelId') as string || undefined,
-                  });
-                }}
-                className="space-y-4"
-              >
-                <div>
-                  <label htmlFor="text" className="block text-sm font-medium text-neutral-700">
-                    Text *
-                  </label>
-                  <textarea
-                    id="text"
-                    name="text"
-                    required
-                    rows={4}
-                    placeholder="Enter the text you want to convert to speech..."
-                    className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="voiceId" className="block text-sm font-medium text-neutral-700">
-                    Voice
-                  </label>
-                  <select
-                    id="voiceId"
-                    name="voiceId"
-                    className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
-                  >
-                    <option value="">Default (Sarah)</option>
-                    <option value="EXAVITQu4vr4xnSDxMaL">Sarah</option>
-                    <option value="pNInz6obpgDQGcFmaJgB">Adam</option>
-                    <option value="21m00Tcm4TlvDq8ikWAM">Rachel</option>
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="modelId" className="block text-sm font-medium text-neutral-700">
-                    Model
-                  </label>
-                  <select
-                    id="modelId"
-                    name="modelId"
-                    className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
-                  >
-                    <option value="eleven_multilingual_v2">Multilingual v2 (High Quality)</option>
-                    <option value="eleven_flash_v2_5">Flash v2.5 (Fast, Low Latency)</option>
-                    <option value="eleven_turbo_v2_5">Turbo v2.5 (Balanced)</option>
-                  </select>
-                </div>
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setAudioGenMode(null)}
-                    disabled={audioGenPending}
-                    className="flex-1 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Back
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={audioGenPending}
-                    className="flex-1 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {audioGenPending ? 'Generating...' : 'Generate'}
-                  </button>
-                </div>
-              </form>
             )}
+            {!loadingAssets && filteredAssets.length === 0 && (
+              <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+                {activeTab === 'video'
+                  ? 'No video assets yet. Upload video to begin editing.'
+                  : activeTab === 'image'
+                    ? 'No image assets yet. Upload images.'
+                    : 'No audio assets yet. Upload or generate audio.'}
+              </div>
+            )}
+            {filteredAssets.map((asset) => (
+              <div key={asset.id} className="group relative flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => void handleClipAdd(asset)}
+                  className="flex w-full items-center gap-3 rounded-lg border border-transparent bg-neutral-50 px-3 py-2 text-left transition hover:border-neutral-200 hover:bg-white"
+                >
+                  {asset.metadata?.thumbnail ? (
+                    <NextImage
+                      src={asset.metadata.thumbnail}
+                      alt=""
+                      width={112}
+                      height={64}
+                      className="h-16 w-28 rounded-md object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="flex h-16 w-28 items-center justify-center rounded-md bg-neutral-200 text-xs text-neutral-600">
+                      {asset.type.toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 text-xs">
+                    <p className="font-medium text-neutral-900">
+                      {asset.metadata?.filename ?? extractFileName(asset.storage_url)}
+                    </p>
+                    <p className="text-neutral-500">
+                      {asset.metadata?.mimeType ??
+                        asset.metadata?.format ??
+                        (asset.metadata?.videoCodec
+                          ? `${asset.metadata.videoCodec}/${asset.metadata.audioCodec ?? 'no audio'}`
+                          : null) ??
+                        `${asset.type} file`}
+                    </p>
+                  </div>
+                </button>
+
+                {/* Delete button - always visible */}
+                <button
+                  onClick={() => void handleAssetDelete(asset)}
+                  className="absolute right-2 top-2 z-10 rounded-md bg-red-500 p-1.5 text-white shadow-lg transition-all hover:bg-red-600"
+                  title="Delete asset"
+                >
+                  <svg
+                    className="h-3.5 w-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+              </div>
+            ))}
           </div>
-        </div>
-      )}
+        </aside>
 
-      {/* Video Generation Modal */}
-      {showVideoModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-900">Generate Video with Veo 3.1</h3>
-              <button
-                type="button"
-                onClick={() => setShowVideoModal(false)}
-                disabled={videoGenPending}
-                className="rounded-lg p-1 text-neutral-500 hover:bg-neutral-100 disabled:cursor-not-allowed"
-              >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                void handleGenerateVideo({
-                  prompt: formData.get('prompt') as string,
-                  aspectRatio: (formData.get('aspectRatio') as '9:16' | '16:9' | '1:1') || '16:9',
-                  duration: parseInt(formData.get('duration') as string) || 8,
-                });
-              }}
-              className="space-y-4"
+        {/* Main Editor */}
+        <main className="flex h-full flex-col gap-4 overflow-hidden">
+          <section className="flex-[18] overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+            <ErrorBoundary
+              fallback={
+                <div className="flex h-full items-center justify-center">
+                  <div className="max-w-md rounded-lg border border-orange-200 bg-orange-50 p-6 text-center">
+                    <h3 className="text-lg font-semibold text-orange-900 mb-2">
+                      Preview Player Error
+                    </h3>
+                    <p className="text-sm text-orange-700 mb-4">
+                      The video preview player encountered an error. Your timeline data is safe.
+                    </p>
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
+                    >
+                      Reload Player
+                    </button>
+                  </div>
+                </div>
+              }
             >
-              <div>
-                <label htmlFor="video-prompt" className="block text-xs font-medium text-neutral-700 mb-1">
-                  Video Description
-                </label>
-                <textarea
-                  id="video-prompt"
-                  name="prompt"
-                  required
-                  disabled={videoGenPending}
-                  placeholder="Describe the video you want to generate..."
-                  rows={4}
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
+              <LazyPreviewPlayer />
+            </ErrorBoundary>
+          </section>
+          <section className="flex-[5] rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+            <ErrorBoundary
+              fallback={
+                <div className="flex h-full items-center justify-center">
+                  <div className="max-w-md rounded-lg border border-orange-200 bg-orange-50 p-6 text-center">
+                    <h3 className="text-lg font-semibold text-orange-900 mb-2">Timeline Error</h3>
+                    <p className="text-sm text-orange-700 mb-4">
+                      The timeline component encountered an error. Your project data is safe.
+                    </p>
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
+                    >
+                      Reload Timeline
+                    </button>
+                  </div>
+                </div>
+              }
+            >
+              <LazyHorizontalTimeline
+                onDetectScenes={handleDetectScenes}
+                sceneDetectPending={sceneDetectPending}
+                onAddText={handleAddText}
+                onAddTransition={handleAddTransition}
+                onGenerateAudioFromClip={handleGenerateAudioFromClip}
+                onUpscaleVideo={handleUpscaleVideoFromTimeline}
+                upscaleVideoPending={upscaleVideoPending}
+                onSplitAudioFromClip={handleSplitAudioFromClip}
+                onSplitScenesFromClip={handleSplitScenesFromClip}
+                splitAudioPending={splitAudioPending}
+                splitScenesPending={splitScenesPending}
+              />
+            </ErrorBoundary>
+          </section>
 
-              <div>
-                <label htmlFor="video-aspect-ratio" className="block text-xs font-medium text-neutral-700 mb-1">
-                  Aspect Ratio
-                </label>
-                <select
-                  id="video-aspect-ratio"
-                  name="aspectRatio"
-                  disabled={videoGenPending}
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+          {/* Advanced Corrections Menu - Collapsible panel below timeline */}
+          <TimelineCorrectionsMenu />
+        </main>
+
+        {/* Clip Properties Panel */}
+        <LazyClipPropertiesPanel />
+
+        {/* Audio Generation Modal */}
+        {showAudioModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6">
+            <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-neutral-900">Generate Audio</h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAudioModal(false);
+                    setAudioGenMode(null);
+                  }}
+                  disabled={audioGenPending}
+                  className="rounded-lg p-1 text-neutral-500 hover:bg-neutral-100 disabled:cursor-not-allowed"
                 >
-                  <option value="16:9">16:9 (Landscape)</option>
-                  <option value="9:16">9:16 (Portrait)</option>
-                  <option value="1:1">1:1 (Square)</option>
-                </select>
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
               </div>
 
-              <div>
-                <label htmlFor="video-duration" className="block text-xs font-medium text-neutral-700 mb-1">
-                  Duration (seconds)
-                </label>
-                <select
-                  id="video-duration"
-                  name="duration"
-                  disabled={videoGenPending}
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              {!audioGenMode ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-neutral-600">
+                    Choose an AI provider to generate audio:
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setAudioGenMode('suno')}
+                    className="w-full rounded-lg border-2 border-neutral-200 bg-white p-4 text-left transition hover:border-neutral-300 hover:bg-neutral-50"
+                  >
+                    <h4 className="font-semibold text-neutral-900">Suno V5</h4>
+                    <p className="mt-1 text-xs text-neutral-600">
+                      Generate music and songs with AI
+                    </p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAudioGenMode('elevenlabs')}
+                    className="w-full rounded-lg border-2 border-neutral-200 bg-white p-4 text-left transition hover:border-neutral-300 hover:bg-neutral-50"
+                  >
+                    <h4 className="font-semibold text-neutral-900">ElevenLabs</h4>
+                    <p className="mt-1 text-xs text-neutral-600">
+                      Generate speech from text with realistic voices
+                    </p>
+                  </button>
+                </div>
+              ) : audioGenMode === 'suno' ? (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.currentTarget);
+                    void handleGenerateSuno({
+                      prompt: formData.get('prompt') as string,
+                      style: formData.get('style') as string,
+                      title: formData.get('title') as string,
+                      customMode: formData.get('customMode') === 'on',
+                      instrumental: formData.get('instrumental') === 'on',
+                    });
+                  }}
+                  className="space-y-4"
                 >
-                  <option value="5">5 seconds</option>
-                  <option value="8" selected>8 seconds</option>
-                </select>
-              </div>
+                  <div>
+                    <label htmlFor="prompt" className="block text-sm font-medium text-neutral-700">
+                      Prompt *
+                    </label>
+                    <textarea
+                      id="prompt"
+                      name="prompt"
+                      required
+                      rows={3}
+                      placeholder="Describe the music you want to generate..."
+                      className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="style" className="block text-sm font-medium text-neutral-700">
+                      Style/Genre
+                    </label>
+                    <input
+                      id="style"
+                      name="style"
+                      type="text"
+                      placeholder="e.g., Jazz, Classical, Electronic"
+                      className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="title" className="block text-sm font-medium text-neutral-700">
+                      Title
+                    </label>
+                    <input
+                      id="title"
+                      name="title"
+                      type="text"
+                      placeholder="Optional title for the track"
+                      className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+                    />
+                  </div>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" name="customMode" className="rounded" />
+                      <span className="text-sm text-neutral-700">Custom Mode</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" name="instrumental" className="rounded" />
+                      <span className="text-sm text-neutral-700">Instrumental</span>
+                    </label>
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setAudioGenMode(null)}
+                      disabled={audioGenPending}
+                      className="flex-1 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={audioGenPending}
+                      className="flex-1 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {audioGenPending ? 'Generating...' : 'Generate'}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.currentTarget);
+                    void handleGenerateElevenLabs({
+                      text: formData.get('text') as string,
+                      voiceId: (formData.get('voiceId') as string) || undefined,
+                      modelId: (formData.get('modelId') as string) || undefined,
+                    });
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label htmlFor="text" className="block text-sm font-medium text-neutral-700">
+                      Text *
+                    </label>
+                    <textarea
+                      id="text"
+                      name="text"
+                      required
+                      rows={4}
+                      placeholder="Enter the text you want to convert to speech..."
+                      className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="voiceId" className="block text-sm font-medium text-neutral-700">
+                      Voice
+                    </label>
+                    <select
+                      id="voiceId"
+                      name="voiceId"
+                      className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+                    >
+                      <option value="">Default (Sarah)</option>
+                      <option value="EXAVITQu4vr4xnSDxMaL">Sarah</option>
+                      <option value="pNInz6obpgDQGcFmaJgB">Adam</option>
+                      <option value="21m00Tcm4TlvDq8ikWAM">Rachel</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="modelId" className="block text-sm font-medium text-neutral-700">
+                      Model
+                    </label>
+                    <select
+                      id="modelId"
+                      name="modelId"
+                      className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+                    >
+                      <option value="eleven_multilingual_v2">Multilingual v2 (High Quality)</option>
+                      <option value="eleven_flash_v2_5">Flash v2.5 (Fast, Low Latency)</option>
+                      <option value="eleven_turbo_v2_5">Turbo v2.5 (Balanced)</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setAudioGenMode(null)}
+                      disabled={audioGenPending}
+                      className="flex-1 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={audioGenPending}
+                      className="flex-1 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {audioGenPending ? 'Generating...' : 'Generate'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
 
-              <div className="flex gap-3">
+        {/* Video Generation Modal */}
+        {showVideoModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6">
+            <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-neutral-900">
+                  Generate Video with Veo 3.1
+                </h3>
                 <button
                   type="button"
                   onClick={() => setShowVideoModal(false)}
                   disabled={videoGenPending}
-                  className="flex-1 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-lg p-1 text-neutral-500 hover:bg-neutral-100 disabled:cursor-not-allowed"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={videoGenPending}
-                  className="flex-1 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {videoGenPending ? 'Generating...' : 'Generate Video'}
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
                 </button>
               </div>
 
-              {videoGenPending && videoOperationName && (
-                <div className="mt-4 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-600">
-                  Video generation in progress. This may take several minutes. You can close this modal and continue working.
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  void handleGenerateVideo({
+                    prompt: formData.get('prompt') as string,
+                    aspectRatio: (formData.get('aspectRatio') as '9:16' | '16:9' | '1:1') || '16:9',
+                    duration: parseInt(formData.get('duration') as string) || 8,
+                  });
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label
+                    htmlFor="video-prompt"
+                    className="block text-xs font-medium text-neutral-700 mb-1"
+                  >
+                    Video Description
+                  </label>
+                  <textarea
+                    id="video-prompt"
+                    name="prompt"
+                    required
+                    disabled={videoGenPending}
+                    placeholder="Describe the video you want to generate..."
+                    rows={4}
+                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  />
                 </div>
-              )}
-            </form>
-          </div>
-        </div>
-      )}
 
-      {/* Export Modal */}
-      <LazyExportModal
-        isOpen={showExportModal}
-        onClose={() => setShowExportModal(false)}
-        projectId={projectId}
-        timeline={timeline}
-      />
+                <div>
+                  <label
+                    htmlFor="video-aspect-ratio"
+                    className="block text-xs font-medium text-neutral-700 mb-1"
+                  >
+                    Aspect Ratio
+                  </label>
+                  <select
+                    id="video-aspect-ratio"
+                    name="aspectRatio"
+                    disabled={videoGenPending}
+                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="16:9">16:9 (Landscape)</option>
+                    <option value="9:16">9:16 (Portrait)</option>
+                    <option value="1:1">1:1 (Square)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="video-duration"
+                    className="block text-xs font-medium text-neutral-700 mb-1"
+                  >
+                    Duration (seconds)
+                  </label>
+                  <select
+                    id="video-duration"
+                    name="duration"
+                    disabled={videoGenPending}
+                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="5">5 seconds</option>
+                    <option value="8" selected>
+                      8 seconds
+                    </option>
+                  </select>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowVideoModal(false)}
+                    disabled={videoGenPending}
+                    className="flex-1 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={videoGenPending}
+                    className="flex-1 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {videoGenPending ? 'Generating...' : 'Generate Video'}
+                  </button>
+                </div>
+
+                {videoGenPending && videoOperationName && (
+                  <div className="mt-4 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-600">
+                    Video generation in progress. This may take several minutes. You can close this
+                    modal and continue working.
+                  </div>
+                )}
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Export Modal */}
+        <LazyExportModal
+          isOpen={showExportModal}
+          onClose={() => setShowExportModal(false)}
+          projectId={projectId}
+          timeline={timeline}
+        />
       </div>
     </div>
   );
