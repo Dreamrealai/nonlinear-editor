@@ -18,11 +18,13 @@ interface VeoGenerateResponse {
 interface VeoOperationResult {
   done: boolean;
   response?: {
-    generatedSamples: Array<{
-      video: {
-        url: string;
-        mimeType: string;
-      };
+    '@type'?: string;
+    raiMediaFilteredCount?: number;
+    raiMediaFilteredReasons?: string[];
+    videos?: Array<{
+      gcsUri?: string;
+      bytesBase64Encoded?: string;
+      mimeType: string;
     }>;
   };
   error?: {
@@ -64,8 +66,8 @@ export async function generateVideo(params: VeoGenerateParams): Promise<VeoGener
     throw new Error('Could not extract project_id from GOOGLE_SERVICE_ACCOUNT');
   }
 
-  // Veo 3.1 API endpoint
-  const endpoint = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/veo-3-1:generateVideo`;
+  // Veo 3.1 API endpoint (uses predictLongRunning for async video generation)
+  const endpoint = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/veo-3.1-generate-preview:predictLongRunning`;
 
   const requestBody = {
     instances: [
@@ -75,7 +77,8 @@ export async function generateVideo(params: VeoGenerateParams): Promise<VeoGener
     ],
     parameters: {
       aspectRatio: params.aspectRatio || '16:9',
-      videoDuration: params.duration || 8,
+      durationSeconds: params.duration || 8,
+      generateAudio: true, // Veo 3+ supports audio generation
       ...(params.seed !== undefined && { seed: params.seed }),
     },
   };
@@ -99,20 +102,29 @@ export async function generateVideo(params: VeoGenerateParams): Promise<VeoGener
 }
 
 /**
- * Check the status of a video generation operation
+ * Check the status of a video generation operation using Veo's fetchPredictOperation
  */
 export async function checkOperationStatus(operationName: string): Promise<VeoOperationResult> {
   const auth = getAuthClient();
   const client = await auth.getClient();
+  const projectId = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT || '{}').project_id;
 
-  // Extract the operation path from the full name
-  const endpoint = `https://us-central1-aiplatform.googleapis.com/v1/${operationName}`;
+  if (!projectId) {
+    throw new Error('Could not extract project_id from GOOGLE_SERVICE_ACCOUNT');
+  }
+
+  // Use Veo-specific status check endpoint
+  const endpoint = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/veo-3.1-generate-preview:fetchPredictOperation`;
 
   const response = await fetch(endpoint, {
-    method: 'GET',
+    method: 'POST',
     headers: {
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${await client.getAccessToken().then(token => token.token)}`,
     },
+    body: JSON.stringify({
+      operationName: operationName,
+    }),
   });
 
   if (!response.ok) {

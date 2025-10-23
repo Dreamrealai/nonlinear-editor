@@ -51,9 +51,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to download video' }, { status: 500 });
     }
 
-    // Convert to ArrayBuffer for processing
-    const videoBuffer = await videoBlob.arrayBuffer();
-
     // Note: In a production environment, you would use FFmpeg here to extract audio
     // For now, we'll use the Web Audio API approach which works for browser environments
     // but won't work server-side. You would typically use a library like fluent-ffmpeg

@@ -34,8 +34,8 @@ export async function GET(req: NextRequest) {
 
     if (result.done && result.response) {
       // Video generation completed - save to Supabase
-      const videoUrl = result.response.generatedSamples?.[0]?.video?.url;
-      const mimeType = result.response.generatedSamples?.[0]?.video?.mimeType || 'video/mp4';
+      const videoUrl = result.response.videos?.[0]?.gcsUri;
+      const mimeType = result.response.videos?.[0]?.mimeType || 'video/mp4';
 
       if (videoUrl) {
         // Download the video from Google's URL
