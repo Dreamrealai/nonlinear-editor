@@ -18,3 +18,10 @@ When making changes to this project:
 5. Push to remote: `git push`
 
 This ensures all changes are properly built, tested, and version controlled before being pushed to the repository.
+
+## Test Credentials
+
+**IMPORTANT**: These credentials are for testing purposes only.
+
+- Email: david@dreamreal.ai
+- Password: sc3p4sses

@@ -78,56 +78,121 @@ A modern, browser-based non-linear video editor built with Next.js 15, React 19,
 
 ### Prerequisites
 
-- Node.js 20+
-- npm or pnpm
-- Supabase account
-- (Optional) Axiom account for logging
-- (Optional) Gemini API key for AI features
+- **Node.js 20+** and npm
+- **Supabase account** ([sign up free](https://supabase.com))
+- (Optional) **Google Cloud account** for AI features (Veo, Imagen, scene detection)
+- (Optional) **Gemini API key** for AI chat
+- (Optional) **Axiom account** for logging
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository:**
 ```bash
 git clone https://github.com/Dreamrealai/nonlinear-editor.git
 cd nonlinear-editor
 ```
 
-2. Install dependencies:
+2. **Install dependencies:**
 ```bash
 npm install
 ```
 
-3. Set up environment variables:
+3. **Set up Supabase:**
+
+Follow the detailed [Supabase Setup Guide](docs/SUPABASE_SETUP.md) to:
+- Create Supabase project
+- Run database migrations
+- Configure storage buckets
+- Set up authentication
+- Get API keys
+
+**Quick Supabase Setup:**
+```bash
+# 1. Create project at https://supabase.com/dashboard
+# 2. Get your project URL and keys
+# 3. Run migrations in SQL Editor (see SUPABASE_SETUP.md)
+# 4. Copy API keys to .env.local
+```
+
+4. **Configure environment variables:**
+
+Copy the example file:
 ```bash
 cp .env.local.example .env.local
 ```
 
-Edit `.env.local` and add:
+Edit `.env.local` with your credentials:
+
 ```bash
-# Supabase (Required)
-NEXT_PUBLIC_SUPABASE_URL=your-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+# ============================================
+# REQUIRED - Supabase
+# ============================================
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...
 
-# Email (Recommended for production)
-RESEND_API_KEY=your-resend-api-key
+# ============================================
+# OPTIONAL - AI Features
+# ============================================
 
-# AI Features (Optional)
+# Google AI Services (Veo video generation, Imagen image generation, scene detection)
+# Get from: https://console.cloud.google.com
+GOOGLE_SERVICE_ACCOUNT={"type":"service_account","project_id":"..."}
+GCS_BUCKET_NAME=your-video-processing-bucket  # Auto-created if not specified
+
+# Gemini AI Chat (Get from: https://ai.google.dev)
 GEMINI_API_KEY=your-gemini-api-key
 
-# Logging (Optional)
+# fal.ai (Video upscaling, audio generation)
+# Get from: https://fal.ai
+FAL_API_KEY=your-fal-api-key
+
+# ============================================
+# OPTIONAL - Audio Generation
+# ============================================
+
+# Suno Music Generation (via Comet API)
+# Get from: https://cometapi.com
+COMET_API_KEY=your-comet-api-key
+
+# ElevenLabs Text-to-Speech & Sound Effects
+# Get from: https://elevenlabs.io
+ELEVENLABS_API_KEY=your-elevenlabs-api-key
+
+# Wavespeed Audio Processing
+WAVESPEED_API_KEY=your-wavespeed-api-key
+
+# ============================================
+# OPTIONAL - Logging & Monitoring
+# ============================================
+
+# Axiom (Get from: https://axiom.co)
 AXIOM_TOKEN=your-axiom-token
 AXIOM_DATASET=your-dataset-name
+
+# ============================================
+# OPTIONAL - Application Settings
+# ============================================
+
+# For CORS and redirects (auto-detected in most cases)
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-**Note:** Resend API key is used for reliable email delivery (signup confirmations, password resets). Configure SMTP settings in your Supabase dashboard after obtaining a Resend API key.
+See [Environment Variables](#environment-variables) section below for detailed descriptions.
 
-4. Run the development server:
+5. **Run the development server:**
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the app.
+6. **Open the app:**
+Navigate to [http://localhost:3000](http://localhost:3000)
+
+7. **Create an account:**
+- Go to `/signup`
+- Enter email and password
+- Confirm email (if enabled)
+- Start editing!
 
 ## Documentation
 

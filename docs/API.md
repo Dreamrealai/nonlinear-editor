@@ -777,6 +777,106 @@ CREATE TABLE timelines (
 
 ---
 
+## Environment Variables
+
+### Required Variables
+
+**Supabase (Required for core functionality):**
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...  # Server-side only, never expose
+```
+
+### Optional Variables
+
+**Google AI Services (Video generation, scene detection, image generation):**
+```bash
+GOOGLE_SERVICE_ACCOUNT={"type":"service_account","project_id":"..."}
+GCS_BUCKET_NAME=your-bucket-name  # Auto-created if not specified
+```
+
+**AI Chat (Gemini):**
+```bash
+GEMINI_API_KEY=your-gemini-api-key
+```
+
+**Video Upscaling & Audio Generation (fal.ai):**
+```bash
+FAL_API_KEY=your-fal-api-key
+```
+
+**Audio Generation (Suno via Comet API):**
+```bash
+COMET_API_KEY=your-comet-api-key
+```
+
+**Text-to-Speech (ElevenLabs):**
+```bash
+ELEVENLABS_API_KEY=your-elevenlabs-api-key
+```
+
+**Audio Processing (Wavespeed):**
+```bash
+WAVESPEED_API_KEY=your-wavespeed-api-key
+```
+
+**Logging & Monitoring (Axiom):**
+```bash
+AXIOM_TOKEN=your-axiom-token
+AXIOM_DATASET=your-dataset-name
+```
+
+**Application URLs (for CORS/redirects):**
+```bash
+NEXT_PUBLIC_APP_URL=http://localhost:3000  # Development
+# or
+NEXT_PUBLIC_APP_URL=https://yourdomain.com  # Production
+```
+
+### Variable Descriptions
+
+| Variable | Required | Purpose | Exposed to Client |
+|----------|----------|---------|-------------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL | Yes |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Public API key (RLS enforced) | Yes |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Admin key (bypasses RLS) | No |
+| `GOOGLE_SERVICE_ACCOUNT` | Optional | Google Cloud credentials JSON | No |
+| `GCS_BUCKET_NAME` | Optional | GCS bucket for video processing | No |
+| `GEMINI_API_KEY` | Optional | Google Gemini API key | No |
+| `FAL_API_KEY` | Optional | fal.ai API key | No |
+| `COMET_API_KEY` | Optional | Comet API (Suno wrapper) | No |
+| `ELEVENLABS_API_KEY` | Optional | ElevenLabs API key | No |
+| `WAVESPEED_API_KEY` | Optional | Wavespeed API key | No |
+| `AXIOM_TOKEN` | Optional | Axiom logging token | No |
+| `AXIOM_DATASET` | Optional | Axiom dataset name | No |
+| `NEXT_PUBLIC_APP_URL` | Optional | App URL for CORS | Yes |
+
+### Configuration Example
+
+Create `.env.local` file:
+```bash
+# Required
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...
+
+# Optional AI Features
+GEMINI_API_KEY=
+FAL_API_KEY=
+GOOGLE_SERVICE_ACCOUNT={"type":"service_account",...}
+
+# Optional Audio
+COMET_API_KEY=
+ELEVENLABS_API_KEY=
+
+# Optional Logging
+AXIOM_TOKEN=
+AXIOM_DATASET=genai-video-production
+```
+
+---
+
 ## Best Practices
 
 ### Authentication
