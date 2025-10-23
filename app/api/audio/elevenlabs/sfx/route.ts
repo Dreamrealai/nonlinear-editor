@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { fetchWithTimeout } from '@/lib/fetchWithTimeout';
 
 export const runtime = 'edge';
 
@@ -54,12 +55,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Call ElevenLabs Sound Generation API with timeout
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
-
     let response;
     try {
-      response = await fetch('https://api.elevenlabs.io/v1/sound-generation', {
+      response = await fetchWithTimeout('https://api.elevenlabs.io/v1/sound-generation', {
         method: 'POST',
         headers: {
           'xi-api-key': apiKey,
@@ -70,10 +68,8 @@ export async function POST(request: NextRequest) {
           duration_seconds: duration,
           prompt_influence: 0.3,
         }),
-        signal: controller.signal,
+        timeout: 60000,
       });
-
-      clearTimeout(timeout);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -84,8 +80,7 @@ export async function POST(request: NextRequest) {
         );
       }
     } catch (error) {
-      clearTimeout(timeout);
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (error instanceof Error && /timeout/i.test(error.message)) {
         console.error('ElevenLabs SFX timeout');
         return NextResponse.json(
           { error: 'SFX generation timeout after 60s' },
@@ -99,8 +94,8 @@ export async function POST(request: NextRequest) {
     const audioBuffer = await response.arrayBuffer();
 
     // Upload to Supabase Storage
-    const fileName = `sfx-${Date.now()}-${prompt.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '-')}.mp3`;
-    const filePath = `${user.id}/${projectId}/${fileName}`;
+    const fileName = `sfx_${Date.now()}_${prompt.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '-')}.mp3`;
+    const filePath = `${user.id}/${projectId}/audio/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from('assets')
@@ -119,20 +114,23 @@ export async function POST(request: NextRequest) {
       data: { publicUrl },
     } = supabase.storage.from('assets').getPublicUrl(filePath);
 
-    // Save asset metadata to database
+    // Save asset metadata to database (align with assets schema)
     const { data: asset, error: assetError } = await supabase
       .from('assets')
       .insert({
         project_id: projectId,
         user_id: user.id,
         type: 'audio',
-        name: `SFX: ${prompt.substring(0, 50)}`,
-        url: publicUrl,
-        storage_path: filePath,
+        source: 'genai',
+        mime_type: 'audio/mpeg',
+        storage_url: `supabase://assets/${filePath}`,
         metadata: {
+          filename: fileName,
+          mimeType: 'audio/mpeg',
+          sourceUrl: publicUrl,
+          provider: 'elevenlabs-sfx',
           prompt,
           duration,
-          source: 'elevenlabs-sfx',
           generatedAt: new Date().toISOString(),
         },
       })
