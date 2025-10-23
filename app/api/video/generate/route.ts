@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateVideo } from '@/lib/veo';
-import { createClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient } from '@/lib/supabase';
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerSupabaseClient();
 
     // Check authentication
     const {

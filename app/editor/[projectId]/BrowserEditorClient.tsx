@@ -143,6 +143,62 @@ const extractFileName = (storageUrl: string) => {
   return segments[segments.length - 1] ?? normalized;
 };
 
+const audioBufferToWav = (buffer: AudioBuffer): ArrayBuffer => {
+  const numOfChan = buffer.numberOfChannels;
+  const length = buffer.length * numOfChan * 2 + 44;
+  const bufferArray = new ArrayBuffer(length);
+  const view = new DataView(bufferArray);
+  const channels: Float32Array[] = [];
+  let offset = 0;
+  let pos = 0;
+
+  // Write WAVE header
+  const setUint16 = (data: number) => {
+    view.setUint16(pos, data, true);
+    pos += 2;
+  };
+  const setUint32 = (data: number) => {
+    view.setUint32(pos, data, true);
+    pos += 4;
+  };
+
+  // "RIFF" chunk descriptor
+  setUint32(0x46464952); // "RIFF"
+  setUint32(length - 8); // file length - 8
+  setUint32(0x45564157); // "WAVE"
+
+  // "fmt " sub-chunk
+  setUint32(0x20746d66); // "fmt "
+  setUint32(16); // subchunk1size (16 for PCM)
+  setUint16(1); // audio format (1 for PCM)
+  setUint16(numOfChan); // number of channels
+  setUint32(buffer.sampleRate); // sample rate
+  setUint32(buffer.sampleRate * 2 * numOfChan); // byte rate
+  setUint16(numOfChan * 2); // block align
+  setUint16(16); // bits per sample
+
+  // "data" sub-chunk
+  setUint32(0x61746164); // "data"
+  setUint32(length - pos - 4); // subchunk2size
+
+  // Write interleaved data
+  for (let i = 0; i < buffer.numberOfChannels; i++) {
+    channels.push(buffer.getChannelData(i));
+  }
+
+  while (pos < length) {
+    for (let i = 0; i < numOfChan; i++) {
+      let sample = Math.max(-1, Math.min(1, channels[i][offset]));
+      sample = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
+      view.setInt16(pos, sample, true);
+      pos += 2;
+    }
+    offset++;
+  }
+
+  return bufferArray;
+};
+
 const createEmptyTimeline = (projectId: string): TimelineType => ({
   projectId,
   clips: [],
@@ -435,6 +491,15 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   const [showAudioModal, setShowAudioModal] = useState(false);
   const [audioGenMode, setAudioGenMode] = useState<'suno' | 'elevenlabs' | null>(null);
   const [audioGenPending, setAudioGenPending] = useState(false);
+
+  // Video generation state
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [videoGenPending, setVideoGenPending] = useState(false);
+  const [videoOperationName, setVideoOperationName] = useState<string | null>(null);
+
+  // Video processing state
+  const [splitAudioPending, setSplitAudioPending] = useState(false);
+  const [splitScenesPending, setSplitScenesPending] = useState(false);
 
   // Export state
   const [showExportModal, setShowExportModal] = useState(false);
@@ -949,6 +1014,197 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
     }
   }, [supabase, projectId]);
 
+  const handleGenerateVideo = useCallback(async (formData: { prompt: string; aspectRatio?: '9:16' | '16:9' | '1:1'; duration?: number }) => {
+    setVideoGenPending(true);
+    toast.loading('Generating video with Veo 3.1...', { id: 'generate-video' });
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const res = await fetch('/api/video/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          projectId,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json.error || 'Video generation failed');
+      }
+
+      setVideoOperationName(json.operationName);
+      toast.loading('Video generation in progress... This may take several minutes.', { id: 'generate-video' });
+
+      // Poll for video generation status
+      const pollInterval = 10000; // 10 seconds
+      const poll = async () => {
+        try {
+          const statusRes = await fetch(`/api/video/status?operationName=${encodeURIComponent(json.operationName)}&projectId=${projectId}`);
+          const statusJson = await statusRes.json();
+
+          if (statusJson.done) {
+            if (statusJson.error) {
+              throw new Error(statusJson.error);
+            }
+
+            toast.success('Video generated successfully!', { id: 'generate-video' });
+
+            const mappedAsset = mapAssetRow(statusJson.asset as Record<string, unknown>);
+            if (mappedAsset) {
+              setAssets((prev) => [mappedAsset, ...prev]);
+            }
+
+            setShowVideoModal(false);
+            setVideoGenPending(false);
+            setVideoOperationName(null);
+            setActiveTab('video');
+          } else {
+            // Continue polling
+            setTimeout(poll, pollInterval);
+          }
+        } catch (pollError) {
+          browserLogger.error({ error: pollError, projectId }, 'Video generation polling failed');
+          toast.error(pollError instanceof Error ? pollError.message : 'Video generation failed', { id: 'generate-video' });
+          setVideoGenPending(false);
+          setVideoOperationName(null);
+        }
+      };
+
+      setTimeout(poll, pollInterval);
+    } catch (error) {
+      browserLogger.error({ error, projectId }, 'Video generation failed');
+      toast.error(error instanceof Error ? error.message : 'Video generation failed', { id: 'generate-video' });
+      setVideoGenPending(false);
+    }
+  }, [supabase, projectId]);
+
+  const handleSplitAudio = useCallback(async (asset: AssetRow) => {
+    setSplitAudioPending(true);
+    toast.loading('Extracting audio from video...', { id: 'split-audio' });
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Get signed URL for the video
+      const { data: signData } = await supabase
+        .from('assets')
+        .select('storage_url, metadata')
+        .eq('id', asset.id)
+        .single();
+
+      if (!signData) throw new Error('Asset not found');
+
+      // Use client-side audio extraction with Web Audio API
+      const videoUrl = asset.metadata?.sourceUrl || signData.storage_url;
+
+      // Fetch the video
+      const videoResponse = await fetch(videoUrl);
+      const videoBlob = await videoResponse.blob();
+
+      // Create audio context
+      const audioContext = new (window.AudioContext || (window as never)['webkitAudioContext'])();
+      const arrayBuffer = await videoBlob.arrayBuffer();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+      // Convert to WAV
+      const wav = audioBufferToWav(audioBuffer);
+      const audioBlob = new Blob([wav], { type: 'audio/wav' });
+
+      // Upload to Supabase
+      const fileName = `${uuid()}.wav`;
+      const storagePath = `${user.id}/${projectId}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('assets')
+        .upload(storagePath, audioBlob, {
+          contentType: 'audio/wav',
+          upsert: false,
+        });
+
+      if (uploadError) {
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
+
+      const { data: { publicUrl } } = supabase.storage.from('assets').getPublicUrl(storagePath);
+
+      // Create asset record
+      const { data: newAsset, error: assetError } = await supabase
+        .from('assets')
+        .insert({
+          user_id: user.id,
+          project_id: projectId,
+          type: 'audio',
+          source: 'upload',
+          storage_url: storagePath,
+          metadata: {
+            filename: fileName,
+            mimeType: 'audio/wav',
+            sourceUrl: publicUrl,
+            extractedFrom: asset.id,
+          },
+        })
+        .select()
+        .single();
+
+      if (assetError) {
+        throw new Error(`Asset creation failed: ${assetError.message}`);
+      }
+
+      toast.success('Audio extracted successfully!', { id: 'split-audio' });
+
+      const mappedAsset = mapAssetRow(newAsset as Record<string, unknown>);
+      if (mappedAsset) {
+        setAssets((prev) => [mappedAsset, ...prev]);
+      }
+
+      setActiveTab('audio');
+    } catch (error) {
+      browserLogger.error({ error, projectId }, 'Audio extraction failed');
+      toast.error(error instanceof Error ? error.message : 'Failed to extract audio', { id: 'split-audio' });
+    } finally {
+      setSplitAudioPending(false);
+    }
+  }, [supabase, projectId]);
+
+  const handleSplitScenes = useCallback(async (asset: AssetRow) => {
+    setSplitScenesPending(true);
+    toast.loading('Splitting video into scenes...', { id: 'split-scenes' });
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const res = await fetch('/api/video/split-scenes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assetId: asset.id,
+          projectId,
+          threshold: 0.5,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json.error || 'Scene splitting failed');
+      }
+
+      toast.success(json.message || 'Scene splitting initiated', { id: 'split-scenes' });
+    } catch (error) {
+      browserLogger.error({ error, projectId }, 'Scene splitting failed');
+      toast.error(error instanceof Error ? error.message : 'Failed to split scenes', { id: 'split-scenes' });
+    } finally {
+      setSplitScenesPending(false);
+    }
+  }, [supabase, projectId]);
+
   if (!timeline) {
     return (
       <div className="flex h-full w-full items-center justify-center">
@@ -1013,15 +1269,46 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
           </button>
         </div>
 
-        {/* Audio Generation Button */}
+        {/* Video Tab Buttons */}
+        {activeTab === 'video' && (
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => uploadInputRef.current?.click()}
+              disabled={uploadPending}
+              className="w-full rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-75"
+            >
+              {uploadPending ? 'Uploading…' : '+ Upload Video/Image'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowVideoModal(true)}
+              className="w-full rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-100"
+            >
+              + Generate Video with AI
+            </button>
+          </div>
+        )}
+
+        {/* Audio Tab Buttons */}
         {activeTab === 'audio' && (
-          <button
-            type="button"
-            onClick={() => setShowAudioModal(true)}
-            className="w-full rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-100"
-          >
-            + Generate Audio with AI
-          </button>
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => uploadInputRef.current?.click()}
+              disabled={uploadPending}
+              className="w-full rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-75"
+            >
+              {uploadPending ? 'Uploading…' : '+ Upload Audio'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAudioModal(true)}
+              className="w-full rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-100"
+            >
+              + Generate Audio with AI
+            </button>
+          </div>
         )}
         {assetError && (
           <div className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
@@ -1040,7 +1327,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
             </div>
           )}
           {assets.filter((a) => activeTab === 'video' ? a.type === 'video' || a.type === 'image' : a.type === 'audio').map((asset) => (
-            <div key={asset.id} className="group relative">
+            <div key={asset.id} className="group relative flex flex-col gap-2">
               <button
                 type="button"
                 onClick={() => void handleClipAdd(asset)}
@@ -1065,6 +1352,28 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
                   </p>
                 </div>
               </button>
+
+              {/* Video Action Buttons */}
+              {asset.type === 'video' && (
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => void handleSplitAudio(asset)}
+                    disabled={splitAudioPending}
+                    className="flex-1 rounded-md bg-blue-500 px-2 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    title="Extract audio from video"
+                  >
+                    Split Audio
+                  </button>
+                  <button
+                    onClick={() => void handleSplitScenes(asset)}
+                    disabled={splitScenesPending}
+                    className="flex-1 rounded-md bg-purple-500 px-2 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    title="Split video into scenes"
+                  >
+                    Split Scenes
+                  </button>
+                </div>
+              )}
 
               {/* Delete button - always visible */}
               <button
@@ -1290,6 +1599,110 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Video Generation Modal */}
+      {showVideoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-neutral-900">Generate Video with Veo 3.1</h3>
+              <button
+                type="button"
+                onClick={() => setShowVideoModal(false)}
+                disabled={videoGenPending}
+                className="rounded-lg p-1 text-neutral-500 hover:bg-neutral-100 disabled:cursor-not-allowed"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                void handleGenerateVideo({
+                  prompt: formData.get('prompt') as string,
+                  aspectRatio: (formData.get('aspectRatio') as '9:16' | '16:9' | '1:1') || '16:9',
+                  duration: parseInt(formData.get('duration') as string) || 8,
+                });
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label htmlFor="video-prompt" className="block text-xs font-medium text-neutral-700 mb-1">
+                  Video Description
+                </label>
+                <textarea
+                  id="video-prompt"
+                  name="prompt"
+                  required
+                  disabled={videoGenPending}
+                  placeholder="Describe the video you want to generate..."
+                  rows={4}
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="video-aspect-ratio" className="block text-xs font-medium text-neutral-700 mb-1">
+                  Aspect Ratio
+                </label>
+                <select
+                  id="video-aspect-ratio"
+                  name="aspectRatio"
+                  disabled={videoGenPending}
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="16:9">16:9 (Landscape)</option>
+                  <option value="9:16">9:16 (Portrait)</option>
+                  <option value="1:1">1:1 (Square)</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="video-duration" className="block text-xs font-medium text-neutral-700 mb-1">
+                  Duration (seconds)
+                </label>
+                <select
+                  id="video-duration"
+                  name="duration"
+                  disabled={videoGenPending}
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="5">5 seconds</option>
+                  <option value="8" selected>8 seconds</option>
+                </select>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowVideoModal(false)}
+                  disabled={videoGenPending}
+                  className="flex-1 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={videoGenPending}
+                  className="flex-1 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {videoGenPending ? 'Generating...' : 'Generate Video'}
+                </button>
+              </div>
+
+              {videoGenPending && videoOperationName && (
+                <div className="mt-4 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-600">
+                  Video generation in progress. This may take several minutes. You can close this modal and continue working.
+                </div>
+              )}
+            </form>
           </div>
         </div>
       )}
