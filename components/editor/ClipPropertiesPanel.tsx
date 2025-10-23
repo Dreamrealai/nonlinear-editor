@@ -56,7 +56,7 @@ export default function ClipPropertiesPanel() {
   const debouncedCompression = useDebounce(localCompression, 100);
 
   // Sync local state with selected clip
-  // Dependencies: Only re-run when selectedClip identity changes (via ID)
+  // Dependencies: Only re-run when selectedClip identity changes (via ID) or properties change
   useEffect(() => {
     if (selectedClip) {
       const cc = selectedClip.colorCorrection || { brightness: 100, contrast: 100, saturation: 100, hue: 0 };
@@ -74,7 +74,7 @@ export default function ClipPropertiesPanel() {
       setLocalTrebleGain(ae.trebleGain);
       setLocalCompression(ae.compression);
     }
-  }, [selectedClip?.id, selectedClip?.colorCorrection, selectedClip?.transform, selectedClip?.audioEffects]);
+  }, [selectedClip]);
 
   // Apply debounced color correction updates
   useEffect(() => {

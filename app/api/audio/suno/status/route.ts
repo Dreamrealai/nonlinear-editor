@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
-
-export const runtime = 'edge';
+import { unauthorizedResponse, validationError, notFoundResponse, forbiddenResponse, errorResponse } from '@/lib/api/response';
+import { verifyProjectOwnership } from '@/lib/api/project-verification';
 
 interface SunoStatusResponse {
   code: number;
@@ -24,10 +24,7 @@ export async function GET(req: NextRequest) {
     const apiKey = process.env.COMET_API_KEY;
 
     if (!apiKey) {
-      return NextResponse.json(
-        { error: 'Comet API key not configured' },
-        { status: 500 }
-      );
+      return errorResponse('Comet API key not configured', 500);
     }
 
     const supabase = await createServerSupabaseClient();
@@ -37,7 +34,7 @@ export async function GET(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return unauthorizedResponse();
     }
 
     const { searchParams } = new URL(req.url);
@@ -45,31 +42,17 @@ export async function GET(req: NextRequest) {
     const projectId = searchParams.get('projectId');
 
     if (!taskId) {
-      return NextResponse.json(
-        { error: 'Task ID is required' },
-        { status: 400 }
-      );
+      return validationError('Task ID is required', 'taskId');
     }
 
     if (!projectId) {
-      return NextResponse.json(
-        { error: 'Project ID is required' },
-        { status: 400 }
-      );
+      return validationError('Project ID is required', 'projectId');
     }
 
-    const { data: project, error: projectError } = await supabase
-      .from('projects')
-      .select('user_id')
-      .eq('id', projectId)
-      .maybeSingle();
-
-    if (projectError || !project) {
-      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
-    }
-
-    if (project.user_id !== user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    // Verify user owns the project using centralized verification
+    const projectVerification = await verifyProjectOwnership(supabase, projectId, user.id, 'user_id');
+    if (!projectVerification.hasAccess) {
+      return errorResponse(projectVerification.error!, projectVerification.status!);
     }
 
     // Call Comet API to check status
@@ -86,19 +69,13 @@ export async function GET(req: NextRequest) {
     if (!response.ok) {
       const error = await response.text();
       console.error('Suno API error:', error);
-      return NextResponse.json(
-        { error: 'Failed to check status' },
-        { status: response.status }
-      );
+      return errorResponse('Failed to check status', response.status);
     }
 
     const result: SunoStatusResponse = await response.json();
 
     if (result.code !== 200) {
-      return NextResponse.json(
-        { error: result.msg || 'Failed to check status' },
-        { status: 400 }
-      );
+      return errorResponse(result.msg || 'Failed to check status', 400);
     }
 
     return NextResponse.json({
@@ -106,9 +83,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error('Error checking Suno status:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return errorResponse('Internal server error', 500);
   }
 }

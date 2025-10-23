@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { serverLogger } from '@/lib/serverLogger';
+import { unauthorizedResponse, errorResponse } from '@/lib/api/response';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
       serverLogger.warn({
         event: 'projects.create.unauthorized',
       }, 'Unauthorized project creation attempt');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return unauthorizedResponse();
     }
 
     const body = await request.json();
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
         error: dbError.message,
         code: dbError.code,
       }, 'Database error creating project');
-      return NextResponse.json({ error: dbError.message }, { status: 500 });
+      return errorResponse(dbError.message, 500);
     }
 
     const duration = Date.now() - startTime;
@@ -67,6 +68,6 @@ export async function POST(request: NextRequest) {
       error,
       duration,
     }, 'Error creating project');
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return errorResponse('Internal server error', 500);
   }
 }

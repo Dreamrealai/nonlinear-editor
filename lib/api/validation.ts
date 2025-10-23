@@ -242,7 +242,7 @@ export function validateDuration(duration: unknown): ValidationError | null {
     return null;
   }
 
-  if (!VALID_DURATIONS.includes(duration as typeof VALID_DURATIONS[number])) {
+  if (typeof duration !== 'number' || !VALID_DURATIONS.includes(duration as typeof VALID_DURATIONS[number])) {
     return {
       field: 'duration',
       message: `Invalid duration. Must be ${VALID_DURATIONS.join(', ')} seconds`,
