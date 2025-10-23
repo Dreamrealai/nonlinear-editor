@@ -41,7 +41,21 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // CRITICAL FIX: Track blob URLs for cleanup to prevent memory leaks
+  const attachmentBlobUrlsRef = useRef<Map<File, string>>(new Map());
+
   const supabase = supabaseClient;
+
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      // Revoke all blob URLs to prevent memory leaks
+      attachmentBlobUrlsRef.current.forEach((url) => {
+        URL.revokeObjectURL(url);
+      });
+      attachmentBlobUrlsRef.current.clear();
+    };
+  }, []);
 
   // Load chat messages
   const loadMessages = useCallback(async () => {
@@ -111,7 +125,12 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
     const userMessageContent = input;
     const attachmentUrls: string[] = [];
     const userAttachments = attachments.map(file => {
-      const url = URL.createObjectURL(file);
+      // Reuse existing blob URL or create new one
+      let url = attachmentBlobUrlsRef.current.get(file);
+      if (!url) {
+        url = URL.createObjectURL(file);
+        attachmentBlobUrlsRef.current.set(file, url);
+      }
       attachmentUrls.push(url);
       return {
         name: file.name,
@@ -190,8 +209,17 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
         });
     } finally {
       setIsLoading(false);
+
+      // Revoke blob URLs for sent attachments to free memory
+      attachments.forEach((file) => {
+        const url = attachmentBlobUrlsRef.current.get(file);
+        if (url) {
+          URL.revokeObjectURL(url);
+          attachmentBlobUrlsRef.current.delete(file);
+        }
+      });
+
       setAttachments([]);
-      attachmentUrls.forEach((url) => URL.revokeObjectURL(url));
     }
   };
 
@@ -201,7 +229,18 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
   };
 
   const removeAttachment = (index: number) => {
-    setAttachments(prev => prev.filter((_, i) => i !== index));
+    setAttachments(prev => {
+      // CRITICAL FIX: Revoke blob URL when attachment is removed
+      const fileToRemove = prev[index];
+      if (fileToRemove) {
+        const url = attachmentBlobUrlsRef.current.get(fileToRemove);
+        if (url) {
+          URL.revokeObjectURL(url);
+          attachmentBlobUrlsRef.current.delete(fileToRemove);
+        }
+      }
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const clearChat = async () => {

@@ -501,90 +501,51 @@ type UploadAssetArgs = {
 };
 
 /**
- * Uploads a media file to Supabase storage and creates a database record.
+ * Uploads a media file using the centralized API endpoint.
  *
- * Process:
- * 1. Authenticate user
- * 2. Sanitize file name and generate storage path
- * 3. Upload file to Supabase storage
- * 4. Generate thumbnail for images/videos
- * 5. Create database record with metadata
+ * REFACTORED: This function now delegates to the /api/assets/upload endpoint
+ * instead of duplicating upload logic on the client side.
+ *
+ * Benefits:
+ * - Single source of truth for upload logic
+ * - Consistent validation and error handling
+ * - Easier to maintain and update
+ * - Better security (server-side validation)
  *
  * @param args - Upload parameters
  * @returns Newly created asset record
- * @throws Error if user not authenticated or upload fails
+ * @throws Error if upload fails
  */
 async function uploadAsset({ file, projectId, assetType }: UploadAssetArgs) {
+  // Create FormData for multipart upload
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('projectId', projectId);
+  formData.append('type', assetType);
+
+  // Call the centralized upload API endpoint
+  const response = await fetch('/api/assets/upload', {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Upload failed' }));
+    throw new Error(errorData.error || `Upload failed with status ${response.status}`);
+  }
+
+  const result = await response.json();
+
+  // Fetch the created asset from database to get complete record
   const supabase = createBrowserSupabaseClient();
-  const { data: userResult, error: userError } = await supabase.auth.getUser();
-
-  if (userError) {
-    throw userError;
-  }
-
-  const user = userResult?.user;
-
-  if (!user) {
-    throw new Error('User session is required to upload assets');
-  }
-
-  // Generate safe storage path: userId/projectId/uuid-filename
-  const sanitizedFileName = sanitizeFileName(file.name);
-  const folder = file.type.startsWith('audio') ? 'audio' : file.type.startsWith('image') ? 'image' : 'video';
-  const defaultPath = `${user.id}/${projectId}/${folder}/${uuid()}-${sanitizedFileName}`;
-  const bucket = 'assets';
-  const path = defaultPath;
-
-  // Upload file to Supabase storage
-  const arrayBuffer = await file.arrayBuffer();
-  const { error: uploadError } = await supabase.storage
-    .from(bucket)
-    .upload(path, arrayBuffer, {
-      contentType: file.type,
-      upsert: true,
-    });
-
-  if (uploadError) {
-    throw uploadError;
-  }
-
-  const displayFileName = file.name.trim() || extractFileName(path);
-
-  const metadata: AssetMetadata = {
-    filename: displayFileName,
-    mimeType: file.type,
-  };
-
-  // Generate thumbnails for visual media
-  const mimeLower = file.type.toLowerCase();
-  if (mimeLower.startsWith('image/')) {
-    const thumb = await createImageThumbnail(new Blob([arrayBuffer], { type: file.type }));
-    if (thumb) {
-      metadata.thumbnail = thumb;
-    }
-  } else if (mimeLower.startsWith('video/')) {
-    const thumb = await createVideoThumbnail(new Blob([arrayBuffer], { type: file.type }));
-    if (thumb) {
-      metadata.thumbnail = thumb;
-    }
-  }
-
-  // Create database record
   const { data: assetData, error: assetError } = await supabase
     .from('assets')
-    .insert({
-      id: uuid(),
-      project_id: projectId,
-      user_id: user.id,
-      storage_url: `supabase://${bucket}/${path}`,
-      type: assetType,
-      metadata,
-    })
-    .select()
+    .select('*')
+    .eq('id', result.assetId)
     .single();
 
-  if (assetError) {
-    throw assetError;
+  if (assetError || !assetData) {
+    throw new Error('Failed to fetch uploaded asset');
   }
 
   return assetData as AssetRow;
@@ -1182,12 +1143,15 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
         } else if (task.status === 'failed') {
           throw new Error('Audio generation failed');
         } else {
-          // Still processing, poll again
-          setTimeout(poll, pollInterval);
+          // Still processing, poll again - track timeout for cleanup
+          const timeout = setTimeout(poll, pollInterval);
+          pollingTimeoutsRef.current.add(timeout);
         }
       };
 
-      setTimeout(poll, pollInterval);
+      // Start polling - track timeout for cleanup
+      const initialTimeout = setTimeout(poll, pollInterval);
+      pollingTimeoutsRef.current.add(initialTimeout);
     } catch (error) {
       browserLogger.error({ error, projectId }, 'Suno audio generation failed');
       toast.error(error instanceof Error ? error.message : 'Audio generation failed', { id: 'generate-suno' });
@@ -1515,8 +1479,9 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
             setUpscaleVideoPending(false);
             setActiveTab('video');
           } else {
-            // Continue polling
-            setTimeout(poll, pollInterval);
+            // Continue polling - track timeout for cleanup
+            const timeout = setTimeout(poll, pollInterval);
+            pollingTimeoutsRef.current.add(timeout);
           }
         } catch (pollError) {
           browserLogger.error({ error: pollError, projectId }, 'Video upscale polling failed');
@@ -1525,7 +1490,9 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
         }
       };
 
-      setTimeout(poll, pollInterval);
+      // Start polling - track timeout for cleanup
+      const initialTimeout = setTimeout(poll, pollInterval);
+      pollingTimeoutsRef.current.add(initialTimeout);
     } catch (error) {
       browserLogger.error({ error, projectId }, 'Video upscale failed');
       toast.error(error instanceof Error ? error.message : 'Video upscale failed', { id: 'upscale-video' });
@@ -1587,8 +1554,9 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
           } else if (statusJson.status === 'failed') {
             throw new Error(statusJson.error || 'Audio generation failed');
           } else {
-            // Continue polling
-            setTimeout(poll, pollInterval);
+            // Continue polling - track timeout for cleanup
+            const timeout = setTimeout(poll, pollInterval);
+            pollingTimeoutsRef.current.add(timeout);
           }
         } catch (pollError) {
           browserLogger.error({ error: pollError, projectId }, 'Audio generation polling failed');
@@ -1596,7 +1564,9 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
         }
       };
 
-      setTimeout(poll, pollInterval);
+      // Start polling - track timeout for cleanup
+      const initialTimeout = setTimeout(poll, pollInterval);
+      pollingTimeoutsRef.current.add(initialTimeout);
     } catch (error) {
       browserLogger.error({ error, projectId }, 'Audio generation failed');
       toast.error(error instanceof Error ? error.message : 'Audio generation failed', { id: 'generate-audio' });

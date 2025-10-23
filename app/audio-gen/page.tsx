@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import toast, { Toaster } from 'react-hot-toast';
@@ -15,6 +15,22 @@ export default function AudioGenPage() {
 
   const [audioGenMode, setAudioGenMode] = useState<AudioGenMode>(null);
   const [audioGenPending, setAudioGenPending] = useState(false);
+
+  // Track polling timeout IDs for cleanup - CRITICAL: prevents memory leaks
+  const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Track if component is mounted to prevent state updates after unmount
+  const isMountedRef = useRef(true);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current);
+        pollingTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const handleGenerateSuno = async (formData: { prompt: string; style?: string; title?: string; customMode?: boolean; instrumental?: boolean }) => {
     if (!projectId) {
@@ -45,12 +61,17 @@ export default function AudioGenPage() {
       const taskId = json.taskId;
       toast.success('Audio generation started', { id: 'generate-suno' });
 
-      // Poll for completion
+      // Poll for completion with cleanup tracking
       let attempts = 0;
       const maxAttempts = 60; // 5 minutes max
       const pollInterval = 5000; // 5 seconds
 
       const poll = async (): Promise<void> => {
+        // Check if component is still mounted
+        if (!isMountedRef.current) {
+          return;
+        }
+
         attempts++;
         if (attempts > maxAttempts) {
           throw new Error('Audio generation timed out');
@@ -66,6 +87,11 @@ export default function AudioGenPage() {
         const task = statusJson.tasks?.[0];
         if (!task) {
           throw new Error('Task not found');
+        }
+
+        // Check again if component is still mounted before updating state
+        if (!isMountedRef.current) {
+          return;
         }
 
         if (task.status === 'complete' && task.audioUrl) {
@@ -107,18 +133,22 @@ export default function AudioGenPage() {
 
           if (assetError) throw assetError;
 
-          setAudioGenPending(false);
+          if (isMountedRef.current) {
+            setAudioGenPending(false);
+            pollingTimeoutRef.current = null;
+          }
           toast.success('Audio added to your project!');
           router.push(`/editor/${projectId}`);
         } else if (task.status === 'failed') {
           throw new Error('Audio generation failed');
         } else {
-          // Still processing, poll again
-          setTimeout(poll, pollInterval);
+          // Still processing, poll again - store timeout ID for cleanup
+          pollingTimeoutRef.current = setTimeout(poll, pollInterval);
         }
       };
 
-      setTimeout(poll, pollInterval);
+      // Start polling - store timeout ID for cleanup
+      pollingTimeoutRef.current = setTimeout(poll, pollInterval);
     } catch (error) {
       console.error('Suno audio generation failed:', error);
       toast.error(error instanceof Error ? error.message : 'Audio generation failed', { id: 'generate-suno' });

@@ -27,10 +27,21 @@ export async function POST(
     // Validate numVariations
     const variations = Math.max(1, Math.min(numVariations, 8)); // Limit between 1 and 8
 
-    // Get the frame from database
+    // Get the frame from database with project ownership check in one query
+    // SECURITY FIX: Verify user owns BOTH the frame AND the project it belongs to
     const { data: frame, error: frameError } = await supabase
       .from('scene_frames')
-      .select('*')
+      .select(`
+        *,
+        project:projects!inner(
+          id,
+          user_id
+        ),
+        asset:assets!inner(
+          id,
+          user_id
+        )
+      `)
       .eq('id', frameId)
       .single();
 
@@ -38,15 +49,14 @@ export async function POST(
       return NextResponse.json({ error: 'Frame not found' }, { status: 404 });
     }
 
-    // Verify user owns this frame's project
-    const { data: project } = await supabase
-      .from('projects')
-      .select('user_id')
-      .eq('id', frame.project_id)
-      .single();
+    // Verify user owns the project
+    if (!frame.project || frame.project.user_id !== user.id) {
+      return NextResponse.json({ error: 'Unauthorized - you do not own this project' }, { status: 403 });
+    }
 
-    if (!project || project.user_id !== user.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    // Verify user owns the asset
+    if (!frame.asset || frame.asset.user_id !== user.id) {
+      return NextResponse.json({ error: 'Unauthorized - you do not own this asset' }, { status: 403 });
     }
 
     // Get the frame image URL

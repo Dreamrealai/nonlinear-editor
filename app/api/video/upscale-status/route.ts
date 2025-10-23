@@ -221,8 +221,22 @@ export async function GET(request: NextRequest) {
 
       if (assetError) {
         console.error('Asset creation error:', assetError);
+
+        // CRITICAL FIX: Clean up uploaded file if database insert fails
+        const { error: cleanupError } = await supabase.storage
+          .from('assets')
+          .remove([storagePath]);
+
+        if (cleanupError) {
+          console.error('Failed to clean up storage after DB insert failure:', cleanupError);
+          return NextResponse.json(
+            { error: `Failed to create asset record: ${assetError.message}. Additionally, failed to clean up storage: ${cleanupError.message}` },
+            { status: 500 }
+          );
+        }
+
         return NextResponse.json(
-          { error: 'Failed to create asset record' },
+          { error: `Failed to create asset record: ${assetError.message}` },
           { status: 500 }
         );
       }

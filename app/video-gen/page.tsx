@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import toast, { Toaster } from 'react-hot-toast';
 import Link from 'next/link';
+
+// Maximum polling attempts before timing out (60 attempts * 10s = 10 minutes)
+const MAX_POLLING_ATTEMPTS = 60;
 
 export default function VideoGenPage() {
   const router = useRouter();
@@ -13,6 +16,24 @@ export default function VideoGenPage() {
 
   const [videoGenPending, setVideoGenPending] = useState(false);
   const [videoOperationName, setVideoOperationName] = useState<string | null>(null);
+
+  // Track polling timeout IDs for cleanup
+  const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Track if component is mounted to prevent state updates after unmount
+  const isMountedRef = useRef(true);
+  // Track polling attempts
+  const pollingAttemptsRef = useRef(0);
+
+  // Cleanup on unmount - CRITICAL: prevents memory leaks
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current);
+        pollingTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const handleGenerateVideo = async (formData: { prompt: string; aspectRatio?: '9:16' | '16:9' | '1:1'; duration?: number }) => {
     if (!projectId) {
@@ -46,12 +67,38 @@ export default function VideoGenPage() {
       setVideoOperationName(json.operationName);
       toast.loading('Video generation in progress... This may take several minutes.', { id: 'generate-video' });
 
-      // Poll for video generation status
+      // Reset polling attempts counter
+      pollingAttemptsRef.current = 0;
+
+      // Poll for video generation status with cleanup tracking
       const pollInterval = 10000; // 10 seconds
       const poll = async () => {
+        // Check if component is still mounted
+        if (!isMountedRef.current) {
+          return;
+        }
+
+        // Increment polling attempts counter
+        pollingAttemptsRef.current++;
+
+        // Check if max attempts exceeded
+        if (pollingAttemptsRef.current > MAX_POLLING_ATTEMPTS) {
+          toast.error('Video generation timed out after 10 minutes. Please try again or contact support.', { id: 'generate-video' });
+          if (isMountedRef.current) {
+            setVideoGenPending(false);
+            setVideoOperationName(null);
+          }
+          return;
+        }
+
         try {
           const statusRes = await fetch(`/api/video/status?operationName=${encodeURIComponent(json.operationName)}&projectId=${projectId}`);
           const statusJson = await statusRes.json();
+
+          // Check again if component is still mounted before updating state
+          if (!isMountedRef.current) {
+            return;
+          }
 
           if (statusJson.done) {
             if (statusJson.error) {
@@ -61,22 +108,27 @@ export default function VideoGenPage() {
             toast.success('Video generated successfully!', { id: 'generate-video' });
             setVideoGenPending(false);
             setVideoOperationName(null);
+            pollingTimeoutRef.current = null;
 
             // Redirect back to editor
             router.push(`/editor/${projectId}`);
           } else {
-            // Continue polling
-            setTimeout(poll, pollInterval);
+            // Continue polling - store timeout ID for cleanup
+            pollingTimeoutRef.current = setTimeout(poll, pollInterval);
           }
         } catch (pollError) {
           console.error('Video generation polling failed:', pollError);
-          toast.error(pollError instanceof Error ? pollError.message : 'Video generation failed', { id: 'generate-video' });
-          setVideoGenPending(false);
-          setVideoOperationName(null);
+          if (isMountedRef.current) {
+            toast.error(pollError instanceof Error ? pollError.message : 'Video generation failed', { id: 'generate-video' });
+            setVideoGenPending(false);
+            setVideoOperationName(null);
+            pollingTimeoutRef.current = null;
+          }
         }
       };
 
-      setTimeout(poll, pollInterval);
+      // Start polling - store timeout ID for cleanup
+      pollingTimeoutRef.current = setTimeout(poll, pollInterval);
     } catch (error) {
       console.error('Video generation failed:', error);
       toast.error(error instanceof Error ? error.message : 'Video generation failed', { id: 'generate-video' });

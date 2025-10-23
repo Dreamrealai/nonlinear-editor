@@ -87,22 +87,34 @@ export default function SettingsPage() {
     setDeleteLoading(true);
 
     try {
-      // First, delete all user's projects
-      const { error: projectsError } = await supabaseClient
-        .from('projects')
-        .delete()
-        .eq('user_id', (await supabaseClient.auth.getUser()).data.user?.id);
+      // Call the account deletion API endpoint
+      const response = await fetch('/api/user/delete-account', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      if (projectsError) throw projectsError;
+      const data = await response.json();
 
-      // Note: Supabase doesn't allow users to delete their own accounts from the client
-      // This would typically require an admin function or server-side endpoint
-      toast.error('Account deletion requires admin access. Please contact support.');
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete account');
+      }
+
+      // Account successfully deleted
+      toast.success('Account successfully deleted. Redirecting to sign up...');
+
+      // Sign out and redirect to signup page
+      await supabaseClient.auth.signOut();
+
+      // Wait a moment for the toast to be visible
+      setTimeout(() => {
+        router.push('/signup');
+      }, 1500);
 
     } catch (error) {
       console.error('Failed to delete account:', error);
-      toast.error('Failed to delete account');
-    } finally {
+      toast.error(error instanceof Error ? error.message : 'Failed to delete account');
       setDeleteLoading(false);
     }
   };

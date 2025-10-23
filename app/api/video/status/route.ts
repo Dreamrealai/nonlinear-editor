@@ -259,6 +259,8 @@ export async function GET(req: NextRequest) {
 
         if (cleanupError) {
           console.error('Failed to clean up storage after DB insert failure:', cleanupError);
+          // Return error with cleanup failure context
+          throw new Error(`Asset creation failed: ${assetError.message}. Additionally, failed to clean up storage: ${cleanupError.message}`);
         }
 
         throw new Error(`Asset creation failed: ${assetError.message}`);
