@@ -80,6 +80,23 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       return unauthorizedResponse();
     }
 
+    const exportEnabled = process.env.VIDEO_EXPORT_ENABLED === 'true';
+
+    if (!exportEnabled) {
+      serverLogger.warn({
+        event: 'export.disabled',
+        userId: user.id,
+      }, 'Video export requested but the export worker is not configured');
+
+      return NextResponse.json(
+        {
+          error: 'Video export is not currently available.',
+          help: 'Set VIDEO_EXPORT_ENABLED=true and configure a background worker to process export jobs.',
+        },
+        { status: 503 }
+      );
+    }
+
     const body: ExportRequest = await request.json();
 
     // Validate required fields
@@ -203,7 +220,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     const response: ExportResponse = {
       jobId: exportJob.id,
       status: 'queued',
-      message: 'Export job created and queued for processing. Note: Background worker required for actual rendering.',
+      message: 'Export job created and queued for processing.',
       estimatedTime: body.timeline.clips.length * 5, // Rough estimate: 5 seconds per clip
     };
 

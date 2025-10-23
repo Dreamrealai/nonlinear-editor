@@ -256,7 +256,7 @@ function KeyframeEditorContent({
           groupedFrames={groupedFrames}
           selectedFrameId={selectedFrameId}
           onFrameSelect={handleFrameSelect}
-          onExtractFrame={() => setShowVideoPlayer((prev) => !prev)}
+          onExtractFrame={() => setShowVideoPlayer(!showVideoPlayer)}
           onUploadImage={() => fileInputRef.current?.click()}
           isUploadingImage={isUploadingImage}
           canExtractFrame={!!assetVideoUrl}

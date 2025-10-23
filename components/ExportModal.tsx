@@ -68,18 +68,18 @@ const EXPORT_PRESETS: ExportPreset[] = [
 export default function ExportModal({ isOpen, onClose, projectId, timeline }: ExportModalProps) {
   const [selectedPreset, setSelectedPreset] = useState(0);
   const [exporting, setExporting] = useState(false);
-  const [error, setError] = useState('');
+  const [feedback, setFeedback] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
 
   if (!isOpen) return null;
 
   const handleExport = async () => {
     if (!timeline) {
-      setError('No timeline to export');
+      setFeedback({ type: 'error', message: 'No timeline to export' });
       return;
     }
 
     setExporting(true);
-    setError('');
+    setFeedback(null);
 
     try {
       const preset = EXPORT_PRESETS[selectedPreset];
@@ -112,12 +112,13 @@ export default function ExportModal({ isOpen, onClose, projectId, timeline }: Ex
       }
 
       browserLogger.info({ projectId, jobId: data.jobId, preset: preset.name }, 'Export started');
-
-      // Show message about placeholder implementation
-      setError('Export feature requires FFmpeg integration on the server. This is currently a placeholder. Job ID: ' + data.jobId);
+      setFeedback({
+        type: 'success',
+        message: data.message || `Export job queued. Track progress with job ID ${data.jobId}.`,
+      });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to start export';
-      setError(errorMessage);
+      setFeedback({ type: 'error', message: errorMessage });
       browserLogger.error({ error: err, projectId }, 'Export failed');
     } finally {
       setExporting(false);
@@ -140,9 +141,15 @@ export default function ExportModal({ isOpen, onClose, projectId, timeline }: Ex
           </button>
         </div>
 
-        {error && (
-          <div className="mb-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20 px-4 py-3 text-sm text-yellow-200">
-            {error}
+        {feedback && (
+          <div
+            className={`mb-4 rounded-lg border px-4 py-3 text-sm ${
+              feedback.type === 'success'
+                ? 'border-green-500/30 bg-green-500/10 text-green-200'
+                : 'border-red-500/30 bg-red-500/10 text-red-200'
+            }`}
+          >
+            {feedback.message}
           </div>
         )}
 

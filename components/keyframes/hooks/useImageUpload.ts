@@ -23,9 +23,9 @@ interface UseImageUploadReturn {
   isVideoReady: boolean;
   isExtractingFrame: boolean;
   isUploadingImage: boolean;
-  videoRef: React.RefObject<HTMLVideoElement>;
-  canvasRef: React.RefObject<HTMLCanvasElement>;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   handleExtractFrame: () => Promise<void>;
   handleImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   handlePasteAsKeyframe: (event: ClipboardEvent) => Promise<void>;
@@ -278,9 +278,9 @@ export function useImageUpload({
     isVideoReady,
     isExtractingFrame,
     isUploadingImage,
-    videoRef,
-    canvasRef,
-    fileInputRef,
+    videoRef: videoRef as React.RefObject<HTMLVideoElement>,
+    canvasRef: canvasRef as React.RefObject<HTMLCanvasElement>,
+    fileInputRef: fileInputRef as React.RefObject<HTMLInputElement>,
     handleExtractFrame,
     handleImageUpload,
     handlePasteAsKeyframe,
