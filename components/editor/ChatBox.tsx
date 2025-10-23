@@ -48,12 +48,15 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
 
   // Cleanup blob URLs on unmount
   useEffect(() => {
+    // Copy ref value to local variable for cleanup
+    const blobUrlsMap = attachmentBlobUrlsRef.current;
+
     return () => {
       // Revoke all blob URLs to prevent memory leaks
-      attachmentBlobUrlsRef.current.forEach((url) => {
+      blobUrlsMap.forEach((url) => {
         URL.revokeObjectURL(url);
       });
-      attachmentBlobUrlsRef.current.clear();
+      blobUrlsMap.clear();
     };
   }, []);
 
@@ -153,7 +156,7 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
       .single();
 
     if (userError) {
-      console.error('Failed to save user message:', userError);
+      browserLogger.error({ error: userError, projectId }, 'Failed to save user message');
       attachmentUrls.forEach((url) => URL.revokeObjectURL(url));
       return;
     }
@@ -197,7 +200,7 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
         });
 
     } catch (error) {
-      console.error('Chat error:', error);
+      browserLogger.error({ error, projectId, model: selectedModel }, 'Chat error');
 
       await supabase
         .from('chat_messages')
@@ -257,13 +260,13 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
         .eq('project_id', projectId);
 
       if (error) {
-        console.error('Failed to clear chat:', error);
+        browserLogger.error({ error, projectId }, 'Failed to clear chat');
         alert('Failed to clear chat history');
       } else {
         setMessages([]);
       }
     } catch (error) {
-      console.error('Error clearing chat:', error);
+      browserLogger.error({ error, projectId }, 'Error clearing chat');
       alert('Failed to clear chat history');
     }
   };

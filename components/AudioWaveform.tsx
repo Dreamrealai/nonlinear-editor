@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import type { Clip } from '@/types/timeline';
+import { browserLogger } from '@/lib/browserLogger';
 
 type AudioWaveformProps = {
   clip: Clip;
@@ -83,7 +84,7 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
 
         audioContext.close();
       } catch (error) {
-        console.error('Failed to extract waveform:', error);
+        browserLogger.error({ error, clipId: clip.id }, 'Failed to extract waveform');
         setWaveformData(null);
       } finally {
         if (!isCancelled) {
@@ -97,7 +98,7 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
     return () => {
       isCancelled = true;
     };
-  }, [clip.previewUrl, clip.hasAudio, width]);
+  }, [clip.id, clip.previewUrl, clip.hasAudio, width]);
 
   // Render waveform on canvas
   useEffect(() => {

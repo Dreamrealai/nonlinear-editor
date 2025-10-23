@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, type AuthContext } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { errorResponse, internalServerError } from '@/lib/api/response';
+import { serverLogger } from '@/lib/serverLogger';
 
 interface Voice {
   voice_id: string;
@@ -17,7 +18,9 @@ interface VoicesResponse {
 }
 
 async function handleGetVoices(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _request: NextRequest,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _context: AuthContext & { params?: Record<string, never> }
 ) {
   try {
@@ -44,7 +47,7 @@ async function handleGetVoices(
 
       if (!response.ok) {
         const error = await response.text();
-        console.error('ElevenLabs API error:', error);
+        serverLogger.error({ error, status: response.status }, 'ElevenLabs API error');
         return errorResponse('Failed to fetch voices', response.status);
       }
 
@@ -56,13 +59,13 @@ async function handleGetVoices(
     } catch (error) {
       clearTimeout(timeout);
       if (error instanceof Error && error.name === 'AbortError') {
-        console.error('ElevenLabs API timeout');
+        serverLogger.error({}, 'ElevenLabs API timeout');
         return errorResponse('Request timeout after 60s', 504);
       }
       throw error;
     }
   } catch (error) {
-    console.error('Error fetching ElevenLabs voices:', error);
+    serverLogger.error({ error }, 'Error fetching ElevenLabs voices');
     return internalServerError('Internal server error');
   }
 }
@@ -71,5 +74,5 @@ async function handleGetVoices(
 // Rate limit: 30 requests per minute per user
 export const GET = withAuth(handleGetVoices, {
   route: '/api/audio/elevenlabs/voices',
-  rateLimit: RATE_LIMITS.moderate, // 30 requests per minute
+  rateLimit: RATE_LIMITS.tier3_status_read, // TIER 3: 30 requests per minute
 });

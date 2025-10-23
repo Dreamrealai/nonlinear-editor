@@ -1,0 +1,542 @@
+/**
+ * Tests for POST /api/video/generate - Video Generation
+ */
+
+import { NextRequest } from 'next/server';
+import { POST } from '@/app/api/video/generate/route';
+import {
+  createMockSupabaseClient,
+  createMockUser,
+  createMockProject,
+  createMockAsset,
+  mockAuthenticatedUser,
+  mockUnauthenticatedUser,
+  mockQuerySuccess,
+  resetAllMocks,
+} from '@/__tests__/utils/mockSupabase';
+
+// Mock modules
+jest.mock('@/lib/supabase', () => ({
+  createServerSupabaseClient: jest.fn(),
+  ensureHttpsProtocol: jest.fn((url) => url),
+}));
+
+jest.mock('@/lib/veo', () => ({
+  generateVideo: jest.fn(),
+}));
+
+jest.mock('@/lib/fal-video', () => ({
+  generateFalVideo: jest.fn(),
+}));
+
+jest.mock('@/lib/rateLimit', () => ({
+  checkRateLimit: jest.fn(),
+  RATE_LIMITS: {
+    expensive: { max: 5, windowMs: 60000 },
+  },
+}));
+
+jest.mock('@/lib/serverLogger', () => ({
+  serverLogger: {
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
+jest.mock('@/lib/api/response', () => ({
+  unauthorizedResponse: jest.fn(() =>
+    new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+  ),
+  errorResponse: jest.fn((message: string, status: number) =>
+    new Response(JSON.stringify({ error: message }), { status })
+  ),
+  rateLimitResponse: jest.fn((limit: number, remaining: number, resetAt: number) =>
+    new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429 })
+  ),
+  validationError: jest.fn((message: string, field: string) =>
+    new Response(JSON.stringify({ error: message, field }), { status: 400 })
+  ),
+}));
+
+jest.mock('@/lib/api/validation', () => ({
+  validateString: jest.fn((value: any) => ({ valid: true })),
+  validateUUID: jest.fn((value: any) => ({ valid: true })),
+  validateAspectRatio: jest.fn((value: any) => ({ valid: true })),
+  validateDuration: jest.fn((value: any) => ({ valid: true })),
+  validateSeed: jest.fn((value: any) => ({ valid: true })),
+  validateSampleCount: jest.fn((value: any) => ({ valid: true })),
+  validateAll: jest.fn(() => ({ valid: true, errors: [] })),
+}));
+
+jest.mock('@/lib/api/project-verification', () => ({
+  verifyProjectOwnership: jest.fn(),
+  verifyAssetOwnership: jest.fn(),
+}));
+
+describe('POST /api/video/generate', () => {
+  let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
+  let mockRequest: NextRequest;
+
+  beforeEach(() => {
+    mockSupabase = createMockSupabaseClient();
+    const { createServerSupabaseClient } = require('@/lib/supabase');
+    createServerSupabaseClient.mockResolvedValue(mockSupabase);
+
+    const { checkRateLimit } = require('@/lib/rateLimit');
+    checkRateLimit.mockResolvedValue({
+      success: true,
+      limit: 5,
+      remaining: 4,
+      resetAt: Date.now() + 60000,
+    });
+
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    resetAllMocks(mockSupabase);
+  });
+
+  describe('Authentication', () => {
+    it('should return 401 when user is not authenticated', async () => {
+      mockUnauthenticatedUser(mockSupabase);
+      mockRequest = new NextRequest('http://localhost/api/video/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: 'test prompt',
+          projectId: 'test-project-id',
+        }),
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(401);
+    });
+  });
+
+  describe('Rate Limiting', () => {
+    it('should return 429 when rate limit exceeded', async () => {
+      mockAuthenticatedUser(mockSupabase);
+      const { checkRateLimit } = require('@/lib/rateLimit');
+      checkRateLimit.mockResolvedValue({
+        success: false,
+        limit: 5,
+        remaining: 0,
+        resetAt: Date.now() + 60000,
+      });
+
+      mockRequest = new NextRequest('http://localhost/api/video/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: 'test prompt',
+          projectId: 'test-project-id',
+        }),
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(429);
+    });
+
+    it('should apply expensive rate limit for video generation', async () => {
+      const mockUser = mockAuthenticatedUser(mockSupabase);
+      const { checkRateLimit, RATE_LIMITS } = require('@/lib/rateLimit');
+      const { verifyProjectOwnership } = require('@/lib/api/project-verification');
+      verifyProjectOwnership.mockResolvedValue({ hasAccess: true });
+
+      const { generateVideo } = require('@/lib/veo');
+      generateVideo.mockResolvedValue({ name: 'operation-123' });
+
+      mockRequest = new NextRequest('http://localhost/api/video/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: 'test prompt',
+          projectId: 'test-project-id',
+          model: 'veo-3-1',
+        }),
+      });
+
+      await POST(mockRequest);
+
+      expect(checkRateLimit).toHaveBeenCalledWith(
+        `video-gen:${mockUser.id}`,
+        RATE_LIMITS.expensive
+      );
+    });
+  });
+
+  describe('Input Validation', () => {
+    it('should return 400 when validation fails', async () => {
+      mockAuthenticatedUser(mockSupabase);
+      const { validateAll } = require('@/lib/api/validation');
+      validateAll.mockReturnValue({
+        valid: false,
+        errors: [{ field: 'prompt', message: 'Prompt is required' }],
+      });
+
+      mockRequest = new NextRequest('http://localhost/api/video/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: '',
+          projectId: 'test-project-id',
+        }),
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should validate all required fields', async () => {
+      mockAuthenticatedUser(mockSupabase);
+      const { validateAll, validateString, validateUUID } = require('@/lib/api/validation');
+      const { verifyProjectOwnership } = require('@/lib/api/project-verification');
+      verifyProjectOwnership.mockResolvedValue({ hasAccess: true });
+
+      const { generateVideo } = require('@/lib/veo');
+      generateVideo.mockResolvedValue({ name: 'operation-123' });
+
+      mockRequest = new NextRequest('http://localhost/api/video/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: 'test prompt',
+          projectId: 'test-project-id',
+          model: 'veo-3-1',
+          aspectRatio: '16:9',
+          duration: 5,
+        }),
+      });
+
+      await POST(mockRequest);
+
+      expect(validateAll).toHaveBeenCalled();
+    });
+  });
+
+  describe('Project Ownership Verification', () => {
+    it('should return 404 when project not found', async () => {
+      mockAuthenticatedUser(mockSupabase);
+      const { verifyProjectOwnership } = require('@/lib/api/project-verification');
+      verifyProjectOwnership.mockResolvedValue({
+        hasAccess: false,
+        error: 'Project not found',
+        status: 404,
+      });
+
+      mockRequest = new NextRequest('http://localhost/api/video/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: 'test prompt',
+          projectId: 'nonexistent-project',
+        }),
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(404);
+    });
+
+    it('should return 403 when user does not own project', async () => {
+      mockAuthenticatedUser(mockSupabase);
+      const { verifyProjectOwnership } = require('@/lib/api/project-verification');
+      verifyProjectOwnership.mockResolvedValue({
+        hasAccess: false,
+        error: 'Access denied',
+        status: 403,
+      });
+
+      mockRequest = new NextRequest('http://localhost/api/video/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: 'test prompt',
+          projectId: 'other-users-project',
+        }),
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(403);
+    });
+  });
+
+  describe('Video Generation - Google Veo', () => {
+    it('should generate video with Veo for Google models', async () => {
+      mockAuthenticatedUser(mockSupabase);
+      const { verifyProjectOwnership } = require('@/lib/api/project-verification');
+      verifyProjectOwnership.mockResolvedValue({ hasAccess: true });
+
+      const { generateVideo } = require('@/lib/veo');
+      generateVideo.mockResolvedValue({ name: 'operations/veo-123' });
+
+      mockRequest = new NextRequest('http://localhost/api/video/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: 'A beautiful sunset',
+          projectId: 'test-project-id',
+          model: 'veo-3-1',
+          aspectRatio: '16:9',
+          duration: 5,
+        }),
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.operationName).toBe('operations/veo-123');
+      expect(data.status).toBe('processing');
+      expect(generateVideo).toHaveBeenCalledWith(
+        expect.objectContaining({
+          prompt: 'A beautiful sunset',
+          model: 'veo-3-1',
+          aspectRatio: '16:9',
+          duration: 5,
+        })
+      );
+    });
+
+    it('should pass all Veo parameters correctly', async () => {
+      mockAuthenticatedUser(mockSupabase);
+      const { verifyProjectOwnership } = require('@/lib/api/project-verification');
+      verifyProjectOwnership.mockResolvedValue({ hasAccess: true });
+
+      const { generateVideo } = require('@/lib/veo');
+      generateVideo.mockResolvedValue({ name: 'operations/veo-123' });
+
+      mockRequest = new NextRequest('http://localhost/api/video/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: 'Test video',
+          projectId: 'test-project-id',
+          model: 'veo-3-1',
+          aspectRatio: '16:9',
+          duration: 5,
+          resolution: '1080p',
+          negativePrompt: 'blurry, low quality',
+          personGeneration: true,
+          enhancePrompt: true,
+          generateAudio: true,
+          seed: 12345,
+          sampleCount: 2,
+          compressionQuality: 'high',
+        }),
+      });
+
+      await POST(mockRequest);
+
+      expect(generateVideo).toHaveBeenCalledWith(
+        expect.objectContaining({
+          prompt: 'Test video',
+          model: 'veo-3-1',
+          negativePrompt: 'blurry, low quality',
+          personGeneration: true,
+          enhancePrompt: true,
+          generateAudio: true,
+          seed: 12345,
+          sampleCount: 2,
+          compressionQuality: 'high',
+        })
+      );
+    });
+  });
+
+  describe('Video Generation - FAL Models', () => {
+    it('should use FAL for Seedance model', async () => {
+      mockAuthenticatedUser(mockSupabase);
+      const { verifyProjectOwnership } = require('@/lib/api/project-verification');
+      verifyProjectOwnership.mockResolvedValue({ hasAccess: true });
+
+      const { generateFalVideo } = require('@/lib/fal-video');
+      generateFalVideo.mockResolvedValue({
+        endpoint: 'seedance-1.0-pro',
+        requestId: 'fal-request-123',
+      });
+
+      mockRequest = new NextRequest('http://localhost/api/video/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: 'Dancing scene',
+          projectId: 'test-project-id',
+          model: 'seedance-1.0-pro',
+        }),
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.operationName).toBe('fal:seedance-1.0-pro:fal-request-123');
+      expect(generateFalVideo).toHaveBeenCalled();
+    });
+
+    it('should use FAL for MiniMax model', async () => {
+      mockAuthenticatedUser(mockSupabase);
+      const { verifyProjectOwnership } = require('@/lib/api/project-verification');
+      verifyProjectOwnership.mockResolvedValue({ hasAccess: true });
+
+      const { generateFalVideo } = require('@/lib/fal-video');
+      generateFalVideo.mockResolvedValue({
+        endpoint: 'minimax-hailuo-02-pro',
+        requestId: 'fal-request-456',
+      });
+
+      mockRequest = new NextRequest('http://localhost/api/video/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: 'Test video',
+          projectId: 'test-project-id',
+          model: 'minimax-hailuo-02-pro',
+        }),
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.operationName).toContain('minimax-hailuo-02-pro');
+    });
+  });
+
+  describe('Image-to-Video Generation', () => {
+    it('should generate video from image asset', async () => {
+      mockAuthenticatedUser(mockSupabase);
+      const { verifyProjectOwnership, verifyAssetOwnership } =
+        require('@/lib/api/project-verification');
+      verifyProjectOwnership.mockResolvedValue({ hasAccess: true });
+
+      const mockAsset = createMockAsset({
+        id: 'image-asset-id',
+        type: 'image',
+        storage_url: 'supabase://assets/user-id/project-id/image/test.jpg',
+      });
+      verifyAssetOwnership.mockResolvedValue({
+        hasAccess: true,
+        asset: mockAsset,
+      });
+
+      mockSupabase.storage.from.mockReturnThis();
+      mockSupabase.storage.getPublicUrl.mockReturnValue({
+        data: { publicUrl: 'https://example.com/test.jpg' },
+      });
+
+      const { generateVideo } = require('@/lib/veo');
+      generateVideo.mockResolvedValue({ name: 'operations/veo-123' });
+
+      mockRequest = new NextRequest('http://localhost/api/video/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: 'Animate this image',
+          projectId: 'test-project-id',
+          model: 'veo-3-1',
+          imageAssetId: 'image-asset-id',
+        }),
+      });
+
+      await POST(mockRequest);
+
+      expect(verifyAssetOwnership).toHaveBeenCalledWith(
+        mockSupabase,
+        'image-asset-id',
+        expect.any(String)
+      );
+      expect(generateVideo).toHaveBeenCalledWith(
+        expect.objectContaining({
+          imageUrl: 'https://example.com/test.jpg',
+        })
+      );
+    });
+
+    it('should return 404 when image asset not found', async () => {
+      mockAuthenticatedUser(mockSupabase);
+      const { verifyProjectOwnership, verifyAssetOwnership } =
+        require('@/lib/api/project-verification');
+      verifyProjectOwnership.mockResolvedValue({ hasAccess: true });
+      verifyAssetOwnership.mockResolvedValue({
+        hasAccess: false,
+        error: 'Asset not found',
+        status: 404,
+      });
+
+      mockRequest = new NextRequest('http://localhost/api/video/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: 'Animate this image',
+          projectId: 'test-project-id',
+          imageAssetId: 'nonexistent-asset',
+        }),
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(404);
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should return 500 when video generation fails', async () => {
+      mockAuthenticatedUser(mockSupabase);
+      const { verifyProjectOwnership } = require('@/lib/api/project-verification');
+      verifyProjectOwnership.mockResolvedValue({ hasAccess: true });
+
+      const { generateVideo } = require('@/lib/veo');
+      generateVideo.mockRejectedValue(new Error('API error'));
+
+      mockRequest = new NextRequest('http://localhost/api/video/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: 'test prompt',
+          projectId: 'test-project-id',
+          model: 'veo-3-1',
+        }),
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(500);
+      const data = await response.json();
+      expect(data.error).toBe('API error');
+    });
+
+    it('should handle malformed JSON body', async () => {
+      mockAuthenticatedUser(mockSupabase);
+
+      mockRequest = new NextRequest('http://localhost/api/video/generate', {
+        method: 'POST',
+        body: 'invalid json',
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(500);
+    });
+  });
+
+  describe('Response Format', () => {
+    it('should return operationName and status', async () => {
+      mockAuthenticatedUser(mockSupabase);
+      const { verifyProjectOwnership } = require('@/lib/api/project-verification');
+      verifyProjectOwnership.mockResolvedValue({ hasAccess: true });
+
+      const { generateVideo } = require('@/lib/veo');
+      generateVideo.mockResolvedValue({ name: 'operations/test-123' });
+
+      mockRequest = new NextRequest('http://localhost/api/video/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: 'test prompt',
+          projectId: 'test-project-id',
+          model: 'veo-3-1',
+        }),
+      });
+
+      const response = await POST(mockRequest);
+      const data = await response.json();
+
+      expect(data).toHaveProperty('operationName');
+      expect(data).toHaveProperty('status', 'processing');
+      expect(data).toHaveProperty('message');
+    });
+  });
+});

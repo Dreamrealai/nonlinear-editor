@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { UserProfile, TIER_LIMITS } from '@/lib/types/subscription';
+import { isPostgresNotFound } from '@/lib/errors/errorCodes';
 import toast from 'react-hot-toast';
+import { browserLogger } from '@/lib/browserLogger';
 
 export function SubscriptionManager() {
   const { supabaseClient } = useSupabase();
@@ -25,9 +27,9 @@ export function SubscriptionManager() {
         .maybeSingle();
 
       if (error) {
-        console.error('Error loading profile:', error);
+        browserLogger.error({ error, code: error.code }, 'Error loading profile');
         // Don't show error toast if table doesn't exist (404) - fail silently
-        if (error.code !== 'PGRST116' && !error.message.includes('404')) {
+        if (!isPostgresNotFound(error) && !error.message.includes('404')) {
           toast.error('Failed to load subscription data');
         }
       } else if (data) {
@@ -61,7 +63,7 @@ export function SubscriptionManager() {
         window.location.href = data.url;
       }
     } catch (error) {
-      console.error('Error upgrading:', error);
+      browserLogger.error({ error }, 'Error upgrading subscription');
       toast.error(error instanceof Error ? error.message : 'Failed to upgrade');
       setActionLoading(false);
     }
@@ -83,7 +85,7 @@ export function SubscriptionManager() {
       // Redirect to Stripe Customer Portal
       window.location.href = data.url;
     } catch (error) {
-      console.error('Error opening portal:', error);
+      browserLogger.error({ error }, 'Error opening billing portal');
       toast.error(error instanceof Error ? error.message : 'Failed to open billing portal');
       setActionLoading(false);
     }

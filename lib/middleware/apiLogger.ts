@@ -23,6 +23,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { serverLogger } from '../serverLogger';
+import { isClientError, isServerError } from '../errors/errorCodes';
 
 export interface ApiLoggerOptions {
   /** Route path for logging context */
@@ -128,9 +129,9 @@ export function withApiLogger<T extends (...args: unknown[]) => Promise<NextResp
       }
 
       // Log based on status code
-      if (status >= 500) {
+      if (isServerError(status)) {
         logger.error(responseContext, `${method} ${route} failed with ${status} (${duration}ms)`);
-      } else if (status >= 400) {
+      } else if (isClientError(status)) {
         logger.warn(responseContext, `${method} ${route} returned ${status} (${duration}ms)`);
       } else {
         logger.info(responseContext, `${method} ${route} completed ${status} (${duration}ms)`);

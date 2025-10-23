@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { serverLogger } from '@/lib/serverLogger';
 
 /**
  * POST /api/video/generate-audio
@@ -124,7 +125,7 @@ export async function POST(request: NextRequest) {
 
       if (!falResponse.ok) {
         const errorText = await falResponse.text();
-        console.error('fal.ai video-to-audio request failed:', errorText);
+        serverLogger.error({ errorText, status: falResponse.status, userId: user.id, projectId }, 'fal.ai video-to-audio request failed');
         return NextResponse.json(
           { error: `Failed to submit video-to-audio request: ${errorText}` },
           { status: falResponse.status }
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       clearTimeout(timeout);
       if (error instanceof Error && error.name === 'AbortError') {
-        console.error('FAL.ai video-to-audio submission timeout');
+        serverLogger.error({ userId: user.id, projectId, assetId }, 'FAL.ai video-to-audio submission timeout');
         return NextResponse.json(
           { error: 'Video-to-audio submission timeout after 60s' },
           { status: 504 }
@@ -175,7 +176,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (jobError) {
-      console.error('Failed to store job in database:', jobError);
+      serverLogger.error({ error: jobError, userId: user.id, projectId, requestId }, 'Failed to store job in database');
       // Continue anyway - we can still poll using the request_id
     }
 
@@ -187,7 +188,7 @@ export async function POST(request: NextRequest) {
       message: 'Video-to-audio generation started',
     });
   } catch (error) {
-    console.error('Video-to-audio generation error:', error);
+    serverLogger.error({ error }, 'Video-to-audio generation error');
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }

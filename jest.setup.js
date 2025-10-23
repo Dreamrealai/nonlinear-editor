@@ -8,6 +8,64 @@ if (typeof structuredClone === 'undefined') {
   }
 }
 
+// Polyfill Web APIs for Next.js API routes
+if (typeof Request === 'undefined') {
+  global.Request = class Request {
+    constructor(input, init) {
+      this.url = input
+      this.method = init?.method || 'GET'
+      this.headers = new Map(Object.entries(init?.headers || {}))
+      this.body = init?.body
+    }
+  }
+}
+
+if (typeof Response === 'undefined') {
+  global.Response = class Response {
+    constructor(body, init) {
+      this.body = body
+      this.status = init?.status || 200
+      this.statusText = init?.statusText || ''
+      this.headers = new Map(Object.entries(init?.headers || {}))
+    }
+
+    async json() {
+      if (typeof this.body === 'string') {
+        return JSON.parse(this.body)
+      }
+      return this.body
+    }
+
+    async text() {
+      return String(this.body)
+    }
+  }
+}
+
+if (typeof Headers === 'undefined') {
+  global.Headers = class Headers extends Map {
+    get(name) {
+      return super.get(name?.toLowerCase())
+    }
+
+    set(name, value) {
+      return super.set(name?.toLowerCase(), value)
+    }
+
+    has(name) {
+      return super.has(name?.toLowerCase())
+    }
+  }
+}
+
+if (typeof FormData === 'undefined') {
+  global.FormData = class FormData extends Map {
+    append(key, value) {
+      return this.set(key, value)
+    }
+  }
+}
+
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

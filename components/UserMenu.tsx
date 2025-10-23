@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import toast from 'react-hot-toast';
+import { browserLogger } from '@/lib/browserLogger';
 
 export default function UserMenu() {
   const router = useRouter();
@@ -54,7 +55,7 @@ export default function UserMenu() {
       router.push('/signin');
       router.refresh();
     } catch (error) {
-      console.error('Failed to sign out:', error);
+      browserLogger.error({ error }, 'Failed to sign out');
       toast.error('Failed to sign out');
     }
   };

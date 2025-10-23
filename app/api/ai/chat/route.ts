@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { chat } from '@/lib/gemini';
+import { serverLogger } from '@/lib/serverLogger';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -141,7 +142,7 @@ export async function POST(request: NextRequest) {
         timestamp: new Date().toISOString(),
       });
     } catch (chatError) {
-      console.error('Gemini chat error:', chatError);
+      serverLogger.error({ error: chatError, userId: user.id }, 'Gemini chat error');
 
       // Check if it's a configuration error
       if (chatError instanceof Error &&
@@ -162,7 +163,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('AI chat error:', error);
+    serverLogger.error({ error }, 'AI chat error');
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json(
       {

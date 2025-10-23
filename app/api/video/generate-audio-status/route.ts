@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { serverLogger } from '@/lib/serverLogger';
 
 /**
  * GET /api/video/generate-audio-status?requestId=...&projectId=...&assetId=...
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
 
       if (!statusResponse.ok) {
         const errorText = await statusResponse.text();
-        console.error('fal.ai status check failed:', errorText);
+        serverLogger.error({ errorText, status: statusResponse.status, requestId, userId: user.id }, 'fal.ai status check failed');
         return NextResponse.json(
           { error: 'Failed to check generation status' },
           { status: statusResponse.status }
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
     } catch (error) {
       clearTimeout(timeout1);
       if (error instanceof Error && error.name === 'AbortError') {
-        console.error('FAL.ai status check timeout');
+        serverLogger.error({ requestId, userId: user.id }, 'FAL.ai status check timeout');
         return NextResponse.json(
           { error: 'Status check timeout after 60s' },
           { status: 504 }
@@ -167,7 +168,7 @@ export async function GET(request: NextRequest) {
         });
 
       if (uploadError) {
-        console.error('Supabase upload error:', uploadError);
+        serverLogger.error({ error: uploadError, userId: user.id, projectId, requestId }, 'Supabase upload error');
         return NextResponse.json(
           { error: 'Failed to upload audio file' },
           { status: 500 }
@@ -215,7 +216,7 @@ export async function GET(request: NextRequest) {
         .single();
 
       if (assetError) {
-        console.error('Database insert error:', assetError);
+        serverLogger.error({ error: assetError, userId: user.id, projectId, requestId }, 'Database insert error');
         return NextResponse.json(
           { error: 'Failed to save audio asset metadata' },
           { status: 500 }
@@ -264,7 +265,7 @@ export async function GET(request: NextRequest) {
       progress: statusData.progress || 0,
     });
   } catch (error) {
-    console.error('Video-to-audio status check error:', error);
+    serverLogger.error({ error }, 'Video-to-audio status check error');
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }

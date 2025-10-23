@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import toast from 'react-hot-toast';
+import { browserLogger } from '@/lib/browserLogger';
 
 interface ActivityMetadata {
   duration?: number;
@@ -58,7 +59,7 @@ export function ActivityHistory() {
       if (!response.ok) {
         // Don't show error toast for 500 errors (likely table doesn't exist)
         // Just log it and show empty history
-        console.error('Error loading activity history:', response.status, response.statusText);
+        browserLogger.error({ status: response.status, statusText: response.statusText }, 'Error loading activity history');
         setHistory([]);
         setLoading(false);
         return;
@@ -67,7 +68,7 @@ export function ActivityHistory() {
       const data = await response.json();
       setHistory(data.history || []);
     } catch (error) {
-      console.error('Error loading activity history:', error);
+      browserLogger.error({ error }, 'Error loading activity history');
       // Fail silently - just show empty history
       setHistory([]);
     } finally {
@@ -96,7 +97,7 @@ export function ActivityHistory() {
       setHistory([]);
       toast.success('Activity history cleared');
     } catch (error) {
-      console.error('Error clearing activity history:', error);
+      browserLogger.error({ error }, 'Error clearing activity history');
       toast.error('Failed to clear activity history');
     } finally {
       setClearLoading(false);

@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { fetchWithTimeout } from '@/lib/fetchWithTimeout';
 import { validateUUID, validateAll } from '@/lib/api/validation';
-import { errorResponse, unauthorizedResponse, validationError, internalServerError, notFoundResponse } from '@/lib/api/response';
+import { errorResponse, unauthorizedResponse, validationError, internalServerError, withErrorHandling } from '@/lib/api/response';
 import { verifyAssetOwnership } from '@/lib/api/project-verification';
 import { serverLogger } from '@/lib/serverLogger';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 
 /**
  * POST /api/video/upscale
@@ -18,8 +19,7 @@ import { serverLogger } from '@/lib/serverLogger';
  * - targetFps?: number - Target FPS for frame interpolation (optional)
  * - h264Output?: boolean - Use H264 codec instead of H265 (default: false)
  */
-export async function POST(request: NextRequest) {
-  try {
+export const POST = withErrorHandling(async (request: NextRequest) => {
     const body = await request.json();
     const { assetId, projectId, upscaleFactor = 2, targetFps, h264Output = false } = body;
 
@@ -44,6 +44,37 @@ export async function POST(request: NextRequest) {
 
     if (userError || !user) {
       return unauthorizedResponse();
+    }
+
+    // TIER 2 RATE LIMITING: Resource creation - video upscale (10/min)
+    const rateLimitResult = await checkRateLimit(
+      `video-upscale:${user.id}`,
+      RATE_LIMITS.tier2_resource_creation
+    );
+
+    if (!rateLimitResult.success) {
+      serverLogger.warn({
+        event: 'video.upscale.rate_limited',
+        userId: user.id,
+        limit: rateLimitResult.limit,
+      }, 'Video upscale rate limit exceeded');
+
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded',
+          limit: rateLimitResult.limit,
+          remaining: rateLimitResult.remaining,
+          resetAt: rateLimitResult.resetAt,
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
+          },
+        }
+      );
     }
 
     // Verify asset ownership using centralized verification
@@ -136,11 +167,4 @@ export async function POST(request: NextRequest) {
       requestId,
       message: 'Video upscale request submitted successfully',
     });
-  } catch (error) {
-    serverLogger.error({
-      error,
-      event: 'video.upscale.error'
-    }, 'Error in video upscale');
-    return internalServerError(error instanceof Error ? error.message : 'Internal server error');
-  }
-}
+});

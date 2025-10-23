@@ -25,6 +25,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { serverLogger } from '@/lib/serverLogger';
+import { HttpStatusCode, isClientError, isServerError } from '../errors/errorCodes';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 
 export interface AuthContext {
@@ -115,7 +116,7 @@ export function withAuth<TParams = Record<string, never>>(
 
         return NextResponse.json(
           { error: 'Unauthorized' },
-          { status: 401 }
+          { status: HttpStatusCode.UNAUTHORIZED }
         );
       }
 
@@ -144,7 +145,7 @@ export function withAuth<TParams = Record<string, never>>(
               resetAt: rateLimitResult.resetAt,
             },
             {
-              status: 429,
+              status: HttpStatusCode.RATE_LIMITED,
               headers: {
                 'X-RateLimit-Limit': rateLimitResult.limit.toString(),
                 'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
@@ -178,13 +179,13 @@ export function withAuth<TParams = Record<string, never>>(
       const duration = Date.now() - startTime;
       const status = response.status;
 
-      if (status >= 500) {
+      if (isServerError(status)) {
         logger.error({
           event: 'api.error',
           status,
           duration,
         }, `${request.method} ${route} - Server error ${status} (${duration}ms)`);
-      } else if (status >= 400) {
+      } else if (isClientError(status)) {
         logger.warn({
           event: 'api.client_error',
           status,
@@ -216,7 +217,7 @@ export function withAuth<TParams = Record<string, never>>(
 
       return NextResponse.json(
         { error: 'Internal server error' },
-        { status: 500 }
+        { status: HttpStatusCode.INTERNAL_SERVER_ERROR }
       );
     }
   };
@@ -277,7 +278,7 @@ export function withAdminAuth<TParams = Record<string, never>>(
 
         return NextResponse.json(
           { error: 'Admin access required' },
-          { status: 403 }
+          { status: HttpStatusCode.FORBIDDEN }
         );
       }
 
@@ -312,7 +313,7 @@ export function withAdminAuth<TParams = Record<string, never>>(
 
       return NextResponse.json(
         { error: 'Internal server error' },
-        { status: 500 }
+        { status: HttpStatusCode.INTERNAL_SERVER_ERROR }
       );
     }
   }, options);

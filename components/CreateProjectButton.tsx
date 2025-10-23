@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { browserLogger } from '@/lib/browserLogger';
 
 export function CreateProjectButton() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export function CreateProjectButton() {
       const project = await response.json();
       router.push(`/editor/${project.id}`);
     } catch (error) {
-      console.error('Error creating project:', error);
+      browserLogger.error({ error }, 'Error creating project');
       alert('Failed to create project. Please try again.');
       setIsCreating(false);
     }

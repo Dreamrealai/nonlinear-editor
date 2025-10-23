@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
+import { browserLogger } from '@/lib/browserLogger';
 
 interface GenerateAudioTabProps {
   projectId: string;
@@ -159,7 +160,7 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
           }
 
           cleanupPolling();
-          console.error('Music generation polling failed:', pollError);
+          browserLogger.error({ error: pollError, projectId }, 'Music generation polling failed');
           toast.error(pollError instanceof Error ? pollError.message : 'Music generation failed', { id: 'generate-audio' });
           setGenerating(false);
           setTaskId(null);
@@ -169,7 +170,7 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
       pollingTimeoutRef.current = setTimeout(poll, pollInterval);
     } catch (error) {
       cleanupPolling();
-      console.error('Music generation failed:', error);
+      browserLogger.error({ error, projectId }, 'Music generation failed');
       toast.error(error instanceof Error ? error.message : 'Music generation failed', { id: 'generate-audio' });
       setGenerating(false);
     }
@@ -187,11 +188,11 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
           if (res.ok && json.voices) {
             setVoices(json.voices);
           } else {
-            console.error('Failed to fetch voices:', json.error);
+            browserLogger.error({ error: json.error }, 'Failed to fetch voices');
             toast.error('Failed to load voices');
           }
         } catch (error) {
-          console.error('Error fetching voices:', error);
+          browserLogger.error({ error }, 'Error fetching voices');
           toast.error('Failed to load voices');
         } finally {
           setLoadingVoices(false);
@@ -235,7 +236,7 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
       // Reset form
       setVoiceText('');
     } catch (error) {
-      console.error('Voice generation failed:', error);
+      browserLogger.error({ error, projectId }, 'Voice generation failed');
       toast.error(error instanceof Error ? error.message : 'Voice generation failed', { id: 'generate-voice' });
     } finally {
       setGenerating(false);
@@ -275,7 +276,7 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
       // Reset form
       setSfxPrompt('');
     } catch (error) {
-      console.error('Sound effect generation failed:', error);
+      browserLogger.error({ error, projectId }, 'Sound effect generation failed');
       toast.error(error instanceof Error ? error.message : 'Sound effect generation failed', { id: 'generate-sfx' });
     } finally {
       setGenerating(false);

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import toast from 'react-hot-toast';
+import { browserLogger } from '@/lib/browserLogger';
 
 interface Project {
   id: string;
@@ -37,7 +38,7 @@ export function ProjectList({ projects }: ProjectListProps) {
       toast.success('Project deleted successfully');
       router.refresh();
     } catch (error) {
-      console.error('Failed to delete project:', error);
+      browserLogger.error({ error, projectId: project.id }, 'Failed to delete project');
       toast.error('Failed to delete project');
     }
   };

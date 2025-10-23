@@ -2,6 +2,8 @@
  * Fetch with timeout and retry logic
  */
 
+import { HttpStatusCode, shouldRetryOnStatus } from './errors/errorCodes';
+
 export interface FetchWithTimeoutOptions extends RequestInit {
   timeout?: number;
   maxRetries?: number;
@@ -58,7 +60,7 @@ export async function fetchWithRetry(
       });
 
       // Handle rate limiting
-      if (response.status === 429) {
+      if (response.status === HttpStatusCode.RATE_LIMITED) {
         const retryAfter = response.headers.get('Retry-After');
         const delay = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
 
@@ -69,7 +71,7 @@ export async function fetchWithRetry(
       }
 
       // Handle server errors with retry
-      if (response.status >= 500 && attempt < maxRetries - 1) {
+      if (shouldRetryOnStatus(response.status) && attempt < maxRetries - 1) {
         const delay = Math.pow(2, attempt) * 1000;
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;

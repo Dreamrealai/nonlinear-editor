@@ -4,8 +4,9 @@ import { checkFalVideoStatus } from '@/lib/fal-video';
 import { createServerSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import { GoogleAuth } from 'google-auth-library';
-import { unauthorizedResponse, validationError, errorResponse } from '@/lib/api/response';
+import { unauthorizedResponse, validationError, withErrorHandling } from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 
 const normalizeStorageUrl = (bucket: string, path: string) => `supabase://${bucket}/${path}`;
 
@@ -18,8 +19,7 @@ const parseGcsUri = (uri: string) => {
   return { bucket, objectPath: rest.join('/') };
 };
 
-export async function GET(req: NextRequest) {
-  try {
+export const GET = withErrorHandling(async (req: NextRequest) => {
     const supabase = await createServerSupabaseClient();
 
     // Check authentication
@@ -30,6 +30,37 @@ export async function GET(req: NextRequest) {
 
     if (authError || !user) {
       return unauthorizedResponse();
+    }
+
+    // TIER 3 RATE LIMITING: Status/polling operations (30/min)
+    const rateLimitResult = await checkRateLimit(
+      `video-status:${user.id}`,
+      RATE_LIMITS.tier3_status_read
+    );
+
+    if (!rateLimitResult.success) {
+      serverLogger.warn({
+        event: 'video.status.rate_limited',
+        userId: user.id,
+        limit: rateLimitResult.limit,
+      }, 'Video status check rate limit exceeded');
+
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded',
+          limit: rateLimitResult.limit,
+          remaining: rateLimitResult.remaining,
+          resetAt: rateLimitResult.resetAt,
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
+          },
+        }
+      );
     }
 
     const { searchParams } = new URL(req.url);
@@ -304,14 +335,4 @@ export async function GET(req: NextRequest) {
       progress: result.metadata?.progressPercentage || 0,
       error: result.error?.message,
     });
-  } catch (error) {
-    serverLogger.error({
-      error,
-      event: 'video.status.error'
-    }, 'Status check error');
-    return errorResponse(
-      error instanceof Error ? error.message : 'Failed to check status',
-      500
-    );
-  }
-}
+});

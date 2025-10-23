@@ -220,10 +220,69 @@ function mapAnnotationResults(annotationResults, originalFileName) {
         }
     }
     
-    // TODO: Populate products, hook, music, visualStyle more accurately from available annotations.
-    // This often requires more complex logic, combining labels, object tracking (if enabled), text, etc.
-    // For example, a simple product mention could come from labels or text.
-    // Visual style might be inferred from shot lengths (pacing), common labels (e.g., "monochrome").
+    // Enhanced mapping: Populate products, hook, music, visualStyle from annotations
+
+    // Detect products from labels and text
+    const productKeywords = ['product', 'item', 'merchandise', 'goods', 'package', 'box', 'bottle', 'can', 'phone', 'device'];
+    const productLabels = mapped.labels
+        .filter(label => productKeywords.some(keyword => label.description.toLowerCase().includes(keyword)))
+        .map(label => label.description);
+    const productText = mapped.dialogue.filter(text =>
+        productKeywords.some(keyword => text.toLowerCase().includes(keyword))
+    );
+    if (productLabels.length > 0 || productText.length > 0) {
+        mapped.products = `Detected products: ${[...new Set([...productLabels, ...productText])].join(', ')}`;
+    }
+
+    // Detect hook from first shot and opening labels
+    if (mapped.shots.length > 0 && mapped.labels.length > 0) {
+        const firstShot = mapped.shots[0];
+        const openingLabels = mapped.labels.slice(0, 3).map(l => l.description);
+        mapped.hook = `Opening scene (${firstShot.endTime}): ${openingLabels.join(', ')}. ${mapped.dialogue.slice(0, 2).join(' ')}`;
+    }
+
+    // Detect music style from audio-related labels
+    const musicKeywords = ['music', 'song', 'melody', 'rhythm', 'beat', 'soundtrack', 'audio', 'sound'];
+    const musicLabels = mapped.labels.filter(label =>
+        musicKeywords.some(keyword => label.description.toLowerCase().includes(keyword))
+    );
+    if (musicLabels.length > 0) {
+        mapped.music = `Audio features: ${musicLabels.map(l => l.description).join(', ')}`;
+    }
+
+    // Detect visual style from labels and shot pacing
+    const styleKeywords = {
+        color: ['colorful', 'monochrome', 'vibrant', 'bright', 'dark', 'saturated'],
+        pacing: ['fast', 'slow', 'dynamic', 'static'],
+        composition: ['close-up', 'wide', 'aerial', 'portrait', 'landscape']
+    };
+
+    const colorStyles = mapped.labels
+        .filter(l => styleKeywords.color.some(keyword => l.description.toLowerCase().includes(keyword)))
+        .map(l => l.description);
+    const compositionStyles = mapped.labels
+        .filter(l => styleKeywords.composition.some(keyword => l.description.toLowerCase().includes(keyword)))
+        .map(l => l.description);
+
+    // Infer pacing from shot count and durations
+    const avgShotDuration = mapped.shots.length > 0
+        ? mapped.shots.reduce((sum, shot) => {
+            const duration = parseFloat(shot.endTime) - parseFloat(shot.startTime);
+            return sum + duration;
+          }, 0) / mapped.shots.length
+        : 0;
+    const pacing = avgShotDuration < 3 ? 'fast-paced editing' : avgShotDuration < 6 ? 'moderate pacing' : 'slow, deliberate pacing';
+
+    const styleElements = [
+        ...colorStyles,
+        ...compositionStyles,
+        pacing,
+        `${mapped.shots.length} total shots`
+    ].filter(Boolean);
+
+    if (styleElements.length > 0) {
+        mapped.visualStyle = styleElements.join(', ');
+    }
 
     return mapped;
 }

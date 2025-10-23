@@ -52,16 +52,30 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-              "style-src 'self' 'unsafe-inline'",
+              // Strict script policy - removed unsafe-eval and unsafe-inline
+              // Next.js bundles all scripts, so 'self' is sufficient
+              // Added wasm-unsafe-eval for WebAssembly support (safer than unsafe-eval)
+              "script-src 'self' 'wasm-unsafe-eval'",
+              // Style sources - keep unsafe-inline only for Tailwind
+              // Google Fonts stylesheets allowed for next/font/google
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              // Image sources - Supabase storage, data URIs, and blob for canvas/video
               "img-src 'self' data: blob: https://*.supabase.co",
+              // Media sources - Supabase storage for video/audio assets
               "media-src 'self' blob: https://*.supabase.co",
+              // API connections - Supabase realtime, Fal.ai video, Google Gemini
               "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://queue.fal.run https://fal.run https://generativelanguage.googleapis.com",
-              "font-src 'self' data:",
+              // Font sources - Google Fonts CDN for optimized font delivery
+              "font-src 'self' data: https://fonts.gstatic.com",
+              // Prevent object/embed/applet tags (no Flash, Java, etc.)
               "object-src 'none'",
+              // Restrict base tag to prevent base tag hijacking
               "base-uri 'self'",
+              // Only allow form submissions to same origin
               "form-action 'self'",
+              // Prevent all framing (stronger than X-Frame-Options)
               "frame-ancestors 'none'",
+              // Force HTTPS for all resources
               "upgrade-insecure-requests",
             ].join('; '),
           },

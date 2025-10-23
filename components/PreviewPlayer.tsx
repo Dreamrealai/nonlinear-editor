@@ -21,6 +21,7 @@ import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip, ColorCorrection, Transform, TransitionType } from '@/types/timeline';
 import TextOverlayRenderer from './TextOverlayRenderer';
 import TextOverlayEditor from './TextOverlayEditor';
+import { browserLogger } from '@/lib/browserLogger';
 
 /** Default TTL for signed URLs in seconds (10 minutes) */
 const SIGNED_URL_TTL_DEFAULT = 600;
@@ -123,11 +124,16 @@ const generateCSSTransform = (transform?: Transform): string => {
 
 /**
  * Computes transition transform for slide/zoom effects.
+ *
+ * NOTE: This function is currently unused but will be used for implementing
+ * slide and zoom transitions in a future update.
+ *
  * @param transitionType - Type of transition
  * @param progress - Progress through transition (0 = start, 1 = end)
  * @param isIncoming - True if clip is entering, false if exiting
  * @returns CSS transform string for transition
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const computeTransitionTransform = (
   transitionType: TransitionType,
   progress: number,
@@ -157,11 +163,16 @@ const computeTransitionTransform = (
 
 /**
  * Computes clip-path for wipe transitions.
+ *
+ * NOTE: This function is currently unused but will be used for implementing
+ * wipe transitions in a future update.
+ *
  * @param transitionType - Type of transition
  * @param progress - Progress through transition (0 = start, 1 = end)
  * @param isIncoming - True if clip is entering, false if exiting
  * @returns CSS clip-path string for transition
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const computeTransitionClipPath = (
   transitionType: TransitionType,
   progress: number,
@@ -505,7 +516,7 @@ export default function PreviewPlayer() {
         signedUrlCacheRef.current.set(cacheKey, { url: payload.signedUrl, expiresAt });
         return payload.signedUrl;
       } catch (error) {
-        console.error('Failed to fetch signed URL for clip', { assetId: clip.assetId, error });
+        browserLogger.error({ assetId: clip.assetId, error }, 'Failed to fetch signed URL for clip');
         return null;
       } finally {
         signedUrlRequestRef.current.delete(cacheKey);
@@ -565,14 +576,14 @@ export default function PreviewPlayer() {
 
           // Store error handler for cleanup
           const errorHandler = (error: Event) => {
-            console.error('Video playback error', {
+            browserLogger.error({
               clipId: clip.id,
               src: source,
               error,
               videoError: video.error,
               readyState: video.readyState,
               networkState: video.networkState,
-            });
+            }, 'Video playback error');
           };
           video.addEventListener('error', errorHandler);
           videoErrorHandlersRef.current.set(clip.id, errorHandler);
@@ -754,11 +765,12 @@ export default function PreviewPlayer() {
           if (video.paused && video.readyState >= 3) {
             // Only play if video has buffered enough data
             video.play().catch((error) => {
-              console.warn(`Video play failed for clip ${clip.id}:`, {
+              browserLogger.warn({
+                clipId: clip.id,
                 error: error.message,
                 readyState: video.readyState,
                 networkState: video.networkState,
-              });
+              }, `Video play failed for clip ${clip.id}`);
             });
           }
         } else if (!video.paused) {
@@ -775,7 +787,7 @@ export default function PreviewPlayer() {
     }
 
     await Promise.all(sortedClips.map((clip) => ensureClipElement(clip).catch((error) => {
-      console.error('Failed to prepare clip for preview', { clipId: clip.id, error });
+      browserLogger.error({ clipId: clip.id, error }, 'Failed to prepare clip for preview');
     })));
 
     const start = clamp(currentTime, 0, totalDuration);
@@ -846,7 +858,7 @@ export default function PreviewPlayer() {
         setIsFullscreen(false);
       }
     } catch (error) {
-      console.error('Fullscreen error:', error);
+      browserLogger.error({ error }, 'Fullscreen error');
     }
   }, []);
 
@@ -982,7 +994,7 @@ export default function PreviewPlayer() {
       });
 
       await Promise.all(targets.map((clip) => ensureClipElement(clip).catch((error) => {
-        console.error('Failed to warm clip for preview', { clipId: clip.id, error });
+        browserLogger.error({ clipId: clip.id, error }, 'Failed to warm clip for preview');
       })));
 
       if (cancelled) {

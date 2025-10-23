@@ -3,7 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateString, validateUUID, validateAll } from '@/lib/api/validation';
-import { errorResponse, unauthorizedResponse, validationError, rateLimitResponse, internalServerError } from '@/lib/api/response';
+import { errorResponse, unauthorizedResponse, validationError, rateLimitResponse, internalServerError, withErrorHandling } from '@/lib/api/response';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
 
 interface SunoGenerateRequest {
@@ -23,13 +23,12 @@ interface SunoTaskResponse {
   };
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandling(async (req: NextRequest) => {
   const startTime = Date.now();
 
-  try {
-    serverLogger.info({
-      event: 'audio.music.request_started',
-    }, 'Suno music generation request received');
+  serverLogger.info({
+    event: 'audio.music.request_started',
+  }, 'Suno music generation request received');
     const apiKey = process.env.COMET_API_KEY;
 
     if (!apiKey) {
@@ -51,7 +50,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Rate limiting (expensive operation - 5 requests per minute per user)
-    const rateLimitResult = await checkRateLimit(`audio-music:${user.id}`, RATE_LIMITS.expensive);
+    // TIER 2 RATE LIMITING: Resource creation - music generation (10/min)
+    const rateLimitResult = await checkRateLimit(`audio-music:${user.id}`, RATE_LIMITS.tier2_resource_creation);
 
     if (!rateLimitResult.success) {
       serverLogger.warn({
@@ -182,13 +182,4 @@ export async function POST(req: NextRequest) {
       taskId: result.data.taskId,
       message: 'Audio generation started',
     });
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    serverLogger.error({
-      event: 'audio.music.error',
-      error,
-      duration,
-    }, 'Error generating audio with Suno');
-    return internalServerError('Internal server error');
-  }
-}
+});

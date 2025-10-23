@@ -200,9 +200,12 @@ const enrichTimelineWithSourceDurations = (
  * Sanitizes file names to prevent path traversal attacks and storage errors.
  * Removes special characters that could break storage paths.
  *
+ * NOTE: This function is currently unused but kept for future file upload enhancements.
+ *
  * @param fileName - Original file name from user upload
  * @returns Safe file name with only alphanumeric, dots, underscores, and hyphens
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const sanitizeFileName = (fileName: string) => {
   const trimmed = fileName.trim();
   if (!trimmed) {
@@ -645,12 +648,17 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   const setTimeline = useEditorStore((state) => state.setTimeline);
   const addClip = useEditorStore((state) => state.addClip);
 
-  // Enable keyboard shortcuts
+  // Play/pause state ref for keyboard shortcuts
+  const playPauseStateRef = useRef<{ isPlaying: boolean; togglePlayPause: () => void } | null>(null);
+
+  // Enable keyboard shortcuts with proper play/pause integration
   useKeyboardShortcuts({
     enabled: true,
     onPlayPause: () => {
-      // TODO: Implement play/pause for preview player
-      console.log('Play/pause triggered');
+      // PreviewPlayer exposes play/pause through state ref
+      if (playPauseStateRef.current?.togglePlayPause) {
+        playPauseStateRef.current.togglePlayPause();
+      }
     },
   });
 

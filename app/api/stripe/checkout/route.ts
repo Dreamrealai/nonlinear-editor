@@ -6,8 +6,53 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createCheckoutSession, getOrCreateStripeCustomer } from '@/lib/stripe';
 import { serverLogger } from '@/lib/serverLogger';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 
 export async function POST(request: NextRequest) {
+  // TIER 1 RATE LIMITING: Payment operations (5/min)
+  // Critical to prevent payment fraud and abuse
+  const supabaseForRateLimit = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => request.cookies.getAll(),
+        setAll: () => {},
+      },
+    }
+  );
+
+  const { data: { user: rateLimitUser } } = await supabaseForRateLimit.auth.getUser();
+  const rateLimitIdentifier = rateLimitUser?.id
+    ? `stripe-checkout:${rateLimitUser.id}`
+    : `stripe-checkout:${request.headers.get('x-forwarded-for') || 'unknown'}`;
+
+  const rateLimitResult = await checkRateLimit(rateLimitIdentifier, RATE_LIMITS.tier1_auth_payment);
+
+  if (!rateLimitResult.success) {
+    serverLogger.warn({
+      event: 'stripe.checkout.rate_limited',
+      identifier: rateLimitIdentifier,
+      limit: rateLimitResult.limit,
+    }, 'Stripe checkout rate limit exceeded');
+
+    return NextResponse.json(
+      {
+        error: 'Rate limit exceeded',
+        limit: rateLimitResult.limit,
+        remaining: rateLimitResult.remaining,
+        resetAt: rateLimitResult.resetAt,
+      },
+      {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+          'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+          'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
+        },
+      }
+    );
+  }
   const startTime = Date.now();
 
   try {

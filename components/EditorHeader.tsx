@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import UserMenu from '@/components/UserMenu';
 import toast from 'react-hot-toast';
+import { browserLogger } from '@/lib/browserLogger';
 
 interface EditorHeaderProps {
   projectId: string;
@@ -77,7 +78,7 @@ export default function EditorHeader({ projectId, currentTab, onExport }: Editor
       toast.success('Project renamed successfully');
       setIsRenaming(false);
     } catch (error) {
-      console.error('Failed to rename project:', error);
+      browserLogger.error({ error, projectId }, 'Failed to rename project');
       toast.error('Failed to rename project');
     }
   };
@@ -99,7 +100,7 @@ export default function EditorHeader({ projectId, currentTab, onExport }: Editor
       toast.success('Project deleted successfully');
       router.push('/');
     } catch (error) {
-      console.error('Failed to delete project:', error);
+      browserLogger.error({ error, projectId }, 'Failed to delete project');
       toast.error('Failed to delete project');
     }
   };

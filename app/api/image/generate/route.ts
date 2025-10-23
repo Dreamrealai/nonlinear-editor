@@ -51,8 +51,9 @@ export async function POST(req: NextRequest) {
       userId: user.id,
     }, 'User authenticated for image generation');
 
-    // Rate limiting (expensive operation - 5 requests per minute per user)
-    const rateLimitResult = await checkRateLimit(`image-gen:${user.id}`, RATE_LIMITS.expensive);
+    // TIER 2 RATE LIMITING: Resource creation - image generation (10/min)
+    // Prevents resource exhaustion and controls AI API costs
+    const rateLimitResult = await checkRateLimit(`image-gen:${user.id}`, RATE_LIMITS.tier2_resource_creation);
 
     if (!rateLimitResult.success) {
       serverLogger.warn({
@@ -154,7 +155,7 @@ export async function POST(req: NextRequest) {
         });
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
+        serverLogger.error({ error: uploadError, userId: user.id, projectId }, 'Image upload error');
         continue;
       }
 
@@ -194,7 +195,7 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (assetError) {
-        console.error('Asset creation error:', assetError);
+        serverLogger.error({ error: assetError, userId: user.id, projectId }, 'Asset creation error');
         continue;
       }
 

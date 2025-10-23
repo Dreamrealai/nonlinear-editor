@@ -23,6 +23,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { trackError, ErrorCategory, ErrorSeverity } from '../errorTracking';
 import { validateUUID } from '../validation';
+import { isPostgresNotFound } from '../errors/errorCodes';
 
 export interface Project {
   id: string;
@@ -131,7 +132,7 @@ export class ProjectService {
         .single();
 
       if (dbError) {
-        if (dbError.code === 'PGRST116') {
+        if (isPostgresNotFound(dbError)) {
           // Not found
           return null;
         }
@@ -169,7 +170,7 @@ export class ProjectService {
         .single();
 
       if (dbError) {
-        if (dbError.code === 'PGRST116') {
+        if (isPostgresNotFound(dbError)) {
           // Not found
           return false;
         }

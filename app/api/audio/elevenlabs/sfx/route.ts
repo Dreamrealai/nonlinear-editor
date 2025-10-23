@@ -33,7 +33,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Rate limiting (expensive operation - 5 requests per minute per user)
-    const rateLimitResult = await checkRateLimit(`audio-sfx:${user.id}`, RATE_LIMITS.expensive);
+    // TIER 2 RATE LIMITING: Resource creation - SFX generation (10/min)
+    const rateLimitResult = await checkRateLimit(`audio-sfx:${user.id}`, RATE_LIMITS.tier2_resource_creation);
 
     if (!rateLimitResult.success) {
       serverLogger.warn({
@@ -100,12 +101,12 @@ export async function POST(request: NextRequest) {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('ElevenLabs SFX API error:', errorText);
+        serverLogger.error({ errorText, status: response.status, userId: user.id, projectId }, 'ElevenLabs SFX API error');
         return errorResponse(`ElevenLabs API error: ${response.statusText}`, response.status);
       }
     } catch (error) {
       if (error instanceof Error && /timeout/i.test(error.message)) {
-        console.error('ElevenLabs SFX timeout');
+        serverLogger.error({ userId: user.id, projectId }, 'ElevenLabs SFX timeout');
         return errorResponse('SFX generation timeout after 60s', 504);
       }
       throw error;
@@ -126,7 +127,7 @@ export async function POST(request: NextRequest) {
       });
 
     if (uploadError) {
-      console.error('Supabase upload error:', uploadError);
+      serverLogger.error({ error: uploadError, userId: user.id, projectId }, 'Supabase upload error');
       return internalServerError('Failed to upload audio file');
     }
 
@@ -159,7 +160,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (assetError) {
-      console.error('Database insert error:', assetError);
+      serverLogger.error({ error: assetError, userId: user.id, projectId }, 'Database insert error');
       return internalServerError('Failed to save asset metadata');
     }
 

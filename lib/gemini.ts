@@ -158,7 +158,8 @@ export async function chat(params: {
 
   // Send message with timeout and retry logic
   const maxRetries = 3;
-  const timeout = 60000; // 60 seconds
+  // NOTE: Timeout currently handled by underlying SDK, but kept for future use
+  // const timeout = 60000; // 60 seconds
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { unauthorizedResponse, validationError, errorResponse } from '@/lib/api/response';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
+import { serverLogger } from '@/lib/serverLogger';
 
 interface SunoStatusResponse {
   code: number;
@@ -68,7 +69,7 @@ export async function GET(req: NextRequest) {
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('Suno API error:', error);
+      serverLogger.error({ error, status: response.status, taskId, userId: user.id }, 'Suno API error');
       return errorResponse('Failed to check status', response.status);
     }
 
@@ -82,7 +83,7 @@ export async function GET(req: NextRequest) {
       tasks: result.data,
     });
   } catch (error) {
-    console.error('Error checking Suno status:', error);
+    serverLogger.error({ error }, 'Error checking Suno status');
     return errorResponse('Internal server error', 500);
   }
 }

@@ -8,6 +8,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { HttpStatusCode } from '../errors/errorCodes';
 
 /**
  * Standard error response format
@@ -53,7 +54,7 @@ export interface RateLimitResponse {
  */
 export function errorResponse(
   message: string,
-  status: number = 500,
+  status: number = HttpStatusCode.INTERNAL_SERVER_ERROR,
   field?: string,
   details?: unknown
 ): NextResponse<ErrorResponse> {
@@ -85,7 +86,7 @@ export function errorResponse(
 export function successResponse<T = unknown>(
   data?: T,
   message?: string,
-  status: number = 200
+  status: number = HttpStatusCode.OK
 ): NextResponse<T | SuccessResponse<T>> {
   // If only data is provided, return it directly (backward compatible)
   if (data !== undefined && data !== null && !message) {
@@ -116,7 +117,7 @@ export function successResponse<T = unknown>(
  * if (!user) return unauthorizedResponse();
  */
 export function unauthorizedResponse(message: string = 'Unauthorized'): NextResponse<ErrorResponse> {
-  return errorResponse(message, 401);
+  return errorResponse(message, HttpStatusCode.UNAUTHORIZED);
 }
 
 /**
@@ -129,7 +130,7 @@ export function unauthorizedResponse(message: string = 'Unauthorized'): NextResp
  * if (!isAdmin) return forbiddenResponse('Admin access required');
  */
 export function forbiddenResponse(message: string = 'Forbidden'): NextResponse<ErrorResponse> {
-  return errorResponse(message, 403);
+  return errorResponse(message, HttpStatusCode.FORBIDDEN);
 }
 
 /**
@@ -142,7 +143,7 @@ export function forbiddenResponse(message: string = 'Forbidden'): NextResponse<E
  * if (!project) return notFoundResponse('Project');
  */
 export function notFoundResponse(resource: string = 'Resource'): NextResponse<ErrorResponse> {
-  return errorResponse(`${resource} not found`, 404);
+  return errorResponse(`${resource} not found`, HttpStatusCode.NOT_FOUND);
 }
 
 /**
@@ -156,7 +157,7 @@ export function notFoundResponse(resource: string = 'Resource'): NextResponse<Er
  * if (!prompt) return validationError('Prompt is required', 'prompt');
  */
 export function validationError(message: string, field?: string): NextResponse<ErrorResponse> {
-  return errorResponse(message, 400, field);
+  return errorResponse(message, HttpStatusCode.BAD_REQUEST, field);
 }
 
 /**
@@ -186,7 +187,7 @@ export function rateLimitResponse(
       retryAfter,
     },
     {
-      status: 429,
+      status: HttpStatusCode.RATE_LIMITED,
       headers: {
         'X-RateLimit-Limit': limit.toString(),
         'X-RateLimit-Remaining': remaining.toString(),
@@ -216,7 +217,7 @@ export function internalServerError(
 
   return errorResponse(
     message,
-    500,
+    HttpStatusCode.INTERNAL_SERVER_ERROR,
     undefined,
     isDevelopment ? details : undefined
   );
@@ -233,7 +234,7 @@ export function internalServerError(
  * return badRequestResponse('Invalid request format');
  */
 export function badRequestResponse(message: string, field?: string): NextResponse<ErrorResponse> {
-  return errorResponse(message, 400, field);
+  return errorResponse(message, HttpStatusCode.BAD_REQUEST, field);
 }
 
 /**
@@ -246,7 +247,7 @@ export function badRequestResponse(message: string, field?: string): NextRespons
  * return conflictResponse('Resource already exists');
  */
 export function conflictResponse(message: string): NextResponse<ErrorResponse> {
-  return errorResponse(message, 409);
+  return errorResponse(message, HttpStatusCode.CONFLICT);
 }
 
 /**
@@ -261,9 +262,9 @@ export function conflictResponse(message: string): NextResponse<ErrorResponse> {
  *   return successResponse(data);
  * });
  */
-export function withErrorHandling<T extends unknown[], R>(
-  handler: (...args: T) => Promise<NextResponse<R>>
-): (...args: T) => Promise<NextResponse<R | ErrorResponse>> {
+export function withErrorHandling<T extends unknown[]>(
+  handler: (...args: T) => Promise<NextResponse>
+): (...args: T) => Promise<NextResponse> {
   return async (...args: T) => {
     try {
       return await handler(...args);

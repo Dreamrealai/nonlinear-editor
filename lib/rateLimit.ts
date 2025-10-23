@@ -256,27 +256,43 @@ export function checkRateLimitSync(
 }
 
 /**
- * Common rate limit presets
+ * Common rate limit presets - TIERED SECURITY MODEL
  *
- * Usage by endpoint:
- * - EXPENSIVE: AI generation endpoints (video, image, audio TTS, music, SFX)
- * - MODERATE: Standard API operations
- * - RELAXED: Read operations, status checks
- * - STRICT: Authentication, sensitive operations
+ * TIER 1 - Authentication/Payment (5/min):
+ *   Critical security operations that could be abused for account takeover,
+ *   payment fraud, or privilege escalation
+ *   Routes: /api/stripe/*, /api/user/delete-account, /api/admin/*
  *
- * Updated to VERY GENEROUS limits for production use (10-20x increase)
+ * TIER 2 - Resource Creation (10/min):
+ *   Expensive operations that create billable resources or consume significant
+ *   compute/storage. Prevents resource exhaustion attacks
+ *   Routes: /api/projects (POST), /api/assets/upload, /api/video/generate, /api/audio/*, /api/image/generate
+ *
+ * TIER 3 - Status/Read Operations (30/min):
+ *   Read-only or polling operations that query external services or databases
+ *   Routes: /api/video/status, /api/projects (GET), /api/assets (GET), /api/history (GET)
+ *
+ * TIER 4 - General Operations (60/min):
+ *   Standard API operations with moderate resource usage
+ *   Routes: Other authenticated routes
  */
 export const RATE_LIMITS = {
-  // 100 requests per 10 seconds - for authentication and sensitive operations (10x increase)
-  strict: { max: 100, windowMs: 10 * 1000 },
+  // TIER 1: 5 requests per minute - for authentication, payment, and admin operations
+  tier1_auth_payment: { max: 5, windowMs: 60 * 1000 },
 
-  // 300 requests per minute - for standard API operations (10x increase)
-  moderate: { max: 300, windowMs: 60 * 1000 },
+  // TIER 2: 10 requests per minute - for expensive resource creation operations
+  tier2_resource_creation: { max: 10, windowMs: 60 * 1000 },
 
-  // 1000 requests per minute - for read operations and status checks (10x increase)
-  relaxed: { max: 1000, windowMs: 60 * 1000 },
+  // TIER 3: 30 requests per minute - for status checks and read operations
+  tier3_status_read: { max: 30, windowMs: 60 * 1000 },
 
-  // 100 requests per minute - for expensive AI generation operations (20x increase)
-  // Used by: video-gen, image-gen, audio-tts, audio-music, audio-sfx
-  expensive: { max: 100, windowMs: 60 * 1000 },
+  // TIER 4: 60 requests per minute - for general API operations
+  tier4_general: { max: 60, windowMs: 60 * 1000 },
+
+  // Legacy aliases for backward compatibility (will be removed)
+  // @deprecated Use tier-based limits instead
+  strict: { max: 5, windowMs: 60 * 1000 },
+  expensive: { max: 10, windowMs: 60 * 1000 },
+  moderate: { max: 30, windowMs: 60 * 1000 },
+  relaxed: { max: 60, windowMs: 60 * 1000 },
 };

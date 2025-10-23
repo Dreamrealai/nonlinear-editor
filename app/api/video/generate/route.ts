@@ -18,16 +18,16 @@ import {
   unauthorizedResponse,
   rateLimitResponse,
   validationError,
+  withErrorHandling,
 } from '@/lib/api/response';
 import { verifyProjectOwnership, verifyAssetOwnership } from '@/lib/api/project-verification';
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandling(async (req: NextRequest) => {
   const startTime = Date.now();
 
-  try {
-    serverLogger.info({
-      event: 'video.generate.request_started',
-    }, 'Video generation request received');
+  serverLogger.info({
+    event: 'video.generate.request_started',
+  }, 'Video generation request received');
 
     const supabase = await createServerSupabaseClient();
 
@@ -50,8 +50,9 @@ export async function POST(req: NextRequest) {
       userId: user.id,
     }, 'User authenticated for video generation');
 
-    // Rate limiting (expensive operation - 5 requests per minute per user)
-    const rateLimitResult = await checkRateLimit(`video-gen:${user.id}`, RATE_LIMITS.expensive);
+    // TIER 2 RATE LIMITING: Resource creation - video generation (10/min)
+    // Prevents resource exhaustion and controls AI API costs
+    const rateLimitResult = await checkRateLimit(`video-gen:${user.id}`, RATE_LIMITS.tier2_resource_creation);
 
     if (!rateLimitResult.success) {
       serverLogger.warn({
@@ -235,16 +236,4 @@ export async function POST(req: NextRequest) {
         message: 'Video generation started. Use the operation name to check status.',
       });
     }
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    serverLogger.error({
-      event: 'video.generate.error',
-      error,
-      duration,
-    }, 'Video generation error');
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to generate video' },
-      { status: 500 }
-    );
-  }
-}
+});
