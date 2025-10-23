@@ -4,7 +4,7 @@
  */
 'use client';
 
-import { useCallback, useRef, type ChangeEvent } from 'react';
+import { useCallback, type ChangeEvent } from 'react';
 import { v4 as uuid } from 'uuid';
 import toast from 'react-hot-toast';
 import { createBrowserSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
