@@ -16,18 +16,25 @@
 
 ## System Overview
 
-The Non-Linear Video Editor is a modern, web-based video editing application built with Next.js 15, React 19, and TypeScript. It provides AI-powered video editing capabilities with integration to Google's Gemini and Veo models, audio generation through Suno and ElevenLabs, and secure asset management via Supabase.
+The Non-Linear Video Editor is a modern, production-ready web-based video editing application built with Next.js 15, React 19, and TypeScript. It provides comprehensive AI-powered video editing capabilities with integration to multiple AI services, subscription management via Stripe, and enterprise-grade logging and monitoring.
 
 ### Key Features
-- Multi-track timeline editing with drag-drop support
-- AI-powered video generation (Google Veo 3.1)
-- AI chat assistant (Gemini 2.5 Flash)
-- Keyframe extraction and editing
-- Scene detection and audio splitting
-- Audio generation (Suno, ElevenLabs)
-- Undo/redo with 50-action history
-- Real-time preview and playback
-- Secure asset storage with signed URLs
+- **Multi-track Timeline Editing**: Drag-drop support, trim handles, snap-to-grid, text overlays
+- **AI-Powered Video Generation**: Google Veo 3.1, FAL.ai (MiniMax, SeeDance)
+- **AI Image Generation**: Google Imagen 3
+- **AI Chat Assistant**: Gemini 2.5 Flash with context-aware assistance
+- **Scene Detection**: Google Video Intelligence API for automatic scene splitting
+- **Audio Generation**: Suno (music), ElevenLabs (TTS & sound effects)
+- **Video Upscaling**: FAL.ai Topaz upscaling
+- **Audio Extraction**: Video-to-audio conversion
+- **Keyframe Editing**: Extract and edit individual frames
+- **Undo/Redo**: 50-action history with Immer structural sharing
+- **Real-time Preview**: RAF-based multi-track synchronized playback
+- **Subscription Management**: Stripe integration with tier-based limits
+- **Activity History**: User audit log for GDPR compliance
+- **Admin Features**: User management, tier changes, audit logging
+- **Security**: Row-Level Security (RLS), signed URLs, rate limiting
+- **Observability**: Comprehensive logging with Axiom integration
 
 ---
 
@@ -47,7 +54,7 @@ graph TB
         AppRouter[App Router]
         Middleware[Auth Middleware]
         SSR[Server Components]
-        API[API Routes - 15 endpoints]
+        API[API Routes - 30+ endpoints]
     end
 
     subgraph "State Management"
@@ -186,42 +193,69 @@ graph TD
 
 ## Backend Architecture
 
-### API Routes (15 Total)
+### API Routes (30+ Total)
 
 ```mermaid
-graph LR
-    subgraph "Video Generation"
+graph TB
+    subgraph "Video Processing (7 routes)"
         GenVideo[POST /api/video/generate]
         VideoStatus[GET /api/video/status]
+        Upscale[POST /api/video/upscale]
+        UpscaleStatus[GET /api/video/upscale-status]
         SplitScenes[POST /api/video/split-scenes]
         SplitAudio[POST /api/video/split-audio]
+        GenAudio[POST /api/video/generate-audio]
+        GenAudioStatus[GET /api/video/generate-audio-status]
     end
 
-    subgraph "AI Features"
-        Chat[POST /api/chat]
-        EditFrame[POST /api/edit-frame]
+    subgraph "AI Features (2 routes)"
+        Chat[POST /api/ai/chat]
+        EditFrame[POST /api/frames/:frameId/edit]
     end
 
-    subgraph "Audio Generation"
-        SunoGen[POST /api/audio/suno]
-        ElevenGen[POST /api/audio/elevenlabs]
+    subgraph "Audio Generation (5 routes)"
+        SunoGen[POST /api/audio/suno/generate]
+        SunoStatus[GET /api/audio/suno/status]
+        ElevenGen[POST /api/audio/elevenlabs/generate]
+        ElevenVoices[GET /api/audio/elevenlabs/voices]
+        ElevenSFX[POST /api/audio/elevenlabs/sfx]
     end
 
-    subgraph "Project Management"
-        CreateProject[POST /api/projects/create]
+    subgraph "Image Generation (1 route)"
+        ImagenGen[POST /api/image/generate]
+    end
+
+    subgraph "Project Management (2 routes)"
         ListProjects[GET /api/projects]
-        UpdateProject[PUT /api/projects/:id]
+        CreateProject[POST /api/projects]
     end
 
-    subgraph "Asset Management"
+    subgraph "Asset Management (3 routes)"
         UploadAsset[POST /api/assets/upload]
-        SignURL[POST /api/assets/sign-url]
+        SignURL[GET /api/assets/sign]
         ListAssets[GET /api/assets]
     end
 
-    subgraph "Utility"
-        Logger[POST /api/log]
-        Health[GET /api/health]
+    subgraph "Subscription (3 routes)"
+        Checkout[POST /api/stripe/checkout]
+        Portal[GET /api/stripe/portal]
+        Webhook[POST /api/stripe/webhook]
+    end
+
+    subgraph "User Management (3 routes)"
+        DeleteAccount[POST /api/user/delete-account]
+        GetHistory[GET /api/history]
+        ClearHistory[DELETE /api/history]
+    end
+
+    subgraph "Admin (2 routes)"
+        ChangeTier[POST /api/admin/change-tier]
+        DeleteUser[POST /api/admin/delete-user]
+    end
+
+    subgraph "Utility (2 routes)"
+        Logger[POST /api/logs]
+        Export[POST /api/export]
     end
 ```
 
@@ -255,6 +289,143 @@ graph LR
 
 ---
 
+## Logging & Monitoring Architecture
+
+### Comprehensive Logging System
+
+```mermaid
+graph TB
+    subgraph "Client-Side Logging"
+        BrowserCode[Browser Application]
+        BrowserLogger[BrowserLogger Class]
+        LogBatch[Log Batch Queue]
+    end
+
+    subgraph "Server-Side Logging"
+        APIRoutes[API Routes]
+        ServerLogger[ServerLogger - Pino]
+        AxiomTransport[Axiom Transport]
+    end
+
+    subgraph "Log Aggregation"
+        LogsAPI[POST /api/logs]
+        AxiomAPI[Axiom.co API]
+    end
+
+    subgraph "Monitoring Dashboard"
+        AxiomDashboard[Axiom Dashboard]
+        Queries[APL Queries]
+        Alerts[Alert Rules]
+    end
+
+    BrowserCode --> BrowserLogger
+    BrowserLogger --> LogBatch
+    LogBatch -->|Batch POST every 10s| LogsAPI
+    LogsAPI --> AxiomAPI
+
+    APIRoutes --> ServerLogger
+    ServerLogger --> AxiomTransport
+    AxiomTransport -->|Real-time| AxiomAPI
+
+    AxiomAPI --> AxiomDashboard
+    AxiomDashboard --> Queries
+    AxiomDashboard --> Alerts
+```
+
+### Log Event Naming Convention
+
+All logs follow a structured event naming pattern:
+- `{domain}.{feature}.{event_type}`
+- Examples:
+  - `video.generate.request_started`
+  - `video.upscale.success`
+  - `audio.tts.api_error`
+  - `assets.sign.storage_error`
+  - `video.scene_detection.error`
+
+### Log Levels & Usage
+
+| Level | Usage | Examples |
+|-------|-------|----------|
+| `error` | Failures, exceptions, critical issues | API errors, DB failures, external service errors |
+| `warn` | Non-critical issues, deprecations | Rate limit warnings, missing optional config |
+| `info` | Normal operations, important events | Request started, operation completed |
+| `debug` | Detailed information for debugging | Rate limit remaining, intermediate states |
+
+### Logging Best Practices (Implemented)
+
+1. **Structured Context**: All logs include context objects
+   ```typescript
+   serverLogger.error({
+     error,
+     assetId,
+     projectId,
+     event: 'video.upscale.error'
+   }, 'Error in video upscale');
+   ```
+
+2. **Consistent Event Names**: Domain-based hierarchical naming
+3. **No Sensitive Data**: Passwords, API keys, PII excluded
+4. **Performance Tracking**: Duration logged for expensive operations
+5. **Error Tracking**: Stack traces included for debugging
+
+---
+
+## Subscription & Payment Architecture
+
+### Stripe Integration Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI
+    participant API
+    participant Stripe
+    participant DB
+    participant Webhook
+
+    User->>UI: Click "Upgrade"
+    UI->>API: POST /api/stripe/checkout
+    API->>Stripe: Create checkout session
+    Stripe-->>API: Session URL
+    API-->>UI: Redirect URL
+    UI->>Stripe: Redirect to checkout
+    User->>Stripe: Complete payment
+    Stripe->>Webhook: POST /api/stripe/webhook
+    Webhook->>DB: Update user_subscriptions
+    Webhook-->>Stripe: 200 OK
+    Stripe->>User: Redirect to success page
+    UI->>UI: Refresh subscription status
+```
+
+### Subscription Tiers
+
+| Tier | Features | Limits |
+|------|----------|--------|
+| Free | Basic editing, 5 projects | 100 MB storage |
+| Pro | AI features, unlimited projects | 10 GB storage |
+| Enterprise | Priority support, custom branding | Unlimited storage |
+
+### Subscription Database Schema
+
+```mermaid
+erDiagram
+    USERS ||--o| USER_SUBSCRIPTIONS : has
+    USER_SUBSCRIPTIONS {
+        uuid user_id PK
+        string tier
+        string stripe_customer_id
+        string stripe_subscription_id
+        timestamp current_period_start
+        timestamp current_period_end
+        string status
+        timestamp created_at
+        timestamp updated_at
+    }
+```
+
+---
+
 ## Database Schema
 
 ```mermaid
@@ -262,19 +433,14 @@ erDiagram
     USERS ||--o{ PROJECTS : owns
     USERS ||--o{ ASSETS : owns
     USERS ||--o{ SCENES : owns
-    PROJECTS ||--o{ TIMELINES : contains
+    USERS ||--o| USER_SUBSCRIPTIONS : has
+    USERS ||--o{ USER_ACTIVITY_HISTORY : generates
+    PROJECTS ||--o{ CLIPS : contains
     PROJECTS ||--o{ ASSETS : uses
+    PROJECTS ||--o{ TEXT_OVERLAYS : has
     SCENES ||--o{ SCENE_FRAMES : contains
     SCENE_FRAMES ||--o{ FRAME_EDITS : has
-    TIMELINES {
-        uuid id PK
-        uuid project_id FK
-        uuid user_id FK
-        jsonb timeline_data
-        timestamp created_at
-        timestamp updated_at
-    }
-
+    ASSETS ||--o{ CLIPS : used_in
     PROJECTS {
         uuid id PK
         uuid user_id FK
@@ -284,46 +450,109 @@ erDiagram
         timestamp updated_at
     }
 
+    CLIPS {
+        uuid id PK
+        uuid project_id FK
+        uuid asset_id FK
+        int track_index
+        float start_time
+        float end_time
+        float trim_start
+        float trim_end
+        jsonb properties
+        timestamp created_at
+    }
+
+    TEXT_OVERLAYS {
+        uuid id PK
+        uuid project_id FK
+        string text
+        float start_time
+        float duration
+        jsonb style
+        timestamp created_at
+    }
+
     ASSETS {
         uuid id PK
         uuid user_id FK
         uuid project_id FK
         string type
-        string storage_path
+        string source
+        string storage_url
+        string mime_type
         jsonb metadata
         timestamp created_at
     }
 
     SCENES {
         uuid id PK
-        uuid user_id FK
+        uuid project_id FK
         uuid asset_id FK
-        int scene_number
-        float start_time
-        float end_time
-        string description
+        int start_ms
+        int end_ms
         timestamp created_at
     }
 
     SCENE_FRAMES {
         uuid id PK
-        uuid scene_id FK
-        uuid user_id FK
+        uuid project_id FK
+        uuid asset_id FK
         int frame_number
-        float timestamp
-        string storage_path
-        string thumbnail_url
+        string storage_url
+        jsonb metadata
         timestamp created_at
     }
 
-    FRAME_EDITS {
+    PROCESSING_JOBS {
         uuid id PK
-        uuid frame_id FK
         uuid user_id FK
-        string prompt
-        jsonb edit_params
-        string result_url
+        string job_type
         string status
+        jsonb input_data
+        jsonb output_data
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    USER_SUBSCRIPTIONS {
+        uuid user_id PK
+        string tier
+        string stripe_customer_id
+        string stripe_subscription_id
+        timestamp current_period_start
+        timestamp current_period_end
+        string status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    USER_ACTIVITY_HISTORY {
+        uuid id PK
+        uuid user_id FK
+        uuid project_id FK
+        string activity_type
+        string title
+        string model
+        uuid asset_id FK
+        jsonb metadata
+        timestamp created_at
+    }
+
+    RATE_LIMITS {
+        string key PK
+        int count
+        timestamp window_start
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ADMIN_AUDIT_LOG {
+        uuid id PK
+        uuid admin_user_id FK
+        uuid target_user_id FK
+        string action
+        jsonb details
         timestamp created_at
     }
 
@@ -337,12 +566,17 @@ erDiagram
 ### Database Tables
 
 1. **projects** - User editing projects
-2. **timelines** - Timeline state (tracks, clips, effects)
-3. **assets** - Uploaded media files (video, audio, images)
-4. **scenes** - Detected scenes from videos
-5. **scene_frames** - Individual frames extracted from scenes
-6. **frame_edits** - AI edits applied to frames
-7. **users** - Authenticated users (managed by Supabase Auth)
+2. **clips** - Timeline clips with trim/transform data
+3. **text_overlays** - Text overlays on timeline
+4. **assets** - Uploaded media files (video, audio, images)
+5. **scenes** - Detected scenes from videos (Google Video Intelligence)
+6. **scene_frames** - Individual frames extracted from scenes
+7. **processing_jobs** - Background job tracking (video gen, upscale, etc.)
+8. **user_subscriptions** - Stripe subscription tier tracking
+9. **user_activity_history** - Audit log for user actions (GDPR compliance)
+10. **rate_limits** - Rate limiting tracking per user/endpoint
+11. **admin_audit_log** - Admin action tracking
+12. **users** - Authenticated users (managed by Supabase Auth)
 
 ### Row-Level Security (RLS)
 All tables implement RLS policies:
@@ -904,6 +1138,288 @@ non-linear-editor/
 
 ---
 
-**Last Updated**: 2025-10-22
-**Version**: 1.0.0
+## Complete Request Lifecycle
+
+### End-to-End Request Flow with Logging
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Browser
+    participant Middleware
+    participant APIRoute
+    participant Logger
+    participant RateLimit
+    participant Auth
+    participant Database
+    participant External
+    participant Axiom
+
+    Browser->>Middleware: HTTPS Request
+    Middleware->>Auth: Verify session cookie
+    Auth-->>Middleware: User authenticated
+    Middleware->>APIRoute: Forward request
+
+    APIRoute->>Logger: serverLogger.info('request_started')
+    Logger->>Axiom: Batch log event
+
+    APIRoute->>RateLimit: Check rate limit
+    RateLimit->>Database: Query rate_limits table
+    Database-->>RateLimit: Current count
+    RateLimit-->>APIRoute: Allow/Deny
+
+    alt Rate Limit Exceeded
+        APIRoute->>Logger: serverLogger.warn('rate_limited')
+        APIRoute-->>Browser: 429 Too Many Requests
+    end
+
+    APIRoute->>Database: Verify ownership (RLS)
+    Database-->>APIRoute: Access granted
+
+    APIRoute->>External: Call external API
+    External-->>APIRoute: Response
+
+    APIRoute->>Database: Save result
+    Database-->>APIRoute: Success
+
+    APIRoute->>Database: Log to user_activity_history
+
+    APIRoute->>Logger: serverLogger.info('success', {duration})
+    Logger->>Axiom: Batch log event
+
+    APIRoute-->>Browser: 200 OK with data
+```
+
+### Error Handling Flow
+
+```mermaid
+graph TB
+    Request[Incoming Request] --> TryCatch{Try Block}
+
+    TryCatch -->|Success| Response[Success Response]
+    TryCatch -->|Error| ErrorType{Error Type}
+
+    ErrorType -->|Validation Error| LogWarn[serverLogger.warn]
+    ErrorType -->|Auth Error| LogWarn
+    ErrorType -->|Rate Limit| LogWarn
+    ErrorType -->|Server Error| LogError[serverLogger.error]
+    ErrorType -->|External API Error| LogError
+
+    LogWarn --> CleanResponse[Sanitize Error Message]
+    LogError --> Cleanup[Cleanup Resources]
+    Cleanup --> CleanResponse
+
+    CleanResponse --> SendError[Send Error Response]
+
+    LogWarn --> Axiom[Axiom Log Aggregation]
+    LogError --> Axiom
+
+    Response --> Client[Client Receives Response]
+    SendError --> Client
+```
+
+### Resource Cleanup Pattern
+
+All API routes follow this pattern for resource cleanup:
+
+```typescript
+try {
+  // 1. Validate input
+  // 2. Check auth
+  // 3. Perform operation
+  // 4. Save to database
+
+  const { data, error } = await supabase
+    .from('table')
+    .insert(record);
+
+  if (error) {
+    // CRITICAL: Clean up any uploaded files
+    await supabase.storage
+      .from('bucket')
+      .remove([filePath]);
+
+    throw new Error('Database insert failed');
+  }
+
+  // 5. Log success
+  serverLogger.info({event: 'operation.success'});
+
+  return NextResponse.json({ data });
+} catch (error) {
+  // 6. Log error with context
+  serverLogger.error({
+    error,
+    event: 'operation.error'
+  }, 'Operation failed');
+
+  return NextResponse.json(
+    { error: 'Message' },
+    { status: 500 }
+  );
+}
+```
+
+---
+
+## Code Quality & Best Practices
+
+### TypeScript Strict Mode
+- All files use TypeScript with strict mode enabled
+- No `any` types in production code
+- Comprehensive interface definitions
+- Type-safe database queries
+
+### Component Best Practices
+```typescript
+/**
+ * Main video editor component with timeline, preview, and asset management.
+ *
+ * Features:
+ * - Multi-track timeline editing with drag-drop support
+ * - Real-time preview with RAF-based synchronization
+ * - Auto-save with 2-second debounce
+ * - Undo/redo with 50-action history
+ *
+ * @example
+ * ```tsx
+ * <BrowserEditorClient projectId="uuid" />
+ * ```
+ */
+export function BrowserEditorClient({ projectId }: Props) {
+  // Component implementation
+}
+```
+
+### API Route Best Practices
+```typescript
+/**
+ * POST /api/video/generate
+ *
+ * Generates video using Google Veo 3.1 based on text prompt.
+ *
+ * Request body:
+ * - prompt: string (1-1000 chars) - Video generation prompt
+ * - duration: number (5-60) - Video duration in seconds
+ * - projectId: string (UUID) - Target project ID
+ *
+ * Response:
+ * - operationName: string - Long-running operation ID for polling
+ *
+ * Rate limit: 5 requests per minute per user
+ *
+ * @throws 401 - Unauthorized
+ * @throws 429 - Rate limit exceeded
+ * @throws 503 - Veo API unavailable
+ */
+export async function POST(req: NextRequest) {
+  // Route implementation
+}
+```
+
+### Custom Hook Documentation
+```typescript
+/**
+ * Polls an endpoint at regular intervals until a condition is met.
+ *
+ * @param endpoint - API endpoint to poll
+ * @param interval - Polling interval in milliseconds (default: 2000)
+ * @param maxAttempts - Maximum number of attempts (default: 60)
+ * @param isDone - Function to check if polling should stop
+ *
+ * @returns Polling state with data, loading, and error
+ *
+ * @example
+ * ```tsx
+ * const { data, loading } = usePolling(
+ *   `/api/video/status?id=${opId}`,
+ *   2000,
+ *   60,
+ *   (data) => data.done === true
+ * );
+ * ```
+ */
+export function usePolling<T>(...) {
+  // Hook implementation
+}
+```
+
+---
+
+## Security Hardening
+
+### Implemented Security Measures
+
+1. **Input Validation**
+   - UUID format validation (regex)
+   - String length limits
+   - Type checking for all inputs
+   - Path traversal prevention
+
+2. **Authentication & Authorization**
+   - HTTP-only session cookies
+   - Row-Level Security (RLS) on all tables
+   - Asset ownership verification
+   - Admin role verification
+
+3. **Rate Limiting**
+   - Per-user, per-endpoint limits
+   - Expensive operations: 5 req/min
+   - Standard operations: 60 req/min
+   - Database-backed tracking
+
+4. **Error Handling**
+   - No stack traces in production
+   - Generic error messages to clients
+   - Detailed logs to Axiom only
+   - Resource cleanup on errors
+
+5. **Secure File Access**
+   - Signed URLs (1-hour expiry)
+   - User ID verification
+   - Storage bucket policies
+   - No direct file access
+
+6. **API Security**
+   - CSRF protection (Next.js)
+   - CORS configuration
+   - Timeout protection (60s max)
+   - Request size limits
+
+---
+
+## Testing Strategy
+
+### Unit Tests
+- Component rendering
+- Hook behavior
+- Utility functions
+- State management
+
+### Integration Tests
+- API route responses
+- Database operations
+- External service mocks
+- Authentication flows
+
+### E2E Tests
+- Timeline editing workflow
+- Video generation flow
+- Asset upload and management
+- Subscription checkout
+
+### Test Coverage Goals
+- API Routes: 80%+
+- Components: 70%+
+- Utilities: 90%+
+- Critical paths: 100%
+
+---
+
+**Last Updated**: 2025-10-23
+**Version**: 2.0.0
 **Maintainer**: Development Team
+**Total LOC**: ~46,307 lines
+**API Routes**: 30+
+**Components**: 24+
+**Custom Hooks**: 8
