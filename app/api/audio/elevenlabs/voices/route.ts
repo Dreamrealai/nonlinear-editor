@@ -17,7 +17,7 @@ interface VoicesResponse {
 
 async function handleGetVoices(
   _request: NextRequest,
-  _context: AuthContext & { params: Promise<Record<string, never>> }
+  _context: AuthContext & { params?: Record<string, never> }
 ) {
   try {
     const apiKey = process.env.ELEVENLABS_API_KEY;

@@ -44,7 +44,7 @@ export interface AuthOptions {
   };
 }
 
-export type AuthenticatedHandler<TParams = void> = (
+export type AuthenticatedHandler<TParams = Record<string, never>> = (
   request: NextRequest,
   context: AuthContext & { params?: TParams }
 ) => Promise<NextResponse>;
@@ -81,18 +81,16 @@ function getRateLimitIdentifier(request: NextRequest, userId?: string): string {
  *   return NextResponse.json(data);
  * }, { route: '/api/projects' });
  */
-export function withAuth<TParams = void>(
+export function withAuth<TParams = Record<string, never>>(
   handler: AuthenticatedHandler<TParams>,
   options: AuthOptions
 ) {
-  return async (request: NextRequest, routeParams?: { params: TParams | Promise<TParams> }) => {
+  return async (request: NextRequest, context: { params: Promise<TParams> }) => {
     const startTime = Date.now();
     const { route, rateLimit } = options;
 
     // Handle Next.js 15's async params
-    const params = routeParams?.params instanceof Promise
-      ? await routeParams.params
-      : routeParams?.params;
+    const params = (await context.params) as TParams;
 
     try {
       serverLogger.info({
@@ -232,7 +230,7 @@ export interface AdminAuthContext extends AuthContext {
   };
 }
 
-export type AdminAuthenticatedHandler<TParams = void> = (
+export type AdminAuthenticatedHandler<TParams = Record<string, never>> = (
   request: NextRequest,
   context: AdminAuthContext & { params?: TParams }
 ) => Promise<NextResponse>;
@@ -252,7 +250,7 @@ export type AdminAuthenticatedHandler<TParams = void> = (
  *   return NextResponse.json({ success: true });
  * }, { route: '/api/admin/change-tier' });
  */
-export function withAdminAuth<TParams = void>(
+export function withAdminAuth<TParams = Record<string, never>>(
   handler: AdminAuthenticatedHandler<TParams>,
   options: AuthOptions
 ) {

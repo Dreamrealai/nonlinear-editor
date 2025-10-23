@@ -144,15 +144,16 @@ type EditorStore = {
 
 /**
  * Deep clones a timeline for history snapshots.
- * Uses JSON serialization to safely clone Immer draft proxies.
+ * Uses structuredClone for better performance and type safety.
  *
  * @param timeline - Timeline to clone (may be an Immer draft)
  * @returns Deep copy of timeline
  */
 const cloneTimeline = (timeline: Timeline | null): Timeline | null => {
   if (!timeline) return null;
-  // JSON clone is safe for Immer drafts and all Timeline properties are serializable
-  return JSON.parse(JSON.stringify(timeline));
+  // structuredClone is faster and more reliable than JSON.parse(JSON.stringify())
+  // It also preserves Date objects, RegExp, Map, Set, and other built-in types
+  return structuredClone(timeline);
 };
 
 /**
@@ -534,7 +535,7 @@ export const useEditorStore = create<EditorStore>()(
         const selected = state.timeline.clips.filter((clip) =>
           state.selectedClipIds.has(clip.id)
         );
-        state.copiedClips = JSON.parse(JSON.stringify(selected));
+        state.copiedClips = structuredClone(selected);
       }),
 
     // Paste clips from clipboard at current playhead position

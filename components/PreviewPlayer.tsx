@@ -272,6 +272,8 @@ const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
       fadeIn: Math.max(meta.fadeIn, meta.crossfadeIn),
       // Use the maximum of fade-out and crossfade-out
       fadeOut: Math.max(meta.fadeOut, meta.crossfadeOut),
+      transitionType: meta.transitionType,
+      transitionDuration: meta.transitionDuration,
     });
   });
 

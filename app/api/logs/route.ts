@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/api/withAuth';
+import { withAuth, type AuthContext } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 
 type LogEntry = {
@@ -17,7 +17,8 @@ const MAX_LOG_ENTRY_SIZE = 10 * 1024;
 // Maximum total request size (100KB)
 const MAX_REQUEST_SIZE = 100 * 1024;
 
-async function handleLogsPost(request: NextRequest, { user }: { user: { id: string } }) {
+async function handleLogsPost(request: NextRequest, context: AuthContext) {
+  const { user } = context;
   try {
     const { logs } = await request.json() as { logs: LogEntry[] };
 

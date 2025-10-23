@@ -30,6 +30,7 @@ import { saveTimeline, loadTimeline } from '@/lib/saveLoad';
 import type { Clip, Timeline as TimelineType } from '@/types/timeline';
 import { useEditorStore } from '@/state/useEditorStore';
 import { browserLogger } from '@/lib/browserLogger';
+import { safeArrayMax, safeArrayGet, safeArrayLast } from '@/lib/utils/arrayUtils';
 
 /**
  * Metadata associated with media assets.
@@ -216,11 +217,12 @@ const sanitizeFileName = (fileName: string) => {
  */
 const extractStorageLocation = (storageUrl: string) => {
   const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
-  const [bucket, ...parts] = normalized.split('/');
-  if (!bucket || parts.length === 0) {
+  const parts = normalized.split('/');
+  const bucket = safeArrayGet(parts, 0);
+  if (!bucket || parts.length <= 1) {
     return null;
   }
-  return { bucket, path: parts.join('/') };
+  return { bucket, path: parts.slice(1).join('/') };
 };
 
 /**
@@ -232,7 +234,7 @@ const extractStorageLocation = (storageUrl: string) => {
 const extractFileName = (storageUrl: string) => {
   const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
   const segments = normalized.split('/');
-  return segments[segments.length - 1] ?? normalized;
+  return safeArrayLast(segments) ?? normalized;
 };
 
 /**
@@ -793,8 +795,11 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
     void (async () => {
       for (const asset of missingThumbnails) {
         try {
+          const bucketName = safeArrayGet(asset.storage_url.replace('supabase://', '').split('/'), 0);
+          if (!bucketName) continue;
+
           const signedUrlResponse = await supabase.storage
-            .from(asset.storage_url.replace('supabase://', '').split('/')[0] ?? '')
+            .from(bucketName)
             .createSignedUrl(asset.storage_url.replace(/^supabase:\/\//, '').split('/').slice(1).join('/'), 600);
 
           if (!signedUrlResponse.data?.signedUrl) {
@@ -959,7 +964,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
       start: 0,
       end: assetDuration ?? 5,
       sourceDuration: assetDuration,
-      timelinePosition: timeline.clips.length > 0 ? Math.max(...timeline.clips.map((c) => c.timelinePosition + (c.end - c.start))) : 0,
+      timelinePosition: timeline.clips.length > 0 ? safeArrayMax(timeline.clips.map((c) => c.timelinePosition + (c.end - c.start)), 0) : 0,
       trackIndex: 0,
       crop: null,
       transitionToNext: { type: 'none', duration: 0.5 },
