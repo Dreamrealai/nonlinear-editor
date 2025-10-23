@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
-import { unauthorizedResponse, validationError, notFoundResponse, forbiddenResponse, errorResponse } from '@/lib/api/response';
+import { unauthorizedResponse, validationError, errorResponse } from '@/lib/api/response';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
 
 interface SunoStatusResponse {

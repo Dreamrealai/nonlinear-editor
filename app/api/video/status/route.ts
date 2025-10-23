@@ -4,6 +4,7 @@ import { checkFalVideoStatus } from '@/lib/fal-video';
 import { createServerSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import { GoogleAuth } from 'google-auth-library';
+import { unauthorizedResponse, validationError, errorResponse } from '@/lib/api/response';
 
 const normalizeStorageUrl = (bucket: string, path: string) => `supabase://${bucket}/${path}`;
 
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return unauthorizedResponse();
     }
 
     const { searchParams } = new URL(req.url);
@@ -35,11 +36,11 @@ export async function GET(req: NextRequest) {
     const projectId = searchParams.get('projectId');
 
     if (!operationName) {
-      return NextResponse.json({ error: 'Operation name is required' }, { status: 400 });
+      return validationError('Operation name is required', 'operationName');
     }
 
     if (!projectId) {
-      return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
+      return validationError('Project ID is required', 'projectId');
     }
 
     // Determine if this is a FAL operation or Veo operation
@@ -49,7 +50,7 @@ export async function GET(req: NextRequest) {
       // Parse FAL operation name: fal:endpoint:requestId
       const parts = operationName.split(':');
       if (parts.length < 3) {
-        return NextResponse.json({ error: 'Invalid FAL operation name format' }, { status: 400 });
+        return validationError('Invalid FAL operation name format', 'operationName');
       }
       const endpoint = parts.slice(1, -1).join(':'); // Reconstruct endpoint (may contain colons)
       const requestId = parts[parts.length - 1];
@@ -291,9 +292,9 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error('Status check error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to check status' },
-      { status: 500 }
+    return errorResponse(
+      error instanceof Error ? error.message : 'Failed to check status',
+      500
     );
   }
 }

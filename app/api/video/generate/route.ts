@@ -11,7 +11,6 @@ import {
   validateDuration,
   validateSeed,
   validateSampleCount,
-  validateEnum,
   validateAll,
 } from '@/lib/api/validation';
 import {
@@ -19,8 +18,6 @@ import {
   unauthorizedResponse,
   rateLimitResponse,
   validationError,
-  forbiddenResponse,
-  notFoundResponse,
 } from '@/lib/api/response';
 import { verifyProjectOwnership, verifyAssetOwnership } from '@/lib/api/project-verification';
 
