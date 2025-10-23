@@ -46,14 +46,23 @@ export default function SignInPage() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
     setSuccess('');
+
+    // Validate email format
+    const { validateEmail, normalizeEmail } = await import('@/lib/validation/email');
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.valid) {
+      setError(emailValidation.message || 'Invalid email');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const supabase = createBrowserSupabaseClient();
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: normalizeEmail(email),
         password,
       });
 

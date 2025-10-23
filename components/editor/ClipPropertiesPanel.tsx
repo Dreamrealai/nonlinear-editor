@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import { useDebounce } from '@/lib/hooks/useDebounce';
-import type { Transform, AudioEffects } from '@/types/timeline';
 
 /**
  * ClipPropertiesPanel Component (Enhanced)
@@ -146,49 +145,6 @@ export default function ClipPropertiesPanel() {
       </div>
     );
   }
-
-  const transform = selectedClip.transform || { rotation: 0, flipHorizontal: false, flipVertical: false, scale: 1.0 };
-  const audioEffects = selectedClip.audioEffects || { bassGain: 0, midGain: 0, trebleGain: 0, compression: 0, normalize: false };
-
-  const updateTransform = (updates: Partial<Transform>) => {
-    updateClip(selectedClip.id, {
-      transform: { ...transform, ...updates },
-    });
-  };
-
-  const updateAudioEffects = (updates: Partial<AudioEffects>) => {
-    updateClip(selectedClip.id, {
-      audioEffects: { ...audioEffects, ...updates },
-    });
-  };
-
-  const resetColorCorrection = () => {
-    setLocalBrightness(100);
-    setLocalContrast(100);
-    setLocalSaturation(100);
-    setLocalHue(0);
-    updateClip(selectedClip.id, {
-      colorCorrection: { brightness: 100, contrast: 100, saturation: 100, hue: 0 },
-    });
-  };
-
-  const resetTransform = () => {
-    setLocalRotation(0);
-    setLocalScale(1.0);
-    updateClip(selectedClip.id, {
-      transform: { rotation: 0, flipHorizontal: false, flipVertical: false, scale: 1.0 },
-    });
-  };
-
-  const resetAudioEffects = () => {
-    setLocalBassGain(0);
-    setLocalMidGain(0);
-    setLocalTrebleGain(0);
-    setLocalCompression(0);
-    updateClip(selectedClip.id, {
-      audioEffects: { bassGain: 0, midGain: 0, trebleGain: 0, compression: 0, normalize: false },
-    });
-  };
 
   return (
     <div className="h-full w-80 border-l border-gray-700 bg-gray-900 p-4 overflow-y-auto">

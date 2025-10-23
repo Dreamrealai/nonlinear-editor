@@ -301,7 +301,7 @@ export function SubscriptionManager() {
               />
             </div>
             {videoPercentage >= 90 && (
-              <p className="mt-2 text-xs text-red-600 font-medium">You're running low on video minutes</p>
+              <p className="mt-2 text-xs text-red-600 font-medium">You&apos;re running low on video minutes</p>
             )}
           </div>
 
@@ -331,7 +331,7 @@ export function SubscriptionManager() {
               />
             </div>
             {aiPercentage >= 90 && (
-              <p className="mt-2 text-xs text-red-600 font-medium">You're running low on AI requests</p>
+              <p className="mt-2 text-xs text-red-600 font-medium">You&apos;re running low on AI requests</p>
             )}
           </div>
 
@@ -361,7 +361,7 @@ export function SubscriptionManager() {
               />
             </div>
             {storagePercentage >= 90 && (
-              <p className="mt-2 text-xs text-red-600 font-medium">You're running low on storage space</p>
+              <p className="mt-2 text-xs text-red-600 font-medium">You&apos;re running low on storage space</p>
             )}
           </div>
         </div>
