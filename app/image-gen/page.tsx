@@ -185,7 +185,7 @@ export default function ImageGenPage() {
                       placeholder="A serene mountain landscape at sunset with vibrant orange and pink clouds, highly detailed, photorealistic"
                       rows={6}
                       disabled={generating}
-                      className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                      className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                       required
                     />
                     <p className="mt-2 text-xs text-neutral-500">
@@ -203,7 +203,7 @@ export default function ImageGenPage() {
                       value={model}
                       onChange={(e) => setModel(e.target.value)}
                       disabled={generating}
-                      className="w-full rounded-lg border border-neutral-300 px-4 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                      className="w-full rounded-lg border border-neutral-300 px-4 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="imagen-3.0-generate-001">Imagen 3.0 - Stable & High Quality</option>
                       <option value="imagen-3.0-fast-generate-001">Imagen 3.0 Fast - Faster Generation</option>
@@ -228,7 +228,7 @@ export default function ImageGenPage() {
                         value={aspectRatio}
                         onChange={(e) => setAspectRatio(e.target.value as '1:1' | '9:16' | '16:9' | '3:4' | '4:3')}
                         disabled={generating}
-                        className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                        className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <option value="1:1">1:1 (Square / Instagram)</option>
                         <option value="9:16">9:16 (Portrait / Stories)</option>
@@ -248,7 +248,7 @@ export default function ImageGenPage() {
                         value={sampleCount}
                         onChange={(e) => setSampleCount(parseInt(e.target.value) as 1 | 2 | 4)}
                         disabled={generating}
-                        className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                        className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <option value="1">1 image</option>
                         <option value="2">2 images</option>
@@ -272,7 +272,7 @@ export default function ImageGenPage() {
                       placeholder="blurry, low quality, distorted, text, watermark"
                       rows={4}
                       disabled={generating}
-                      className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                      className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                     />
                     <p className="mt-2 text-xs text-neutral-500">
                       Describe what you DON&apos;T want in the image. The model will avoid these elements.
@@ -293,7 +293,7 @@ export default function ImageGenPage() {
                         value={safetyFilterLevel}
                         onChange={(e) => setSafetyFilterLevel(e.target.value as 'block_some' | 'block_few')}
                         disabled={generating}
-                        className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                        className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <option value="block_some">Block Some (Recommended)</option>
                         <option value="block_few">Block Few (More Permissive)</option>
@@ -310,7 +310,7 @@ export default function ImageGenPage() {
                         value={personGeneration}
                         onChange={(e) => setPersonGeneration(e.target.value as 'allow_adult' | 'dont_allow')}
                         disabled={generating}
-                        className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                        className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <option value="allow_adult">Allow Adult Faces</option>
                         <option value="dont_allow">Don&apos;t Generate People</option>
@@ -331,7 +331,7 @@ export default function ImageGenPage() {
                         min="0"
                         max="2147483647"
                         disabled={generating}
-                        className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                        className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                       />
                       <p className="mt-1 text-xs text-neutral-500">
                         Use a seed for reproducible results. Same seed + same prompt = same image.

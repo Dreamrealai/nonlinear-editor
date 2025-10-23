@@ -751,7 +751,7 @@ function KeyframeEditorContent({ assets, supabase }: KeyframeEditorShellProps & 
         </div>
         <div className="flex items-center gap-3">
           <select
-            className="rounded border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-700 transition-colors hover:border-neutral-300 focus:border-neutral-900 focus:outline-none"
+            className="rounded border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-700 transition-colors hover:border-neutral-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
             value={selectedAssetId ?? ''}
             onChange={(event) => setSelectedAssetId(event.target.value || null)}
           >
@@ -1091,7 +1091,7 @@ function KeyframeEditorContent({ assets, supabase }: KeyframeEditorShellProps & 
                 </div>
               </div>
               <textarea
-                className="w-full rounded border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-800 transition-colors focus:border-neutral-900 focus:outline-none"
+                className="w-full rounded border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-800 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
                 rows={3}
                 value={prompt}
                 onChange={(event) => setPrompt(event.target.value)}

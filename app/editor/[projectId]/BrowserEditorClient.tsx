@@ -1945,7 +1945,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
                   disabled={videoGenPending}
                   placeholder="Describe the video you want to generate..."
                   rows={4}
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
 
@@ -1957,7 +1957,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
                   id="video-aspect-ratio"
                   name="aspectRatio"
                   disabled={videoGenPending}
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <option value="16:9">16:9 (Landscape)</option>
                   <option value="9:16">9:16 (Portrait)</option>
@@ -1973,7 +1973,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
                   id="video-duration"
                   name="duration"
                   disabled={videoGenPending}
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <option value="5">5 seconds</option>
                   <option value="8" selected>8 seconds</option>

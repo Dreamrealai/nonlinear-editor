@@ -44,13 +44,13 @@ export default function Error({
         <div className="space-y-3">
           <button
             onClick={reset}
-            className="w-full rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2"
+            className="w-full rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           >
             Try again
           </button>
           <button
             onClick={() => window.location.href = '/'}
-            className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 shadow hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2"
+            className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 shadow hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           >
             Go home
           </button>
