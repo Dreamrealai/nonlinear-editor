@@ -89,12 +89,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Validate duration
+    // Validate duration - Allow all durations supported by any model
+    // Veo 3.x: 4, 5, 6, 8 seconds
+    // Veo 2.x: 5-8 seconds
+    // SORA 2 Pro: 5, 10 seconds
+    // SEEDANCE: 4, 6, 8 seconds
+    // MiniMax: 5, 6, 8 seconds
     if (duration !== undefined) {
-      const validDurations = [5, 10];
+      const validDurations = [4, 5, 6, 8, 10];
       if (!validDurations.includes(duration)) {
         return NextResponse.json(
-          { error: 'Invalid duration. Must be either 5 or 10 seconds' },
+          { error: 'Invalid duration. Must be 4, 5, 6, 8, or 10 seconds' },
           { status: 400 }
         );
       }
