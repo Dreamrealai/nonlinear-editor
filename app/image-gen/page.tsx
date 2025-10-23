@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import toast, { Toaster } from 'react-hot-toast';
 import Link from 'next/link';
 
@@ -438,13 +439,15 @@ export default function ImageGenPage() {
                         {image.status === 'completed' && image.imageUrls && image.imageUrls.length > 0 ? (
                           <div className="grid grid-cols-2 gap-1 h-full w-full p-1">
                             {image.imageUrls.map((url, idx) => (
-                              // eslint-disable-next-line @next/next/no-img-element -- Dynamic API-generated images from external sources
-                              <img
-                                key={idx}
-                                src={url}
-                                alt={`Generated ${idx + 1}`}
-                                className="h-full w-full object-cover rounded"
-                              />
+                              <div key={idx} className="relative h-full w-full">
+                                <Image
+                                  src={url}
+                                  alt={`Generated ${idx + 1}`}
+                                  fill
+                                  className="object-cover rounded"
+                                  unoptimized
+                                />
+                              </div>
                             ))}
                           </div>
                         ) : (

@@ -13,12 +13,11 @@
  */
 'use client';
 
-/* eslint-disable @next/next/no-img-element */
-
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { v4 as uuid } from 'uuid';
 import toast, { Toaster } from 'react-hot-toast';
 import Link from 'next/link';
+import NextImage from 'next/image';
 import HorizontalTimeline from '@/components/HorizontalTimeline';
 import PreviewPlayer from '@/components/PreviewPlayer';
 import ExportModal from '@/components/ExportModal';
@@ -1768,7 +1767,14 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
                 className="flex w-full items-center gap-3 rounded-lg border border-transparent bg-neutral-50 px-3 py-2 text-left transition hover:border-neutral-200 hover:bg-white"
               >
                 {asset.metadata?.thumbnail ? (
-                  <img src={asset.metadata.thumbnail} alt="" className="h-16 w-28 rounded-md object-cover" />
+                  <NextImage
+                    src={asset.metadata.thumbnail}
+                    alt=""
+                    width={112}
+                    height={64}
+                    className="h-16 w-28 rounded-md object-cover"
+                    unoptimized
+                  />
                 ) : (
                   <div className="flex h-16 w-28 items-center justify-center rounded-md bg-neutral-200 text-xs text-neutral-600">
                     {asset.type.toUpperCase()}

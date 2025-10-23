@@ -128,12 +128,14 @@ function normalizeError(error: unknown): {
 } {
   // Standard Error object
   if (error instanceof Error) {
+    const errorWithExtras = error as Error & { code?: string; statusCode?: number };
     return {
       name: error.name,
       message: error.message,
       stack: error.stack,
       // Include additional properties if they exist
-      ...(error as Error & { code?: string; statusCode?: number }),
+      code: errorWithExtras.code,
+      statusCode: errorWithExtras.statusCode,
     };
   }
 

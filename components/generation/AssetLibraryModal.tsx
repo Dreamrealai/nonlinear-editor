@@ -7,6 +7,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface ImageAsset {
@@ -92,11 +93,12 @@ export default function AssetLibraryModal({ projectId, onSelect, onClose }: Asse
                   onClick={() => onSelect(asset)}
                   className="group relative aspect-square overflow-hidden rounded-lg border-2 border-neutral-200 hover:border-blue-500 transition-colors"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element -- Dynamic user asset library content */}
-                  <img
+                  <Image
                     src={asset.metadata?.thumbnail || asset.storage_url}
                     alt="Asset"
-                    className="h-full w-full object-cover"
+                    fill
+                    className="object-cover"
+                    unoptimized
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                 </button>
