@@ -1,17 +1,23 @@
 const { getFirstCallInstruction, getRevisionInstruction } = require('./utils/tool-instructions');
+const { getCorsHeaders } = require('../../lib/cors');
+
 
 exports.handler = async (event, context) => {
+  const corsHeaders = getCorsHeaders(event, {
+    allowCredentials: true,
+    allowedMethods: 'POST, OPTIONS',
+    allowedHeaders: 'Content-Type'
+  });
+
   const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    ...corsHeaders,
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive'
   };
 
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers: { ...headers, 'Content-Type': 'application/json' }, body: '' };
+    return { statusCode: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }, body: '' };
   }
 
   if (event.httpMethod !== 'POST') {

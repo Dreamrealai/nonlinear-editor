@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { fetchWithTimeout } from '@/lib/fetchWithTimeout';
-
-export const runtime = 'edge';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
+import { serverLogger } from '@/lib/serverLogger';
 
 /**
  * Generate sound effects using ElevenLabs Sound Effects API
  */
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
+    serverLogger.info({
+      event: 'audio.sfx.request_started',
+    }, 'ElevenLabs SFX request received');
+
     const supabase = await createServerSupabaseClient();
 
     // Get authenticated user
@@ -17,8 +23,45 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
+      serverLogger.warn({
+        event: 'audio.sfx.unauthorized',
+      }, 'Unauthorized SFX generation attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Rate limiting (expensive operation - 5 requests per minute per user)
+    const rateLimitResult = await checkRateLimit(`audio-sfx:${user.id}`, RATE_LIMITS.expensive);
+
+    if (!rateLimitResult.success) {
+      serverLogger.warn({
+        event: 'audio.sfx.rate_limited',
+        userId: user.id,
+        limit: rateLimitResult.limit,
+        remaining: rateLimitResult.remaining,
+        resetAt: rateLimitResult.resetAt,
+      }, 'SFX generation rate limit exceeded');
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded',
+          retryAfter: Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': new Date(rateLimitResult.resetAt).toISOString(),
+            'Retry-After': Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000).toString(),
+          },
+        }
+      );
+    }
+
+    serverLogger.debug({
+      event: 'audio.sfx.rate_limit_ok',
+      userId: user.id,
+      remaining: rateLimitResult.remaining,
+    }, 'Rate limit check passed');
 
     const body = await request.json();
     const { projectId, prompt, duration = 5.0 } = body;
@@ -142,13 +185,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to save asset metadata' }, { status: 500 });
     }
 
+    const executionTime = Date.now() - startTime;
+    serverLogger.info({
+      event: 'audio.sfx.success',
+      userId: user.id,
+      projectId,
+      executionTime,
+    }, `ElevenLabs SFX generated successfully in ${executionTime}ms`);
+
     return NextResponse.json({
       success: true,
       asset,
       url: publicUrl,
     });
   } catch (error) {
-    console.error('Sound effect generation error:', error);
+    const duration = Date.now() - startTime;
+    serverLogger.error({
+      event: 'audio.sfx.error',
+      error,
+      duration,
+    }, 'Sound effect generation error');
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }

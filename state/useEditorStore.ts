@@ -38,14 +38,20 @@ const HISTORY_DEBOUNCE_MS = 300;
 enableMapSet();
 
 /**
- * Debounce helper to reduce excessive history saves
+ * Debounce helper to reduce excessive history saves (per-clip)
+ * Maps clip ID to timer to prevent batching unrelated edits
  */
-let historyDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-const debouncedSaveHistory = (callback: () => void) => {
-  if (historyDebounceTimer) {
-    clearTimeout(historyDebounceTimer);
+const historyDebounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const debouncedSaveHistory = (clipId: string, callback: () => void) => {
+  const existingTimer = historyDebounceTimers.get(clipId);
+  if (existingTimer) {
+    clearTimeout(existingTimer);
   }
-  historyDebounceTimer = setTimeout(callback, HISTORY_DEBOUNCE_MS);
+  const timer = setTimeout(() => {
+    historyDebounceTimers.delete(clipId);
+    callback();
+  }, HISTORY_DEBOUNCE_MS);
+  historyDebounceTimers.set(clipId, timer);
 };
 
 /**
@@ -236,46 +242,44 @@ export const useEditorStore = create<EditorStore>()(
         if (clip) {
           Object.assign(clip, patch);
 
+          // Ensure numeric validity
           clip.timelinePosition = Number.isFinite(clip.timelinePosition) ? Math.max(0, clip.timelinePosition) : 0;
-          clip.start = Number.isFinite(clip.start) ? clip.start : 0;
+          clip.start = Number.isFinite(clip.start) ? Math.max(0, clip.start) : 0;
           clip.end = Number.isFinite(clip.end) ? clip.end : clip.start + MIN_CLIP_DURATION;
 
-          if (clip.sourceDuration === undefined || clip.sourceDuration === null) {
-            clip.sourceDuration = null;
-          } else if (typeof clip.sourceDuration === 'number' && Number.isFinite(clip.sourceDuration)) {
-            clip.sourceDuration = Math.max(clip.sourceDuration, MIN_CLIP_DURATION);
+          // Normalize sourceDuration
+          if (clip.sourceDuration !== undefined && clip.sourceDuration !== null) {
+            if (typeof clip.sourceDuration === 'number' && Number.isFinite(clip.sourceDuration)) {
+              clip.sourceDuration = Math.max(clip.sourceDuration, MIN_CLIP_DURATION);
+            } else {
+              clip.sourceDuration = null;
+            }
           } else {
             clip.sourceDuration = null;
           }
 
+          // Validate start/end bounds with sourceDuration
           if (typeof clip.sourceDuration === 'number') {
-            const maxDuration = Math.max(clip.sourceDuration, MIN_CLIP_DURATION);
-            clip.start = Math.min(Math.max(clip.start, 0), Math.max(0, maxDuration - MIN_CLIP_DURATION));
-            clip.end = Math.min(Math.max(clip.end, clip.start + MIN_CLIP_DURATION), maxDuration);
-          } else {
-            clip.start = Math.max(clip.start, 0);
-            clip.end = Math.max(clip.end, clip.start + MIN_CLIP_DURATION);
+            clip.start = Math.min(clip.start, Math.max(0, clip.sourceDuration - MIN_CLIP_DURATION));
+            clip.end = Math.min(clip.end, clip.sourceDuration);
           }
 
-          const currentDuration = clip.end - clip.start;
-          if (currentDuration < MIN_CLIP_DURATION - 1e-6) {
-            const desiredEnd = clip.start + MIN_CLIP_DURATION;
-            if (typeof clip.sourceDuration === 'number' && desiredEnd > clip.sourceDuration) {
+          // Ensure minimum duration
+          if (clip.end - clip.start < MIN_CLIP_DURATION) {
+            clip.end = clip.start + MIN_CLIP_DURATION;
+            // If we exceed sourceDuration, shift both start and end back
+            if (typeof clip.sourceDuration === 'number' && clip.end > clip.sourceDuration) {
               clip.end = clip.sourceDuration;
               clip.start = Math.max(0, clip.end - MIN_CLIP_DURATION);
-            } else {
-              clip.end = desiredEnd;
             }
           }
-
-          clip.timelinePosition = Math.max(clip.timelinePosition, 0);
 
           if (state.timeline) {
             state.timeline.clips = dedupeClips(state.timeline.clips);
           }
 
-          // Debounced save to history (reduces frequent updates during drag operations)
-          debouncedSaveHistory(() => {
+          // Per-clip debounced save to history (prevents batching unrelated edits)
+          debouncedSaveHistory(id, () => {
             const currentState = useEditorStore.getState();
             const cloned = cloneTimeline(currentState.timeline);
             if (cloned) {
@@ -329,6 +333,19 @@ export const useEditorStore = create<EditorStore>()(
 
         const splitOffset = time - clipStart;
         const newClipStart = originalClip.start + splitOffset;
+
+        // Validate both resulting clips meet minimum duration
+        const firstClipDuration = newClipStart - originalClip.start;
+        const secondClipDuration = originalClip.end - newClipStart;
+
+        if (firstClipDuration < MIN_CLIP_DURATION || secondClipDuration < MIN_CLIP_DURATION) {
+          console.warn('Split rejected: resulting clips would be too short', {
+            firstClipDuration,
+            secondClipDuration,
+            minRequired: MIN_CLIP_DURATION,
+          });
+          return;
+        }
 
         // Create second half of clip
         const secondClip: Clip = {

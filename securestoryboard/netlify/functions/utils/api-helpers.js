@@ -1,51 +1,53 @@
+const { getCorsHeaders: getSecureCorsHeaders } = require('../../lib/cors');
+
 // Common headers for all API responses
-const getCorsHeaders = () => {
-  // In production, replace * with your actual domain
-  const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
-  
+const getCorsHeaders = (event) => {
+  const corsHeaders = getSecureCorsHeaders(event, {
+    allowCredentials: true,
+    allowedMethods: 'GET, POST, OPTIONS',
+    allowedHeaders: 'Content-Type, Authorization, X-Requested-With'
+  });
+
   return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Credentials': 'true',
+    ...corsHeaders,
     'Content-Type': 'application/json'
   };
 };
 
 // Standard error response format
-const errorResponse = (statusCode, error, message, type = 'error', details = null) => {
+const errorResponse = (statusCode, error, message, type = 'error', details = null, event = null) => {
   const body = {
     error,
     message,
     type,
     timestamp: new Date().toISOString()
   };
-  
+
   if (details && process.env.NODE_ENV !== 'production') {
     body.details = details;
   }
-  
+
   return {
     statusCode,
-    headers: getCorsHeaders(),
+    headers: getCorsHeaders(event),
     body: JSON.stringify(body)
   };
 };
 
 // Standard success response format
-const successResponse = (data, statusCode = 200) => {
+const successResponse = (data, statusCode = 200, event = null) => {
   return {
     statusCode,
-    headers: getCorsHeaders(),
+    headers: getCorsHeaders(event),
     body: JSON.stringify(data)
   };
 };
 
 // Options response for CORS preflight
-const optionsResponse = () => {
+const optionsResponse = (event = null) => {
   return {
     statusCode: 200,
-    headers: getCorsHeaders(),
+    headers: getCorsHeaders(event),
     body: ''
   };
 };

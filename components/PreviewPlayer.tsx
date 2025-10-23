@@ -18,7 +18,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
-import type { Clip, ColorCorrection, Transform } from '@/types/timeline';
+import type { Clip, ColorCorrection, Transform, TransitionType } from '@/types/timeline';
 import TextOverlayRenderer from './TextOverlayRenderer';
 import TextOverlayEditor from './TextOverlayEditor';
 
@@ -43,6 +43,10 @@ type ClipMeta = {
   fadeIn: number;
   /** Fade-out duration in seconds */
   fadeOut: number;
+  /** Transition type for rendering */
+  transitionType: TransitionType;
+  /** Transition duration in seconds */
+  transitionDuration: number;
 };
 
 /**
@@ -101,24 +105,80 @@ const generateCSSTransform = (transform?: Transform): string => {
 
   const transforms: string[] = ['translateZ(0)']; // Always include for GPU acceleration
 
-  // Scale: 0.1-3 (1 = no change)
-  if (transform.scale !== 1.0) {
-    transforms.push(`scale(${transform.scale})`);
-  }
+  // Flip horizontal/vertical (apply before scale to avoid double scaling)
+  const scaleX = transform.flipHorizontal ? -1 : 1;
+  const scaleY = transform.flipVertical ? -1 : 1;
+
+  // Combined scale (user scale * flip scale)
+  const finalScale = transform.scale || 1.0;
+  transforms.push(`scale(${scaleX * finalScale}, ${scaleY * finalScale})`);
 
   // Rotation: 0-360 degrees (0 = no change)
   if (transform.rotation !== 0) {
     transforms.push(`rotate(${transform.rotation}deg)`);
   }
 
-  // Flip horizontal/vertical
-  const scaleX = transform.flipHorizontal ? -1 : 1;
-  const scaleY = transform.flipVertical ? -1 : 1;
-  if (scaleX !== 1 || scaleY !== 1) {
-    transforms.push(`scale(${scaleX * (transform.scale || 1)}, ${scaleY * (transform.scale || 1)})`);
-  }
-
   return transforms.join(' ');
+};
+
+/**
+ * Computes transition transform for slide/zoom effects.
+ * @param transitionType - Type of transition
+ * @param progress - Progress through transition (0 = start, 1 = end)
+ * @param isIncoming - True if clip is entering, false if exiting
+ * @returns CSS transform string for transition
+ */
+const computeTransitionTransform = (
+  transitionType: TransitionType,
+  progress: number,
+  isIncoming: boolean
+): string => {
+  // Progress from 0 (not transitioned) to 1 (fully transitioned)
+  const t = clamp(progress);
+  const effectiveProgress = isIncoming ? t : (1 - t);
+
+  switch (transitionType) {
+    case 'slide-left':
+      return `translateX(${(1 - effectiveProgress) * (isIncoming ? 100 : -100)}%)`;
+    case 'slide-right':
+      return `translateX(${(1 - effectiveProgress) * (isIncoming ? -100 : 100)}%)`;
+    case 'slide-up':
+      return `translateY(${(1 - effectiveProgress) * (isIncoming ? 100 : -100)}%)`;
+    case 'slide-down':
+      return `translateY(${(1 - effectiveProgress) * (isIncoming ? -100 : 100)}%)`;
+    case 'zoom-in':
+      return `scale(${effectiveProgress * 1 + (1 - effectiveProgress) * 0.5})`;
+    case 'zoom-out':
+      return `scale(${effectiveProgress * 1 + (1 - effectiveProgress) * 1.5})`;
+    default:
+      return '';
+  }
+};
+
+/**
+ * Computes clip-path for wipe transitions.
+ * @param transitionType - Type of transition
+ * @param progress - Progress through transition (0 = start, 1 = end)
+ * @param isIncoming - True if clip is entering, false if exiting
+ * @returns CSS clip-path string for transition
+ */
+const computeTransitionClipPath = (
+  transitionType: TransitionType,
+  progress: number,
+  isIncoming: boolean
+): string => {
+  const t = clamp(progress);
+  const effectiveProgress = isIncoming ? t : (1 - t);
+  const percent = effectiveProgress * 100;
+
+  switch (transitionType) {
+    case 'wipe-left':
+      return `inset(0 ${100 - percent}% 0 0)`;
+    case 'wipe-right':
+      return `inset(0 0 0 ${100 - percent}%)`;
+    default:
+      return 'none';
+  }
 };
 
 /**
@@ -167,6 +227,8 @@ const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
       fadeOut: fadeOutBase,
       crossfadeOut,
       crossfadeIn: 0,
+      transitionType: transition?.type || 'none',
+      transitionDuration: transition?.duration || 0,
     };
   });
 
@@ -325,6 +387,15 @@ export default function PreviewPlayer() {
   // Track event listeners for proper cleanup
   const videoErrorHandlersRef = useRef<Map<string, (e: Event) => void>>(new Map());
 
+  /**
+   * Video Element Pool Strategy:
+   * - Maximum 10 reusable video elements to prevent memory leaks
+   * - Aggressive cleanup when returning elements to pool
+   * - Elements exceeding pool size are destroyed immediately
+   */
+  const videoPoolRef = useRef<HTMLVideoElement[]>([]);
+  const VIDEO_POOL_MAX_SIZE = 10;
+
   const playingRef = useRef(false);
   const playbackRafRef = useRef<number | null>(null);
   const playStartRef = useRef(0);
@@ -365,11 +436,18 @@ export default function PreviewPlayer() {
       videoErrorHandlersRef.current.delete(clipId);
     }
 
-    // Pause and clear source to release media buffers
+    // Aggressive cleanup before pooling/destroying
     video.pause();
     video.removeAttribute('src');
     video.load(); // Critical: forces browser to release media resources
-    video.remove();
+    video.style.opacity = '0';
+
+    // Return to pool or destroy based on pool size
+    if (videoPoolRef.current.length < VIDEO_POOL_MAX_SIZE) {
+      videoPoolRef.current.push(video);
+    } else {
+      video.remove(); // Destroy if pool is full
+    }
   }, []);
 
   const locateClipSrc = useCallback(async (clip: Clip) => {
@@ -455,7 +533,8 @@ export default function PreviewPlayer() {
             throw new Error('Preview container not mounted');
           }
 
-          const video = document.createElement('video');
+          // Get video from pool or create new one
+          const video = videoPoolRef.current.pop() ?? document.createElement('video');
           video.playsInline = true;
           video.preload = 'auto';
           video.controls = false;
@@ -558,6 +637,7 @@ export default function PreviewPlayer() {
     const errorHandlers = videoErrorHandlersRef.current;
     const signedUrlCache = signedUrlCacheRef.current;
     const signedUrlRequests = signedUrlRequestRef.current;
+    const videoPool = videoPoolRef.current;
 
     return () => {
       // Stop playback
@@ -567,7 +647,7 @@ export default function PreviewPlayer() {
       }
       playingRef.current = false;
 
-      // Clean up all video elements
+      // Clean up all active video elements (will return to pool or destroy)
       videoMap.forEach((video, clipId) => {
         cleanupVideo(clipId, video);
       });
@@ -576,6 +656,15 @@ export default function PreviewPlayer() {
       errorHandlers.clear();
       signedUrlCache.clear();
       signedUrlRequests.clear();
+
+      // Destroy all pooled video elements on unmount
+      videoPool.forEach((video) => {
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+        video.remove();
+      });
+      videoPool.length = 0;
     };
   }, [cleanupVideo]);
 

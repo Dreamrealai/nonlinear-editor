@@ -2,14 +2,19 @@
 // Starts Video Intelligence analysis for uploaded files and/or YouTube URLs and returns operation names
 
 const { VideoIntelligenceServiceClient } = require('@google-cloud/video-intelligence');
+const { getCorsHeaders } = require('../../lib/cors');
+
 const { Storage } = require('@google-cloud/storage');
 const { v4: uuidv4 } = require('uuid');
 
 exports.handler = async (event) => {
   const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+    ...getCorsHeaders(event, {
+      allowCredentials: true,
+      allowedMethods: 'POST, OPTIONS',
+      allowedHeaders: 'Content-Type'
+    }),
+    'Content-Type': 'application/json'
   };
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers };
   if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };

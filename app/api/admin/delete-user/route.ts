@@ -3,57 +3,36 @@
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
+import { serverLogger } from '@/lib/serverLogger';
+import { withAdminAuth, logAdminAction } from '@/lib/api/withAuth';
 
-export async function POST(request: NextRequest) {
+async function handleDeleteUser(
+  request: NextRequest,
+  context: { user: { id: string; email?: string }; supabase: ReturnType<typeof createClient>; adminProfile: { tier: 'admin' } }
+) {
+  const { user } = context;
   try {
-    // Get admin user from Supabase session
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll: () => request.cookies.getAll(),
-          setAll: () => {}, // Not needed for this request
-        },
-      }
-    );
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Check if user is admin
-    const { data: adminProfile, error: adminError } = await supabase
-      .from('user_profiles')
-      .select('tier')
-      .eq('id', user.id)
-      .single();
-
-    if (adminError || adminProfile?.tier !== 'admin') {
-      return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
-      );
-    }
-
     // Get request body
     const { userId } = await request.json() as { userId: string };
 
     if (!userId) {
+      serverLogger.warn({
+        event: 'admin.delete_user.invalid_request',
+        adminId: user.id,
+      }, 'Missing userId in delete request');
       return NextResponse.json(
         { error: 'userId is required' },
         { status: 400 }
       );
     }
 
-    // Prevent admin from deleting themselves
+    // SECURITY: Prevent admin from deleting themselves
     if (userId === user.id) {
+      serverLogger.warn({
+        event: 'admin.delete_user.self_deletion_blocked',
+        adminId: user.id,
+      }, 'Admin attempted to delete their own account');
       return NextResponse.json(
         { error: 'Cannot delete your own account' },
         { status: 400 }
@@ -61,7 +40,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Use service role client for admin operations
-    const { createClient } = await import('@supabase/supabase-js');
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -73,26 +51,69 @@ export async function POST(request: NextRequest) {
       }
     );
 
+    // Get user info before deletion for audit log
+    const { data: targetUser } = await supabaseAdmin.auth.admin.getUserById(userId);
+
+    serverLogger.info({
+      event: 'admin.delete_user.deleting',
+      adminId: user.id,
+      targetUserId: userId,
+      targetEmail: targetUser?.user?.email,
+    }, 'Admin deleting user account');
+
     // Delete user from auth (this will cascade to user_profiles and all related data)
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (deleteError) {
-      console.error('Error deleting user:', deleteError);
+      serverLogger.error({
+        event: 'admin.delete_user.error',
+        adminId: user.id,
+        targetUserId: userId,
+        error: deleteError.message,
+      }, 'Failed to delete user account');
       return NextResponse.json(
         { error: 'Failed to delete user account' },
         { status: 500 }
       );
     }
 
+    serverLogger.info({
+      event: 'admin.delete_user.success',
+      adminId: user.id,
+      targetUserId: userId,
+    }, 'User account deleted successfully');
+
+    // Audit log the admin action
+    await logAdminAction(
+      supabaseAdmin,
+      'delete_user',
+      user.id,
+      userId,
+      {
+        adminEmail: user.email,
+        targetEmail: targetUser?.user?.email,
+        timestamp: new Date().toISOString(),
+      }
+    );
+
     return NextResponse.json({
       success: true,
       message: 'User account deleted successfully',
     });
   } catch (error) {
-    console.error('Error deleting user:', error);
+    serverLogger.error({
+      event: 'admin.delete_user.exception',
+      adminId: user.id,
+      error,
+    }, 'Exception deleting user account');
     return NextResponse.json(
       { error: 'Failed to delete user account' },
       { status: 500 }
     );
   }
 }
+
+// Export with admin authentication middleware
+export const POST = withAdminAuth(handleDeleteUser, {
+  route: '/api/admin/delete-user',
+});

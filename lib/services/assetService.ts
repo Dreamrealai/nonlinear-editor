@@ -121,9 +121,22 @@ export class AssetService {
 
       if (assetError) {
         // Clean up uploaded file if database insert fails
-        await this.supabase.storage
+        const { error: cleanupError } = await this.supabase.storage
           .from('assets')
           .remove([storagePath]);
+
+        if (cleanupError) {
+          trackError(cleanupError, {
+            category: ErrorCategory.EXTERNAL_SERVICE,
+            severity: ErrorSeverity.MEDIUM,
+            context: {
+              userId,
+              projectId,
+              filename,
+              message: 'Failed to clean up storage after DB insert failure'
+            },
+          });
+        }
 
         trackError(assetError, {
           category: ErrorCategory.DATABASE,

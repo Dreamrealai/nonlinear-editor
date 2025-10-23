@@ -2,6 +2,13 @@
  * Supabase PostgreSQL-backed distributed rate limiter
  * Replaces in-memory storage with database-backed persistence
  * Supports multiple server instances and horizontal scaling
+ *
+ * Rate Limit Endpoints Mapping:
+ * - video-gen:userId - Video generation (expensive: 5/min)
+ * - image-gen:userId - Image generation (expensive: 5/min)
+ * - audio-tts:userId - Audio TTS generation (expensive: 5/min)
+ * - audio-music:userId - Music generation (expensive: 5/min)
+ * - audio-sfx:userId - Sound effects generation (expensive: 5/min)
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -15,15 +22,44 @@ interface RateLimitEntry {
 // Fallback in-memory store for when Supabase is unavailable
 const fallbackStore = new Map<string, RateLimitEntry>();
 
-// Clean up expired entries every 5 minutes (fallback only)
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of fallbackStore.entries()) {
-    if (value.resetAt < now) {
-      fallbackStore.delete(key);
-    }
+// Cleanup interval tracking (only starts when fallback is used)
+let cleanupInterval: NodeJS.Timeout | null = null;
+let fallbackInUse = false;
+
+/**
+ * Starts cleanup interval only when fallback is actually used.
+ * Prevents memory leak from unnecessary interval when Supabase is available.
+ */
+function startCleanupIfNeeded() {
+  if (!fallbackInUse) {
+    fallbackInUse = true;
   }
-}, 5 * 60 * 1000);
+
+  // Only start interval if not already running
+  if (!cleanupInterval) {
+    cleanupInterval = setInterval(() => {
+      const now = Date.now();
+      for (const [key, value] of fallbackStore.entries()) {
+        if (value.resetAt < now) {
+          fallbackStore.delete(key);
+        }
+      }
+    }, 5 * 60 * 1000); // Clean up expired entries every 5 minutes
+  }
+}
+
+/**
+ * Stops cleanup interval and clears fallback store.
+ * Call this during shutdown to prevent memory leaks.
+ */
+export function cleanupRateLimit() {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+    cleanupInterval = null;
+  }
+  fallbackStore.clear();
+  fallbackInUse = false;
+}
 
 // Initialize Supabase client with service role key for rate limiting
 // Service role is required because rate_limits table has RLS enabled
@@ -75,6 +111,9 @@ function checkRateLimitMemory(
   identifier: string,
   config: RateLimitConfig
 ): RateLimitResult {
+  // Start cleanup interval when fallback is first used
+  startCleanupIfNeeded();
+
   const now = Date.now();
   const entry = fallbackStore.get(identifier);
 
@@ -133,6 +172,8 @@ export async function checkRateLimit(
     const windowSeconds = Math.floor(config.windowMs / 1000);
 
     // Call the increment_rate_limit function
+    // IMPORTANT: The database function increments AFTER checking, preventing race conditions.
+    // The returned current_count is the count AFTER incrementing.
     // Note: We use 'as unknown' to bypass Supabase's strict typing for custom RPC functions
     const { data: rawData, error } = await client.rpc(
       'increment_rate_limit',
@@ -163,6 +204,8 @@ export async function checkRateLimit(
     const currentCount = result.current_count;
     const resetTime = new Date(result.reset_time).getTime();
 
+    // Check if the INCREMENTED count exceeds the limit
+    // If currentCount > max, the request should be rejected
     const success = currentCount <= config.max;
     const remaining = Math.max(0, config.max - currentCount);
 
@@ -202,17 +245,26 @@ export function checkRateLimitSync(
   return checkRateLimitMemory(identifier, config);
 }
 
-// Common rate limit presets
+/**
+ * Common rate limit presets
+ *
+ * Usage by endpoint:
+ * - EXPENSIVE: AI generation endpoints (video, image, audio TTS, music, SFX)
+ * - MODERATE: Standard API operations
+ * - RELAXED: Read operations, status checks
+ * - STRICT: Authentication, sensitive operations
+ */
 export const RATE_LIMITS = {
-  // 10 requests per 10 seconds
+  // 10 requests per 10 seconds - for authentication and sensitive operations
   strict: { max: 10, windowMs: 10 * 1000 },
 
-  // 30 requests per minute
+  // 30 requests per minute - for standard API operations
   moderate: { max: 30, windowMs: 60 * 1000 },
 
-  // 100 requests per minute
+  // 100 requests per minute - for read operations and status checks
   relaxed: { max: 100, windowMs: 60 * 1000 },
 
-  // 5 requests per minute (for expensive operations)
+  // 5 requests per minute - for expensive AI generation operations
+  // Used by: video-gen, image-gen, audio-tts, audio-music, audio-sfx
   expensive: { max: 5, windowMs: 60 * 1000 },
 };

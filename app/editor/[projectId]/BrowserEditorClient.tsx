@@ -650,6 +650,30 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   // Export state
   const [showExportModal, setShowExportModal] = useState(false);
 
+  // Centralized polling cleanup tracking
+  const pollingTimeoutsRef = useRef<Set<NodeJS.Timeout>>(new Set());
+  const abortControllersRef = useRef<Set<AbortController>>(new Set());
+
+  // Cleanup all polling on unmount
+  useEffect(() => {
+    const pollingTimeouts = pollingTimeoutsRef.current;
+    const abortControllers = abortControllersRef.current;
+
+    return () => {
+      // Clear all timeouts
+      pollingTimeouts.forEach((timeout) => {
+        clearTimeout(timeout);
+      });
+      pollingTimeouts.clear();
+
+      // Abort all ongoing requests
+      abortControllers.forEach((controller) => {
+        controller.abort();
+      });
+      abortControllers.clear();
+    };
+  }, []);
+
   const timeline = useEditorStore((state) => state.timeline);
   const setTimeline = useEditorStore((state) => state.setTimeline);
   const addClip = useEditorStore((state) => state.addClip);
@@ -1233,12 +1257,22 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
       setVideoOperationName(json.operationName);
       toast.loading('Video generation in progress... This may take several minutes.', { id: 'generate-video' });
 
-      // Poll for video generation status
+      // Poll for video generation status with cleanup tracking
       const pollInterval = 10000; // 10 seconds
       const poll = async () => {
         try {
-          const statusRes = await fetch(`/api/video/status?operationName=${encodeURIComponent(json.operationName)}&projectId=${projectId}`);
+          // Create AbortController and track it
+          const controller = new AbortController();
+          abortControllersRef.current.add(controller);
+
+          const statusRes = await fetch(
+            `/api/video/status?operationName=${encodeURIComponent(json.operationName)}&projectId=${projectId}`,
+            { signal: controller.signal }
+          );
           const statusJson = await statusRes.json();
+
+          // Remove controller after successful fetch
+          abortControllersRef.current.delete(controller);
 
           if (statusJson.done) {
             if (statusJson.error) {
@@ -1257,10 +1291,16 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
             setVideoOperationName(null);
             setActiveTab('video');
           } else {
-            // Continue polling
-            setTimeout(poll, pollInterval);
+            // Continue polling with tracked timeout
+            const timeout = setTimeout(poll, pollInterval);
+            pollingTimeoutsRef.current.add(timeout);
           }
         } catch (pollError) {
+          // Ignore abort errors
+          if (pollError instanceof Error && pollError.name === 'AbortError') {
+            return;
+          }
+
           browserLogger.error({ error: pollError, projectId }, 'Video generation polling failed');
           toast.error(pollError instanceof Error ? pollError.message : 'Video generation failed', { id: 'generate-video' });
           setVideoGenPending(false);
@@ -1268,7 +1308,8 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
         }
       };
 
-      setTimeout(poll, pollInterval);
+      const initialTimeout = setTimeout(poll, pollInterval);
+      pollingTimeoutsRef.current.add(initialTimeout);
     } catch (error) {
       browserLogger.error({ error, projectId }, 'Video generation failed');
       toast.error(error instanceof Error ? error.message : 'Video generation failed', { id: 'generate-video' });

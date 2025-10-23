@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
-
-export const runtime = 'edge';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
+import { serverLogger } from '@/lib/serverLogger';
 
 interface ElevenLabsGenerateRequest {
   text: string;
@@ -14,7 +14,12 @@ interface ElevenLabsGenerateRequest {
 }
 
 export async function POST(req: NextRequest) {
+  const startTime = Date.now();
+
   try {
+    serverLogger.info({
+      event: 'audio.tts.request_started',
+    }, 'ElevenLabs TTS request received');
     const apiKey = process.env.ELEVENLABS_API_KEY;
 
     if (!apiKey) {
@@ -100,8 +105,46 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      serverLogger.warn({
+        event: 'audio.tts.unauthorized',
+        error: authError?.message,
+      }, 'Unauthorized TTS generation attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Rate limiting (expensive operation - 5 requests per minute per user)
+    const rateLimitResult = await checkRateLimit(`audio-tts:${user.id}`, RATE_LIMITS.expensive);
+
+    if (!rateLimitResult.success) {
+      serverLogger.warn({
+        event: 'audio.tts.rate_limited',
+        userId: user.id,
+        limit: rateLimitResult.limit,
+        remaining: rateLimitResult.remaining,
+        resetAt: rateLimitResult.resetAt,
+      }, 'TTS generation rate limit exceeded');
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded',
+          retryAfter: Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': new Date(rateLimitResult.resetAt).toISOString(),
+            'Retry-After': Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000).toString(),
+          },
+        }
+      );
+    }
+
+    serverLogger.debug({
+      event: 'audio.tts.rate_limit_ok',
+      userId: user.id,
+      remaining: rateLimitResult.remaining,
+    }, 'Rate limit check passed');
 
     if (bodyUserId && bodyUserId !== user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -226,13 +269,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const duration = Date.now() - startTime;
+    serverLogger.info({
+      event: 'audio.tts.success',
+      userId: user.id,
+      projectId,
+      duration,
+    }, `ElevenLabs TTS generated successfully in ${duration}ms`);
+
     return NextResponse.json({
       success: true,
       asset: assetData,
       message: 'Audio generated successfully',
     });
   } catch (error) {
-    console.error('Error generating audio with ElevenLabs:', error);
+    const duration = Date.now() - startTime;
+    serverLogger.error({
+      event: 'audio.tts.error',
+      error,
+      duration,
+    }, 'Error generating audio with ElevenLabs');
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

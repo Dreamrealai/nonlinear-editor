@@ -4,6 +4,8 @@ exports.config = {
 };
 
 const { getFirstCallInstruction, getRevisionInstruction } = require('./utils/tool-instructions');
+const { getCorsHeaders } = require('../../lib/cors');
+
 const JobStorage = require('./utils/job-storage');
 const { 
   errorResponse, 
@@ -39,9 +41,12 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 202,
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+        ...getCorsHeaders(event, {
+          allowCredentials: true,
+          allowedMethods: 'POST, OPTIONS',
+          allowedHeaders: 'Content-Type'
+        }),
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ message: 'Job processing started' })
     };

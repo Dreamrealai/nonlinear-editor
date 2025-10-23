@@ -1,5 +1,16 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { validateEnv } from './lib/validateEnv';
+
+// Validate environment variables on startup (development only)
+// This runs once when the middleware module is first loaded
+if (process.env.NODE_ENV === 'development') {
+  try {
+    validateEnv({ throwOnError: false, mode: 'development' });
+  } catch (error) {
+    console.error('Environment validation failed:', error);
+  }
+}
 
 export async function middleware(request: NextRequest) {
   // Check if Supabase is configured - if not, allow all requests through

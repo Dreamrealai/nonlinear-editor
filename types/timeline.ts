@@ -21,6 +21,17 @@ export type Transform = {
   scale: number;          // 0.1-3, default 1.0
 };
 
+export type AudioEffects = {
+  // 3-band EQ (equalizer)
+  bassGain: number;      // -12 to +12 dB, default 0 (100-400 Hz)
+  midGain: number;       // -12 to +12 dB, default 0 (400-4000 Hz)
+  trebleGain: number;    // -12 to +12 dB, default 0 (4000+ Hz)
+
+  // Dynamics
+  compression: number;   // 0-100, default 0 (0 = no compression, 100 = heavy)
+  normalize: boolean;    // Auto-normalize to -3dB peak, default false
+};
+
 export type Clip = {
   id: string;
   assetId: string;
@@ -42,6 +53,7 @@ export type Clip = {
   speed?: number; // Playback speed multiplier (0.25-4, default 1.0)
   colorCorrection?: ColorCorrection; // Color correction settings
   transform?: Transform; // Transform settings (rotation, flip, scale)
+  audioEffects?: AudioEffects; // Audio effects (EQ, compression, normalization)
 };
 
 export type OutputSpec = {

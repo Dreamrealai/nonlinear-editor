@@ -1,6 +1,7 @@
 // Test function to verify Netlify Blobs is working
 
 const { getStore } = require('@netlify/blobs');
+const { getCorsHeaders } = require('../../lib/cors');
 
 exports.handler = async (event, context) => {
   console.log('Testing Netlify Blobs connection...');
@@ -26,12 +27,16 @@ exports.handler = async (event, context) => {
     await testStore.set(testKey, testData);
     const result = await testStore.get(testKey);
     await testStore.delete(testKey);
-    
+
     return {
       statusCode: 200,
       headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        ...getCorsHeaders(event, {
+          allowCredentials: true,
+          allowedMethods: 'GET, OPTIONS',
+          allowedHeaders: 'Content-Type'
+        }),
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         success: true,
@@ -48,8 +53,12 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        ...getCorsHeaders(event, {
+          allowCredentials: true,
+          allowedMethods: 'GET, OPTIONS',
+          allowedHeaders: 'Content-Type'
+        }),
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         success: false,

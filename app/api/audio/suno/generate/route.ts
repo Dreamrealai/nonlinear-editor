@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
-
-export const runtime = 'edge';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
+import { serverLogger } from '@/lib/serverLogger';
 
 interface SunoGenerateRequest {
   prompt: string;
@@ -21,7 +21,12 @@ interface SunoTaskResponse {
 }
 
 export async function POST(req: NextRequest) {
+  const startTime = Date.now();
+
   try {
+    serverLogger.info({
+      event: 'audio.music.request_started',
+    }, 'Suno music generation request received');
     const apiKey = process.env.COMET_API_KEY;
 
     if (!apiKey) {
@@ -38,8 +43,46 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      serverLogger.warn({
+        event: 'audio.music.unauthorized',
+        error: authError?.message,
+      }, 'Unauthorized music generation attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Rate limiting (expensive operation - 5 requests per minute per user)
+    const rateLimitResult = await checkRateLimit(`audio-music:${user.id}`, RATE_LIMITS.expensive);
+
+    if (!rateLimitResult.success) {
+      serverLogger.warn({
+        event: 'audio.music.rate_limited',
+        userId: user.id,
+        limit: rateLimitResult.limit,
+        remaining: rateLimitResult.remaining,
+        resetAt: rateLimitResult.resetAt,
+      }, 'Music generation rate limit exceeded');
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded',
+          retryAfter: Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': new Date(rateLimitResult.resetAt).toISOString(),
+            'Retry-After': Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000).toString(),
+          },
+        }
+      );
+    }
+
+    serverLogger.debug({
+      event: 'audio.music.rate_limit_ok',
+      userId: user.id,
+      remaining: rateLimitResult.remaining,
+    }, 'Rate limit check passed');
 
     const body: SunoGenerateRequest = await req.json();
     const { prompt, style, title, customMode = false, instrumental = false, projectId } = body;
@@ -144,23 +187,48 @@ export async function POST(req: NextRequest) {
       if (instrumental) payload.make_instrumental = true;
     }
 
-    // Call Comet API
-    const response = await fetch('https://api.cometapi.com/suno/submit/music', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
+    // Call Comet API with timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('Suno API error:', error);
-      return NextResponse.json(
-        { error: 'Failed to generate audio with Suno' },
-        { status: response.status }
-      );
+    let response;
+    try {
+      response = await fetch('https://api.cometapi.com/suno/submit/music', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        const error = await response.text();
+        serverLogger.error({
+          event: 'audio.music.api_error',
+          status: response.status,
+          error,
+        }, 'Suno API error');
+        return NextResponse.json(
+          { error: 'Failed to generate audio with Suno' },
+          { status: response.status }
+        );
+      }
+    } catch (error) {
+      clearTimeout(timeout);
+      if (error instanceof Error && error.name === 'AbortError') {
+        serverLogger.error({
+          event: 'audio.music.timeout',
+        }, 'Suno music generation timeout');
+        return NextResponse.json(
+          { error: 'Music generation timeout after 60s' },
+          { status: 504 }
+        );
+      }
+      throw error;
     }
 
     const result: SunoTaskResponse = await response.json();
@@ -172,12 +240,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const duration = Date.now() - startTime;
+    serverLogger.info({
+      event: 'audio.music.success',
+      userId: user.id,
+      projectId,
+      taskId: result.data.taskId,
+      duration,
+    }, `Suno music generation started successfully in ${duration}ms`);
+
     return NextResponse.json({
       taskId: result.data.taskId,
       message: 'Audio generation started',
     });
   } catch (error) {
-    console.error('Error generating audio with Suno:', error);
+    const duration = Date.now() - startTime;
+    serverLogger.error({
+      event: 'audio.music.error',
+      error,
+      duration,
+    }, 'Error generating audio with Suno');
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

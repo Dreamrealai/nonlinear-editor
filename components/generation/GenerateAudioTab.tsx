@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 
 interface GenerateAudioTabProps {
@@ -24,6 +24,12 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
   const [taskId, setTaskId] = useState<string | null>(null);
   const [audioType, setAudioType] = useState<'music' | 'voice' | 'sfx'>('music');
 
+  // Track polling state for cleanup
+  const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const retryCountRef = useRef<number>(0);
+  const MAX_RETRIES = 120; // Maximum 120 retries (10 minutes at 5s intervals)
+
   // Music generation state (Suno)
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState('');
@@ -41,6 +47,26 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
   // Sound effects generation state (ElevenLabs)
   const [sfxPrompt, setSfxPrompt] = useState('');
   const [sfxDuration, setSfxDuration] = useState(5.0);
+
+  // Cleanup function to stop polling
+  const cleanupPolling = useCallback(() => {
+    if (pollingTimeoutRef.current) {
+      clearTimeout(pollingTimeoutRef.current);
+      pollingTimeoutRef.current = null;
+    }
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    retryCountRef.current = 0;
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanupPolling();
+    };
+  }, [cleanupPolling]);
 
   const handleGenerateMusic = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,14 +107,36 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
       setTaskId(json.taskId);
       toast.loading('Music generation in progress... This may take 1-2 minutes.', { id: 'generate-audio' });
 
+      // Clean up any existing polling
+      cleanupPolling();
+      retryCountRef.current = 0;
+
       // Poll for music generation status
       const pollInterval = 5000; // 5 seconds
       const poll = async () => {
+        // Check max retries
+        if (retryCountRef.current >= MAX_RETRIES) {
+          cleanupPolling();
+          toast.error(`Music generation timed out after ${MAX_RETRIES} attempts`, { id: 'generate-audio' });
+          setGenerating(false);
+          setTaskId(null);
+          return;
+        }
+
+        retryCountRef.current++;
+
         try {
-          const statusRes = await fetch(`/api/audio/suno/status?taskId=${encodeURIComponent(json.taskId)}&projectId=${projectId}`);
+          // Create AbortController for this request
+          abortControllerRef.current = new AbortController();
+
+          const statusRes = await fetch(
+            `/api/audio/suno/status?taskId=${encodeURIComponent(json.taskId)}&projectId=${projectId}`,
+            { signal: abortControllerRef.current.signal }
+          );
           const statusJson = await statusRes.json();
 
           if (statusJson.status === 'completed') {
+            cleanupPolling();
             toast.success('Music generated successfully!', { id: 'generate-audio' });
             setGenerating(false);
             setTaskId(null);
@@ -98,12 +146,19 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
             setStyle('');
             setTitle('');
           } else if (statusJson.status === 'failed') {
+            cleanupPolling();
             throw new Error(statusJson.error || 'Music generation failed');
           } else {
             // Continue polling
-            setTimeout(poll, pollInterval);
+            pollingTimeoutRef.current = setTimeout(poll, pollInterval);
           }
         } catch (pollError) {
+          // Ignore abort errors
+          if (pollError instanceof Error && pollError.name === 'AbortError') {
+            return;
+          }
+
+          cleanupPolling();
           console.error('Music generation polling failed:', pollError);
           toast.error(pollError instanceof Error ? pollError.message : 'Music generation failed', { id: 'generate-audio' });
           setGenerating(false);
@@ -111,13 +166,14 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
         }
       };
 
-      setTimeout(poll, pollInterval);
+      pollingTimeoutRef.current = setTimeout(poll, pollInterval);
     } catch (error) {
+      cleanupPolling();
       console.error('Music generation failed:', error);
       toast.error(error instanceof Error ? error.message : 'Music generation failed', { id: 'generate-audio' });
       setGenerating(false);
     }
-  }, [projectId, prompt, style, title, customMode, instrumental]);
+  }, [projectId, prompt, style, title, customMode, instrumental, cleanupPolling]);
 
   // Fetch available voices when switching to voice tab
   useEffect(() => {

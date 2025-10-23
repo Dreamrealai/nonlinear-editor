@@ -2,13 +2,17 @@
 const { VideoIntelligenceServiceClient } = require('@google-cloud/video-intelligence');
 const { Storage } = require('@google-cloud/storage');
 const { v4: uuidv4 } = require('uuid'); // For unique filenames
+const { getCorsHeaders } = require('../../lib/cors');
 
 exports.handler = async (event, context) => {
-    // Enable CORS
+    // Enable CORS with proper origin validation
     const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+        ...getCorsHeaders(event, {
+            allowCredentials: true,
+            allowedMethods: 'POST, OPTIONS',
+            allowedHeaders: 'Content-Type'
+        }),
+        'Content-Type': 'application/json'
     };
 
     // Handle preflight

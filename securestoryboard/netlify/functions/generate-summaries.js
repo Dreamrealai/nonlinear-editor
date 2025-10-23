@@ -1,13 +1,18 @@
 // Netlify function to generate summaries using Gemini
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { getCorsHeaders } = require('../../lib/cors');
+
 
 exports.handler = async (event, context) => {
     // Enable CORS
     const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
-    };
+    ...getCorsHeaders(event, {
+      allowCredentials: true,
+      allowedMethods: 'POST, OPTIONS',
+      allowedHeaders: 'Content-Type'
+    }),
+    'Content-Type': 'application/json'
+  };
 
     // Handle preflight
     if (event.httpMethod === 'OPTIONS') {

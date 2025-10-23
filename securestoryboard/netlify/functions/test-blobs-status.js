@@ -1,10 +1,14 @@
 const { getStore } = require('@netlify/blobs');
+const { getCorsHeaders } = require('../../lib/cors');
+
 
 exports.handler = async (event, context) => {
   const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    ...getCorsHeaders(event, {
+      allowCredentials: true,
+      allowedMethods: 'POST, OPTIONS',
+      allowedHeaders: 'Content-Type'
+    }),
     'Content-Type': 'application/json'
   };
 

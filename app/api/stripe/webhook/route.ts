@@ -37,6 +37,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     currency: session.currency,
   }, 'Processing checkout.session.completed webhook');
 
+  // CRITICAL: Validate userId exists
   if (!userId) {
     serverLogger.error({
       event: 'stripe.checkout.error',
@@ -44,10 +45,27 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       customerId,
       error: 'Missing userId in session metadata',
     }, 'No userId in checkout session metadata');
-    return;
+    throw new Error('Missing userId in checkout session metadata');
   }
 
   try {
+    // CRITICAL: Verify user profile exists before updating
+    const { data: existingProfile, error: fetchError } = await supabaseAdmin
+      .from('user_profiles')
+      .select('id, tier')
+      .eq('id', userId)
+      .single();
+
+    if (fetchError || !existingProfile) {
+      serverLogger.error({
+        event: 'stripe.checkout.user_not_found',
+        userId,
+        sessionId: session.id,
+        error: fetchError?.message,
+      }, 'User profile not found for userId in checkout metadata');
+      throw new Error(`User profile not found for userId: ${userId}`);
+    }
+
     // Get subscription details
     serverLogger.debug({
       event: 'stripe.subscription.retrieve',
@@ -84,7 +102,12 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       periodStart: subscriptionData.current_period_start,
       periodEnd: subscriptionData.current_period_end,
       userId,
+      currentTier: existingProfile.tier,
     }, 'Retrieved subscription data');
+
+    // CRITICAL: Preserve admin tier - don't downgrade admin to premium
+    const currentTier = existingProfile.tier;
+    const newTier = currentTier === 'admin' ? 'admin' : 'premium';
 
     // Update user profile
     const { data, error } = await supabaseAdmin
@@ -97,11 +120,12 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         subscription_current_period_start: new Date(subscriptionData.current_period_start * 1000).toISOString(),
         subscription_current_period_end: new Date(subscriptionData.current_period_end * 1000).toISOString(),
         subscription_cancel_at_period_end: subscriptionData.cancel_at_period_end,
-        tier: 'premium',
+        tier: newTier,
       })
       .eq('id', userId)
       .select();
 
+    // CRITICAL: Check for database errors and throw to trigger Stripe retry
     if (error) {
       serverLogger.error({
         event: 'stripe.checkout.db_error',
@@ -111,7 +135,18 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         error: error.message,
         code: error.code,
       }, 'Failed to update user profile after checkout');
-      throw error;
+      throw new Error(`Database update failed: ${error.message}`);
+    }
+
+    if (!data || data.length === 0) {
+      serverLogger.error({
+        event: 'stripe.checkout.db_error',
+        userId,
+        customerId,
+        subscriptionId,
+        error: 'No rows updated',
+      }, 'Database update returned no rows');
+      throw new Error('Database update failed: No rows updated');
     }
 
     serverLogger.info({
@@ -120,11 +155,12 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       customerId,
       subscriptionId,
       priceId,
-      tier: 'premium',
+      oldTier: currentTier,
+      newTier,
       status: subscriptionData.status,
       amount: session.amount_total,
       currency: session.currency,
-    }, 'Checkout completed successfully - user upgraded to premium');
+    }, `Checkout completed successfully - tier: ${currentTier} -> ${newTier}`);
   } catch (error) {
     serverLogger.error({
       event: 'stripe.checkout.error',
@@ -179,10 +215,14 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       };
     };
 
-    // Determine tier based on subscription status
+    // CRITICAL: Preserve admin tier - determine tier based on subscription status
     const oldTier = profile.tier;
     let tier: 'free' | 'premium' | 'admin' = 'free';
-    if (subscriptionData.status === 'active' || subscriptionData.status === 'trialing') {
+
+    // Don't downgrade admin users
+    if (oldTier === 'admin') {
+      tier = 'admin';
+    } else if (subscriptionData.status === 'active' || subscriptionData.status === 'trialing') {
       tier = 'premium';
     }
 
@@ -214,6 +254,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       .eq('id', profile.id)
       .select();
 
+    // CRITICAL: Check for database errors and throw to trigger Stripe retry
     if (error) {
       serverLogger.error({
         event: 'stripe.subscription.db_error',
@@ -223,7 +264,18 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
         error: error.message,
         code: error.code,
       }, 'Failed to update user profile after subscription update');
-      throw error;
+      throw new Error(`Database update failed: ${error.message}`);
+    }
+
+    if (!data || data.length === 0) {
+      serverLogger.error({
+        event: 'stripe.subscription.db_error',
+        userId: profile.id,
+        customerId,
+        subscriptionId: subscription.id,
+        error: 'No rows updated',
+      }, 'Database update returned no rows');
+      throw new Error('Database update failed: No rows updated');
     }
 
     serverLogger.info({
@@ -277,11 +329,14 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
     const oldTier = profile.tier;
 
-    // Downgrade user to free tier
+    // CRITICAL: Preserve admin tier - don't downgrade admin users on subscription cancel
+    const newTier = oldTier === 'admin' ? 'admin' : 'free';
+
+    // Downgrade user to free tier (unless admin)
     const { data, error } = await supabaseAdmin
       .from('user_profiles')
       .update({
-        tier: 'free',
+        tier: newTier,
         subscription_status: 'canceled',
         stripe_subscription_id: null,
         stripe_price_id: null,
@@ -290,6 +345,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       .eq('id', profile.id)
       .select();
 
+    // CRITICAL: Check for database errors and throw to trigger Stripe retry
     if (error) {
       serverLogger.error({
         event: 'stripe.subscription.delete_db_error',
@@ -299,7 +355,18 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
         error: error.message,
         code: error.code,
       }, 'Failed to downgrade user after subscription deletion');
-      throw error;
+      throw new Error(`Database update failed: ${error.message}`);
+    }
+
+    if (!data || data.length === 0) {
+      serverLogger.error({
+        event: 'stripe.subscription.delete_db_error',
+        userId: profile.id,
+        customerId,
+        subscriptionId: subscription.id,
+        error: 'No rows updated',
+      }, 'Database update returned no rows');
+      throw new Error('Database update failed: No rows updated');
     }
 
     serverLogger.info({
@@ -308,8 +375,8 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       customerId,
       subscriptionId: subscription.id,
       oldTier,
-      newTier: 'free',
-    }, `Subscription deleted - user downgraded from ${oldTier} to free`);
+      newTier,
+    }, `Subscription deleted - tier: ${oldTier} -> ${newTier}`);
   } catch (error) {
     serverLogger.error({
       event: 'stripe.subscription.delete_error',
@@ -339,7 +406,7 @@ export async function POST(request: NextRequest) {
         event: 'stripe.webhook.missing_signature',
       }, 'Webhook request missing stripe-signature header');
       return NextResponse.json(
-        { error: 'Missing stripe-signature header' },
+        { error: 'Invalid request' },
         { status: 400 }
       );
     }
@@ -348,10 +415,11 @@ export async function POST(request: NextRequest) {
       serverLogger.error({
         event: 'stripe.webhook.config_error',
         error: 'STRIPE_WEBHOOK_SECRET not configured',
-      }, 'STRIPE_WEBHOOK_SECRET is not set');
+      }, 'CRITICAL: STRIPE_WEBHOOK_SECRET is not set - webhooks will fail');
+      // Don't reveal configuration state to potential attackers
       return NextResponse.json(
-        { error: 'Webhook secret not configured' },
-        { status: 500 }
+        { error: 'Service temporarily unavailable' },
+        { status: 503 }
       );
     }
 
@@ -374,8 +442,9 @@ export async function POST(request: NextRequest) {
         event: 'stripe.webhook.verification_failed',
         error,
       }, 'Webhook signature verification failed');
+      // Don't reveal why verification failed
       return NextResponse.json(
-        { error: 'Webhook signature verification failed' },
+        { error: 'Invalid request' },
         { status: 400 }
       );
     }
@@ -434,8 +503,10 @@ export async function POST(request: NextRequest) {
       error,
       duration,
     }, 'Error processing webhook');
+    // Return 500 to trigger Stripe automatic retry
+    // Don't reveal internal error details
     return NextResponse.json(
-      { error: 'Webhook processing failed' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

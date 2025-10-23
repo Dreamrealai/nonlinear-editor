@@ -127,19 +127,34 @@ export async function generateFalVideo(params: FalVideoParams): Promise<{ reques
   }
 
   try {
-    // Submit the request to FAL queue API
-    const response = await fetch(`https://queue.fal.run/${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Key ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(input),
-    });
+    // Submit the request to FAL queue API with timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`FAL API error: ${response.status} - ${errorText}`);
+    let response;
+    try {
+      response = await fetch(`https://queue.fal.run/${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Key ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(input),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`FAL API error: ${response.status} - ${errorText}`);
+      }
+    } catch (err) {
+      clearTimeout(timeout);
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new Error('FAL video generation request timeout after 60s');
+      }
+      throw err;
     }
 
     const result = await response.json();
@@ -169,33 +184,63 @@ export async function checkFalVideoStatus(
   const apiKey = getFalApiKey();
 
   try {
-    // Check status via FAL status API
-    const response = await fetch(`https://queue.fal.run/${endpoint}/requests/${requestId}/status`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Key ${apiKey}`,
-      },
-    });
+    // Check status via FAL status API with timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout for status check
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`FAL status check error: ${response.status} - ${errorText}`);
+    let response;
+    try {
+      response = await fetch(`https://queue.fal.run/${endpoint}/requests/${requestId}/status`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Key ${apiKey}`,
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`FAL status check error: ${response.status} - ${errorText}`);
+      }
+    } catch (err) {
+      clearTimeout(timeout);
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new Error('FAL status check timeout after 30s');
+      }
+      throw err;
     }
 
     const statusData = await response.json();
 
     // Check if completed
     if (statusData.status === 'COMPLETED') {
-      // Fetch the result
-      const resultResponse = await fetch(`https://queue.fal.run/${endpoint}/requests/${requestId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Key ${apiKey}`,
-        },
-      });
+      // Fetch the result with timeout
+      const resultController = new AbortController();
+      const resultTimeout = setTimeout(() => resultController.abort(), 30000);
 
-      if (!resultResponse.ok) {
-        throw new Error(`Failed to fetch result: ${resultResponse.status}`);
+      let resultResponse;
+      try {
+        resultResponse = await fetch(`https://queue.fal.run/${endpoint}/requests/${requestId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Key ${apiKey}`,
+          },
+          signal: resultController.signal,
+        });
+
+        clearTimeout(resultTimeout);
+
+        if (!resultResponse.ok) {
+          throw new Error(`Failed to fetch result: ${resultResponse.status}`);
+        }
+      } catch (err) {
+        clearTimeout(resultTimeout);
+        if (err instanceof Error && err.name === 'AbortError') {
+          throw new Error('FAL result fetch timeout after 30s');
+        }
+        throw err;
       }
 
       const result = await resultResponse.json();
@@ -235,16 +280,31 @@ export async function cancelFalVideo(requestId: string, endpoint: string): Promi
   const apiKey = getFalApiKey();
 
   try {
-    const response = await fetch(`https://queue.fal.run/${endpoint}/requests/${requestId}/cancel`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Key ${apiKey}`,
-      },
-    });
+    // Cancel request with timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`FAL cancellation error: ${response.status} - ${errorText}`);
+    try {
+      const response = await fetch(`https://queue.fal.run/${endpoint}/requests/${requestId}/cancel`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Key ${apiKey}`,
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`FAL cancellation error: ${response.status} - ${errorText}`);
+      }
+    } catch (err) {
+      clearTimeout(timeout);
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new Error('FAL cancellation timeout after 30s');
+      }
+      throw err;
     }
   } catch (error) {
     console.error('FAL cancellation error:', error);

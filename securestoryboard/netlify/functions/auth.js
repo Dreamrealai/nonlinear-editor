@@ -1,15 +1,19 @@
 const cookie = require('cookie');
 const jwt = require('jsonwebtoken');
+const { getCorsHeaders } = require('../../lib/cors');
 
 // Simple JWT secret - in production, use a proper secret
 const JWT_SECRET = process.env.JWT_SECRET || 'storyboard-secret-2024';
 
 exports.handler = async (event, context) => {
-  // Enable CORS
+  // Enable CORS with proper origin validation
   const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+    ...getCorsHeaders(event, {
+      allowCredentials: true,
+      allowedMethods: 'POST, OPTIONS',
+      allowedHeaders: 'Content-Type'
+    }),
+    'Content-Type': 'application/json'
   };
 
   // Handle preflight

@@ -97,7 +97,7 @@ Once your domain is verified:
 ### Local Development
 Your `.env.local` contains:
 ```bash
-RESEND_API_KEY=re_MiRoJWD9_24yz1Nw6nNyedABG6qQJYQZR
+RESEND_API_KEY=re_YOUR_API_KEY_HERE
 ```
 
 ### Vercel Production

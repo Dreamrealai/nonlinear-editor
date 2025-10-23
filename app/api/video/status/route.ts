@@ -107,6 +107,15 @@ export async function GET(req: NextRequest) {
           .single();
 
         if (assetError) {
+          // Clean up uploaded file if database insert fails
+          const { error: cleanupError } = await supabase.storage
+            .from('assets')
+            .remove([storagePath]);
+
+          if (cleanupError) {
+            console.error('Failed to clean up storage after DB insert failure:', cleanupError);
+          }
+
           throw new Error(`Asset creation failed: ${assetError.message}`);
         }
 
@@ -242,6 +251,15 @@ export async function GET(req: NextRequest) {
         .single();
 
       if (assetError) {
+        // Clean up uploaded file if database insert fails
+        const { error: cleanupError } = await supabase.storage
+          .from('assets')
+          .remove([storagePath]);
+
+        if (cleanupError) {
+          console.error('Failed to clean up storage after DB insert failure:', cleanupError);
+        }
+
         throw new Error(`Asset creation failed: ${assetError.message}`);
       }
 

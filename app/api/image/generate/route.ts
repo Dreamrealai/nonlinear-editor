@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateImage } from '@/lib/imagen';
 import { createServerSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
+import { serverLogger } from '@/lib/serverLogger';
 import { v4 as uuid } from 'uuid';
 
 export async function POST(req: NextRequest) {
+  const startTime = Date.now();
+
   try {
+    serverLogger.info({
+      event: 'image.generate.request_started',
+    }, 'Image generation request received');
+
     const supabase = await createServerSupabaseClient();
 
     // Check authentication
@@ -14,8 +22,51 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      serverLogger.warn({
+        event: 'image.generate.unauthorized',
+        error: authError?.message,
+      }, 'Unauthorized image generation attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    serverLogger.debug({
+      event: 'image.generate.user_authenticated',
+      userId: user.id,
+    }, 'User authenticated for image generation');
+
+    // Rate limiting (expensive operation - 5 requests per minute per user)
+    const rateLimitResult = await checkRateLimit(`image-gen:${user.id}`, RATE_LIMITS.expensive);
+
+    if (!rateLimitResult.success) {
+      serverLogger.warn({
+        event: 'image.generate.rate_limited',
+        userId: user.id,
+        limit: rateLimitResult.limit,
+        remaining: rateLimitResult.remaining,
+        resetAt: rateLimitResult.resetAt,
+      }, 'Image generation rate limit exceeded');
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded',
+          retryAfter: Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': new Date(rateLimitResult.resetAt).toISOString(),
+            'Retry-After': Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000).toString(),
+          },
+        }
+      );
+    }
+
+    serverLogger.debug({
+      event: 'image.generate.rate_limit_ok',
+      userId: user.id,
+      remaining: rateLimitResult.remaining,
+    }, 'Rate limit check passed');
 
     const body = await req.json();
     const {
@@ -215,12 +266,26 @@ export async function POST(req: NextRequest) {
       assets.push(newAsset);
     }
 
+    const duration = Date.now() - startTime;
+    serverLogger.info({
+      event: 'image.generate.success',
+      userId: user.id,
+      projectId,
+      assetsGenerated: assets.length,
+      duration,
+    }, `Generated ${assets.length} image(s) successfully in ${duration}ms`);
+
     return NextResponse.json({
       assets,
       message: `Generated ${assets.length} image(s) successfully`,
     });
   } catch (error) {
-    console.error('Image generation error:', error);
+    const duration = Date.now() - startTime;
+    serverLogger.error({
+      event: 'image.generate.error',
+      error,
+      duration,
+    }, 'Image generation error');
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to generate image' },
       { status: 500 }

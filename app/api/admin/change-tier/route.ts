@@ -3,67 +3,23 @@
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 import type { UserTier } from '@/lib/types/subscription';
 import { serverLogger } from '@/lib/serverLogger';
+import { withAdminAuth, logAdminAction } from '@/lib/api/withAuth';
 
-export async function POST(request: NextRequest) {
+async function handleChangeTier(
+  request: NextRequest,
+  context: { user: { id: string; email?: string }; supabase: ReturnType<typeof createClient>; adminProfile: { tier: 'admin' }; params: Promise<Record<string, never>> }
+) {
+  const { user } = context;
   const startTime = Date.now();
 
   try {
     serverLogger.info({
       event: 'admin.change_tier.request_started',
-    }, 'Admin tier change request received');
-
-    // Get admin user from Supabase session
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll: () => request.cookies.getAll(),
-          setAll: () => {}, // Not needed for this request
-        },
-      }
-    );
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      serverLogger.warn({
-        event: 'admin.change_tier.unauthorized',
-        error: authError?.message,
-      }, 'Unauthorized tier change attempt');
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Check if user is admin
-    const { data: adminProfile, error: adminError } = await supabase
-      .from('user_profiles')
-      .select('tier')
-      .eq('id', user.id)
-      .single();
-
-    if (adminError || adminProfile?.tier !== 'admin') {
-      serverLogger.warn({
-        event: 'admin.change_tier.forbidden',
-        userId: user.id,
-        userTier: adminProfile?.tier,
-        error: adminError?.message,
-      }, 'Non-admin attempted tier change');
-      return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
-      );
-    }
-
-    serverLogger.debug({
-      event: 'admin.change_tier.admin_verified',
       adminId: user.id,
-    }, 'Admin privileges verified');
+    }, 'Admin tier change request received');
 
     // Get request body
     const { userId, tier } = await request.json() as { userId: string; tier: UserTier };
@@ -94,8 +50,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // SECURITY: Prevent admin from modifying their own tier
+    if (userId === user.id) {
+      serverLogger.warn({
+        event: 'admin.change_tier.self_modification_blocked',
+        adminId: user.id,
+        attemptedTier: tier,
+      }, 'Admin attempted to change their own tier');
+      return NextResponse.json(
+        { error: 'Cannot modify your own tier' },
+        { status: 403 }
+      );
+    }
+
     // Use service role client for admin operations
-    const { createClient } = await import('@supabase/supabase-js');
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -155,6 +123,20 @@ export async function POST(request: NextRequest) {
       duration,
     }, `Admin ${user.id} changed user ${userId} tier from ${oldTier} to ${tier}`);
 
+    // Audit log the admin action
+    await logAdminAction(
+      supabaseAdmin,
+      'change_tier',
+      user.id,
+      userId,
+      {
+        oldTier,
+        newTier: tier,
+        adminEmail: user.email,
+        duration,
+      }
+    );
+
     return NextResponse.json({
       success: true,
       message: `User tier changed to ${tier}`,
@@ -172,3 +154,8 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Export with admin authentication middleware
+export const POST = withAdminAuth(handleChangeTier, {
+  route: '/api/admin/change-tier',
+});

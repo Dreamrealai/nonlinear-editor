@@ -612,6 +612,213 @@ AXIOM_TOKEN=xxx                        # Secret
 
 ---
 
+## Stripe Webhook Configuration
+
+### Overview
+
+Stripe webhooks are critical for handling subscription events and payment confirmations. They must be properly configured with webhook signing secrets to prevent unauthorized access and ensure secure processing.
+
+### Security Requirements
+
+**CRITICAL**: The `STRIPE_WEBHOOK_SECRET` environment variable is **required** for webhook security:
+- Validates webhook requests are from Stripe
+- Prevents replay attacks
+- Ensures event authenticity
+- **Webhooks will fail with 503 error if not configured**
+
+### Local Development Setup
+
+1. **Install Stripe CLI**
+   ```bash
+   # macOS
+   brew install stripe/stripe-cli/stripe
+
+   # Other platforms: https://stripe.com/docs/stripe-cli
+   ```
+
+2. **Authenticate with Stripe**
+   ```bash
+   stripe login
+   ```
+
+3. **Forward webhooks to local server**
+   ```bash
+   stripe listen --forward-to localhost:3000/api/stripe/webhook
+   ```
+
+4. **Copy the webhook signing secret**
+   - The CLI will display a webhook signing secret (starts with `whsec_`)
+   - Add it to your `.env.local`:
+   ```bash
+   STRIPE_WEBHOOK_SECRET=whsec_your_local_webhook_secret_here
+   ```
+
+### Production Setup
+
+1. **Create webhook endpoint in Stripe Dashboard**
+   - Go to: https://dashboard.stripe.com/webhooks
+   - Click "Add endpoint"
+   - Set URL: `https://your-domain.com/api/stripe/webhook`
+
+2. **Select webhook events**
+   Required events:
+   - `checkout.session.completed` - Payment successful
+   - `customer.subscription.updated` - Subscription changed
+   - `customer.subscription.deleted` - Subscription canceled
+
+3. **Copy the webhook signing secret**
+   - After creating the endpoint, click to reveal the signing secret
+   - Add it to your production environment variables:
+   ```bash
+   STRIPE_WEBHOOK_SECRET=whsec_your_production_webhook_secret_here
+   ```
+
+### Webhook Security Features
+
+#### 1. Signature Verification
+```typescript
+// All webhooks verify Stripe signature
+const event = stripe.webhooks.constructEvent(
+  body,
+  signature,
+  process.env.STRIPE_WEBHOOK_SECRET
+);
+```
+
+#### 2. Error Handling with Retry
+- Database errors return 500 status to trigger Stripe retry
+- Invalid requests return 400 (no retry)
+- Service errors return 503 (Stripe will retry)
+
+#### 3. User Validation
+- Validates userId exists in webhook metadata
+- Verifies user profile exists before updates
+- Prevents orphaned subscription updates
+
+#### 4. Admin Tier Preservation
+- Never downgrades admin users to premium or free
+- Preserves admin tier through checkout and cancellation
+- Logs all tier transitions for audit trail
+
+#### 5. Secure Error Messages
+- Generic errors to external clients ("Service temporarily unavailable")
+- Detailed errors logged server-side only
+- No configuration state revealed to attackers
+
+### Webhook Event Flow
+
+```mermaid
+sequenceDiagram
+    participant Stripe
+    participant Webhook
+    participant Database
+    participant Logger
+
+    Stripe->>Webhook: POST /api/stripe/webhook
+    Webhook->>Webhook: Verify signature
+    alt Invalid signature
+        Webhook->>Stripe: 400 Invalid request
+    else Valid signature
+        Webhook->>Database: Fetch user profile
+        alt User not found
+            Webhook->>Logger: Log error
+            Webhook->>Stripe: 500 Internal error (retry)
+        else User found
+            Webhook->>Webhook: Preserve admin tier
+            Webhook->>Database: Update subscription
+            alt Database error
+                Webhook->>Logger: Log error
+                Webhook->>Stripe: 500 Internal error (retry)
+            else Success
+                Webhook->>Logger: Log success
+                Webhook->>Stripe: 200 OK
+            end
+        end
+    end
+```
+
+### Testing Webhooks
+
+#### Local Testing
+```bash
+# Terminal 1: Start your dev server
+npm run dev
+
+# Terminal 2: Forward Stripe webhooks
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+
+# Terminal 3: Trigger test events
+stripe trigger checkout.session.completed
+stripe trigger customer.subscription.updated
+stripe trigger customer.subscription.deleted
+```
+
+#### Production Testing
+1. Use Stripe test mode with test cards
+2. Monitor webhook logs in Stripe Dashboard
+3. Check Axiom logs for detailed event processing
+4. Verify database updates in Supabase
+
+### Monitoring & Logging
+
+All webhook events are logged to Axiom with structured logging:
+
+```typescript
+// Successful checkout
+{
+  event: 'stripe.checkout.completed',
+  userId: 'user-id',
+  subscriptionId: 'sub_xxx',
+  oldTier: 'free',
+  newTier: 'premium',
+  amount: 999,
+  currency: 'usd'
+}
+
+// Database error (triggers retry)
+{
+  event: 'stripe.checkout.db_error',
+  userId: 'user-id',
+  error: 'Database update failed',
+  code: 'PGRST116'
+}
+```
+
+### Troubleshooting
+
+#### Webhook returns 503
+- **Cause**: `STRIPE_WEBHOOK_SECRET` not configured
+- **Fix**: Add webhook secret to environment variables
+- **Log**: "CRITICAL: STRIPE_WEBHOOK_SECRET is not set"
+
+#### Webhook returns 400
+- **Cause**: Invalid signature or missing signature header
+- **Fix**: Verify webhook secret matches Stripe dashboard
+- **Log**: "Webhook signature verification failed"
+
+#### Webhook returns 500
+- **Cause**: Database error or missing user profile
+- **Fix**: Check Axiom logs for specific error
+- **Note**: Stripe will automatically retry
+
+#### Admin user downgraded to premium
+- **Cause**: Old webhook code didn't preserve admin tier
+- **Fix**: Update to latest webhook handler (includes admin preservation)
+- **Prevention**: All tier updates now check current tier first
+
+### Security Checklist
+
+- [ ] `STRIPE_WEBHOOK_SECRET` configured in all environments
+- [ ] Webhook endpoint uses HTTPS in production
+- [ ] Webhook events limited to required events only
+- [ ] Database errors return 500 to trigger retry
+- [ ] Admin tier preservation tested
+- [ ] Error logs monitored in Axiom
+- [ ] Webhook signature verification tested
+- [ ] No sensitive data in error responses
+
+---
+
 ## Incident Response
 
 ### Security Incident Classification

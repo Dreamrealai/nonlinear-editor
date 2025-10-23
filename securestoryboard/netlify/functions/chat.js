@@ -1,5 +1,6 @@
 const cookie = require('cookie');
 const jwt = require('jsonwebtoken');
+const { getCorsHeaders } = require('../../lib/cors');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'storyboard-secret-2024';
 const GEMINI_KEY = process.env.GEMINI_KEY;
@@ -28,9 +29,12 @@ const verifyAuth = (event) => {
 
 exports.handler = async (event, context) => {
   const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+    ...getCorsHeaders(event, {
+      allowCredentials: true,
+      allowedMethods: 'POST, OPTIONS',
+      allowedHeaders: 'Content-Type'
+    }),
+    'Content-Type': 'application/json'
   };
 
   if (event.httpMethod === 'OPTIONS') {

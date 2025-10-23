@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-
-export const runtime = 'edge';
+import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/api/withAuth';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
 interface Voice {
   voice_id: string;
@@ -15,7 +15,7 @@ interface VoicesResponse {
   voices: Voice[];
 }
 
-export async function GET() {
+async function handleGetVoices() {
   try {
     const apiKey = process.env.ELEVENLABS_API_KEY;
 
@@ -74,3 +74,10 @@ export async function GET() {
     );
   }
 }
+
+// Export with authentication and rate limiting
+// Rate limit: 30 requests per minute per user
+export const GET = withAuth(handleGetVoices, {
+  route: '/api/audio/elevenlabs/voices',
+  rateLimit: RATE_LIMITS.moderate, // 30 requests per minute
+});

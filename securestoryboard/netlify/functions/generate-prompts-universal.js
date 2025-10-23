@@ -1,4 +1,6 @@
 const { getStore } = require('@netlify/blobs');
+const { getCorsHeaders } = require('../../lib/cors');
+
 const { v4: uuidv4 } = require('uuid');
 const { getFirstCallInstruction, getRevisionInstruction } = require('./utils/tool-instructions');
 const JobStorage = require('./utils/job-storage');
@@ -8,9 +10,11 @@ const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/
 
 exports.handler = async (event, context) => {
   const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    ...getCorsHeaders(event, {
+      allowCredentials: true,
+      allowedMethods: 'POST, OPTIONS',
+      allowedHeaders: 'Content-Type'
+    }),
     'Content-Type': 'application/json'
   };
 

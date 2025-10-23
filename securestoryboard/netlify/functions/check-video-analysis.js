@@ -2,13 +2,18 @@
 // Polls a Video Intelligence API operation and returns progress or final analysis
 
 const { VideoIntelligenceServiceClient } = require('@google-cloud/video-intelligence');
+const { getCorsHeaders } = require('../../lib/cors');
+
 const { mapAnnotationResults } = require('./utils/videoMapper'); // we'll create simple util to avoid duplicate code
 
 exports.handler = async (event) => {
   const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+    ...getCorsHeaders(event, {
+      allowCredentials: true,
+      allowedMethods: 'POST, OPTIONS',
+      allowedHeaders: 'Content-Type'
+    }),
+    'Content-Type': 'application/json'
   };
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers };
   if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: '{}' };

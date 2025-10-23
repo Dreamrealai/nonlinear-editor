@@ -1,4 +1,6 @@
 const { getFirstCallInstruction, getRevisionInstruction } = require('./utils/tool-instructions');
+const { getCorsHeaders } = require('../../lib/cors');
+
 
 const GEMINI_KEY = process.env.GEMINI_KEY;
 const GEMINI_PRO_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_KEY}`;
@@ -8,9 +10,12 @@ const jobs = new Map();
 
 exports.handler = async (event, context) => {
   const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS'
+    ...getCorsHeaders(event, {
+      allowCredentials: true,
+      allowedMethods: 'POST, OPTIONS',
+      allowedHeaders: 'Content-Type'
+    }),
+    'Content-Type': 'application/json'
   };
 
   if (event.httpMethod === 'OPTIONS') {

@@ -23,5 +23,5 @@ This ensures all changes are properly built, tested, and version controlled befo
 
 **IMPORTANT**: These credentials are for testing purposes only.
 
-- Email: david@dreamreal.ai
-- Password: sc3p4sses
+- Email: test@example.com
+- Password: test_password_123
