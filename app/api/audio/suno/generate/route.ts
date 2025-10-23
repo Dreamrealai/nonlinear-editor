@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
+import { validateString, validateUUID, validateAll } from '@/lib/api/validation';
+import { errorResponse, unauthorizedResponse, validationError, rateLimitResponse, internalServerError } from '@/lib/api/response';
+import { verifyProjectOwnership } from '@/lib/api/project-verification';
 
 interface SunoGenerateRequest {
   prompt: string;
@@ -30,10 +33,7 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.COMET_API_KEY;
 
     if (!apiKey) {
-      return NextResponse.json(
-        { error: 'Comet API key not configured' },
-        { status: 500 }
-      );
+      return internalServerError('Comet API key not configured');
     }
 
     const supabase = await createServerSupabaseClient();
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
         event: 'audio.music.unauthorized',
         error: authError?.message,
       }, 'Unauthorized music generation attempt');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return unauthorizedResponse();
     }
 
     // Rate limiting (expensive operation - 5 requests per minute per user)
@@ -61,21 +61,7 @@ export async function POST(req: NextRequest) {
         remaining: rateLimitResult.remaining,
         resetAt: rateLimitResult.resetAt,
       }, 'Music generation rate limit exceeded');
-      return NextResponse.json(
-        {
-          error: 'Rate limit exceeded',
-          retryAfter: Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000),
-        },
-        {
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
-            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-            'X-RateLimit-Reset': new Date(rateLimitResult.resetAt).toISOString(),
-            'Retry-After': Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000).toString(),
-          },
-        }
-      );
+      return rateLimitResponse(rateLimitResult.limit, rateLimitResult.remaining, rateLimitResult.resetAt);
     }
 
     serverLogger.debug({
@@ -87,91 +73,43 @@ export async function POST(req: NextRequest) {
     const body: SunoGenerateRequest = await req.json();
     const { prompt, style, title, customMode = false, instrumental = false, projectId } = body;
 
-    // Validate prompt
-    if (!prompt && !customMode) {
-      return NextResponse.json(
-        { error: 'Prompt is required for non-custom mode' },
-        { status: 400 }
-      );
-    }
-
-    if (prompt && typeof prompt === 'string') {
-      if (prompt.length < 3 || prompt.length > 1000) {
-        return NextResponse.json(
-          { error: 'Prompt must be between 3 and 1000 characters' },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Validate style
-    if (customMode && !style) {
-      return NextResponse.json(
-        { error: 'Style is required for custom mode' },
-        { status: 400 }
-      );
-    }
-
-    if (style && typeof style === 'string') {
-      if (style.length < 2 || style.length > 200) {
-        return NextResponse.json(
-          { error: 'Style must be between 2 and 200 characters' },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Validate title
-    if (title && typeof title === 'string') {
-      if (title.length > 100) {
-        return NextResponse.json(
-          { error: 'Title must not exceed 100 characters' },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Validate projectId format (UUID)
-    if (!projectId) {
-      return NextResponse.json(
-        { error: 'Project ID is required' },
-        { status: 400 }
-      );
-    }
-
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(projectId)) {
-      return NextResponse.json({ error: 'Invalid project ID format' }, { status: 400 });
-    }
-
-    // Validate customMode is boolean
+    // Validate customMode and instrumental are booleans
     if (typeof customMode !== 'boolean') {
-      return NextResponse.json(
-        { error: 'Custom mode must be a boolean' },
-        { status: 400 }
-      );
+      return validationError('Custom mode must be a boolean', 'customMode');
     }
-
-    // Validate instrumental is boolean
     if (typeof instrumental !== 'boolean') {
-      return NextResponse.json(
-        { error: 'Instrumental must be a boolean' },
-        { status: 400 }
-      );
+      return validationError('Instrumental must be a boolean', 'instrumental');
     }
 
-    const { data: project, error: projectError } = await supabase
-      .from('projects')
-      .select('user_id')
-      .eq('id', projectId)
-      .maybeSingle();
+    // Build validation array based on customMode
+    const validations = [validateUUID(projectId, 'projectId')];
 
-    if (projectError || !project) {
-      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    if (!customMode && prompt) {
+      validations.push(validateString(prompt, 'prompt', { minLength: 3, maxLength: 1000 }));
+    } else if (!customMode) {
+      return validationError('Prompt is required for non-custom mode', 'prompt');
     }
 
-    if (project.user_id !== user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (customMode) {
+      if (!style) {
+        return validationError('Style is required for custom mode', 'style');
+      }
+      validations.push(validateString(style, 'style', { minLength: 2, maxLength: 200 }));
+    }
+
+    if (title) {
+      validations.push(validateString(title, 'title', { required: false, maxLength: 100 }));
+    }
+
+    const validation = validateAll(validations);
+    if (!validation.valid) {
+      return validationError(validation.errors[0].message, validation.errors[0].field);
+    }
+
+    // Verify project ownership using centralized verification
+    const projectVerification = await verifyProjectOwnership(supabase, projectId, user.id, 'user_id');
+    if (!projectVerification.hasAccess) {
+      return errorResponse(projectVerification.error!, projectVerification.status!);
     }
 
     // Prepare request payload for Suno V5 (chirp-crow)
@@ -212,10 +150,7 @@ export async function POST(req: NextRequest) {
           status: response.status,
           error,
         }, 'Suno API error');
-        return NextResponse.json(
-          { error: 'Failed to generate audio with Suno' },
-          { status: response.status }
-        );
+        return errorResponse('Failed to generate audio with Suno', response.status);
       }
     } catch (error) {
       clearTimeout(timeout);
@@ -223,10 +158,7 @@ export async function POST(req: NextRequest) {
         serverLogger.error({
           event: 'audio.music.timeout',
         }, 'Suno music generation timeout');
-        return NextResponse.json(
-          { error: 'Music generation timeout after 60s' },
-          { status: 504 }
-        );
+        return errorResponse('Music generation timeout after 60s', 504);
       }
       throw error;
     }
@@ -234,10 +166,7 @@ export async function POST(req: NextRequest) {
     const result: SunoTaskResponse = await response.json();
 
     if (result.code !== 200) {
-      return NextResponse.json(
-        { error: result.msg || 'Failed to generate audio' },
-        { status: 400 }
-      );
+      return errorResponse(result.msg || 'Failed to generate audio', 400);
     }
 
     const duration = Date.now() - startTime;
@@ -260,9 +189,6 @@ export async function POST(req: NextRequest) {
       error,
       duration,
     }, 'Error generating audio with Suno');
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return internalServerError('Internal server error');
   }
 }

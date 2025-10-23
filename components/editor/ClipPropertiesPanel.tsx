@@ -197,258 +197,52 @@ export default function ClipPropertiesPanel() {
         <p className="text-xs text-gray-400 truncate">{selectedClip.filePath}</p>
       </div>
 
-      {/* Color Correction Section */}
-      <div className="mb-4 rounded-lg border border-gray-700 bg-gray-800 p-3">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-medium text-white">Color Correction</h3>
-          <button onClick={resetColorCorrection} className="text-xs text-blue-400 hover:text-blue-300">
-            Reset
-          </button>
-        </div>
-
-        <div className="mb-3">
-          <label className="mb-1 flex items-center justify-between text-xs text-gray-300">
-            <span>Brightness</span>
-            <span className="text-gray-400">{localBrightness}%</span>
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="200"
-            value={localBrightness}
-            onChange={(e) => setLocalBrightness(parseInt(e.target.value))}
-            className="w-full accent-blue-500"
-          />
-        </div>
-
-        <div className="mb-3">
-          <label className="mb-1 flex items-center justify-between text-xs text-gray-300">
-            <span>Contrast</span>
-            <span className="text-gray-400">{localContrast}%</span>
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="200"
-            value={localContrast}
-            onChange={(e) => setLocalContrast(parseInt(e.target.value))}
-            className="w-full accent-blue-500"
-          />
-        </div>
-
-        <div className="mb-3">
-          <label className="mb-1 flex items-center justify-between text-xs text-gray-300">
-            <span>Saturation</span>
-            <span className="text-gray-400">{localSaturation}%</span>
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="200"
-            value={localSaturation}
-            onChange={(e) => setLocalSaturation(parseInt(e.target.value))}
-            className="w-full accent-blue-500"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 flex items-center justify-between text-xs text-gray-300">
-            <span>Hue</span>
-            <span className="text-gray-400">{localHue}°</span>
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="360"
-            value={localHue}
-            onChange={(e) => setLocalHue(parseInt(e.target.value))}
-            className="w-full accent-blue-500"
-          />
-        </div>
-      </div>
-
-      {/* Transform Section */}
-      <div className="mb-4 rounded-lg border border-gray-700 bg-gray-800 p-3">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-medium text-white">Transform</h3>
-          <button onClick={resetTransform} className="text-xs text-blue-400 hover:text-blue-300">
-            Reset
-          </button>
-        </div>
-
-        <div className="mb-3">
-          <label className="mb-1 flex items-center justify-between text-xs text-gray-300">
-            <span>Rotation</span>
-            <span className="text-gray-400">{localRotation}°</span>
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="360"
-            value={localRotation}
-            onChange={(e) => setLocalRotation(parseInt(e.target.value))}
-            className="w-full accent-blue-500"
-          />
-        </div>
-
-        <div className="mb-3">
-          <label className="mb-1 flex items-center justify-between text-xs text-gray-300">
-            <span>Scale</span>
-            <span className="text-gray-400">{localScale.toFixed(2)}x</span>
-          </label>
-          <input
-            type="range"
-            min="0.1"
-            max="3"
-            step="0.1"
-            value={localScale}
-            onChange={(e) => setLocalScale(parseFloat(e.target.value))}
-            className="w-full accent-blue-500"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={transform.flipHorizontal}
-              onChange={(e) => updateTransform({ flipHorizontal: e.target.checked })}
-              className="accent-blue-500"
-            />
-            <span className="text-xs text-gray-300">Flip Horizontal</span>
-          </label>
-
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={transform.flipVertical}
-              onChange={(e) => updateTransform({ flipVertical: e.target.checked })}
-              className="accent-blue-500"
-            />
-            <span className="text-xs text-gray-300">Flip Vertical</span>
-          </label>
-        </div>
-      </div>
-
-      {/* Audio Effects Section (only for clips with audio) */}
-      {selectedClip.hasAudio && (
-        <div className="mb-4 rounded-lg border border-gray-700 bg-gray-800 p-3">
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-medium text-white">Audio Effects</h3>
-            <button onClick={resetAudioEffects} className="text-xs text-blue-400 hover:text-blue-300">
-              Reset
-            </button>
-          </div>
-
-          <div className="mb-2">
-            <p className="text-xs text-gray-400 mb-3">3-Band Equalizer</p>
-
-            <div className="mb-3">
-              <label className="mb-1 flex items-center justify-between text-xs text-gray-300">
-                <span>Bass (100-400 Hz)</span>
-                <span className="text-gray-400">{localBassGain > 0 ? '+' : ''}{localBassGain} dB</span>
-              </label>
-              <input
-                type="range"
-                min="-12"
-                max="12"
-                step="0.5"
-                value={localBassGain}
-                onChange={(e) => setLocalBassGain(parseFloat(e.target.value))}
-                className="w-full accent-blue-500"
-              />
-            </div>
-
-            <div className="mb-3">
-              <label className="mb-1 flex items-center justify-between text-xs text-gray-300">
-                <span>Mid (400-4000 Hz)</span>
-                <span className="text-gray-400">{localMidGain > 0 ? '+' : ''}{localMidGain} dB</span>
-              </label>
-              <input
-                type="range"
-                min="-12"
-                max="12"
-                step="0.5"
-                value={localMidGain}
-                onChange={(e) => setLocalMidGain(parseFloat(e.target.value))}
-                className="w-full accent-blue-500"
-              />
-            </div>
-
-            <div className="mb-3">
-              <label className="mb-1 flex items-center justify-between text-xs text-gray-300">
-                <span>Treble (4000+ Hz)</span>
-                <span className="text-gray-400">{localTrebleGain > 0 ? '+' : ''}{localTrebleGain} dB</span>
-              </label>
-              <input
-                type="range"
-                min="-12"
-                max="12"
-                step="0.5"
-                value={localTrebleGain}
-                onChange={(e) => setLocalTrebleGain(parseFloat(e.target.value))}
-                className="w-full accent-blue-500"
-              />
-            </div>
-          </div>
-
-          <div className="mb-3 pt-2 border-t border-gray-700">
-            <label className="mb-1 flex items-center justify-between text-xs text-gray-300">
-              <span>Compression</span>
-              <span className="text-gray-400">{localCompression}%</span>
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={localCompression}
-              onChange={(e) => setLocalCompression(parseInt(e.target.value))}
-              className="w-full accent-blue-500"
-            />
-            <p className="text-[10px] text-gray-500 mt-1">Reduces dynamic range</p>
-          </div>
-
+      {/* Info about advanced corrections */}
+      <div className="mb-4 rounded-lg border border-blue-700 bg-blue-900/30 p-3">
+        <div className="flex items-start gap-2">
+          <svg className="h-4 w-4 text-blue-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           <div>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={audioEffects.normalize}
-                onChange={(e) => updateAudioEffects({ normalize: e.target.checked })}
-                className="accent-blue-500"
-              />
-              <span className="text-xs text-gray-300">Auto-Normalize to -3dB</span>
-            </label>
-            <p className="text-[10px] text-gray-500 ml-5 mt-1">Automatically adjust peak volume</p>
+            <h3 className="text-xs font-semibold text-blue-300 mb-1">Advanced Corrections</h3>
+            <p className="text-[10px] text-gray-400 leading-relaxed">
+              Use the collapsible menu below the timeline to access color correction, transform, and audio effects controls.
+            </p>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Clip Info */}
-      <div className="mt-4 rounded-lg border border-gray-700 bg-gray-800 p-3">
-        <h3 className="text-sm font-medium text-white mb-2">Clip Info</h3>
-        <div className="space-y-1 text-xs text-gray-400">
-          <div className="flex justify-between">
-            <span>Duration:</span>
-            <span className="text-gray-300">{(selectedClip.end - selectedClip.start).toFixed(2)}s</span>
+      <div className="rounded-lg border border-gray-700 bg-gray-800 p-3">
+        <h3 className="text-sm font-medium text-white mb-3">Clip Info</h3>
+        <div className="space-y-2 text-xs">
+          <div className="flex justify-between items-center py-1 border-b border-gray-700">
+            <span className="text-gray-400">Duration:</span>
+            <span className="text-white font-medium">{(selectedClip.end - selectedClip.start).toFixed(2)}s</span>
           </div>
-          <div className="flex justify-between">
-            <span>Position:</span>
-            <span className="text-gray-300">{selectedClip.timelinePosition.toFixed(2)}s</span>
+          <div className="flex justify-between items-center py-1 border-b border-gray-700">
+            <span className="text-gray-400">Position:</span>
+            <span className="text-white font-medium">{selectedClip.timelinePosition.toFixed(2)}s</span>
           </div>
-          <div className="flex justify-between">
-            <span>Track:</span>
-            <span className="text-gray-300">{selectedClip.trackIndex + 1}</span>
+          <div className="flex justify-between items-center py-1 border-b border-gray-700">
+            <span className="text-gray-400">Track:</span>
+            <span className="text-white font-medium">{selectedClip.trackIndex + 1}</span>
           </div>
           {selectedClip.speed !== undefined && selectedClip.speed !== 1 && (
-            <div className="flex justify-between">
-              <span>Speed:</span>
-              <span className="text-gray-300">{selectedClip.speed}x</span>
+            <div className="flex justify-between items-center py-1 border-b border-gray-700">
+              <span className="text-gray-400">Speed:</span>
+              <span className="text-white font-medium">{selectedClip.speed}x</span>
             </div>
           )}
           {selectedClip.hasAudio && (
-            <div className="flex justify-between">
-              <span>Audio:</span>
-              <span className="text-gray-300">Yes</span>
+            <div className="flex justify-between items-center py-1">
+              <span className="text-gray-400">Audio:</span>
+              <span className="flex items-center gap-1 text-green-400 font-medium">
+                <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Yes
+              </span>
             </div>
           )}
         </div>

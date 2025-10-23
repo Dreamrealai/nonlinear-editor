@@ -113,7 +113,8 @@ async function handleDeleteUser(
   }
 }
 
-// Export with admin authentication middleware
+// Export with admin authentication middleware and rate limiting
 export const POST = withAdminAuth(handleDeleteUser, {
   route: '/api/admin/delete-user',
+  rateLimit: { max: 10, windowMs: 60 * 1000 }, // 10 deletions per minute max
 });

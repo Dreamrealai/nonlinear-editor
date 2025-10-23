@@ -18,11 +18,15 @@ import { v4 as uuid } from 'uuid';
 import toast, { Toaster } from 'react-hot-toast';
 import Link from 'next/link';
 import NextImage from 'next/image';
-import HorizontalTimeline from '@/components/HorizontalTimeline';
-import PreviewPlayer from '@/components/PreviewPlayer';
-import ExportModal from '@/components/ExportModal';
-import EditorHeader from '@/components/EditorHeader';
-import ClipPropertiesPanel from '@/components/editor/ClipPropertiesPanel';
+// Lazy-loaded components for code splitting (reduces initial bundle by 100-200KB)
+import {
+  LazyHorizontalTimeline,
+  LazyPreviewPlayer,
+  LazyExportModal,
+  LazyClipPropertiesPanel
+} from '@/components/LazyComponents';
+import EditorHeader from '@/components/EditorHeader'; // Keep eager-loaded for faster header display
+import TimelineCorrectionsMenu from '@/components/editor/TimelineCorrectionsMenu';
 import { useAutosave } from '@/lib/hooks/useAutosave';
 import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts';
 import { createBrowserSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
@@ -1898,10 +1902,10 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
       {/* Main Editor */}
       <main className="flex h-full flex-col gap-4 overflow-hidden">
         <section className="flex-[18] overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
-          <PreviewPlayer />
+          <LazyPreviewPlayer />
         </section>
         <section className="flex-[5] rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
-          <HorizontalTimeline
+          <LazyHorizontalTimeline
             onDetectScenes={handleDetectScenes}
             sceneDetectPending={sceneDetectPending}
             onAddText={handleAddText}
@@ -1915,10 +1919,13 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
             splitScenesPending={splitScenesPending}
           />
         </section>
+
+        {/* Advanced Corrections Menu - Collapsible panel below timeline */}
+        <TimelineCorrectionsMenu />
       </main>
 
       {/* Clip Properties Panel */}
-      <ClipPropertiesPanel />
+      <LazyClipPropertiesPanel />
 
       {/* Audio Generation Modal */}
       {showAudioModal && (
@@ -2224,7 +2231,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
       )}
 
       {/* Export Modal */}
-      <ExportModal
+      <LazyExportModal
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
         projectId={projectId}

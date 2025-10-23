@@ -79,6 +79,19 @@ const extractFileExtension = (filename: string) => {
   return filename.slice(lastDot); // Returns .ext format
 };
 
+/**
+ * Extracts the file extension from a MIME type (e.g., "video/mp4" -> ".mp4").
+ */
+const extractExtensionFromMimeType = (mimeType: string) => {
+  const parts = mimeType.split('/');
+  if (parts.length !== 2) return '';
+  const extension = parts[1];
+  // Handle special cases
+  if (extension === 'quicktime') return '.mov';
+  if (extension === 'x-msvideo') return '.avi';
+  return `.${extension}`;
+};
+
 export default function AssetPanel({
   assets,
   projectId,
@@ -294,7 +307,8 @@ export default function AssetPanel({
                 </p>
                 <p className="text-neutral-500">
                   {extractFileExtension(asset.metadata?.filename ?? extractFileName(asset.storage_url)) ||
-                   asset.metadata?.format ||
+                   (asset.metadata?.mimeType ? extractExtensionFromMimeType(asset.metadata.mimeType) : '') ||
+                   (asset.metadata?.format && asset.metadata.format.includes('/') ? extractExtensionFromMimeType(asset.metadata.format) : asset.metadata?.format) ||
                    `${asset.type} file`}
                 </p>
               </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, type AuthContext } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
+import { errorResponse, internalServerError } from '@/lib/api/response';
 
 interface Voice {
   voice_id: string;
@@ -23,10 +24,7 @@ async function handleGetVoices(
     const apiKey = process.env.ELEVENLABS_API_KEY;
 
     if (!apiKey) {
-      return NextResponse.json(
-        { error: 'ElevenLabs API key not configured' },
-        { status: 500 }
-      );
+      return internalServerError('ElevenLabs API key not configured');
     }
 
     // Call ElevenLabs API to get available voices with timeout
@@ -47,13 +45,10 @@ async function handleGetVoices(
       if (!response.ok) {
         const error = await response.text();
         console.error('ElevenLabs API error:', error);
-        return NextResponse.json(
-          { error: 'Failed to fetch voices' },
-          { status: response.status }
-        );
+        return errorResponse('Failed to fetch voices', response.status);
       }
 
-        const result: VoicesResponse = await response.json();
+      const result: VoicesResponse = await response.json();
 
       return NextResponse.json({
         voices: result.voices,
@@ -62,19 +57,13 @@ async function handleGetVoices(
       clearTimeout(timeout);
       if (error instanceof Error && error.name === 'AbortError') {
         console.error('ElevenLabs API timeout');
-        return NextResponse.json(
-          { error: 'Request timeout after 60s' },
-          { status: 504 }
-        );
+        return errorResponse('Request timeout after 60s', 504);
       }
       throw error;
     }
   } catch (error) {
     console.error('Error fetching ElevenLabs voices:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return internalServerError('Internal server error');
   }
 }
 

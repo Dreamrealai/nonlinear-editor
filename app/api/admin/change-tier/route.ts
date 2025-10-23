@@ -155,7 +155,8 @@ async function handleChangeTier(
   }
 }
 
-// Export with admin authentication middleware
+// Export with admin authentication middleware and rate limiting
 export const POST = withAdminAuth(handleChangeTier, {
   route: '/api/admin/change-tier',
+  rateLimit: { max: 30, windowMs: 60 * 1000 }, // 30 tier changes per minute max
 });

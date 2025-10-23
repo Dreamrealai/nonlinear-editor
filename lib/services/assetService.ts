@@ -21,6 +21,7 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 import { v4 as uuid } from 'uuid';
+import { safeArrayFirst } from '@/lib/utils/arrayUtils';
 import { trackError, ErrorCategory, ErrorSeverity } from '../errorTracking';
 import { validateUUID } from '../validation';
 
@@ -291,8 +292,9 @@ export class AssetService {
     }
 
     if (errors.length > 0 && assets.length === 0) {
-      // All uploads failed
-      throw new Error(`All asset uploads failed: ${errors[0].message}`);
+      // All uploads failed - safely get first error
+      const firstError = safeArrayFirst(errors);
+      throw new Error(`All asset uploads failed: ${firstError?.message || 'Unknown error'}`);
     }
 
     return assets;

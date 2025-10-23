@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { fetchWithTimeout } from '@/lib/fetchWithTimeout';
+import { validateUUID, validateAll } from '@/lib/api/validation';
+import { errorResponse, unauthorizedResponse, validationError, internalServerError, notFoundResponse } from '@/lib/api/response';
+import { verifyAssetOwnership } from '@/lib/api/project-verification';
 
 /**
  * POST /api/video/upscale
@@ -19,11 +22,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { assetId, projectId, upscaleFactor = 2, targetFps, h264Output = false } = body;
 
-    if (!assetId || !projectId) {
-      return NextResponse.json(
-        { error: 'assetId and projectId are required' },
-        { status: 400 }
-      );
+    // Validate inputs using centralized validation
+    const validation = validateAll([
+      validateUUID(assetId, 'assetId'),
+      validateUUID(projectId, 'projectId'),
+    ]);
+
+    if (!validation.valid) {
+      return validationError(validation.errors[0].message, validation.errors[0].field);
     }
 
     // Initialize Supabase client
@@ -36,29 +42,21 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return unauthorizedResponse();
     }
 
-    // Get the asset from database
-    const { data: asset, error: assetError } = await supabase
-      .from('assets')
-      .select('*')
-      .eq('id', assetId)
-      .eq('project_id', projectId)
-      .eq('user_id', user.id)
-      .single();
-
-    if (assetError || !asset) {
-      return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
+    // Verify asset ownership using centralized verification
+    const assetVerification = await verifyAssetOwnership(supabase, assetId, user.id, '*');
+    if (!assetVerification.hasAccess) {
+      return errorResponse(assetVerification.error!, assetVerification.status!);
     }
+
+    const asset = assetVerification.asset!;
 
     // Verify FAL_API_KEY is configured
     const falKey = process.env.FAL_API_KEY;
     if (!falKey) {
-      return NextResponse.json(
-        { error: 'FAL_API_KEY not configured on server' },
-        { status: 500 }
-      );
+      return internalServerError('FAL_API_KEY not configured on server');
     }
 
     // Get public URL for the video
@@ -72,10 +70,7 @@ export async function POST(request: NextRequest) {
       .getPublicUrl(path);
 
     if (!urlData?.publicUrl) {
-      return NextResponse.json(
-        { error: 'Failed to generate public URL for video' },
-        { status: 500 }
-      );
+      return internalServerError('Failed to generate public URL for video');
     }
 
     // Submit upscale request to fal.ai with timeout
@@ -99,18 +94,12 @@ export async function POST(request: NextRequest) {
       if (!falResponse.ok) {
         const errorText = await falResponse.text();
         console.error('fal.ai upscale request failed:', errorText);
-        return NextResponse.json(
-          { error: 'Failed to submit upscale request to fal.ai' },
-          { status: 500 }
-        );
+        return internalServerError('Failed to submit upscale request to fal.ai');
       }
     } catch (error) {
       if (error instanceof Error && /timeout/i.test(error.message)) {
         console.error('FAL.ai upscale submission timeout');
-        return NextResponse.json(
-          { error: 'Upscale submission timeout after 60s' },
-          { status: 504 }
-        );
+        return errorResponse('Upscale submission timeout after 60s', 504);
       }
       throw error;
     }
@@ -119,10 +108,7 @@ export async function POST(request: NextRequest) {
     const requestId = falData.request_id;
 
     if (!requestId) {
-      return NextResponse.json(
-        { error: 'No request ID returned from fal.ai' },
-        { status: 500 }
-      );
+      return internalServerError('No request ID returned from fal.ai');
     }
 
     // Return the request ID for polling
@@ -132,9 +118,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error in video upscale:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
+    return internalServerError(error instanceof Error ? error.message : 'Internal server error');
   }
 }

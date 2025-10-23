@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeArrayFirst } from '@/lib/utils/arrayUtils';
 import { createServerSupabaseClient } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
@@ -52,8 +53,8 @@ export async function GET(request: NextRequest) {
     // SECURITY: Verify user owns this asset (folder structure: bucket/userId/...)
     // Skip this check if we already verified via assetId lookup
     if (!assetId) {
-      const userFolder = pathParts[0];
-      if (userFolder !== user.id) {
+      const userFolder = safeArrayFirst(pathParts);
+      if (!userFolder || userFolder !== user.id) {
         return NextResponse.json({ error: 'Forbidden - asset does not belong to user' }, { status: 403 });
       }
     }

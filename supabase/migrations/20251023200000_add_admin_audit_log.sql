@@ -5,25 +5,25 @@
 -- Create admin_audit_log table
 CREATE TABLE IF NOT EXISTS admin_audit_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  admin_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  admin_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   action TEXT NOT NULL,
   target_user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   target_resource_type TEXT,
   target_resource_id TEXT,
-  metadata JSONB DEFAULT '{}'::jsonb,
+  details JSONB DEFAULT '{}'::jsonb,
   ip_address TEXT,
   user_agent TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Add indexes for common queries
-CREATE INDEX IF NOT EXISTS idx_admin_audit_log_admin_user_id ON admin_audit_log(admin_user_id);
+CREATE INDEX IF NOT EXISTS idx_admin_audit_log_admin_id ON admin_audit_log(admin_id);
 CREATE INDEX IF NOT EXISTS idx_admin_audit_log_target_user_id ON admin_audit_log(target_user_id);
 CREATE INDEX IF NOT EXISTS idx_admin_audit_log_action ON admin_audit_log(action);
 CREATE INDEX IF NOT EXISTS idx_admin_audit_log_created_at ON admin_audit_log(created_at DESC);
 
 -- Add composite index for filtering by admin and date range
-CREATE INDEX IF NOT EXISTS idx_admin_audit_log_admin_created ON admin_audit_log(admin_user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_admin_audit_log_admin_created ON admin_audit_log(admin_id, created_at DESC);
 
 -- Enable Row Level Security
 ALTER TABLE admin_audit_log ENABLE ROW LEVEL SECURITY;
@@ -57,11 +57,11 @@ CREATE POLICY "Admins can insert audit logs"
 
 -- Add comment to table
 COMMENT ON TABLE admin_audit_log IS 'Immutable audit trail of all administrative actions performed in the system';
-COMMENT ON COLUMN admin_audit_log.admin_user_id IS 'ID of the admin user who performed the action';
+COMMENT ON COLUMN admin_audit_log.admin_id IS 'ID of the admin user who performed the action';
 COMMENT ON COLUMN admin_audit_log.action IS 'Type of action performed (e.g., user_update, user_delete, role_change)';
 COMMENT ON COLUMN admin_audit_log.target_user_id IS 'ID of the user affected by the action (if applicable)';
 COMMENT ON COLUMN admin_audit_log.target_resource_type IS 'Type of resource affected (e.g., user, project, asset)';
 COMMENT ON COLUMN admin_audit_log.target_resource_id IS 'ID of the resource affected';
-COMMENT ON COLUMN admin_audit_log.metadata IS 'Additional context about the action (changes made, reason, etc.)';
+COMMENT ON COLUMN admin_audit_log.details IS 'Additional context about the action (changes made, reason, etc.)';
 COMMENT ON COLUMN admin_audit_log.ip_address IS 'IP address from which the action was performed';
 COMMENT ON COLUMN admin_audit_log.user_agent IS 'User agent string of the client that performed the action';

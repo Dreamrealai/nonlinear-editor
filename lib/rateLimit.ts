@@ -13,6 +13,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { serverLogger } from '@/lib/serverLogger';
+import { safeArrayFirst } from '@/lib/utils/arrayUtils';
 
 interface RateLimitEntry {
   count: number;
@@ -200,7 +201,16 @@ export async function checkRateLimit(
       return checkRateLimitMemory(identifier, config);
     }
 
-    const result = data[0];
+    // Safely get first result
+    const result = safeArrayFirst(data);
+    if (!result) {
+      serverLogger.error({
+        event: 'rateLimit.invalid_data',
+        identifier,
+      }, 'Rate limit function returned invalid data, using in-memory fallback');
+      return checkRateLimitMemory(identifier, config);
+    }
+
     const currentCount = result.current_count;
     const resetTime = new Date(result.reset_time).getTime();
 

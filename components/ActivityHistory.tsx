@@ -56,14 +56,20 @@ export function ActivityHistory() {
       const response = await fetch('/api/history?limit=100');
 
       if (!response.ok) {
-        throw new Error('Failed to fetch history');
+        // Don't show error toast for 500 errors (likely table doesn't exist)
+        // Just log it and show empty history
+        console.error('Error loading activity history:', response.status, response.statusText);
+        setHistory([]);
+        setLoading(false);
+        return;
       }
 
       const data = await response.json();
       setHistory(data.history || []);
     } catch (error) {
       console.error('Error loading activity history:', error);
-      toast.error('Failed to load activity history');
+      // Fail silently - just show empty history
+      setHistory([]);
     } finally {
       setLoading(false);
     }

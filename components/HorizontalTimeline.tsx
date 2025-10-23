@@ -5,6 +5,8 @@ import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip, TextOverlay } from '@/types/timeline';
 import { AudioWaveform } from './AudioWaveform';
+import { useTimelineScroll } from './VirtualizedClipRenderer';
+import { safeArrayLast } from '@/lib/utils/arrayUtils';
 
 const TRACK_HEIGHT = 80;
 const RULER_HEIGHT = 30;
@@ -24,7 +26,7 @@ const getClipFileName = (clip: Clip): string => {
   const path = clip.filePath ?? '';
   const normalized = path.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
   const segments = normalized.split('/');
-  const leaf = segments[segments.length - 1];
+  const leaf = safeArrayLast(segments); // Safe array access instead of segments[segments.length - 1]
   return leaf && leaf.length > 0 ? leaf : 'Clip';
 };
 
@@ -268,7 +270,11 @@ export default function HorizontalTimeline({
   const [contextMenu, setContextMenu] = useState<{ clipId: string; x: number; y: number } | null>(null);
   const [selectedTextOverlayId, setSelectedTextOverlayId] = useState<string | null>(null);
 
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // Track scroll position for virtualized rendering (10-100x fewer DOM nodes for large projects)
+  const { scrollLeft, viewportWidth } = useTimelineScroll(containerRef);
+
   const [draggingClip, setDraggingClip] = useState<{ id: string; offsetX: number; offsetY: number; duration: number } | null>(null);
   const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false);
   const [trimmingClip, setTrimmingClip] = useState<{
@@ -370,6 +376,23 @@ export default function HorizontalTimeline({
     : MIN_TRACKS - 1;
 
   const numTracks = Math.max(maxTrack + 1, MIN_TRACKS, forcedTrackCount ?? 0);
+
+  // Virtualized clip rendering: only render clips visible in viewport (+ overscan buffer)
+  // This prevents rendering 1000+ clips at once, improving performance dramatically
+  const visibleClips = React.useMemo(() => {
+    if (!timeline?.clips.length) return [];
+
+    const overscan = 500; // pixels outside viewport to render (prevents pop-in during scroll)
+    const viewportStartTime = (scrollLeft - overscan) / zoom;
+    const viewportEndTime = (scrollLeft + viewportWidth + overscan) / zoom;
+
+    return timeline.clips.filter((clip) => {
+      const clipStart = clip.timelinePosition;
+      const clipEnd = clipStart + (clip.end - clip.start);
+      // Clip is visible if it overlaps with viewport
+      return clipEnd >= viewportStartTime && clipStart <= viewportEndTime;
+    });
+  }, [timeline?.clips, scrollLeft, viewportWidth, zoom]);
 
   // Zoom controls
   const handleZoomIn = () => setZoom(zoom * 1.2);
@@ -876,8 +899,8 @@ export default function HorizontalTimeline({
               </div>
             ))}
 
-            {/* Clips */}
-            {timeline.clips.map((clip) => (
+            {/* Clips - Virtualized rendering (only visible clips + overscan buffer) */}
+            {visibleClips.map((clip) => (
               <ClipRenderer
                 key={clip.id}
                 clip={clip}

@@ -265,9 +265,19 @@ export async function POST(req: NextRequest) {
     }
 
     console.log('Processing video for shot detection...');
+
+    // Safely get the first operation
+    if (!results || !results[0]) {
+      throw new Error('No operation results returned from Video Intelligence API');
+    }
+
     const operation = results[0];
     const operationResult = await operation.promise();
-    const shots = operationResult?.[0]?.annotationResults?.[0]?.shotAnnotations || [];
+
+    // Safely navigate the nested result structure
+    const firstResult = operationResult?.[0];
+    const firstAnnotation = firstResult?.annotationResults?.[0];
+    const shots = firstAnnotation?.shotAnnotations || [];
 
     if (shots.length === 0) {
       // Clean up GCS file

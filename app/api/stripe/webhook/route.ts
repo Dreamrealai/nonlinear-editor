@@ -90,9 +90,19 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       };
     };
 
-    const priceId = typeof subscriptionData.items.data[0].price === 'string'
-      ? subscriptionData.items.data[0].price
-      : subscriptionData.items.data[0].price.id;
+    // Safely get the first item's price
+    const firstItem = subscriptionData.items.data?.[0];
+    if (!firstItem) {
+      serverLogger.error({
+        event: 'stripe.subscription.no_items',
+        subscriptionId,
+      }, 'No subscription items found');
+      return;
+    }
+
+    const priceId = typeof firstItem.price === 'string'
+      ? firstItem.price
+      : firstItem.price.id;
 
     serverLogger.debug({
       event: 'stripe.subscription.data',
@@ -226,9 +236,19 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       tier = 'premium';
     }
 
-    const priceId = typeof subscriptionData.items.data[0].price === 'string'
-      ? subscriptionData.items.data[0].price
-      : subscriptionData.items.data[0].price.id;
+    // Safely get the first item's price
+    const firstItem = subscriptionData.items.data?.[0];
+    if (!firstItem) {
+      serverLogger.error({
+        event: 'stripe.subscription_update.no_items',
+        subscriptionId: subscriptionData.id,
+      }, 'No subscription items found in update');
+      return;
+    }
+
+    const priceId = typeof firstItem.price === 'string'
+      ? firstItem.price
+      : firstItem.price.id;
 
     serverLogger.debug({
       event: 'stripe.subscription.tier_change',

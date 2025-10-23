@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeArrayFirst } from '@/lib/utils/arrayUtils';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { v4 as uuid } from 'uuid';
@@ -125,7 +126,9 @@ export async function POST(
       .order('version', { ascending: false })
       .limit(1);
 
-    let nextVersion = (existingEdits?.[0]?.version || 0) + 1;
+    // Safely get the most recent version number
+    const latestEdit = safeArrayFirst(existingEdits || []);
+    let nextVersion = (latestEdit?.version || 0) + 1;
 
     // Generate multiple variations
     const edits = [];

@@ -3,6 +3,9 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 import { fetchWithTimeout } from '@/lib/fetchWithTimeout';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
+import { validateString, validateUUID, validateAll } from '@/lib/api/validation';
+import { errorResponse, unauthorizedResponse, validationError, rateLimitResponse, internalServerError } from '@/lib/api/response';
+import { verifyProjectOwnership } from '@/lib/api/project-verification';
 
 /**
  * Generate sound effects using ElevenLabs Sound Effects API
@@ -26,7 +29,7 @@ export async function POST(request: NextRequest) {
       serverLogger.warn({
         event: 'audio.sfx.unauthorized',
       }, 'Unauthorized SFX generation attempt');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return unauthorizedResponse();
     }
 
     // Rate limiting (expensive operation - 5 requests per minute per user)
@@ -40,21 +43,7 @@ export async function POST(request: NextRequest) {
         remaining: rateLimitResult.remaining,
         resetAt: rateLimitResult.resetAt,
       }, 'SFX generation rate limit exceeded');
-      return NextResponse.json(
-        {
-          error: 'Rate limit exceeded',
-          retryAfter: Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000),
-        },
-        {
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
-            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-            'X-RateLimit-Reset': new Date(rateLimitResult.resetAt).toISOString(),
-            'Retry-After': Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000).toString(),
-          },
-        }
-      );
+      return rateLimitResponse(rateLimitResult.limit, rateLimitResult.remaining, rateLimitResult.resetAt);
     }
 
     serverLogger.debug({
@@ -66,35 +55,30 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { projectId, prompt, duration = 5.0 } = body;
 
-    if (!projectId || !prompt) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
+    // Validate all inputs using centralized validation
+    const validation = validateAll([
+      validateString(prompt, 'prompt', { minLength: 3, maxLength: 500 }),
+      validateUUID(projectId, 'projectId'),
+    ]);
 
-    // Validate prompt length
-    if (typeof prompt !== 'string' || prompt.length < 3 || prompt.length > 500) {
-      return NextResponse.json({ error: 'Prompt must be between 3 and 500 characters' }, { status: 400 });
+    if (!validation.valid) {
+      return validationError(validation.errors[0].message, validation.errors[0].field);
     }
 
     // Validate duration
     if (typeof duration !== 'number' || duration < 0.5 || duration > 22) {
-      return NextResponse.json({ error: 'Duration must be between 0.5 and 22 seconds' }, { status: 400 });
+      return validationError('Duration must be between 0.5 and 22 seconds', 'duration');
     }
 
-    // Verify user owns the project
-    const { data: project, error: projectError } = await supabase
-      .from('projects')
-      .select('id')
-      .eq('id', projectId)
-      .eq('user_id', user.id)
-      .single();
-
-    if (projectError || !project) {
-      return NextResponse.json({ error: 'Project not found or unauthorized' }, { status: 404 });
+    // Verify project ownership using centralized verification
+    const projectVerification = await verifyProjectOwnership(supabase, projectId, user.id, 'id');
+    if (!projectVerification.hasAccess) {
+      return errorResponse(projectVerification.error!, projectVerification.status!);
     }
 
     const apiKey = process.env.ELEVENLABS_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: 'ElevenLabs API key not configured' }, { status: 500 });
+      return internalServerError('ElevenLabs API key not configured');
     }
 
     // Call ElevenLabs Sound Generation API with timeout
@@ -117,18 +101,12 @@ export async function POST(request: NextRequest) {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('ElevenLabs SFX API error:', errorText);
-        return NextResponse.json(
-          { error: `ElevenLabs API error: ${response.statusText}` },
-          { status: response.status }
-        );
+        return errorResponse(`ElevenLabs API error: ${response.statusText}`, response.status);
       }
     } catch (error) {
       if (error instanceof Error && /timeout/i.test(error.message)) {
         console.error('ElevenLabs SFX timeout');
-        return NextResponse.json(
-          { error: 'SFX generation timeout after 60s' },
-          { status: 504 }
-        );
+        return errorResponse('SFX generation timeout after 60s', 504);
       }
       throw error;
     }
@@ -149,7 +127,7 @@ export async function POST(request: NextRequest) {
 
     if (uploadError) {
       console.error('Supabase upload error:', uploadError);
-      return NextResponse.json({ error: 'Failed to upload audio file' }, { status: 500 });
+      return internalServerError('Failed to upload audio file');
     }
 
     // Get public URL
@@ -182,7 +160,7 @@ export async function POST(request: NextRequest) {
 
     if (assetError) {
       console.error('Database insert error:', assetError);
-      return NextResponse.json({ error: 'Failed to save asset metadata' }, { status: 500 });
+      return internalServerError('Failed to save asset metadata');
     }
 
     const executionTime = Date.now() - startTime;
@@ -205,9 +183,6 @@ export async function POST(request: NextRequest) {
       error,
       duration,
     }, 'Sound effect generation error');
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
+    return internalServerError(error instanceof Error ? error.message : 'Internal server error');
   }
 }

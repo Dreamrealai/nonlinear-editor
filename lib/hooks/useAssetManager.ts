@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { v4 as uuid } from 'uuid';
+import { safeArrayFirst } from '@/lib/utils/arrayUtils';
 import toast from 'react-hot-toast';
 import { createBrowserSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
 import { browserLogger } from '@/lib/browserLogger';
@@ -412,8 +413,16 @@ export function useAssetManager(projectId: string): UseAssetManagerReturn {
     void (async () => {
       for (const asset of missingThumbnails) {
         try {
+          // Safely extract bucket from storage URL
+          const urlParts = asset.storage_url.replace('supabase://', '').split('/');
+          const bucket = safeArrayFirst(urlParts);
+          if (!bucket) {
+            console.error('Invalid storage URL format:', asset.storage_url);
+            continue;
+          }
+
           const signedUrlResponse = await supabase.storage
-            .from(asset.storage_url.replace('supabase://', '').split('/')[0] ?? '')
+            .from(bucket)
             .createSignedUrl(asset.storage_url.replace(/^supabase:\/\//, '').split('/').slice(1).join('/'), 600);
 
           if (!signedUrlResponse.data?.signedUrl) {

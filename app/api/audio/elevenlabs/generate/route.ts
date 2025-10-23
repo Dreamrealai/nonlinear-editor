@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
+import { validateString, validateUUID, validateAll } from '@/lib/api/validation';
+import { errorResponse, unauthorizedResponse, validationError, rateLimitResponse, internalServerError } from '@/lib/api/response';
+import { verifyProjectOwnership } from '@/lib/api/project-verification';
 
 interface ElevenLabsGenerateRequest {
   text: string;
@@ -23,10 +26,7 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.ELEVENLABS_API_KEY;
 
     if (!apiKey) {
-      return NextResponse.json(
-        { error: 'ElevenLabs API key not configured' },
-        { status: 500 }
-      );
+      return internalServerError('ElevenLabs API key not configured');
     }
 
     const body: ElevenLabsGenerateRequest = await req.json();
@@ -40,61 +40,34 @@ export async function POST(req: NextRequest) {
       userId: bodyUserId,
     } = body;
 
-    // Validate text
-    if (!text) {
-      return NextResponse.json(
-        { error: 'Text is required' },
-        { status: 400 }
-      );
-    }
+    // Validate all inputs using centralized validation
+    const validation = validateAll([
+      validateString(text, 'text', { minLength: 1, maxLength: 5000 }),
+      validateUUID(projectId, 'projectId'),
+    ]);
 
-    if (typeof text !== 'string' || text.length < 1 || text.length > 5000) {
-      return NextResponse.json(
-        { error: 'Text must be between 1 and 5000 characters' },
-        { status: 400 }
-      );
-    }
-
-    // Validate projectId format (UUID)
-    if (!projectId) {
-      return NextResponse.json(
-        { error: 'Project ID is required' },
-        { status: 400 }
-      );
-    }
-
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(projectId)) {
-      return NextResponse.json({ error: 'Invalid project ID format' }, { status: 400 });
+    if (!validation.valid) {
+      return validationError(validation.errors[0].message, validation.errors[0].field);
     }
 
     // Validate voiceId format (alphanumeric)
     if (voiceId && typeof voiceId === 'string') {
       if (!/^[a-zA-Z0-9_-]{1,100}$/.test(voiceId)) {
-        return NextResponse.json(
-          { error: 'Invalid voice ID format' },
-          { status: 400 }
-        );
+        return validationError('Invalid voice ID format', 'voiceId');
       }
     }
 
     // Validate stability (0-1)
     if (stability !== undefined) {
       if (typeof stability !== 'number' || stability < 0 || stability > 1) {
-        return NextResponse.json(
-          { error: 'Stability must be a number between 0 and 1' },
-          { status: 400 }
-        );
+        return validationError('Stability must be a number between 0 and 1', 'stability');
       }
     }
 
     // Validate similarity (0-1)
     if (similarity !== undefined) {
       if (typeof similarity !== 'number' || similarity < 0 || similarity > 1) {
-        return NextResponse.json(
-          { error: 'Similarity must be a number between 0 and 1' },
-          { status: 400 }
-        );
+        return validationError('Similarity must be a number between 0 and 1', 'similarity');
       }
     }
 
@@ -109,7 +82,7 @@ export async function POST(req: NextRequest) {
         event: 'audio.tts.unauthorized',
         error: authError?.message,
       }, 'Unauthorized TTS generation attempt');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return unauthorizedResponse();
     }
 
     // Rate limiting (expensive operation - 5 requests per minute per user)
@@ -123,21 +96,7 @@ export async function POST(req: NextRequest) {
         remaining: rateLimitResult.remaining,
         resetAt: rateLimitResult.resetAt,
       }, 'TTS generation rate limit exceeded');
-      return NextResponse.json(
-        {
-          error: 'Rate limit exceeded',
-          retryAfter: Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000),
-        },
-        {
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
-            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-            'X-RateLimit-Reset': new Date(rateLimitResult.resetAt).toISOString(),
-            'Retry-After': Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000).toString(),
-          },
-        }
-      );
+      return rateLimitResponse(rateLimitResult.limit, rateLimitResult.remaining, rateLimitResult.resetAt);
     }
 
     serverLogger.debug({
@@ -147,21 +106,13 @@ export async function POST(req: NextRequest) {
     }, 'Rate limit check passed');
 
     if (bodyUserId && bodyUserId !== user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return errorResponse('Forbidden', 403);
     }
 
-    const { data: project, error: projectError } = await supabase
-      .from('projects')
-      .select('user_id')
-      .eq('id', projectId)
-      .maybeSingle();
-
-    if (projectError || !project) {
-      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
-    }
-
-    if (project.user_id !== user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    // Verify project ownership using centralized verification
+    const projectVerification = await verifyProjectOwnership(supabase, projectId, user.id, 'user_id');
+    if (!projectVerification.hasAccess) {
+      return errorResponse(projectVerification.error!, projectVerification.status!);
     }
 
     // Call ElevenLabs API with timeout
@@ -195,19 +146,13 @@ export async function POST(req: NextRequest) {
       if (!response.ok) {
         const error = await response.text();
         console.error('ElevenLabs API error:', error);
-        return NextResponse.json(
-          { error: 'Failed to generate audio with ElevenLabs' },
-          { status: response.status }
-        );
+        return errorResponse('Failed to generate audio with ElevenLabs', response.status);
       }
     } catch (error) {
       clearTimeout(timeout);
       if (error instanceof Error && error.name === 'AbortError') {
         console.error('ElevenLabs TTS timeout');
-        return NextResponse.json(
-          { error: 'TTS generation timeout after 60s' },
-          { status: 504 }
-        );
+        return errorResponse('TTS generation timeout after 60s', 504);
       }
       throw error;
     }
@@ -228,10 +173,7 @@ export async function POST(req: NextRequest) {
 
     if (uploadError) {
       console.error('Supabase upload error:', uploadError);
-      return NextResponse.json(
-        { error: 'Failed to upload audio to storage' },
-        { status: 500 }
-      );
+      return internalServerError('Failed to upload audio to storage');
     }
 
     const storageUrl = `supabase://assets/${filePath}`;
@@ -263,10 +205,7 @@ export async function POST(req: NextRequest) {
 
     if (assetError) {
       console.error('Database error:', assetError);
-      return NextResponse.json(
-        { error: 'Failed to save asset to database' },
-        { status: 500 }
-      );
+      return internalServerError('Failed to save asset to database');
     }
 
     const duration = Date.now() - startTime;
@@ -289,9 +228,6 @@ export async function POST(req: NextRequest) {
       error,
       duration,
     }, 'Error generating audio with ElevenLabs');
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return internalServerError('Internal server error');
   }
 }

@@ -44,8 +44,11 @@ export default function SettingsPage() {
       return;
     }
 
-    if (newPassword.length < 6) {
-      toast.error('Password must be at least 6 characters');
+    // Validate password strength
+    const { validatePasswordStrength } = await import('@/lib/validation/password');
+    const validation = validatePasswordStrength(newPassword);
+    if (!validation.valid) {
+      toast.error(validation.message || 'Password does not meet requirements');
       return;
     }
 
@@ -121,105 +124,187 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50">
-        <div className="text-neutral-600">Loading...</div>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-neutral-50 via-neutral-50 to-neutral-100">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-900"></div>
+          <div className="text-sm font-medium text-neutral-600">Loading your settings...</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 p-8">
-      <Toaster position="bottom-right" />
-      <div className="mx-auto max-w-2xl">
-        {/* Header */}
-        <div className="mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-neutral-50 to-neutral-100">
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          className: 'font-medium',
+          duration: 3000,
+        }}
+      />
+
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Header with elegant back button */}
+        <div className="mb-10">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 transition-colors mb-4"
+            className="group inline-flex items-center gap-2 text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-all duration-200 mb-6"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg
+              className="h-4 w-4 transition-transform group-hover:-translate-x-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back to Projects
           </Link>
-          <h1 className="text-3xl font-bold text-neutral-900">Account Settings</h1>
-        </div>
 
-        {/* Subscription Manager */}
-        <SubscriptionManager />
-
-        {/* Account Information */}
-        <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-xl font-semibold text-neutral-900">Account Information</h2>
-          <div className="space-y-3">
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-neutral-900 to-neutral-700 shadow-lg">
+              <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Email</label>
-              <p className="mt-1 text-sm text-neutral-900">{userEmail}</p>
+              <h1 className="text-4xl font-bold text-neutral-900 tracking-tight">Settings</h1>
+              <p className="text-sm text-neutral-600 mt-1">Manage your account and preferences</p>
             </div>
           </div>
         </div>
 
-        {/* Activity History */}
-        <div className="mb-6">
+        {/* Subscription Manager with enhanced styling */}
+        <div className="mb-8">
+          <SubscriptionManager />
+        </div>
+
+        <div className="grid gap-8 lg:grid-cols-2">
+          {/* Account Information with icon */}
+          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
+                <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-neutral-900">Account Information</h2>
+            </div>
+
+            <div className="space-y-4">
+              <div className="group">
+                <label className="block text-xs font-semibold uppercase tracking-wide text-neutral-500 mb-2">
+                  Email Address
+                </label>
+                <div className="flex items-center gap-2 rounded-lg bg-neutral-50 px-4 py-3 border border-neutral-200 group-hover:border-neutral-300 transition-colors">
+                  <svg className="h-4 w-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <p className="text-sm font-medium text-neutral-900">{userEmail}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Change Password with enhanced UX */}
+          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100">
+                <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-neutral-900">Security</h2>
+            </div>
+
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div>
+                <label htmlFor="newPassword" className="block text-xs font-semibold uppercase tracking-wide text-neutral-500 mb-2">
+                  New Password
+                </label>
+                <input
+                  id="newPassword"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="block w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 focus:border-green-500 focus:ring-2 focus:ring-green-100 focus:outline-none transition-all"
+                  placeholder="Enter new password"
+                  minLength={6}
+                  autoComplete="new-password"
+                />
+              </div>
+              <div>
+                <label htmlFor="confirmPassword" className="block text-xs font-semibold uppercase tracking-wide text-neutral-500 mb-2">
+                  Confirm Password
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="block w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 focus:border-green-500 focus:ring-2 focus:ring-green-100 focus:outline-none transition-all"
+                  placeholder="Confirm new password"
+                  minLength={6}
+                  autoComplete="new-password"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={passwordLoading || !newPassword || !confirmPassword}
+                className="w-full rounded-lg bg-gradient-to-r from-neutral-900 to-neutral-700 px-4 py-2.5 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-neutral-800 hover:to-neutral-600 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-md transition-all duration-200"
+              >
+                {passwordLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                    Updating...
+                  </span>
+                ) : (
+                  'Update Password'
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* Activity History - Full width */}
+        <div className="mt-8">
           <ActivityHistory />
         </div>
 
-        {/* Change Password */}
-        <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-xl font-semibold text-neutral-900">Change Password</h2>
-          <form onSubmit={handleChangePassword} className="space-y-4">
-            <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-neutral-700">
-                New Password
-              </label>
-              <input
-                id="newPassword"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-neutral-900 focus:border-neutral-500 focus:outline-none"
-                placeholder="Enter new password"
-                minLength={6}
-              />
+        {/* Danger Zone - Enhanced warning design */}
+        <div className="mt-8 rounded-2xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-red-50/50 p-6 shadow-sm">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-red-100">
+              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
             </div>
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-neutral-700">
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-neutral-900 focus:border-neutral-500 focus:outline-none"
-                placeholder="Confirm new password"
-                minLength={6}
-              />
+            <div className="flex-1">
+              <h2 className="text-xl font-bold text-red-900 mb-2">Danger Zone</h2>
+              <p className="text-sm text-red-700 leading-relaxed mb-4">
+                Once you delete your account, there is no going back. This will permanently delete all your projects, data, and subscription information. This action cannot be undone.
+              </p>
+              <button
+                onClick={() => void handleDeleteAccount()}
+                disabled={deleteLoading}
+                className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-red-700 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-md transition-all duration-200"
+              >
+                {deleteLoading ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                    Deleting Account...
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete Account
+                  </>
+                )}
+              </button>
             </div>
-            <button
-              type="submit"
-              disabled={passwordLoading || !newPassword || !confirmPassword}
-              className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {passwordLoading ? 'Updating...' : 'Update Password'}
-            </button>
-          </form>
-        </div>
-
-        {/* Danger Zone */}
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6 shadow-sm">
-          <h2 className="mb-4 text-xl font-semibold text-red-900">Danger Zone</h2>
-          <div className="space-y-3">
-            <p className="text-sm text-red-700">
-              Once you delete your account, there is no going back. This will permanently delete all your projects and data.
-            </p>
-            <button
-              onClick={() => void handleDeleteAccount()}
-              disabled={deleteLoading}
-              className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {deleteLoading ? 'Deleting...' : 'Delete Account'}
-            </button>
           </div>
         </div>
       </div>
