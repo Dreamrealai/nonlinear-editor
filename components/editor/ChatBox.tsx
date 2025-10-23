@@ -25,8 +25,8 @@ interface ChatBoxProps {
 }
 
 const GEMINI_MODELS = [
-  { id: 'gemini-flash-latest', name: 'Gemini Flash Latest', description: 'Latest & fastest' },
-  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', description: 'Advanced thinking & reasoning' },
+  { id: 'gemini-flash-latest', name: 'Gemini Flash', description: 'Latest & fastest' },
+  { id: 'gemini-2.5-pro', name: 'Gemini Pro', description: 'Advanced thinking & reasoning' },
 ] as const;
 
 export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
