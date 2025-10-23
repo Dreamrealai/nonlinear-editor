@@ -37,7 +37,7 @@ export default function VideoPlayerHoverMenu({
 
   return (
     <div
-      className="absolute inset-0 z-10"
+      className="absolute inset-0 z-[1050]"
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
       onMouseMove={handleMouseMove}

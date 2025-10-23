@@ -824,7 +824,7 @@ export default function PreviewPlayer() {
 
         {/* Centered Play Button Overlay */}
         {!isPlaying && timeline.clips.length > 0 && (
-          <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
+          <div className="absolute inset-0 flex items-center justify-center z-[1100] pointer-events-none">
             <button
               type="button"
               onClick={togglePlayPause}
@@ -840,7 +840,7 @@ export default function PreviewPlayer() {
 
         {/* Overlay Controls - Auto-hide on play */}
         {showControls && (
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 transition-opacity duration-300">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 transition-opacity duration-300 z-[1050]">
             {/* Close/Hide Controls Button */}
             <button
               type="button"
