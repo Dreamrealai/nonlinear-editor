@@ -2,11 +2,13 @@
 // Admin API: Change User Tier
 // =============================================================================
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { UserTier } from '@/lib/types/subscription';
 import { serverLogger } from '@/lib/serverLogger';
 import { withAdminAuth, logAdminAction, type AdminAuthContext } from '@/lib/api/withAuth';
+import { validationError, forbiddenResponse, errorResponse, successResponse } from '@/lib/api/response';
+import { validateUUID, validateEnum, validateAll } from '@/lib/api/validation';
 
 async function handleChangeTier(
   request: NextRequest,
@@ -31,23 +33,23 @@ async function handleChangeTier(
         hasUserId: !!userId,
         hasTier: !!tier,
       }, 'Missing required fields in tier change request');
-      return NextResponse.json(
-        { error: 'userId and tier are required' },
-        { status: 400 }
-      );
+      return validationError('userId and tier are required');
     }
 
-    if (!['free', 'premium', 'admin'].includes(tier)) {
+    const VALID_TIERS = ['free', 'premium', 'admin'] as const;
+    const validation = validateAll([
+      validateUUID(userId, 'userId'),
+      validateEnum(tier, 'tier', VALID_TIERS, true),
+    ]);
+
+    if (!validation.valid) {
       serverLogger.warn({
-        event: 'admin.change_tier.invalid_tier',
+        event: 'admin.change_tier.invalid_input',
         adminId: user.id,
         targetUserId: userId,
-        invalidTier: tier,
-      }, 'Invalid tier value provided');
-      return NextResponse.json(
-        { error: 'Invalid tier. Must be free, premium, or admin' },
-        { status: 400 }
-      );
+        tier,
+      }, 'Invalid input in tier change request');
+      return validationError(validation.errors[0].message, validation.errors[0].field);
     }
 
     // SECURITY: Prevent admin from modifying their own tier
@@ -57,10 +59,7 @@ async function handleChangeTier(
         adminId: user.id,
         attemptedTier: tier,
       }, 'Admin attempted to change their own tier');
-      return NextResponse.json(
-        { error: 'Cannot modify your own tier' },
-        { status: 403 }
-      );
+      return forbiddenResponse('Cannot modify your own tier');
     }
 
     // Use service role client for admin operations
@@ -107,10 +106,7 @@ async function handleChangeTier(
         error: updateError.message,
         code: updateError.code,
       }, 'Failed to update user tier');
-      return NextResponse.json(
-        { error: 'Failed to update user tier' },
-        { status: 500 }
-      );
+      return errorResponse('Failed to update user tier', 500);
     }
 
     const duration = Date.now() - startTime;
@@ -137,10 +133,7 @@ async function handleChangeTier(
       }
     );
 
-    return NextResponse.json({
-      success: true,
-      message: `User tier changed to ${tier}`,
-    });
+    return successResponse(null, `User tier changed to ${tier}`);
   } catch (error) {
     const duration = Date.now() - startTime;
     serverLogger.error({
@@ -148,15 +141,13 @@ async function handleChangeTier(
       error,
       duration,
     }, 'Error changing user tier');
-    return NextResponse.json(
-      { error: 'Failed to change user tier' },
-      { status: 500 }
-    );
+    return errorResponse('Failed to change user tier', 500);
   }
 }
 
 // Export with admin authentication middleware and rate limiting
+// TIER 1: Admin operations - reduced from 30/min to 5/min for security
 export const POST = withAdminAuth(handleChangeTier, {
   route: '/api/admin/change-tier',
-  rateLimit: { max: 30, windowMs: 60 * 1000 }, // 30 tier changes per minute max
+  rateLimit: { max: 5, windowMs: 60 * 1000 }, // TIER 1: 5 tier changes per minute max
 });

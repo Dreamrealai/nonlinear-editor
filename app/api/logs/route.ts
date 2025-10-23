@@ -1,6 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { withAuth, type AuthContext } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
+import { serverLogger } from '@/lib/serverLogger';
+import { validationError, errorResponse, successResponse } from '@/lib/api/response';
+import { validateInteger, validateAll } from '@/lib/api/validation';
 
 type LogEntry = {
   level: string;
@@ -23,18 +26,16 @@ async function handleLogsPost(request: NextRequest, context: AuthContext) {
     const { logs } = await request.json() as { logs: LogEntry[] };
 
     if (!Array.isArray(logs)) {
-      return NextResponse.json(
-        { error: 'Invalid logs format' },
-        { status: 400 }
-      );
+      return validationError('Invalid logs format', 'logs');
     }
 
     // Validate log count (max 100 logs per request)
-    if (logs.length > 100) {
-      return NextResponse.json(
-        { error: 'Too many logs. Maximum 100 logs per request.' },
-        { status: 400 }
-      );
+    const validation = validateAll([
+      validateInteger(logs.length, 'logs.length', { required: true, min: 1, max: 100 }),
+    ]);
+
+    if (!validation.valid) {
+      return validationError(validation.errors[0].message, validation.errors[0].field);
     }
 
     // Validate each log entry size
@@ -42,20 +43,14 @@ async function handleLogsPost(request: NextRequest, context: AuthContext) {
     for (const log of logs) {
       const logSize = JSON.stringify(log).length;
       if (logSize > MAX_LOG_ENTRY_SIZE) {
-        return NextResponse.json(
-          { error: `Log entry exceeds maximum size of ${MAX_LOG_ENTRY_SIZE} bytes` },
-          { status: 400 }
-        );
+        return validationError(`Log entry exceeds maximum size of ${MAX_LOG_ENTRY_SIZE} bytes`, 'logs');
       }
       totalSize += logSize;
     }
 
     // Validate total request size
     if (totalSize > MAX_REQUEST_SIZE) {
-      return NextResponse.json(
-        { error: `Total logs size exceeds maximum of ${MAX_REQUEST_SIZE} bytes` },
-        { status: 400 }
-      );
+      return validationError(`Total logs size exceeds maximum of ${MAX_REQUEST_SIZE} bytes`, 'logs');
     }
 
     // Send to Axiom using fetch API
@@ -74,17 +69,17 @@ async function handleLogsPost(request: NextRequest, context: AuthContext) {
         enrichedLogs.forEach((log) => {
           const level = log.level;
           if (level === 'error') {
-            console.error(`[${log.timestamp}] [${log.userId}] ${log.message}`, log.data || '');
+            serverLogger.error({ ...log.data, timestamp: log.timestamp, userId: log.userId }, log.message);
           } else if (level === 'warn') {
-            console.warn(`[${log.timestamp}] [${log.userId}] ${log.message}`, log.data || '');
+            serverLogger.warn({ ...log.data, timestamp: log.timestamp, userId: log.userId }, log.message);
           } else if (level === 'debug') {
-            console.debug(`[${log.timestamp}] [${log.userId}] ${log.message}`, log.data || '');
+            serverLogger.debug({ ...log.data, timestamp: log.timestamp, userId: log.userId }, log.message);
           } else {
-            console.log(`[${log.timestamp}] [${log.userId}] ${log.message}`, log.data || '');
+            serverLogger.info({ ...log.data, timestamp: log.timestamp, userId: log.userId }, log.message);
           }
         });
       }
-      return NextResponse.json({ success: true, count: logs.length });
+      return successResponse({ success: true, count: logs.length });
     }
 
     // Send logs to Axiom
@@ -106,14 +101,14 @@ async function handleLogsPost(request: NextRequest, context: AuthContext) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Axiom ingest failed:', errorText);
-      return NextResponse.json({ success: false, error: 'Failed to send logs to Axiom' }, { status: 200 });
+      serverLogger.error({ errorText, userId: user.id }, 'Axiom ingest failed');
+      return successResponse({ success: false, error: 'Failed to send logs to Axiom' });
     }
 
-    return NextResponse.json({ success: true, count: logs.length });
+    return successResponse({ success: true, count: logs.length });
   } catch (error) {
-    console.error('Log endpoint error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    serverLogger.error({ error }, 'Log endpoint error');
+    return errorResponse('Internal server error', 500);
   }
 }
 
@@ -121,5 +116,5 @@ async function handleLogsPost(request: NextRequest, context: AuthContext) {
 // Rate limit: 100 logs per minute per user
 export const POST = withAuth(handleLogsPost, {
   route: '/api/logs',
-  rateLimit: RATE_LIMITS.relaxed, // 100 requests per minute
+  rateLimit: RATE_LIMITS.tier4_general, // TIER 4: 60 requests per minute (reduced from 100/min)
 });

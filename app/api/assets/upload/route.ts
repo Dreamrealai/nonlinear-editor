@@ -1,26 +1,57 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createServerSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
 import crypto from 'crypto';
 import { serverLogger } from '@/lib/serverLogger';
+import {
+  unauthorizedResponse,
+  badRequestResponse,
+  errorResponse,
+  withErrorHandling,
+  rateLimitResponse,
+  successResponse
+} from '@/lib/api/response';
+import { validateUUID, validateEnum, validateAll } from '@/lib/api/validation';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 
-export async function POST(request: NextRequest) {
+const VALID_ASSET_TYPES = ['image', 'video', 'audio'] as const;
+
+export const POST = withErrorHandling(async (request: NextRequest) => {
   const startTime = Date.now();
 
-  try {
-    serverLogger.info({
-      event: 'assets.upload.request_started',
-    }, 'Asset upload request received');
+  serverLogger.info({
+    event: 'assets.upload.request_started',
+  }, 'Asset upload request received');
 
-    // SECURITY: Verify user authentication
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+  // SECURITY: Verify user authentication
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {
-      serverLogger.warn({
-        event: 'assets.upload.unauthorized',
-      }, 'Unauthorized asset upload attempt');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  if (!user) {
+    serverLogger.warn({
+      event: 'assets.upload.unauthorized',
+    }, 'Unauthorized asset upload attempt');
+    return unauthorizedResponse();
+  }
+
+  // TIER 2 RATE LIMITING: Resource creation - asset upload (10/min)
+  const rateLimitResult = await checkRateLimit(
+    `assets-upload:${user.id}`,
+    RATE_LIMITS.tier2_resource_creation
+  );
+
+  if (!rateLimitResult.success) {
+    serverLogger.warn({
+      event: 'assets.upload.rate_limited',
+      userId: user.id,
+      limit: rateLimitResult.limit,
+    }, 'Asset upload rate limit exceeded');
+
+    return rateLimitResponse(
+      rateLimitResult.limit,
+      rateLimitResult.remaining,
+      rateLimitResult.resetAt
+    );
+  }
 
     serverLogger.debug({
       event: 'assets.upload.user_authenticated',
@@ -47,7 +78,7 @@ export async function POST(request: NextRequest) {
         event: 'assets.upload.no_file',
         userId: user.id,
       }, 'No file provided in upload request');
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      return badRequestResponse('No file provided');
     }
 
     if (!projectId) {
@@ -55,25 +86,31 @@ export async function POST(request: NextRequest) {
         event: 'assets.upload.no_project',
         userId: user.id,
       }, 'No project ID provided');
-      return NextResponse.json({ error: 'Project ID required' }, { status: 400 });
+      return badRequestResponse('Project ID required');
+    }
+
+    // Validate inputs
+    const validation = validateAll([
+      validateUUID(projectId, 'projectId'),
+      validateEnum(type, 'type', VALID_ASSET_TYPES, false),
+    ]);
+
+    if (!validation.valid) {
+      return errorResponse(validation.errors[0].message, 400, validation.errors[0].field);
     }
 
     // SECURITY: Verify user owns the project
-    const { data: project, error: projectError } = await supabase
-      .from('projects')
-      .select('id')
-      .eq('id', projectId)
-      .eq('user_id', user.id)
-      .single();
+    const { verifyProjectOwnership } = await import('@/lib/api/project-verification');
+    const projectVerification = await verifyProjectOwnership(supabase, projectId, user.id, 'id');
 
-    if (projectError || !project) {
+    if (!projectVerification.hasAccess) {
       serverLogger.warn({
         event: 'assets.upload.project_not_found',
         userId: user.id,
         projectId,
-        error: projectError?.message,
+        error: projectVerification.error,
       }, 'Project not found or unauthorized');
-      return NextResponse.json({ error: 'Project not found or unauthorized' }, { status: 404 });
+      return errorResponse(projectVerification.error!, projectVerification.status!);
     }
 
     // SECURITY: File size validation (100MB max)
@@ -87,10 +124,7 @@ export async function POST(request: NextRequest) {
         maxSize: MAX_FILE_SIZE,
         fileName: file.name,
       }, `File size ${file.size} exceeds maximum ${MAX_FILE_SIZE}`);
-      return NextResponse.json({
-        error: 'File too large',
-        details: 'Maximum file size is 100MB'
-      }, { status: 400 });
+      return badRequestResponse('File too large - maximum file size is 100MB');
     }
 
     // SECURITY: MIME type validation
@@ -110,10 +144,7 @@ export async function POST(request: NextRequest) {
         assetType: type,
         allowedTypes,
       }, `Invalid MIME type ${file.type} for asset type ${type}`);
-      return NextResponse.json({
-        error: 'Invalid file type',
-        details: `Allowed types for ${type}: ${allowedTypes.join(', ')}`
-      }, { status: 400 });
+      return badRequestResponse(`Invalid file type. Allowed types for ${type}: ${allowedTypes.join(', ')}`);
     }
 
     // Generate unique filename with safe extension fallback
@@ -155,7 +186,7 @@ export async function POST(request: NextRequest) {
         error: uploadError.message,
         code: uploadError.name,
       }, 'Failed to upload file to storage');
-      return NextResponse.json({ error: uploadError.message }, { status: 500 });
+      return errorResponse(uploadError.message, 500);
     }
 
     serverLogger.debug({
@@ -214,7 +245,7 @@ export async function POST(request: NextRequest) {
       }, 'Failed to create asset record in database');
       // Try to delete the uploaded file
       await supabase.storage.from('assets').remove([filePath]);
-      return NextResponse.json({ error: dbError.message }, { status: 500 });
+      return errorResponse(dbError.message, 500);
     }
 
     const duration = Date.now() - startTime;
@@ -251,19 +282,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
+    return successResponse({
       assetId,
       storageUrl,
       publicUrl,
       success: true,
     });
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    serverLogger.error({
-      event: 'assets.upload.error',
-      error,
-      duration,
-    }, 'Asset upload error');
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+});

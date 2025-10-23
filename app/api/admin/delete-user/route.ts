@@ -2,10 +2,12 @@
 // Admin API: Delete User Account
 // =============================================================================
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { serverLogger } from '@/lib/serverLogger';
 import { withAdminAuth, logAdminAction, type AdminAuthContext } from '@/lib/api/withAuth';
+import { validationError, errorResponse, successResponse } from '@/lib/api/response';
+import { validateUUID, validateAll } from '@/lib/api/validation';
 
 async function handleDeleteUser(
   request: NextRequest,
@@ -21,10 +23,13 @@ async function handleDeleteUser(
         event: 'admin.delete_user.invalid_request',
         adminId: user.id,
       }, 'Missing userId in delete request');
-      return NextResponse.json(
-        { error: 'userId is required' },
-        { status: 400 }
-      );
+      return validationError('userId is required', 'userId');
+    }
+
+    // Validate userId format
+    const validation = validateAll([validateUUID(userId, 'userId')]);
+    if (!validation.valid) {
+      return validationError(validation.errors[0].message, validation.errors[0].field);
     }
 
     // SECURITY: Prevent admin from deleting themselves
@@ -33,10 +38,7 @@ async function handleDeleteUser(
         event: 'admin.delete_user.self_deletion_blocked',
         adminId: user.id,
       }, 'Admin attempted to delete their own account');
-      return NextResponse.json(
-        { error: 'Cannot delete your own account' },
-        { status: 400 }
-      );
+      return validationError('Cannot delete your own account', 'userId');
     }
 
     // Use service role client for admin operations
@@ -71,10 +73,7 @@ async function handleDeleteUser(
         targetUserId: userId,
         error: deleteError.message,
       }, 'Failed to delete user account');
-      return NextResponse.json(
-        { error: 'Failed to delete user account' },
-        { status: 500 }
-      );
+      return errorResponse('Failed to delete user account', 500);
     }
 
     serverLogger.info({
@@ -96,25 +95,20 @@ async function handleDeleteUser(
       }
     );
 
-    return NextResponse.json({
-      success: true,
-      message: 'User account deleted successfully',
-    });
+    return successResponse(null, 'User account deleted successfully');
   } catch (error) {
     serverLogger.error({
       event: 'admin.delete_user.exception',
       adminId: user.id,
       error,
     }, 'Exception deleting user account');
-    return NextResponse.json(
-      { error: 'Failed to delete user account' },
-      { status: 500 }
-    );
+    return errorResponse('Failed to delete user account', 500);
   }
 }
 
 // Export with admin authentication middleware and rate limiting
+// TIER 1: Admin operations - reduced from 10/min to 5/min for security
 export const POST = withAdminAuth(handleDeleteUser, {
   route: '/api/admin/delete-user',
-  rateLimit: { max: 10, windowMs: 60 * 1000 }, // 10 deletions per minute max
+  rateLimit: { max: 5, windowMs: 60 * 1000 }, // TIER 1: 5 deletions per minute max
 });

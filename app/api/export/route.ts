@@ -1,24 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { serverLogger } from '@/lib/serverLogger';
+import {
+  unauthorizedResponse,
+  validationError,
+  notFoundResponse,
+  errorResponse,
+  successResponse
+} from '@/lib/api/response';
+import { validateUUID, validateEnum, validateInteger, validateAll } from '@/lib/api/validation';
+import { verifyProjectOwnership } from '@/lib/api/project-verification';
 
 /**
  * Video Export API Endpoint
  *
  * This endpoint handles video export requests from the editor.
- * Note: Full FFmpeg integration requires server-side processing infrastructure.
  *
- * For production deployment, consider using:
+ * Current Implementation:
+ * - Creates an export job in the database for tracking
+ * - Validates timeline and output specifications
+ * - Returns job ID for status polling
+ *
+ * Production Deployment Notes:
+ * To enable actual video rendering, integrate with:
  * - AWS MediaConvert
  * - Google Cloud Video Intelligence API
  * - Azure Media Services
  * - Self-hosted FFmpeg workers
  *
- * This implementation provides a placeholder that:
- * 1. Validates user authentication
- * 2. Accepts export parameters
- * 3. Returns export job status
- *
- * TODO: Integrate actual video rendering service
+ * The job system is ready for background worker integration.
  */
 
 export interface ExportRequest {
@@ -57,6 +67,9 @@ export interface ExportResponse {
   estimatedTime?: number;
 }
 
+const VALID_FORMATS = ['mp4', 'webm'] as const;
+const VALID_TRANSITIONS = ['crossfade', 'fade-in', 'fade-out'] as const;
+
 export async function POST(request: NextRequest) {
   try {
     // SECURITY: Verify user authentication
@@ -64,198 +77,139 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return unauthorizedResponse();
     }
 
     const body: ExportRequest = await request.json();
 
     // Validate required fields
     if (!body.projectId || !body.timeline || !body.outputSpec) {
-      return NextResponse.json(
-        { error: 'Missing required fields: projectId, timeline, outputSpec' },
-        { status: 400 }
-      );
-    }
-
-    // Validate projectId format (UUID)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(body.projectId)) {
-      return NextResponse.json({ error: 'Invalid project ID format' }, { status: 400 });
+      return validationError('Missing required fields: projectId, timeline, outputSpec');
     }
 
     // Validate timeline structure
     if (!body.timeline.clips || !Array.isArray(body.timeline.clips)) {
-      return NextResponse.json(
-        { error: 'Timeline must contain a clips array' },
-        { status: 400 }
-      );
+      return validationError('Timeline must contain a clips array', 'timeline');
     }
 
-    // Validate outputSpec format
-    const validFormats = ['mp4', 'webm'];
-    if (!validFormats.includes(body.outputSpec.format)) {
-      return NextResponse.json(
-        { error: 'Invalid format. Must be either mp4 or webm' },
-        { status: 400 }
-      );
-    }
+    // Validate projectId and outputSpec
+    const validation = validateAll([
+      validateUUID(body.projectId, 'projectId'),
+      validateEnum(body.outputSpec.format, 'format', VALID_FORMATS, true),
+      validateInteger(body.outputSpec.width, 'width', { required: true, min: 1, max: 7680 }),
+      validateInteger(body.outputSpec.height, 'height', { required: true, min: 1, max: 4320 }),
+      validateInteger(body.outputSpec.fps, 'fps', { required: true, min: 1, max: 120 }),
+      validateInteger(body.outputSpec.vBitrateK, 'vBitrateK', { required: true, min: 100, max: 50000 }),
+      validateInteger(body.outputSpec.aBitrateK, 'aBitrateK', { required: true, min: 32, max: 320 }),
+    ]);
 
-    // Validate outputSpec dimensions
-    if (typeof body.outputSpec.width !== 'number' || body.outputSpec.width < 1 || body.outputSpec.width > 7680) {
-      return NextResponse.json(
-        { error: 'Invalid width. Must be between 1 and 7680 pixels' },
-        { status: 400 }
-      );
-    }
-
-    if (typeof body.outputSpec.height !== 'number' || body.outputSpec.height < 1 || body.outputSpec.height > 4320) {
-      return NextResponse.json(
-        { error: 'Invalid height. Must be between 1 and 4320 pixels' },
-        { status: 400 }
-      );
-    }
-
-    // Validate outputSpec fps
-    if (typeof body.outputSpec.fps !== 'number' || body.outputSpec.fps < 1 || body.outputSpec.fps > 120) {
-      return NextResponse.json(
-        { error: 'Invalid fps. Must be between 1 and 120' },
-        { status: 400 }
-      );
-    }
-
-    // Validate outputSpec bitrates
-    if (typeof body.outputSpec.vBitrateK !== 'number' || body.outputSpec.vBitrateK < 100 || body.outputSpec.vBitrateK > 50000) {
-      return NextResponse.json(
-        { error: 'Invalid video bitrate. Must be between 100 and 50000 kbps' },
-        { status: 400 }
-      );
-    }
-
-    if (typeof body.outputSpec.aBitrateK !== 'number' || body.outputSpec.aBitrateK < 32 || body.outputSpec.aBitrateK > 320) {
-      return NextResponse.json(
-        { error: 'Invalid audio bitrate. Must be between 32 and 320 kbps' },
-        { status: 400 }
-      );
+    if (!validation.valid) {
+      return validationError(validation.errors[0].message, validation.errors[0].field);
     }
 
     // Validate each clip in timeline
     for (let i = 0; i < body.timeline.clips.length; i++) {
       const clip = body.timeline.clips[i];
 
-      if (!clip.id || !uuidRegex.test(clip.id)) {
-        return NextResponse.json(
-          { error: `Invalid clip ID format at index ${i}` },
-          { status: 400 }
-        );
+      const clipValidation = validateAll([
+        validateUUID(clip.id, `clip[${i}].id`),
+        validateUUID(clip.assetId, `clip[${i}].assetId`),
+        validateInteger(clip.start, `clip[${i}].start`, { required: true, min: 0 }),
+        validateInteger(clip.end, `clip[${i}].end`, { required: true, min: 0 }),
+        validateInteger(clip.timelinePosition, `clip[${i}].timelinePosition`, { required: true, min: 0 }),
+        validateInteger(clip.trackIndex, `clip[${i}].trackIndex`, { required: true, min: 0 }),
+      ]);
+
+      if (!clipValidation.valid) {
+        return validationError(clipValidation.errors[0].message, clipValidation.errors[0].field);
       }
 
-      if (!clip.assetId || !uuidRegex.test(clip.assetId)) {
-        return NextResponse.json(
-          { error: `Invalid asset ID format at index ${i}` },
-          { status: 400 }
-        );
+      if (clip.end <= clip.start) {
+        return validationError(`Invalid end time at index ${i}. Must be greater than start time`, `clip[${i}].end`);
       }
 
-      if (typeof clip.start !== 'number' || clip.start < 0) {
-        return NextResponse.json(
-          { error: `Invalid start time at index ${i}` },
-          { status: 400 }
-        );
+      // Validate optional fields
+      if (clip.volume !== undefined) {
+        const volumeValidation = validateInteger(clip.volume, `clip[${i}].volume`, { min: 0, max: 2 });
+        if (volumeValidation) {
+          return validationError(volumeValidation.message, volumeValidation.field);
+        }
       }
 
-      if (typeof clip.end !== 'number' || clip.end < 0 || clip.end <= clip.start) {
-        return NextResponse.json(
-          { error: `Invalid end time at index ${i}. Must be greater than start time` },
-          { status: 400 }
-        );
+      if (clip.opacity !== undefined) {
+        const opacityValidation = validateInteger(clip.opacity, `clip[${i}].opacity`, { min: 0, max: 1 });
+        if (opacityValidation) {
+          return validationError(opacityValidation.message, opacityValidation.field);
+        }
       }
 
-      if (typeof clip.timelinePosition !== 'number' || clip.timelinePosition < 0) {
-        return NextResponse.json(
-          { error: `Invalid timeline position at index ${i}` },
-          { status: 400 }
-        );
-      }
-
-      if (typeof clip.trackIndex !== 'number' || clip.trackIndex < 0) {
-        return NextResponse.json(
-          { error: `Invalid track index at index ${i}` },
-          { status: 400 }
-        );
-      }
-
-      if (clip.volume !== undefined && (typeof clip.volume !== 'number' || clip.volume < 0 || clip.volume > 2)) {
-        return NextResponse.json(
-          { error: `Invalid volume at index ${i}. Must be between 0 and 2` },
-          { status: 400 }
-        );
-      }
-
-      if (clip.opacity !== undefined && (typeof clip.opacity !== 'number' || clip.opacity < 0 || clip.opacity > 1)) {
-        return NextResponse.json(
-          { error: `Invalid opacity at index ${i}. Must be between 0 and 1` },
-          { status: 400 }
-        );
-      }
-
-      if (clip.speed !== undefined && (typeof clip.speed !== 'number' || clip.speed <= 0 || clip.speed > 10)) {
-        return NextResponse.json(
-          { error: `Invalid speed at index ${i}. Must be between 0 and 10` },
-          { status: 400 }
-        );
+      if (clip.speed !== undefined) {
+        const speedValidation = validateInteger(clip.speed, `clip[${i}].speed`, { min: 1, max: 10 });
+        if (speedValidation) {
+          return validationError(speedValidation.message, speedValidation.field);
+        }
       }
 
       if (clip.transitionToNext) {
-        const validTransitions = ['crossfade', 'fade-in', 'fade-out'];
-        if (!validTransitions.includes(clip.transitionToNext.type)) {
-          return NextResponse.json(
-            { error: `Invalid transition type at index ${i}. Must be one of: crossfade, fade-in, fade-out` },
-            { status: 400 }
-          );
-        }
+        const transitionValidation = validateAll([
+          validateEnum(clip.transitionToNext.type, `clip[${i}].transitionToNext.type`, VALID_TRANSITIONS, true),
+          validateInteger(clip.transitionToNext.duration, `clip[${i}].transitionToNext.duration`, { required: true, min: 0 }),
+        ]);
 
-        if (typeof clip.transitionToNext.duration !== 'number' || clip.transitionToNext.duration < 0) {
-          return NextResponse.json(
-            { error: `Invalid transition duration at index ${i}` },
-            { status: 400 }
-          );
+        if (!transitionValidation.valid) {
+          return validationError(transitionValidation.errors[0].message, transitionValidation.errors[0].field);
         }
       }
     }
 
     // Verify user owns the project
-    const { data: project, error: projectError } = await supabase
-      .from('projects')
-      .select('user_id')
-      .eq('id', body.projectId)
+    const projectVerification = await verifyProjectOwnership(supabase, body.projectId, user.id, 'user_id');
+    if (!projectVerification.hasAccess) {
+      return errorResponse(projectVerification.error!, projectVerification.status!);
+    }
+
+    // Create export job in database for tracking
+    const { data: exportJob, error: jobError } = await supabase
+      .from('processing_jobs')
+      .insert({
+        user_id: user.id,
+        project_id: body.projectId,
+        job_type: 'video-export',
+        status: 'pending',
+        provider: 'internal',
+        config: {
+          timeline: body.timeline,
+          outputSpec: body.outputSpec,
+        },
+        metadata: {
+          clipCount: body.timeline.clips.length,
+          format: body.outputSpec.format,
+          resolution: `${body.outputSpec.width}x${body.outputSpec.height}`,
+          fps: body.outputSpec.fps,
+        },
+        progress_percentage: 0,
+      })
+      .select()
       .single();
 
-    if (projectError || !project) {
-      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    if (jobError || !exportJob) {
+      serverLogger.error({ error: jobError, userId: user.id, projectId: body.projectId }, 'Failed to create export job');
+      return NextResponse.json(
+        { error: 'Failed to create export job' },
+        { status: 500 }
+      );
     }
-
-    if (project.user_id !== user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    // TODO: Implement actual export logic
-    // For now, return a mock job ID
-    const jobId = `export_${Date.now()}_${user.id.slice(0, 8)}`;
 
     const response: ExportResponse = {
-      jobId,
+      jobId: exportJob.id,
       status: 'queued',
-      message: 'Export feature requires FFmpeg integration. This is a placeholder endpoint.',
-      estimatedTime: undefined,
+      message: 'Export job created and queued for processing. Note: Background worker required for actual rendering.',
+      estimatedTime: body.timeline.clips.length * 5, // Rough estimate: 5 seconds per clip
     };
-
-    // TODO: Queue export job to background worker
-    // TODO: Store export job in database
-    // TODO: Implement webhook/polling for status updates
 
     return NextResponse.json(response, { status: 202 }); // 202 Accepted
   } catch (error) {
-    console.error('Export endpoint error:', error);
+    serverLogger.error({ error }, 'Export endpoint error');
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -273,28 +227,57 @@ export async function GET(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return unauthorizedResponse();
     }
 
     const jobId = request.nextUrl.searchParams.get('jobId');
 
     if (!jobId) {
-      return NextResponse.json({ error: 'jobId required' }, { status: 400 });
+      return validationError('jobId required', 'jobId');
     }
 
-    // TODO: Fetch job status from database or job queue
-    const response: ExportResponse = {
-      jobId,
-      status: 'queued',
-      message: 'Export feature not yet implemented. Requires FFmpeg integration.',
+    const validation = validateAll([validateUUID(jobId, 'jobId')]);
+    if (!validation.valid) {
+      return validationError(validation.errors[0].message, validation.errors[0].field);
+    }
+
+    // Fetch job status from database
+    const { data: job, error: fetchError } = await supabase
+      .from('processing_jobs')
+      .select('*')
+      .eq('id', jobId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (fetchError || !job) {
+      return notFoundResponse('Export job');
+    }
+
+    // Map database status to API response status
+    const statusMapping: Record<string, ExportResponse['status']> = {
+      pending: 'queued',
+      processing: 'processing',
+      completed: 'completed',
+      failed: 'failed',
+      cancelled: 'failed',
     };
 
-    return NextResponse.json(response);
+    const response: ExportResponse = {
+      jobId: job.id,
+      status: statusMapping[job.status] || 'queued',
+      message: job.status === 'completed'
+        ? 'Export completed successfully'
+        : job.status === 'failed'
+          ? `Export failed: ${job.error_message || 'Unknown error'}`
+          : job.status === 'processing'
+            ? `Export in progress (${job.progress_percentage}%)`
+            : 'Export queued for processing',
+      estimatedTime: job.status === 'pending' ? 30 : undefined,
+    };
+
+    return successResponse(response);
   } catch (error) {
-    console.error('Export status check error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    serverLogger.error({ error }, 'Export status check error');
+    return errorResponse('Internal server error', 500);
   }
 }

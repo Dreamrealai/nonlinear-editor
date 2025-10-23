@@ -1,7 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/lib/supabase';
-import { unauthorizedResponse, errorResponse } from '@/lib/api/response';
+import { unauthorizedResponse, errorResponse, rateLimitResponse, successResponse } from '@/lib/api/response';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
+import { serverLogger } from '@/lib/serverLogger';
 
 /**
  * DELETE /api/user/delete-account
@@ -19,6 +21,30 @@ import { unauthorizedResponse, errorResponse } from '@/lib/api/response';
  * IMPORTANT: This operation is irreversible!
  */
 export async function DELETE(_req: NextRequest) {
+  // TIER 1 RATE LIMITING: Account deletion (5/min)
+  // Critical to prevent abuse and accidental mass deletions
+  const supabaseForRateLimit = await createServerSupabaseClient();
+  const { data: { user: rateLimitUser } } = await supabaseForRateLimit.auth.getUser();
+
+  const rateLimitIdentifier = rateLimitUser?.id
+    ? `delete-account:${rateLimitUser.id}`
+    : `delete-account:${_req.headers.get('x-forwarded-for') || 'unknown'}`;
+
+  const rateLimitResult = await checkRateLimit(rateLimitIdentifier, RATE_LIMITS.tier1_auth_payment);
+
+  if (!rateLimitResult.success) {
+    serverLogger.warn({
+      event: 'user.delete_account.rate_limited',
+      identifier: rateLimitIdentifier,
+      limit: rateLimitResult.limit,
+    }, 'Account deletion rate limit exceeded');
+
+    return rateLimitResponse(
+      rateLimitResult.limit,
+      rateLimitResult.remaining,
+      rateLimitResult.resetAt
+    );
+  }
   try {
     // Verify user authentication
     const supabase = await createServerSupabaseClient();
@@ -35,7 +61,7 @@ export async function DELETE(_req: NextRequest) {
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !serviceRoleKey) {
-      console.error('Missing Supabase configuration for account deletion');
+      serverLogger.error({ userId }, 'Missing Supabase configuration for account deletion');
       return errorResponse('Service configuration error', 500);
     }
 
@@ -59,7 +85,7 @@ export async function DELETE(_req: NextRequest) {
       .eq('user_id', userId);
 
     if (projectsError) {
-      console.error('Failed to delete user projects:', projectsError);
+      serverLogger.error({ error: projectsError, userId }, 'Failed to delete user projects');
       return errorResponse('Failed to delete user projects', 500);
     }
 
@@ -70,7 +96,7 @@ export async function DELETE(_req: NextRequest) {
       .eq('user_id', userId);
 
     if (subscriptionError) {
-      console.error('Failed to delete user subscription:', subscriptionError);
+      serverLogger.error({ error: subscriptionError, userId }, 'Failed to delete user subscription');
       // Don't fail the entire operation for subscription errors
     }
 
@@ -81,7 +107,7 @@ export async function DELETE(_req: NextRequest) {
       .eq('user_id', userId);
 
     if (historyError) {
-      console.error('Failed to delete user activity history:', historyError);
+      serverLogger.error({ error: historyError, userId }, 'Failed to delete user activity history');
       // Don't fail the entire operation for history errors
     }
 
@@ -92,7 +118,7 @@ export async function DELETE(_req: NextRequest) {
       .eq('user_id', userId);
 
     if (rolesError) {
-      console.error('Failed to delete user roles:', rolesError);
+      serverLogger.error({ error: rolesError, userId }, 'Failed to delete user roles');
       // Don't fail the entire operation for roles errors
     }
 
@@ -119,7 +145,7 @@ export async function DELETE(_req: NextRequest) {
         await adminClient.storage.from('frames').remove(framePaths);
       }
     } catch (storageError) {
-      console.error('Failed to delete user storage files:', storageError);
+      serverLogger.error({ error: storageError, userId }, 'Failed to delete user storage files');
       // Don't fail the entire operation for storage errors
     }
 
@@ -127,7 +153,7 @@ export async function DELETE(_req: NextRequest) {
     const { error: deleteUserError } = await adminClient.auth.admin.deleteUser(userId);
 
     if (deleteUserError) {
-      console.error('Failed to delete user account:', deleteUserError);
+      serverLogger.error({ error: deleteUserError, userId }, 'Failed to delete user account');
       return errorResponse('Failed to delete user account', 500);
     }
 
@@ -142,12 +168,9 @@ export async function DELETE(_req: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Account successfully deleted',
-    });
+    return successResponse(null, 'Account successfully deleted');
   } catch (error) {
-    console.error('Account deletion error:', error);
+    serverLogger.error({ error }, 'Account deletion error');
     return errorResponse(
       error instanceof Error ? error.message : 'Failed to delete account',
       500
