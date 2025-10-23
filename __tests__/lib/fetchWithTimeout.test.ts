@@ -3,6 +3,28 @@ import { fetchWithTimeout, fetchWithRetry } from '@/lib/fetchWithTimeout'
 // Mock global fetch
 global.fetch = jest.fn()
 
+// Mock Response class for Node.js environment
+class MockResponse {
+  ok: boolean
+  status: number
+  headers: Map<string, string>
+
+  constructor(body?: any, init?: { status?: number; headers?: Record<string, string> }) {
+    this.status = init?.status || 200
+    this.ok = this.status >= 200 && this.status < 300
+    this.headers = new Map(Object.entries(init?.headers || {}))
+  }
+
+  get(key: string) {
+    return this.headers.get(key)
+  }
+}
+
+// Add Response to global if not available
+if (typeof Response === 'undefined') {
+  (global as any).Response = MockResponse
+}
+
 describe('Fetch Utilities', () => {
   beforeEach(() => {
     jest.clearAllMocks()

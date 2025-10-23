@@ -1,6 +1,13 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom'
 
+// Polyfill structuredClone for Node.js < 17
+if (typeof structuredClone === 'undefined') {
+  global.structuredClone = (obj) => {
+    return JSON.parse(JSON.stringify(obj))
+  }
+}
+
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
