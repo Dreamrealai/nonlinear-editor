@@ -1,3 +1,16 @@
+/**
+ * BrowserEditorClient Component
+ *
+ * Main client-side video editor interface that handles:
+ * - Asset management (upload, delete, organize)
+ * - Timeline editing and playback
+ * - AI-powered video/audio generation
+ * - Video processing (scene detection, audio extraction)
+ * - Export functionality
+ *
+ * This component runs entirely in the browser and integrates with Supabase
+ * for storage and database operations.
+ */
 'use client';
 
 /* eslint-disable @next/next/no-img-element */
@@ -5,6 +18,7 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { v4 as uuid } from 'uuid';
 import toast, { Toaster } from 'react-hot-toast';
+import Link from 'next/link';
 import HorizontalTimeline from '@/components/HorizontalTimeline';
 import PreviewPlayer from '@/components/PreviewPlayer';
 import ExportModal from '@/components/ExportModal';
@@ -16,35 +30,71 @@ import type { Clip, Timeline as TimelineType } from '@/types/timeline';
 import { useEditorStore } from '@/state/useEditorStore';
 import { browserLogger } from '@/lib/browserLogger';
 
+/**
+ * Metadata associated with media assets.
+ * Contains file information, codec details, and generated thumbnails.
+ */
 type AssetMetadata = {
   filename?: string;
   mimeType?: string;
+  /** Base64-encoded thumbnail image for preview */
   thumbnail?: string;
+  /** Public URL for accessing the asset */
   sourceUrl?: string;
+  /** Duration of the media in seconds */
   durationSeconds?: number | null;
-  // Codec and format information (for playback diagnostics)
+  /** File format (e.g., mp4, webm) */
   format?: string;
+  /** Video codec (e.g., h264, vp9) for playback diagnostics */
   videoCodec?: string;
+  /** Audio codec (e.g., aac, opus) for playback diagnostics */
   audioCodec?: string;
+  /** Bitrate in kbps */
   bitrate?: number;
 };
 
+/**
+ * Represents a media asset stored in the database.
+ * Assets can be videos, audio files, or images.
+ */
 type AssetRow = {
+  /** Unique identifier for the asset */
   id: string;
+  /** Supabase storage URL (format: supabase://bucket/path) */
   storage_url: string;
+  /** Duration in seconds (null for images) */
   duration_seconds: number | null;
+  /** Parsed metadata from the database */
   metadata: AssetMetadata | null;
+  /** Raw metadata object for debugging */
   rawMetadata: Record<string, unknown> | null;
+  /** Timestamp when asset was created */
   created_at: string | null;
+  /** Type of media asset */
   type: 'video' | 'audio' | 'image';
 };
 
+/**
+ * Type guard to check if a value is a valid asset type.
+ * @param value - Value to check
+ * @returns True if value is 'video', 'audio', or 'image'
+ */
 const isAssetType = (value: unknown): value is AssetRow['type'] =>
   value === 'video' || value === 'audio' || value === 'image';
 
+/** Maximum width for generated thumbnails in pixels */
 const THUMBNAIL_WIDTH = 320;
+
+/** Minimum duration for a clip in seconds (prevents zero-length clips) */
 const MIN_CLIP_DURATION = 0.1;
 
+/**
+ * Safely converts unknown values to a number representing duration in seconds.
+ * Handles both numeric and string inputs from different data sources.
+ *
+ * @param value - Value to coerce (can be number, string, or other)
+ * @returns Duration in seconds, or null if conversion fails
+ */
 const coerceDuration = (value: unknown): number | null => {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return value;
@@ -58,6 +108,19 @@ const coerceDuration = (value: unknown): number | null => {
   return null;
 };
 
+/**
+ * Enriches timeline clips with source duration metadata from assets.
+ * This function ensures all clips have valid durations and trim points.
+ *
+ * Key responsibilities:
+ * 1. Match clips to their source assets and extract duration
+ * 2. Normalize clip start/end points within valid bounds
+ * 3. Ensure all values are non-negative and respect MIN_CLIP_DURATION
+ *
+ * @param timeline - Timeline to enrich
+ * @param assets - Array of assets containing duration metadata
+ * @returns Timeline with enriched clip data
+ */
 const enrichTimelineWithSourceDurations = (
   timeline: TimelineType,
   assets: AssetRow[]
@@ -66,6 +129,8 @@ const enrichTimelineWithSourceDurations = (
     return timeline;
   }
 
+  // Build a lookup map of asset IDs to durations
+  // Tries multiple metadata fields to find duration (handles different data sources)
   const assetDurations = new Map<string, number | null>(
     assets.map((asset) => {
       const durationCandidates = [
@@ -86,6 +151,7 @@ const enrichTimelineWithSourceDurations = (
     }),
   );
 
+  // Update each clip with duration and normalize trim points
   const clips = timeline.clips.map((clip) => {
     const assetDuration = assetDurations.has(clip.assetId) ? assetDurations.get(clip.assetId) ?? null : clip.sourceDuration ?? null;
     const normalizedDuration =
@@ -98,16 +164,21 @@ const enrichTimelineWithSourceDurations = (
       sourceDuration: normalizedDuration ?? (clip.sourceDuration ?? null),
     };
 
+    // Ensure trim points (start/end) are within valid bounds
     if (typeof next.sourceDuration === 'number') {
       const maxDuration = Math.max(next.sourceDuration, MIN_CLIP_DURATION);
+      // Clamp start to [0, maxDuration - MIN_CLIP_DURATION]
       next.start = Math.min(Math.max(next.start, 0), Math.max(0, maxDuration - MIN_CLIP_DURATION));
+      // Clamp end to [start + MIN_CLIP_DURATION, maxDuration]
       next.end = Math.min(Math.max(next.end, next.start + MIN_CLIP_DURATION), maxDuration);
     } else {
+      // No known duration - still ensure valid positive values
       next.sourceDuration = null;
       next.start = Math.max(next.start, 0);
       next.end = Math.max(next.end, next.start + MIN_CLIP_DURATION);
     }
 
+    // Ensure timeline position is non-negative
     next.timelinePosition = Math.max(next.timelinePosition, 0);
 
     return next;
@@ -119,6 +190,13 @@ const enrichTimelineWithSourceDurations = (
   };
 };
 
+/**
+ * Sanitizes file names to prevent path traversal attacks and storage errors.
+ * Removes special characters that could break storage paths.
+ *
+ * @param fileName - Original file name from user upload
+ * @returns Safe file name with only alphanumeric, dots, underscores, and hyphens
+ */
 const sanitizeFileName = (fileName: string) => {
   const trimmed = fileName.trim();
   if (!trimmed) {
@@ -128,6 +206,13 @@ const sanitizeFileName = (fileName: string) => {
   return trimmed.replace(/[^a-zA-Z0-9._-]/g, '_');
 };
 
+/**
+ * Extracts bucket name and file path from a Supabase storage URL.
+ * Format expected: supabase://bucket-name/path/to/file
+ *
+ * @param storageUrl - Supabase storage URL
+ * @returns Object with bucket and path, or null if invalid
+ */
 const extractStorageLocation = (storageUrl: string) => {
   const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
   const [bucket, ...parts] = normalized.split('/');
@@ -137,22 +222,40 @@ const extractStorageLocation = (storageUrl: string) => {
   return { bucket, path: parts.join('/') };
 };
 
+/**
+ * Extracts the file name from a storage URL.
+ *
+ * @param storageUrl - Full storage URL
+ * @returns File name (last segment of the path)
+ */
 const extractFileName = (storageUrl: string) => {
   const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
   const segments = normalized.split('/');
   return segments[segments.length - 1] ?? normalized;
 };
 
+/**
+ * Converts a Web Audio API AudioBuffer to a WAV file format ArrayBuffer.
+ * Creates a standard RIFF WAV file with PCM 16-bit audio data.
+ *
+ * WAV file structure:
+ * - RIFF header (12 bytes)
+ * - fmt chunk (24 bytes) - audio format metadata
+ * - data chunk (8 bytes + audio data) - actual audio samples
+ *
+ * @param buffer - AudioBuffer from Web Audio API
+ * @returns ArrayBuffer containing complete WAV file data
+ */
 const audioBufferToWav = (buffer: AudioBuffer): ArrayBuffer => {
   const numOfChan = buffer.numberOfChannels;
-  const length = buffer.length * numOfChan * 2 + 44;
+  const length = buffer.length * numOfChan * 2 + 44; // 44 = WAV header size
   const bufferArray = new ArrayBuffer(length);
   const view = new DataView(bufferArray);
   const channels: Float32Array[] = [];
   let offset = 0;
   let pos = 0;
 
-  // Write WAVE header
+  // Helper functions to write integers in little-endian format
   const setUint16 = (data: number) => {
     view.setUint16(pos, data, true);
     pos += 2;
@@ -162,32 +265,34 @@ const audioBufferToWav = (buffer: AudioBuffer): ArrayBuffer => {
     pos += 4;
   };
 
-  // "RIFF" chunk descriptor
-  setUint32(0x46464952); // "RIFF"
-  setUint32(length - 8); // file length - 8
-  setUint32(0x45564157); // "WAVE"
+  // RIFF chunk descriptor (12 bytes)
+  setUint32(0x46464952); // "RIFF" in ASCII
+  setUint32(length - 8); // File length minus RIFF header
+  setUint32(0x45564157); // "WAVE" in ASCII
 
-  // "fmt " sub-chunk
-  setUint32(0x20746d66); // "fmt "
-  setUint32(16); // subchunk1size (16 for PCM)
-  setUint16(1); // audio format (1 for PCM)
-  setUint16(numOfChan); // number of channels
-  setUint32(buffer.sampleRate); // sample rate
-  setUint32(buffer.sampleRate * 2 * numOfChan); // byte rate
-  setUint16(numOfChan * 2); // block align
-  setUint16(16); // bits per sample
+  // fmt sub-chunk (24 bytes) - describes the audio format
+  setUint32(0x20746d66); // "fmt " in ASCII
+  setUint32(16); // Subchunk size (16 for PCM)
+  setUint16(1); // Audio format (1 = PCM/uncompressed)
+  setUint16(numOfChan); // Number of channels (mono/stereo)
+  setUint32(buffer.sampleRate); // Sample rate (e.g., 44100 Hz)
+  setUint32(buffer.sampleRate * 2 * numOfChan); // Byte rate
+  setUint16(numOfChan * 2); // Block align (bytes per sample across all channels)
+  setUint16(16); // Bits per sample
 
-  // "data" sub-chunk
-  setUint32(0x61746164); // "data"
-  setUint32(length - pos - 4); // subchunk2size
+  // data sub-chunk - contains the actual audio samples
+  setUint32(0x61746164); // "data" in ASCII
+  setUint32(length - pos - 4); // Data chunk size
 
-  // Write interleaved data
+  // Extract channel data from AudioBuffer
   for (let i = 0; i < buffer.numberOfChannels; i++) {
     channels.push(buffer.getChannelData(i));
   }
 
+  // Write interleaved audio samples (converts float32 to int16)
   while (pos < length) {
     for (let i = 0; i < numOfChan; i++) {
+      // Clamp sample to [-1, 1] range and convert to 16-bit integer
       let sample = Math.max(-1, Math.min(1, channels[i][offset]));
       sample = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
       view.setInt16(pos, sample, true);
@@ -199,6 +304,13 @@ const audioBufferToWav = (buffer: AudioBuffer): ArrayBuffer => {
   return bufferArray;
 };
 
+/**
+ * Creates an empty timeline with default output settings.
+ * Used when initializing a new project or when timeline load fails.
+ *
+ * @param projectId - ID of the project this timeline belongs to
+ * @returns New timeline with 1080p/30fps MP4 defaults
+ */
 const createEmptyTimeline = (projectId: string): TimelineType => ({
   projectId,
   clips: [],
@@ -206,12 +318,19 @@ const createEmptyTimeline = (projectId: string): TimelineType => ({
     width: 1920,
     height: 1080,
     fps: 30,
-    vBitrateK: 5000,
-    aBitrateK: 192,
+    vBitrateK: 5000, // Video bitrate in kbps
+    aBitrateK: 192, // Audio bitrate in kbps
     format: 'mp4',
   },
 });
 
+/**
+ * Parses and normalizes asset metadata from database records.
+ * Handles multiple field name variations (camelCase, snake_case).
+ *
+ * @param metadata - Raw metadata object from database
+ * @returns Normalized AssetMetadata or null if empty
+ */
 const parseAssetMetadata = (metadata: Record<string, unknown> | null): AssetMetadata | null => {
   if (!metadata) {
     return null;
@@ -366,12 +485,32 @@ const createVideoThumbnail = (blob: Blob): Promise<string | null> =>
     video.src = url;
   });
 
+/**
+ * Arguments for uploading an asset to storage and database.
+ */
 type UploadAssetArgs = {
+  /** File object from user's file input */
   file: File;
+  /** Project ID to associate this asset with */
   projectId: string;
+  /** Type of media asset (video/audio/image) */
   assetType: AssetRow['type'];
 };
 
+/**
+ * Uploads a media file to Supabase storage and creates a database record.
+ *
+ * Process:
+ * 1. Authenticate user
+ * 2. Sanitize file name and generate storage path
+ * 3. Upload file to Supabase storage
+ * 4. Generate thumbnail for images/videos
+ * 5. Create database record with metadata
+ *
+ * @param args - Upload parameters
+ * @returns Newly created asset record
+ * @throws Error if user not authenticated or upload fails
+ */
 async function uploadAsset({ file, projectId, assetType }: UploadAssetArgs) {
   const supabase = createBrowserSupabaseClient();
   const { data: userResult, error: userError } = await supabase.auth.getUser();
@@ -386,11 +525,13 @@ async function uploadAsset({ file, projectId, assetType }: UploadAssetArgs) {
     throw new Error('User session is required to upload assets');
   }
 
+  // Generate safe storage path: userId/projectId/uuid-filename
   const sanitizedFileName = sanitizeFileName(file.name);
   const defaultPath = `${user.id}/${projectId}/${uuid()}-${sanitizedFileName}`;
   const storageInfo = extractStorageLocation(file.name) ?? { bucket: 'assets', path: defaultPath };
   const { bucket, path } = storageInfo;
 
+  // Upload file to Supabase storage
   const arrayBuffer = await file.arrayBuffer();
   const { error: uploadError } = await supabase.storage
     .from(bucket)
@@ -410,6 +551,7 @@ async function uploadAsset({ file, projectId, assetType }: UploadAssetArgs) {
     mimeType: file.type,
   };
 
+  // Generate thumbnails for visual media
   const mimeLower = file.type.toLowerCase();
   if (mimeLower.startsWith('image/')) {
     const thumb = await createImageThumbnail(new Blob([arrayBuffer], { type: file.type }));
@@ -423,6 +565,7 @@ async function uploadAsset({ file, projectId, assetType }: UploadAssetArgs) {
     }
   }
 
+  // Create database record
   const { data: assetData, error: assetError } = await supabase
     .from('assets')
     .insert({
@@ -1280,13 +1423,12 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
             >
               {uploadPending ? 'Uploading…' : '+ Upload Video/Image'}
             </button>
-            <button
-              type="button"
-              onClick={() => setShowVideoModal(true)}
-              className="w-full rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-100"
+            <Link
+              href={`/video-gen?projectId=${projectId}`}
+              className="w-full rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-xs font-medium text-neutral-700 text-center transition hover:border-neutral-400 hover:bg-neutral-100"
             >
               + Generate Video with AI
-            </button>
+            </Link>
           </div>
         )}
 
@@ -1301,13 +1443,12 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
             >
               {uploadPending ? 'Uploading…' : '+ Upload Audio'}
             </button>
-            <button
-              type="button"
-              onClick={() => setShowAudioModal(true)}
-              className="w-full rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-100"
+            <Link
+              href={`/audio-gen?projectId=${projectId}`}
+              className="w-full rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-xs font-medium text-neutral-700 text-center transition hover:border-neutral-400 hover:bg-neutral-100"
             >
               + Generate Audio with AI
-            </button>
+            </Link>
           </div>
         )}
         {assetError && (

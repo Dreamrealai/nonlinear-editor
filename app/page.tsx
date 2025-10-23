@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 import { CreateProjectButton } from '@/components/CreateProjectButton';
+import { ProjectList } from '@/components/ProjectList';
+import { Toaster } from 'react-hot-toast';
 
 // Force dynamic rendering when Supabase is not configured
 export const dynamic = 'force-dynamic';
@@ -36,6 +38,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 p-8">
+      <Toaster position="bottom-right" />
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-neutral-900">My Projects</h1>
@@ -50,27 +53,14 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="space-y-4">
-          {projects && projects.length > 0 ? (
-            projects.map((project) => (
-              <Link
-                key={project.id}
-                href={`/editor/${project.id}`}
-                className="block rounded-xl border border-neutral-200 bg-white p-6 shadow-sm transition hover:border-neutral-300 hover:shadow-md"
-              >
-                <h2 className="text-lg font-semibold text-neutral-900">{project.title || 'Untitled Project'}</h2>
-                <p className="mt-1 text-sm text-neutral-500">
-                  Created {new Date(project.created_at).toLocaleDateString()}
-                </p>
-              </Link>
-            ))
-          ) : (
-            <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center">
-              <p className="mb-4 text-neutral-600">No projects yet. Create one to get started.</p>
-              <CreateProjectButton />
-            </div>
-          )}
-        </div>
+        {projects && projects.length > 0 ? (
+          <ProjectList projects={projects} />
+        ) : (
+          <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center">
+            <p className="mb-4 text-neutral-600">No projects yet. Create one to get started.</p>
+            <CreateProjectButton />
+          </div>
+        )}
       </div>
     </div>
   );

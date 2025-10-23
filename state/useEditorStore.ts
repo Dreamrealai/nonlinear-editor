@@ -1,3 +1,23 @@
+/**
+ * Editor Store - Global State Management
+ *
+ * Zustand store with Immer middleware for immutable state updates.
+ * Manages timeline state, playback, selection, and undo/redo functionality.
+ *
+ * Features:
+ * - Timeline clip management (add, update, delete, reorder)
+ * - Undo/redo with 50-action history
+ * - Multi-clip selection
+ * - Copy/paste clipboard
+ * - Markers and tracks
+ * - Zoom level and playhead position
+ *
+ * Architecture:
+ * - Immer enables mutation syntax while maintaining immutability
+ * - enableMapSet() allows Immer to handle Set<string> for selectedClipIds
+ * - Deep cloning via JSON for history snapshots
+ * - Automatic deduplication prevents duplicate clip IDs
+ */
 'use client';
 
 import { create } from 'zustand';
@@ -5,58 +25,121 @@ import { immer } from 'zustand/middleware/immer';
 import { enableMapSet } from 'immer';
 import type { Timeline, Clip, Marker, Track } from '@/types/timeline';
 
-const MAX_HISTORY = 50; // Maximum undo history
+/** Maximum number of undo/redo states to keep in history */
+const MAX_HISTORY = 50;
+
+/** Minimum duration for a clip in seconds (prevents zero-length clips) */
 const MIN_CLIP_DURATION = 0.1;
 
-// Allow Immer to proxy Map/Set instances (used by selectedClipIds)
+// Enable Immer to proxy Map/Set instances (required for selectedClipIds Set)
 enableMapSet();
 
+/**
+ * EditorStore type definition.
+ * Contains all state and actions for the video editor.
+ */
 type EditorStore = {
+  // ===== State =====
+  /** Current timeline being edited (null when loading) */
   timeline: Timeline | null;
-  currentTime: number; // Playhead position in seconds
-  zoom: number; // Pixels per second
-  selectedClipIds: Set<string>; // Multi-select support
-  copiedClips: Clip[]; // Clipboard for copy/paste
-  history: Timeline[]; // Undo history
-  historyIndex: number; // Current position in history
+  /** Playhead position in seconds */
+  currentTime: number;
+  /** Timeline zoom level in pixels per second */
+  zoom: number;
+  /** IDs of currently selected clips (supports multi-select) */
+  selectedClipIds: Set<string>;
+  /** Clipboard for copy/paste operations */
+  copiedClips: Clip[];
+  /** Undo/redo history (array of timeline snapshots) */
+  history: Timeline[];
+  /** Current position in history array */
+  historyIndex: number;
+
+  // ===== Timeline Actions =====
+  /** Replace entire timeline (initializes history) */
   setTimeline: (timeline: Timeline) => void;
+  /** Add a clip to the timeline */
   addClip: (clip: Clip) => void;
+  /** Reorder clips by ID array */
   reorderClips: (ids: string[]) => void;
+  /** Update clip properties (validates durations and positions) */
   updateClip: (id: string, patch: Partial<Clip>) => void;
+  /** Remove a clip from timeline */
   removeClip: (id: string) => void;
+  /** Split a clip at a specific timeline position */
   splitClipAtTime: (clipId: string, time: number) => void;
+
+  // ===== Playback Actions =====
+  /** Set playhead position */
   setCurrentTime: (time: number) => void;
+  /** Set zoom level (clamped to 10-200 px/s) */
   setZoom: (zoom: number) => void;
+
+  // ===== Marker Actions =====
+  /** Add a timeline marker */
   addMarker: (marker: Marker) => void;
+  /** Remove a marker */
   removeMarker: (id: string) => void;
+  /** Update marker properties */
   updateMarker: (id: string, patch: Partial<Marker>) => void;
+
+  // ===== Track Actions =====
+  /** Update or create a track (auto-creates if not exists) */
   updateTrack: (trackIndex: number, patch: Partial<Track>) => void;
+
+  // ===== Selection Actions =====
+  /** Select/deselect clip (multi=true for multi-select) */
   selectClip: (id: string, multi?: boolean) => void;
+  /** Clear all selections */
   clearSelection: () => void;
+
+  // ===== Clipboard Actions =====
+  /** Copy selected clips to clipboard */
   copyClips: () => void;
+  /** Paste clips from clipboard at playhead position */
   pasteClips: () => void;
+
+  // ===== History Actions =====
+  /** Undo last action */
   undo: () => void;
+  /** Redo previously undone action */
   redo: () => void;
+  /** Check if undo is available */
   canUndo: () => boolean;
+  /** Check if redo is available */
   canRedo: () => boolean;
 };
 
-// Helper to deep clone timeline for history
+/**
+ * Deep clones a timeline for history snapshots.
+ * Uses JSON serialization for simplicity.
+ *
+ * @param timeline - Timeline to clone
+ * @returns Deep copy of timeline
+ */
 const cloneTimeline = (timeline: Timeline | null): Timeline | null => {
   if (!timeline) return null;
   return JSON.parse(JSON.stringify(timeline));
 };
 
+/**
+ * Removes duplicate clips from an array.
+ * Keeps the last occurrence of each unique clip ID.
+ *
+ * @param clips - Array of clips (may contain duplicates)
+ * @returns Deduplicated array of clips
+ */
 const dedupeClips = (clips: Clip[]): Clip[] => {
   const seen = new Set<string>();
   const deduped: Clip[] = [];
+  // Iterate backwards to keep last occurrence
   for (let i = clips.length - 1; i >= 0; i -= 1) {
     const clip = clips[i];
     if (seen.has(clip.id)) {
-      continue;
+      continue; // Skip duplicate
     }
     seen.add(clip.id);
-    deduped.unshift(clip);
+    deduped.unshift(clip); // Add to front (preserves order)
   }
   return deduped;
 };

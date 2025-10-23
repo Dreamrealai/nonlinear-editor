@@ -1,34 +1,88 @@
+/**
+ * PreviewPlayer Component
+ *
+ * Multi-track video playback engine with support for:
+ * - RAF-based synchronized playback across multiple video tracks
+ * - Crossfade, fade-in, and fade-out transitions
+ * - Per-clip opacity, volume, and playback speed
+ * - Signed URL management with automatic caching and TTL handling
+ * - Buffering state tracking to prevent playback issues
+ *
+ * Architecture:
+ * - Uses RequestAnimationFrame (RAF) for smooth frame-by-frame sync
+ * - Maintains one <video> element per clip for parallel loading
+ * - Computes opacity dynamically for transitions and fades
+ * - Prevents memory leaks with proper cleanup on unmount
+ */
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip } from '@/types/timeline';
 
+/** Default TTL for signed URLs in seconds (10 minutes) */
 const SIGNED_URL_TTL_DEFAULT = 600;
+
+/** Buffer time before URL expiration to refresh (5 seconds) */
 const SIGNED_URL_BUFFER_MS = 5_000;
 
+/**
+ * Computed metadata for a clip on the timeline.
+ * Includes fade/crossfade information for rendering.
+ */
 type ClipMeta = {
+  /** Duration of the clip in seconds (end - start) */
   length: number;
+  /** Original timeline position before crossfades */
   timelineStart: number;
+  /** Effective start position accounting for crossfades */
   effectiveStart: number;
+  /** Fade-in duration in seconds */
   fadeIn: number;
+  /** Fade-out duration in seconds */
   fadeOut: number;
 };
 
+/**
+ * Clamps a value between min and max.
+ * @param value - Value to clamp
+ * @param min - Minimum bound (default 0)
+ * @param max - Maximum bound (default 1)
+ * @returns Clamped value
+ */
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
+/**
+ * Computes playback metadata for all clips including transition effects.
+ *
+ * This function processes crossfade transitions between clips on the same track.
+ * When clip A has a crossfade-out transition, it overlaps with clip B, and
+ * clip B's effective start is adjusted backwards to create the overlap.
+ *
+ * Process:
+ * 1. Extract fade-in, fade-out, and crossfade settings from each clip
+ * 2. Group clips by track index
+ * 3. For each track, adjust effectiveStart for clips with crossfade-in
+ * 4. Return a map of clip IDs to their computed metadata
+ *
+ * @param clips - Array of timeline clips
+ * @returns Map of clip IDs to computed metadata
+ */
 const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
   if (clips.length === 0) {
     return new Map();
   }
 
+  // Extended metadata type that tracks crossfade-in and crossfade-out separately
   type InternalMeta = ClipMeta & { crossfadeOut: number; crossfadeIn: number };
 
+  // Initialize metadata for each clip
   const base: InternalMeta[] = clips.map((clip) => {
     const length = Math.max(0, clip.end - clip.start);
     const timelineStart = Math.max(0, clip.timelinePosition);
     const transition = clip.transitionToNext;
 
+    // Extract transition durations (minimum 50ms to avoid issues)
     const fadeInBase =
       transition?.type === 'fade-in' ? Math.max(0.05, transition.duration || 0.5) : 0;
     const fadeOutBase =
@@ -39,7 +93,7 @@ const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
     return {
       length,
       timelineStart,
-      effectiveStart: timelineStart,
+      effectiveStart: timelineStart, // Will be adjusted for crossfades
       fadeIn: fadeInBase,
       fadeOut: fadeOutBase,
       crossfadeOut,
@@ -47,6 +101,7 @@ const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
     };
   });
 
+  // Group clips by track index for crossfade processing
   const clipsByTrack = new Map<number, number[]>();
   clips.forEach((clip, index) => {
     const list = clipsByTrack.get(clip.trackIndex) ?? [];
@@ -54,14 +109,19 @@ const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
     clipsByTrack.set(clip.trackIndex, list);
   });
 
+  // Process crossfades: adjust effectiveStart for overlapping clips
   clipsByTrack.forEach((indices) => {
+    // Sort clips by timeline position within each track
     indices.sort((a, b) => clips[a].timelinePosition - clips[b].timelinePosition);
+
+    // Check adjacent clips for crossfade transitions
     for (let i = 1; i < indices.length; i += 1) {
       const prev = base[indices[i - 1]];
       const next = base[indices[i]];
       if (!prev || !next) {
         continue;
       }
+      // If previous clip has crossfade-out, adjust next clip's start
       if (prev.crossfadeOut > 0) {
         const overlapStart = prev.timelineStart + Math.max(0, prev.length - prev.crossfadeOut);
         next.effectiveStart = Math.min(next.effectiveStart, overlapStart);
@@ -70,13 +130,16 @@ const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
     }
   });
 
+  // Build final metadata map combining fades and crossfades
   const metaMap = new Map<string, ClipMeta>();
   base.forEach((meta, index) => {
     metaMap.set(clips[index].id, {
       length: meta.length,
       timelineStart: meta.timelineStart,
       effectiveStart: Math.max(0, meta.effectiveStart),
+      // Use the maximum of fade-in and crossfade-in
       fadeIn: Math.max(meta.fadeIn, meta.crossfadeIn),
+      // Use the maximum of fade-out and crossfade-out
       fadeOut: Math.max(meta.fadeOut, meta.crossfadeOut),
     });
   });
@@ -84,21 +147,47 @@ const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
   return metaMap;
 };
 
+/**
+ * Computes opacity for a clip based on its progress and fade settings.
+ *
+ * Opacity curve:
+ * - Fades in from 0 to 1 over fadeIn duration
+ * - Remains at 1 during middle section
+ * - Fades out from 1 to 0 over fadeOut duration
+ *
+ * @param meta - Clip metadata with fade settings
+ * @param progress - Playback progress within the clip (0 to meta.length)
+ * @returns Opacity value between 0 and 1
+ */
 const computeOpacity = (meta: ClipMeta, progress: number) => {
+  // Clip is not visible outside its duration
   if (progress < 0 || progress > meta.length) {
     return 0;
   }
+
   let opacity = 1;
+
+  // Apply fade-in at the start
   if (meta.fadeIn > 0) {
     opacity = Math.min(opacity, clamp(progress / meta.fadeIn));
   }
+
+  // Apply fade-out at the end
   if (meta.fadeOut > 0) {
     const remaining = meta.length - progress;
     opacity = Math.min(opacity, clamp(remaining / meta.fadeOut));
   }
+
   return clamp(opacity);
 };
 
+/**
+ * Formats time in seconds to MM:SS:FF timecode.
+ * FF represents frames at 30fps.
+ *
+ * @param seconds - Time in seconds
+ * @returns Formatted timecode string (e.g., "01:23:15")
+ */
 const formatTimecode = (seconds: number): string => {
   if (!Number.isFinite(seconds)) {
     return '00:00:00';
@@ -107,7 +196,7 @@ const formatTimecode = (seconds: number): string => {
   const totalSeconds = Math.floor(safe);
   const minutes = Math.floor(totalSeconds / 60);
   const secs = totalSeconds % 60;
-  const frames = Math.floor((safe - totalSeconds) * 30);
+  const frames = Math.floor((safe - totalSeconds) * 30); // 30fps
   return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}:${frames
     .toString()
     .padStart(2, '0')}`;
@@ -174,6 +263,9 @@ export default function PreviewPlayer() {
   const globalTimeRef = useRef(0);
 
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
 
   const sortedClips = useMemo(() => {
     if (!timeline) return [];
@@ -545,6 +637,33 @@ export default function PreviewPlayer() {
     }
   }, [isPlaying, currentTime, stopPlayback, playAll]);
 
+  const toggleFullscreen = useCallback(async () => {
+    if (!playerContainerRef.current) return;
+
+    try {
+      if (!document.fullscreenElement) {
+        await playerContainerRef.current.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    } catch (error) {
+      console.error('Fullscreen error:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.code === 'Space' && event.target === document.body) {
@@ -620,52 +739,112 @@ export default function PreviewPlayer() {
   const formattedTotal = formatTimecode(totalDuration);
 
   return (
-    <div className="relative flex h-full flex-col gap-3">
-      {/* Video Preview */}
+    <div
+      ref={playerContainerRef}
+      className="relative flex h-full flex-col"
+      onMouseEnter={() => setShowControls(true)}
+      onMouseLeave={() => !isPlaying && setShowControls(true)}
+    >
+      {/* Video Preview with overlay controls */}
       <div className="relative flex-1 overflow-hidden rounded-xl bg-black">
         <div ref={containerRef} className="absolute inset-0" />
-      </div>
 
-      {/* Progress Bar */}
-      <div className="w-full px-2">
-        <div className="h-2 w-full rounded-full bg-neutral-200">
-          <div
-            className="h-full rounded-full bg-sky-500 transition-all duration-200"
-            style={{ width: `${progress * 100}%` }}
-          />
-        </div>
-      </div>
+        {/* Overlay Controls - Auto-hide on play */}
+        {showControls && (
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 transition-opacity duration-300">
+            {/* Close/Hide Controls Button */}
+            <button
+              type="button"
+              onClick={() => setShowControls(false)}
+              className="absolute top-4 right-4 rounded-full bg-black/50 hover:bg-black/70 p-2 text-white transition-all backdrop-blur-sm"
+              title="Hide controls"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
 
-      {/* Playback Controls */}
-      <div className="flex items-center justify-center gap-4 pb-1">
-        <button
-          type="button"
-          onClick={togglePlayPause}
-          className="flex items-center justify-center gap-2 rounded-lg bg-sky-500 hover:bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 shadow"
-          disabled={!timeline.clips.length}
-          title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
-        >
-          {isPlaying ? (
-            <>
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-              </svg>
-              <span>Pause</span>
-            </>
-          ) : (
-            <>
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-              <span>Play</span>
-            </>
-          )}
-        </button>
-        <div className="flex items-center gap-2 text-sm font-mono font-medium text-neutral-700">
-          <span>{formattedCurrent}</span>
-          <span className="text-neutral-400">/</span>
-          <span>{formattedTotal}</span>
-        </div>
+            {/* Fullscreen Button */}
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="absolute top-4 right-16 rounded-full bg-black/50 hover:bg-black/70 p-2 text-white transition-all backdrop-blur-sm"
+              title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            >
+              {isFullscreen ? (
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+                </svg>
+              )}
+            </button>
+
+            {/* Bottom Controls Container */}
+            <div className="absolute bottom-0 left-0 right-0 px-6 pb-6">
+              {/* Progress Bar */}
+              <div className="mb-4">
+                <div className="h-1.5 w-full rounded-full bg-white/30 backdrop-blur-sm">
+                  <div
+                    className="h-full rounded-full bg-white transition-all duration-200"
+                    style={{ width: `${progress * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Playback Controls */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={togglePlayPause}
+                    className="flex items-center justify-center gap-2 rounded-full bg-white hover:bg-white/90 px-6 py-3 text-sm font-bold text-black transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 shadow-lg"
+                    disabled={!timeline.clips.length}
+                    title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
+                  >
+                    {isPlaying ? (
+                      <>
+                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                        </svg>
+                        <span>Pause</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                        <span>Play</span>
+                      </>
+                    )}
+                  </button>
+
+                  <div className="flex items-center gap-2 text-sm font-mono font-semibold text-white drop-shadow-lg">
+                    <span>{formattedCurrent}</span>
+                    <span className="text-white/60">/</span>
+                    <span>{formattedTotal}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Show controls button when hidden */}
+        {!showControls && (
+          <button
+            type="button"
+            onClick={() => setShowControls(true)}
+            className="absolute bottom-4 right-4 rounded-full bg-black/50 hover:bg-black/70 p-3 text-white transition-all backdrop-blur-sm opacity-0 hover:opacity-100"
+            title="Show controls"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+          </button>
+        )}
       </div>
     </div>
   );

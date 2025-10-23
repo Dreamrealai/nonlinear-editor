@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
+import toast from 'react-hot-toast';
 
 interface EditorHeaderProps {
   projectId: string;
@@ -21,6 +22,8 @@ export default function EditorHeader({ projectId, currentTab }: EditorHeaderProp
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
 
   useEffect(() => {
     if (!supabaseClient) return;
@@ -46,23 +49,128 @@ export default function EditorHeader({ projectId, currentTab }: EditorHeaderProp
     router.push(`/editor/${newProjectId}`);
   };
 
+  const handleRenameClick = () => {
+    setRenameValue(currentProject?.title || '');
+    setIsRenaming(true);
+    setIsDropdownOpen(false);
+  };
+
+  const handleRenameSubmit = async () => {
+    if (!supabaseClient || !renameValue.trim()) {
+      toast.error('Please enter a project name');
+      return;
+    }
+
+    try {
+      const { error } = await supabaseClient
+        .from('projects')
+        .update({ title: renameValue.trim() })
+        .eq('id', projectId);
+
+      if (error) throw error;
+
+      setCurrentProject({ id: projectId, title: renameValue.trim() });
+      setProjects(projects.map(p => p.id === projectId ? { ...p, title: renameValue.trim() } : p));
+      toast.success('Project renamed successfully');
+      setIsRenaming(false);
+    } catch (error) {
+      console.error('Failed to rename project:', error);
+      toast.error('Failed to rename project');
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!supabaseClient) return;
+
+    const confirmDelete = confirm(`Delete "${currentProject?.title}"? This will permanently delete the project and all its assets.`);
+    if (!confirmDelete) return;
+
+    try {
+      const { error } = await supabaseClient
+        .from('projects')
+        .delete()
+        .eq('id', projectId);
+
+      if (error) throw error;
+
+      toast.success('Project deleted successfully');
+      router.push('/');
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+      toast.error('Failed to delete project');
+    }
+  };
+
   return (
     <header className="border-b border-neutral-200 bg-white px-6 py-3 shadow-sm">
       <div className="flex items-center justify-between">
-        {/* Project Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 transition-colors"
-          >
-            <svg className="h-4 w-4 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-            </svg>
-            {currentProject?.title || 'Select Project'}
-            <svg className={`h-4 w-4 text-neutral-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
+        {/* Project Dropdown and Actions */}
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            {isRenaming ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') void handleRenameSubmit();
+                    if (e.key === 'Escape') setIsRenaming(false);
+                  }}
+                  className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 focus:border-neutral-500 focus:outline-none"
+                  autoFocus
+                />
+                <button
+                  onClick={() => void handleRenameSubmit()}
+                  className="rounded-lg bg-neutral-900 px-3 py-2 text-xs font-semibold text-white hover:bg-neutral-700"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setIsRenaming(false)}
+                  className="rounded-lg border border-neutral-300 px-3 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 transition-colors"
+              >
+                <svg className="h-4 w-4 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+                {currentProject?.title || 'Select Project'}
+                <svg className={`h-4 w-4 text-neutral-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          {!isRenaming && (
+            <>
+              <button
+                onClick={handleRenameClick}
+                className="rounded-lg border border-neutral-300 bg-white p-2 text-neutral-600 hover:bg-neutral-50 transition-colors"
+                title="Rename project"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => void handleDeleteProject()}
+                className="rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50 transition-colors"
+                title="Delete project"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </>
+          )}
 
           {isDropdownOpen && (
             <>
