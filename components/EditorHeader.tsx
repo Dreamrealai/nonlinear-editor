@@ -200,6 +200,16 @@ export default function EditorHeader({ projectId, currentTab }: EditorHeaderProp
         {/* Navigation Tabs */}
         <nav className="flex items-center gap-1 rounded-lg bg-neutral-100 p-1">
           <Link
+            href={`/editor/${projectId}/timeline`}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+              currentTab === 'video-editor'
+                ? 'bg-white text-neutral-900 shadow-sm'
+                : 'text-neutral-600 hover:text-neutral-900'
+            }`}
+          >
+            Video Editor
+          </Link>
+          <Link
             href={`/editor/${projectId}`}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
               currentTab === 'generate-video'
