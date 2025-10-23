@@ -882,35 +882,15 @@ export default function PreviewPlayer() {
           </>
         )}
 
-        {/* Hover Menu for Adding Text and Transitions */}
-        {!isPlaying && (
-          <VideoPlayerHoverMenu
-            onAddText={handleAddText}
-            onAddTransition={handleAddTransition}
-            currentTime={currentTime}
-          />
-        )}
 
         {/* Overlay Controls - Auto-hide on play */}
         {showControls && (
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 transition-opacity duration-300 z-[1050]">
-            {/* Close/Hide Controls Button */}
-            <button
-              type="button"
-              onClick={() => setShowControls(false)}
-              className="absolute top-4 right-4 rounded-full bg-black/50 hover:bg-black/70 p-2 text-white transition-all backdrop-blur-sm"
-              title="Hide controls"
-            >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
             {/* Fullscreen Button */}
             <button
               type="button"
               onClick={toggleFullscreen}
-              className="absolute top-4 right-16 rounded-full bg-black/50 hover:bg-black/70 p-2 text-white transition-all backdrop-blur-sm"
+              className="absolute top-4 right-4 rounded-full bg-black/50 hover:bg-black/70 p-2 text-white transition-all backdrop-blur-sm"
               title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
             >
               {isFullscreen ? (
