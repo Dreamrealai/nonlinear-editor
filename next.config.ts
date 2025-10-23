@@ -56,7 +56,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https://*.supabase.co",
               "media-src 'self' blob: https://*.supabase.co",
-              "connect-src 'self' https://*.supabase.co https://queue.fal.run https://fal.run https://generativelanguage.googleapis.com",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://queue.fal.run https://fal.run https://generativelanguage.googleapis.com",
               "font-src 'self' data:",
               "object-src 'none'",
               "base-uri 'self'",
