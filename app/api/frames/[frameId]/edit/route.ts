@@ -4,12 +4,12 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { v4 as uuid } from 'uuid';
 import { serverLogger } from '@/lib/serverLogger';
+import { withErrorHandling } from '@/lib/api/response';
 
-export async function POST(
+export const POST = withErrorHandling(async (
   request: NextRequest,
   { params }: { params: Promise<{ frameId: string }> }
-) {
-  try {
+) => {
     // SECURITY: Verify user authentication
     const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -203,11 +203,4 @@ export async function POST(
       count: edits.length,
       note: 'This is using Gemini 2.5 Flash for image analysis. For actual image generation, Imagen 3 or Gemini 2.5 Flash Image Preview would be used.',
     });
-  } catch (error) {
-    serverLogger.error({ error }, 'Frame edit error');
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
+});

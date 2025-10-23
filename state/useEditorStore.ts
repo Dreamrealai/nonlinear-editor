@@ -340,11 +340,8 @@ export const useEditorStore = create<EditorStore>()(
         const secondClipDuration = originalClip.end - newClipStart;
 
         if (firstClipDuration < MIN_CLIP_DURATION || secondClipDuration < MIN_CLIP_DURATION) {
-          console.warn('Split rejected: resulting clips would be too short', {
-            firstClipDuration,
-            secondClipDuration,
-            minRequired: MIN_CLIP_DURATION,
-          });
+          // Split would create clips shorter than minimum duration - silently reject
+          // (This is expected behavior during normal interaction, not an error)
           return;
         }
 

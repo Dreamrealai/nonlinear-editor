@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import toast, { Toaster } from 'react-hot-toast';
 import Link from 'next/link';
+import { browserLogger } from '@/lib/browserLogger';
 
 interface ImageQueueItem {
   id: string;
@@ -120,7 +121,14 @@ export default function ImageGenPage() {
       setNegativePrompt('');
       setSeed('');
     } catch (error) {
-      console.error('Image generation failed:', error);
+      browserLogger.error({
+        error,
+        projectId,
+        prompt,
+        model,
+        aspectRatio,
+        sampleCount
+      }, 'Image generation failed');
       toast.error(error instanceof Error ? error.message : 'Image generation failed');
 
       // Update queue item to failed

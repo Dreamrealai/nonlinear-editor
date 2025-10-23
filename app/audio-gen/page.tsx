@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import toast, { Toaster } from 'react-hot-toast';
 import Link from 'next/link';
+import { browserLogger } from '@/lib/browserLogger';
 
 type AudioGenMode = 'suno' | 'elevenlabs' | null;
 
@@ -150,7 +151,7 @@ export default function AudioGenPage() {
       // Start polling - store timeout ID for cleanup
       pollingTimeoutRef.current = setTimeout(poll, pollInterval);
     } catch (error) {
-      console.error('Suno audio generation failed:', error);
+      browserLogger.error({ error, projectId, formData }, 'Suno audio generation failed');
       toast.error(error instanceof Error ? error.message : 'Audio generation failed', { id: 'generate-suno' });
       setAudioGenPending(false);
     }
@@ -190,7 +191,7 @@ export default function AudioGenPage() {
       setAudioGenPending(false);
       router.push(`/editor/${projectId}`);
     } catch (error) {
-      console.error('ElevenLabs audio generation failed:', error);
+      browserLogger.error({ error, projectId, formData }, 'ElevenLabs audio generation failed');
       toast.error(error instanceof Error ? error.message : 'Audio generation failed', { id: 'generate-elevenlabs' });
       setAudioGenPending(false);
     }

@@ -6,11 +6,9 @@ import { NextRequest } from 'next/server';
 import { GET } from '@/app/api/assets/sign/route';
 import {
   createMockSupabaseClient,
-  createMockUser,
   createMockAsset,
   mockAuthenticatedUser,
   mockUnauthenticatedUser,
-  mockQuerySuccess,
   resetAllMocks,
 } from '@/__tests__/utils/mockSupabase';
 
@@ -146,7 +144,7 @@ describe('GET /api/assets/sign', () => {
     });
 
     it('should return 403 when asset belongs to different user', async () => {
-      const mockUser = mockAuthenticatedUser(mockSupabase);
+      mockAuthenticatedUser(mockSupabase);
       const mockAsset = createMockAsset({
         id: 'asset-123',
         user_id: 'different-user-id',
@@ -182,7 +180,7 @@ describe('GET /api/assets/sign', () => {
     });
 
     it('should return 403 when storageUrl does not match user', async () => {
-      const mockUser = mockAuthenticatedUser(mockSupabase);
+      mockAuthenticatedUser(mockSupabase);
       mockRequest = new NextRequest(
         'http://localhost/api/assets/sign?storageUrl=supabase://assets/other-user-id/project/test.jpg'
       );

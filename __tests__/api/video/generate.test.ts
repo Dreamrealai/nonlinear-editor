@@ -32,7 +32,9 @@ jest.mock('@/lib/fal-video', () => ({
 jest.mock('@/lib/rateLimit', () => ({
   checkRateLimit: jest.fn(),
   RATE_LIMITS: {
-    expensive: { max: 5, windowMs: 60000 },
+    tier2_resource_creation: { max: 10, windowMs: 60000 },
+    tier3_status_read: { max: 30, windowMs: 60000 },
+    tier4_general: { max: 60, windowMs: 60000 },
   },
 }));
 
@@ -45,20 +47,30 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
-jest.mock('@/lib/api/response', () => ({
-  unauthorizedResponse: jest.fn(() =>
-    new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
-  ),
-  errorResponse: jest.fn((message: string, status: number) =>
-    new Response(JSON.stringify({ error: message }), { status })
-  ),
-  rateLimitResponse: jest.fn((limit: number, remaining: number, resetAt: number) =>
-    new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429 })
-  ),
-  validationError: jest.fn((message: string, field: string) =>
-    new Response(JSON.stringify({ error: message, field }), { status: 400 })
-  ),
-}));
+jest.mock('@/lib/api/response', () => {
+  const jsonResponse = (payload: unknown, init?: ResponseInit) =>
+    new Response(JSON.stringify(payload), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+      ...init,
+    });
+
+  return {
+    unauthorizedResponse: jest.fn(() =>
+      jsonResponse({ error: 'Unauthorized' }, { status: 401 })
+    ),
+    errorResponse: jest.fn((message: string, status: number) =>
+      jsonResponse({ error: message }, { status })
+    ),
+    rateLimitResponse: jest.fn(() =>
+      jsonResponse({ error: 'Rate limit exceeded' }, { status: 429 })
+    ),
+    validationError: jest.fn((message: string, field: string) =>
+      jsonResponse({ error: message, field }, { status: 400 })
+    ),
+    withErrorHandling: jest.fn((handler: unknown) => handler),
+  };
+});
 
 jest.mock('@/lib/api/validation', () => ({
   validateString: jest.fn((value: any) => ({ valid: true })),
@@ -162,7 +174,7 @@ describe('POST /api/video/generate', () => {
 
       expect(checkRateLimit).toHaveBeenCalledWith(
         `video-gen:${mockUser.id}`,
-        RATE_LIMITS.expensive
+        RATE_LIMITS.tier2_resource_creation
       );
     });
   });

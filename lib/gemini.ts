@@ -56,7 +56,11 @@ export async function makeAIClient(): Promise<AIClient> {
     try {
       credentials = JSON.parse(serviceAccount);
     } catch (parseError) {
-      console.error('Failed to parse GOOGLE_SERVICE_ACCOUNT:', parseError);
+      // Log parse error for debugging (server-side only)
+      if (typeof process !== 'undefined' && process.env) {
+        const { serverLogger } = await import('./serverLogger');
+        serverLogger.error({ error: parseError }, 'Failed to parse GOOGLE_SERVICE_ACCOUNT');
+      }
       throw new Error('GOOGLE_SERVICE_ACCOUNT environment variable contains invalid JSON');
     }
 
@@ -78,7 +82,11 @@ export async function makeAIClient(): Promise<AIClient> {
 
       return { type: 'vertex', client: vertexAI, projectId };
     } catch (authError) {
-      console.error('Vertex AI initialization error:', authError);
+      // Log initialization error for debugging (server-side only)
+      if (typeof process !== 'undefined' && process.env) {
+        const { serverLogger } = await import('./serverLogger');
+        serverLogger.error({ error: authError, projectId }, 'Vertex AI initialization error');
+      }
       throw new Error(`Failed to initialize Vertex AI: ${authError instanceof Error ? authError.message : 'Unknown error'}`);
     }
   }
@@ -156,10 +164,8 @@ export async function chat(params: {
 }) {
   const aiClient = await makeAIClient();
 
-  // Send message with timeout and retry logic
+  // Send message with retry logic (timeout handled by underlying SDK)
   const maxRetries = 3;
-  // NOTE: Timeout currently handled by underlying SDK, but kept for future use
-  // const timeout = 60000; // 60 seconds
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {

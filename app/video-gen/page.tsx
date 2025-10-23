@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import toast, { Toaster } from 'react-hot-toast';
 import Link from 'next/link';
+import { browserLogger } from '@/lib/browserLogger';
 
 // Maximum polling attempts before timing out (60 attempts * 10s = 10 minutes)
 const MAX_POLLING_ATTEMPTS = 60;
@@ -125,7 +126,7 @@ export default function VideoGenPage() {
             pollingTimeoutRef.current = setTimeout(poll, pollInterval);
           }
         } catch (pollError) {
-          console.error('Video generation polling failed:', pollError);
+          browserLogger.error({ error: pollError, operationName: json.operationName, projectId }, 'Video generation polling failed');
           if (isMountedRef.current) {
             toast.error(pollError instanceof Error ? pollError.message : 'Video generation failed', { id: 'generate-video' });
             setVideoGenPending(false);
@@ -139,7 +140,7 @@ export default function VideoGenPage() {
       // Start polling - store timeout ID for cleanup
       pollingTimeoutRef.current = setTimeout(poll, pollInterval);
     } catch (error) {
-      console.error('Video generation failed:', error);
+      browserLogger.error({ error, projectId, formData }, 'Video generation failed');
       toast.error(error instanceof Error ? error.message : 'Video generation failed', { id: 'generate-video' });
       setVideoGenPending(false);
     }

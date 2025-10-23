@@ -4,17 +4,16 @@ import { fetchWithTimeout } from '@/lib/fetchWithTimeout';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateString, validateUUID, validateAll } from '@/lib/api/validation';
-import { errorResponse, unauthorizedResponse, validationError, rateLimitResponse, internalServerError } from '@/lib/api/response';
+import { errorResponse, unauthorizedResponse, validationError, rateLimitResponse, internalServerError, withErrorHandling } from '@/lib/api/response';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
 
 /**
  * Generate sound effects using ElevenLabs Sound Effects API
  */
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandling(async (request: NextRequest) => {
   const startTime = Date.now();
 
-  try {
-    serverLogger.info({
+  serverLogger.info({
       event: 'audio.sfx.request_started',
     }, 'ElevenLabs SFX request received');
 
@@ -177,13 +176,4 @@ export async function POST(request: NextRequest) {
       asset,
       url: publicUrl,
     });
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    serverLogger.error({
-      event: 'audio.sfx.error',
-      error,
-      duration,
-    }, 'Sound effect generation error');
-    return internalServerError(error instanceof Error ? error.message : 'Internal server error');
-  }
-}
+});

@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { chat } from '@/lib/gemini';
 import { serverLogger } from '@/lib/serverLogger';
+import { withErrorHandling } from '@/lib/api/response';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
-export async function POST(request: NextRequest) {
-  try {
+export const POST = withErrorHandling(async (request: NextRequest) => {
     const supabase = await createServerSupabaseClient();
 
     if (!supabase) {
@@ -161,16 +161,4 @@ export async function POST(request: NextRequest) {
       // Other errors
       throw chatError;
     }
-
-  } catch (error) {
-    serverLogger.error({ error }, 'AI chat error');
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    return NextResponse.json(
-      {
-        error: errorMessage,
-        timestamp: new Date().toISOString()
-      },
-      { status: 500 }
-    );
-  }
-}
+});

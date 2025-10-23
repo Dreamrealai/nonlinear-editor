@@ -32,14 +32,25 @@ jest.mock('@/lib/serverLogger', () => ({
 }));
 
 // Mock response utilities
-jest.mock('@/lib/api/response', () => ({
-  unauthorizedResponse: jest.fn(() =>
-    new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
-  ),
-  errorResponse: jest.fn((message: string, status: number) =>
-    new Response(JSON.stringify({ error: message }), { status })
-  ),
-}));
+jest.mock('@/lib/api/response', () => {
+  const jsonResponse = (payload: unknown, init?: ResponseInit) =>
+    new Response(JSON.stringify(payload), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+      ...init,
+    });
+
+  return {
+    unauthorizedResponse: jest.fn(() =>
+      jsonResponse({ error: 'Unauthorized' }, { status: 401 })
+    ),
+    errorResponse: jest.fn((message: string, status: number) =>
+      jsonResponse({ error: message }, { status })
+    ),
+    withErrorHandling: jest.fn((handler: unknown) => handler),
+    successResponse: jest.fn((data) => jsonResponse(data)),
+  };
+});
 
 describe('POST /api/projects', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;

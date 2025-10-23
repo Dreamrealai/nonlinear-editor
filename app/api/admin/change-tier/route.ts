@@ -9,6 +9,7 @@ import { serverLogger } from '@/lib/serverLogger';
 import { withAdminAuth, logAdminAction, type AdminAuthContext } from '@/lib/api/withAuth';
 import { validationError, forbiddenResponse, errorResponse, successResponse } from '@/lib/api/response';
 import { validateUUID, validateEnum, validateAll } from '@/lib/api/validation';
+import { invalidateUserProfile } from '@/lib/cacheInvalidation';
 
 async function handleChangeTier(
   request: NextRequest,
@@ -132,6 +133,9 @@ async function handleChangeTier(
         duration,
       }
     );
+
+    // Invalidate user profile cache after tier change
+    await invalidateUserProfile(userId);
 
     return successResponse(null, `User tier changed to ${tier}`);
   } catch (error) {

@@ -417,7 +417,7 @@ export function useAssetManager(projectId: string): UseAssetManagerReturn {
           const urlParts = asset.storage_url.replace('supabase://', '').split('/');
           const bucket = safeArrayFirst(urlParts);
           if (!bucket) {
-            console.error('Invalid storage URL format:', asset.storage_url);
+            browserLogger.error({ storageUrl: asset.storage_url, assetId: asset.id }, 'Invalid storage URL format');
             continue;
           }
 

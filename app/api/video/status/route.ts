@@ -19,6 +19,67 @@ const parseGcsUri = (uri: string) => {
   return { bucket, objectPath: rest.join('/') };
 };
 
+/**
+ * Check the status of a video generation operation.
+ *
+ * Polls the status of an ongoing video generation job from either Google Veo or FAL.ai.
+ * When complete, downloads the video and creates an asset record in the database.
+ *
+ * @route GET /api/video/status
+ *
+ * @param {string} request.query.operationName - Operation identifier from /api/video/generate
+ * @param {string} request.query.projectId - UUID of the project
+ *
+ * @returns {object} Operation status
+ * @returns {boolean} returns.done - Whether the operation is complete
+ * @returns {number} [returns.progress] - Progress percentage (0-100)
+ * @returns {string} [returns.error] - Error message if failed
+ * @returns {object} [returns.asset] - Created asset object if complete
+ * @returns {string} [returns.storageUrl] - Public URL of the video if complete
+ *
+ * @throws {401} Unauthorized - User not authenticated
+ * @throws {400} Bad Request - Missing or invalid operationName or projectId
+ * @throws {429} Too Many Requests - Rate limit exceeded (30 requests per minute)
+ * @throws {500} Internal Server Error - Download, storage, or database error
+ *
+ * @ratelimit 30 requests per minute (TIER 3 - Status/Read Operations)
+ *
+ * @authentication Required - Session cookie (supabase-auth-token)
+ *
+ * @polling Use this endpoint in a polling loop (recommended interval: 5-10 seconds)
+ *
+ * @example
+ * // Check Google Veo status
+ * GET /api/video/status?operationName=projects/123/locations/us-central1/operations/456&projectId=proj-uuid
+ *
+ * Response (processing):
+ * {
+ *   "done": false,
+ *   "progress": 45
+ * }
+ *
+ * Response (complete):
+ * {
+ *   "done": true,
+ *   "asset": {
+ *     "id": "asset-uuid",
+ *     "type": "video",
+ *     "storage_url": "supabase://assets/...",
+ *     ...
+ *   },
+ *   "storageUrl": "https://storage.example.com/..."
+ * }
+ *
+ * @example
+ * // Check FAL.ai status
+ * GET /api/video/status?operationName=fal:seedance-1.0-pro:abc123&projectId=proj-uuid
+ *
+ * Response (processing):
+ * {
+ *   "done": false,
+ *   "progress": 0
+ * }
+ */
 export const GET = withErrorHandling(async (req: NextRequest) => {
     const supabase = await createServerSupabaseClient();
 

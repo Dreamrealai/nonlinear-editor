@@ -7,6 +7,7 @@ import { stripe } from '@/lib/stripe';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 import { serverLogger } from '@/lib/serverLogger';
+import { invalidateOnStripeWebhook } from '@/lib/cacheInvalidation';
 
 // Disable body parser to handle raw body for webhook signature verification
 export const runtime = 'nodejs';
@@ -171,6 +172,9 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       amount: session.amount_total,
       currency: session.currency,
     }, `Checkout completed successfully - tier: ${currentTier} -> ${newTier}`);
+
+    // Invalidate user cache after successful checkout
+    await invalidateOnStripeWebhook(userId, 'checkout.session.completed');
   } catch (error) {
     serverLogger.error({
       event: 'stripe.checkout.error',

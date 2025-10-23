@@ -411,4 +411,301 @@ describe('useEditorStore', () => {
       expect(result.current.timeline?.markers?.[0]?.label).toBe('Updated Marker')
     })
   })
+
+  describe('Tracks', () => {
+    it('should update existing track', () => {
+      const { result } = renderHook(() => useEditorStore())
+      const mockTimeline = createMockTimeline()
+
+      act(() => {
+        result.current.setTimeline(mockTimeline)
+        result.current.updateTrack(0, { name: 'Custom Track Name' })
+      })
+
+      expect(result.current.timeline?.tracks?.[0]?.name).toBe('Custom Track Name')
+    })
+
+    it('should create track if it does not exist', () => {
+      const { result } = renderHook(() => useEditorStore())
+      const mockTimeline = createMockTimeline()
+
+      act(() => {
+        result.current.setTimeline(mockTimeline)
+        result.current.updateTrack(2, { name: 'New Track' })
+      })
+
+      expect(result.current.timeline?.tracks).toHaveLength(1)
+      expect(result.current.timeline?.tracks?.[0]?.index).toBe(2)
+      expect(result.current.timeline?.tracks?.[0]?.name).toBe('New Track')
+    })
+  })
+
+  describe('Text Overlays', () => {
+    it('should add text overlay', () => {
+      const { result } = renderHook(() => useEditorStore())
+      const mockTimeline = createMockTimeline()
+
+      act(() => {
+        result.current.setTimeline(mockTimeline)
+        result.current.addTextOverlay({
+          id: 'text-1',
+          text: 'Test Text',
+          startTime: 0,
+          endTime: 5,
+          x: 100,
+          y: 100,
+          fontSize: 24,
+          color: '#ffffff',
+        })
+      })
+
+      expect(result.current.timeline?.textOverlays).toHaveLength(1)
+      expect(result.current.timeline?.textOverlays?.[0]?.text).toBe('Test Text')
+    })
+
+    it('should remove text overlay', () => {
+      const { result } = renderHook(() => useEditorStore())
+      const mockTimeline = createMockTimeline()
+
+      act(() => {
+        result.current.setTimeline(mockTimeline)
+        result.current.addTextOverlay({
+          id: 'text-1',
+          text: 'Test Text',
+          startTime: 0,
+          endTime: 5,
+          x: 100,
+          y: 100,
+          fontSize: 24,
+          color: '#ffffff',
+        })
+        result.current.removeTextOverlay('text-1')
+      })
+
+      expect(result.current.timeline?.textOverlays).toHaveLength(0)
+    })
+
+    it('should update text overlay', () => {
+      const { result } = renderHook(() => useEditorStore())
+      const mockTimeline = createMockTimeline()
+
+      act(() => {
+        result.current.setTimeline(mockTimeline)
+        result.current.addTextOverlay({
+          id: 'text-1',
+          text: 'Test Text',
+          startTime: 0,
+          endTime: 5,
+          x: 100,
+          y: 100,
+          fontSize: 24,
+          color: '#ffffff',
+        })
+        result.current.updateTextOverlay('text-1', { text: 'Updated Text' })
+      })
+
+      expect(result.current.timeline?.textOverlays?.[0]?.text).toBe('Updated Text')
+    })
+  })
+
+  describe('Transitions', () => {
+    it('should add transition to selected clips', () => {
+      const { result } = renderHook(() => useEditorStore())
+      const mockTimeline = createMockTimeline()
+      const clip1 = createMockClip({ id: 'clip-1' })
+
+      act(() => {
+        result.current.setTimeline(mockTimeline)
+        result.current.addClip(clip1)
+        result.current.selectClip('clip-1')
+        result.current.addTransitionToSelectedClips('fade', 1)
+      })
+
+      expect(result.current.timeline?.clips[0]?.transitionToNext).toEqual({
+        type: 'fade',
+        duration: 1,
+      })
+    })
+  })
+
+  describe('Clip Splitting', () => {
+    it('should split clip at time', () => {
+      const { result } = renderHook(() => useEditorStore())
+      const mockTimeline = createMockTimeline()
+      const clip = createMockClip({
+        id: 'clip-1',
+        start: 0,
+        end: 10,
+        timelinePosition: 0,
+        sourceDuration: 10,
+      })
+
+      act(() => {
+        result.current.setTimeline(mockTimeline)
+        result.current.addClip(clip)
+        result.current.splitClipAtTime('clip-1', 5)
+      })
+
+      expect(result.current.timeline?.clips).toHaveLength(2)
+      expect(result.current.timeline?.clips[0]?.end).toBe(5)
+      expect(result.current.timeline?.clips[1]?.start).toBe(5)
+      expect(result.current.timeline?.clips[1]?.timelinePosition).toBe(5)
+    })
+
+    it('should not split if time is outside clip bounds', () => {
+      const { result } = renderHook(() => useEditorStore())
+      const mockTimeline = createMockTimeline()
+      const clip = createMockClip({
+        id: 'clip-1',
+        start: 0,
+        end: 10,
+        timelinePosition: 0,
+        sourceDuration: 10,
+      })
+
+      act(() => {
+        result.current.setTimeline(mockTimeline)
+        result.current.addClip(clip)
+        result.current.splitClipAtTime('clip-1', -1) // Before clip
+      })
+
+      expect(result.current.timeline?.clips).toHaveLength(1)
+
+      act(() => {
+        result.current.splitClipAtTime('clip-1', 15) // After clip
+      })
+
+      expect(result.current.timeline?.clips).toHaveLength(1)
+    })
+
+    it('should not split if resulting clips would be too short', () => {
+      const { result } = renderHook(() => useEditorStore())
+      const mockTimeline = createMockTimeline()
+      const clip = createMockClip({
+        id: 'clip-1',
+        start: 0,
+        end: 1,
+        timelinePosition: 0,
+        sourceDuration: 1,
+      })
+
+      act(() => {
+        result.current.setTimeline(mockTimeline)
+        result.current.addClip(clip)
+        result.current.splitClipAtTime('clip-1', 0.05) // Too close to start
+      })
+
+      expect(result.current.timeline?.clips).toHaveLength(1)
+    })
+  })
+
+  describe('Clip Update Validation', () => {
+    it('should enforce minimum clip duration', () => {
+      const { result } = renderHook(() => useEditorStore())
+      const mockTimeline = createMockTimeline()
+      const clip = createMockClip({
+        id: 'clip-1',
+        start: 0,
+        end: 10,
+        timelinePosition: 0,
+        sourceDuration: 10,
+      })
+
+      act(() => {
+        result.current.setTimeline(mockTimeline)
+        result.current.addClip(clip)
+        result.current.updateClip('clip-1', { end: 0.05 }) // Try to set too short
+      })
+
+      const updatedClip = result.current.timeline?.clips[0]
+      expect(updatedClip?.end).toBeGreaterThanOrEqual(0.1)
+    })
+
+    it('should normalize negative timeline position', () => {
+      const { result } = renderHook(() => useEditorStore())
+      const mockTimeline = createMockTimeline()
+      const clip = createMockClip({ id: 'clip-1' })
+
+      act(() => {
+        result.current.setTimeline(mockTimeline)
+        result.current.addClip(clip)
+        result.current.updateClip('clip-1', { timelinePosition: -5 })
+      })
+
+      expect(result.current.timeline?.clips[0]?.timelinePosition).toBe(0)
+    })
+
+    it('should handle invalid sourceDuration', () => {
+      const { result } = renderHook(() => useEditorStore())
+      const mockTimeline = createMockTimeline()
+      const clip = createMockClip({ id: 'clip-1' })
+
+      act(() => {
+        result.current.setTimeline(mockTimeline)
+        result.current.addClip(clip)
+        result.current.updateClip('clip-1', { sourceDuration: NaN })
+      })
+
+      expect(result.current.timeline?.clips[0]?.sourceDuration).toBeNull()
+    })
+
+    it('should clamp start/end within sourceDuration', () => {
+      const { result } = renderHook(() => useEditorStore())
+      const mockTimeline = createMockTimeline()
+      const clip = createMockClip({
+        id: 'clip-1',
+        start: 0,
+        end: 10,
+        sourceDuration: 10,
+      })
+
+      act(() => {
+        result.current.setTimeline(mockTimeline)
+        result.current.addClip(clip)
+        result.current.updateClip('clip-1', { start: 15, end: 20 }) // Beyond sourceDuration
+      })
+
+      const updatedClip = result.current.timeline?.clips[0]
+      expect(updatedClip?.start).toBeLessThanOrEqual(10)
+      expect(updatedClip?.end).toBeLessThanOrEqual(10)
+    })
+  })
+
+  describe('History Management', () => {
+    it('should limit history to max size', () => {
+      const { result } = renderHook(() => useEditorStore())
+      const mockTimeline = createMockTimeline()
+
+      act(() => {
+        result.current.setTimeline(mockTimeline)
+
+        // Add 51 clips to exceed MAX_HISTORY (50)
+        for (let i = 0; i < 51; i++) {
+          result.current.addClip(createMockClip({ id: `clip-${i}` }))
+        }
+      })
+
+      expect(result.current.history.length).toBeLessThanOrEqual(50)
+    })
+
+    it('should clear redo history when new action is performed', () => {
+      const { result } = renderHook(() => useEditorStore())
+      const mockTimeline = createMockTimeline()
+
+      act(() => {
+        result.current.setTimeline(mockTimeline)
+        result.current.addClip(createMockClip({ id: 'clip-1' }))
+        result.current.addClip(createMockClip({ id: 'clip-2' }))
+        result.current.undo()
+      })
+
+      expect(result.current.canRedo()).toBe(true)
+
+      act(() => {
+        result.current.addClip(createMockClip({ id: 'clip-3' }))
+      })
+
+      expect(result.current.canRedo()).toBe(false)
+    })
+  })
 })

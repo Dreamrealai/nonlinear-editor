@@ -4,6 +4,8 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import VideoQueueItem from './VideoQueueItem';
 import AssetLibraryModal from './AssetLibraryModal';
+import { VIDEO_MODELS, VIDEO_MODEL_CONFIGS, MODEL_PROVIDERS } from '@/lib/config/models';
+import { POLLING_CONFIG, NUMERIC_LIMITS } from '@/lib/config';
 
 interface GenerateVideoTabProps {
   projectId: string;
@@ -29,107 +31,6 @@ interface ImageAsset {
   created_at: string;
 }
 
-// Model configuration interface
-interface ModelConfig {
-  id: string;
-  name: string;
-  provider: 'google' | 'openai' | 'seedance' | 'minimax';
-  supportedAspectRatios: ('16:9' | '9:16' | '1:1')[];
-  supportedDurations: (4 | 5 | 6 | 8 | 10)[];
-  supportsResolution: boolean;
-  supportsAudio: boolean;
-  supportsNegativePrompt: boolean;
-  supportsReferenceImage: boolean;
-  supportsEnhancePrompt: boolean;
-  maxSampleCount: number;
-}
-
-// Model configurations
-const MODEL_CONFIGS: Record<string, ModelConfig> = {
-  // Google Veo Models
-  'veo-3.1-generate-preview': {
-    id: 'veo-3.1-generate-preview',
-    name: 'Veo 3.1 (Latest)',
-    provider: 'google',
-    supportedAspectRatios: ['16:9', '9:16', '1:1'],
-    supportedDurations: [4, 5, 6, 8],
-    supportsResolution: true,
-    supportsAudio: true,
-    supportsNegativePrompt: true,
-    supportsReferenceImage: true,
-    supportsEnhancePrompt: true,
-    maxSampleCount: 4,
-  },
-  'veo-3.1-fast-generate-preview': {
-    id: 'veo-3.1-fast-generate-preview',
-    name: 'Veo 3.1 Fast',
-    provider: 'google',
-    supportedAspectRatios: ['16:9', '9:16', '1:1'],
-    supportedDurations: [4, 5, 6, 8],
-    supportsResolution: true,
-    supportsAudio: true,
-    supportsNegativePrompt: true,
-    supportsReferenceImage: true,
-    supportsEnhancePrompt: true,
-    maxSampleCount: 4,
-  },
-  'veo-2.0-generate-001': {
-    id: 'veo-2.0-generate-001',
-    name: 'Veo 2.0',
-    provider: 'google',
-    supportedAspectRatios: ['16:9', '9:16', '1:1'],
-    supportedDurations: [4, 5, 6, 8],
-    supportsResolution: false,
-    supportsAudio: false,
-    supportsNegativePrompt: true,
-    supportsReferenceImage: true,
-    supportsEnhancePrompt: true,
-    maxSampleCount: 4,
-  },
-  // OpenAI SORA
-  'sora-2-pro': {
-    id: 'sora-2-pro',
-    name: 'SORA 2 Pro',
-    provider: 'openai',
-    supportedAspectRatios: ['16:9', '9:16', '1:1'],
-    supportedDurations: [5, 10],
-    supportsResolution: false,
-    supportsAudio: false,
-    supportsNegativePrompt: false,
-    supportsReferenceImage: true,
-    supportsEnhancePrompt: false,
-    maxSampleCount: 1,
-  },
-  // SEEDANCE Pro (via fal.ai)
-  'seedance-1.0-pro': {
-    id: 'seedance-1.0-pro',
-    name: 'SEEDANCE 1.0 Pro',
-    provider: 'seedance',
-    supportedAspectRatios: ['16:9', '9:16', '1:1'],
-    supportedDurations: [5],
-    supportsResolution: true, // 1080p supported
-    supportsAudio: false,
-    supportsNegativePrompt: false,
-    supportsReferenceImage: true,
-    supportsEnhancePrompt: false,
-    maxSampleCount: 1,
-  },
-  // MiniMax Hailuo-02 Pro (via fal.ai)
-  'minimax-hailuo-02-pro': {
-    id: 'minimax-hailuo-02-pro',
-    name: 'MiniMax Hailuo-02 Pro',
-    provider: 'minimax',
-    supportedAspectRatios: ['16:9', '9:16', '1:1'],
-    supportedDurations: [5, 6, 10],
-    supportsResolution: true, // 1080p
-    supportsAudio: false,
-    supportsNegativePrompt: false,
-    supportsReferenceImage: true,
-    supportsEnhancePrompt: true, // Supports prompt optimizer
-    maxSampleCount: 1,
-  },
-};
-
 /**
  * Generate Video Tab Component
  *
@@ -145,8 +46,8 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
 
   // Form state - Configured with loosest/most permissive settings for Veo 3.1
   const [prompt, setPrompt] = useState('');
-  const [model, setModel] = useState<string>('veo-3.1-generate-preview');
-  const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16' | '1:1'>('16:9');
+  const [model, setModel] = useState<string>(VIDEO_MODELS.VEO_3_1_GENERATE);
+  const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16' | '1:1' | '4:3' | '3:4'>('16:9');
   const [duration, setDuration] = useState<4 | 5 | 6 | 8 | 10>(8);
   const [resolution, setResolution] = useState<'720p' | '1080p'>('1080p'); // Highest quality
   const [negativePrompt, setNegativePrompt] = useState(''); // No restrictions
@@ -158,7 +59,7 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Get current model config
-  const currentModelConfig = MODEL_CONFIGS[model];
+  const currentModelConfig = VIDEO_MODEL_CONFIGS[model];
 
   // Image input state
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -183,14 +84,14 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
 
   // Handle model change and adjust settings accordingly
   const handleModelChange = useCallback((newModel: string) => {
-    const newConfig = MODEL_CONFIGS[newModel];
+    const newConfig = VIDEO_MODEL_CONFIGS[newModel];
     if (!newConfig) return;
 
     setModel(newModel);
 
     // Adjust aspect ratio if current one is not supported
     if (!newConfig.supportedAspectRatios.includes(aspectRatio)) {
-      setAspectRatio(newConfig.supportedAspectRatios[0]);
+      setAspectRatio(newConfig.supportedAspectRatios[0] as '16:9' | '9:16' | '1:1' | '4:3' | '3:4');
     }
 
     // Adjust duration if current one is not supported
@@ -303,7 +204,7 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
 
   // Start polling for a specific video
   const startPolling = useCallback((videoId: string, operationName: string) => {
-    const pollInterval = 10000; // 10 seconds
+    const pollInterval = POLLING_CONFIG.INTERVALS.VIDEO_STATUS;
 
     const poll = async () => {
       try {
@@ -339,7 +240,8 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
           }
         }
       } catch (pollError) {
-        console.error('Video generation polling failed:', pollError);
+        const { browserLogger } = await import('@/lib/browserLogger');
+        browserLogger.error({ pollError, videoId, operationName }, 'Video generation polling failed');
         const interval = pollingIntervalsRef.current.get(videoId);
         if (interval) {
           clearInterval(interval);
@@ -368,8 +270,8 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
       return;
     }
 
-    if (videoQueue.length >= 8) {
-      toast.error('Maximum 8 videos in queue. Please wait for some to complete.');
+    if (videoQueue.length >= NUMERIC_LIMITS.VIDEO_QUEUE_MAX) {
+      toast.error(`Maximum ${NUMERIC_LIMITS.VIDEO_QUEUE_MAX} videos in queue. Please wait for some to complete.`);
       return;
     }
 
@@ -439,7 +341,8 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
       setSeed('');
       handleClearImage();
     } catch (error) {
-      console.error('Video generation failed:', error);
+      const { browserLogger } = await import('@/lib/browserLogger');
+      browserLogger.error({ error, projectId, prompt, model }, 'Video generation failed');
       toast.error(error instanceof Error ? error.message : 'Video generation failed');
 
       // Update queue item to failed
@@ -501,12 +404,12 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
                   disabled={generating}
                   className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <option value="veo-3.1-generate-preview">Veo 3.1 (Latest)</option>
-                  <option value="veo-3.1-fast-generate-preview">Veo 3.1 Fast</option>
-                  <option value="veo-2.0-generate-001">Veo 2.0</option>
-                  <option value="sora-2-pro">SORA 2 Pro</option>
-                  <option value="seedance-1.0-pro">SEEDANCE 1.0 Pro</option>
-                  <option value="minimax-hailuo-02-pro">MiniMax Hailuo-02 Pro</option>
+                  <option value={VIDEO_MODELS.VEO_3_1_GENERATE}>Veo 3.1 (Latest)</option>
+                  <option value={VIDEO_MODELS.VEO_3_1_FAST_GENERATE}>Veo 3.1 Fast</option>
+                  <option value={VIDEO_MODELS.VEO_2_0_GENERATE}>Veo 2.0</option>
+                  <option value={VIDEO_MODELS.SORA_2_PRO}>SORA 2 Pro</option>
+                  <option value={VIDEO_MODELS.SEEDANCE_1_0_PRO}>SEEDANCE 1.0 Pro</option>
+                  <option value={VIDEO_MODELS.MINIMAX_HAILUO_02_PRO}>MiniMax Hailuo-02 Pro</option>
                 </select>
               </div>
 
@@ -644,12 +547,12 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
             <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
               <div className="flex-1">
                 <p className="text-sm text-neutral-600">
-                  {videoQueue.length}/8 videos in queue
+                  {videoQueue.length}/{NUMERIC_LIMITS.VIDEO_QUEUE_MAX} videos in queue
                 </p>
               </div>
               <button
                 type="submit"
-                disabled={generating || !prompt.trim() || videoQueue.length >= 8}
+                disabled={generating || !prompt.trim() || videoQueue.length >= NUMERIC_LIMITS.VIDEO_QUEUE_MAX}
                 className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:from-purple-500 disabled:hover:to-pink-500"
               >
                 <div className="flex items-center gap-2">
@@ -738,7 +641,7 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
                       )}
 
                       {/* Person Generation - Only for Google Veo models */}
-                      {currentModelConfig.provider === 'google' && (
+                      {currentModelConfig.provider === MODEL_PROVIDERS.GOOGLE && (
                         <div>
                           <label htmlFor="personGeneration" className="block text-xs font-medium text-neutral-700 mb-2">
                             Person Generation
@@ -846,7 +749,7 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
           <div className="flex flex-col gap-4 h-full">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-neutral-900">
-                Video Queue ({videoQueue.length})
+                Video Queue ({videoQueue.length}/{NUMERIC_LIMITS.VIDEO_QUEUE_MAX})
               </h2>
               {videoQueue.some(v => v.status === 'completed' || v.status === 'failed') && (
                 <button

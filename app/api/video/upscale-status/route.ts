@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { v4 as uuid } from 'uuid';
 import { serverLogger } from '@/lib/serverLogger';
+import { withErrorHandling } from '@/lib/api/response';
 
 /**
  * GET /api/video/upscale-status?requestId=xxx&projectId=xxx
  *
  * Checks the status of a video upscale request and saves the result when complete.
  */
-export async function GET(request: NextRequest) {
-  try {
+export const GET = withErrorHandling(async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
     const requestId = searchParams.get('requestId');
     const projectId = searchParams.get('projectId');
@@ -284,14 +284,4 @@ export async function GET(request: NextRequest) {
       done: false,
       status: statusData.status || 'UNKNOWN',
     });
-  } catch (error) {
-    serverLogger.error({
-      error,
-      event: 'video.upscale_status.error'
-    }, 'Error checking upscale status');
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
+});

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { serverLogger } from '@/lib/serverLogger';
+import { withErrorHandling } from '@/lib/api/response';
 
 /**
  * POST /api/video/generate-audio
@@ -13,8 +14,7 @@ import { serverLogger } from '@/lib/serverLogger';
  * - model: 'minimax' | 'mureka-1.5' | 'kling-turbo-2.5' - Model to use
  * - prompt?: string - Optional text prompt to guide audio generation
  */
-export async function POST(request: NextRequest) {
-  try {
+export const POST = withErrorHandling(async (request: NextRequest) => {
     const body = await request.json();
     const { assetId, projectId, model = 'minimax', prompt } = body;
 
@@ -187,11 +187,4 @@ export async function POST(request: NextRequest) {
       model,
       message: 'Video-to-audio generation started',
     });
-  } catch (error) {
-    serverLogger.error({ error }, 'Video-to-audio generation error');
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
+});

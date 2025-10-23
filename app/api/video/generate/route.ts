@@ -21,7 +21,84 @@ import {
   withErrorHandling,
 } from '@/lib/api/response';
 import { verifyProjectOwnership, verifyAssetOwnership } from '@/lib/api/project-verification';
+import { isFalModel } from '@/lib/config/models';
 
+/**
+ * Generate a video from a text prompt using AI models (Google Veo, FAL.ai Seedance, or MiniMax).
+ *
+ * This endpoint supports both text-to-video and image-to-video generation with multiple AI providers.
+ * The provider is automatically selected based on the specified model.
+ *
+ * @route POST /api/video/generate
+ *
+ * @param {string} request.body.prompt - Text description of the video to generate (3-1000 characters)
+ * @param {string} request.body.projectId - UUID of the project to associate the video with
+ * @param {string} request.body.model - AI model to use ('veo-002', 'veo-003', 'seedance-1.0-pro', 'minimax-hailuo-02-pro')
+ * @param {string} [request.body.aspectRatio] - Video aspect ratio ('16:9', '9:16', '1:1', '4:3', '3:4')
+ * @param {number} [request.body.duration] - Video duration in seconds (varies by model, typically 1-10)
+ * @param {string} [request.body.resolution] - Video resolution ('480p', '720p', '1080p')
+ * @param {string} [request.body.negativePrompt] - Text describing what to avoid in the video (max 1000 chars)
+ * @param {string} [request.body.personGeneration] - Person generation setting ('dont_allow', 'allow_adult', 'allow_all')
+ * @param {boolean} [request.body.enhancePrompt] - Whether to enhance the prompt with AI optimization
+ * @param {boolean} [request.body.generateAudio] - Whether to generate audio for the video (Veo only)
+ * @param {number} [request.body.seed] - Random seed for reproducible generation (0-2147483647)
+ * @param {number} [request.body.sampleCount] - Number of video variations to generate (1-4)
+ * @param {number} [request.body.compressionQuality] - Video compression quality (0-100, Veo only)
+ * @param {string} [request.body.imageAssetId] - UUID of an image asset to use as the first frame (image-to-video)
+ *
+ * @returns {object} Video generation operation details for status polling
+ * @returns {string} returns.operationName - Unique operation identifier for polling status
+ * @returns {string} returns.status - Operation status ('processing')
+ * @returns {string} returns.message - Human-readable status message
+ *
+ * @throws {401} Unauthorized - User not authenticated
+ * @throws {403} Forbidden - User doesn't own the specified project or image asset
+ * @throws {400} Bad Request - Invalid parameters (prompt length, invalid UUID, etc.)
+ * @throws {429} Too Many Requests - Rate limit exceeded (10 requests per minute)
+ * @throws {500} Internal Server Error - Video generation service error
+ *
+ * @ratelimit 10 requests per minute (TIER 2 - Resource Creation)
+ *
+ * @authentication Required - Session cookie (supabase-auth-token)
+ *
+ * @example
+ * // Text-to-video with Google Veo
+ * POST /api/video/generate
+ * {
+ *   "prompt": "A serene lake at sunset with mountains in the background",
+ *   "projectId": "123e4567-e89b-12d3-a456-426614174000",
+ *   "model": "veo-002",
+ *   "duration": 5,
+ *   "aspectRatio": "16:9",
+ *   "resolution": "1080p"
+ * }
+ *
+ * Response:
+ * {
+ *   "operationName": "projects/123/locations/us-central1/operations/456",
+ *   "status": "processing",
+ *   "message": "Video generation started. Use the operation name to check status."
+ * }
+ *
+ * @example
+ * // Image-to-video with FAL.ai Seedance
+ * POST /api/video/generate
+ * {
+ *   "prompt": "The cat starts walking across the room",
+ *   "projectId": "123e4567-e89b-12d3-a456-426614174000",
+ *   "model": "seedance-1.0-pro",
+ *   "imageAssetId": "789e4567-e89b-12d3-a456-426614174000",
+ *   "duration": 4,
+ *   "aspectRatio": "16:9"
+ * }
+ *
+ * Response:
+ * {
+ *   "operationName": "fal:seedance-1.0-pro:abc123def456",
+ *   "status": "processing",
+ *   "message": "Video generation started. Use the operation name to check status."
+ * }
+ */
 export const POST = withErrorHandling(async (req: NextRequest) => {
   const startTime = Date.now();
 
@@ -158,8 +235,8 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     }
 
     // Route to appropriate provider based on model
-    const isFalModel = model === 'seedance-1.0-pro' || model === 'minimax-hailuo-02-pro';
-    const provider = isFalModel ? 'fal' : 'veo';
+    const isModelFal = isFalModel(model);
+    const provider = isModelFal ? 'fal' : 'veo';
 
     serverLogger.info({
       event: 'video.generate.starting',
@@ -173,7 +250,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       promptLength: prompt.length,
     }, `Starting video generation with ${provider}`);
 
-    if (isFalModel) {
+    if (isModelFal) {
       // Use FAL.ai for Seedance and MiniMax models
       const result = await generateFalVideo({
         prompt,

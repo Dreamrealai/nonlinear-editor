@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 import { VideoIntelligenceServiceClient, protos } from '@google-cloud/video-intelligence';
 import { Storage } from '@google-cloud/storage';
 import { serverLogger } from '@/lib/serverLogger';
+import { withErrorHandling } from '@/lib/api/response';
 
 const parseStorageUrl = (storageUrl: string) => {
   // SECURITY: Validate input format
@@ -30,8 +31,7 @@ const parseStorageUrl = (storageUrl: string) => {
 // Set max duration for Vercel serverless function (10 seconds on hobby, 60 on pro)
 export const maxDuration = 60;
 
-export async function POST(req: NextRequest) {
-  try {
+export const POST = withErrorHandling(async (req: NextRequest) => {
     serverLogger.info('Scene detection request received');
     const supabase = await createServerSupabaseClient();
 
@@ -337,24 +337,4 @@ export async function POST(req: NextRequest) {
       count: scenes.length,
       note: 'Scene frames can be extracted in the Keyframe Editor',
     });
-  } catch (error) {
-    // Provide detailed error information
-    const errorMessage = error instanceof Error ? error.message : 'Failed to split scenes';
-    const errorStack = error instanceof Error ? error.stack : undefined;
-
-    serverLogger.error({
-      error,
-      errorMessage,
-      errorStack,
-      event: 'video.scene_detection.error'
-    }, 'Scene split error');
-
-    return NextResponse.json(
-      {
-        error: errorMessage,
-        details: 'An unexpected error occurred during scene detection. Check server logs for more information.'
-      },
-      { status: 500 }
-    );
-  }
-}
+});

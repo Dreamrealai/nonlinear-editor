@@ -15,6 +15,64 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 
 const VALID_ASSET_TYPES = ['image', 'video', 'audio'] as const;
 
+/**
+ * Upload a media file (image, video, or audio) to a project.
+ *
+ * Uploads a file to Supabase storage and creates an asset record in the database.
+ * Files are stored in user-specific folders and validated for type and size.
+ *
+ * @route POST /api/assets/upload
+ *
+ * @param {File} request.formData.file - The file to upload (max 100MB)
+ * @param {string} request.formData.projectId - UUID of the project to upload to
+ * @param {string} request.formData.type - Asset type ('image', 'video', or 'audio')
+ *
+ * @returns {object} Upload result with asset details
+ * @returns {string} returns.assetId - UUID of the created asset
+ * @returns {string} returns.storageUrl - Internal storage URL (supabase://assets/...)
+ * @returns {string} returns.publicUrl - Public HTTPS URL to access the file
+ * @returns {boolean} returns.success - Always true on success
+ *
+ * @throws {401} Unauthorized - User not authenticated
+ * @throws {403} Forbidden - User doesn't own the specified project
+ * @throws {400} Bad Request - No file provided, invalid project ID, or invalid type
+ * @throws {413} Payload Too Large - File exceeds 100MB limit
+ * @throws {415} Unsupported Media Type - File MIME type not allowed for asset type
+ * @throws {429} Too Many Requests - Rate limit exceeded (10 requests per minute)
+ * @throws {500} Internal Server Error - Storage or database error
+ *
+ * @ratelimit 10 requests per minute (TIER 2 - Resource Creation)
+ *
+ * @authentication Required - Session cookie (supabase-auth-token)
+ *
+ * @security
+ * - File size limited to 100MB
+ * - MIME type validation per asset type
+ * - Ownership verification for project access
+ * - Unique filenames with UUID to prevent collisions
+ *
+ * Allowed MIME types:
+ * - image: image/jpeg, image/png, image/gif, image/webp, image/avif
+ * - video: video/mp4, video/webm, video/quicktime, video/x-msvideo
+ * - audio: audio/mpeg, audio/wav, audio/ogg, audio/webm
+ *
+ * @example
+ * POST /api/assets/upload
+ * Content-Type: multipart/form-data
+ *
+ * FormData:
+ * - file: [binary file data]
+ * - projectId: "123e4567-e89b-12d3-a456-426614174000"
+ * - type: "video"
+ *
+ * Response:
+ * {
+ *   "assetId": "789e4567-e89b-12d3-a456-426614174000",
+ *   "storageUrl": "supabase://assets/user-id/project-id/video/uuid.mp4",
+ *   "publicUrl": "https://storage.example.com/assets/user-id/project-id/video/uuid.mp4",
+ *   "success": true
+ * }
+ */
 export const POST = withErrorHandling(async (request: NextRequest) => {
   const startTime = Date.now();
 

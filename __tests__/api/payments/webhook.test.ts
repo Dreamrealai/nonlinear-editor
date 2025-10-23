@@ -15,19 +15,29 @@ import {
 } from '@/__tests__/utils/mockStripe';
 
 // Mock Stripe
-const mockConstructEvent = jest.fn();
-const mockRetrieveSubscription = jest.fn();
+const stripeMocks: {
+  constructEvent?: jest.Mock;
+  retrieveSubscription?: jest.Mock;
+} = {};
 
-jest.mock('@/lib/stripe', () => ({
-  stripe: {
-    webhooks: {
-      constructEvent: mockConstructEvent,
+jest.mock('@/lib/stripe', () => {
+  stripeMocks.constructEvent = jest.fn();
+  stripeMocks.retrieveSubscription = jest.fn();
+
+  return {
+    stripe: {
+      webhooks: {
+        constructEvent: stripeMocks.constructEvent,
+      },
+      subscriptions: {
+        retrieve: stripeMocks.retrieveSubscription,
+      },
     },
-    subscriptions: {
-      retrieve: mockRetrieveSubscription,
-    },
-  },
-}));
+  };
+});
+
+let mockConstructEvent: jest.Mock;
+let mockRetrieveSubscription: jest.Mock;
 
 // Mock Supabase
 const mockSupabaseClient = createMockSupabaseClient();
@@ -52,6 +62,8 @@ describe('POST /api/stripe/webhook', () => {
     process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_secret';
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
+    mockConstructEvent = stripeMocks.constructEvent as jest.Mock;
+    mockRetrieveSubscription = stripeMocks.retrieveSubscription as jest.Mock;
     jest.clearAllMocks();
   });
 

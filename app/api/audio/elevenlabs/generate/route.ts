@@ -16,6 +16,72 @@ interface ElevenLabsGenerateRequest {
   userId?: string; // kept for backward compatibility; ignored in favor of session user
 }
 
+/**
+ * Generate speech from text using ElevenLabs text-to-speech AI.
+ *
+ * Converts text into realistic speech audio using ElevenLabs AI voices.
+ * The generated audio is automatically uploaded to storage and added as an asset.
+ *
+ * @route POST /api/audio/elevenlabs/generate
+ *
+ * @param {string} request.body.text - Text to convert to speech (1-5000 characters)
+ * @param {string} request.body.projectId - UUID of the project to add audio to
+ * @param {string} [request.body.voiceId] - ElevenLabs voice ID (defaults to 'EXAVITQu4vr4xnSDxMaL' - Sarah)
+ * @param {string} [request.body.modelId] - ElevenLabs model ID (defaults to 'eleven_multilingual_v2')
+ * @param {number} [request.body.stability] - Voice stability (0-1, default 0.5)
+ * @param {number} [request.body.similarity] - Similarity boost (0-1, default 0.75)
+ *
+ * @returns {object} Generation result with created asset
+ * @returns {boolean} returns.success - Always true on success
+ * @returns {object} returns.asset - Created audio asset object
+ * @returns {string} returns.asset.id - Asset UUID
+ * @returns {string} returns.asset.storage_url - Storage URL
+ * @returns {object} returns.asset.metadata - Metadata including voice settings
+ * @returns {string} returns.message - Success message
+ *
+ * @throws {401} Unauthorized - User not authenticated
+ * @throws {403} Forbidden - User doesn't own the specified project
+ * @throws {400} Bad Request - Invalid text, projectId, or voice settings
+ * @throws {429} Too Many Requests - Rate limit exceeded (10 requests per minute)
+ * @throws {500} Internal Server Error - ElevenLabs API key missing or configured
+ * @throws {504} Gateway Timeout - ElevenLabs API timeout (60 seconds)
+ *
+ * @ratelimit 10 requests per minute (TIER 2 - Resource Creation)
+ *
+ * @authentication Required - Session cookie (supabase-auth-token)
+ *
+ * @timeout 60 seconds - Request will abort if ElevenLabs doesn't respond
+ *
+ * @example
+ * POST /api/audio/elevenlabs/generate
+ * {
+ *   "text": "Hello, this is a test of text-to-speech generation.",
+ *   "projectId": "123e4567-e89b-12d3-a456-426614174000",
+ *   "voiceId": "EXAVITQu4vr4xnSDxMaL",
+ *   "stability": 0.6,
+ *   "similarity": 0.8
+ * }
+ *
+ * Response:
+ * {
+ *   "success": true,
+ *   "asset": {
+ *     "id": "asset-uuid",
+ *     "project_id": "123e4567-e89b-12d3-a456-426614174000",
+ *     "type": "audio",
+ *     "source": "genai",
+ *     "storage_url": "supabase://assets/user-id/project-id/audio/elevenlabs_123.mp3",
+ *     "metadata": {
+ *       "filename": "elevenlabs_123.mp3",
+ *       "provider": "elevenlabs",
+ *       "voiceId": "EXAVITQu4vr4xnSDxMaL",
+ *       "modelId": "eleven_multilingual_v2",
+ *       "text": "Hello, this is a test..."
+ *     }
+ *   },
+ *   "message": "Audio generated successfully"
+ * }
+ */
 export const POST = withErrorHandling(async (req: NextRequest) => {
   const startTime = Date.now();
 

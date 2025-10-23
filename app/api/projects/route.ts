@@ -10,7 +10,51 @@ import {
 } from '@/lib/api/response';
 import { validateString, validateAll } from '@/lib/api/validation';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
+import { invalidateUserProjects } from '@/lib/cacheInvalidation';
 
+/**
+ * Create a new video editing project.
+ *
+ * Creates a new project associated with the authenticated user. Projects serve as containers
+ * for assets, timelines, and editing work.
+ *
+ * @route POST /api/projects
+ *
+ * @param {string} [request.body.title] - Project title (1-200 characters, defaults to 'Untitled Project')
+ *
+ * @returns {object} The newly created project
+ * @returns {string} returns.id - Project UUID
+ * @returns {string} returns.title - Project title
+ * @returns {string} returns.user_id - Owner's user ID
+ * @returns {object} returns.timeline_state_jsonb - Timeline state (empty object initially)
+ * @returns {string} returns.created_at - ISO 8601 timestamp of creation
+ * @returns {string} returns.updated_at - ISO 8601 timestamp of last update
+ *
+ * @throws {401} Unauthorized - User not authenticated
+ * @throws {400} Bad Request - Invalid title (empty or > 200 characters)
+ * @throws {429} Too Many Requests - Rate limit exceeded (10 requests per minute)
+ * @throws {500} Internal Server Error - Database error
+ *
+ * @ratelimit 10 requests per minute (TIER 2 - Resource Creation)
+ *
+ * @authentication Required - Session cookie (supabase-auth-token)
+ *
+ * @example
+ * POST /api/projects
+ * {
+ *   "title": "My Video Project"
+ * }
+ *
+ * Response:
+ * {
+ *   "id": "123e4567-e89b-12d3-a456-426614174000",
+ *   "title": "My Video Project",
+ *   "user_id": "user-uuid",
+ *   "timeline_state_jsonb": {},
+ *   "created_at": "2025-10-23T12:00:00.000Z",
+ *   "updated_at": "2025-10-23T12:00:00.000Z"
+ * }
+ */
 export const POST = withErrorHandling(async (request: NextRequest) => {
   const startTime = Date.now();
 
@@ -96,6 +140,9 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     title,
     duration,
   }, `Project created successfully in ${duration}ms`);
+
+  // Invalidate user's projects cache after creation
+  await invalidateUserProjects(user.id);
 
   return successResponse(project);
 });

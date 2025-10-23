@@ -25,8 +25,9 @@ export function useAutosave(projectId: string, delay = 2000, saveFn?: SaveFn) {
       const handler = saveFn ?? saveTimeline;
       const result = handler(projectId, timeline);
       if (result instanceof Promise) {
-        result.catch((error) => {
-          console.error('Autosave failed:', error);
+        result.catch(async (error) => {
+          const { browserLogger } = await import('@/lib/browserLogger');
+          browserLogger.error({ error, projectId }, 'Autosave failed');
           setSaveError(error instanceof Error ? error.message : 'Failed to save timeline');
 
           // Clear error after 5 seconds

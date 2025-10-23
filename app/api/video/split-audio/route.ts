@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
-import { serverLogger } from '@/lib/serverLogger';
+import { withErrorHandling } from '@/lib/api/response';
 
-export async function POST(req: NextRequest) {
-  try {
+export const POST = withErrorHandling(async (req: NextRequest) => {
     const supabase = await createServerSupabaseClient();
 
     // Check authentication
@@ -67,11 +66,4 @@ export async function POST(req: NextRequest) {
       assetId,
       videoUrl: asset.metadata?.sourceUrl || asset.storage_url,
     });
-  } catch (error) {
-    serverLogger.error({ error }, 'Audio split error');
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to split audio' },
-      { status: 500 }
-    );
-  }
-}
+});

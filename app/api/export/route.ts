@@ -6,7 +6,8 @@ import {
   validationError,
   notFoundResponse,
   errorResponse,
-  successResponse
+  successResponse,
+  withErrorHandling
 } from '@/lib/api/response';
 import { validateUUID, validateEnum, validateInteger, validateAll } from '@/lib/api/validation';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
@@ -70,8 +71,7 @@ export interface ExportResponse {
 const VALID_FORMATS = ['mp4', 'webm'] as const;
 const VALID_TRANSITIONS = ['crossfade', 'fade-in', 'fade-out'] as const;
 
-export async function POST(request: NextRequest) {
-  try {
+export const POST = withErrorHandling(async (request: NextRequest) => {
     // SECURITY: Verify user authentication
     const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -208,21 +208,13 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json(response, { status: 202 }); // 202 Accepted
-  } catch (error) {
-    serverLogger.error({ error }, 'Export endpoint error');
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
+});
 
 /**
  * GET /api/export?jobId=xxx
  * Check status of export job
  */
-export async function GET(request: NextRequest) {
-  try {
+export const GET = withErrorHandling(async (request: NextRequest) => {
     const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -276,8 +268,4 @@ export async function GET(request: NextRequest) {
     };
 
     return successResponse(response);
-  } catch (error) {
-    serverLogger.error({ error }, 'Export status check error');
-    return errorResponse('Internal server error', 500);
-  }
-}
+});

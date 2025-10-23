@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/lib/supabase';
-import { unauthorizedResponse, errorResponse, rateLimitResponse, successResponse } from '@/lib/api/response';
+import { unauthorizedResponse, errorResponse, rateLimitResponse, successResponse, withErrorHandling } from '@/lib/api/response';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
 
@@ -20,7 +20,7 @@ import { serverLogger } from '@/lib/serverLogger';
  *
  * IMPORTANT: This operation is irreversible!
  */
-export async function DELETE(_req: NextRequest) {
+export const DELETE = withErrorHandling(async (_req: NextRequest) => {
   // TIER 1 RATE LIMITING: Account deletion (5/min)
   // Critical to prevent abuse and accidental mass deletions
   const supabaseForRateLimit = await createServerSupabaseClient();
@@ -170,10 +170,8 @@ export async function DELETE(_req: NextRequest) {
 
     return successResponse(null, 'Account successfully deleted');
   } catch (error) {
-    serverLogger.error({ error }, 'Account deletion error');
-    return errorResponse(
-      error instanceof Error ? error.message : 'Failed to delete account',
-      500
-    );
+    serverLogger.error({ error, rateLimitIdentifier }, 'Account deletion failed');
+    return errorResponse('Account deletion failed', 500);
   }
-}
+});
+

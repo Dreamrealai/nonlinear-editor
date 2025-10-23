@@ -1,9 +1,10 @@
 import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 import { serverLogger } from '@/lib/serverLogger';
+import { withErrorHandling } from '@/lib/api/response';
 
 // SECURITY: Use POST method to prevent CSRF attacks
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandling(async (request: NextRequest) => {
   const startTime = Date.now();
 
   serverLogger.info({
@@ -60,4 +61,5 @@ export async function POST(request: NextRequest) {
   }, `User signed out successfully in ${duration}ms`);
 
   return NextResponse.json({ success: true });
-}
+});
+

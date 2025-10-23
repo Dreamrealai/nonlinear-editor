@@ -269,7 +269,11 @@ export function withErrorHandling<T extends unknown[]>(
     try {
       return await handler(...args);
     } catch (error) {
-      console.error('Handler error:', error);
+      // Log error using structured logging (server-side only)
+      if (typeof process !== 'undefined' && process.env) {
+        const { serverLogger } = await import('../serverLogger');
+        serverLogger.error({ error }, 'Handler error');
+      }
 
       if (error instanceof Error) {
         return internalServerError(error.message, error.stack);

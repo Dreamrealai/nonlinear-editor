@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { serverLogger } from '@/lib/serverLogger';
+import { withErrorHandling } from '@/lib/api/response';
 
 /**
  * GET /api/video/generate-audio-status?requestId=...&projectId=...&assetId=...
  *
  * Checks the status of a video-to-audio generation job.
  */
-export async function GET(request: NextRequest) {
-  try {
+export const GET = withErrorHandling(async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
     const requestId = searchParams.get('requestId');
     const projectId = searchParams.get('projectId');
@@ -264,11 +264,4 @@ export async function GET(request: NextRequest) {
       status: 'processing',
       progress: statusData.progress || 0,
     });
-  } catch (error) {
-    serverLogger.error({ error }, 'Video-to-audio status check error');
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
+});

@@ -9,6 +9,9 @@
  * - FAL_API_KEY: API key for fal.ai
  */
 
+import { API_ENDPOINTS, FAL_ENDPOINTS, TIMEOUTS } from './config/api';
+import { VIDEO_MODELS } from './config/models';
+
 /**
  * Parameters for FAL video generation request.
  */
@@ -62,13 +65,13 @@ function getFalApiKey(): string {
  */
 function getFalEndpoint(model: string, hasImage: boolean): string {
   const endpointMap: Record<string, { text: string; image: string }> = {
-    'seedance-1.0-pro': {
-      text: 'fal-ai/bytedance/seedance/v1/pro/text-to-video',
-      image: 'fal-ai/bytedance/seedance/v1/pro/image-to-video',
+    [VIDEO_MODELS.SEEDANCE_1_0_PRO]: {
+      text: FAL_ENDPOINTS.SEEDANCE_TEXT_TO_VIDEO,
+      image: FAL_ENDPOINTS.SEEDANCE_IMAGE_TO_VIDEO,
     },
-    'minimax-hailuo-02-pro': {
-      text: 'fal-ai/minimax/hailuo-02/pro/text-to-video',
-      image: 'fal-ai/minimax/hailuo-02/pro/image-to-video',
+    [VIDEO_MODELS.MINIMAX_HAILUO_02_PRO]: {
+      text: FAL_ENDPOINTS.MINIMAX_TEXT_TO_VIDEO,
+      image: FAL_ENDPOINTS.MINIMAX_IMAGE_TO_VIDEO,
     },
   };
 
@@ -102,7 +105,7 @@ export async function generateFalVideo(params: FalVideoParams): Promise<{ reques
   }
 
   // Add model-specific parameters
-  if (params.model === 'seedance-1.0-pro') {
+  if (params.model === VIDEO_MODELS.SEEDANCE_1_0_PRO) {
     // Seedance-specific parameters
     if (params.resolution) {
       input.resolution = params.resolution;
@@ -113,7 +116,7 @@ export async function generateFalVideo(params: FalVideoParams): Promise<{ reques
     if (params.aspectRatio) {
       input.aspect_ratio = params.aspectRatio;
     }
-  } else if (params.model === 'minimax-hailuo-02-pro') {
+  } else if (params.model === VIDEO_MODELS.MINIMAX_HAILUO_02_PRO) {
     // MiniMax Hailuo-02 Pro specific parameters
     input.prompt_optimizer = params.promptOptimizer !== undefined ? params.promptOptimizer : true;
 
@@ -129,11 +132,11 @@ export async function generateFalVideo(params: FalVideoParams): Promise<{ reques
   try {
     // Submit the request to FAL queue API with timeout
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+    const timeout = setTimeout(() => controller.abort(), TIMEOUTS.FAL_SUBMIT);
 
     let response;
     try {
-      response = await fetch(`https://queue.fal.run/${endpoint}`, {
+      response = await fetch(`${API_ENDPOINTS.FAL_QUEUE}/${endpoint}`, {
         method: 'POST',
         headers: {
           'Authorization': `Key ${apiKey}`,
@@ -152,7 +155,7 @@ export async function generateFalVideo(params: FalVideoParams): Promise<{ reques
     } catch (err) {
       clearTimeout(timeout);
       if (err instanceof Error && err.name === 'AbortError') {
-        throw new Error('FAL video generation request timeout after 60s');
+        throw new Error(`FAL video generation request timeout after ${TIMEOUTS.FAL_SUBMIT}ms`);
       }
       throw err;
     }
@@ -164,7 +167,11 @@ export async function generateFalVideo(params: FalVideoParams): Promise<{ reques
       endpoint,
     };
   } catch (error) {
-    console.error('FAL video generation error:', error);
+    // Log error for debugging (server-side only)
+    if (typeof process !== 'undefined' && process.env) {
+      const { serverLogger } = await import('./serverLogger');
+      serverLogger.error({ error, model: params.model, endpoint }, 'FAL video generation error');
+    }
     throw new Error(`FAL video generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -186,11 +193,11 @@ export async function checkFalVideoStatus(
   try {
     // Check status via FAL status API with timeout
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout for status check
+    const timeout = setTimeout(() => controller.abort(), TIMEOUTS.FAL_STATUS);
 
     let response;
     try {
-      response = await fetch(`https://queue.fal.run/${endpoint}/requests/${requestId}/status`, {
+      response = await fetch(`${API_ENDPOINTS.FAL_QUEUE}/${endpoint}/requests/${requestId}/status`, {
         method: 'GET',
         headers: {
           'Authorization': `Key ${apiKey}`,
@@ -207,7 +214,7 @@ export async function checkFalVideoStatus(
     } catch (err) {
       clearTimeout(timeout);
       if (err instanceof Error && err.name === 'AbortError') {
-        throw new Error('FAL status check timeout after 30s');
+        throw new Error(`FAL status check timeout after ${TIMEOUTS.FAL_STATUS}ms`);
       }
       throw err;
     }
@@ -218,11 +225,11 @@ export async function checkFalVideoStatus(
     if (statusData.status === 'COMPLETED') {
       // Fetch the result with timeout
       const resultController = new AbortController();
-      const resultTimeout = setTimeout(() => resultController.abort(), 30000);
+      const resultTimeout = setTimeout(() => resultController.abort(), TIMEOUTS.FAL_RESULT);
 
       let resultResponse;
       try {
-        resultResponse = await fetch(`https://queue.fal.run/${endpoint}/requests/${requestId}`, {
+        resultResponse = await fetch(`${API_ENDPOINTS.FAL_QUEUE}/${endpoint}/requests/${requestId}`, {
           method: 'GET',
           headers: {
             'Authorization': `Key ${apiKey}`,
@@ -238,7 +245,7 @@ export async function checkFalVideoStatus(
       } catch (err) {
         clearTimeout(resultTimeout);
         if (err instanceof Error && err.name === 'AbortError') {
-          throw new Error('FAL result fetch timeout after 30s');
+          throw new Error(`FAL result fetch timeout after ${TIMEOUTS.FAL_RESULT}ms`);
         }
         throw err;
       }
@@ -264,7 +271,11 @@ export async function checkFalVideoStatus(
       done: false,
     };
   } catch (error) {
-    console.error('FAL status check error:', error);
+    // Log error for debugging (server-side only)
+    if (typeof process !== 'undefined' && process.env) {
+      const { serverLogger } = await import('./serverLogger');
+      serverLogger.error({ error, requestId, endpoint }, 'FAL status check error');
+    }
     throw new Error(`FAL status check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -282,10 +293,10 @@ export async function cancelFalVideo(requestId: string, endpoint: string): Promi
   try {
     // Cancel request with timeout
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    const timeout = setTimeout(() => controller.abort(), TIMEOUTS.FAL_STATUS);
 
     try {
-      const response = await fetch(`https://queue.fal.run/${endpoint}/requests/${requestId}/cancel`, {
+      const response = await fetch(`${API_ENDPOINTS.FAL_QUEUE}/${endpoint}/requests/${requestId}/cancel`, {
         method: 'PUT',
         headers: {
           'Authorization': `Key ${apiKey}`,
@@ -302,12 +313,16 @@ export async function cancelFalVideo(requestId: string, endpoint: string): Promi
     } catch (err) {
       clearTimeout(timeout);
       if (err instanceof Error && err.name === 'AbortError') {
-        throw new Error('FAL cancellation timeout after 30s');
+        throw new Error(`FAL cancellation timeout after ${TIMEOUTS.FAL_STATUS}ms`);
       }
       throw err;
     }
   } catch (error) {
-    console.error('FAL cancellation error:', error);
+    // Log error for debugging (server-side only)
+    if (typeof process !== 'undefined' && process.env) {
+      const { serverLogger } = await import('./serverLogger');
+      serverLogger.error({ error, requestId, endpoint }, 'FAL cancellation error');
+    }
     throw new Error(`FAL cancellation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

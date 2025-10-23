@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { UserProfile, UserTier } from '@/lib/types/subscription';
 import toast, { Toaster } from 'react-hot-toast';
+import { browserLogger } from '@/lib/browserLogger';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -35,7 +36,7 @@ export default function AdminDashboard() {
           .single();
 
         if (profileError) {
-          console.error('Error fetching profile:', profileError);
+          browserLogger.error({ error: profileError, userId: user.id }, 'Error fetching profile');
           toast.error('Failed to load profile');
           router.push('/');
           return;
@@ -57,13 +58,13 @@ export default function AdminDashboard() {
           .order('created_at', { ascending: false });
 
         if (usersError) {
-          console.error('Error fetching users:', usersError);
+          browserLogger.error({ error: usersError }, 'Error fetching users');
           toast.error('Failed to load users');
         } else {
           setUsers(allUsers);
         }
       } catch (error) {
-        console.error('Error loading admin data:', error);
+        browserLogger.error({ error }, 'Error loading admin data');
         toast.error('Failed to load admin dashboard');
       } finally {
         setLoading(false);
@@ -104,7 +105,7 @@ export default function AdminDashboard() {
 
       toast.success(`User tier changed to ${newTier}`);
     } catch (error) {
-      console.error('Error changing tier:', error);
+      browserLogger.error({ error, userId, newTier }, 'Error changing tier');
       toast.error(error instanceof Error ? error.message : 'Failed to change tier');
     } finally {
       setActionLoading(null);
@@ -141,7 +142,7 @@ export default function AdminDashboard() {
 
       toast.success('User deleted successfully');
     } catch (error) {
-      console.error('Error deleting user:', error);
+      browserLogger.error({ error, userId, userEmail }, 'Error deleting user');
       toast.error(error instanceof Error ? error.message : 'Failed to delete user');
     } finally {
       setActionLoading(null);

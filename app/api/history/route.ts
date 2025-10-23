@@ -7,15 +7,15 @@ import {
   errorResponse,
   validationError,
   successResponse,
-  rateLimitResponse
+  rateLimitResponse,
+  withErrorHandling
 } from '@/lib/api/response';
 import { validateInteger, validateEnum, validateAll } from '@/lib/api/validation';
 
 export const dynamic = 'force-dynamic';
 
 // GET /api/history - Fetch user's activity history
-export async function GET(request: NextRequest) {
-  try {
+export const GET = withErrorHandling(async (request: NextRequest) => {
     const supabase = await createServerSupabaseClient();
 
     // Check authentication
@@ -77,15 +77,10 @@ export async function GET(request: NextRequest) {
     }
 
     return successResponse({ history, count: history?.length || 0 });
-  } catch (error) {
-    serverLogger.error({ error }, 'Error in GET /api/history');
-    return errorResponse('Internal server error', 500);
-  }
-}
+});
 
 // DELETE /api/history - Clear user's activity history
-export async function DELETE() {
-  try {
+export const DELETE = withErrorHandling(async () => {
     const supabase = await createServerSupabaseClient();
 
     // Check authentication
@@ -110,11 +105,7 @@ export async function DELETE() {
     }
 
     return successResponse(null, 'Activity history cleared');
-  } catch (error) {
-    serverLogger.error({ error }, 'Error in DELETE /api/history');
-    return errorResponse('Internal server error', 500);
-  }
-}
+});
 
 const VALID_ACTIVITY_TYPES = [
   'video_generation',
@@ -127,8 +118,7 @@ const VALID_ACTIVITY_TYPES = [
 ] as const;
 
 // POST /api/history - Add a new activity entry (for manual logging)
-export async function POST(request: NextRequest) {
-  try {
+export const POST = withErrorHandling(async (request: NextRequest) => {
     const supabase = await createServerSupabaseClient();
 
     // Check authentication
@@ -183,8 +173,4 @@ export async function POST(request: NextRequest) {
     }
 
     return successResponse({ success: true, activity: data });
-  } catch (error) {
-    serverLogger.error({ error }, 'Error in POST /api/history');
-    return errorResponse('Internal server error', 500);
-  }
-}
+});

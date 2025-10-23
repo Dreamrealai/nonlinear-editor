@@ -25,17 +25,30 @@ jest.mock('@/lib/fal-video', () => ({
   checkFalVideoStatus: jest.fn(),
 }));
 
-jest.mock('@/lib/api/response', () => ({
-  unauthorizedResponse: jest.fn(() =>
-    new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
-  ),
-  validationError: jest.fn((message: string, field: string) =>
-    new Response(JSON.stringify({ error: message, field }), { status: 400 })
-  ),
-  errorResponse: jest.fn((message: string, status: number) =>
-    new Response(JSON.stringify({ error: message }), { status })
-  ),
-}));
+jest.mock('@/lib/api/response', () => {
+  const jsonResponse = (payload: unknown, init?: ResponseInit) =>
+    new Response(JSON.stringify(payload), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+      ...init,
+    });
+
+  return {
+    unauthorizedResponse: jest.fn(() =>
+      jsonResponse({ error: 'Unauthorized' }, { status: 401 })
+    ),
+    validationError: jest.fn((message: string, field: string) =>
+      jsonResponse({ error: message, field }, { status: 400 })
+    ),
+    errorResponse: jest.fn((message: string, status: number) =>
+      jsonResponse({ error: message }, { status })
+    ),
+    withErrorHandling: jest.fn((handler: unknown) => handler),
+    rateLimitResponse: jest.fn(() =>
+      jsonResponse({ error: 'Rate limit exceeded' }, { status: 429 })
+    ),
+  };
+});
 
 jest.mock('@/lib/serverLogger', () => ({
   serverLogger: {

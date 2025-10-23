@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
-import { unauthorizedResponse, validationError, errorResponse } from '@/lib/api/response';
+import { unauthorizedResponse, validationError, errorResponse, withErrorHandling } from '@/lib/api/response';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
 import { serverLogger } from '@/lib/serverLogger';
 
@@ -20,8 +20,7 @@ interface SunoStatusResponse {
   }[];
 }
 
-export async function GET(req: NextRequest) {
-  try {
+export const GET = withErrorHandling(async (req: NextRequest) => {
     const apiKey = process.env.COMET_API_KEY;
 
     if (!apiKey) {
@@ -82,8 +81,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       tasks: result.data,
     });
-  } catch (error) {
-    serverLogger.error({ error }, 'Error checking Suno status');
-    return errorResponse('Internal server error', 500);
-  }
-}
+});

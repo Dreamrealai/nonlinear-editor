@@ -55,20 +55,18 @@ export default function VideoQueueItem({
               className="h-full w-full object-contain bg-black"
               poster={thumbnailUrl}
               onLoadStart={() => {
-                console.log('Video loading started:', videoUrl);
                 setVideoLoading(true);
                 setVideoError(false);
               }}
               onLoadedData={() => {
-                console.log('Video data loaded:', videoUrl);
                 setVideoLoading(false);
               }}
               onCanPlay={() => {
-                console.log('Video can play:', videoUrl);
                 setVideoLoading(false);
               }}
-              onError={(e) => {
-                console.error('Video load error for:', videoUrl, e);
+              onError={async (e) => {
+                const { browserLogger } = await import('@/lib/browserLogger');
+                browserLogger.error({ videoUrl, errorEvent: e.type }, 'Video load error');
                 setVideoLoading(false);
                 setVideoError(true);
               }}

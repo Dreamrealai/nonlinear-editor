@@ -41,7 +41,8 @@ export default function AssetLibraryModal({ projectId, onSelect, onClose }: Asse
         const data = await res.json();
         setAssets(data.assets || []);
       } catch (err) {
-        console.error('Error fetching assets:', err);
+        const { browserLogger } = await import('@/lib/browserLogger');
+        browserLogger.error({ error: err, projectId }, 'Error fetching assets');
         setError(err instanceof Error ? err.message : 'Failed to load assets');
       } finally {
         setLoading(false);

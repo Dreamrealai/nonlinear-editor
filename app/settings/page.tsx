@@ -7,6 +7,7 @@ import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { SubscriptionManager } from '@/components/SubscriptionManager';
 import { ActivityHistory } from '@/components/ActivityHistory';
 import toast, { Toaster } from 'react-hot-toast';
+import { browserLogger } from '@/lib/browserLogger';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -83,7 +84,7 @@ export default function SettingsPage() {
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
-      console.error('Failed to update password:', error);
+      browserLogger.error({ error }, 'Failed to update password');
       toast.error('Failed to update password');
     } finally {
       setPasswordLoading(false);
@@ -134,7 +135,7 @@ export default function SettingsPage() {
       }, 1500);
 
     } catch (error) {
-      console.error('Failed to delete account:', error);
+      browserLogger.error({ error }, 'Failed to delete account');
       toast.error(error instanceof Error ? error.message : 'Failed to delete account');
       setDeleteLoading(false);
     }

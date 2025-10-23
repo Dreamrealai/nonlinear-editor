@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import EditorHeader from '@/components/EditorHeader';
 import KeyframeEditorShell from '@/components/keyframes/KeyframeEditorShell';
+import { browserLogger } from '@/lib/browserLogger';
 
 interface KeyframePageClientProps {
   projectId: string;
@@ -32,7 +33,7 @@ export default function KeyframePageClient({ projectId }: KeyframePageClientProp
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Failed to load assets:', error);
+        browserLogger.error({ error, projectId }, 'Failed to load assets');
         return;
       }
 
@@ -40,7 +41,7 @@ export default function KeyframePageClient({ projectId }: KeyframePageClientProp
         setAssets(data as AssetRow[]);
       }
     } catch (error) {
-      console.error('Error loading assets:', error);
+      browserLogger.error({ error, projectId }, 'Error loading assets');
     } finally {
       setLoading(false);
     }

@@ -6,7 +6,6 @@ import { NextRequest } from 'next/server';
 import { POST } from '@/app/api/assets/upload/route';
 import {
   createMockSupabaseClient,
-  createMockUser,
   createMockProject,
   mockAuthenticatedUser,
   mockUnauthenticatedUser,
@@ -241,7 +240,7 @@ describe('POST /api/assets/upload', () => {
 
   describe('Project Authorization', () => {
     it('should return 404 when project not found', async () => {
-      const mockUser = mockAuthenticatedUser(mockSupabase);
+      mockAuthenticatedUser(mockSupabase);
       mockQueryError(mockSupabase, 'Project not found');
 
       const formData = new FormData();
@@ -267,7 +266,7 @@ describe('POST /api/assets/upload', () => {
     });
 
     it('should return 404 when user does not own project', async () => {
-      const mockUser = mockAuthenticatedUser(mockSupabase);
+      mockAuthenticatedUser(mockSupabase);
       mockSupabase.single.mockResolvedValue({
         data: null,
         error: { message: 'No rows found' },
