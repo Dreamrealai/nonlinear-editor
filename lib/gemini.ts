@@ -15,8 +15,8 @@
  * - gemini-2.5-pro: More capable but slower model for complex tasks
  *
  * Required Environment Variables:
- * - GEMINI_API_KEY: Google AI Studio API key (preferred for simplicity)
- * - GOOGLE_SERVICE_ACCOUNT: Service account JSON (fallback, for Vertex AI)
+ * - GOOGLE_SERVICE_ACCOUNT: Service account JSON (default, for Vertex AI)
+ * - GEMINI_API_KEY: Google AI Studio API key (fallback)
  *
  * @see https://ai.google.dev/gemini-api/docs
  */
@@ -26,48 +26,48 @@ import { GoogleAuth } from 'google-auth-library';
 
 /**
  * Creates a Google Generative AI client instance.
- * Uses GEMINI_API_KEY if available, otherwise falls back to GOOGLE_SERVICE_ACCOUNT.
+ * Uses GOOGLE_SERVICE_ACCOUNT by default, falls back to GEMINI_API_KEY.
  *
  * @returns Configured GoogleGenerativeAI instance
  * @throws Error if neither authentication method is available
  */
 export async function makeGenAI() {
-  // Try API key first (simpler, recommended)
+  // Try service account first (default, already configured in production)
+  const serviceAccount = process.env.GOOGLE_SERVICE_ACCOUNT;
+
+  if (serviceAccount) {
+    let credentials;
+    try {
+      credentials = JSON.parse(serviceAccount);
+    } catch {
+      throw new Error('Failed to parse GOOGLE_SERVICE_ACCOUNT JSON');
+    }
+
+    // Get access token from service account
+    const auth = new GoogleAuth({
+      credentials,
+      scopes: ['https://www.googleapis.com/auth/generative-language'],
+    });
+
+    const client = await auth.getClient();
+    const accessToken = await client.getAccessToken();
+
+    if (!accessToken.token) {
+      throw new Error('Failed to get access token from service account');
+    }
+
+    // Use the access token as the API key
+    return new GoogleGenerativeAI(accessToken.token);
+  }
+
+  // Fallback to API key
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (apiKey) {
     return new GoogleGenerativeAI(apiKey);
   }
 
-  // Fallback to service account
-  const serviceAccount = process.env.GOOGLE_SERVICE_ACCOUNT;
-
-  if (!serviceAccount) {
-    throw new Error('Either GEMINI_API_KEY or GOOGLE_SERVICE_ACCOUNT environment variable is required');
-  }
-
-  let credentials;
-  try {
-    credentials = JSON.parse(serviceAccount);
-  } catch {
-    throw new Error('Failed to parse GOOGLE_SERVICE_ACCOUNT JSON');
-  }
-
-  // Get access token from service account
-  const auth = new GoogleAuth({
-    credentials,
-    scopes: ['https://www.googleapis.com/auth/generative-language'],
-  });
-
-  const client = await auth.getClient();
-  const accessToken = await client.getAccessToken();
-
-  if (!accessToken.token) {
-    throw new Error('Failed to get access token from service account');
-  }
-
-  // Use the access token as the API key
-  return new GoogleGenerativeAI(accessToken.token);
+  throw new Error('Either GOOGLE_SERVICE_ACCOUNT or GEMINI_API_KEY environment variable is required');
 }
 
 /**

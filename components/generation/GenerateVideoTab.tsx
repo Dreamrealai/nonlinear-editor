@@ -126,33 +126,33 @@ const MODEL_CONFIGS: Record<string, ModelConfig> = {
     supportsEnhancePrompt: false,
     maxSampleCount: 1,
   },
-  // SEEDANCE
-  'seedance-1.0': {
-    id: 'seedance-1.0',
-    name: 'SEEDANCE 1.0',
+  // SEEDANCE Pro (via fal.ai)
+  'seedance-1.0-pro': {
+    id: 'seedance-1.0-pro',
+    name: 'SEEDANCE 1.0 Pro',
     provider: 'seedance',
     supportedAspectRatios: ['16:9', '9:16', '1:1'],
-    supportedDurations: [4, 6, 8],
-    supportsResolution: false,
-    supportsAudio: true,
-    supportsNegativePrompt: true,
+    supportedDurations: [5],
+    supportsResolution: true, // 1080p supported
+    supportsAudio: false,
+    supportsNegativePrompt: false,
     supportsReferenceImage: true,
     supportsEnhancePrompt: false,
-    maxSampleCount: 2,
+    maxSampleCount: 1,
   },
-  // MINIMAX
-  'minimax-video-1.0': {
-    id: 'minimax-video-1.0',
-    name: 'MiniMax Video 1.0',
+  // MiniMax Video-01-Live (via fal.ai)
+  'minimax-video-01-live': {
+    id: 'minimax-video-01-live',
+    name: 'MiniMax Video-01-Live',
     provider: 'minimax',
     supportedAspectRatios: ['16:9', '9:16', '1:1'],
-    supportedDurations: [5, 6, 8],
+    supportedDurations: [5, 6],
     supportsResolution: false,
     supportsAudio: false,
-    supportsNegativePrompt: true,
+    supportsNegativePrompt: false,
     supportsReferenceImage: true,
-    supportsEnhancePrompt: false,
-    maxSampleCount: 2,
+    supportsEnhancePrompt: true, // Supports prompt optimizer
+    maxSampleCount: 1,
   },
 };
 
@@ -538,8 +538,8 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
                     <option value="sora-2-pro">SORA 2 Pro</option>
                   </optgroup>
                   <optgroup label="Other Models">
-                    <option value="seedance-1.0">SEEDANCE 1.0</option>
-                    <option value="minimax-video-1.0">MiniMax Video 1.0</option>
+                    <option value="seedance-1.0-pro">SEEDANCE 1.0 Pro</option>
+                    <option value="minimax-video-01-live">MiniMax Video-01-Live</option>
                   </optgroup>
                 </select>
               </div>
