@@ -703,6 +703,30 @@ export default function PreviewPlayer() {
     }
   }, [playAll]);
 
+  // Handle mouse move and mouse up for slider dragging
+  useEffect(() => {
+    if (!isDraggingSlider) return;
+
+    const wasPlaying = isPlaying;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newTime = getTimeFromMouseEvent(e);
+      setCurrentTime(newTime);
+    };
+
+    const handleMouseUp = () => {
+      handleProgressBarMouseUp(wasPlaying);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDraggingSlider, isPlaying, getTimeFromMouseEvent, setCurrentTime, handleProgressBarMouseUp]);
+
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -904,11 +928,24 @@ export default function PreviewPlayer() {
             <div className="absolute bottom-0 left-0 right-0 px-6 pb-6">
               {/* Progress Bar */}
               <div className="mb-4">
-                <div className="h-1.5 w-full rounded-full bg-white/30 backdrop-blur-sm">
+                <div
+                  ref={progressBarRef}
+                  className="h-1.5 w-full rounded-full bg-white/30 backdrop-blur-sm cursor-pointer hover:h-2 transition-all group"
+                  onMouseDown={handleProgressBarMouseDown}
+                  role="slider"
+                  aria-label="Video progress"
+                  aria-valuemin={0}
+                  aria-valuemax={totalDuration}
+                  aria-valuenow={currentTime}
+                  tabIndex={0}
+                >
                   <div
-                    className="h-full rounded-full bg-white transition-all duration-200"
+                    className="h-full rounded-full bg-white transition-all duration-200 relative"
                     style={{ width: `${progress * 100}%` }}
-                  />
+                  >
+                    {/* Draggable thumb */}
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg" />
+                  </div>
                 </div>
               </div>
 
