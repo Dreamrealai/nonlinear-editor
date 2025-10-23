@@ -9,7 +9,9 @@
 - ✅ `STRIPE_SECRET_KEY` added to Vercel (Production, Preview, Development)
 - ✅ `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` added to Vercel (Production, Preview, Development)
 - ✅ `STRIPE_WEBHOOK_SECRET` added to Vercel (Production, Preview, Development)
+- ✅ `STRIPE_PREMIUM_PRICE_ID` added to Vercel (Production, Preview, Development)
 - ✅ Webhook endpoints created in Stripe Dashboard
+- ✅ Product created: "DreamReal Premium" at $49/month
 
 ## 🚀 Quick Setup (3 Steps)
 
@@ -129,7 +131,7 @@ stripe logs tail
 | `STRIPE_SECRET_KEY` | ✅ Set | Production, Preview, Development |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | ✅ Set | Production, Preview, Development |
 | `STRIPE_WEBHOOK_SECRET` | ✅ Set | Production, Preview, Development |
-| `STRIPE_PREMIUM_PRICE_ID` | ⚠️ **Optional** | Production, Preview, Development |
+| `STRIPE_PREMIUM_PRICE_ID` | ✅ Set (price_1SLTjICDzJvN2nPVswgvCTkJ) | Production, Preview, Development |
 
 ## 🎯 Subscription Flow
 
