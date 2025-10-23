@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { SubscriptionManager } from '@/components/SubscriptionManager';
 import type { UserProfile } from '@/lib/types/subscription';
+import { redirectToUrl } from '@/lib/navigation';
 
 // Mock the SupabaseProvider
 const mockSupabaseClient = {
@@ -13,7 +14,9 @@ const mockSupabaseClient = {
   from: jest.fn(),
 };
 
-const locationAssignSpy = jest.spyOn(window.location, 'assign').mockImplementation(() => {});
+jest.mock('@/lib/navigation', () => ({
+  redirectToUrl: jest.fn(),
+}));
 
 jest.mock('@/components/providers/SupabaseProvider', () => ({
   useSupabase: () => ({
@@ -81,7 +84,7 @@ describe('SubscriptionManager', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockReset();
-    locationAssignSpy.mockClear();
+    (redirectToUrl as jest.Mock).mockClear();
   });
 
   const setupMocks = (profile: UserProfile | null) => {
@@ -330,30 +333,27 @@ describe('SubscriptionManager', () => {
       render(<SubscriptionManager />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Upgrade to Premium/)).toBeInTheDocument();
+        expect(
+          screen.getAllByRole('button', { name: /Upgrade to Premium/ }).length
+        ).toBeGreaterThan(0);
       });
 
-      const upgradeButton = screen.getAllByText(/Upgrade to Premium/)[0];
+      const upgradeButton = screen.getByRole('button', { name: /Upgrade to Premium/ });
       await user.click(upgradeButton);
 
       await waitFor(() => {
         expect(global.fetch).toHaveBeenCalledWith('/api/stripe/checkout', expect.any(Object));
+        expect(redirectToUrl).toHaveBeenCalledWith('https://checkout.stripe.com/session');
       });
     });
 
     it('should show loading state when upgrade is in progress', async () => {
+      let resolveFetch: ((value: unknown) => void) | null = null;
       (global.fetch as jest.Mock).mockImplementation(
         () =>
-          new Promise((resolve) =>
-            setTimeout(
-              () =>
-                resolve({
-                  ok: true,
-                  json: async () => ({ url: 'https://checkout.stripe.com/session' }),
-                }),
-              1000
-            )
-          )
+          new Promise((resolve) => {
+            resolveFetch = resolve;
+          })
       );
 
       const user = userEvent.setup();
@@ -361,18 +361,21 @@ describe('SubscriptionManager', () => {
       render(<SubscriptionManager />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Upgrade to Premium/)).toBeInTheDocument();
+        expect(
+          screen.getAllByRole('button', { name: /Upgrade to Premium/ }).length
+        ).toBeGreaterThan(0);
       });
 
-      const upgradeButton = screen.getAllByText(/Upgrade to Premium/)[0];
+      const upgradeButton = screen.getByRole('button', { name: /Upgrade to Premium/ });
       await user.click(upgradeButton);
 
-      await waitFor(
-        () => {
-          expect(screen.getByText('Loading...')).toBeInTheDocument();
-        },
-        { timeout: 100 }
-      );
+      const loadingTexts = await screen.findAllByText('Loading...');
+      expect(loadingTexts.length).toBeGreaterThan(0);
+
+      resolveFetch?.({
+        ok: true,
+        json: async () => ({ url: 'https://checkout.stripe.com/session' }),
+      });
     });
   });
 
@@ -388,30 +391,25 @@ describe('SubscriptionManager', () => {
       render(<SubscriptionManager />);
 
       await waitFor(() => {
-        expect(screen.getByText('Manage Subscription')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Manage Subscription' })).toBeInTheDocument();
       });
 
-      const manageButton = screen.getByText('Manage Subscription');
+      const manageButton = screen.getByRole('button', { name: 'Manage Subscription' });
       await user.click(manageButton);
 
       await waitFor(() => {
         expect(global.fetch).toHaveBeenCalledWith('/api/stripe/portal', expect.any(Object));
+        expect(redirectToUrl).toHaveBeenCalledWith('https://billing.stripe.com/portal');
       });
     });
 
     it('should show loading state when manage is in progress', async () => {
+      let resolveFetch: ((value: unknown) => void) | null = null;
       (global.fetch as jest.Mock).mockImplementation(
         () =>
-          new Promise((resolve) =>
-            setTimeout(
-              () =>
-                resolve({
-                  ok: true,
-                  json: async () => ({ url: 'https://billing.stripe.com/portal' }),
-                }),
-              1000
-            )
-          )
+          new Promise((resolve) => {
+            resolveFetch = resolve;
+          })
       );
 
       const user = userEvent.setup();
@@ -419,18 +417,20 @@ describe('SubscriptionManager', () => {
       render(<SubscriptionManager />);
 
       await waitFor(() => {
-        expect(screen.getByText('Manage Subscription')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Manage Subscription' })).toBeInTheDocument();
       });
 
-      const manageButton = screen.getByText('Manage Subscription');
+      const manageButton = screen.getByRole('button', { name: 'Manage Subscription' });
       await user.click(manageButton);
 
-      await waitFor(
-        () => {
-          expect(screen.getByText('Loading...')).toBeInTheDocument();
-        },
-        { timeout: 100 }
-      );
+      await waitFor(() => {
+        expect(screen.getByText('Loading...')).toBeInTheDocument();
+      });
+
+      resolveFetch?.({
+        ok: true,
+        json: async () => ({ url: 'https://billing.stripe.com/portal' }),
+      });
     });
   });
 
@@ -466,10 +466,12 @@ describe('SubscriptionManager', () => {
       render(<SubscriptionManager />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Upgrade to Premium/)).toBeInTheDocument();
+        expect(
+          screen.getAllByRole('button', { name: /Upgrade to Premium/ }).length
+        ).toBeGreaterThan(0);
       });
 
-      const upgradeButton = screen.getAllByText(/Upgrade to Premium/)[0];
+      const upgradeButton = screen.getByRole('button', { name: /Upgrade to Premium/ });
       await user.click(upgradeButton);
 
       await waitFor(() => {
@@ -484,8 +486,9 @@ describe('SubscriptionManager', () => {
       render(<SubscriptionManager />);
 
       await waitFor(() => {
-        const checkmarks = screen.getAllByRole('img', { hidden: true });
-        expect(checkmarks.length).toBeGreaterThan(0);
+        expect(screen.getByText('10 video minutes per month')).toBeInTheDocument();
+        expect(screen.getByText('50 AI requests per month')).toBeInTheDocument();
+        expect(screen.getByText('5 GB storage')).toBeInTheDocument();
       });
     });
   });

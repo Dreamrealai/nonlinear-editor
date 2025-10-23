@@ -6,6 +6,7 @@ import { UserProfile, TIER_LIMITS } from '@/lib/types/subscription';
 import { isPostgresNotFound } from '@/lib/errors/errorCodes';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
+import { redirectToUrl } from '@/lib/navigation';
 
 export function SubscriptionManager() {
   const { supabaseClient } = useSupabase();
@@ -65,7 +66,7 @@ export function SubscriptionManager() {
 
       // Redirect to Stripe Checkout URL
       if (data.url) {
-        window.location.assign(data.url);
+        redirectToUrl(data.url);
       }
     } catch (error) {
       browserLogger.error({ error }, 'Error upgrading subscription');
@@ -88,7 +89,7 @@ export function SubscriptionManager() {
       }
 
       // Redirect to Stripe Customer Portal
-      window.location.assign(data.url);
+      redirectToUrl(data.url);
     } catch (error) {
       browserLogger.error({ error }, 'Error opening billing portal');
       toast.error(error instanceof Error ? error.message : 'Failed to open billing portal');
