@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # ============================================
 # Secret Detection Script
@@ -42,17 +42,17 @@ fi
 # ============================================
 echo "Checking for API key patterns in staged files..."
 
-# Common secret patterns
-declare -A PATTERNS=(
-    ["Stripe Secret Keys"]="sk_live_[A-Za-z0-9]{99}|sk_test_[A-Za-z0-9]{99}"
-    ["Stripe Publishable Keys"]="pk_live_[A-Za-z0-9]{99}|pk_test_[A-Za-z0-9]{99}"
-    ["OpenAI Keys"]="sk-proj-[A-Za-z0-9_-]{140,}"
-    ["Google AI Studio Keys"]="AIza[A-Za-z0-9_-]{35}"
-    ["Resend API Keys"]="re_[A-Za-z0-9]{24,}"
-    ["Supabase JWT Tokens"]="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"
-    ["Generic API Keys"]="(api[_-]?key|apikey|api[_-]?secret)['\"]?\s*[:=]\s*['\"]?[A-Za-z0-9_-]{32,}"
-    ["Vercel Tokens"]="(vercel|VERCEL)[_-]?(token|TOKEN)['\"]?\s*[:=]\s*['\"]?[A-Za-z0-9]{24}"
-    ["Private Keys"]="-----BEGIN (RSA |EC )?PRIVATE KEY-----"
+# Common secret patterns (name:pattern pairs)
+PATTERNS=(
+    "Stripe Secret Keys:sk_live_[A-Za-z0-9]{99}|sk_test_[A-Za-z0-9]{99}"
+    "Stripe Publishable Keys:pk_live_[A-Za-z0-9]{99}|pk_test_[A-Za-z0-9]{99}"
+    "OpenAI Keys:sk-proj-[A-Za-z0-9_-]{140,}"
+    "Google AI Studio Keys:AIza[A-Za-z0-9_-]{35}"
+    "Resend API Keys:re_[A-Za-z0-9]{24,}"
+    "Supabase JWT Tokens:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"
+    "Generic API Keys:(api[_-]?key|apikey|api[_-]?secret)['\"]?\s*[:=]\s*['\"]?[A-Za-z0-9_-]{32,}"
+    "Vercel Tokens:(vercel|VERCEL)[_-]?(token|TOKEN)['\"]?\s*[:=]\s*['\"]?[A-Za-z0-9]{24}"
+    "Private Keys:-----BEGIN (RSA |EC )?PRIVATE KEY-----"
 )
 
 # Get list of staged files (or all tracked files if not in git workflow)
@@ -67,8 +67,9 @@ fi
 # Exclude safe files
 SAFE_FILES=".env.local.example .env.local.template SECURITY.md scripts/check-secrets.sh"
 
-for pattern_name in "${!PATTERNS[@]}"; do
-    pattern="${PATTERNS[$pattern_name]}"
+for pattern_entry in "${PATTERNS[@]}"; do
+    pattern_name="${pattern_entry%%:*}"
+    pattern="${pattern_entry#*:}"
 
     while IFS= read -r file; do
         # Skip if file is in safe list

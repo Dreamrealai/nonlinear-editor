@@ -5,11 +5,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { serverLogger } from '@/lib/serverLogger';
-import { withAdminAuth, logAdminAction } from '@/lib/api/withAuth';
+import { withAdminAuth, logAdminAction, type AdminAuthContext } from '@/lib/api/withAuth';
 
 async function handleDeleteUser(
   request: NextRequest,
-  context: { user: { id: string; email?: string }; supabase: ReturnType<typeof createClient>; adminProfile: { tier: 'admin' } }
+  context: AdminAuthContext
 ) {
   const { user } = context;
   try {

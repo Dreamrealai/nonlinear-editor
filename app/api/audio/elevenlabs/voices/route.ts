@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/api/withAuth';
+import { withAuth, type AuthContext } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 
 interface Voice {
@@ -15,7 +15,10 @@ interface VoicesResponse {
   voices: Voice[];
 }
 
-async function handleGetVoices() {
+async function handleGetVoices(
+  _request: NextRequest,
+  _context: AuthContext & { params: Promise<Record<string, never>> }
+) {
   try {
     const apiKey = process.env.ELEVENLABS_API_KEY;
 

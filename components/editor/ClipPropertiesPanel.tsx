@@ -22,7 +22,7 @@ export default function ClipPropertiesPanel() {
   const updateClipStore = useEditorStore((state) => state.updateClip);
 
   // Stable reference for updateClip
-  const updateClip = useCallback((id: string, updates: any) => {
+  const updateClip = useCallback((id: string, updates: Record<string, string | number | boolean | object>) => {
     updateClipStore(id, updates);
   }, [updateClipStore]);
 
@@ -146,7 +146,6 @@ export default function ClipPropertiesPanel() {
     );
   }
 
-  const colorCorrection = selectedClip.colorCorrection || { brightness: 100, contrast: 100, saturation: 100, hue: 0 };
   const transform = selectedClip.transform || { rotation: 0, flipHorizontal: false, flipVertical: false, scale: 1.0 };
   const audioEffects = selectedClip.audioEffects || { bassGain: 0, midGain: 0, trebleGain: 0, compression: 0, normalize: false };
 

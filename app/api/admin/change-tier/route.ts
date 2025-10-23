@@ -6,11 +6,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { UserTier } from '@/lib/types/subscription';
 import { serverLogger } from '@/lib/serverLogger';
-import { withAdminAuth, logAdminAction } from '@/lib/api/withAuth';
+import { withAdminAuth, logAdminAction, type AdminAuthContext } from '@/lib/api/withAuth';
 
 async function handleChangeTier(
   request: NextRequest,
-  context: { user: { id: string; email?: string }; supabase: ReturnType<typeof createClient>; adminProfile: { tier: 'admin' }; params: Promise<Record<string, never>> }
+  context: AdminAuthContext
 ) {
   const { user } = context;
   const startTime = Date.now();

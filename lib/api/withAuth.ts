@@ -85,9 +85,14 @@ export function withAuth<TParams = void>(
   handler: AuthenticatedHandler<TParams>,
   options: AuthOptions
 ) {
-  return async (request: NextRequest, routeParams?: { params: TParams }) => {
+  return async (request: NextRequest, routeParams?: { params: TParams | Promise<TParams> }) => {
     const startTime = Date.now();
     const { route, rateLimit } = options;
+
+    // Handle Next.js 15's async params
+    const params = routeParams?.params instanceof Promise
+      ? await routeParams.params
+      : routeParams?.params;
 
     try {
       serverLogger.info({
@@ -167,7 +172,7 @@ export function withAuth<TParams = void>(
       const context: AuthContext & { params?: TParams } = {
         user,
         supabase,
-        params: routeParams?.params,
+        params,
       };
 
       const response = await handler(request, context);

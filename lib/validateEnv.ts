@@ -109,7 +109,7 @@ const ENV_VARS: EnvVarConfig[] = [
   },
   {
     name: 'STRIPE_WEBHOOK_SECRET',
-    required: true,
+    required: false, // Optional in development, required in production (checked in checkCommonIssues)
     description: 'Stripe webhook signing secret for webhook verification',
     validator: (val) => val.startsWith('whsec_'),
     validationError: 'STRIPE_WEBHOOK_SECRET must start with whsec_',
@@ -117,7 +117,7 @@ const ENV_VARS: EnvVarConfig[] = [
   },
   {
     name: 'STRIPE_PREMIUM_PRICE_ID',
-    required: true,
+    required: false, // Optional - can be created via setup script
     description: 'Stripe price ID for Premium subscription',
     validator: (val) => val.startsWith('price_'),
     validationError: 'STRIPE_PREMIUM_PRICE_ID must be a valid Stripe price ID (starts with price_)',
