@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * Debounces a value by delaying updates until after a specified delay.
@@ -53,28 +53,24 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
   delay: number = 300
 ): T {
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Cleanup on unmount
     return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
     };
-  }, [timeoutId]);
+  }, []); // Only cleanup on unmount
 
-  const debouncedCallback = ((...args: Parameters<T>) => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
+  const debouncedCallback = useCallback(((...args: Parameters<T>) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
-
-    const newTimeoutId = setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       callback(...args);
     }, delay);
-
-    setTimeoutId(newTimeoutId);
-  }) as T;
+  }) as T, [callback, delay]);
 
   return debouncedCallback;
 }
