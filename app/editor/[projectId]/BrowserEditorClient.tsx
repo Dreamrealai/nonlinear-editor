@@ -645,6 +645,8 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   const [splitAudioPending, setSplitAudioPending] = useState(false);
   const [splitScenesPending, setSplitScenesPending] = useState(false);
   const [upscaleVideoPending, setUpscaleVideoPending] = useState(false);
+  const [generateAudioPending, setGenerateAudioPending] = useState(false);
+  const [showAudioModelMenu, setShowAudioModelMenu] = useState<string | null>(null);
 
   // Export state
   const [showExportModal, setShowExportModal] = useState(false);
@@ -1447,6 +1449,82 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
     }
   }, [supabase, projectId]);
 
+  const handleGenerateAudioFromVideo = useCallback(async (asset: AssetRow, model: 'minimax' | 'mureka-1.5' | 'kling-turbo-2.5') => {
+    setGenerateAudioPending(true);
+    setShowAudioModelMenu(null);
+
+    const modelNames = {
+      'minimax': 'MiniMax',
+      'mureka-1.5': 'Mureka 1.5',
+      'kling-turbo-2.5': 'Kling Turbo 2.5',
+    };
+
+    toast.loading(`Generating audio with ${modelNames[model]}...`, { id: 'generate-audio' });
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Submit audio generation request
+      const res = await fetch('/api/video/generate-audio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assetId: asset.id,
+          projectId,
+          model,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json.error || 'Audio generation failed');
+      }
+
+      const requestId = json.requestId;
+      toast.loading('Audio generation in progress... This may take a few minutes.', { id: 'generate-audio' });
+
+      // Poll for completion
+      const pollInterval = 5000; // 5 seconds
+      const poll = async () => {
+        try {
+          const statusRes = await fetch(
+            `/api/video/generate-audio-status?requestId=${encodeURIComponent(requestId)}&projectId=${projectId}&assetId=${asset.id}`
+          );
+          const statusJson = await statusRes.json();
+
+          if (statusJson.status === 'completed') {
+            toast.success('Audio generated successfully!', { id: 'generate-audio' });
+
+            const mappedAsset = mapAssetRow(statusJson.asset as Record<string, unknown>);
+            if (mappedAsset) {
+              setAssets((prev) => [mappedAsset, ...prev]);
+            }
+
+            setGenerateAudioPending(false);
+            setActiveTab('audio');
+          } else if (statusJson.status === 'failed') {
+            throw new Error(statusJson.error || 'Audio generation failed');
+          } else {
+            // Continue polling
+            setTimeout(poll, pollInterval);
+          }
+        } catch (pollError) {
+          browserLogger.error({ error: pollError, projectId }, 'Audio generation polling failed');
+          toast.error(pollError instanceof Error ? pollError.message : 'Audio generation failed', { id: 'generate-audio' });
+          setGenerateAudioPending(false);
+        }
+      };
+
+      setTimeout(poll, pollInterval);
+    } catch (error) {
+      browserLogger.error({ error, projectId }, 'Audio generation failed');
+      toast.error(error instanceof Error ? error.message : 'Audio generation failed', { id: 'generate-audio' });
+      setGenerateAudioPending(false);
+    }
+  }, [supabase, projectId]);
+
   if (!timeline) {
     return (
       <div className="flex h-full w-full items-center justify-center">
@@ -1683,6 +1761,55 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
                   >
                     {upscaleVideoPending ? 'Upscaling...' : 'Upscale Video'}
                   </button>
+
+                  {/* Generate Audio from Video with Model Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowAudioModelMenu(showAudioModelMenu === asset.id ? null : asset.id)}
+                      disabled={generateAudioPending}
+                      className="w-full rounded-md bg-gradient-to-r from-orange-500 to-amber-500 px-2 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:from-orange-600 hover:to-amber-600 disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-1"
+                      title="Generate audio from video"
+                    >
+                      {generateAudioPending ? 'Generating Audio...' : (
+                        <>
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                          </svg>
+                          <span>Generate Audio</span>
+                          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </>
+                      )}
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {showAudioModelMenu === asset.id && !generateAudioPending && (
+                      <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-neutral-200 bg-white shadow-lg">
+                        <button
+                          onClick={() => void handleGenerateAudioFromVideo(asset, 'minimax')}
+                          className="w-full rounded-t-md px-3 py-2 text-left text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-100"
+                        >
+                          <div className="font-semibold">MiniMax</div>
+                          <div className="text-[10px] text-neutral-500">High quality audio generation</div>
+                        </button>
+                        <button
+                          onClick={() => void handleGenerateAudioFromVideo(asset, 'mureka-1.5')}
+                          className="w-full border-t border-neutral-100 px-3 py-2 text-left text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-100"
+                        >
+                          <div className="font-semibold">Mureka 1.5</div>
+                          <div className="text-[10px] text-neutral-500">Advanced audio synthesis</div>
+                        </button>
+                        <button
+                          onClick={() => void handleGenerateAudioFromVideo(asset, 'kling-turbo-2.5')}
+                          className="w-full rounded-b-md border-t border-neutral-100 px-3 py-2 text-left text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-100"
+                        >
+                          <div className="font-semibold">Kling Turbo 2.5</div>
+                          <div className="text-[10px] text-neutral-500">Fast audio generation</div>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
