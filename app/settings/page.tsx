@@ -34,6 +34,24 @@ export default function SettingsPage() {
     loadUser();
   }, [supabaseClient, router]);
 
+  // Handle successful Stripe checkout
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+
+    if (sessionId) {
+      toast.success('Successfully upgraded to Premium! Your subscription is now active.', {
+        duration: 5000,
+        icon: '🎉',
+      });
+
+      // Clean up URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('session_id');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, []);
+
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
