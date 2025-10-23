@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
       parts: [{ text: msg.content }],
     }));
 
-    // Call Gemini
+    // Call Gemini (will use GEMINI_API_KEY or GOOGLE_SERVICE_ACCOUNT)
     const response = await chat({
       model,
       message,
@@ -142,8 +142,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('AI chat error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

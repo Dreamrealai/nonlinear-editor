@@ -674,6 +674,36 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
               </p>
             </div>
 
+            {/* Submit Button */}
+            <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+              <div className="flex-1">
+                <p className="text-sm text-neutral-600">
+                  {videoQueue.length}/8 videos in queue
+                </p>
+              </div>
+              <button
+                type="submit"
+                disabled={generating || !prompt.trim() || videoQueue.length >= 8}
+                className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:from-purple-500 disabled:hover:to-pink-500"
+              >
+                <div className="flex items-center gap-2">
+                  {generating ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Adding to Queue...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                      </svg>
+                      Add to Queue
+                    </>
+                  )}
+                </div>
+              </button>
+            </div>
+
             {/* Advanced Settings Collapsible */}
             <div className="rounded-lg border border-neutral-200 bg-white shadow-sm">
               <button
@@ -842,36 +872,6 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* Submit Button */}
-            <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-              <div className="flex-1">
-                <p className="text-sm text-neutral-600">
-                  {videoQueue.length}/8 videos in queue
-                </p>
-              </div>
-              <button
-                type="submit"
-                disabled={generating || !prompt.trim() || videoQueue.length >= 8}
-                className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:from-purple-500 disabled:hover:to-pink-500"
-              >
-                <div className="flex items-center gap-2">
-                  {generating ? (
-                    <>
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Adding to Queue...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                      </svg>
-                      Add to Queue
-                    </>
-                  )}
-                </div>
-              </button>
             </div>
           </form>
           </div>

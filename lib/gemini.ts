@@ -8,33 +8,66 @@
  * - Multimodal input (text + images)
  * - Conversation history tracking
  * - Configurable generation parameters
+ * - Service account authentication (Vertex AI) or API key (Google AI Studio)
  *
  * Supported Models:
  * - gemini-2.5-flash: Fast, balanced model for most use cases
  * - gemini-2.5-pro: More capable but slower model for complex tasks
  *
  * Required Environment Variables:
- * - GEMINI_API_KEY: Google AI Studio API key
+ * - GEMINI_API_KEY: Google AI Studio API key (preferred for simplicity)
+ * - GOOGLE_SERVICE_ACCOUNT: Service account JSON (fallback, for Vertex AI)
  *
  * @see https://ai.google.dev/gemini-api/docs
  */
 
 import { GoogleGenerativeAI, Part } from '@google/generative-ai';
+import { GoogleAuth } from 'google-auth-library';
 
 /**
  * Creates a Google Generative AI client instance.
+ * Uses GEMINI_API_KEY if available, otherwise falls back to GOOGLE_SERVICE_ACCOUNT.
  *
  * @returns Configured GoogleGenerativeAI instance
- * @throws Error if GEMINI_API_KEY env var is missing
+ * @throws Error if neither authentication method is available
  */
-export function makeGenAI() {
+export async function makeGenAI() {
+  // Try API key first (simpler, recommended)
   const apiKey = process.env.GEMINI_API_KEY;
 
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY environment variable is required');
+  if (apiKey) {
+    return new GoogleGenerativeAI(apiKey);
   }
 
-  return new GoogleGenerativeAI(apiKey);
+  // Fallback to service account
+  const serviceAccount = process.env.GOOGLE_SERVICE_ACCOUNT;
+
+  if (!serviceAccount) {
+    throw new Error('Either GEMINI_API_KEY or GOOGLE_SERVICE_ACCOUNT environment variable is required');
+  }
+
+  let credentials;
+  try {
+    credentials = JSON.parse(serviceAccount);
+  } catch {
+    throw new Error('Failed to parse GOOGLE_SERVICE_ACCOUNT JSON');
+  }
+
+  // Get access token from service account
+  const auth = new GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/generative-language'],
+  });
+
+  const client = await auth.getClient();
+  const accessToken = await client.getAccessToken();
+
+  if (!accessToken.token) {
+    throw new Error('Failed to get access token from service account');
+  }
+
+  // Use the access token as the API key
+  return new GoogleGenerativeAI(accessToken.token);
 }
 
 /**
@@ -90,7 +123,7 @@ export async function chat(params: {
   /** File attachments (base64 data with MIME type) */
   files?: Array<{ data: string; mimeType: string }>;
 }) {
-  const genAI = makeGenAI();
+  const genAI = await makeGenAI();
   const model = genAI.getGenerativeModel({ model: params.model });
 
   // Build message parts (text + optional files)
