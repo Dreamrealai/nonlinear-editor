@@ -1,24 +1,35 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useSupabase } from '@/components/providers/SupabaseProvider';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 
 interface GenerateVideoTabProps {
   projectId: string;
 }
 
+interface VideoQueueItem {
+  id: string;
+  prompt: string;
+  operationName: string | null;
+  status: 'queued' | 'generating' | 'completed' | 'failed';
+  videoUrl?: string;
+  thumbnailUrl?: string;
+  error?: string;
+  createdAt: number;
+}
+
 /**
  * Generate Video Tab Component
  *
  * Provides a comprehensive interface for generating videos using Google Vertex AI Veo models.
+ * Supports queueing up to 8 videos at once with a 2-column grid display on the right side.
  * Supports all available Veo parameters including duration, aspect ratio, resolution,
  * negative prompts, person generation settings, and more.
  */
 export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
-  const { supabaseClient } = useSupabase();
   const [generating, setGenerating] = useState(false);
-  const [operationName, setOperationName] = useState<string | null>(null);
+  const [videoQueue, setVideoQueue] = useState<VideoQueueItem[]>([]);
+  const pollingIntervalsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   // Form state
   const [prompt, setPrompt] = useState('');
@@ -33,6 +44,74 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
   const [seed, setSeed] = useState<string>('');
   const [sampleCount, setSampleCount] = useState<1 | 2 | 3 | 4>(1);
 
+  // Cleanup polling intervals on unmount
+  useEffect(() => {
+    const intervals = pollingIntervalsRef.current;
+    return () => {
+      intervals.forEach((interval) => clearInterval(interval));
+      intervals.clear();
+    };
+  }, []);
+
+  // Start polling for a specific video
+  const startPolling = useCallback((videoId: string, operationName: string) => {
+    const pollInterval = 10000; // 10 seconds
+
+    const poll = async () => {
+      try {
+        const statusRes = await fetch(`/api/video/status?operationName=${encodeURIComponent(operationName)}&projectId=${projectId}`);
+        const statusJson = await statusRes.json();
+
+        if (statusJson.done) {
+          // Clear polling interval
+          const interval = pollingIntervalsRef.current.get(videoId);
+          if (interval) {
+            clearInterval(interval);
+            pollingIntervalsRef.current.delete(videoId);
+          }
+
+          if (statusJson.error) {
+            setVideoQueue(prev => prev.map(v =>
+              v.id === videoId
+                ? { ...v, status: 'failed', error: statusJson.error }
+                : v
+            ));
+            toast.error(`Video generation failed: ${statusJson.error}`);
+          } else if (statusJson.asset) {
+            // Video completed successfully
+            const videoUrl = statusJson.asset.metadata?.sourceUrl || '';
+            const thumbnailUrl = statusJson.asset.metadata?.thumbnail || '';
+
+            setVideoQueue(prev => prev.map(v =>
+              v.id === videoId
+                ? { ...v, status: 'completed', videoUrl, thumbnailUrl }
+                : v
+            ));
+            toast.success('Video generated successfully!');
+          }
+        }
+      } catch (pollError) {
+        console.error('Video generation polling failed:', pollError);
+        const interval = pollingIntervalsRef.current.get(videoId);
+        if (interval) {
+          clearInterval(interval);
+          pollingIntervalsRef.current.delete(videoId);
+        }
+        setVideoQueue(prev => prev.map(v =>
+          v.id === videoId
+            ? { ...v, status: 'failed', error: 'Polling failed' }
+            : v
+        ));
+      }
+    };
+
+    const interval = setInterval(poll, pollInterval);
+    pollingIntervalsRef.current.set(videoId, interval);
+
+    // Poll immediately
+    poll();
+  }, [projectId]);
+
   const handleGenerateVideo = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -41,8 +120,23 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
       return;
     }
 
+    if (videoQueue.length >= 8) {
+      toast.error('Maximum 8 videos in queue. Please wait for some to complete.');
+      return;
+    }
+
+    const videoId = `video-${Date.now()}`;
+
+    // Add to queue immediately
+    setVideoQueue(prev => [...prev, {
+      id: videoId,
+      prompt,
+      operationName: null,
+      status: 'queued',
+      createdAt: Date.now(),
+    }]);
+
     setGenerating(true);
-    toast.loading('Starting video generation...', { id: 'generate-video' });
 
     try {
       const res = await fetch('/api/video/generate', {
@@ -70,55 +164,58 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
         throw new Error(json.error || 'Video generation failed');
       }
 
-      setOperationName(json.operationName);
-      toast.loading('Video generation in progress... This may take several minutes.', { id: 'generate-video' });
+      // Update queue item with operation name and start polling
+      setVideoQueue(prev => prev.map(v =>
+        v.id === videoId
+          ? { ...v, operationName: json.operationName, status: 'generating' }
+          : v
+      ));
 
-      // Poll for video generation status
-      const pollInterval = 10000; // 10 seconds
-      const poll = async () => {
-        try {
-          const statusRes = await fetch(`/api/video/status?operationName=${encodeURIComponent(json.operationName)}&projectId=${projectId}`);
-          const statusJson = await statusRes.json();
+      toast.success('Video generation started!');
+      startPolling(videoId, json.operationName);
 
-          if (statusJson.done) {
-            if (statusJson.error) {
-              throw new Error(statusJson.error);
-            }
-
-            toast.success('Video generated successfully!', { id: 'generate-video' });
-            setGenerating(false);
-            setOperationName(null);
-
-            // Reset form
-            setPrompt('');
-            setNegativePrompt('');
-            setSeed('');
-          } else {
-            // Continue polling
-            setTimeout(poll, pollInterval);
-          }
-        } catch (pollError) {
-          console.error('Video generation polling failed:', pollError);
-          toast.error(pollError instanceof Error ? pollError.message : 'Video generation failed', { id: 'generate-video' });
-          setGenerating(false);
-          setOperationName(null);
-        }
-      };
-
-      setTimeout(poll, pollInterval);
+      // Reset form
+      setPrompt('');
+      setNegativePrompt('');
+      setSeed('');
     } catch (error) {
       console.error('Video generation failed:', error);
-      toast.error(error instanceof Error ? error.message : 'Video generation failed', { id: 'generate-video' });
+      toast.error(error instanceof Error ? error.message : 'Video generation failed');
+
+      // Update queue item to failed
+      setVideoQueue(prev => prev.map(v =>
+        v.id === videoId
+          ? { ...v, status: 'failed', error: error instanceof Error ? error.message : 'Unknown error' }
+          : v
+      ));
+    } finally {
       setGenerating(false);
     }
-  }, [projectId, prompt, model, aspectRatio, duration, resolution, negativePrompt, personGeneration, enhancePrompt, generateAudio, seed, sampleCount]);
+  }, [projectId, prompt, model, aspectRatio, duration, resolution, negativePrompt, personGeneration, enhancePrompt, generateAudio, seed, sampleCount, videoQueue.length, startPolling]);
+
+  const handleRemoveVideo = useCallback((videoId: string) => {
+    // Clear polling interval if exists
+    const interval = pollingIntervalsRef.current.get(videoId);
+    if (interval) {
+      clearInterval(interval);
+      pollingIntervalsRef.current.delete(videoId);
+    }
+
+    setVideoQueue(prev => prev.filter(v => v.id !== videoId));
+  }, []);
+
+  const handleClearCompleted = useCallback(() => {
+    setVideoQueue(prev => prev.filter(v => v.status !== 'completed' && v.status !== 'failed'));
+  }, []);
 
   return (
     <div className="flex h-full flex-col">
       <Toaster position="bottom-right" />
 
       <div className="flex-1 overflow-y-auto p-6">
-        <div className="mx-auto max-w-4xl">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_600px] gap-6 h-full">
+          {/* Left: Generation Form */}
+          <div className="overflow-y-auto">
           {/* Header */}
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-neutral-900 mb-2">Generate Video with AI</h1>
@@ -376,35 +473,150 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
             {/* Submit Button */}
             <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
               <div className="flex-1">
-                {generating && operationName && (
-                  <p className="text-sm text-neutral-600">
-                    Generation in progress... This may take several minutes. You can navigate away and check back later.
-                  </p>
-                )}
+                <p className="text-sm text-neutral-600">
+                  {videoQueue.length}/8 videos in queue
+                </p>
               </div>
               <button
                 type="submit"
-                disabled={generating || !prompt.trim()}
+                disabled={generating || !prompt.trim() || videoQueue.length >= 8}
                 className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:from-purple-500 disabled:hover:to-pink-500"
               >
                 <div className="flex items-center gap-2">
                   {generating ? (
                     <>
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Generating...
+                      Adding to Queue...
                     </>
                   ) : (
                     <>
                       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                       </svg>
-                      Generate Video
+                      Add to Queue
                     </>
                   )}
                 </div>
               </button>
             </div>
           </form>
+          </div>
+
+          {/* Right: Video Queue Grid (2 columns) */}
+          <div className="flex flex-col gap-4 h-full">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-neutral-900">
+                Video Queue ({videoQueue.length})
+              </h2>
+              {videoQueue.some(v => v.status === 'completed' || v.status === 'failed') && (
+                <button
+                  onClick={handleClearCompleted}
+                  className="rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
+                >
+                  Clear Completed
+                </button>
+              )}
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              {videoQueue.length === 0 ? (
+                <div className="flex h-full items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-8">
+                  <div className="text-center">
+                    <svg className="mx-auto h-12 w-12 text-neutral-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-sm font-medium text-neutral-900 mb-1">No videos in queue</p>
+                    <p className="text-xs text-neutral-500">
+                      Generate videos to see them appear here
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  {videoQueue.map((video) => (
+                    <div
+                      key={video.id}
+                      className="group relative flex flex-col rounded-lg border border-neutral-200 bg-white shadow-sm overflow-hidden"
+                    >
+                      {/* Video Preview */}
+                      <div className="relative aspect-video bg-neutral-100">
+                        {video.status === 'completed' && video.videoUrl ? (
+                          <video
+                            src={video.videoUrl}
+                            controls
+                            className="h-full w-full object-cover"
+                            poster={video.thumbnailUrl}
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center">
+                            {video.status === 'queued' && (
+                              <div className="text-center">
+                                <div className="mx-auto h-8 w-8 rounded-full border-4 border-neutral-300 border-t-neutral-600" />
+                                <p className="mt-2 text-xs text-neutral-600">Queued</p>
+                              </div>
+                            )}
+                            {video.status === 'generating' && (
+                              <div className="text-center">
+                                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-neutral-300 border-t-purple-600" />
+                                <p className="mt-2 text-xs text-neutral-600">Generating...</p>
+                              </div>
+                            )}
+                            {video.status === 'failed' && (
+                              <div className="text-center p-4">
+                                <svg className="mx-auto h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p className="mt-2 text-xs text-red-600">Failed</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Video Info */}
+                      <div className="p-3">
+                        <p className="text-xs text-neutral-700 line-clamp-2 mb-2">
+                          {video.prompt}
+                        </p>
+
+                        {video.error && (
+                          <p className="text-xs text-red-600 mb-2">
+                            {video.error}
+                          </p>
+                        )}
+
+                        {/* Status Badge */}
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                            video.status === 'completed' ? 'bg-green-100 text-green-700' :
+                            video.status === 'generating' ? 'bg-blue-100 text-blue-700' :
+                            video.status === 'failed' ? 'bg-red-100 text-red-700' :
+                            'bg-neutral-100 text-neutral-700'
+                          }`}>
+                            {video.status === 'completed' ? 'Completed' :
+                             video.status === 'generating' ? 'Generating' :
+                             video.status === 'failed' ? 'Failed' :
+                             'Queued'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Remove Button */}
+                      <button
+                        onClick={() => handleRemoveVideo(video.id)}
+                        className="absolute right-2 top-2 z-10 rounded-md bg-black/50 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100"
+                        title="Remove from queue"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
