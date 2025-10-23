@@ -52,11 +52,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
     }
 
-    // Verify FAL_KEY is configured
-    const falKey = process.env.FAL_KEY;
+    // Verify FAL_API_KEY is configured
+    const falKey = process.env.FAL_API_KEY;
     if (!falKey) {
       return NextResponse.json(
-        { error: 'FAL_KEY not configured on server' },
+        { error: 'FAL_API_KEY not configured on server' },
         { status: 500 }
       );
     }

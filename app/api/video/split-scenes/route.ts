@@ -87,12 +87,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Check for Google Cloud credentials
-    const credentialsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+    const credentialsJson = process.env.GOOGLE_SERVICE_ACCOUNT;
     if (!credentialsJson) {
       return NextResponse.json(
         {
           error: 'Google Cloud Video Intelligence not configured',
-          message: 'GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable is required'
+          message: 'GOOGLE_SERVICE_ACCOUNT environment variable is required'
         },
         { status: 503 }
       );
