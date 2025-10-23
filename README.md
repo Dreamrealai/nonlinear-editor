@@ -196,9 +196,40 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 
 ## Documentation
 
-- [API Documentation](docs/API.md) - Complete API reference
-- [Database Schema](docs/API.md#database-schema) - Database structure
-- [Environment Variables](docs/API.md#environment-variables) - Configuration guide
+- [API Documentation](docs/API.md) - Complete API reference with all 23 endpoints
+- [Supabase Setup](docs/SUPABASE_SETUP.md) - Step-by-step database setup guide
+- [Architecture](docs/ARCHITECTURE.md) - System architecture and design
+- [Security](docs/SECURITY.md) - Security features and best practices
+- [Testing](docs/TESTING.md) - Testing strategy and manual test guides
+- [Performance](docs/PERFORMANCE.md) - Optimization guidelines
+- [Logging](docs/LOGGING.md) - Logging and monitoring setup
+
+## Environment Variables
+
+### Required Variables
+
+| Variable | Description | Get From |
+|----------|-------------|----------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | [Supabase Dashboard](https://supabase.com/dashboard) → Project Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key (RLS-enforced) | Supabase Dashboard → Project Settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (server-side only) | Supabase Dashboard → Project Settings → API |
+
+### Optional AI Variables
+
+| Variable | Description | Get From |
+|----------|-------------|----------|
+| `GOOGLE_SERVICE_ACCOUNT` | Google Cloud service account JSON | [Google Cloud Console](https://console.cloud.google.com) → IAM → Service Accounts |
+| `GCS_BUCKET_NAME` | GCS bucket for video processing | Auto-created if not specified |
+| `GEMINI_API_KEY` | Google Gemini API key | [Google AI Studio](https://ai.google.dev) |
+| `FAL_API_KEY` | fal.ai API key for upscaling | [fal.ai](https://fal.ai) |
+| `COMET_API_KEY` | Comet API (Suno wrapper) | [Comet API](https://cometapi.com) |
+| `ELEVENLABS_API_KEY` | ElevenLabs TTS API key | [ElevenLabs](https://elevenlabs.io) |
+| `WAVESPEED_API_KEY` | Wavespeed audio API key | Wavespeed provider |
+| `AXIOM_TOKEN` | Axiom logging token | [Axiom](https://axiom.co) |
+| `AXIOM_DATASET` | Axiom dataset name | Axiom Dashboard |
+| `NEXT_PUBLIC_APP_URL` | Application URL | Auto-detected (optional) |
+
+See [API Documentation](docs/API.md#environment-variables) for detailed descriptions.
 
 ## Quick Start
 
@@ -214,13 +245,308 @@ After installation:
 ## Build for Production
 
 ```bash
+# Build the application
 npm run build
+
+# Start production server locally
 npm run start
 ```
 
+The build creates an optimized production bundle with:
+- Minified JavaScript and CSS
+- Automatic code splitting
+- Optimized images
+- Tree-shaken dependencies
+
+---
+
+## Deployment
+
+### Vercel (Recommended)
+
+1. **Push to GitHub:**
+```bash
+git add .
+git commit -m "Ready for deployment"
+git push origin main
+```
+
+2. **Import to Vercel:**
+- Go to [vercel.com/new](https://vercel.com/new)
+- Import your GitHub repository
+- Configure environment variables (see below)
+- Deploy
+
+3. **Set Environment Variables:**
+
+In Vercel Dashboard → Project Settings → Environment Variables:
+
+```bash
+# Production Variables
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...  # Mark as "Secret"
+GOOGLE_SERVICE_ACCOUNT={"type":"..."}   # Mark as "Secret"
+GEMINI_API_KEY=xxx                      # Mark as "Secret"
+# ... add other optional keys
+```
+
+4. **Update Supabase Auth Settings:**
+- Go to Supabase Dashboard → Authentication → Settings
+- Update Site URL: `https://your-app.vercel.app`
+- Add to Redirect URLs: `https://your-app.vercel.app/**`
+
+5. **Deploy:**
+Vercel will automatically deploy on every push to main.
+
+### Other Platforms
+
+**Docker:**
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+RUN npm run build
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+**Railway, Render, Fly.io:**
+Similar to Vercel - set environment variables and deploy from GitHub.
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+#### 1. "Supabase not configured" Error
+
+**Problem:** Missing or invalid Supabase environment variables.
+
+**Solution:**
+```bash
+# Verify .env.local contains:
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co  # Must start with https://
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...           # Long JWT string
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...               # Long JWT string
+
+# Restart dev server:
+npm run dev
+```
+
+#### 2. "RLS Policy Violation" / Cannot Create Project
+
+**Problem:** RLS policies not set up correctly.
+
+**Solution:**
+1. Run migration: `/supabase/migrations/20251022000000_fix_projects_rls.sql`
+2. Verify in Supabase Dashboard → Database → Tables → projects → Policies
+3. Should see: `projects_owner_select`, `projects_owner_insert`, `projects_owner_update`, `projects_owner_delete`
+
+#### 3. File Upload Failed
+
+**Problem:** Storage bucket or policies missing.
+
+**Solution:**
+1. Run initial migration: `/supabase/migrations/20250101000000_init_schema.sql`
+2. Verify buckets exist: Supabase Dashboard → Storage
+3. Check policies: Storage → Policies → assets bucket
+
+#### 4. Video Generation Not Working
+
+**Problem:** Missing Google Cloud credentials.
+
+**Solution:**
+```bash
+# Set GOOGLE_SERVICE_ACCOUNT in .env.local
+GOOGLE_SERVICE_ACCOUNT={"type":"service_account","project_id":"your-project",...}
+
+# Enable required APIs in Google Cloud Console:
+# - Vertex AI API
+# - Video Intelligence API (for scene detection)
+# - Cloud Storage API
+```
+
+#### 5. Scene Detection Fails
+
+**Problem:** GCS bucket doesn't exist or no permissions.
+
+**Solution:**
+1. Set `GCS_BUCKET_NAME` environment variable (optional)
+2. Or let it auto-create: `{project-id}-video-processing`
+3. Grant service account Storage Admin role in Google Cloud
+
+#### 6. AI Chat Not Working
+
+**Problem:** Missing Gemini API key.
+
+**Solution:**
+```bash
+# Get API key from https://ai.google.dev
+GEMINI_API_KEY=your-api-key
+
+# Verify key is valid:
+curl "https://generativelanguage.googleapis.com/v1/models?key=YOUR_API_KEY"
+```
+
+#### 7. Build Fails
+
+**Problem:** TypeScript errors or missing dependencies.
+
+**Solution:**
+```bash
+# Clear cache and reinstall
+rm -rf node_modules .next
+npm install
+
+# Run type check
+npm run build
+```
+
+#### 8. "Invalid JWT" Error
+
+**Problem:** Incorrect Supabase keys.
+
+**Solution:**
+- Re-copy keys from Supabase Dashboard
+- Ensure no extra spaces or newlines
+- Verify using correct project keys
+- Restart dev server
+
+#### 9. Email Not Sending
+
+**Problem:** Default SMTP limits hit.
+
+**Solution for Production:**
+1. Configure custom SMTP (Resend recommended):
+   - Get API key from [resend.com](https://resend.com)
+   - Supabase Dashboard → Project Settings → Auth → SMTP Settings
+   - Configure Resend SMTP:
+     ```
+     Host: smtp.resend.com
+     Port: 587
+     Username: resend
+     Password: your-api-key
+     ```
+
+**Solution for Development:**
+- Check Supabase Dashboard → Authentication → Logs
+- Temporarily disable email confirmation:
+  - Auth → Settings → Disable "Enable email confirmations"
+
+#### 10. Slow Timeline Performance
+
+**Problem:** Too many clips on timeline.
+
+**Solution:**
+- Limit to ~100-200 clips per project
+- Close other browser tabs
+- Increase browser memory limit
+- Consider breaking into multiple projects
+- See [Performance Guide](docs/PERFORMANCE.md)
+
+### Debug Mode
+
+Enable verbose logging:
+
+```typescript
+// In browser console
+localStorage.setItem('debug', '*');
+
+// Disable
+localStorage.removeItem('debug');
+```
+
+### Getting Help
+
+1. **Check Logs:**
+   - Browser DevTools Console
+   - Supabase Dashboard → Logs
+   - Vercel Dashboard → Logs (if deployed)
+   - Axiom Dashboard (if configured)
+
+2. **Documentation:**
+   - [Supabase Docs](https://supabase.com/docs)
+   - [Next.js Docs](https://nextjs.org/docs)
+   - [Project Documentation](docs/)
+
+3. **Common Solutions:**
+   - Clear browser cache
+   - Restart dev server
+   - Check environment variables
+   - Verify Supabase migrations ran
+   - Test with incognito window
+
+---
+
+## Development Workflow
+
+### Daily Development
+
+```bash
+# Start dev server
+npm run dev
+
+# Make changes to code
+
+# Build to verify (recommended before commits)
+npm run build
+
+# Commit changes
+git add .
+git commit -m "Your message"
+git push
+```
+
+### Before Each Release
+
+1. Run build: `npm run build`
+2. Test critical features (see [Testing Guide](docs/TESTING.md))
+3. Check for console errors
+4. Verify environment variables
+5. Review security checklist
+6. Deploy to staging (preview)
+7. Deploy to production
+
+---
+
+## Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Development Guidelines
+
+- Follow TypeScript strict mode
+- Use functional components with hooks
+- Write self-documenting code
+- Add comments for complex logic
+- Test before committing
+- Keep PRs focused and small
+
+---
+
 ## License
 
-MIT License
+MIT License - see LICENSE file for details.
+
+---
+
+## Acknowledgments
+
+- Built with [Next.js 15](https://nextjs.org)
+- Powered by [Supabase](https://supabase.com)
+- AI features by [Google Gemini](https://ai.google.dev) and [Google Veo](https://deepmind.google/technologies/veo/)
+- State management by [Zustand](https://github.com/pmndrs/zustand)
+- Logging by [Axiom](https://axiom.co)
 
 ---
 
