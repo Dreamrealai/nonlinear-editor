@@ -3,9 +3,16 @@ import { generateVideo } from '@/lib/veo';
 import { generateFalVideo } from '@/lib/fal-video';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
+import { serverLogger } from '@/lib/serverLogger';
 
 export async function POST(req: NextRequest) {
+  const startTime = Date.now();
+
   try {
+    serverLogger.info({
+      event: 'video.generate.request_started',
+    }, 'Video generation request received');
+
     const supabase = await createServerSupabaseClient();
 
     // Check authentication
@@ -15,13 +22,29 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      serverLogger.warn({
+        event: 'video.generate.unauthorized',
+        error: authError?.message,
+      }, 'Unauthorized video generation attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    serverLogger.debug({
+      event: 'video.generate.user_authenticated',
+      userId: user.id,
+    }, 'User authenticated for video generation');
 
     // Rate limiting (expensive operation - 5 requests per minute per user)
     const rateLimitResult = await checkRateLimit(`video-gen:${user.id}`, RATE_LIMITS.expensive);
 
     if (!rateLimitResult.success) {
+      serverLogger.warn({
+        event: 'video.generate.rate_limited',
+        userId: user.id,
+        limit: rateLimitResult.limit,
+        remaining: rateLimitResult.remaining,
+        resetAt: rateLimitResult.resetAt,
+      }, 'Video generation rate limit exceeded');
       return NextResponse.json(
         {
           error: 'Rate limit exceeded',
@@ -38,6 +61,12 @@ export async function POST(req: NextRequest) {
         }
       );
     }
+
+    serverLogger.debug({
+      event: 'video.generate.rate_limit_ok',
+      userId: user.id,
+      remaining: rateLimitResult.remaining,
+    }, 'Rate limit check passed');
 
     const body = await req.json();
     const {
@@ -57,12 +86,35 @@ export async function POST(req: NextRequest) {
       imageAssetId,
     } = body;
 
+    serverLogger.debug({
+      event: 'video.generate.params_received',
+      userId: user.id,
+      model,
+      aspectRatio,
+      duration,
+      hasPrompt: !!prompt,
+      promptLength: prompt?.length,
+      hasImageAsset: !!imageAssetId,
+      projectId,
+    }, 'Video generation parameters received');
+
     // Validate prompt
     if (!prompt || typeof prompt !== 'string') {
+      serverLogger.warn({
+        event: 'video.generate.invalid_prompt',
+        userId: user.id,
+        hasPrompt: !!prompt,
+        promptType: typeof prompt,
+      }, 'Invalid or missing prompt');
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
 
     if (prompt.length < 3 || prompt.length > 1000) {
+      serverLogger.warn({
+        event: 'video.generate.invalid_prompt_length',
+        userId: user.id,
+        promptLength: prompt.length,
+      }, 'Prompt length out of bounds');
       return NextResponse.json(
         { error: 'Prompt must be between 3 and 1000 characters' },
         { status: 400 }
@@ -71,6 +123,10 @@ export async function POST(req: NextRequest) {
 
     // Validate projectId format (UUID)
     if (!projectId) {
+      serverLogger.warn({
+        event: 'video.generate.missing_project_id',
+        userId: user.id,
+      }, 'Missing project ID');
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
     }
 
@@ -150,6 +206,12 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (projectError || !project) {
+      serverLogger.warn({
+        event: 'video.generate.project_not_found',
+        userId: user.id,
+        projectId,
+        error: projectError?.message,
+      }, 'Project not found or access denied');
       return NextResponse.json({ error: 'Project not found or access denied' }, { status: 403 });
     }
 
@@ -185,6 +247,19 @@ export async function POST(req: NextRequest) {
 
     // Route to appropriate provider based on model
     const isFalModel = model === 'seedance-1.0-pro' || model === 'minimax-hailuo-02-pro';
+    const provider = isFalModel ? 'fal' : 'veo';
+
+    serverLogger.info({
+      event: 'video.generate.starting',
+      userId: user.id,
+      projectId,
+      model,
+      provider,
+      aspectRatio,
+      duration,
+      hasImageUrl: !!imageUrl,
+      promptLength: prompt.length,
+    }, `Starting video generation with ${provider}`);
 
     if (isFalModel) {
       // Use FAL.ai for Seedance and MiniMax models
@@ -197,6 +272,18 @@ export async function POST(req: NextRequest) {
         imageUrl,
         promptOptimizer: enhancePrompt,
       });
+
+      const duration_ms = Date.now() - startTime;
+      serverLogger.info({
+        event: 'video.generate.fal_started',
+        userId: user.id,
+        projectId,
+        model,
+        operationName: `fal:${result.endpoint}:${result.requestId}`,
+        requestId: result.requestId,
+        endpoint: result.endpoint,
+        duration: duration_ms,
+      }, `FAL video generation initiated in ${duration_ms}ms`);
 
       return NextResponse.json({
         operationName: `fal:${result.endpoint}:${result.requestId}`,
@@ -221,6 +308,16 @@ export async function POST(req: NextRequest) {
         imageUrl,
       });
 
+      const duration_ms = Date.now() - startTime;
+      serverLogger.info({
+        event: 'video.generate.veo_started',
+        userId: user.id,
+        projectId,
+        model,
+        operationName: result.name,
+        duration: duration_ms,
+      }, `Veo video generation initiated in ${duration_ms}ms`);
+
       return NextResponse.json({
         operationName: result.name,
         status: 'processing',
@@ -228,7 +325,12 @@ export async function POST(req: NextRequest) {
       });
     }
   } catch (error) {
-    console.error('Video generation error:', error);
+    const duration = Date.now() - startTime;
+    serverLogger.error({
+      event: 'video.generate.error',
+      error,
+      duration,
+    }, 'Video generation error');
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to generate video' },
       { status: 500 }

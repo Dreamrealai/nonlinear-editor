@@ -3,6 +3,7 @@
 // =============================================================================
 
 import Stripe from 'stripe';
+import { serverLogger } from '@/lib/serverLogger';
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('STRIPE_SECRET_KEY is not set in environment variables');
@@ -36,7 +37,12 @@ export async function getOrCreateStripeCustomer(params: {
       await stripe.customers.retrieve(stripeCustomerId);
       return stripeCustomerId;
     } catch (error) {
-      console.error('Error retrieving Stripe customer:', error);
+      serverLogger.warn({
+        event: 'stripe.customer.retrieve_failed',
+        customerId: stripeCustomerId,
+        userId,
+        error,
+      }, 'Failed to retrieve existing Stripe customer, creating new one');
       // Customer doesn't exist, create a new one
     }
   }

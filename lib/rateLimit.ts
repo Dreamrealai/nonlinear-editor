@@ -5,6 +5,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { serverLogger } from '@/lib/serverLogger';
 
 interface RateLimitEntry {
   count: number;
@@ -34,7 +35,11 @@ function getSupabaseClient() {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.warn('Supabase credentials not found, using in-memory rate limiting fallback');
+      serverLogger.warn({
+        event: 'rateLimit.supabase_unavailable',
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseServiceKey,
+      }, 'Supabase credentials not found, using in-memory rate limiting fallback');
       return null;
     }
 
@@ -135,14 +140,22 @@ export async function checkRateLimit(
     );
 
     if (error) {
-      console.error('Rate limit check failed, using in-memory fallback:', error);
+      serverLogger.error({
+        event: 'rateLimit.check_failed',
+        identifier,
+        error: error.message,
+        code: error.code,
+      }, 'Rate limit check failed, using in-memory fallback');
       return checkRateLimitMemory(identifier, config);
     }
 
     const data = rawData as unknown as Array<{ current_count: number; reset_time: string }>;
 
     if (!data || data.length === 0) {
-      console.error('Rate limit function returned no data, using in-memory fallback');
+      serverLogger.error({
+        event: 'rateLimit.no_data',
+        identifier,
+      }, 'Rate limit function returned no data, using in-memory fallback');
       return checkRateLimitMemory(identifier, config);
     }
 
@@ -160,7 +173,11 @@ export async function checkRateLimit(
       resetAt: resetTime,
     };
   } catch (err) {
-    console.error('Unexpected error in rate limit check, using in-memory fallback:', err);
+    serverLogger.error({
+      event: 'rateLimit.unexpected_error',
+      identifier,
+      error: err,
+    }, 'Unexpected error in rate limit check, using in-memory fallback');
     return checkRateLimitMemory(identifier, config);
   }
 }
