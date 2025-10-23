@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateVideo } from '@/lib/veo';
+import { generateFalVideo } from '@/lib/fal-video';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 
@@ -182,28 +183,50 @@ export async function POST(req: NextRequest) {
       imageUrl = publicUrlData.publicUrl;
     }
 
-    // Start video generation with specified Veo model
-    const result = await generateVideo({
-      prompt,
-      model,
-      aspectRatio,
-      duration,
-      resolution,
-      negativePrompt,
-      personGeneration,
-      enhancePrompt,
-      generateAudio,
-      seed,
-      sampleCount,
-      compressionQuality,
-      imageUrl,
-    });
+    // Route to appropriate provider based on model
+    const isFalModel = model === 'seedance-1.0-pro' || model === 'minimax-video-01-live';
 
-    return NextResponse.json({
-      operationName: result.name,
-      status: 'processing',
-      message: 'Video generation started. Use the operation name to check status.',
-    });
+    if (isFalModel) {
+      // Use FAL.ai for Seedance and MiniMax models
+      const result = await generateFalVideo({
+        prompt,
+        model,
+        aspectRatio,
+        duration,
+        resolution,
+        imageUrl,
+        promptOptimizer: enhancePrompt,
+      });
+
+      return NextResponse.json({
+        operationName: `fal:${result.endpoint}:${result.requestId}`,
+        status: 'processing',
+        message: 'Video generation started. Use the operation name to check status.',
+      });
+    } else {
+      // Use Google Veo for Google models
+      const result = await generateVideo({
+        prompt,
+        model,
+        aspectRatio,
+        duration,
+        resolution,
+        negativePrompt,
+        personGeneration,
+        enhancePrompt,
+        generateAudio,
+        seed,
+        sampleCount,
+        compressionQuality,
+        imageUrl,
+      });
+
+      return NextResponse.json({
+        operationName: result.name,
+        status: 'processing',
+        message: 'Video generation started. Use the operation name to check status.',
+      });
+    }
   } catch (error) {
     console.error('Video generation error:', error);
     return NextResponse.json(

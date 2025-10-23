@@ -61,6 +61,12 @@ export function useImageUpload(supabase: SupabaseClient): UseImageUploadReturn {
 
     setIsUploading(true);
     try {
+      // Get current user ID for RLS compliance
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error('User must be authenticated to upload images');
+      }
+
       // Create an image to get dimensions
       const img = new Image();
       const imageUrl = URL.createObjectURL(file);
@@ -71,8 +77,8 @@ export function useImageUpload(supabase: SupabaseClient): UseImageUploadReturn {
       });
       URL.revokeObjectURL(imageUrl);
 
-      // Upload the image to Supabase storage
-      const fileName = `${assetId}/${subfolder}/${Date.now()}-${file.name}`;
+      // Upload the image to Supabase storage with user ID prefix for RLS
+      const fileName = `${user.id}/${assetId}/${subfolder}/${Date.now()}-${file.name}`;
       const { error: uploadError } = await supabase.storage
         .from('frames')
         .upload(fileName, file, {

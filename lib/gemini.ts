@@ -39,25 +39,31 @@ export async function makeGenAI() {
     let credentials;
     try {
       credentials = JSON.parse(serviceAccount);
-    } catch {
-      throw new Error('Failed to parse GOOGLE_SERVICE_ACCOUNT JSON');
+    } catch (parseError) {
+      console.error('Failed to parse GOOGLE_SERVICE_ACCOUNT:', parseError);
+      throw new Error('GOOGLE_SERVICE_ACCOUNT environment variable contains invalid JSON');
     }
 
-    // Get access token from service account
-    const auth = new GoogleAuth({
-      credentials,
-      scopes: ['https://www.googleapis.com/auth/generative-language'],
-    });
+    try {
+      // Get access token from service account
+      const auth = new GoogleAuth({
+        credentials,
+        scopes: ['https://www.googleapis.com/auth/generative-language'],
+      });
 
-    const client = await auth.getClient();
-    const accessToken = await client.getAccessToken();
+      const client = await auth.getClient();
+      const accessToken = await client.getAccessToken();
 
-    if (!accessToken.token) {
-      throw new Error('Failed to get access token from service account');
+      if (!accessToken.token) {
+        throw new Error('Failed to get access token from service account');
+      }
+
+      // Use the access token as the API key
+      return new GoogleGenerativeAI(accessToken.token);
+    } catch (authError) {
+      console.error('Google Auth error:', authError);
+      throw new Error(`Failed to authenticate with Google service account: ${authError instanceof Error ? authError.message : 'Unknown error'}`);
     }
-
-    // Use the access token as the API key
-    return new GoogleGenerativeAI(accessToken.token);
   }
 
   // Fallback to API key

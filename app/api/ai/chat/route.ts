@@ -127,24 +127,48 @@ export async function POST(request: NextRequest) {
     }));
 
     // Call Gemini (will use GEMINI_API_KEY or GOOGLE_SERVICE_ACCOUNT)
-    const response = await chat({
-      model,
-      message,
-      history,
-      files,
-    });
+    try {
+      const response = await chat({
+        model,
+        message,
+        history,
+        files,
+      });
 
-    return NextResponse.json({
-      response,
-      model,
-      timestamp: new Date().toISOString(),
-    });
+      return NextResponse.json({
+        response,
+        model,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (chatError) {
+      console.error('Gemini chat error:', chatError);
+
+      // Check if it's a configuration error
+      if (chatError instanceof Error &&
+          (chatError.message.includes('environment variable') ||
+           chatError.message.includes('authenticate'))) {
+        return NextResponse.json(
+          {
+            error: 'AI service not configured',
+            details: chatError.message,
+            help: 'Please configure GOOGLE_SERVICE_ACCOUNT or GEMINI_API_KEY in environment variables'
+          },
+          { status: 503 }
+        );
+      }
+
+      // Other errors
+      throw chatError;
+    }
 
   } catch (error) {
     console.error('AI chat error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json(
-      { error: errorMessage },
+      {
+        error: errorMessage,
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     );
   }
