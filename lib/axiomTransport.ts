@@ -12,8 +12,8 @@ type LogEntry = {
   [key: string]: unknown;
 };
 
-const BATCH_SIZE = 10;
-const BATCH_INTERVAL_MS = 2000; // Shorter interval for serverless
+const BATCH_SIZE = 5; // Smaller batch size for faster sending in serverless
+const BATCH_INTERVAL_MS = 1000; // Even shorter interval for serverless (1 second)
 const AXIOM_API = 'https://api.axiom.co/v1/datasets';
 
 class AxiomTransport {
@@ -43,8 +43,11 @@ class AxiomTransport {
 
     this.queue.push(log);
 
-    // Flush immediately if batch size reached
-    if (this.queue.length >= BATCH_SIZE) {
+    // In serverless, flush more aggressively
+    // Flush immediately for error and warn levels
+    const shouldFlushImmediately = log.level >= 40 || this.queue.length >= BATCH_SIZE;
+
+    if (shouldFlushImmediately) {
       this.flush();
     } else {
       // Schedule flush if not already scheduled
@@ -92,9 +95,13 @@ class AxiomTransport {
         });
 
         if (!response.ok) {
-          // Silently fail in production, log in dev
+          const errorText = await response.text();
+          // Always log Axiom failures to console for debugging
+          console.error('Axiom ingest failed:', response.status, errorText);
+        } else {
+          // Log success in development
           if (process.env.NODE_ENV === 'development') {
-            console.error('Axiom ingest failed:', await response.text());
+            console.log(`✓ Sent ${logsToSend.length} logs to Axiom`);
           }
         }
       } catch (error) {

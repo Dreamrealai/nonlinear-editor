@@ -212,8 +212,10 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      serverLogger.info({ gcsFilePath, bucketName, assetId }, 'Video uploaded to GCS successfully');
       console.log('Video uploaded to GCS successfully');
     } catch (uploadError) {
+      serverLogger.error({ uploadError, assetId, projectId, bucketName }, 'Failed to upload video to GCS');
       console.error('Failed to upload video to GCS:', uploadError);
       return NextResponse.json(
         {
