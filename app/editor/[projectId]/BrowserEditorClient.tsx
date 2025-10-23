@@ -24,6 +24,7 @@ import PreviewPlayer from '@/components/PreviewPlayer';
 import ExportModal from '@/components/ExportModal';
 import EditorHeader from '@/components/EditorHeader';
 import { useAutosave } from '@/lib/hooks/useAutosave';
+import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { saveTimeline, loadTimeline } from '@/lib/saveLoad';
 import type { Clip, Timeline as TimelineType } from '@/types/timeline';
@@ -651,6 +652,15 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
   const timeline = useEditorStore((state) => state.timeline);
   const setTimeline = useEditorStore((state) => state.setTimeline);
   const addClip = useEditorStore((state) => state.addClip);
+
+  // Enable keyboard shortcuts
+  useKeyboardShortcuts({
+    enabled: true,
+    onPlayPause: () => {
+      // TODO: Implement play/pause for preview player
+      console.log('Play/pause triggered');
+    },
+  });
 
   // Load timeline from database
   useEffect(() => {
