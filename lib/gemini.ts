@@ -85,6 +85,21 @@ export async function makeAIClient(): Promise<AIClient> {
 }
 
 /**
+ * Maps Google AI Studio model names to Vertex AI model names.
+ * Google AI Studio uses different model identifiers than Vertex AI.
+ */
+function normalizeModelName(modelName: string): string {
+  const modelMap: Record<string, string> = {
+    'gemini-flash-latest': 'gemini-2.5-flash',
+    'gemini-pro-latest': 'gemini-2.5-pro',
+    'gemini-1.5-flash': 'gemini-2.5-flash',
+    'gemini-1.5-pro': 'gemini-2.5-pro',
+  };
+
+  return modelMap[modelName] || modelName;
+}
+
+/**
  * Sends a chat message to Gemini with optional conversation history and file attachments.
  *
  * Configuration:
@@ -95,7 +110,7 @@ export async function makeAIClient(): Promise<AIClient> {
  * - timeout: 60s with exponential backoff retry (3 attempts)
  *
  * @param params - Chat parameters
- * @param params.model - Gemini model to use (e.g., "gemini-2.5-flash")
+ * @param params.model - Gemini model to use (e.g., "gemini-2.5-flash" or "gemini-flash-latest")
  * @param params.message - User's message text
  * @param params.history - Previous conversation messages for context
  * @param params.files - Optional file attachments (base64 encoded with MIME type)
@@ -138,6 +153,9 @@ export async function chat(params: {
   files?: Array<{ data: string; mimeType: string }>;
 }) {
   const aiClient = await makeAIClient();
+
+  // Normalize model name for Vertex AI compatibility
+  const normalizedModel = normalizeModelName(params.model);
 
   // Send message with timeout and retry logic
   const maxRetries = 3;
