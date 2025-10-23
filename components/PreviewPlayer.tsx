@@ -822,22 +822,6 @@ export default function PreviewPlayer() {
           />
         )}
 
-        {/* Centered Play Button Overlay */}
-        {!isPlaying && timeline.clips.length > 0 && (
-          <div className="absolute inset-0 flex items-center justify-center z-[1100] pointer-events-none">
-            <button
-              type="button"
-              onClick={togglePlayPause}
-              className="pointer-events-auto flex items-center justify-center rounded-full bg-white/95 hover:bg-white p-8 text-black transition-all hover:scale-110 shadow-2xl backdrop-blur-sm border-4 border-white/20"
-              title="Play (Space)"
-            >
-              <svg className="h-16 w-16" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </button>
-          </div>
-        )}
-
         {/* Overlay Controls - Auto-hide on play */}
         {showControls && (
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 transition-opacity duration-300 z-[1050]">
