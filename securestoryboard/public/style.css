@@ -24,10 +24,10 @@
   --ph-bg: #f1f3f5; /* Placeholder background - light gray */
   --icon-color: #000000;
   --icon-hover-color: #ffffff;
-  --link-color: #007bff;
-  --error-bg: #f8d7da;
-  --error-text: #721c24;
-  --error-border: #f5c6cb;
+  --link-color: #000000;
+  --error-bg: #f5f5f5;
+  --error-text: #000000;
+  --error-border: #cccccc;
   --logo-filter: invert(0%); /* No inversion for logo on light bg */
   --prompt-area-width: 250px; /* Default for prompt column width, adjusted smaller */
   --scenes-column-gap: 24px; /* Horizontal gap between prompt and images */
@@ -467,7 +467,7 @@ body{margin:0;height:100vh;font-family:'Inter', Roboto, Arial, sans-serif;overfl
   right: 48px !important; /* Increased from 32px to better align with image placeholders */
   z-index: 100 !important; /* Above other elements */
   margin-left: 0 !important; /* Remove margin */
-  background: #001f3f !important;
+  background: #000000 !important;
   color: white !important;
   text-decoration: none !important;
   font-size: 12px !important;
@@ -489,7 +489,7 @@ body{margin:0;height:100vh;font-family:'Inter', Roboto, Arial, sans-serif;overfl
 
 .image-editor-link.top-right:hover {
   opacity: 0.8 !important;
-  background: #002951 !important;
+  background: #2a2a2a !important;
 }
 
 /* Ensure buttons align properly */
@@ -763,7 +763,7 @@ select option {
 
 /* Image Editor link styles */
 .image-editor-link {
-  background: #001f3f !important; /* Deep navy background */
+  background: #000000 !important; /* Black background */
   color: white !important;
   text-decoration: none !important;
   font-size: 12px !important;
@@ -783,5 +783,5 @@ select option {
 
 .image-editor-link:hover {
   opacity: 0.8 !important;
-  background: #002951 !important; /* Slightly lighter navy on hover */
+  background: #2a2a2a !important; /* Dark gray on hover */
 } 

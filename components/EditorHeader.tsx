@@ -230,7 +230,7 @@ export default function EditorHeader({ projectId, currentTab }: EditorHeaderProp
             Generate Audio
           </Link>
           <Link
-            href={`/editor/${projectId}/image-editor`}
+            href={`/editor/${projectId}/keyframe`}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
               currentTab === 'image-editor'
                 ? 'bg-white text-neutral-900 shadow-sm'

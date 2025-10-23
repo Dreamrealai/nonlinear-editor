@@ -1,10 +1,16 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 
 interface GenerateAudioTabProps {
   projectId: string;
+}
+
+interface Voice {
+  voice_id: string;
+  name: string;
+  category?: string;
 }
 
 /**
@@ -25,6 +31,12 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
   const [customMode, setCustomMode] = useState(false);
   const [instrumental, setInstrumental] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // Voice generation state (ElevenLabs)
+  const [voiceText, setVoiceText] = useState('');
+  const [voices, setVoices] = useState<Voice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState('EXAVITQu4vr4xnSDxMaL'); // Default: Sarah
+  const [loadingVoices, setLoadingVoices] = useState(false);
 
   const handleGenerateMusic = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
