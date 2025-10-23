@@ -64,6 +64,19 @@ Previously, the project was incorrectly linked to team `dream-real` (project nam
 - Removed duplicate project from wrong team
 - Relinked to correct team: `dream-real-b2bc4dd2`
 - All deployments now succeeding ✅
+- **Created `.vercelrc`** to permanently lock to correct team
+
+## Permanent Team Lock
+
+A `.vercelrc` file has been created in the project root to ensure the CLI always uses the correct team:
+
+```json
+{
+  "scope": "dream-real-b2bc4dd2"
+}
+```
+
+This file is committed to the repository, so all team members and CI/CD pipelines will automatically use the correct Vercel team. **No manual switching required!**
 
 ## Deployment Commands
 
