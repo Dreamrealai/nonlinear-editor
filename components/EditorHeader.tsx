@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 interface EditorHeaderProps {
   projectId: string;
   currentTab: 'video-editor' | 'generate-video' | 'generate-audio' | 'image-editor';
+  onExport?: () => void;
 }
 
 interface Project {
@@ -17,7 +18,7 @@ interface Project {
   title: string;
 }
 
-export default function EditorHeader({ projectId, currentTab }: EditorHeaderProps) {
+export default function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderProps) {
   const router = useRouter();
   const { supabaseClient } = useSupabase();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -162,20 +163,44 @@ export default function EditorHeader({ projectId, currentTab }: EditorHeaderProp
                       <div className="px-4 py-2 text-sm text-neutral-500">No projects found</div>
                     ) : (
                       projects.map((project) => (
-                        <button
+                        <div
                           key={project.id}
-                          onClick={() => project.id === projectId ? handleRenameClick() : handleProjectChange(project.id)}
                           className={`w-full px-4 py-2 text-left text-sm hover:bg-neutral-50 transition-colors flex items-center justify-between group ${
                             project.id === projectId ? 'bg-blue-50 text-blue-700 font-medium' : 'text-neutral-900'
                           }`}
                         >
-                          <span>{project.title}</span>
+                          <button
+                            onClick={() => project.id === projectId ? handleRenameClick() : handleProjectChange(project.id)}
+                            className="flex-1 text-left"
+                          >
+                            <span>{project.title}</span>
+                          </button>
                           {project.id === projectId && (
-                            <svg className="h-3.5 w-3.5 text-blue-500 opacity-60 group-hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={handleRenameClick}
+                                className="p-1 rounded hover:bg-blue-100 transition-colors"
+                                title="Rename project"
+                              >
+                                <svg className="h-3.5 w-3.5 text-blue-500 opacity-60 group-hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  void handleDeleteProject();
+                                }}
+                                className="p-1 rounded hover:bg-red-100 transition-colors"
+                                title="Delete project"
+                              >
+                                <svg className="h-3.5 w-3.5 text-red-500 opacity-60 group-hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
                           )}
-                        </button>
+                        </div>
                       ))
                     )}
                   </div>
@@ -184,17 +209,6 @@ export default function EditorHeader({ projectId, currentTab }: EditorHeaderProp
             )}
           </div>
 
-          {!isRenaming && (
-            <button
-              onClick={() => void handleDeleteProject()}
-              className="rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50 transition-colors"
-              title="Delete project"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
-          )}
         </div>
 
         {/* Navigation Tabs */}
@@ -241,8 +255,20 @@ export default function EditorHeader({ projectId, currentTab }: EditorHeaderProp
           </Link>
         </nav>
 
-        {/* User Menu */}
-        <div>
+        {/* Export Video Button and User Menu */}
+        <div className="flex items-center gap-3">
+          {onExport && currentTab === 'video-editor' && (
+            <button
+              onClick={onExport}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 transition-colors flex items-center gap-2"
+              title="Export/Render video"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Export Video
+            </button>
+          )}
           <UserMenu />
         </div>
       </div>

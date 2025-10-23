@@ -59,18 +59,6 @@ interface AssetPanelProps {
   onAssetAdd: (asset: AssetRow) => Promise<void>;
   /** Callback when asset delete is requested */
   onAssetDelete: (asset: AssetRow) => Promise<void>;
-  /** Optional: Callback when split audio is requested */
-  onSplitAudio?: (asset: AssetRow) => Promise<void>;
-  /** Optional: Whether audio split is pending */
-  splitAudioPending?: boolean;
-  /** Optional: Callback when split scenes is requested */
-  onSplitScenes?: (asset: AssetRow) => Promise<void>;
-  /** Optional: Whether scene split is pending */
-  splitScenesPending?: boolean;
-  /** Optional: Callback when upscale video is requested */
-  onUpscaleVideo?: (asset: AssetRow) => Promise<void>;
-  /** Optional: Whether video upscale is pending */
-  upscaleVideoPending?: boolean;
 }
 
 /**
@@ -93,12 +81,6 @@ export default function AssetPanel({
   onFileSelect,
   onAssetAdd,
   onAssetDelete,
-  onSplitAudio,
-  splitAudioPending = false,
-  onSplitScenes,
-  splitScenesPending = false,
-  onUpscaleVideo,
-  upscaleVideoPending = false,
 }: AssetPanelProps) {
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
@@ -309,44 +291,6 @@ export default function AssetPanel({
                 </p>
               </div>
             </button>
-
-            {/* Video Action Buttons */}
-            {asset.type === 'video' && (
-              <div className="flex flex-col gap-1.5">
-                <div className="flex gap-1.5">
-                  {onSplitAudio && (
-                    <button
-                      onClick={() => void onSplitAudio(asset)}
-                      disabled={splitAudioPending}
-                      className="flex-1 rounded-md bg-blue-500 px-2 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
-                      title="Extract audio from video"
-                    >
-                      Split Audio
-                    </button>
-                  )}
-                  {onSplitScenes && (
-                    <button
-                      onClick={() => void onSplitScenes(asset)}
-                      disabled={splitScenesPending}
-                      className="flex-1 rounded-md bg-purple-500 px-2 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
-                      title="Split video into scenes"
-                    >
-                      Split Scenes
-                    </button>
-                  )}
-                </div>
-                {onUpscaleVideo && (
-                  <button
-                    onClick={() => void onUpscaleVideo(asset)}
-                    disabled={upscaleVideoPending}
-                    className="w-full rounded-md bg-gradient-to-r from-emerald-500 to-teal-500 px-2 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:from-emerald-600 hover:to-teal-600 disabled:cursor-not-allowed disabled:opacity-50"
-                    title="Upscale video using Topaz AI (2x resolution)"
-                  >
-                    {upscaleVideoPending ? 'Upscaling...' : 'Upscale Video'}
-                  </button>
-                )}
-              </div>
-            )}
 
             {/* Delete button - always visible */}
             <button

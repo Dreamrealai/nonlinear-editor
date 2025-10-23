@@ -1659,7 +1659,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <EditorHeader projectId={projectId} currentTab="video-editor" />
+      <EditorHeader projectId={projectId} currentTab="video-editor" onExport={handleExportClick} />
       <div className="grid h-full grid-cols-[280px_1fr] gap-6 p-6">
         <Toaster position="bottom-right" />
       {/* Assets Panel */}
@@ -1918,7 +1918,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
           <HorizontalTimeline
             onDetectScenes={handleDetectScenes}
             sceneDetectPending={sceneDetectPending}
-            onExport={handleExportClick}
             onAddText={handleAddText}
             onAddTransition={handleAddTransition}
             onGenerateAudioFromClip={handleGenerateAudioFromClip}

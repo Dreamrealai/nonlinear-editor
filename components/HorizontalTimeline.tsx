@@ -137,7 +137,6 @@ const ClipRenderer = React.memo<ClipRendererProps>(function ClipRenderer({
 type HorizontalTimelineProps = {
   onDetectScenes?: () => void;
   sceneDetectPending?: boolean;
-  onExport?: () => void;
   onAddText?: () => void;
   onAddTransition?: () => void;
   onGenerateAudioFromClip?: (clipId: string) => void;
@@ -152,7 +151,6 @@ type HorizontalTimelineProps = {
 export default function HorizontalTimeline({
   onDetectScenes,
   sceneDetectPending = false,
-  onExport,
   onAddText,
   onAddTransition,
   onGenerateAudioFromClip,
@@ -671,20 +669,6 @@ export default function HorizontalTimeline({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                   </svg>
                 )}
-              </button>
-            </>
-          )}
-          {onExport && (
-            <>
-              <div className="h-4 w-px bg-neutral-300" />
-              <button
-                onClick={onExport}
-                className="rounded px-2 py-1 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                title="Export/Render video"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
               </button>
             </>
           )}

@@ -20,6 +20,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip, TextOverlay } from '@/types/timeline';
 import TextOverlayRenderer from './TextOverlayRenderer';
+import TextOverlayEditor from './TextOverlayEditor';
 import VideoPlayerHoverMenu from './VideoPlayerHoverMenu';
 
 /** Default TTL for signed URLs in seconds (10 minutes) */
@@ -808,9 +809,19 @@ export default function PreviewPlayer() {
       <div className="relative flex-1 overflow-hidden rounded-xl bg-black">
         <div ref={containerRef} className="absolute inset-0" />
 
-        {/* Text Overlays */}
+        {/* Text Overlays - Show editor when not playing, renderer when playing */}
         {timeline.textOverlays && timeline.textOverlays.length > 0 && (
-          <TextOverlayRenderer textOverlays={timeline.textOverlays} currentTime={currentTime} />
+          <>
+            {isPlaying ? (
+              <TextOverlayRenderer textOverlays={timeline.textOverlays} currentTime={currentTime} />
+            ) : (
+              <TextOverlayEditor
+                textOverlays={timeline.textOverlays}
+                currentTime={currentTime}
+                containerRef={containerRef}
+              />
+            )}
+          </>
         )}
 
         {/* Hover Menu for Adding Text and Transitions */}
