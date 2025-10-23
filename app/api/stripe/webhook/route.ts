@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
+import { serverLogger } from '@/lib/serverLogger';
 
 // Disable body parser to handle raw body for webhook signature verification
 export const runtime = 'nodejs';
@@ -26,143 +27,317 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   const customerId = session.customer as string;
   const subscriptionId = session.subscription as string;
 
+  serverLogger.info({
+    event: 'stripe.checkout.started',
+    sessionId: session.id,
+    userId,
+    customerId,
+    subscriptionId,
+    amount: session.amount_total,
+    currency: session.currency,
+  }, 'Processing checkout.session.completed webhook');
+
   if (!userId) {
-    console.error('No userId in checkout session metadata');
+    serverLogger.error({
+      event: 'stripe.checkout.error',
+      sessionId: session.id,
+      customerId,
+      error: 'Missing userId in session metadata',
+    }, 'No userId in checkout session metadata');
     return;
   }
 
-  // Get subscription details
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
-    expand: ['items.data.price'],
-  });
+  try {
+    // Get subscription details
+    serverLogger.debug({
+      event: 'stripe.subscription.retrieve',
+      subscriptionId,
+      userId,
+    }, 'Retrieving subscription details from Stripe');
 
-  // Extract values before type narrowing
-  const subscriptionData = subscription as unknown as {
-    current_period_start: number;
-    current_period_end: number;
-    status: string;
-    cancel_at_period_end: boolean;
-    items: {
-      data: Array<{
-        price: string | { id: string };
-      }>;
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+      expand: ['items.data.price'],
+    });
+
+    // Extract values before type narrowing
+    const subscriptionData = subscription as unknown as {
+      current_period_start: number;
+      current_period_end: number;
+      status: string;
+      cancel_at_period_end: boolean;
+      items: {
+        data: Array<{
+          price: string | { id: string };
+        }>;
+      };
     };
-  };
 
-  const priceId = typeof subscriptionData.items.data[0].price === 'string'
-    ? subscriptionData.items.data[0].price
-    : subscriptionData.items.data[0].price.id;
+    const priceId = typeof subscriptionData.items.data[0].price === 'string'
+      ? subscriptionData.items.data[0].price
+      : subscriptionData.items.data[0].price.id;
 
-  // Update user profile
-  await supabaseAdmin
-    .from('user_profiles')
-    .update({
-      stripe_customer_id: customerId,
-      stripe_subscription_id: subscriptionId,
-      stripe_price_id: priceId,
-      subscription_status: subscriptionData.status,
-      subscription_current_period_start: new Date(subscriptionData.current_period_start * 1000).toISOString(),
-      subscription_current_period_end: new Date(subscriptionData.current_period_end * 1000).toISOString(),
-      subscription_cancel_at_period_end: subscriptionData.cancel_at_period_end,
+    serverLogger.debug({
+      event: 'stripe.subscription.data',
+      subscriptionId,
+      priceId,
+      status: subscriptionData.status,
+      periodStart: subscriptionData.current_period_start,
+      periodEnd: subscriptionData.current_period_end,
+      userId,
+    }, 'Retrieved subscription data');
+
+    // Update user profile
+    const { data, error } = await supabaseAdmin
+      .from('user_profiles')
+      .update({
+        stripe_customer_id: customerId,
+        stripe_subscription_id: subscriptionId,
+        stripe_price_id: priceId,
+        subscription_status: subscriptionData.status,
+        subscription_current_period_start: new Date(subscriptionData.current_period_start * 1000).toISOString(),
+        subscription_current_period_end: new Date(subscriptionData.current_period_end * 1000).toISOString(),
+        subscription_cancel_at_period_end: subscriptionData.cancel_at_period_end,
+        tier: 'premium',
+      })
+      .eq('id', userId)
+      .select();
+
+    if (error) {
+      serverLogger.error({
+        event: 'stripe.checkout.db_error',
+        userId,
+        customerId,
+        subscriptionId,
+        error: error.message,
+        code: error.code,
+      }, 'Failed to update user profile after checkout');
+      throw error;
+    }
+
+    serverLogger.info({
+      event: 'stripe.checkout.completed',
+      userId,
+      customerId,
+      subscriptionId,
+      priceId,
       tier: 'premium',
-    })
-    .eq('id', userId);
-
-  console.log(`✅ Checkout completed for user ${userId}`);
+      status: subscriptionData.status,
+      amount: session.amount_total,
+      currency: session.currency,
+    }, 'Checkout completed successfully - user upgraded to premium');
+  } catch (error) {
+    serverLogger.error({
+      event: 'stripe.checkout.error',
+      userId,
+      customerId,
+      subscriptionId,
+      error,
+    }, 'Error processing checkout session completion');
+    throw error;
+  }
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const customerId = subscription.customer as string;
 
-  // Find user by customer ID
-  const { data: profile } = await supabaseAdmin
-    .from('user_profiles')
-    .select('id')
-    .eq('stripe_customer_id', customerId)
-    .single();
+  serverLogger.info({
+    event: 'stripe.subscription.update_started',
+    subscriptionId: subscription.id,
+    customerId,
+    status: subscription.status,
+  }, 'Processing customer.subscription.updated webhook');
 
-  if (!profile) {
-    console.error('No user found for customer:', customerId);
-    return;
-  }
+  try {
+    // Find user by customer ID
+    const { data: profile, error: fetchError } = await supabaseAdmin
+      .from('user_profiles')
+      .select('id, tier')
+      .eq('stripe_customer_id', customerId)
+      .single();
 
-  // Extract subscription data
-  const subscriptionData = subscription as unknown as {
-    id: string;
-    current_period_start: number;
-    current_period_end: number;
-    status: string;
-    cancel_at_period_end: boolean;
-    items: {
-      data: Array<{
-        price: string | { id: string };
-      }>;
+    if (fetchError || !profile) {
+      serverLogger.error({
+        event: 'stripe.subscription.user_not_found',
+        customerId,
+        subscriptionId: subscription.id,
+        error: fetchError?.message,
+      }, 'No user found for customer ID');
+      return;
+    }
+
+    // Extract subscription data
+    const subscriptionData = subscription as unknown as {
+      id: string;
+      current_period_start: number;
+      current_period_end: number;
+      status: string;
+      cancel_at_period_end: boolean;
+      items: {
+        data: Array<{
+          price: string | { id: string };
+        }>;
+      };
     };
-  };
 
-  // Determine tier based on subscription status
-  let tier: 'free' | 'premium' | 'admin' = 'free';
-  if (subscriptionData.status === 'active' || subscriptionData.status === 'trialing') {
-    tier = 'premium';
-  }
+    // Determine tier based on subscription status
+    const oldTier = profile.tier;
+    let tier: 'free' | 'premium' | 'admin' = 'free';
+    if (subscriptionData.status === 'active' || subscriptionData.status === 'trialing') {
+      tier = 'premium';
+    }
 
-  const priceId = typeof subscriptionData.items.data[0].price === 'string'
-    ? subscriptionData.items.data[0].price
-    : subscriptionData.items.data[0].price.id;
+    const priceId = typeof subscriptionData.items.data[0].price === 'string'
+      ? subscriptionData.items.data[0].price
+      : subscriptionData.items.data[0].price.id;
 
-  // Update user profile
-  await supabaseAdmin
-    .from('user_profiles')
-    .update({
-      stripe_subscription_id: subscriptionData.id,
-      stripe_price_id: priceId,
-      subscription_status: subscriptionData.status,
-      subscription_current_period_start: new Date(subscriptionData.current_period_start * 1000).toISOString(),
-      subscription_current_period_end: new Date(subscriptionData.current_period_end * 1000).toISOString(),
-      subscription_cancel_at_period_end: subscriptionData.cancel_at_period_end,
+    serverLogger.debug({
+      event: 'stripe.subscription.tier_change',
+      userId: profile.id,
+      oldTier,
+      newTier: tier,
+      status: subscriptionData.status,
+      cancelAtPeriodEnd: subscriptionData.cancel_at_period_end,
+    }, 'Subscription tier transition');
+
+    // Update user profile
+    const { data, error } = await supabaseAdmin
+      .from('user_profiles')
+      .update({
+        stripe_subscription_id: subscriptionData.id,
+        stripe_price_id: priceId,
+        subscription_status: subscriptionData.status,
+        subscription_current_period_start: new Date(subscriptionData.current_period_start * 1000).toISOString(),
+        subscription_current_period_end: new Date(subscriptionData.current_period_end * 1000).toISOString(),
+        subscription_cancel_at_period_end: subscriptionData.cancel_at_period_end,
+        tier,
+      })
+      .eq('id', profile.id)
+      .select();
+
+    if (error) {
+      serverLogger.error({
+        event: 'stripe.subscription.db_error',
+        userId: profile.id,
+        customerId,
+        subscriptionId: subscription.id,
+        error: error.message,
+        code: error.code,
+      }, 'Failed to update user profile after subscription update');
+      throw error;
+    }
+
+    serverLogger.info({
+      event: 'stripe.subscription.updated',
+      userId: profile.id,
+      customerId,
+      subscriptionId: subscriptionData.id,
+      status: subscriptionData.status,
       tier,
-    })
-    .eq('id', profile.id);
-
-  console.log(`✅ Subscription updated for user ${profile.id}, status: ${subscriptionData.status}`);
+      oldTier,
+      priceId,
+      cancelAtPeriodEnd: subscriptionData.cancel_at_period_end,
+    }, `Subscription updated successfully - status: ${subscriptionData.status}, tier: ${oldTier} -> ${tier}`);
+  } catch (error) {
+    serverLogger.error({
+      event: 'stripe.subscription.update_error',
+      customerId,
+      subscriptionId: subscription.id,
+      error,
+    }, 'Error processing subscription update');
+    throw error;
+  }
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   const customerId = subscription.customer as string;
 
-  // Find user by customer ID
-  const { data: profile } = await supabaseAdmin
-    .from('user_profiles')
-    .select('id')
-    .eq('stripe_customer_id', customerId)
-    .single();
+  serverLogger.info({
+    event: 'stripe.subscription.delete_started',
+    subscriptionId: subscription.id,
+    customerId,
+  }, 'Processing customer.subscription.deleted webhook');
 
-  if (!profile) {
-    console.error('No user found for customer:', customerId);
-    return;
+  try {
+    // Find user by customer ID
+    const { data: profile, error: fetchError } = await supabaseAdmin
+      .from('user_profiles')
+      .select('id, tier, stripe_subscription_id')
+      .eq('stripe_customer_id', customerId)
+      .single();
+
+    if (fetchError || !profile) {
+      serverLogger.error({
+        event: 'stripe.subscription.user_not_found',
+        customerId,
+        subscriptionId: subscription.id,
+        error: fetchError?.message,
+      }, 'No user found for customer ID');
+      return;
+    }
+
+    const oldTier = profile.tier;
+
+    // Downgrade user to free tier
+    const { data, error } = await supabaseAdmin
+      .from('user_profiles')
+      .update({
+        tier: 'free',
+        subscription_status: 'canceled',
+        stripe_subscription_id: null,
+        stripe_price_id: null,
+        subscription_cancel_at_period_end: false,
+      })
+      .eq('id', profile.id)
+      .select();
+
+    if (error) {
+      serverLogger.error({
+        event: 'stripe.subscription.delete_db_error',
+        userId: profile.id,
+        customerId,
+        subscriptionId: subscription.id,
+        error: error.message,
+        code: error.code,
+      }, 'Failed to downgrade user after subscription deletion');
+      throw error;
+    }
+
+    serverLogger.info({
+      event: 'stripe.subscription.deleted',
+      userId: profile.id,
+      customerId,
+      subscriptionId: subscription.id,
+      oldTier,
+      newTier: 'free',
+    }, `Subscription deleted - user downgraded from ${oldTier} to free`);
+  } catch (error) {
+    serverLogger.error({
+      event: 'stripe.subscription.delete_error',
+      customerId,
+      subscriptionId: subscription.id,
+      error,
+    }, 'Error processing subscription deletion');
+    throw error;
   }
-
-  // Downgrade user to free tier
-  await supabaseAdmin
-    .from('user_profiles')
-    .update({
-      tier: 'free',
-      subscription_status: 'canceled',
-      stripe_subscription_id: null,
-      stripe_price_id: null,
-      subscription_cancel_at_period_end: false,
-    })
-    .eq('id', profile.id);
-
-  console.log(`✅ Subscription deleted for user ${profile.id}`);
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
     const body = await request.text();
     const signature = request.headers.get('stripe-signature');
 
+    serverLogger.debug({
+      event: 'stripe.webhook.received',
+      hasSignature: !!signature,
+      bodyLength: body.length,
+    }, 'Stripe webhook request received');
+
     if (!signature) {
+      serverLogger.warn({
+        event: 'stripe.webhook.missing_signature',
+      }, 'Webhook request missing stripe-signature header');
       return NextResponse.json(
         { error: 'Missing stripe-signature header' },
         { status: 400 }
@@ -170,7 +345,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (!process.env.STRIPE_WEBHOOK_SECRET) {
-      console.error('STRIPE_WEBHOOK_SECRET is not set');
+      serverLogger.error({
+        event: 'stripe.webhook.config_error',
+        error: 'STRIPE_WEBHOOK_SECRET not configured',
+      }, 'STRIPE_WEBHOOK_SECRET is not set');
       return NextResponse.json(
         { error: 'Webhook secret not configured' },
         { status: 500 }
@@ -185,8 +363,17 @@ export async function POST(request: NextRequest) {
         signature,
         process.env.STRIPE_WEBHOOK_SECRET
       );
+
+      serverLogger.debug({
+        event: 'stripe.webhook.verified',
+        eventType: event.type,
+        eventId: event.id,
+      }, 'Webhook signature verified successfully');
     } catch (error) {
-      console.error('⚠️  Webhook signature verification failed:', error);
+      serverLogger.error({
+        event: 'stripe.webhook.verification_failed',
+        error,
+      }, 'Webhook signature verification failed');
       return NextResponse.json(
         { error: 'Webhook signature verification failed' },
         { status: 400 }
@@ -194,7 +381,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle the event
-    console.log(`🔔 Stripe webhook event: ${event.type}`);
+    serverLogger.info({
+      event: 'stripe.webhook.processing',
+      eventType: event.type,
+      eventId: event.id,
+      created: event.created,
+    }, `Processing Stripe webhook: ${event.type}`);
 
     switch (event.type) {
       case 'checkout.session.completed':
@@ -211,16 +403,37 @@ export async function POST(request: NextRequest) {
 
       case 'customer.subscription.created':
         // Usually handled by checkout.session.completed
-        console.log('Subscription created:', event.data.object);
+        serverLogger.info({
+          event: 'stripe.subscription.created',
+          subscriptionId: (event.data.object as Stripe.Subscription).id,
+          customerId: (event.data.object as Stripe.Subscription).customer,
+        }, 'Subscription created (handled by checkout.session.completed)');
         break;
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        serverLogger.warn({
+          event: 'stripe.webhook.unhandled',
+          eventType: event.type,
+          eventId: event.id,
+        }, `Unhandled webhook event type: ${event.type}`);
     }
+
+    const duration = Date.now() - startTime;
+    serverLogger.info({
+      event: 'stripe.webhook.completed',
+      eventType: event.type,
+      eventId: event.id,
+      duration,
+    }, `Webhook processed successfully in ${duration}ms`);
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('Error processing webhook:', error);
+    const duration = Date.now() - startTime;
+    serverLogger.error({
+      event: 'stripe.webhook.error',
+      error,
+      duration,
+    }, 'Error processing webhook');
     return NextResponse.json(
       { error: 'Webhook processing failed' },
       { status: 500 }

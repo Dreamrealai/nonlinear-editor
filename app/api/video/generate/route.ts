@@ -184,7 +184,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Route to appropriate provider based on model
-    const isFalModel = model === 'seedance-1.0-pro' || model === 'minimax-video-01-live';
+    const isFalModel = model === 'seedance-1.0-pro' || model === 'minimax-hailuo-02-pro';
 
     if (isFalModel) {
       // Use FAL.ai for Seedance and MiniMax models

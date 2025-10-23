@@ -3,7 +3,7 @@
  *
  * This module provides functions to generate videos using various models on fal.ai:
  * - Seedance 1.0 Pro (ByteDance)
- * - MiniMax Video-01-Live (Hailuo AI)
+ * - MiniMax Hailuo-02 Pro (Hailuo AI)
  *
  * Required Environment Variables:
  * - FAL_API_KEY: API key for fal.ai
@@ -66,9 +66,9 @@ function getFalEndpoint(model: string, hasImage: boolean): string {
       text: 'fal-ai/bytedance/seedance/v1/pro/text-to-video',
       image: 'fal-ai/bytedance/seedance/v1/pro/image-to-video',
     },
-    'minimax-video-01-live': {
-      text: 'fal-ai/minimax/video-01-live',
-      image: 'fal-ai/minimax/video-01-live/image-to-video',
+    'minimax-hailuo-02-pro': {
+      text: 'fal-ai/minimax/hailuo-02/pro/text-to-video',
+      image: 'fal-ai/minimax/hailuo-02/pro/image-to-video',
     },
   };
 
@@ -113,9 +113,17 @@ export async function generateFalVideo(params: FalVideoParams): Promise<{ reques
     if (params.aspectRatio) {
       input.aspect_ratio = params.aspectRatio;
     }
-  } else if (params.model === 'minimax-video-01-live') {
-    // MiniMax-specific parameters
+  } else if (params.model === 'minimax-hailuo-02-pro') {
+    // MiniMax Hailuo-02 Pro specific parameters
     input.prompt_optimizer = params.promptOptimizer !== undefined ? params.promptOptimizer : true;
+
+    // Add aspect ratio and duration for MiniMax Pro
+    if (params.aspectRatio) {
+      input.aspect_ratio = params.aspectRatio;
+    }
+    if (params.duration) {
+      input.duration = params.duration;
+    }
   }
 
   try {
