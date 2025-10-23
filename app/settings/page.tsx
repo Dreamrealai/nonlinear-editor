@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
+import { SubscriptionManager } from '@/components/SubscriptionManager';
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function SettingsPage() {
@@ -130,6 +131,9 @@ export default function SettingsPage() {
           </Link>
           <h1 className="text-3xl font-bold text-neutral-900">Account Settings</h1>
         </div>
+
+        {/* Subscription Manager */}
+        <SubscriptionManager />
 
         {/* Account Information */}
         <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
