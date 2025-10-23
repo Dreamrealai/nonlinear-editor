@@ -1,7 +1,13 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/lib/supabase';
-import { unauthorizedResponse, errorResponse, rateLimitResponse, successResponse, withErrorHandling } from '@/lib/api/response';
+import {
+  unauthorizedResponse,
+  errorResponse,
+  rateLimitResponse,
+  successResponse,
+  withErrorHandling,
+} from '@/lib/api/response';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
 
@@ -24,7 +30,9 @@ export const DELETE = withErrorHandling(async (_req: NextRequest) => {
   // TIER 1 RATE LIMITING: Account deletion (5/min)
   // Critical to prevent abuse and accidental mass deletions
   const supabaseForRateLimit = await createServerSupabaseClient();
-  const { data: { user: rateLimitUser } } = await supabaseForRateLimit.auth.getUser();
+  const {
+    data: { user: rateLimitUser },
+  } = await supabaseForRateLimit.auth.getUser();
 
   const rateLimitIdentifier = rateLimitUser?.id
     ? `delete-account:${rateLimitUser.id}`
@@ -33,11 +41,14 @@ export const DELETE = withErrorHandling(async (_req: NextRequest) => {
   const rateLimitResult = await checkRateLimit(rateLimitIdentifier, RATE_LIMITS.tier1_auth_payment);
 
   if (!rateLimitResult.success) {
-    serverLogger.warn({
-      event: 'user.delete_account.rate_limited',
-      identifier: rateLimitIdentifier,
-      limit: rateLimitResult.limit,
-    }, 'Account deletion rate limit exceeded');
+    serverLogger.warn(
+      {
+        event: 'user.delete_account.rate_limited',
+        identifier: rateLimitIdentifier,
+        limit: rateLimitResult.limit,
+      },
+      'Account deletion rate limit exceeded'
+    );
 
     return rateLimitResponse(
       rateLimitResult.limit,
@@ -48,7 +59,10 @@ export const DELETE = withErrorHandling(async (_req: NextRequest) => {
   try {
     // Verify user authentication
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return unauthorizedResponse();
@@ -57,8 +71,8 @@ export const DELETE = withErrorHandling(async (_req: NextRequest) => {
     const userId = user.id;
 
     // Use service role client for full access (required to delete auth users)
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'];
+    const serviceRoleKey = process.env['SUPABASE_SERVICE_ROLE_KEY'];
 
     if (!supabaseUrl || !serviceRoleKey) {
       serverLogger.error({ userId }, 'Missing Supabase configuration for account deletion');
@@ -96,7 +110,10 @@ export const DELETE = withErrorHandling(async (_req: NextRequest) => {
       .eq('user_id', userId);
 
     if (subscriptionError) {
-      serverLogger.error({ error: subscriptionError, userId }, 'Failed to delete user subscription');
+      serverLogger.error(
+        { error: subscriptionError, userId },
+        'Failed to delete user subscription'
+      );
       // Don't fail the entire operation for subscription errors
     }
 
@@ -126,22 +143,18 @@ export const DELETE = withErrorHandling(async (_req: NextRequest) => {
     // List and delete all files in user's storage buckets
     try {
       // Delete from assets bucket
-      const { data: assetFiles } = await adminClient.storage
-        .from('assets')
-        .list(userId);
+      const { data: assetFiles } = await adminClient.storage.from('assets').list(userId);
 
       if (assetFiles && assetFiles.length > 0) {
-        const assetPaths = assetFiles.map(file => `${userId}/${file.name}`);
+        const assetPaths = assetFiles.map((file) => `${userId}/${file.name}`);
         await adminClient.storage.from('assets').remove(assetPaths);
       }
 
       // Delete from frames bucket
-      const { data: frameFiles } = await adminClient.storage
-        .from('frames')
-        .list(userId);
+      const { data: frameFiles } = await adminClient.storage.from('frames').list(userId);
 
       if (frameFiles && frameFiles.length > 0) {
-        const framePaths = frameFiles.map(file => `${userId}/${file.name}`);
+        const framePaths = frameFiles.map((file) => `${userId}/${file.name}`);
         await adminClient.storage.from('frames').remove(framePaths);
       }
     } catch (storageError) {
@@ -174,4 +187,3 @@ export const DELETE = withErrorHandling(async (_req: NextRequest) => {
     return errorResponse('Account deletion failed', 500);
   }
 });
-

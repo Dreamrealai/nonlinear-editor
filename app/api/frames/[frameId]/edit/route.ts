@@ -6,13 +6,13 @@ import { v4 as uuid } from 'uuid';
 import { serverLogger } from '@/lib/serverLogger';
 import { withErrorHandling } from '@/lib/api/response';
 
-export const POST = withErrorHandling(async (
-  request: NextRequest,
-  { params }: { params: Promise<{ frameId: string }> }
-) => {
+export const POST = withErrorHandling(
+  async (request: NextRequest, { params }: { params: Promise<{ frameId: string }> }) => {
     // SECURITY: Verify user authentication
     const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -20,7 +20,16 @@ export const POST = withErrorHandling(async (
 
     const { frameId } = await params;
     const body = await request.json();
-    const { prompt, mode = 'global', cropX, cropY, cropSize, feather, referenceImages = [], numVariations = 4 } = body;
+    const {
+      prompt,
+      mode = 'global',
+      cropX,
+      cropY,
+      cropSize,
+      feather,
+      referenceImages = [],
+      numVariations = 4,
+    } = body;
 
     if (!prompt || typeof prompt !== 'string') {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
@@ -33,7 +42,8 @@ export const POST = withErrorHandling(async (
     // SECURITY FIX: Verify user owns BOTH the frame AND the project it belongs to
     const { data: frame, error: frameError } = await supabase
       .from('scene_frames')
-      .select(`
+      .select(
+        `
         *,
         project:projects!inner(
           id,
@@ -43,7 +53,8 @@ export const POST = withErrorHandling(async (
           id,
           user_id
         )
-      `)
+      `
+      )
       .eq('id', frameId)
       .single();
 
@@ -53,24 +64,35 @@ export const POST = withErrorHandling(async (
 
     // Verify user owns the project
     if (!frame.project || frame.project.user_id !== user.id) {
-      return NextResponse.json({ error: 'Unauthorized - you do not own this project' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Unauthorized - you do not own this project' },
+        { status: 403 }
+      );
     }
 
     // Verify user owns the asset
     if (!frame.asset || frame.asset.user_id !== user.id) {
-      return NextResponse.json({ error: 'Unauthorized - you do not own this asset' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Unauthorized - you do not own this asset' },
+        { status: 403 }
+      );
     }
 
     // Get the frame image URL
-    const { data: { publicUrl: frameUrl } } = supabase.storage
+    const {
+      data: { publicUrl: frameUrl },
+    } = supabase.storage
       .from('frames')
       .getPublicUrl(frame.storage_path.replace('supabase://frames/', ''));
 
     // Initialize Gemini (check both AISTUDIO_API_KEY and GEMINI_API_KEY)
-    const apiKey = process.env.AISTUDIO_API_KEY || process.env.GEMINI_API_KEY;
+    const apiKey = process.env['AISTUDIO_API_KEY'] || process.env['GEMINI_API_KEY'];
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'Gemini API key not configured. Please set AISTUDIO_API_KEY or GEMINI_API_KEY environment variable.' },
+        {
+          error:
+            'Gemini API key not configured. Please set AISTUDIO_API_KEY or GEMINI_API_KEY environment variable.',
+        },
         { status: 503 }
       );
     }
@@ -86,12 +108,14 @@ export const POST = withErrorHandling(async (
     const frameArrayBuffer = await frameResponse.arrayBuffer();
     const frameBase64 = Buffer.from(frameArrayBuffer).toString('base64');
 
-    const imageParts = [{
-      inlineData: {
-        data: frameBase64,
-        mimeType: frameResponse.headers.get('content-type') || 'image/jpeg',
+    const imageParts = [
+      {
+        inlineData: {
+          data: frameBase64,
+          mimeType: frameResponse.headers.get('content-type') || 'image/jpeg',
+        },
       },
-    }];
+    ];
 
     // Add reference images if provided
     for (const refUrl of referenceImages) {
@@ -117,7 +141,8 @@ export const POST = withErrorHandling(async (
       fullPrompt += `Reference image(s) are provided for style or content guidance.\n\n`;
     }
 
-    fullPrompt += 'Provide specific, actionable editing instructions that could be used to transform the image.';
+    fullPrompt +=
+      'Provide specific, actionable editing instructions that could be used to transform the image.';
 
     // Get the current version number for this frame
     const { data: existingEdits } = await supabase
@@ -135,15 +160,13 @@ export const POST = withErrorHandling(async (
     const edits = [];
     for (let i = 0; i < variations; i++) {
       // Add variation to prompt to encourage different results
-      const variationPrompt = variations > 1
-        ? `${fullPrompt}\n\nVariation ${i + 1}: Provide a unique interpretation of this request.`
-        : fullPrompt;
+      const variationPrompt =
+        variations > 1
+          ? `${fullPrompt}\n\nVariation ${i + 1}: Provide a unique interpretation of this request.`
+          : fullPrompt;
 
       // Generate content with Gemini
-      const result = await model.generateContent([
-        { text: variationPrompt },
-        ...imageParts,
-      ]);
+      const result = await model.generateContent([{ text: variationPrompt }, ...imageParts]);
 
       const editDescription = result.response.text();
 
@@ -185,7 +208,10 @@ export const POST = withErrorHandling(async (
         .single();
 
       if (editError) {
-        serverLogger.error({ error: editError, userId: user.id, frameId, projectId: frame.project_id }, 'Failed to create edit');
+        serverLogger.error(
+          { error: editError, userId: user.id, frameId, projectId: frame.project_id },
+          'Failed to create edit'
+        );
         // Continue with other variations even if one fails
         continue;
       }
@@ -203,4 +229,5 @@ export const POST = withErrorHandling(async (
       count: edits.length,
       note: 'This is using Gemini 2.5 Flash for image analysis. For actual image generation, Imagen 3 or Gemini 2.5 Flash Image Preview would be used.',
     });
-});
+  }
+);

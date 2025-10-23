@@ -243,6 +243,10 @@ export class VideoService {
     const endpoint = parts.slice(1, -1).join(':');
     const requestId = parts[parts.length - 1];
 
+    if (!requestId) {
+      throw new Error('Invalid FAL request ID');
+    }
+
     const falResult = await checkFalVideoStatus(requestId, endpoint);
 
     if (falResult.done && falResult.result) {

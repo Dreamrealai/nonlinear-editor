@@ -276,7 +276,7 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
         throw new Error('Invalid GCS URI returned by Veo');
       }
 
-      const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT;
+      const serviceAccountJson = process.env['GOOGLE_SERVICE_ACCOUNT'];
       if (!serviceAccountJson) {
         throw new Error(
           'GOOGLE_SERVICE_ACCOUNT environment variable is required to download Veo output'

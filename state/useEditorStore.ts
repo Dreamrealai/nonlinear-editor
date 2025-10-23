@@ -169,6 +169,7 @@ const dedupeClips = (clips: Clip[]): Clip[] => {
   // Iterate backwards to keep last occurrence
   for (let i = clips.length - 1; i >= 0; i -= 1) {
     const clip = clips[i];
+    if (!clip) continue; // Skip undefined entries
     if (seen.has(clip.id)) {
       continue; // Skip duplicate
     }

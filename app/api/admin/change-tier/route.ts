@@ -61,7 +61,8 @@ async function handleChangeTier(request: NextRequest, context: AdminAuthContext)
         },
         'Invalid input in tier change request'
       );
-      return validationError(validation.errors[0].message, validation.errors[0].field);
+      const firstError = validation.errors[0];
+      return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
     }
 
     // SECURITY: Prevent admin from modifying their own tier
@@ -79,8 +80,8 @@ async function handleChangeTier(request: NextRequest, context: AdminAuthContext)
 
     // Use service role client for admin operations
     const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      process.env['NEXT_PUBLIC_SUPABASE_URL']!,
+      process.env['SUPABASE_SERVICE_ROLE_KEY']!,
       {
         auth: {
           autoRefreshToken: false,

@@ -32,7 +32,7 @@ const isDevelopment = process.env.NODE_ENV === 'development';
  * This stream parses the JSON log entries and forwards them to Axiom.
  */
 class AxiomStream extends Writable {
-  _write(chunk: Buffer, encoding: string, callback: () => void) {
+  override _write(chunk: Buffer, _encoding: string, callback: () => void) {
     // Parse and send to Axiom (async, non-blocking)
     if (process.env.AXIOM_TOKEN && process.env.AXIOM_DATASET) {
       try {

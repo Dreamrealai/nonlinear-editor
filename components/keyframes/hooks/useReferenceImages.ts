@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { browserLogger } from '@/lib/browserLogger';
 
@@ -17,6 +17,13 @@ export function useReferenceImages(
 ) {
   const [refImages, setRefImages] = useState<RefImage[]>([]);
   const refImageInputRef = useRef<HTMLInputElement>(null);
+
+  // CRITICAL FIX: Cleanup blob URLs on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      refImages.forEach((img) => URL.revokeObjectURL(img.previewUrl));
+    };
+  }, [refImages]);
 
   const handleRefImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -64,7 +71,10 @@ export function useReferenceImages(
           )
         );
       } catch (error) {
-        browserLogger.error({ error, fileName: img.file.name, selectedAssetId }, 'Failed to upload reference image');
+        browserLogger.error(
+          { error, fileName: img.file.name, selectedAssetId },
+          'Failed to upload reference image'
+        );
         setRefImages((prev) => prev.filter((item) => item.id !== img.id));
         alert(`Failed to upload ${img.file.name}. Please try again.`);
       }
@@ -90,49 +100,52 @@ export function useReferenceImages(
     setRefImages([]);
   }, [refImages]);
 
-  const addRefImage = useCallback(async (file: File) => {
-    if (!selectedAssetId) return;
+  const addRefImage = useCallback(
+    async (file: File) => {
+      if (!selectedAssetId) return;
 
-    const newImage = {
-      id: `${Date.now()}-${Math.random()}`,
-      file,
-      previewUrl: URL.createObjectURL(file),
-      uploading: false,
-    };
+      const newImage = {
+        id: `${Date.now()}-${Math.random()}`,
+        file,
+        previewUrl: URL.createObjectURL(file),
+        uploading: false,
+      };
 
-    setRefImages((prev) => [...prev, newImage]);
-
-    setRefImages((prev) =>
-      prev.map((item) => (item.id === newImage.id ? { ...item, uploading: true } : item))
-    );
-
-    try {
-      const fileName = `${selectedAssetId}/refs/${Date.now()}-pasted.png`;
-      const { error: uploadError } = await supabase.storage
-        .from('frames')
-        .upload(fileName, file, {
-          contentType: file.type,
-          upsert: false,
-        });
-
-      if (uploadError) throw uploadError;
-
-      const storagePath = `supabase://frames/${fileName}`;
-      const signedUrl = await signStoragePath(storagePath, 3600);
+      setRefImages((prev) => [...prev, newImage]);
 
       setRefImages((prev) =>
-        prev.map((item) =>
-          item.id === newImage.id
-            ? { ...item, uploading: false, uploadedUrl: signedUrl ?? undefined }
-            : item
-        )
+        prev.map((item) => (item.id === newImage.id ? { ...item, uploading: true } : item))
       );
-    } catch (error) {
-      browserLogger.error({ error, selectedAssetId }, 'Failed to upload pasted image');
-      setRefImages((prev) => prev.filter((item) => item.id !== newImage.id));
-      alert('Failed to upload pasted image. Please try again.');
-    }
-  }, [selectedAssetId, supabase, signStoragePath]);
+
+      try {
+        const fileName = `${selectedAssetId}/refs/${Date.now()}-pasted.png`;
+        const { error: uploadError } = await supabase.storage
+          .from('frames')
+          .upload(fileName, file, {
+            contentType: file.type,
+            upsert: false,
+          });
+
+        if (uploadError) throw uploadError;
+
+        const storagePath = `supabase://frames/${fileName}`;
+        const signedUrl = await signStoragePath(storagePath, 3600);
+
+        setRefImages((prev) =>
+          prev.map((item) =>
+            item.id === newImage.id
+              ? { ...item, uploading: false, uploadedUrl: signedUrl ?? undefined }
+              : item
+          )
+        );
+      } catch (error) {
+        browserLogger.error({ error, selectedAssetId }, 'Failed to upload pasted image');
+        setRefImages((prev) => prev.filter((item) => item.id !== newImage.id));
+        alert('Failed to upload pasted image. Please try again.');
+      }
+    },
+    [selectedAssetId, supabase, signStoragePath]
+  );
 
   return {
     refImages,

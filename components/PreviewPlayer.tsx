@@ -696,14 +696,85 @@ export default function PreviewPlayer() {
 
   // Track last sync time to throttle updates during RAF loop
   const lastSyncTimeRef = useRef<number>(0);
+  const frameTimeThresholdRef = useRef<number>(16); // Adaptive: 16ms = 60fps, 33ms = 30fps
+  const droppedFramesRef = useRef<number>(0);
+  const performanceCheckCountRef = useRef<number>(0);
+
+  // Detect device capabilities and adjust frame rate adaptively
+  useEffect(() => {
+    // Check CPU cores and memory as indicators of device capability
+    const hardwareConcurrency = navigator.hardwareConcurrency || 4;
+    // @ts-expect-error - deviceMemory is not in TypeScript definitions yet
+    const deviceMemory = navigator.deviceMemory || 4; // In GB
+
+    // Lower-end devices: 2 cores or less, or 2GB RAM or less
+    const isLowerEndDevice = hardwareConcurrency <= 2 || deviceMemory <= 2;
+
+    if (isLowerEndDevice) {
+      // Reduce to 30fps for lower-end devices
+      frameTimeThresholdRef.current = 33;
+      browserLogger.info(
+        {
+          cores: hardwareConcurrency,
+          memory: deviceMemory,
+          targetFps: 30,
+        },
+        'PreviewPlayer: Adaptive frame rate - Lower-end device detected, using 30fps'
+      );
+    } else {
+      // Use 60fps for capable devices
+      frameTimeThresholdRef.current = 16;
+      browserLogger.info(
+        {
+          cores: hardwareConcurrency,
+          memory: deviceMemory,
+          targetFps: 60,
+        },
+        'PreviewPlayer: Adaptive frame rate - High-end device detected, using 60fps'
+      );
+    }
+  }, []);
 
   const syncClipsAtTime = useCallback(
     (time: number, play: boolean) => {
-      // Throttle sync during playback to every 16ms (60fps max)
+      // Throttle sync during playback based on adaptive frame rate
       const now = performance.now();
-      if (play && now - lastSyncTimeRef.current < 16) {
+      const threshold = frameTimeThresholdRef.current;
+
+      if (play && now - lastSyncTimeRef.current < threshold) {
         return;
       }
+
+      // Track frame timing for dynamic adjustment
+      const timeSinceLastFrame = now - lastSyncTimeRef.current;
+      if (play && timeSinceLastFrame > threshold * 2) {
+        // Frame took more than 2x the threshold - likely a dropped frame
+        droppedFramesRef.current += 1;
+        performanceCheckCountRef.current += 1;
+
+        // Every 60 frames, check if we should reduce frame rate further
+        if (performanceCheckCountRef.current >= 60) {
+          const dropRate = droppedFramesRef.current / performanceCheckCountRef.current;
+
+          // If dropping more than 20% of frames, reduce target frame rate
+          if (dropRate > 0.2 && frameTimeThresholdRef.current < 50) {
+            frameTimeThresholdRef.current = Math.min(50, frameTimeThresholdRef.current + 8);
+            browserLogger.warn(
+              {
+                dropRate: Math.round(dropRate * 100),
+                newThreshold: frameTimeThresholdRef.current,
+                newFps: Math.round(1000 / frameTimeThresholdRef.current),
+              },
+              'PreviewPlayer: High frame drop rate detected, reducing target frame rate'
+            );
+          }
+
+          // Reset counters
+          droppedFramesRef.current = 0;
+          performanceCheckCountRef.current = 0;
+        }
+      }
+
       lastSyncTimeRef.current = now;
 
       sortedClips.forEach((clip) => {

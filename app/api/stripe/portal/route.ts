@@ -13,8 +13,8 @@ import { withErrorHandling } from '@/lib/api/response';
 export const POST = withErrorHandling(async (request: NextRequest) => {
   // TIER 1 RATE LIMITING: Payment portal operations (5/min)
   const supabaseForRateLimit = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env['NEXT_PUBLIC_SUPABASE_URL']!,
+    process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']!,
     {
       cookies: {
         getAll: () => request.cookies.getAll(),
@@ -70,8 +70,8 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
   // Get user from Supabase session
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env['NEXT_PUBLIC_SUPABASE_URL']!,
+    process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']!,
     {
       cookies: {
         getAll: () => request.cookies.getAll(),
@@ -164,7 +164,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
   const session = await createBillingPortalSession({
     customerId: fullProfile.stripe_customer_id,
-    returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL || request.nextUrl.origin}/settings`,
+    returnUrl: `${process.env['NEXT_PUBLIC_BASE_URL'] || request.nextUrl.origin}/settings`,
   });
 
   const duration = Date.now() - startTime;

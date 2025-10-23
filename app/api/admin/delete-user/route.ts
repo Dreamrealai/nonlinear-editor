@@ -9,42 +9,46 @@ import { withAdminAuth, logAdminAction, type AdminAuthContext } from '@/lib/api/
 import { validationError, errorResponse, successResponse } from '@/lib/api/response';
 import { validateUUID, validateAll } from '@/lib/api/validation';
 
-async function handleDeleteUser(
-  request: NextRequest,
-  context: AdminAuthContext
-) {
+async function handleDeleteUser(request: NextRequest, context: AdminAuthContext) {
   const { user } = context;
   try {
     // Get request body
-    const { userId } = await request.json() as { userId: string };
+    const { userId } = (await request.json()) as { userId: string };
 
     if (!userId) {
-      serverLogger.warn({
-        event: 'admin.delete_user.invalid_request',
-        adminId: user.id,
-      }, 'Missing userId in delete request');
+      serverLogger.warn(
+        {
+          event: 'admin.delete_user.invalid_request',
+          adminId: user.id,
+        },
+        'Missing userId in delete request'
+      );
       return validationError('userId is required', 'userId');
     }
 
     // Validate userId format
     const validation = validateAll([validateUUID(userId, 'userId')]);
     if (!validation.valid) {
-      return validationError(validation.errors[0].message, validation.errors[0].field);
+      const firstError = validation.errors[0];
+      return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
     }
 
     // SECURITY: Prevent admin from deleting themselves
     if (userId === user.id) {
-      serverLogger.warn({
-        event: 'admin.delete_user.self_deletion_blocked',
-        adminId: user.id,
-      }, 'Admin attempted to delete their own account');
+      serverLogger.warn(
+        {
+          event: 'admin.delete_user.self_deletion_blocked',
+          adminId: user.id,
+        },
+        'Admin attempted to delete their own account'
+      );
       return validationError('Cannot delete your own account', 'userId');
     }
 
     // Use service role client for admin operations
     const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      process.env['NEXT_PUBLIC_SUPABASE_URL']!,
+      process.env['SUPABASE_SERVICE_ROLE_KEY']!,
       {
         auth: {
           autoRefreshToken: false,
@@ -56,52 +60,58 @@ async function handleDeleteUser(
     // Get user info before deletion for audit log
     const { data: targetUser } = await supabaseAdmin.auth.admin.getUserById(userId);
 
-    serverLogger.info({
-      event: 'admin.delete_user.deleting',
-      adminId: user.id,
-      targetUserId: userId,
-      targetEmail: targetUser?.user?.email,
-    }, 'Admin deleting user account');
+    serverLogger.info(
+      {
+        event: 'admin.delete_user.deleting',
+        adminId: user.id,
+        targetUserId: userId,
+        targetEmail: targetUser?.user?.email,
+      },
+      'Admin deleting user account'
+    );
 
     // Delete user from auth (this will cascade to user_profiles and all related data)
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (deleteError) {
-      serverLogger.error({
-        event: 'admin.delete_user.error',
-        adminId: user.id,
-        targetUserId: userId,
-        error: deleteError.message,
-      }, 'Failed to delete user account');
+      serverLogger.error(
+        {
+          event: 'admin.delete_user.error',
+          adminId: user.id,
+          targetUserId: userId,
+          error: deleteError.message,
+        },
+        'Failed to delete user account'
+      );
       return errorResponse('Failed to delete user account', 500);
     }
 
-    serverLogger.info({
-      event: 'admin.delete_user.success',
-      adminId: user.id,
-      targetUserId: userId,
-    }, 'User account deleted successfully');
+    serverLogger.info(
+      {
+        event: 'admin.delete_user.success',
+        adminId: user.id,
+        targetUserId: userId,
+      },
+      'User account deleted successfully'
+    );
 
     // Audit log the admin action
-    await logAdminAction(
-      supabaseAdmin,
-      'delete_user',
-      user.id,
-      userId,
-      {
-        adminEmail: user.email,
-        targetEmail: targetUser?.user?.email,
-        timestamp: new Date().toISOString(),
-      }
-    );
+    await logAdminAction(supabaseAdmin, 'delete_user', user.id, userId, {
+      adminEmail: user.email,
+      targetEmail: targetUser?.user?.email,
+      timestamp: new Date().toISOString(),
+    });
 
     return successResponse(null, 'User account deleted successfully');
   } catch (error) {
-    serverLogger.error({
-      event: 'admin.delete_user.exception',
-      adminId: user.id,
-      error,
-    }, 'Exception deleting user account');
+    serverLogger.error(
+      {
+        event: 'admin.delete_user.exception',
+        adminId: user.id,
+        error,
+      },
+      'Exception deleting user account'
+    );
     return errorResponse('Failed to delete user account', 500);
   }
 }

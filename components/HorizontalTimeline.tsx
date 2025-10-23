@@ -7,13 +7,16 @@ import type { Clip, TextOverlay } from '@/types/timeline';
 import { AudioWaveform } from './AudioWaveform';
 import { useTimelineScroll } from './VirtualizedClipRenderer';
 import { safeArrayLast } from '@/lib/utils/arrayUtils';
+import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
 
-const TRACK_HEIGHT = 80;
-const RULER_HEIGHT = 30;
-const MIN_TRACKS = 3;
-const MAX_TRACKS = 10;
-const SNAP_INTERVAL = 0.1; // seconds
-const SNAP_THRESHOLD = SNAP_INTERVAL / 2;
+const {
+  TRACK_HEIGHT,
+  RULER_HEIGHT,
+  MIN_TRACKS,
+  MAX_TRACKS,
+  SNAP_INTERVAL_SECONDS: SNAP_INTERVAL,
+  SNAP_THRESHOLD_SECONDS: SNAP_THRESHOLD,
+} = TIMELINE_CONSTANTS;
 
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
@@ -602,15 +605,22 @@ export default function HorizontalTimeline({
         latestMouseEventRef.current = null;
       };
     }
+    return undefined;
   }, [isDraggingPlayhead, draggingClip, trimmingClip, handleMouseMove, handleMouseUp]);
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Null check for event target
+      if (!e.target) return;
+
       // Ignore if typing in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
+
+      // Null check for navigator
+      if (typeof navigator === 'undefined' || !navigator.platform) return;
 
       const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
       const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
@@ -618,42 +628,44 @@ export default function HorizontalTimeline({
       // Cmd/Ctrl+Z: Undo
       if (cmdOrCtrl && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
-        undo();
+        if (undo) undo();
         return;
       }
 
       // Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: Redo
       if ((cmdOrCtrl && e.key === 'z' && e.shiftKey) || (cmdOrCtrl && e.key === 'y')) {
         e.preventDefault();
-        redo();
+        if (redo) redo();
         return;
       }
 
       // Cmd/Ctrl+C: Copy
       if (cmdOrCtrl && e.key === 'c') {
         e.preventDefault();
-        copyClips();
+        if (copyClips) copyClips();
         return;
       }
 
       // Cmd/Ctrl+V: Paste
       if (cmdOrCtrl && e.key === 'v') {
         e.preventDefault();
-        pasteClips();
+        if (pasteClips) pasteClips();
         return;
       }
 
       // Delete/Backspace: Remove selected clips
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
-        selectedClipIds.forEach((id) => removeClip(id));
-        clearSelection();
+        if (selectedClipIds && removeClip && clearSelection) {
+          selectedClipIds.forEach((id) => removeClip(id));
+          clearSelection();
+        }
       }
 
       // S: Split clip at playhead
       if (e.key === 's' || e.key === 'S') {
         e.preventDefault();
-        if (!timeline) return;
+        if (!timeline || !timeline.clips || !splitClipAtTime) return;
         const clipAtPlayhead = timeline.clips.find((clip) => {
           const clipStart = clip.timelinePosition;
           const clipEnd = clipStart + (clip.end - clip.start);
@@ -665,8 +677,11 @@ export default function HorizontalTimeline({
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+    return undefined;
   }, [
     selectedClipIds,
     currentTime,
@@ -686,6 +701,9 @@ export default function HorizontalTimeline({
     e.stopPropagation();
     const isMulti = e.metaKey || e.ctrlKey || e.shiftKey;
     selectClip(clip.id, isMulti);
+
+    // Null check for containerRef before accessing
+    if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
@@ -729,7 +747,7 @@ export default function HorizontalTimeline({
 
   // Split clip at playhead
   const handleSplitAtPlayhead = () => {
-    if (!timeline) return;
+    if (!timeline || !timeline.clips || !splitClipAtTime) return;
     const clipAtPlayhead = timeline.clips.find((clip) => {
       const clipStart = clip.timelinePosition;
       const clipEnd = clipStart + (clip.end - clip.start);
@@ -743,6 +761,9 @@ export default function HorizontalTimeline({
   // Timeline click to set playhead
   const handleTimelineClick = (e: React.MouseEvent) => {
     if (!containerRef.current || draggingClip || isDraggingPlayhead) return;
+
+    // Null check for containerRef before accessing
+    if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const time = Math.max(0, x / zoom);
@@ -752,7 +773,8 @@ export default function HorizontalTimeline({
   };
 
   // Check if playhead is over any clip (for split button)
-  const clipAtPlayhead = timeline?.clips.find((clip) => {
+  const clipAtPlayhead = timeline?.clips?.find((clip) => {
+    if (!clip) return false;
     const clipStart = clip.timelinePosition;
     const clipEnd = clipStart + (clip.end - clip.start);
     return currentTime > clipStart && currentTime < clipEnd;
@@ -761,10 +783,11 @@ export default function HorizontalTimeline({
   // Close context menu when clicking elsewhere
   useEffect(() => {
     const handleClick = () => setContextMenu(null);
-    if (contextMenu) {
+    if (contextMenu && typeof window !== 'undefined') {
       window.addEventListener('click', handleClick);
       return () => window.removeEventListener('click', handleClick);
     }
+    return undefined;
   }, [contextMenu]);
 
   const handleClipContextMenu = useCallback((e: React.MouseEvent, clip: Clip) => {

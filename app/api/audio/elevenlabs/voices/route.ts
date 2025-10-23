@@ -24,7 +24,7 @@ async function handleGetVoices(
   _context: AuthContext & { params?: Record<string, never> }
 ) {
   try {
-    const apiKey = process.env.ELEVENLABS_API_KEY;
+    const apiKey = process.env['ELEVENLABS_API_KEY'];
 
     if (!apiKey) {
       return internalServerError('ElevenLabs API key not configured');

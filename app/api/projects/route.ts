@@ -112,7 +112,11 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       validateString(body.title, 'title', { minLength: 1, maxLength: 200 }),
     ]);
     if (!validation.valid) {
-      return errorResponse(validation.errors[0].message, 400, validation.errors[0].field);
+      return errorResponse(
+        validation.errors[0]?.message ?? 'Invalid input',
+        400,
+        validation.errors[0]?.field
+      );
     }
   }
 

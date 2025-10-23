@@ -449,6 +449,9 @@ export function useAssetManager(projectId: string, pageSize: number = 50): UseAs
       return;
     }
 
+    // CRITICAL FIX: Track blob URLs for cleanup to prevent memory leaks
+    const blobUrls: string[] = [];
+
     void (async () => {
       for (const asset of missingThumbnails) {
         try {
@@ -479,11 +482,22 @@ export function useAssetManager(projectId: string, pageSize: number = 50): UseAs
           const response = await fetch(signedUrlResponse.data.signedUrl);
           const blob = await response.blob();
 
+          // CRITICAL FIX: Track the blob URL so we can clean it up later
+          const blobUrl = URL.createObjectURL(blob);
+          blobUrls.push(blobUrl);
+
           let thumbnail: string | null = null;
           if (asset.type === 'image') {
             thumbnail = await createImageThumbnail(blob);
           } else if (asset.type === 'video') {
             thumbnail = await createVideoThumbnail(blob);
+          }
+
+          // CRITICAL FIX: Revoke blob URL immediately after thumbnail generation
+          URL.revokeObjectURL(blobUrl);
+          const index = blobUrls.indexOf(blobUrl);
+          if (index > -1) {
+            blobUrls.splice(index, 1);
           }
 
           if (!thumbnail) continue;
@@ -515,7 +529,15 @@ export function useAssetManager(projectId: string, pageSize: number = 50): UseAs
           browserLogger.error({ error, assetId: asset.id }, 'Failed to generate thumbnail');
         }
       }
+
+      // CRITICAL FIX: Clean up any remaining blob URLs
+      blobUrls.forEach((url) => URL.revokeObjectURL(url));
     })();
+
+    // CRITICAL FIX: Cleanup on unmount
+    return () => {
+      blobUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
   }, [assets, assetsLoaded, supabase]);
 
   const handleAssetUpload = useCallback(

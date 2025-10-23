@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { fetchWithTimeout } from '@/lib/fetchWithTimeout';
 import { validateUUID, validateAll } from '@/lib/api/validation';
-import { errorResponse, unauthorizedResponse, validationError, internalServerError, withErrorHandling } from '@/lib/api/response';
+import {
+  errorResponse,
+  unauthorizedResponse,
+  validationError,
+  internalServerError,
+  withErrorHandling,
+} from '@/lib/api/response';
 import { verifyAssetOwnership } from '@/lib/api/project-verification';
 import { serverLogger } from '@/lib/serverLogger';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
@@ -20,151 +26,162 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
  * - h264Output?: boolean - Use H264 codec instead of H265 (default: false)
  */
 export const POST = withErrorHandling(async (request: NextRequest) => {
-    const body = await request.json();
-    const { assetId, projectId, upscaleFactor = 2, targetFps, h264Output = false } = body;
+  const body = await request.json();
+  const { assetId, projectId, upscaleFactor = 2, targetFps, h264Output = false } = body;
 
-    // Validate inputs using centralized validation
-    const validation = validateAll([
-      validateUUID(assetId, 'assetId'),
-      validateUUID(projectId, 'projectId'),
-    ]);
+  // Validate inputs using centralized validation
+  const validation = validateAll([
+    validateUUID(assetId, 'assetId'),
+    validateUUID(projectId, 'projectId'),
+  ]);
 
-    if (!validation.valid) {
-      return validationError(validation.errors[0].message, validation.errors[0].field);
-    }
+  if (!validation.valid) {
+    const firstError = validation.errors[0];
+    return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
+  }
 
-    // Initialize Supabase client
-    const supabase = await createServerSupabaseClient();
+  // Initialize Supabase client
+  const supabase = await createServerSupabaseClient();
 
-    // Verify user authentication
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+  // Verify user authentication
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-    if (userError || !user) {
-      return unauthorizedResponse();
-    }
+  if (userError || !user) {
+    return unauthorizedResponse();
+  }
 
-    // TIER 2 RATE LIMITING: Resource creation - video upscale (10/min)
-    const rateLimitResult = await checkRateLimit(
-      `video-upscale:${user.id}`,
-      RATE_LIMITS.tier2_resource_creation
-    );
+  // TIER 2 RATE LIMITING: Resource creation - video upscale (10/min)
+  const rateLimitResult = await checkRateLimit(
+    `video-upscale:${user.id}`,
+    RATE_LIMITS.tier2_resource_creation
+  );
 
-    if (!rateLimitResult.success) {
-      serverLogger.warn({
+  if (!rateLimitResult.success) {
+    serverLogger.warn(
+      {
         event: 'video.upscale.rate_limited',
         userId: user.id,
         limit: rateLimitResult.limit,
-      }, 'Video upscale rate limit exceeded');
+      },
+      'Video upscale rate limit exceeded'
+    );
 
-      return NextResponse.json(
-        {
-          error: 'Rate limit exceeded',
-          limit: rateLimitResult.limit,
-          remaining: rateLimitResult.remaining,
-          resetAt: rateLimitResult.resetAt,
-        },
-        {
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
-            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-            'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
-          },
-        }
-      );
-    }
-
-    // Verify asset ownership using centralized verification
-    const assetVerification = await verifyAssetOwnership(supabase, assetId, user.id, '*');
-    if (!assetVerification.hasAccess) {
-      return errorResponse(assetVerification.error!, assetVerification.status!);
-    }
-
-    const asset = assetVerification.asset!;
-
-    // Verify FAL_API_KEY is configured
-    const falKey = process.env.FAL_API_KEY;
-    if (!falKey) {
-      return internalServerError('FAL_API_KEY not configured on server');
-    }
-
-    // Get public URL for the video
-    const storageUrl = asset.storage_url as string;
-    const [, bucketPath] = storageUrl.split('://');
-    const [bucket, ...pathParts] = bucketPath.split('/');
-    const path = pathParts.join('/');
-
-    const { data: urlData } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(path);
-
-    if (!urlData?.publicUrl) {
-      return internalServerError('Failed to generate public URL for video');
-    }
-
-    // Submit upscale request to fal.ai with timeout
-    let falResponse;
-    try {
-      falResponse = await fetchWithTimeout('https://queue.fal.run/fal-ai/topaz/upscale/video', {
-        method: 'POST',
+    return NextResponse.json(
+      {
+        error: 'Rate limit exceeded',
+        limit: rateLimitResult.limit,
+        remaining: rateLimitResult.remaining,
+        resetAt: rateLimitResult.resetAt,
+      },
+      {
+        status: 429,
         headers: {
-          'Authorization': `Key ${falKey}`,
-          'Content-Type': 'application/json',
+          'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+          'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+          'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
         },
-        body: JSON.stringify({
-          video_url: urlData.publicUrl,
-          upscale_factor: upscaleFactor,
-          ...(targetFps && { target_fps: targetFps }),
-          ...(h264Output && { H264_output: h264Output }),
-        }),
-        timeout: 60000,
-      });
+      }
+    );
+  }
 
-      if (!falResponse.ok) {
-        const errorText = await falResponse.text();
-        serverLogger.error({
+  // Verify asset ownership using centralized verification
+  const assetVerification = await verifyAssetOwnership(supabase, assetId, user.id, '*');
+  if (!assetVerification.hasAccess) {
+    return errorResponse(assetVerification.error!, assetVerification.status!);
+  }
+
+  const asset = assetVerification.asset!;
+
+  // Verify FAL_API_KEY is configured
+  const falKey = process.env['FAL_API_KEY'];
+  if (!falKey) {
+    return internalServerError('FAL_API_KEY not configured on server');
+  }
+
+  // Get public URL for the video
+  const storageUrl = asset.storage_url as string;
+  const [, bucketPath] = storageUrl.split('://');
+  const [bucket, ...pathParts] = bucketPath.split('/');
+  const path = pathParts.join('/');
+
+  const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
+
+  if (!urlData?.publicUrl) {
+    return internalServerError('Failed to generate public URL for video');
+  }
+
+  // Submit upscale request to fal.ai with timeout
+  let falResponse;
+  try {
+    falResponse = await fetchWithTimeout('https://queue.fal.run/fal-ai/topaz/upscale/video', {
+      method: 'POST',
+      headers: {
+        Authorization: `Key ${falKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        video_url: urlData.publicUrl,
+        upscale_factor: upscaleFactor,
+        ...(targetFps && { target_fps: targetFps }),
+        ...(h264Output && { H264_output: h264Output }),
+      }),
+      timeout: 60000,
+    });
+
+    if (!falResponse.ok) {
+      const errorText = await falResponse.text();
+      serverLogger.error(
+        {
           status: falResponse.status,
           errorText,
           assetId,
           projectId,
-          event: 'video.upscale.fal_error'
-        }, 'fal.ai upscale request failed');
-        return internalServerError('Failed to submit upscale request to fal.ai');
-      }
-    } catch (error) {
-      if (error instanceof Error && /timeout/i.test(error.message)) {
-        serverLogger.error({
+          event: 'video.upscale.fal_error',
+        },
+        'fal.ai upscale request failed'
+      );
+      return internalServerError('Failed to submit upscale request to fal.ai');
+    }
+  } catch (error) {
+    if (error instanceof Error && /timeout/i.test(error.message)) {
+      serverLogger.error(
+        {
           assetId,
           projectId,
-          event: 'video.upscale.timeout'
-        }, 'FAL.ai upscale submission timeout');
-        return errorResponse('Upscale submission timeout after 60s', 504);
-      }
-      throw error;
+          event: 'video.upscale.timeout',
+        },
+        'FAL.ai upscale submission timeout'
+      );
+      return errorResponse('Upscale submission timeout after 60s', 504);
     }
+    throw error;
+  }
 
-    const falData = await falResponse.json();
-    const requestId = falData.request_id;
+  const falData = await falResponse.json();
+  const requestId = falData.request_id;
 
-    if (!requestId) {
-      return internalServerError('No request ID returned from fal.ai');
-    }
+  if (!requestId) {
+    return internalServerError('No request ID returned from fal.ai');
+  }
 
-    // Log successful submission
-    serverLogger.info({
+  // Log successful submission
+  serverLogger.info(
+    {
       requestId,
       assetId,
       projectId,
       upscaleFactor,
-      event: 'video.upscale.submitted'
-    }, 'Video upscale request submitted successfully');
+      event: 'video.upscale.submitted',
+    },
+    'Video upscale request submitted successfully'
+  );
 
-    // Return the request ID for polling
-    return NextResponse.json({
-      requestId,
-      message: 'Video upscale request submitted successfully',
-    });
+  // Return the request ID for polling
+  return NextResponse.json({
+    requestId,
+    message: 'Video upscale request submitted successfully',
+  });
 });

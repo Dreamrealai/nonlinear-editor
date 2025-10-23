@@ -88,7 +88,11 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
 
   const validation = validateAll(validations);
   if (!validation.valid) {
-    return errorResponse(validation.errors[0].message, 400, validation.errors[0].field);
+    return errorResponse(
+      validation.errors[0]?.message ?? 'Invalid input',
+      400,
+      validation.errors[0]?.field
+    );
   }
 
   // Calculate range for pagination

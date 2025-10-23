@@ -23,7 +23,7 @@ const MAX_REQUEST_SIZE = 100 * 1024;
 async function handleLogsPost(request: NextRequest, context: AuthContext) {
   const { user } = context;
   try {
-    const { logs } = await request.json() as { logs: LogEntry[] };
+    const { logs } = (await request.json()) as { logs: LogEntry[] };
 
     if (!Array.isArray(logs)) {
       return validationError('Invalid logs format', 'logs');
@@ -35,7 +35,8 @@ async function handleLogsPost(request: NextRequest, context: AuthContext) {
     ]);
 
     if (!validation.valid) {
-      return validationError(validation.errors[0].message, validation.errors[0].field);
+      const firstError = validation.errors[0];
+      return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
     }
 
     // Validate each log entry size
@@ -43,39 +44,57 @@ async function handleLogsPost(request: NextRequest, context: AuthContext) {
     for (const log of logs) {
       const logSize = JSON.stringify(log).length;
       if (logSize > MAX_LOG_ENTRY_SIZE) {
-        return validationError(`Log entry exceeds maximum size of ${MAX_LOG_ENTRY_SIZE} bytes`, 'logs');
+        return validationError(
+          `Log entry exceeds maximum size of ${MAX_LOG_ENTRY_SIZE} bytes`,
+          'logs'
+        );
       }
       totalSize += logSize;
     }
 
     // Validate total request size
     if (totalSize > MAX_REQUEST_SIZE) {
-      return validationError(`Total logs size exceeds maximum of ${MAX_REQUEST_SIZE} bytes`, 'logs');
+      return validationError(
+        `Total logs size exceeds maximum of ${MAX_REQUEST_SIZE} bytes`,
+        'logs'
+      );
     }
 
     // Send to Axiom using fetch API
-    const axiomToken = process.env.AXIOM_TOKEN;
-    const axiomDataset = process.env.AXIOM_DATASET;
+    const axiomToken = process.env['AXIOM_TOKEN'];
+    const axiomDataset = process.env['AXIOM_DATASET'];
 
     // Add user ID to all logs for tracking
-    const enrichedLogs = logs.map(log => ({
+    const enrichedLogs = logs.map((log) => ({
       ...log,
       userId: user.id,
     }));
 
     if (!axiomToken || !axiomDataset) {
       // In development or if Axiom not configured, just log to console
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env['NODE_ENV'] === 'development') {
         enrichedLogs.forEach((log) => {
           const level = log.level;
           if (level === 'error') {
-            serverLogger.error({ ...log.data, timestamp: log.timestamp, userId: log.userId }, log.message);
+            serverLogger.error(
+              { ...log.data, timestamp: log.timestamp, userId: log.userId },
+              log.message
+            );
           } else if (level === 'warn') {
-            serverLogger.warn({ ...log.data, timestamp: log.timestamp, userId: log.userId }, log.message);
+            serverLogger.warn(
+              { ...log.data, timestamp: log.timestamp, userId: log.userId },
+              log.message
+            );
           } else if (level === 'debug') {
-            serverLogger.debug({ ...log.data, timestamp: log.timestamp, userId: log.userId }, log.message);
+            serverLogger.debug(
+              { ...log.data, timestamp: log.timestamp, userId: log.userId },
+              log.message
+            );
           } else {
-            serverLogger.info({ ...log.data, timestamp: log.timestamp, userId: log.userId }, log.message);
+            serverLogger.info(
+              { ...log.data, timestamp: log.timestamp, userId: log.userId },
+              log.message
+            );
           }
         });
       }
@@ -83,21 +102,20 @@ async function handleLogsPost(request: NextRequest, context: AuthContext) {
     }
 
     // Send logs to Axiom
-    const response = await fetch(
-      `https://api.axiom.co/v1/datasets/${axiomDataset}/ingest`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${axiomToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(enrichedLogs.map(log => ({
+    const response = await fetch(`https://api.axiom.co/v1/datasets/${axiomDataset}/ingest`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${axiomToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(
+        enrichedLogs.map((log) => ({
           ...log,
           _time: log.timestamp,
           source: 'browser',
-        }))),
-      }
-    );
+        }))
+      ),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();

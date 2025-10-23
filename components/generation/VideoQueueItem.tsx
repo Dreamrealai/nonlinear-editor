@@ -3,10 +3,12 @@
  *
  * Displays a single video in the generation queue.
  * Shows status, preview, and allows removal from queue.
+ * Memoized to prevent unnecessary re-renders when queue updates.
  */
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { SPINNER_CONSTANTS } from '@/lib/constants/ui';
 
 interface VideoQueueItemProps {
   id: string;
@@ -19,7 +21,7 @@ interface VideoQueueItemProps {
   onRemove: (id: string) => void;
 }
 
-export default function VideoQueueItem({
+const VideoQueueItem = React.memo<VideoQueueItemProps>(function VideoQueueItem({
   id,
   prompt,
   status,
@@ -41,7 +43,9 @@ export default function VideoQueueItem({
             {videoLoading && !videoError && (
               <div className="absolute inset-0 flex items-center justify-center bg-neutral-100 z-10">
                 <div className="text-center">
-                  <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-neutral-300 border-t-blue-600" />
+                  <div
+                    className={`mx-auto h-${SPINNER_CONSTANTS.SPINNER_SIZE_LG} w-${SPINNER_CONSTANTS.SPINNER_SIZE_LG} animate-spin rounded-full border-${SPINNER_CONSTANTS.SPINNER_BORDER_WIDTH_THICK} border-neutral-300 border-t-blue-600`}
+                  />
                   <p className="mt-2 text-xs text-neutral-600">Loading video...</p>
                 </div>
               </div>
@@ -79,8 +83,18 @@ export default function VideoQueueItem({
             {videoError && (
               <div className="absolute inset-0 flex items-center justify-center bg-neutral-100">
                 <div className="text-center p-4">
-                  <svg className="mx-auto h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="mx-auto h-8 w-8 text-red-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   <p className="mt-2 text-xs text-red-600">Failed to load video</p>
                 </div>
@@ -91,20 +105,34 @@ export default function VideoQueueItem({
           <div className="flex h-full w-full items-center justify-center">
             {status === 'queued' && (
               <div className="text-center">
-                <div className="mx-auto h-8 w-8 rounded-full border-4 border-neutral-300 border-t-neutral-600" />
+                <div
+                  className={`mx-auto h-${SPINNER_CONSTANTS.SPINNER_SIZE_LG} w-${SPINNER_CONSTANTS.SPINNER_SIZE_LG} rounded-full border-${SPINNER_CONSTANTS.SPINNER_BORDER_WIDTH_THICK} border-neutral-300 border-t-neutral-600`}
+                />
                 <p className="mt-2 text-xs text-neutral-600">Queued</p>
               </div>
             )}
             {status === 'generating' && (
               <div className="text-center">
-                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-neutral-300 border-t-purple-600" />
+                <div
+                  className={`mx-auto h-${SPINNER_CONSTANTS.SPINNER_SIZE_LG} w-${SPINNER_CONSTANTS.SPINNER_SIZE_LG} animate-spin rounded-full border-${SPINNER_CONSTANTS.SPINNER_BORDER_WIDTH_THICK} border-neutral-300 border-t-purple-600`}
+                />
                 <p className="mt-2 text-xs text-neutral-600">Generating...</p>
               </div>
             )}
             {status === 'failed' && (
               <div className="text-center p-4">
-                <svg className="mx-auto h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="mx-auto h-8 w-8 text-red-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <p className="mt-2 text-xs text-red-600">Failed</p>
               </div>
@@ -115,28 +143,30 @@ export default function VideoQueueItem({
 
       {/* Video Info */}
       <div className="p-3">
-        <p className="text-xs text-neutral-700 line-clamp-2 mb-2">
-          {prompt}
-        </p>
+        <p className="text-xs text-neutral-700 line-clamp-2 mb-2">{prompt}</p>
 
-        {error && (
-          <p className="text-xs text-red-600 mb-2">
-            {error}
-          </p>
-        )}
+        {error && <p className="text-xs text-red-600 mb-2">{error}</p>}
 
         {/* Status Badge */}
         <div className="flex items-center gap-2">
-          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-            status === 'completed' ? 'bg-green-100 text-green-700' :
-            status === 'generating' ? 'bg-blue-100 text-blue-700' :
-            status === 'failed' ? 'bg-red-100 text-red-700' :
-            'bg-neutral-100 text-neutral-700'
-          }`}>
-            {status === 'completed' ? 'Completed' :
-             status === 'generating' ? 'Generating' :
-             status === 'failed' ? 'Failed' :
-             'Queued'}
+          <span
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+              status === 'completed'
+                ? 'bg-green-100 text-green-700'
+                : status === 'generating'
+                  ? 'bg-blue-100 text-blue-700'
+                  : status === 'failed'
+                    ? 'bg-red-100 text-red-700'
+                    : 'bg-neutral-100 text-neutral-700'
+            }`}
+          >
+            {status === 'completed'
+              ? 'Completed'
+              : status === 'generating'
+                ? 'Generating'
+                : status === 'failed'
+                  ? 'Failed'
+                  : 'Queued'}
           </span>
         </div>
       </div>
@@ -148,9 +178,16 @@ export default function VideoQueueItem({
         title="Remove from queue"
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
     </div>
   );
-}
+});
+
+export default VideoQueueItem;

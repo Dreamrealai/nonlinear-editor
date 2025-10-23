@@ -7,7 +7,7 @@ import {
   notFoundResponse,
   errorResponse,
   successResponse,
-  withErrorHandling
+  withErrorHandling,
 } from '@/lib/api/response';
 import { validateUUID, validateEnum, validateInteger, validateAll } from '@/lib/api/validation';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
@@ -72,159 +72,200 @@ const VALID_FORMATS = ['mp4', 'webm'] as const;
 const VALID_TRANSITIONS = ['crossfade', 'fade-in', 'fade-out'] as const;
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
-    // SECURITY: Verify user authentication
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+  // SECURITY: Verify user authentication
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    if (!user) {
-      return unauthorizedResponse();
-    }
+  if (!user) {
+    return unauthorizedResponse();
+  }
 
-    const exportEnabled = process.env.VIDEO_EXPORT_ENABLED === 'true';
+  const exportEnabled = process.env['VIDEO_EXPORT_ENABLED'] === 'true';
 
-    if (!exportEnabled) {
-      serverLogger.warn({
+  if (!exportEnabled) {
+    serverLogger.warn(
+      {
         event: 'export.disabled',
         userId: user.id,
-      }, 'Video export requested but the export worker is not configured');
+      },
+      'Video export requested but the export worker is not configured'
+    );
 
-      return NextResponse.json(
-        {
-          error: 'Video export is not currently available.',
-          help: 'Set VIDEO_EXPORT_ENABLED=true and configure a background worker to process export jobs.',
-        },
-        { status: 503 }
-      );
-    }
+    return NextResponse.json(
+      {
+        error: 'Video export is not currently available.',
+        help: 'Set VIDEO_EXPORT_ENABLED=true and configure a background worker to process export jobs.',
+      },
+      { status: 503 }
+    );
+  }
 
-    const body: ExportRequest = await request.json();
+  const body: ExportRequest = await request.json();
 
-    // Validate required fields
-    if (!body.projectId || !body.timeline || !body.outputSpec) {
-      return validationError('Missing required fields: projectId, timeline, outputSpec');
-    }
+  // Validate required fields
+  if (!body.projectId || !body.timeline || !body.outputSpec) {
+    return validationError('Missing required fields: projectId, timeline, outputSpec');
+  }
 
-    // Validate timeline structure
-    if (!body.timeline.clips || !Array.isArray(body.timeline.clips)) {
-      return validationError('Timeline must contain a clips array', 'timeline');
-    }
+  // Validate timeline structure
+  if (!body.timeline.clips || !Array.isArray(body.timeline.clips)) {
+    return validationError('Timeline must contain a clips array', 'timeline');
+  }
 
-    // Validate projectId and outputSpec
-    const validation = validateAll([
-      validateUUID(body.projectId, 'projectId'),
-      validateEnum(body.outputSpec.format, 'format', VALID_FORMATS, true),
-      validateInteger(body.outputSpec.width, 'width', { required: true, min: 1, max: 7680 }),
-      validateInteger(body.outputSpec.height, 'height', { required: true, min: 1, max: 4320 }),
-      validateInteger(body.outputSpec.fps, 'fps', { required: true, min: 1, max: 120 }),
-      validateInteger(body.outputSpec.vBitrateK, 'vBitrateK', { required: true, min: 100, max: 50000 }),
-      validateInteger(body.outputSpec.aBitrateK, 'aBitrateK', { required: true, min: 32, max: 320 }),
+  // Validate projectId and outputSpec
+  const validation = validateAll([
+    validateUUID(body.projectId, 'projectId'),
+    validateEnum(body.outputSpec.format, 'format', VALID_FORMATS, true),
+    validateInteger(body.outputSpec.width, 'width', { required: true, min: 1, max: 7680 }),
+    validateInteger(body.outputSpec.height, 'height', { required: true, min: 1, max: 4320 }),
+    validateInteger(body.outputSpec.fps, 'fps', { required: true, min: 1, max: 120 }),
+    validateInteger(body.outputSpec.vBitrateK, 'vBitrateK', {
+      required: true,
+      min: 100,
+      max: 50000,
+    }),
+    validateInteger(body.outputSpec.aBitrateK, 'aBitrateK', { required: true, min: 32, max: 320 }),
+  ]);
+
+  if (!validation.valid) {
+    const firstError = validation.errors[0];
+    return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
+  }
+
+  // Validate each clip in timeline
+  for (let i = 0; i < body.timeline.clips.length; i++) {
+    const clip = body.timeline.clips[i];
+    if (!clip) continue;
+
+    const clipValidation = validateAll([
+      validateUUID(clip.id, `clip[${i}].id`),
+      validateUUID(clip.assetId, `clip[${i}].assetId`),
+      validateInteger(clip.start, `clip[${i}].start`, { required: true, min: 0 }),
+      validateInteger(clip.end, `clip[${i}].end`, { required: true, min: 0 }),
+      validateInteger(clip.timelinePosition, `clip[${i}].timelinePosition`, {
+        required: true,
+        min: 0,
+      }),
+      validateInteger(clip.trackIndex, `clip[${i}].trackIndex`, { required: true, min: 0 }),
     ]);
 
-    if (!validation.valid) {
-      return validationError(validation.errors[0].message, validation.errors[0].field);
+    if (!clipValidation.valid) {
+      const firstError = clipValidation.errors[0];
+      if (!firstError) {
+        return validationError('Validation error occurred', `clip[${i}]`);
+      }
+      return validationError(firstError.message, firstError.field);
     }
 
-    // Validate each clip in timeline
-    for (let i = 0; i < body.timeline.clips.length; i++) {
-      const clip = body.timeline.clips[i];
-
-      const clipValidation = validateAll([
-        validateUUID(clip.id, `clip[${i}].id`),
-        validateUUID(clip.assetId, `clip[${i}].assetId`),
-        validateInteger(clip.start, `clip[${i}].start`, { required: true, min: 0 }),
-        validateInteger(clip.end, `clip[${i}].end`, { required: true, min: 0 }),
-        validateInteger(clip.timelinePosition, `clip[${i}].timelinePosition`, { required: true, min: 0 }),
-        validateInteger(clip.trackIndex, `clip[${i}].trackIndex`, { required: true, min: 0 }),
-      ]);
-
-      if (!clipValidation.valid) {
-        return validationError(clipValidation.errors[0].message, clipValidation.errors[0].field);
-      }
-
-      if (clip.end <= clip.start) {
-        return validationError(`Invalid end time at index ${i}. Must be greater than start time`, `clip[${i}].end`);
-      }
-
-      // Validate optional fields
-      if (clip.volume !== undefined) {
-        const volumeValidation = validateInteger(clip.volume, `clip[${i}].volume`, { min: 0, max: 2 });
-        if (volumeValidation) {
-          return validationError(volumeValidation.message, volumeValidation.field);
-        }
-      }
-
-      if (clip.opacity !== undefined) {
-        const opacityValidation = validateInteger(clip.opacity, `clip[${i}].opacity`, { min: 0, max: 1 });
-        if (opacityValidation) {
-          return validationError(opacityValidation.message, opacityValidation.field);
-        }
-      }
-
-      if (clip.speed !== undefined) {
-        const speedValidation = validateInteger(clip.speed, `clip[${i}].speed`, { min: 1, max: 10 });
-        if (speedValidation) {
-          return validationError(speedValidation.message, speedValidation.field);
-        }
-      }
-
-      if (clip.transitionToNext) {
-        const transitionValidation = validateAll([
-          validateEnum(clip.transitionToNext.type, `clip[${i}].transitionToNext.type`, VALID_TRANSITIONS, true),
-          validateInteger(clip.transitionToNext.duration, `clip[${i}].transitionToNext.duration`, { required: true, min: 0 }),
-        ]);
-
-        if (!transitionValidation.valid) {
-          return validationError(transitionValidation.errors[0].message, transitionValidation.errors[0].field);
-        }
-      }
-    }
-
-    // Verify user owns the project
-    const projectVerification = await verifyProjectOwnership(supabase, body.projectId, user.id, 'user_id');
-    if (!projectVerification.hasAccess) {
-      return errorResponse(projectVerification.error!, projectVerification.status!);
-    }
-
-    // Create export job in database for tracking
-    const { data: exportJob, error: jobError } = await supabase
-      .from('processing_jobs')
-      .insert({
-        user_id: user.id,
-        project_id: body.projectId,
-        job_type: 'video-export',
-        status: 'pending',
-        provider: 'internal',
-        config: {
-          timeline: body.timeline,
-          outputSpec: body.outputSpec,
-        },
-        metadata: {
-          clipCount: body.timeline.clips.length,
-          format: body.outputSpec.format,
-          resolution: `${body.outputSpec.width}x${body.outputSpec.height}`,
-          fps: body.outputSpec.fps,
-        },
-        progress_percentage: 0,
-      })
-      .select()
-      .single();
-
-    if (jobError || !exportJob) {
-      serverLogger.error({ error: jobError, userId: user.id, projectId: body.projectId }, 'Failed to create export job');
-      return NextResponse.json(
-        { error: 'Failed to create export job' },
-        { status: 500 }
+    if (clip.end <= clip.start) {
+      return validationError(
+        `Invalid end time at index ${i}. Must be greater than start time`,
+        `clip[${i}].end`
       );
     }
 
-    const response: ExportResponse = {
-      jobId: exportJob.id,
-      status: 'queued',
-      message: 'Export job created and queued for processing.',
-      estimatedTime: body.timeline.clips.length * 5, // Rough estimate: 5 seconds per clip
-    };
+    // Validate optional fields
+    if (clip.volume !== undefined) {
+      const volumeValidation = validateInteger(clip.volume, `clip[${i}].volume`, {
+        min: 0,
+        max: 2,
+      });
+      if (volumeValidation) {
+        return validationError(volumeValidation.message, volumeValidation.field);
+      }
+    }
 
-    return NextResponse.json(response, { status: 202 }); // 202 Accepted
+    if (clip.opacity !== undefined) {
+      const opacityValidation = validateInteger(clip.opacity, `clip[${i}].opacity`, {
+        min: 0,
+        max: 1,
+      });
+      if (opacityValidation) {
+        return validationError(opacityValidation.message, opacityValidation.field);
+      }
+    }
+
+    if (clip.speed !== undefined) {
+      const speedValidation = validateInteger(clip.speed, `clip[${i}].speed`, { min: 1, max: 10 });
+      if (speedValidation) {
+        return validationError(speedValidation.message, speedValidation.field);
+      }
+    }
+
+    if (clip.transitionToNext) {
+      const transitionValidation = validateAll([
+        validateEnum(
+          clip.transitionToNext.type,
+          `clip[${i}].transitionToNext.type`,
+          VALID_TRANSITIONS,
+          true
+        ),
+        validateInteger(clip.transitionToNext.duration, `clip[${i}].transitionToNext.duration`, {
+          required: true,
+          min: 0,
+        }),
+      ]);
+
+      if (!transitionValidation.valid) {
+        const firstError = transitionValidation.errors[0];
+        return validationError(firstError?.message ?? 'Invalid transition', firstError?.field);
+      }
+    }
+  }
+
+  // Verify user owns the project
+  const projectVerification = await verifyProjectOwnership(
+    supabase,
+    body.projectId,
+    user.id,
+    'user_id'
+  );
+  if (!projectVerification.hasAccess) {
+    return errorResponse(projectVerification.error!, projectVerification.status!);
+  }
+
+  // Create export job in database for tracking
+  const { data: exportJob, error: jobError } = await supabase
+    .from('processing_jobs')
+    .insert({
+      user_id: user.id,
+      project_id: body.projectId,
+      job_type: 'video-export',
+      status: 'pending',
+      provider: 'internal',
+      config: {
+        timeline: body.timeline,
+        outputSpec: body.outputSpec,
+      },
+      metadata: {
+        clipCount: body.timeline.clips.length,
+        format: body.outputSpec.format,
+        resolution: `${body.outputSpec.width}x${body.outputSpec.height}`,
+        fps: body.outputSpec.fps,
+      },
+      progress_percentage: 0,
+    })
+    .select()
+    .single();
+
+  if (jobError || !exportJob) {
+    serverLogger.error(
+      { error: jobError, userId: user.id, projectId: body.projectId },
+      'Failed to create export job'
+    );
+    return NextResponse.json({ error: 'Failed to create export job' }, { status: 500 });
+  }
+
+  const response: ExportResponse = {
+    jobId: exportJob.id,
+    status: 'queued',
+    message: 'Export job created and queued for processing.',
+    estimatedTime: body.timeline.clips.length * 5, // Rough estimate: 5 seconds per clip
+  };
+
+  return NextResponse.json(response, { status: 202 }); // 202 Accepted
 });
 
 /**
@@ -232,57 +273,61 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
  * Check status of export job
  */
 export const GET = withErrorHandling(async (request: NextRequest) => {
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    if (!user) {
-      return unauthorizedResponse();
-    }
+  if (!user) {
+    return unauthorizedResponse();
+  }
 
-    const jobId = request.nextUrl.searchParams.get('jobId');
+  const jobId = request.nextUrl.searchParams.get('jobId');
 
-    if (!jobId) {
-      return validationError('jobId required', 'jobId');
-    }
+  if (!jobId) {
+    return validationError('jobId required', 'jobId');
+  }
 
-    const validation = validateAll([validateUUID(jobId, 'jobId')]);
-    if (!validation.valid) {
-      return validationError(validation.errors[0].message, validation.errors[0].field);
-    }
+  const validation = validateAll([validateUUID(jobId, 'jobId')]);
+  if (!validation.valid) {
+    const firstError = validation.errors[0];
+    return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
+  }
 
-    // Fetch job status from database
-    const { data: job, error: fetchError } = await supabase
-      .from('processing_jobs')
-      .select('*')
-      .eq('id', jobId)
-      .eq('user_id', user.id)
-      .single();
+  // Fetch job status from database
+  const { data: job, error: fetchError } = await supabase
+    .from('processing_jobs')
+    .select('*')
+    .eq('id', jobId)
+    .eq('user_id', user.id)
+    .single();
 
-    if (fetchError || !job) {
-      return notFoundResponse('Export job');
-    }
+  if (fetchError || !job) {
+    return notFoundResponse('Export job');
+  }
 
-    // Map database status to API response status
-    const statusMapping: Record<string, ExportResponse['status']> = {
-      pending: 'queued',
-      processing: 'processing',
-      completed: 'completed',
-      failed: 'failed',
-      cancelled: 'failed',
-    };
+  // Map database status to API response status
+  const statusMapping: Record<string, ExportResponse['status']> = {
+    pending: 'queued',
+    processing: 'processing',
+    completed: 'completed',
+    failed: 'failed',
+    cancelled: 'failed',
+  };
 
-    const response: ExportResponse = {
-      jobId: job.id,
-      status: statusMapping[job.status] || 'queued',
-      message: job.status === 'completed'
+  const response: ExportResponse = {
+    jobId: job.id,
+    status: statusMapping[job.status] || 'queued',
+    message:
+      job.status === 'completed'
         ? 'Export completed successfully'
         : job.status === 'failed'
           ? `Export failed: ${job.error_message || 'Unknown error'}`
           : job.status === 'processing'
             ? `Export in progress (${job.progress_percentage}%)`
             : 'Export queued for processing',
-      estimatedTime: job.status === 'pending' ? 30 : undefined,
-    };
+    estimatedTime: job.status === 'pending' ? 30 : undefined,
+  };
 
-    return successResponse(response);
+  return successResponse(response);
 });
