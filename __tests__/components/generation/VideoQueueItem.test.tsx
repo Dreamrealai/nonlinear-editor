@@ -3,6 +3,15 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import VideoQueueItem from '@/components/generation/VideoQueueItem';
+import { browserLogger } from '@/lib/browserLogger';
+
+jest.mock('@/lib/browserLogger', () => ({
+  browserLogger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}));
 
 describe('VideoQueueItem', () => {
   const mockOnRemove = jest.fn();
@@ -16,13 +25,7 @@ describe('VideoQueueItem', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Mock console methods
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
+    mockOnRemove.mockReset();
   });
 
   describe('Rendering', () => {
@@ -55,7 +58,8 @@ describe('VideoQueueItem', () => {
   describe('Queued State', () => {
     it('should show queued status', () => {
       render(<VideoQueueItem {...baseProps} status="queued" />);
-      expect(screen.getByText('Queued')).toBeInTheDocument();
+      const queuedLabels = screen.getAllByText('Queued');
+      expect(queuedLabels.length).toBeGreaterThanOrEqual(1);
     });
 
     it('should display static spinner for queued', () => {
@@ -67,8 +71,11 @@ describe('VideoQueueItem', () => {
 
     it('should have neutral status badge', () => {
       render(<VideoQueueItem {...baseProps} status="queued" />);
-      const badge = screen.getByText('Queued');
-      expect(badge).toHaveClass('bg-neutral-100', 'text-neutral-700');
+      const badge = screen.getAllByText('Queued').find((element) => element.tagName === 'SPAN') as
+        | HTMLElement
+        | undefined;
+      expect(badge).toBeDefined();
+      expect(badge!).toHaveClass('bg-neutral-100', 'text-neutral-700');
     });
   });
 
@@ -189,20 +196,28 @@ describe('VideoQueueItem', () => {
       const errorEvent = new Event('error');
       fireEvent(video!, errorEvent);
 
-      expect(console.error).toHaveBeenCalledWith('Video load error for:', completedProps.videoUrl, errorEvent);
+      expect(console.error).toHaveBeenCalledWith(
+        'Video load error for:',
+        completedProps.videoUrl,
+        errorEvent
+      );
     });
   });
 
   describe('Failed State', () => {
     it('should show failed status', () => {
       render(<VideoQueueItem {...baseProps} status="failed" />);
-      expect(screen.getByText('Failed')).toBeInTheDocument();
+      const failedLabels = screen.getAllByText('Failed');
+      expect(failedLabels.length).toBeGreaterThanOrEqual(1);
     });
 
     it('should have red status badge', () => {
       render(<VideoQueueItem {...baseProps} status="failed" />);
-      const badge = screen.getByText('Failed');
-      expect(badge).toHaveClass('bg-red-100', 'text-red-700');
+      const badge = screen.getAllByText('Failed').find((element) => element.tagName === 'SPAN') as
+        | HTMLElement
+        | undefined;
+      expect(badge).toBeDefined();
+      expect(badge!).toHaveClass('bg-red-100', 'text-red-700');
     });
 
     it('should show error icon', () => {

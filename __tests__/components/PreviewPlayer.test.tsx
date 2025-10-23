@@ -21,6 +21,10 @@ jest.mock('@/components/VideoPlayerHoverMenu', () => {
   };
 });
 
+const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
+const originalPerformance = globalThis.performance;
+
 const mockClip: Clip = {
   id: 'clip-1',
   assetId: 'asset-1',
@@ -46,6 +50,7 @@ describe('PreviewPlayer', () => {
   const mockSetCurrentTime = jest.fn();
   const mockAddTextOverlay = jest.fn();
   const mockAddTransitionToSelectedClips = jest.fn();
+  let performanceNowSpy: jest.SpyInstance<number, []>;
 
   // Mock HTMLVideoElement methods
   beforeAll(() => {
@@ -55,6 +60,21 @@ describe('PreviewPlayer', () => {
     Object.defineProperty(HTMLMediaElement.prototype, 'readyState', {
       get: () => 4, // HAVE_ENOUGH_DATA
     });
+
+    if (!globalThis.performance) {
+      (globalThis as unknown as { performance: Performance }).performance = {
+        now: () => Date.now(),
+        mark: () => undefined,
+        measure: () => undefined,
+        clearMarks: () => undefined,
+        clearMeasures: () => undefined,
+        getEntries: () => [],
+        getEntriesByType: () => [],
+        getEntriesByName: () => [],
+        timeOrigin: Date.now(),
+        toJSON: () => ({}),
+      } as unknown as Performance;
+    }
   });
 
   beforeEach(() => {
@@ -72,11 +92,27 @@ describe('PreviewPlayer', () => {
     });
 
     // Mock requestAnimationFrame
-    global.requestAnimationFrame = jest.fn((cb) => {
+    performanceNowSpy = jest.spyOn(globalThis.performance, 'now').mockImplementation(() => 0);
+
+    globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
       cb(0);
-      return 0;
-    });
-    global.cancelAnimationFrame = jest.fn();
+      return 1;
+    }) as typeof globalThis.requestAnimationFrame;
+    globalThis.cancelAnimationFrame = jest.fn();
+  });
+
+  afterEach(() => {
+    performanceNowSpy?.mockRestore();
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+  });
+
+  afterAll(() => {
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+    if (originalPerformance) {
+      globalThis.performance = originalPerformance;
+    }
   });
 
   it('should render the player', () => {
@@ -128,9 +164,9 @@ describe('PreviewPlayer', () => {
     const playButton = screen.getByTitle('Play (Space)');
     fireEvent.click(playButton);
 
-    // After clicking, button text should change to Pause
+    // After clicking, button title should change to "Pause (Space)"
     await waitFor(() => {
-      expect(screen.getByText('Pause')).toBeInTheDocument();
+      expect(screen.getByTitle('Pause (Space)')).toBeInTheDocument();
     });
   });
 
@@ -141,7 +177,7 @@ describe('PreviewPlayer', () => {
     fireEvent.click(playButton);
 
     // Should now show pause button
-    waitFor(() => {
+    await waitFor(() => {
       expect(screen.getByTitle('Pause (Space)')).toBeInTheDocument();
     });
   });
@@ -178,14 +214,16 @@ describe('PreviewPlayer', () => {
       const state = {
         timeline: {
           ...mockTimeline,
-          textOverlays: [{
-            id: 'text-1',
-            text: 'Hello World',
-            timelinePosition: 0,
-            duration: 5,
-            x: 50,
-            y: 50,
-          }],
+          textOverlays: [
+            {
+              id: 'text-1',
+              text: 'Hello World',
+              timelinePosition: 0,
+              duration: 5,
+              x: 50,
+              y: 50,
+            },
+          ],
         },
         currentTime: 0,
         setCurrentTime: mockSetCurrentTime,
@@ -256,7 +294,7 @@ describe('PreviewPlayer', () => {
     fireEvent.click(hideButton);
 
     // Controls should be hidden
-    waitFor(() => {
+    await waitFor(() => {
       expect(screen.queryByTitle('Hide controls')).not.toBeInTheDocument();
     });
   });
@@ -288,7 +326,7 @@ describe('PreviewPlayer', () => {
     window.dispatchEvent(spaceEvent);
 
     await waitFor(() => {
-      expect(screen.getByText('Pause')).toBeInTheDocument();
+      expect(screen.getByTitle('Pause (Space)')).toBeInTheDocument();
     });
   });
 

@@ -64,6 +64,7 @@ export function createMockRouter(overrides = {}) {
 export function createMockUserProfile(overrides: Partial<UserProfile> = {}): UserProfile {
   return {
     id: 'user-123',
+    email: 'test@example.com',
     tier: 'free',
     video_minutes_used: 0,
     video_minutes_limit: 10,
@@ -73,10 +74,12 @@ export function createMockUserProfile(overrides: Partial<UserProfile> = {}): Use
     storage_gb_limit: 2,
     usage_reset_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     subscription_status: null,
+    subscription_current_period_start: null,
     subscription_current_period_end: null,
     subscription_cancel_at_period_end: false,
     stripe_customer_id: null,
     stripe_subscription_id: null,
+    stripe_price_id: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...overrides,
@@ -110,7 +113,8 @@ export function createMockFetchResponse<T>(data: T, ok = true, status = 200) {
     arrayBuffer: jest.fn(),
     blob: jest.fn(),
     formData: jest.fn(),
-  } as Response);
+    bytes: jest.fn(),
+  } as unknown as Response);
 }
 
 /**
@@ -252,6 +256,10 @@ export function setupTestEnvironment() {
 
   // Mock IntersectionObserver
   global.IntersectionObserver = class IntersectionObserver {
+    root = null;
+    rootMargin = '';
+    thresholds = [];
+
     constructor() {}
     disconnect() {}
     observe() {}
@@ -259,7 +267,7 @@ export function setupTestEnvironment() {
       return [];
     }
     unobserve() {}
-  };
+  } as unknown as typeof IntersectionObserver;
 
   // Mock ResizeObserver
   global.ResizeObserver = class ResizeObserver {

@@ -84,6 +84,7 @@ export function createMockWebhookEvent(type: string, data: Record<string, unknow
   return {
     id: 'evt_test_123',
     object: 'event',
+    api_version: '2024-11-20.acacia',
     type,
     data: {
       object: data,
@@ -92,7 +93,7 @@ export function createMockWebhookEvent(type: string, data: Record<string, unknow
     livemode: false,
     pending_webhooks: 0,
     request: null,
-  } as Stripe.Event;
+  } as unknown as Stripe.Event;
 }
 
 /**
