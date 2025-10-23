@@ -1,0 +1,259 @@
+{
+  "monitors": [
+    {
+      "name": "High Error Rate Alert",
+      "description": "Triggers when error rate exceeds 5% of total requests",
+      "apl_query": "['logs'] | where ['level'] == 'error' | summarize error_count=count() by bin(_time, 5m) | extend total_errors = sum(error_count) | where total_errors > 10",
+      "interval": "5m",
+      "threshold": {
+        "operator": ">",
+        "value": 10
+      },
+      "notification_channels": ["email", "slack"],
+      "severity": "high",
+      "runbook": "Check recent deployments, database connectivity, and external API status"
+    },
+    {
+      "name": "API Latency P95 Alert",
+      "description": "Alert when API response time P95 exceeds 3 seconds",
+      "apl_query": "['logs'] | where ['request'] != null | extend duration = todouble(['response.duration']) | summarize p95=percentile(duration, 95) by bin(_time, 5m) | where p95 > 3000",
+      "interval": "5m",
+      "threshold": {
+        "operator": ">",
+        "value": 3000,
+        "unit": "ms"
+      },
+      "notification_channels": ["email", "slack"],
+      "severity": "medium",
+      "runbook": "Check database query performance, external API latency, and server resources"
+    },
+    {
+      "name": "Failed Authentication Attempts",
+      "description": "Alert when there are more than 50 failed auth attempts in 10 minutes",
+      "apl_query": "['logs'] | where ['message'] contains 'authentication failed' or ['message'] contains 'invalid credentials' | summarize failed_attempts=count() by bin(_time, 10m) | where failed_attempts > 50",
+      "interval": "10m",
+      "threshold": {
+        "operator": ">",
+        "value": 50
+      },
+      "notification_channels": ["email", "pagerduty"],
+      "severity": "high",
+      "runbook": "Potential security threat - check for brute force attacks, verify rate limiting is working"
+    },
+    {
+      "name": "AI Generation Service Failures",
+      "description": "Monitor failures in AI generation services (Gemini, FAL, ElevenLabs, Suno)",
+      "apl_query": "['logs'] | where ['service'] in ('gemini', 'fal-ai', 'elevenlabs', 'suno') and ['status'] == 'failed' | summarize failures=count() by ['service'], bin(_time, 15m) | where failures > 5",
+      "interval": "15m",
+      "threshold": {
+        "operator": ">",
+        "value": 5
+      },
+      "notification_channels": ["slack"],
+      "severity": "medium",
+      "runbook": "Check external service status pages, API keys, and rate limits"
+    },
+    {
+      "name": "Database Connection Errors",
+      "description": "Alert on database connection failures",
+      "apl_query": "['logs'] | where ['category'] == 'DATABASE' and ['level'] == 'error' | summarize db_errors=count() by bin(_time, 5m) | where db_errors > 3",
+      "interval": "5m",
+      "threshold": {
+        "operator": ">",
+        "value": 3
+      },
+      "notification_channels": ["email", "pagerduty"],
+      "severity": "critical",
+      "runbook": "Check Supabase dashboard, connection pool settings, and network connectivity"
+    },
+    {
+      "name": "Rate Limit Excessive Hits",
+      "description": "Alert when rate limiting is being hit frequently",
+      "apl_query": "['logs'] | where ['response.status'] == 429 | summarize rate_limit_hits=count() by bin(_time, 10m) | where rate_limit_hits > 100",
+      "interval": "10m",
+      "threshold": {
+        "operator": ">",
+        "value": 100
+      },
+      "notification_channels": ["slack"],
+      "severity": "low",
+      "runbook": "Check if legitimate traffic spike or potential abuse. Consider adjusting rate limits."
+    },
+    {
+      "name": "Export Job Failures",
+      "description": "Monitor video export job failures",
+      "apl_query": "['logs'] | where ['route'] == '/api/export' and ['level'] == 'error' | summarize export_failures=count() by bin(_time, 30m) | where export_failures > 2",
+      "interval": "30m",
+      "threshold": {
+        "operator": ">",
+        "value": 2
+      },
+      "notification_channels": ["slack"],
+      "severity": "medium",
+      "runbook": "Check FFmpeg processing, storage availability, and memory usage"
+    },
+    {
+      "name": "Client-Side Error Spike",
+      "description": "Alert on sudden increase in browser console errors",
+      "apl_query": "['logs'] | where ['source'] == 'browser' and ['level'] == 'error' | summarize browser_errors=count() by bin(_time, 10m) | where browser_errors > 50",
+      "interval": "10m",
+      "threshold": {
+        "operator": ">",
+        "value": 50
+      },
+      "notification_channels": ["slack"],
+      "severity": "medium",
+      "runbook": "Check recent frontend deployments, browser compatibility issues, and error messages"
+    },
+    {
+      "name": "Storage Upload Failures",
+      "description": "Monitor asset upload failures to Supabase Storage",
+      "apl_query": "['logs'] | where ['route'] == '/api/assets/upload' and ['level'] == 'error' | summarize upload_failures=count() by bin(_time, 15m) | where upload_failures > 5",
+      "interval": "15m",
+      "threshold": {
+        "operator": ">",
+        "value": 5
+      },
+      "notification_channels": ["slack"],
+      "severity": "medium",
+      "runbook": "Check Supabase Storage quota, bucket permissions, and file size limits"
+    },
+    {
+      "name": "Memory Usage Warning",
+      "description": "Alert when server memory usage is high",
+      "apl_query": "['metrics'] | where ['metric'] == 'memory_usage_percent' | summarize avg_memory=avg(todouble(['value'])) by bin(_time, 5m) | where avg_memory > 85",
+      "interval": "5m",
+      "threshold": {
+        "operator": ">",
+        "value": 85,
+        "unit": "percent"
+      },
+      "notification_channels": ["slack", "email"],
+      "severity": "high",
+      "runbook": "Check for memory leaks, optimize video processing, consider scaling"
+    },
+    {
+      "name": "No Activity Alert",
+      "description": "Alert if no logs received for 30 minutes (potential logging system failure)",
+      "apl_query": "['logs'] | summarize log_count=count() by bin(_time, 30m) | where log_count == 0",
+      "interval": "30m",
+      "threshold": {
+        "operator": "==",
+        "value": 0
+      },
+      "notification_channels": ["email", "pagerduty"],
+      "severity": "critical",
+      "runbook": "Check if application is running, verify Axiom integration, check network connectivity"
+    }
+  ],
+  "dashboards": [
+    {
+      "name": "API Performance Overview",
+      "description": "Real-time API performance metrics",
+      "widgets": [
+        {
+          "title": "Request Rate",
+          "query": "['logs'] | where ['request'] != null | summarize requests=count() by bin(_time, 1m)",
+          "visualization": "timeseries"
+        },
+        {
+          "title": "Error Rate",
+          "query": "['logs'] | where ['level'] == 'error' | summarize errors=count() by bin(_time, 1m)",
+          "visualization": "timeseries"
+        },
+        {
+          "title": "P50, P95, P99 Latency",
+          "query": "['logs'] | where ['response.duration'] != null | extend duration = todouble(['response.duration']) | summarize p50=percentile(duration, 50), p95=percentile(duration, 95), p99=percentile(duration, 99) by bin(_time, 5m)",
+          "visualization": "timeseries"
+        },
+        {
+          "title": "Top Endpoints by Request Count",
+          "query": "['logs'] | where ['route'] != null | summarize requests=count() by ['route'] | top 10 by requests",
+          "visualization": "bar"
+        },
+        {
+          "title": "Status Code Distribution",
+          "query": "['logs'] | where ['response.status'] != null | summarize count() by ['response.status']",
+          "visualization": "pie"
+        }
+      ]
+    },
+    {
+      "name": "AI Services Health",
+      "description": "Monitor AI generation services performance",
+      "widgets": [
+        {
+          "title": "AI Service Success Rate",
+          "query": "['logs'] | where ['service'] in ('gemini', 'fal-ai', 'elevenlabs', 'suno') | summarize total=count(), successful=countif(['status'] == 'success') by ['service'] | extend success_rate = (successful * 100.0) / total",
+          "visualization": "bar"
+        },
+        {
+          "title": "Generation Response Times",
+          "query": "['logs'] | where ['service'] in ('gemini', 'fal-ai', 'elevenlabs', 'suno') | extend duration = todouble(['duration']) | summarize avg_duration=avg(duration), p95_duration=percentile(duration, 95) by ['service'], bin(_time, 10m)",
+          "visualization": "timeseries"
+        },
+        {
+          "title": "AI Service Errors",
+          "query": "['logs'] | where ['service'] in ('gemini', 'fal-ai', 'elevenlabs', 'suno') and ['level'] == 'error' | summarize errors=count() by ['service'], bin(_time, 15m)",
+          "visualization": "timeseries"
+        }
+      ]
+    },
+    {
+      "name": "User Activity",
+      "description": "User engagement and activity metrics",
+      "widgets": [
+        {
+          "title": "Active Users",
+          "query": "['logs'] | where ['user_id'] != null | summarize active_users=dcount(['user_id']) by bin_auto(_time)",
+          "visualization": "timeseries"
+        },
+        {
+          "title": "Projects Created",
+          "query": "['logs'] | where ['route'] == '/api/projects' and ['request.method'] == 'POST' | summarize projects=count() by bin(_time, 1h)",
+          "visualization": "timeseries"
+        },
+        {
+          "title": "Assets Uploaded",
+          "query": "['logs'] | where ['route'] == '/api/assets/upload' | summarize uploads=count() by ['asset_type'], bin(_time, 1h)",
+          "visualization": "timeseries"
+        },
+        {
+          "title": "Video Exports",
+          "query": "['logs'] | where ['route'] == '/api/export' | summarize exports=count() by bin(_time, 1h)",
+          "visualization": "timeseries"
+        }
+      ]
+    }
+  ],
+  "setup_instructions": {
+    "step_1": "Log in to Axiom dashboard at https://app.axiom.co",
+    "step_2": "Navigate to Monitors section",
+    "step_3": "Click 'Create Monitor' for each monitor definition above",
+    "step_4": "Configure notification channels (Slack, Email, PagerDuty)",
+    "step_5": "Test each monitor with sample queries",
+    "step_6": "Create dashboards and add widgets using the queries above",
+    "step_7": "Set up alert routing and escalation policies"
+  },
+  "notification_channels": {
+    "email": {
+      "type": "email",
+      "recipients": ["ops@example.com", "engineering@example.com"]
+    },
+    "slack": {
+      "type": "slack",
+      "webhook_url": "<YOUR_SLACK_WEBHOOK_URL>",
+      "channel": "#alerts"
+    },
+    "pagerduty": {
+      "type": "pagerduty",
+      "integration_key": "<YOUR_PAGERDUTY_KEY>",
+      "severity_mapping": {
+        "critical": "critical",
+        "high": "error",
+        "medium": "warning",
+        "low": "info"
+      }
+    }
+  }
+}

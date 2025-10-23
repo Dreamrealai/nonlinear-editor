@@ -47,18 +47,6 @@ const sanitizeFileName = (fileName: string) => {
 };
 
 /**
- * Extracts bucket name and file path from a Supabase storage URL.
- */
-const extractStorageLocation = (storageUrl: string) => {
-  const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
-  const [bucket, ...parts] = normalized.split('/');
-  if (!bucket || parts.length === 0) {
-    return null;
-  }
-  return { bucket, path: parts.join('/') };
-};
-
-/**
  * Creates a thumbnail from an image blob.
  */
 const createImageThumbnail = (blob: Blob): Promise<string | null> =>

@@ -1,24 +1,53 @@
 /**
- * Simple in-memory rate limiter for API routes
- * For production, use Redis-based rate limiting (e.g., @upstash/ratelimit)
+ * Supabase PostgreSQL-backed distributed rate limiter
+ * Replaces in-memory storage with database-backed persistence
+ * Supports multiple server instances and horizontal scaling
  */
+
+import { createClient } from '@supabase/supabase-js';
 
 interface RateLimitEntry {
   count: number;
   resetAt: number;
 }
 
-const store = new Map<string, RateLimitEntry>();
+// Fallback in-memory store for when Supabase is unavailable
+const fallbackStore = new Map<string, RateLimitEntry>();
 
-// Clean up expired entries every 5 minutes
+// Clean up expired entries every 5 minutes (fallback only)
 setInterval(() => {
   const now = Date.now();
-  for (const [key, value] of store.entries()) {
+  for (const [key, value] of fallbackStore.entries()) {
     if (value.resetAt < now) {
-      store.delete(key);
+      fallbackStore.delete(key);
     }
   }
 }, 5 * 60 * 1000);
+
+// Initialize Supabase client with service role key for rate limiting
+// Service role is required because rate_limits table has RLS enabled
+let supabaseClient: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseClient() {
+  if (!supabaseClient) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.warn('Supabase credentials not found, using in-memory rate limiting fallback');
+      return null;
+    }
+
+    supabaseClient = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+  }
+
+  return supabaseClient;
+}
 
 export interface RateLimitConfig {
   /** Maximum requests allowed in the window */
@@ -35,22 +64,19 @@ export interface RateLimitResult {
 }
 
 /**
- * Check if request is rate limited
- * @param identifier - Unique identifier (e.g., IP address, user ID)
- * @param config - Rate limit configuration
- * @returns Rate limit result
+ * Fallback in-memory rate limit check
  */
-export function checkRateLimit(
+function checkRateLimitMemory(
   identifier: string,
   config: RateLimitConfig
 ): RateLimitResult {
   const now = Date.now();
-  const entry = store.get(identifier);
+  const entry = fallbackStore.get(identifier);
 
   if (!entry || entry.resetAt < now) {
     // First request or window expired
     const resetAt = now + config.windowMs;
-    store.set(identifier, { count: 1, resetAt });
+    fallbackStore.set(identifier, { count: 1, resetAt });
 
     return {
       success: true,
@@ -82,12 +108,81 @@ export function checkRateLimit(
 }
 
 /**
+ * Check if request is rate limited using Supabase PostgreSQL
+ * @param identifier - Unique identifier (e.g., IP address, user ID)
+ * @param config - Rate limit configuration
+ * @returns Rate limit result
+ */
+export async function checkRateLimit(
+  identifier: string,
+  config: RateLimitConfig
+): Promise<RateLimitResult> {
+  const client = getSupabaseClient();
+
+  // Fallback to in-memory if Supabase is unavailable
+  if (!client) {
+    return checkRateLimitMemory(identifier, config);
+  }
+
+  try {
+    const windowSeconds = Math.floor(config.windowMs / 1000);
+
+    // Call the increment_rate_limit function
+    // Note: We use 'as unknown' to bypass Supabase's strict typing for custom RPC functions
+    const { data: rawData, error } = await client.rpc(
+      'increment_rate_limit',
+      { rate_key: identifier, window_seconds: windowSeconds } as unknown as never
+    );
+
+    if (error) {
+      console.error('Rate limit check failed, using in-memory fallback:', error);
+      return checkRateLimitMemory(identifier, config);
+    }
+
+    const data = rawData as unknown as Array<{ current_count: number; reset_time: string }>;
+
+    if (!data || data.length === 0) {
+      console.error('Rate limit function returned no data, using in-memory fallback');
+      return checkRateLimitMemory(identifier, config);
+    }
+
+    const result = data[0];
+    const currentCount = result.current_count;
+    const resetTime = new Date(result.reset_time).getTime();
+
+    const success = currentCount <= config.max;
+    const remaining = Math.max(0, config.max - currentCount);
+
+    return {
+      success,
+      limit: config.max,
+      remaining,
+      resetAt: resetTime,
+    };
+  } catch (err) {
+    console.error('Unexpected error in rate limit check, using in-memory fallback:', err);
+    return checkRateLimitMemory(identifier, config);
+  }
+}
+
+/**
  * Rate limit middleware helper for API routes
  */
 export function createRateLimiter(config: RateLimitConfig) {
-  return (identifier: string): RateLimitResult => {
+  return (identifier: string): Promise<RateLimitResult> => {
     return checkRateLimit(identifier, config);
   };
+}
+
+/**
+ * Synchronous rate limit check (uses in-memory fallback)
+ * @deprecated Use async checkRateLimit instead for distributed rate limiting
+ */
+export function checkRateLimitSync(
+  identifier: string,
+  config: RateLimitConfig
+): RateLimitResult {
+  return checkRateLimitMemory(identifier, config);
 }
 
 // Common rate limit presets

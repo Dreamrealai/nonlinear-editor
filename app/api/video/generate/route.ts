@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Rate limiting (expensive operation - 5 requests per minute per user)
-    const rateLimitResult = checkRateLimit(`video-gen:${user.id}`, RATE_LIMITS.expensive);
+    const rateLimitResult = await checkRateLimit(`video-gen:${user.id}`, RATE_LIMITS.expensive);
 
     if (!rateLimitResult.success) {
       return NextResponse.json(

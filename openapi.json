@@ -1,0 +1,1156 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Non-Linear Video Editor API",
+    "description": "API for AI-powered video editing, generation, and asset management",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Development server"
+    },
+    {
+      "url": "https://your-production-url.com",
+      "description": "Production server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Projects",
+      "description": "Project management operations"
+    },
+    {
+      "name": "Assets",
+      "description": "Asset upload, download, and management"
+    },
+    {
+      "name": "Video Generation",
+      "description": "AI video generation with Google Veo and FAL AI"
+    },
+    {
+      "name": "Video Processing",
+      "description": "Video splitting, scene detection, and audio extraction"
+    },
+    {
+      "name": "Audio Generation",
+      "description": "AI audio generation with ElevenLabs and Suno"
+    },
+    {
+      "name": "Image Generation",
+      "description": "AI image generation with Google Imagen"
+    },
+    {
+      "name": "Image Editing",
+      "description": "Frame editing and keyframe animation"
+    },
+    {
+      "name": "Export",
+      "description": "Video export and rendering"
+    },
+    {
+      "name": "AI Chat",
+      "description": "AI assistant chat interface"
+    },
+    {
+      "name": "Logging",
+      "description": "Client-side logging"
+    },
+    {
+      "name": "Authentication",
+      "description": "User authentication and session management"
+    }
+  ],
+  "paths": {
+    "/api/projects": {
+      "get": {
+        "tags": ["Projects"],
+        "summary": "List all projects",
+        "description": "Retrieve all projects for the authenticated user",
+        "responses": {
+          "200": {
+            "description": "List of projects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      },
+      "post": {
+        "tags": ["Projects"],
+        "summary": "Create a new project",
+        "description": "Create a new video editing project",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "My Video Project"
+                  }
+                },
+                "required": ["title"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Project created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/assets": {
+      "get": {
+        "tags": ["Assets"],
+        "summary": "List assets",
+        "description": "Retrieve all assets for a project",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of assets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Asset"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/assets/upload": {
+      "post": {
+        "tags": ["Assets"],
+        "summary": "Upload an asset",
+        "description": "Upload a video, audio, or image file",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": ["video", "audio", "image"]
+                  }
+                },
+                "required": ["file", "projectId", "type"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Asset uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Asset"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "413": {
+            "description": "File too large"
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/assets/sign": {
+      "get": {
+        "tags": ["Assets"],
+        "summary": "Generate signed URL",
+        "description": "Generate a temporary signed URL for asset access",
+        "parameters": [
+          {
+            "name": "assetId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "storageUrl",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Signed URL generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "signedUrl": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "expiresIn": {
+                      "type": "integer",
+                      "description": "Expiration time in seconds"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/video/generate": {
+      "post": {
+        "tags": ["Video Generation"],
+        "summary": "Generate video from prompt",
+        "description": "Generate a video using AI (Google Veo or FAL AI)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "prompt": {
+                    "type": "string",
+                    "example": "A serene sunset over the ocean"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "provider": {
+                    "type": "string",
+                    "enum": ["google-veo", "fal-ai"],
+                    "default": "google-veo"
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 30
+                  },
+                  "aspectRatio": {
+                    "type": "string",
+                    "enum": ["16:9", "9:16", "1:1"]
+                  }
+                },
+                "required": ["prompt", "projectId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Generation started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["pending", "processing"]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/video/status": {
+      "get": {
+        "tags": ["Video Generation"],
+        "summary": "Check video generation status",
+        "description": "Check the status of an ongoing video generation job",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobStatus"
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/video/split-scenes": {
+      "post": {
+        "tags": ["Video Processing"],
+        "summary": "Detect scenes in video",
+        "description": "Automatically detect scene changes using AI",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "assetId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": ["assetId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Scene timestamps detected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "scenes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "start": {
+                            "type": "number"
+                          },
+                          "end": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/video/split-audio": {
+      "post": {
+        "tags": ["Video Processing"],
+        "summary": "Extract audio from video",
+        "description": "Extract audio track from a video file",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "videoAssetId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": ["videoAssetId", "projectId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Audio extracted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Asset"
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/video/generate-audio": {
+      "post": {
+        "tags": ["Video Processing"],
+        "summary": "Generate audio description for video",
+        "description": "Generate audio narration for a video clip using AI",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clipId": {
+                    "type": "string"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": ["clipId", "projectId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Audio generation started"
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/video/upscale": {
+      "post": {
+        "tags": ["Video Processing"],
+        "summary": "Upscale video quality",
+        "description": "Enhance video quality using AI upscaling",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "assetId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "scaleFactor": {
+                    "type": "integer",
+                    "enum": [2, 4],
+                    "default": 2
+                  }
+                },
+                "required": ["assetId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Upscaling started"
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/image/generate": {
+      "post": {
+        "tags": ["Image Generation"],
+        "summary": "Generate image from prompt",
+        "description": "Generate an image using Google Imagen 3",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "prompt": {
+                    "type": "string",
+                    "example": "A photorealistic cat wearing sunglasses"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "aspectRatio": {
+                    "type": "string",
+                    "enum": ["1:1", "3:4", "4:3", "9:16", "16:9"]
+                  }
+                },
+                "required": ["prompt", "projectId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Image generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Asset"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/audio/elevenlabs/generate": {
+      "post": {
+        "tags": ["Audio Generation"],
+        "summary": "Generate speech with ElevenLabs",
+        "description": "Convert text to speech using ElevenLabs AI",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "example": "Hello, this is a test."
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "voiceId": {
+                    "type": "string"
+                  },
+                  "stability": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "similarityBoost": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "required": ["text", "projectId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Speech generated successfully"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/audio/elevenlabs/voices": {
+      "get": {
+        "tags": ["Audio Generation"],
+        "summary": "List ElevenLabs voices",
+        "description": "Get available voices from ElevenLabs",
+        "responses": {
+          "200": {
+            "description": "List of voices",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "voices": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "voice_id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/audio/elevenlabs/sfx": {
+      "post": {
+        "tags": ["Audio Generation"],
+        "summary": "Generate sound effects",
+        "description": "Generate sound effects using ElevenLabs",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "prompt": {
+                    "type": "string",
+                    "example": "Thunder and lightning"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "duration": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 10
+                  }
+                },
+                "required": ["prompt", "projectId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sound effect generated"
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/audio/suno/generate": {
+      "post": {
+        "tags": ["Audio Generation"],
+        "summary": "Generate music with Suno AI",
+        "description": "Generate background music using Suno AI",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "prompt": {
+                    "type": "string",
+                    "example": "Upbeat electronic music"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 300
+                  }
+                },
+                "required": ["prompt", "projectId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Music generation started"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/audio/suno/status": {
+      "get": {
+        "tags": ["Audio Generation"],
+        "summary": "Check Suno generation status",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobStatus"
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/frames/{frameId}/edit": {
+      "post": {
+        "tags": ["Image Editing"],
+        "summary": "Edit image frame",
+        "description": "Apply edits to an image frame (keyframe animation)",
+        "parameters": [
+          {
+            "name": "frameId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transformations": {
+                    "type": "object",
+                    "properties": {
+                      "scale": {
+                        "type": "number"
+                      },
+                      "rotation": {
+                        "type": "number"
+                      },
+                      "opacity": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Frame edited successfully"
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/export": {
+      "post": {
+        "tags": ["Export"],
+        "summary": "Export/render video",
+        "description": "Export the final video with all edits applied",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "projectId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "format": {
+                    "type": "string",
+                    "enum": ["mp4", "webm", "mov"],
+                    "default": "mp4"
+                  },
+                  "quality": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high", "ultra"],
+                    "default": "high"
+                  },
+                  "resolution": {
+                    "type": "string",
+                    "enum": ["720p", "1080p", "4k"],
+                    "default": "1080p"
+                  }
+                },
+                "required": ["projectId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Export started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/ai/chat": {
+      "post": {
+        "tags": ["AI Chat"],
+        "summary": "Chat with AI assistant",
+        "description": "Interact with AI assistant for editing suggestions",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "example": "Suggest transitions for my video"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": ["message"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AI response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "response": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    },
+    "/api/logs": {
+      "post": {
+        "tags": ["Logging"],
+        "summary": "Submit client logs",
+        "description": "Submit client-side logs to server",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "logs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "level": {
+                          "type": "string",
+                          "enum": ["info", "warn", "error", "debug"]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "timestamp": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "metadata": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Logs received"
+          }
+        }
+      }
+    },
+    "/api/auth/signout": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Sign out user",
+        "description": "End user session and clear cookies",
+        "responses": {
+          "200": {
+            "description": "Signed out successfully"
+          }
+        },
+        "security": [{ "cookieAuth": [] }]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Project": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Asset": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["video", "audio", "image"]
+          },
+          "storage_url": {
+            "type": "string"
+          },
+          "thumbnail_url": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "number",
+            "description": "Duration in seconds (for video/audio)"
+          },
+          "width": {
+            "type": "integer",
+            "description": "Width in pixels (for images/videos)"
+          },
+          "height": {
+            "type": "integer",
+            "description": "Height in pixels (for images/videos)"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "JobStatus": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "processing", "completed", "failed"]
+          },
+          "progress": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "resultUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Available when status is completed"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message when status is failed"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "responses": {
+      "UnauthorizedError": {
+        "description": "Authentication required",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "BadRequestError": {
+        "description": "Invalid request data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "RateLimitError": {
+        "description": "Rate limit exceeded",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "description": "Maximum requests allowed",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "X-RateLimit-Remaining": {
+            "description": "Remaining requests in window",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "X-RateLimit-Reset": {
+            "description": "Unix timestamp when limit resets",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "supabase-auth-token",
+        "description": "Session cookie from Supabase authentication"
+      }
+    }
+  }
+}
