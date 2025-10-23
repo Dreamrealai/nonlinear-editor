@@ -7,7 +7,7 @@ import AssetPanel, { type AssetRow } from '@/components/editor/AssetPanel';
 // Mock Next.js Image component
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: (props: any) => {
+  default: ({ unoptimized, priority, loading, ...props }: any) => {
     // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
     return <img {...props} />;
   },
@@ -200,7 +200,9 @@ describe('AssetPanel', () => {
 
     it('should show empty state for videos when no assets', () => {
       render(<AssetPanel {...defaultProps} assets={[]} activeTab="video" />);
-      expect(screen.getByText('No video assets yet. Upload video to begin editing.')).toBeInTheDocument();
+      expect(
+        screen.getByText('No video assets yet. Upload video to begin editing.')
+      ).toBeInTheDocument();
     });
 
     it('should show empty state for images when no assets', () => {
@@ -210,12 +212,14 @@ describe('AssetPanel', () => {
 
     it('should show empty state for audio when no assets', () => {
       render(<AssetPanel {...defaultProps} assets={[]} activeTab="audio" />);
-      expect(screen.getByText('No audio assets yet. Upload or generate audio.')).toBeInTheDocument();
+      expect(
+        screen.getByText('No audio assets yet. Upload or generate audio.')
+      ).toBeInTheDocument();
     });
 
     it('should render asset thumbnails when available', () => {
       render(<AssetPanel {...defaultProps} activeTab="video" />);
-      const thumbnail = screen.getByAlt('');
+      const thumbnail = screen.getByAltText('');
       expect(thumbnail).toHaveAttribute('src', 'https://example.com/thumb1.jpg');
     });
 

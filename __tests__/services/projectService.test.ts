@@ -4,6 +4,7 @@
 
 import { ProjectService } from '@/lib/services/projectService';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { cache } from '@/lib/cache';
 
 // Mock the error tracking module
 jest.mock('@/lib/errorTracking', () => ({
@@ -37,8 +38,9 @@ describe('ProjectService', () => {
     projectService = new ProjectService(mockSupabase);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     jest.clearAllMocks();
+    await cache.clear();
   });
 
   describe('createProject', () => {
@@ -100,9 +102,9 @@ describe('ProjectService', () => {
         error: { message: 'Database error' },
       } as never);
 
-      await expect(
-        projectService.createProject('user123', { title: 'Test' })
-      ).rejects.toThrow('Failed to create project');
+      await expect(projectService.createProject('user123', { title: 'Test' })).rejects.toThrow(
+        'Failed to create project'
+      );
     });
 
     it('should use custom initial state if provided', async () => {
@@ -187,9 +189,9 @@ describe('ProjectService', () => {
         error: { message: 'Database error' },
       } as never);
 
-      await expect(
-        projectService.getUserProjects('user123')
-      ).rejects.toThrow('Failed to fetch projects');
+      await expect(projectService.getUserProjects('user123')).rejects.toThrow(
+        'Failed to fetch projects'
+      );
     });
   });
 
@@ -234,9 +236,7 @@ describe('ProjectService', () => {
     });
 
     it('should throw error for invalid UUID', async () => {
-      await expect(
-        projectService.getProjectById('invalid-uuid', 'user123')
-      ).rejects.toThrow();
+      await expect(projectService.getProjectById('invalid-uuid', 'user123')).rejects.toThrow();
     });
   });
 
@@ -347,10 +347,7 @@ describe('ProjectService', () => {
       mockSupabase.from.mockReturnValue(mockDeleteChain);
 
       await expect(
-        projectService.deleteProject(
-          '550e8400-e29b-41d4-a716-446655440000',
-          'user123'
-        )
+        projectService.deleteProject('550e8400-e29b-41d4-a716-446655440000', 'user123')
       ).resolves.not.toThrow();
 
       expect(mockSupabase.from).toHaveBeenCalledWith('projects');
@@ -373,10 +370,7 @@ describe('ProjectService', () => {
       mockSupabase.from.mockReturnValue(mockDeleteChain);
 
       await expect(
-        projectService.deleteProject(
-          '550e8400-e29b-41d4-a716-446655440000',
-          'user123'
-        )
+        projectService.deleteProject('550e8400-e29b-41d4-a716-446655440000', 'user123')
       ).rejects.toThrow('Failed to delete project');
     });
   });

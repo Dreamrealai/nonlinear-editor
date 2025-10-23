@@ -12,6 +12,7 @@ import { KeyframePreview } from './components/KeyframePreview';
 import { EditControls } from './components/EditControls';
 import { VersionsGallery } from './components/VersionsGallery';
 import { getAssetLabel, parseStoragePathClient, type AssetRow } from './utils';
+import { browserLogger } from '@/lib/browserLogger';
 
 interface KeyframeEditorShellProps {
   assets: AssetRow[];
@@ -20,7 +21,9 @@ interface KeyframeEditorShellProps {
 function KeyframeEditorContent({
   assets,
   supabase,
-}: KeyframeEditorShellProps & { supabase: NonNullable<ReturnType<typeof useSupabase>['supabaseClient']> }) {
+}: KeyframeEditorShellProps & {
+  supabase: NonNullable<ReturnType<typeof useSupabase>['supabaseClient']>;
+}) {
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(assets[0]?.id ?? null);
   const [refreshToken, setRefreshToken] = useState(0);
 
@@ -36,7 +39,7 @@ function KeyframeEditorContent({
     try {
       parseStoragePathClient(storagePath);
     } catch (error) {
-      console.error('Invalid storage path', storagePath, error);
+      browserLogger.error({ error, storagePath }, 'Invalid storage path');
       return null;
     }
 
@@ -48,13 +51,16 @@ function KeyframeEditorContent({
       const response = await fetch(`/api/assets/sign?${params.toString()}`);
       if (!response.ok) {
         const detail = await response.text().catch(() => '');
-        console.error('Failed to sign storage path', storagePath, response.status, detail);
+        browserLogger.error(
+          { storagePath, status: response.status, detail },
+          'Failed to sign storage path'
+        );
         return null;
       }
       const payload = (await response.json()) as { signedUrl?: string };
       return payload.signedUrl ?? null;
     } catch (error) {
-      console.error('Failed to sign storage path', storagePath, error);
+      browserLogger.error({ error, storagePath }, 'Failed to sign storage path');
       return null;
     }
   }, []);
@@ -150,7 +156,8 @@ function KeyframeEditorContent({
     input.type = 'file';
     input.accept = 'image/*';
     input.multiple = true;
-    input.onchange = (e) => void handleRefImageSelect(e as unknown as React.ChangeEvent<HTMLInputElement>);
+    input.onchange = (e) =>
+      void handleRefImageSelect(e as unknown as React.ChangeEvent<HTMLInputElement>);
     input.click();
   }, [handleRefImageSelect]);
 
@@ -223,7 +230,12 @@ function KeyframeEditorContent({
               aria-label="Close video player"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>

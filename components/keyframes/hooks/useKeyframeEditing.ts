@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { browserLogger } from '@/lib/browserLogger';
 
 type Mode = 'global' | 'crop';
 
@@ -73,7 +74,9 @@ export function useKeyframeEditing({
     setSubmitError(null);
 
     try {
-      const refImageUrls = refImages.filter((img) => img.uploadedUrl).map((img) => img.uploadedUrl!);
+      const refImageUrls = refImages
+        .filter((img) => img.uploadedUrl)
+        .map((img) => img.uploadedUrl!);
 
       const response = await fetch(`/api/frames/${selectedFrameId}/edit`, {
         method: 'POST',
@@ -152,7 +155,10 @@ export function useKeyframeEditing({
             )
           );
         } catch (error) {
-          console.error('Failed to upload reference image:', error);
+          browserLogger.error(
+            { error, selectedAssetId, fileName: img.file.name },
+            'Failed to upload reference image'
+          );
           setRefImages((prev) => prev.filter((item) => item.id !== img.id));
           alert(`Failed to upload ${img.file.name}. Please try again.`);
         }
@@ -226,7 +232,7 @@ export function useKeyframeEditing({
               )
             );
           } catch (error) {
-            console.error('Failed to upload pasted image:', error);
+            browserLogger.error({ error, selectedAssetId }, 'Failed to upload pasted image');
             setRefImages((prev) => prev.filter((item) => item.id !== newImage.id));
             alert('Failed to upload pasted image. Please try again.');
           }

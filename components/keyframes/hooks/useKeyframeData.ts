@@ -60,7 +60,12 @@ export function useKeyframeData({
     }
     for (const frameList of byScene.values()) {
       frameList.sort((a, b) => {
-        const order: Record<SceneFrameRow['kind'], number> = { first: 0, middle: 1, last: 2, custom: 3 };
+        const order: Record<SceneFrameRow['kind'], number> = {
+          first: 0,
+          middle: 1,
+          last: 2,
+          custom: 3,
+        };
         return order[a.kind] - order[b.kind];
       });
     }
@@ -163,7 +168,8 @@ export function useFrameEdits({
         .eq('frame_id', frameId)
         .order('version', { ascending: false });
       if (error) {
-        console.error('Failed to load frame edits', error);
+        const { browserLogger } = await import('@/lib/browserLogger');
+        browserLogger.error({ error, frameId }, 'Failed to load frame edits');
         setEdits([]);
         return;
       }

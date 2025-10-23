@@ -92,7 +92,9 @@ describe('EditorHeader', () => {
       }),
     });
 
-    const { container } = render(<EditorHeader projectId="project-1" currentTab="generate-video" />);
+    const { container } = render(
+      <EditorHeader projectId="project-1" currentTab="generate-video" />
+    );
 
     const generateVideoLink = screen.getByText('Generate Video').closest('a');
     expect(generateVideoLink).toHaveClass('bg-white');
@@ -160,9 +162,7 @@ describe('EditorHeader', () => {
   });
 
   it('should enter rename mode when clicking current project in dropdown', async () => {
-    const mockProjects = [
-      { id: 'project-1', title: 'Project One' },
-    ];
+    const mockProjects = [{ id: 'project-1', title: 'Project One' }];
 
     mockSupabaseClient.from.mockReturnValue({
       select: jest.fn().mockReturnValue({
@@ -182,11 +182,8 @@ describe('EditorHeader', () => {
     const dropdownButton = screen.getByText('Project One').closest('button');
     fireEvent.click(dropdownButton!);
 
-    // Click on current project to rename
-    await waitFor(() => {
-      const projectOneButton = screen.getByText('Project One').closest('button');
-      fireEvent.click(projectOneButton!);
-    });
+    const renameButton = await screen.findByTitle('Rename project');
+    fireEvent.click(renameButton);
 
     // Should show rename input
     await waitFor(() => {
@@ -196,9 +193,7 @@ describe('EditorHeader', () => {
   });
 
   it('should rename project successfully', async () => {
-    const mockProjects = [
-      { id: 'project-1', title: 'Old Name' },
-    ];
+    const mockProjects = [{ id: 'project-1', title: 'Old Name' }];
 
     const mockUpdate = jest.fn().mockReturnValue({
       eq: jest.fn().mockResolvedValue({ error: null }),
@@ -219,17 +214,15 @@ describe('EditorHeader', () => {
       expect(screen.getByText('Old Name')).toBeInTheDocument();
     });
 
-    // Open dropdown and click to rename
+    // Open dropdown and click rename option
     const dropdownButton = screen.getByText('Old Name').closest('button');
     fireEvent.click(dropdownButton!);
 
-    await waitFor(() => {
-      const currentProjectButton = screen.getByText('Old Name').closest('button');
-      fireEvent.click(currentProjectButton!);
-    });
+    const renameButton = await screen.findByTitle('Rename project');
+    fireEvent.click(renameButton);
 
     // Type new name
-    const input = await screen.findByDisplayValue('Old Name') as HTMLInputElement;
+    const input = (await screen.findByDisplayValue('Old Name')) as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'New Name' } });
 
     // Submit
@@ -243,9 +236,7 @@ describe('EditorHeader', () => {
   });
 
   it('should delete project when delete button is clicked', async () => {
-    const mockProjects = [
-      { id: 'project-1', title: 'Project To Delete' },
-    ];
+    const mockProjects = [{ id: 'project-1', title: 'Project To Delete' }];
 
     const mockDelete = jest.fn().mockReturnValue({
       eq: jest.fn().mockResolvedValue({ error: null }),
@@ -266,8 +257,10 @@ describe('EditorHeader', () => {
       expect(screen.getByText('Project To Delete')).toBeInTheDocument();
     });
 
-    // Click delete button
-    const deleteButton = screen.getByTitle('Delete project');
+    const dropdownButton = screen.getByText('Project To Delete').closest('button');
+    fireEvent.click(dropdownButton!);
+
+    const deleteButton = await screen.findByTitle('Delete project');
     fireEvent.click(deleteButton);
 
     await waitFor(() => {
@@ -278,9 +271,7 @@ describe('EditorHeader', () => {
   });
 
   it('should show error when rename fails', async () => {
-    const mockProjects = [
-      { id: 'project-1', title: 'Project' },
-    ];
+    const mockProjects = [{ id: 'project-1', title: 'Project' }];
 
     const mockUpdate = jest.fn().mockReturnValue({
       eq: jest.fn().mockResolvedValue({ error: new Error('Update failed') }),
@@ -301,16 +292,13 @@ describe('EditorHeader', () => {
       expect(screen.getByText('Project')).toBeInTheDocument();
     });
 
-    // Enter rename mode
     const dropdownButton = screen.getByText('Project').closest('button');
     fireEvent.click(dropdownButton!);
 
-    await waitFor(() => {
-      const projectButton = screen.getByText('Project').closest('button');
-      fireEvent.click(projectButton!);
-    });
+    const renameButton = await screen.findByTitle('Rename project');
+    fireEvent.click(renameButton);
 
-    const input = await screen.findByDisplayValue('Project') as HTMLInputElement;
+    const input = (await screen.findByDisplayValue('Project')) as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'New Name' } });
 
     const saveButton = screen.getByText('Save');
@@ -322,9 +310,7 @@ describe('EditorHeader', () => {
   });
 
   it('should cancel rename when Cancel button is clicked', async () => {
-    const mockProjects = [
-      { id: 'project-1', title: 'Project' },
-    ];
+    const mockProjects = [{ id: 'project-1', title: 'Project' }];
 
     mockSupabaseClient.from.mockReturnValue({
       select: jest.fn().mockReturnValue({
@@ -340,16 +326,13 @@ describe('EditorHeader', () => {
       expect(screen.getByText('Project')).toBeInTheDocument();
     });
 
-    // Enter rename mode
     const dropdownButton = screen.getByText('Project').closest('button');
     fireEvent.click(dropdownButton!);
 
-    await waitFor(() => {
-      const projectButton = screen.getByText('Project').closest('button');
-      fireEvent.click(projectButton!);
-    });
+    const renameButton = await screen.findByTitle('Rename project');
+    fireEvent.click(renameButton);
 
-    const input = await screen.findByDisplayValue('Project') as HTMLInputElement;
+    const input = (await screen.findByDisplayValue('Project')) as HTMLInputElement;
     expect(input).toBeInTheDocument();
 
     // Click cancel

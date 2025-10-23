@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { browserLogger } from '@/lib/browserLogger';
 
 interface AssetRow {
   id: string;
@@ -103,35 +104,31 @@ export function useImageUpload({
 
       const currentTimeMs = Math.round(video.currentTime * 1000);
       const fileName = `${selectedAssetId}/custom/${Date.now()}-${currentTimeMs}ms.png`;
-      const { error: uploadError } = await supabase.storage
-        .from('frames')
-        .upload(fileName, blob, {
-          contentType: 'image/png',
-          upsert: false,
-        });
+      const { error: uploadError } = await supabase.storage.from('frames').upload(fileName, blob, {
+        contentType: 'image/png',
+        upsert: false,
+      });
 
       if (uploadError) throw uploadError;
 
       const storagePath = `supabase://frames/${fileName}`;
-      const { error: insertError } = await supabase
-        .from('scene_frames')
-        .insert({
-          project_id: assets.find((a) => a.id === selectedAssetId)?.metadata?.project_id,
-          asset_id: selectedAssetId,
-          scene_id: null,
-          kind: 'custom',
-          t_ms: currentTimeMs,
-          storage_path: storagePath,
-          width: canvas.width,
-          height: canvas.height,
-        });
+      const { error: insertError } = await supabase.from('scene_frames').insert({
+        project_id: assets.find((a) => a.id === selectedAssetId)?.metadata?.project_id,
+        asset_id: selectedAssetId,
+        scene_id: null,
+        kind: 'custom',
+        t_ms: currentTimeMs,
+        storage_path: storagePath,
+        width: canvas.width,
+        height: canvas.height,
+      });
 
       if (insertError) throw insertError;
 
       onRefreshNeeded();
       setShowVideoPlayer(false);
     } catch (error) {
-      console.error('Failed to extract frame:', error);
+      browserLogger.error({ error, selectedAssetId }, 'Failed to extract frame');
       alert('Failed to extract frame. Please try again.');
     } finally {
       setIsExtractingFrame(false);
@@ -170,18 +167,16 @@ export function useImageUpload({
         if (uploadError) throw uploadError;
 
         const storagePath = `supabase://frames/${fileName}`;
-        const { error: insertError } = await supabase
-          .from('scene_frames')
-          .insert({
-            project_id: assets.find((a) => a.id === selectedAssetId)?.metadata?.project_id,
-            asset_id: selectedAssetId,
-            scene_id: null,
-            kind: 'custom',
-            t_ms: 0,
-            storage_path: storagePath,
-            width: img.width,
-            height: img.height,
-          });
+        const { error: insertError } = await supabase.from('scene_frames').insert({
+          project_id: assets.find((a) => a.id === selectedAssetId)?.metadata?.project_id,
+          asset_id: selectedAssetId,
+          scene_id: null,
+          kind: 'custom',
+          t_ms: 0,
+          storage_path: storagePath,
+          width: img.width,
+          height: img.height,
+        });
 
         if (insertError) throw insertError;
 
@@ -191,7 +186,7 @@ export function useImageUpload({
           fileInputRef.current.value = '';
         }
       } catch (error) {
-        console.error('Failed to upload image:', error);
+        browserLogger.error({ error, selectedAssetId }, 'Failed to upload image');
         alert('Failed to upload image. Please try again.');
       } finally {
         setIsUploadingImage(false);
@@ -244,24 +239,22 @@ export function useImageUpload({
           if (uploadError) throw uploadError;
 
           const storagePath = `supabase://frames/${fileName}`;
-          const { error: insertError } = await supabase
-            .from('scene_frames')
-            .insert({
-              project_id: assets.find((a) => a.id === selectedAssetId)?.metadata?.project_id,
-              asset_id: selectedAssetId,
-              scene_id: null,
-              kind: 'custom',
-              t_ms: 0,
-              storage_path: storagePath,
-              width: img.width,
-              height: img.height,
-            });
+          const { error: insertError } = await supabase.from('scene_frames').insert({
+            project_id: assets.find((a) => a.id === selectedAssetId)?.metadata?.project_id,
+            asset_id: selectedAssetId,
+            scene_id: null,
+            kind: 'custom',
+            t_ms: 0,
+            storage_path: storagePath,
+            width: img.width,
+            height: img.height,
+          });
 
           if (insertError) throw insertError;
 
           onRefreshNeeded();
         } catch (error) {
-          console.error('Failed to upload pasted image:', error);
+          browserLogger.error({ error, selectedAssetId }, 'Failed to upload pasted image');
           alert('Failed to upload pasted image. Please try again.');
         } finally {
           setIsUploadingImage(false);
