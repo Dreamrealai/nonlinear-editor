@@ -1,8 +1,8 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
-import { CreateProjectButton } from '@/components/CreateProjectButton';
+import HomeHeader from '@/components/HomeHeader';
 import { ProjectList } from '@/components/ProjectList';
+import { CreateProjectButton } from '@/components/CreateProjectButton';
 import { Toaster } from 'react-hot-toast';
 
 // Force dynamic rendering when Supabase is not configured
@@ -40,18 +40,7 @@ export default async function HomePage() {
     <div className="min-h-screen bg-neutral-50 p-8">
       <Toaster position="bottom-right" />
       <div className="mx-auto max-w-4xl">
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-neutral-900">My Projects</h1>
-          <div className="flex gap-3">
-            <CreateProjectButton />
-            <Link
-              href="/logout"
-              className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 shadow hover:bg-neutral-50"
-            >
-              Sign Out
-            </Link>
-          </div>
-        </div>
+        <HomeHeader />
 
         {projects && projects.length > 0 ? (
           <ProjectList projects={projects} />
