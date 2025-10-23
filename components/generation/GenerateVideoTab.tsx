@@ -29,6 +29,133 @@ interface ImageAsset {
   created_at: string;
 }
 
+// Model configuration interface
+interface ModelConfig {
+  id: string;
+  name: string;
+  provider: 'google' | 'openai' | 'seedance' | 'minimax';
+  supportedAspectRatios: ('16:9' | '9:16' | '1:1')[];
+  supportedDurations: (4 | 5 | 6 | 8 | 10)[];
+  supportsResolution: boolean;
+  supportsAudio: boolean;
+  supportsNegativePrompt: boolean;
+  supportsReferenceImage: boolean;
+  supportsEnhancePrompt: boolean;
+  maxSampleCount: number;
+}
+
+// Model configurations
+const MODEL_CONFIGS: Record<string, ModelConfig> = {
+  // Google Veo Models
+  'veo-3.1-generate-preview': {
+    id: 'veo-3.1-generate-preview',
+    name: 'Veo 3.1 (Latest)',
+    provider: 'google',
+    supportedAspectRatios: ['16:9', '9:16', '1:1'],
+    supportedDurations: [4, 5, 6, 8],
+    supportsResolution: true,
+    supportsAudio: true,
+    supportsNegativePrompt: true,
+    supportsReferenceImage: true,
+    supportsEnhancePrompt: true,
+    maxSampleCount: 4,
+  },
+  'veo-3.1-fast-generate-preview': {
+    id: 'veo-3.1-fast-generate-preview',
+    name: 'Veo 3.1 Fast',
+    provider: 'google',
+    supportedAspectRatios: ['16:9', '9:16', '1:1'],
+    supportedDurations: [4, 5, 6, 8],
+    supportsResolution: true,
+    supportsAudio: true,
+    supportsNegativePrompt: true,
+    supportsReferenceImage: true,
+    supportsEnhancePrompt: true,
+    maxSampleCount: 4,
+  },
+  'veo-3.0-generate-001': {
+    id: 'veo-3.0-generate-001',
+    name: 'Veo 3.0',
+    provider: 'google',
+    supportedAspectRatios: ['16:9', '9:16', '1:1'],
+    supportedDurations: [4, 5, 6, 8],
+    supportsResolution: true,
+    supportsAudio: true,
+    supportsNegativePrompt: true,
+    supportsReferenceImage: true,
+    supportsEnhancePrompt: true,
+    maxSampleCount: 4,
+  },
+  'veo-3.0-fast-generate-001': {
+    id: 'veo-3.0-fast-generate-001',
+    name: 'Veo 3.0 Fast',
+    provider: 'google',
+    supportedAspectRatios: ['16:9', '9:16', '1:1'],
+    supportedDurations: [4, 5, 6, 8],
+    supportsResolution: true,
+    supportsAudio: true,
+    supportsNegativePrompt: true,
+    supportsReferenceImage: true,
+    supportsEnhancePrompt: true,
+    maxSampleCount: 4,
+  },
+  'veo-2.0-generate-001': {
+    id: 'veo-2.0-generate-001',
+    name: 'Veo 2.0',
+    provider: 'google',
+    supportedAspectRatios: ['16:9', '9:16', '1:1'],
+    supportedDurations: [4, 5, 6, 8],
+    supportsResolution: false,
+    supportsAudio: false,
+    supportsNegativePrompt: true,
+    supportsReferenceImage: true,
+    supportsEnhancePrompt: true,
+    maxSampleCount: 4,
+  },
+  // OpenAI SORA
+  'sora-2-pro': {
+    id: 'sora-2-pro',
+    name: 'SORA 2 Pro',
+    provider: 'openai',
+    supportedAspectRatios: ['16:9', '9:16', '1:1'],
+    supportedDurations: [5, 10],
+    supportsResolution: false,
+    supportsAudio: false,
+    supportsNegativePrompt: false,
+    supportsReferenceImage: true,
+    supportsEnhancePrompt: false,
+    maxSampleCount: 1,
+  },
+  // SEEDANCE
+  'seedance-1.0': {
+    id: 'seedance-1.0',
+    name: 'SEEDANCE 1.0',
+    provider: 'seedance',
+    supportedAspectRatios: ['16:9', '9:16', '1:1'],
+    supportedDurations: [4, 6, 8],
+    supportsResolution: false,
+    supportsAudio: true,
+    supportsNegativePrompt: true,
+    supportsReferenceImage: true,
+    supportsEnhancePrompt: false,
+    maxSampleCount: 2,
+  },
+  // MINIMAX
+  'minimax-video-1.0': {
+    id: 'minimax-video-1.0',
+    name: 'MiniMax Video 1.0',
+    provider: 'minimax',
+    supportedAspectRatios: ['16:9', '9:16', '1:1'],
+    supportedDurations: [5, 6, 8],
+    supportsResolution: false,
+    supportsAudio: false,
+    supportsNegativePrompt: true,
+    supportsReferenceImage: true,
+    supportsEnhancePrompt: false,
+    maxSampleCount: 2,
+  },
+};
+
 /**
  * Generate Video Tab Component
  *
@@ -46,7 +173,7 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
   const [prompt, setPrompt] = useState('');
   const [model, setModel] = useState<string>('veo-3.1-generate-preview');
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16' | '1:1'>('16:9');
-  const [duration, setDuration] = useState<4 | 5 | 6 | 8>(8);
+  const [duration, setDuration] = useState<4 | 5 | 6 | 8 | 10>(8);
   const [resolution, setResolution] = useState<'720p' | '1080p'>('720p');
   const [negativePrompt, setNegativePrompt] = useState('');
   const [personGeneration, setPersonGeneration] = useState<'allow_adult' | 'dont_allow'>('allow_adult');
@@ -56,6 +183,9 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
   const [sampleCount, setSampleCount] = useState<1 | 2 | 3 | 4>(1);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
+  // Get current model config
+  const currentModelConfig = MODEL_CONFIGS[model];
+
   // Image input state
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -63,6 +193,59 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
   const [showAssetLibrary, setShowAssetLibrary] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Clear selected image
+  const handleClearImage = useCallback(() => {
+    setSelectedImage(null);
+    setImageAssetId(null);
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+    }
+    setImagePreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [imagePreviewUrl]);
+
+  // Handle model change and adjust settings accordingly
+  const handleModelChange = useCallback((newModel: string) => {
+    const newConfig = MODEL_CONFIGS[newModel];
+    if (!newConfig) return;
+
+    setModel(newModel);
+
+    // Adjust aspect ratio if current one is not supported
+    if (!newConfig.supportedAspectRatios.includes(aspectRatio)) {
+      setAspectRatio(newConfig.supportedAspectRatios[0]);
+    }
+
+    // Adjust duration if current one is not supported
+    if (!newConfig.supportedDurations.includes(duration)) {
+      setDuration(newConfig.supportedDurations[0]);
+    }
+
+    // Adjust sample count if it exceeds max
+    if (sampleCount > newConfig.maxSampleCount) {
+      setSampleCount(1);
+    }
+
+    // Clear settings that are not supported by the new model
+    if (!newConfig.supportsAudio) {
+      setGenerateAudio(false);
+    }
+
+    if (!newConfig.supportsNegativePrompt) {
+      setNegativePrompt('');
+    }
+
+    if (!newConfig.supportsEnhancePrompt) {
+      setEnhancePrompt(false);
+    }
+
+    if (!newConfig.supportsReferenceImage) {
+      handleClearImage();
+    }
+  }, [aspectRatio, duration, sampleCount, handleClearImage]);
 
   // Cleanup polling intervals on unmount
   useEffect(() => {
@@ -122,19 +305,6 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
     setShowAssetLibrary(false);
     toast.success('Image selected from library!');
   }, []);
-
-  // Clear selected image
-  const handleClearImage = useCallback(() => {
-    setSelectedImage(null);
-    setImageAssetId(null);
-    if (imagePreviewUrl) {
-      URL.revokeObjectURL(imagePreviewUrl);
-    }
-    setImagePreviewUrl(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }, [imagePreviewUrl]);
 
   // Upload image to Supabase storage
   const uploadImageToStorage = useCallback(async (file: File): Promise<string> => {
@@ -343,7 +513,159 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
 
           {/* Generation Form */}
           <form onSubmit={handleGenerateVideo} className="space-y-4">
-            {/* Prompt */}
+            {/* Basic Settings Row - MOVED TO TOP */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Model Selection */}
+              <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+                <label htmlFor="model" className="block text-xs font-medium text-neutral-700 mb-2">
+                  Model
+                </label>
+                <select
+                  id="model"
+                  value={model}
+                  onChange={(e) => handleModelChange(e.target.value)}
+                  disabled={generating}
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <optgroup label="Google Veo">
+                    <option value="veo-3.1-generate-preview">Veo 3.1 (Latest)</option>
+                    <option value="veo-3.1-fast-generate-preview">Veo 3.1 Fast</option>
+                    <option value="veo-3.0-generate-001">Veo 3.0</option>
+                    <option value="veo-3.0-fast-generate-001">Veo 3.0 Fast</option>
+                    <option value="veo-2.0-generate-001">Veo 2.0</option>
+                  </optgroup>
+                  <optgroup label="OpenAI">
+                    <option value="sora-2-pro">SORA 2 Pro</option>
+                  </optgroup>
+                  <optgroup label="Other Models">
+                    <option value="seedance-1.0">SEEDANCE 1.0</option>
+                    <option value="minimax-video-1.0">MiniMax Video 1.0</option>
+                  </optgroup>
+                </select>
+              </div>
+
+              {/* Aspect Ratio */}
+              <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+                <label htmlFor="aspectRatio" className="block text-xs font-medium text-neutral-700 mb-2">
+                  Aspect Ratio
+                </label>
+                <select
+                  id="aspectRatio"
+                  value={aspectRatio}
+                  onChange={(e) => setAspectRatio(e.target.value as '16:9' | '9:16' | '1:1')}
+                  disabled={generating}
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {currentModelConfig.supportedAspectRatios.map((ratio) => (
+                    <option key={ratio} value={ratio}>
+                      {ratio} {ratio === '16:9' ? 'Landscape' : ratio === '9:16' ? 'Portrait' : 'Square'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Duration */}
+              <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+                <label htmlFor="duration" className="block text-xs font-medium text-neutral-700 mb-2">
+                  Duration
+                </label>
+                <select
+                  id="duration"
+                  value={duration}
+                  onChange={(e) => setDuration(parseInt(e.target.value) as 4 | 5 | 6 | 8 | 10)}
+                  disabled={generating}
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {currentModelConfig.supportedDurations.map((dur) => (
+                    <option key={dur} value={dur}>
+                      {dur} seconds
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Image Input - MOVED TO MIDDLE */}
+            {currentModelConfig.supportsReferenceImage && (
+              <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                <label className="block text-sm font-semibold text-neutral-900 mb-3">
+                  Reference Image (Optional)
+                </label>
+
+                {imagePreviewUrl ? (
+                  <div className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- Dynamic user-selected reference image preview */}
+                    <img
+                      src={imagePreviewUrl}
+                      alt="Selected reference"
+                      className="w-full max-h-64 object-contain rounded-lg border border-neutral-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleClearImage}
+                      className="absolute right-2 top-2 rounded-md bg-black/50 p-2 text-white hover:bg-black/70 transition-colors"
+                      title="Remove image"
+                    >
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-3">
+                      {/* Upload Button */}
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={generating || uploadingImage}
+                        className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6 hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <svg className="h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="text-xs font-medium text-neutral-700">Upload</span>
+                      </button>
+
+                      {/* Paste Hint */}
+                      <div className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6">
+                        <svg className="h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        <span className="text-xs font-medium text-neutral-700">Paste (Ctrl+V)</span>
+                      </div>
+
+                      {/* Asset Library Button */}
+                      <button
+                        type="button"
+                        onClick={() => setShowAssetLibrary(true)}
+                        disabled={generating || uploadingImage}
+                        className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6 hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <svg className="h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                        <span className="text-xs font-medium text-neutral-700">From Library</span>
+                      </button>
+                    </div>
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileInputChange}
+                      className="hidden"
+                    />
+
+                    <p className="text-xs text-neutral-500 text-center">
+                      Upload, paste, or select an image from your library to use as a reference
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Prompt - MOVED TO BOTTOM */}
             <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
               <label htmlFor="prompt" className="block text-sm font-semibold text-neutral-900 mb-2">
                 Video Description *
@@ -361,144 +683,6 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
               <p className="mt-2 text-xs text-neutral-500">
                 Describe the video you want to generate in detail
               </p>
-            </div>
-
-            {/* Image Input */}
-            <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-              <label className="block text-sm font-semibold text-neutral-900 mb-3">
-                Reference Image (Optional)
-              </label>
-
-              {imagePreviewUrl ? (
-                <div className="relative">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- Dynamic user-selected reference image preview */}
-                  <img
-                    src={imagePreviewUrl}
-                    alt="Selected reference"
-                    className="w-full max-h-64 object-contain rounded-lg border border-neutral-200"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleClearImage}
-                    className="absolute right-2 top-2 rounded-md bg-black/50 p-2 text-white hover:bg-black/70 transition-colors"
-                    title="Remove image"
-                  >
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-3 gap-3">
-                    {/* Upload Button */}
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={generating || uploadingImage}
-                      className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6 hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <svg className="h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span className="text-xs font-medium text-neutral-700">Upload</span>
-                    </button>
-
-                    {/* Paste Hint */}
-                    <div className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6">
-                      <svg className="h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                      <span className="text-xs font-medium text-neutral-700">Paste (Ctrl+V)</span>
-                    </div>
-
-                    {/* Asset Library Button */}
-                    <button
-                      type="button"
-                      onClick={() => setShowAssetLibrary(true)}
-                      disabled={generating || uploadingImage}
-                      className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6 hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <svg className="h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                      </svg>
-                      <span className="text-xs font-medium text-neutral-700">From Library</span>
-                    </button>
-                  </div>
-
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileInputChange}
-                    className="hidden"
-                  />
-
-                  <p className="text-xs text-neutral-500 text-center">
-                    Upload, paste, or select an image from your library to use as a reference
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Basic Settings Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Model Selection */}
-              <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
-                <label htmlFor="model" className="block text-xs font-medium text-neutral-700 mb-2">
-                  Model
-                </label>
-                <select
-                  id="model"
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
-                  disabled={generating}
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="veo-3.1-generate-preview">Veo 3.1 (Latest)</option>
-                  <option value="veo-3.1-fast-generate-preview">Veo 3.1 Fast</option>
-                  <option value="veo-3.0-generate-001">Veo 3.0</option>
-                  <option value="veo-3.0-fast-generate-001">Veo 3.0 Fast</option>
-                  <option value="veo-2.0-generate-001">Veo 2.0</option>
-                </select>
-              </div>
-
-              {/* Aspect Ratio */}
-              <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
-                <label htmlFor="aspectRatio" className="block text-xs font-medium text-neutral-700 mb-2">
-                  Aspect Ratio
-                </label>
-                <select
-                  id="aspectRatio"
-                  value={aspectRatio}
-                  onChange={(e) => setAspectRatio(e.target.value as '16:9' | '9:16' | '1:1')}
-                  disabled={generating}
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="16:9">16:9 Landscape</option>
-                  <option value="9:16">9:16 Portrait</option>
-                  <option value="1:1">1:1 Square</option>
-                </select>
-              </div>
-
-              {/* Duration */}
-              <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
-                <label htmlFor="duration" className="block text-xs font-medium text-neutral-700 mb-2">
-                  Duration
-                </label>
-                <select
-                  id="duration"
-                  value={duration}
-                  onChange={(e) => setDuration(parseInt(e.target.value) as 4 | 5 | 6 | 8)}
-                  disabled={generating}
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="4">4 seconds</option>
-                  <option value="5">5 seconds</option>
-                  <option value="6">6 seconds</option>
-                  <option value="8">8 seconds</option>
-                </select>
-              </div>
             </div>
 
             {/* Advanced Settings Collapsible */}
@@ -530,57 +714,62 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
                     {/* Left Column */}
                     <div className="space-y-4">
                       {/* Resolution */}
-                      <div>
-                        <label htmlFor="resolution" className="block text-xs font-medium text-neutral-700 mb-2">
-                          Resolution (Veo 3 only)
-                        </label>
-                        <select
-                          id="resolution"
-                          value={resolution}
-                          onChange={(e) => setResolution(e.target.value as '720p' | '1080p')}
-                          disabled={generating}
-                          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          <option value="720p">720p (HD)</option>
-                          <option value="1080p">1080p (Full HD)</option>
-                        </select>
-                      </div>
+                      {currentModelConfig.supportsResolution && (
+                        <div>
+                          <label htmlFor="resolution" className="block text-xs font-medium text-neutral-700 mb-2">
+                            Resolution
+                          </label>
+                          <select
+                            id="resolution"
+                            value={resolution}
+                            onChange={(e) => setResolution(e.target.value as '720p' | '1080p')}
+                            disabled={generating}
+                            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <option value="720p">720p (HD)</option>
+                            <option value="1080p">1080p (Full HD)</option>
+                          </select>
+                        </div>
+                      )}
 
                       {/* Sample Count */}
-                      <div>
-                        <label htmlFor="sampleCount" className="block text-xs font-medium text-neutral-700 mb-2">
-                          Number of Videos
-                        </label>
-                        <select
-                          id="sampleCount"
-                          value={sampleCount}
-                          onChange={(e) => setSampleCount(parseInt(e.target.value) as 1 | 2 | 3 | 4)}
-                          disabled={generating}
-                          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          <option value="1">1 video</option>
-                          <option value="2">2 videos</option>
-                          <option value="3">3 videos</option>
-                          <option value="4">4 videos</option>
-                        </select>
-                      </div>
+                      {currentModelConfig.maxSampleCount > 1 && (
+                        <div>
+                          <label htmlFor="sampleCount" className="block text-xs font-medium text-neutral-700 mb-2">
+                            Number of Videos (max {currentModelConfig.maxSampleCount})
+                          </label>
+                          <select
+                            id="sampleCount"
+                            value={sampleCount}
+                            onChange={(e) => setSampleCount(parseInt(e.target.value) as 1 | 2 | 3 | 4)}
+                            disabled={generating}
+                            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {[1, 2, 3, 4].filter(n => n <= currentModelConfig.maxSampleCount).map(n => (
+                              <option key={n} value={n}>{n} video{n > 1 ? 's' : ''}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
 
-                      {/* Person Generation */}
-                      <div>
-                        <label htmlFor="personGeneration" className="block text-xs font-medium text-neutral-700 mb-2">
-                          Person Generation
-                        </label>
-                        <select
-                          id="personGeneration"
-                          value={personGeneration}
-                          onChange={(e) => setPersonGeneration(e.target.value as 'allow_adult' | 'dont_allow')}
-                          disabled={generating}
-                          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          <option value="allow_adult">Allow Adult Faces</option>
-                          <option value="dont_allow">Don&apos;t Generate People</option>
-                        </select>
-                      </div>
+                      {/* Person Generation - Only for Google Veo models */}
+                      {currentModelConfig.provider === 'google' && (
+                        <div>
+                          <label htmlFor="personGeneration" className="block text-xs font-medium text-neutral-700 mb-2">
+                            Person Generation
+                          </label>
+                          <select
+                            id="personGeneration"
+                            value={personGeneration}
+                            onChange={(e) => setPersonGeneration(e.target.value as 'allow_adult' | 'dont_allow')}
+                            disabled={generating}
+                            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <option value="allow_adult">Allow Adult Faces</option>
+                            <option value="dont_allow">Don&apos;t Generate People</option>
+                          </select>
+                        </div>
+                      )}
 
                       {/* Seed */}
                       <div>
@@ -607,52 +796,58 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
                     {/* Right Column */}
                     <div className="space-y-4">
                       {/* Negative Prompt */}
-                      <div>
-                        <label htmlFor="negativePrompt" className="block text-xs font-medium text-neutral-700 mb-2">
-                          Negative Prompt
-                        </label>
-                        <textarea
-                          id="negativePrompt"
-                          value={negativePrompt}
-                          onChange={(e) => setNegativePrompt(e.target.value)}
-                          placeholder="What to avoid (e.g., blur, distortion)"
-                          rows={4}
-                          disabled={generating}
-                          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                        />
-                      </div>
+                      {currentModelConfig.supportsNegativePrompt && (
+                        <div>
+                          <label htmlFor="negativePrompt" className="block text-xs font-medium text-neutral-700 mb-2">
+                            Negative Prompt
+                          </label>
+                          <textarea
+                            id="negativePrompt"
+                            value={negativePrompt}
+                            onChange={(e) => setNegativePrompt(e.target.value)}
+                            placeholder="What to avoid (e.g., blur, distortion)"
+                            rows={4}
+                            disabled={generating}
+                            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                          />
+                        </div>
+                      )}
 
                       {/* Checkboxes */}
                       <div className="space-y-3">
                         {/* Enhance Prompt */}
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            id="enhancePrompt"
-                            checked={enhancePrompt}
-                            onChange={(e) => setEnhancePrompt(e.target.checked)}
-                            disabled={generating}
-                            className="h-4 w-4 rounded border-neutral-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20"
-                          />
-                          <label htmlFor="enhancePrompt" className="text-sm text-neutral-700">
-                            Enhance Prompt with Gemini
-                          </label>
-                        </div>
+                        {currentModelConfig.supportsEnhancePrompt && (
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              id="enhancePrompt"
+                              checked={enhancePrompt}
+                              onChange={(e) => setEnhancePrompt(e.target.checked)}
+                              disabled={generating}
+                              className="h-4 w-4 rounded border-neutral-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20"
+                            />
+                            <label htmlFor="enhancePrompt" className="text-sm text-neutral-700">
+                              Enhance Prompt with Gemini
+                            </label>
+                          </div>
+                        )}
 
                         {/* Generate Audio */}
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            id="generateAudio"
-                            checked={generateAudio}
-                            onChange={(e) => setGenerateAudio(e.target.checked)}
-                            disabled={generating}
-                            className="h-4 w-4 rounded border-neutral-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20"
-                          />
-                          <label htmlFor="generateAudio" className="text-sm text-neutral-700">
-                            Generate Audio (Veo 3 only)
-                          </label>
-                        </div>
+                        {currentModelConfig.supportsAudio && (
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              id="generateAudio"
+                              checked={generateAudio}
+                              onChange={(e) => setGenerateAudio(e.target.checked)}
+                              disabled={generating}
+                              className="h-4 w-4 rounded border-neutral-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20"
+                            />
+                            <label htmlFor="generateAudio" className="text-sm text-neutral-700">
+                              Generate Audio
+                            </label>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
