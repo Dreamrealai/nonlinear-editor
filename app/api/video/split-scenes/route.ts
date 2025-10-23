@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { VideoIntelligenceServiceClient, protos } from '@google-cloud/video-intelligence';
+import { Storage } from '@google-cloud/storage';
 
 const parseStorageUrl = (storageUrl: string) => {
   const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
@@ -113,11 +114,35 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const client = new VideoIntelligenceServiceClient({ credentials });
+    // Initialize clients
+    const videoClient = new VideoIntelligenceServiceClient({ credentials });
+    const storageClient = new Storage({ credentials });
 
-    // Download video content from Supabase
+    // Get or create GCS bucket for temporary video processing
+    const bucketName = process.env.GCS_BUCKET_NAME || `${credentials.project_id}-video-processing`;
+    const bucket = storageClient.bucket(bucketName);
+
+    // Check if bucket exists, create if it doesn't
+    try {
+      const [exists] = await bucket.exists();
+      if (!exists) {
+        console.log(`Creating GCS bucket: ${bucketName}`);
+        await storageClient.createBucket(bucketName, {
+          location: 'US',
+          storageClass: 'STANDARD',
+        });
+        console.log(`Bucket ${bucketName} created successfully`);
+      }
+    } catch (bucketError) {
+      console.error('Bucket check/creation error:', bucketError);
+      // Continue anyway - the bucket might exist but we don't have permissions to check
+    }
+
+    // Upload video to GCS
     console.log('Downloading video from Supabase...');
-    let videoBuffer: Buffer;
+    let gcsFilePath: string;
+    let gcsFile;
+
     try {
       const videoResponse = await fetch(videoUrl);
       if (!videoResponse.ok) {
@@ -125,46 +150,61 @@ export async function POST(req: NextRequest) {
       }
 
       const arrayBuffer = await videoResponse.arrayBuffer();
-      videoBuffer = Buffer.from(arrayBuffer);
+      const videoBuffer = Buffer.from(arrayBuffer);
       console.log(`Downloaded video: ${(videoBuffer.length / 1024 / 1024).toFixed(2)} MB`);
 
-      // Check file size limit (10MB for Video Intelligence API)
-      const maxSizeMB = 10;
-      if (videoBuffer.length > maxSizeMB * 1024 * 1024) {
-        return NextResponse.json(
-          {
-            error: 'Video too large for scene detection',
-            message: `Video size (${(videoBuffer.length / 1024 / 1024).toFixed(2)} MB) exceeds the ${maxSizeMB} MB limit for direct analysis. Please use a smaller video or contact support.`,
-            details: 'The Google Cloud Video Intelligence API has size limitations for direct content analysis.'
+      // Generate unique filename for GCS
+      const timestamp = Date.now();
+      gcsFilePath = `video-analysis/${assetId}-${timestamp}.mp4`;
+      gcsFile = bucket.file(gcsFilePath);
+
+      console.log(`Uploading video to GCS: gs://${bucketName}/${gcsFilePath}`);
+      await gcsFile.save(videoBuffer, {
+        metadata: {
+          contentType: 'video/mp4',
+          metadata: {
+            assetId,
+            projectId,
+            uploadedAt: new Date().toISOString(),
           },
-          { status: 413 }
-        );
-      }
-    } catch (downloadError) {
-      console.error('Failed to download video:', downloadError);
+        },
+      });
+
+      console.log('Video uploaded to GCS successfully');
+    } catch (uploadError) {
+      console.error('Failed to upload video to GCS:', uploadError);
       return NextResponse.json(
         {
-          error: 'Video download failed',
-          message: downloadError instanceof Error ? downloadError.message : 'Could not download video from storage',
-          details: 'Unable to fetch video content from Supabase storage'
+          error: 'Video upload to GCS failed',
+          message: uploadError instanceof Error ? uploadError.message : 'Could not upload video to Google Cloud Storage',
+          details: 'Unable to prepare video for analysis. Check GCS bucket permissions.'
         },
         { status: 502 }
       );
     }
 
-    // Perform shot detection using inputContent instead of inputUri
-    // Note: inputContent is base64-encoded in the request
+    // Perform shot detection using GCS URI (gs://)
+    const gcsUri = `gs://${bucketName}/${gcsFilePath}`;
     const request = {
-      inputContent: videoBuffer.toString('base64'),
+      inputUri: gcsUri,
       features: [protos.google.cloud.videointelligence.v1.Feature.SHOT_CHANGE_DETECTION],
     };
 
-    console.log('Starting video annotation for shot detection...');
+    console.log(`Starting video annotation for shot detection using: ${gcsUri}`);
     let results;
     try {
-      results = await client.annotateVideo(request);
+      results = await videoClient.annotateVideo(request);
     } catch (apiError) {
       console.error('Video Intelligence API error:', apiError);
+
+      // Clean up GCS file on error
+      try {
+        await gcsFile.delete();
+        console.log('Cleaned up GCS file after error');
+      } catch (deleteError) {
+        console.error('Failed to clean up GCS file:', deleteError);
+      }
+
       return NextResponse.json(
         {
           error: 'Video analysis failed',
@@ -181,6 +221,14 @@ export async function POST(req: NextRequest) {
     const shots = operationResult?.[0]?.annotationResults?.[0]?.shotAnnotations || [];
 
     if (shots.length === 0) {
+      // Clean up GCS file
+      try {
+        await gcsFile.delete();
+        console.log('Cleaned up GCS file (no scenes detected)');
+      } catch (deleteError) {
+        console.error('Failed to clean up GCS file:', deleteError);
+      }
+
       return NextResponse.json({
         message: 'No scenes detected in video',
         count: 0,
@@ -216,6 +264,15 @@ export async function POST(req: NextRequest) {
       }
 
       scenes.push(scene);
+    }
+
+    // Clean up GCS file after successful processing
+    try {
+      await gcsFile.delete();
+      console.log('Cleaned up GCS file after successful processing');
+    } catch (deleteError) {
+      console.error('Failed to clean up GCS file:', deleteError);
+      // Don't fail the request if cleanup fails
     }
 
     return NextResponse.json({
