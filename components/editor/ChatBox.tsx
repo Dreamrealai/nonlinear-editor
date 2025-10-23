@@ -158,11 +158,14 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.statusText}`);
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        const errorMsg = data.error || response.statusText || 'Unknown error';
+        const errorDetails = data.details ? `\n${data.details}` : '';
+        const errorHelp = data.help ? `\n\n${data.help}` : '';
+        throw new Error(`API request failed: ${errorMsg}${errorDetails}${errorHelp}`);
+      }
 
       // Save assistant response
       await supabase

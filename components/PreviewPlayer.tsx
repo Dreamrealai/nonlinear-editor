@@ -270,6 +270,7 @@ export default function PreviewPlayer() {
   const [isDraggingSlider, setIsDraggingSlider] = useState(false);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
+  const hideControlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const sortedClips = useMemo(() => {
     if (!timeline) return [];
@@ -643,6 +644,22 @@ export default function PreviewPlayer() {
     playbackRafRef.current = requestAnimationFrame(loop);
   }, [timeline, sortedClips, ensureClipElement, currentTime, totalDuration, syncClipsAtTime, setCurrentTime, stopPlayback]);
 
+  // Auto-hide controls after inactivity
+  const resetHideControlsTimeout = useCallback(() => {
+    if (hideControlsTimeoutRef.current) {
+      clearTimeout(hideControlsTimeoutRef.current);
+    }
+
+    setShowControls(true);
+
+    // Only auto-hide if playing
+    if (isPlaying) {
+      hideControlsTimeoutRef.current = setTimeout(() => {
+        setShowControls(false);
+      }, 3000); // Hide after 3 seconds of inactivity
+    }
+  }, [isPlaying]);
+
   const togglePlayPause = useCallback(() => {
     if (isPlaying) {
       stopPlayback({ finalTime: currentTime });
@@ -734,6 +751,20 @@ export default function PreviewPlayer() {
     };
   }, []);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hideControlsTimeoutRef.current) {
+        clearTimeout(hideControlsTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Reset timeout when playing state changes
+  useEffect(() => {
+    resetHideControlsTimeout();
+  }, [isPlaying, resetHideControlsTimeout]);
+
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.code === 'Space' && event.target === document.body) {
@@ -812,8 +843,8 @@ export default function PreviewPlayer() {
     <div
       ref={playerContainerRef}
       className="relative flex h-full flex-col"
-      onMouseEnter={() => setShowControls(true)}
-      onMouseLeave={() => !isPlaying && setShowControls(true)}
+      onMouseMove={resetHideControlsTimeout}
+      onMouseEnter={resetHideControlsTimeout}
     >
       {/* Video Preview with overlay controls */}
       <div className="relative flex-1 overflow-hidden rounded-xl bg-black">
@@ -856,25 +887,6 @@ export default function PreviewPlayer() {
               )}
             </button>
 
-            {/* Centered Play/Pause Button */}
-            <button
-              type="button"
-              onClick={togglePlayPause}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full bg-white/90 hover:bg-white hover:scale-110 p-4 text-black transition-all disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 shadow-2xl"
-              disabled={!timeline.clips.length}
-              title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
-            >
-              {isPlaying ? (
-                <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                </svg>
-              ) : (
-                <svg className="h-8 w-8 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              )}
-            </button>
-
             {/* Bottom Controls Container */}
             <div className="absolute bottom-0 left-0 right-0 px-6 pb-2">
               {/* Progress Bar */}
@@ -900,8 +912,28 @@ export default function PreviewPlayer() {
                 </div>
               </div>
 
-              {/* Time Display */}
-              <div className="flex items-center justify-center">
+              {/* Play/Pause Button and Time Display */}
+              <div className="flex items-center justify-center gap-3">
+                {/* Small Play/Pause Button */}
+                <button
+                  type="button"
+                  onClick={togglePlayPause}
+                  className="flex items-center justify-center rounded-full bg-white/90 hover:bg-white hover:scale-110 p-1.5 text-black transition-all disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 shadow-lg"
+                  disabled={!timeline.clips.length}
+                  title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
+                >
+                  {isPlaying ? (
+                    <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                    </svg>
+                  ) : (
+                    <svg className="h-3 w-3 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  )}
+                </button>
+
+                {/* Time Display */}
                 <div className="flex items-center gap-2 text-xs font-mono font-semibold text-white drop-shadow-lg">
                   <span>{formattedCurrent}</span>
                   <span className="text-white/60">/</span>

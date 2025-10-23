@@ -22,16 +22,23 @@
  */
 
 import { GoogleGenerativeAI, Part } from '@google/generative-ai';
-import { GoogleAuth } from 'google-auth-library';
+import { VertexAI, Content, Part as VertexPart } from '@google-cloud/vertexai';
 
 /**
- * Creates a Google Generative AI client instance.
- * Uses GOOGLE_SERVICE_ACCOUNT by default, falls back to GEMINI_API_KEY.
+ * Configuration for Vertex AI or Google AI Studio
+ */
+type AIClient =
+  | { type: 'vertex'; client: VertexAI; projectId: string }
+  | { type: 'studio'; client: GoogleGenerativeAI };
+
+/**
+ * Creates an AI client instance.
+ * Uses GOOGLE_SERVICE_ACCOUNT by default (Vertex AI), falls back to GEMINI_API_KEY (Google AI Studio).
  *
- * @returns Configured GoogleGenerativeAI instance
+ * @returns Configured AI client
  * @throws Error if neither authentication method is available
  */
-export async function makeGenAI() {
+export async function makeAIClient(): Promise<AIClient> {
   // Try service account first (default, already configured in production)
   const serviceAccount = process.env.GOOGLE_SERVICE_ACCOUNT;
 
@@ -44,33 +51,34 @@ export async function makeGenAI() {
       throw new Error('GOOGLE_SERVICE_ACCOUNT environment variable contains invalid JSON');
     }
 
+    // Extract project ID from service account
+    const projectId = credentials.project_id;
+    if (!projectId) {
+      throw new Error('GOOGLE_SERVICE_ACCOUNT must contain project_id field');
+    }
+
     try {
-      // Get access token from service account
-      const auth = new GoogleAuth({
-        credentials,
-        scopes: ['https://www.googleapis.com/auth/generative-language'],
+      // Use Vertex AI with service account
+      const vertexAI = new VertexAI({
+        project: projectId,
+        location: 'us-central1',
+        googleAuthOptions: {
+          credentials,
+        },
       });
 
-      const client = await auth.getClient();
-      const accessToken = await client.getAccessToken();
-
-      if (!accessToken.token) {
-        throw new Error('Failed to get access token from service account');
-      }
-
-      // Use the access token as the API key
-      return new GoogleGenerativeAI(accessToken.token);
+      return { type: 'vertex', client: vertexAI, projectId };
     } catch (authError) {
-      console.error('Google Auth error:', authError);
-      throw new Error(`Failed to authenticate with Google service account: ${authError instanceof Error ? authError.message : 'Unknown error'}`);
+      console.error('Vertex AI initialization error:', authError);
+      throw new Error(`Failed to initialize Vertex AI: ${authError instanceof Error ? authError.message : 'Unknown error'}`);
     }
   }
 
-  // Fallback to API key
+  // Fallback to API key (Google AI Studio)
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (apiKey) {
-    return new GoogleGenerativeAI(apiKey);
+    return { type: 'studio', client: new GoogleGenerativeAI(apiKey) };
   }
 
   throw new Error('Either GOOGLE_SERVICE_ACCOUNT or GEMINI_API_KEY environment variable is required');
@@ -129,36 +137,7 @@ export async function chat(params: {
   /** File attachments (base64 data with MIME type) */
   files?: Array<{ data: string; mimeType: string }>;
 }) {
-  const genAI = await makeGenAI();
-  const model = genAI.getGenerativeModel({ model: params.model });
-
-  // Build message parts (text + optional files)
-  const parts: Part[] = [
-    { text: params.message },
-  ];
-
-  // Add file attachments as inline data
-  if (params.files && params.files.length > 0) {
-    for (const file of params.files) {
-      parts.push({
-        inlineData: {
-          data: file.data,
-          mimeType: file.mimeType,
-        },
-      });
-    }
-  }
-
-  // Start chat session with history and generation config
-  const chatSession = model.startChat({
-    history: params.history || [],
-    generationConfig: {
-      maxOutputTokens: 2048, // Max response length
-      temperature: 0.7, // Creativity level (0-1)
-      topP: 0.9, // Nucleus sampling (0-1)
-      topK: 40, // Token selection pool size
-    },
-  });
+  const aiClient = await makeAIClient();
 
   // Send message with timeout and retry logic
   const maxRetries = 3;
@@ -166,29 +145,90 @@ export async function chat(params: {
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      // Create abort controller for timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-      // Create promise that rejects on timeout
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        controller.signal.addEventListener('abort', () => {
-          reject(new Error('Gemini API request timeout after 60s'));
+      if (aiClient.type === 'vertex') {
+        // Use Vertex AI SDK
+        const model = aiClient.client.getGenerativeModel({
+          model: params.model,
         });
-      });
 
-      // Race between API call and timeout
-      const result = await Promise.race([
-        chatSession.sendMessage(parts),
-        timeoutPromise,
-      ]);
+        // Build message parts for Vertex AI
+        const parts: VertexPart[] = [
+          { text: params.message },
+        ];
 
-      clearTimeout(timeoutId);
-      return result.response.text();
+        // Add file attachments as inline data
+        if (params.files && params.files.length > 0) {
+          for (const file of params.files) {
+            parts.push({
+              inlineData: {
+                mimeType: file.mimeType,
+                data: file.data,
+              },
+            });
+          }
+        }
+
+        // Convert history to Vertex AI format
+        const vertexHistory: Content[] = (params.history || []).map((msg) => ({
+          role: msg.role,
+          parts: msg.parts.map((p) => ({ text: p.text })),
+        }));
+
+        // Start chat session with history and generation config
+        const chatSession = model.startChat({
+          history: vertexHistory,
+          generationConfig: {
+            maxOutputTokens: 2048,
+            temperature: 0.7,
+            topP: 0.9,
+            topK: 40,
+          },
+        });
+
+        // Send message
+        const result = await chatSession.sendMessage(parts);
+        const response = await result.response;
+        return response.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated';
+      } else {
+        // Use Google AI Studio SDK (original implementation)
+        const model = aiClient.client.getGenerativeModel({ model: params.model });
+
+        // Build message parts (text + optional files)
+        const parts: Part[] = [
+          { text: params.message },
+        ];
+
+        // Add file attachments as inline data
+        if (params.files && params.files.length > 0) {
+          for (const file of params.files) {
+            parts.push({
+              inlineData: {
+                data: file.data,
+                mimeType: file.mimeType,
+              },
+            });
+          }
+        }
+
+        // Start chat session with history and generation config
+        const chatSession = model.startChat({
+          history: params.history || [],
+          generationConfig: {
+            maxOutputTokens: 2048,
+            temperature: 0.7,
+            topP: 0.9,
+            topK: 40,
+          },
+        });
+
+        // Send message
+        const result = await chatSession.sendMessage(parts);
+        return result.response.text();
+      }
     } catch (error) {
       const isLastAttempt = attempt === maxRetries - 1;
 
-      if (error instanceof Error && error.message.includes('timeout')) {
+      if (error instanceof Error && (error.message.includes('timeout') || error.message.includes('ETIMEDOUT'))) {
         if (isLastAttempt) {
           throw new Error(`Gemini API timeout after ${maxRetries} attempts`);
         }
@@ -198,8 +238,9 @@ export async function chat(params: {
         continue;
       }
 
-      // For non-timeout errors, throw immediately
-      throw error;
+      // For non-timeout errors, throw immediately with more context
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Gemini API error: ${errorMessage}`);
     }
   }
 
