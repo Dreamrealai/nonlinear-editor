@@ -22,7 +22,7 @@ interface Voice {
 export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
   const [generating, setGenerating] = useState(false);
   const [taskId, setTaskId] = useState<string | null>(null);
-  const [audioType, setAudioType] = useState<'music' | 'voice'>('music');
+  const [audioType, setAudioType] = useState<'music' | 'voice' | 'sfx'>('music');
 
   // Music generation state (Suno)
   const [prompt, setPrompt] = useState('');
@@ -37,6 +37,10 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
   const [voices, setVoices] = useState<Voice[]>([]);
   const [selectedVoice, setSelectedVoice] = useState('EXAVITQu4vr4xnSDxMaL'); // Default: Sarah
   const [loadingVoices, setLoadingVoices] = useState(false);
+
+  // Sound effects generation state (ElevenLabs)
+  const [sfxPrompt, setSfxPrompt] = useState('');
+  const [sfxDuration, setSfxDuration] = useState(5.0);
 
   const handleGenerateMusic = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,6 +186,46 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
     }
   }, [projectId, voiceText, selectedVoice]);
 
+  const handleGenerateSFX = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!sfxPrompt.trim()) {
+      toast.error('Please enter a description for the sound effect');
+      return;
+    }
+
+    setGenerating(true);
+    toast.loading('Generating sound effect...', { id: 'generate-sfx' });
+
+    try {
+      const res = await fetch('/api/audio/elevenlabs/sfx', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          prompt: sfxPrompt,
+          duration: sfxDuration,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json.error || 'Sound effect generation failed');
+      }
+
+      toast.success('Sound effect generated successfully!', { id: 'generate-sfx' });
+
+      // Reset form
+      setSfxPrompt('');
+    } catch (error) {
+      console.error('Sound effect generation failed:', error);
+      toast.error(error instanceof Error ? error.message : 'Sound effect generation failed', { id: 'generate-sfx' });
+    } finally {
+      setGenerating(false);
+    }
+  }, [projectId, sfxPrompt, sfxDuration]);
+
   return (
     <div className="flex h-full flex-col">
       <Toaster position="bottom-right" />
@@ -201,24 +245,35 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
             <button
               type="button"
               onClick={() => setAudioType('music')}
-              className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all ${
+              className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all ${
                 audioType === 'music'
                   ? 'bg-neutral-900 text-white shadow-sm'
                   : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
-              Music Generation (Suno)
+              Music (Suno)
             </button>
             <button
               type="button"
               onClick={() => setAudioType('voice')}
-              className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all ${
+              className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all ${
                 audioType === 'voice'
                   ? 'bg-neutral-900 text-white shadow-sm'
                   : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
-              Voice / TTS (ElevenLabs)
+              Voice (ElevenLabs)
+            </button>
+            <button
+              type="button"
+              onClick={() => setAudioType('sfx')}
+              className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all ${
+                audioType === 'sfx'
+                  ? 'bg-neutral-900 text-white shadow-sm'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              Sound Effects
             </button>
           </div>
 
@@ -478,6 +533,114 @@ export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                         </svg>
                         Generate Voice
+                      </>
+                    )}
+                  </div>
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Sound Effects Generation Form */}
+          {audioType === 'sfx' && (
+            <form onSubmit={handleGenerateSFX} className="space-y-4">
+              {/* SFX Prompt */}
+              <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                <label htmlFor="sfxPrompt" className="block text-sm font-semibold text-neutral-900 mb-2">
+                  Sound Effect Description *
+                </label>
+                <textarea
+                  id="sfxPrompt"
+                  value={sfxPrompt}
+                  onChange={(e) => setSfxPrompt(e.target.value)}
+                  placeholder="Describe the sound effect you want to generate..."
+                  rows={4}
+                  disabled={generating}
+                  className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  required
+                />
+                <p className="mt-2 text-xs text-neutral-500">
+                  Examples: &quot;Door creaking open&quot;, &quot;Thunder and rain&quot;, &quot;Footsteps on gravel&quot;
+                </p>
+              </div>
+
+              {/* Duration Slider */}
+              <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                <label htmlFor="sfxDuration" className="block text-sm font-semibold text-neutral-900 mb-2">
+                  Duration: {sfxDuration.toFixed(1)}s
+                </label>
+                <input
+                  type="range"
+                  id="sfxDuration"
+                  min="1"
+                  max="22"
+                  step="0.5"
+                  value={sfxDuration}
+                  onChange={(e) => setSfxDuration(parseFloat(e.target.value))}
+                  disabled={generating}
+                  className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+                <div className="flex justify-between mt-2 text-xs text-neutral-500">
+                  <span>1s</span>
+                  <span>22s</span>
+                </div>
+              </div>
+
+              {/* Common Sound Effects Presets */}
+              <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                <label className="block text-sm font-semibold text-neutral-900 mb-3">
+                  Quick Presets
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    'Door knock',
+                    'Phone ringing',
+                    'Car engine',
+                    'Glass breaking',
+                    'Crowd applause',
+                    'Thunder storm',
+                    'Footsteps',
+                    'Bird chirping',
+                  ].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setSfxPrompt(preset)}
+                      disabled={generating}
+                      className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-700 transition-all hover:border-neutral-900 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                <div className="flex-1">
+                  {generating && (
+                    <p className="text-sm text-neutral-600">
+                      Generating sound effect... This may take a moment.
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  disabled={generating || !sfxPrompt.trim()}
+                  className="rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-3 font-semibold text-white shadow-md transition-all hover:from-green-600 hover:to-emerald-600 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:from-green-500 disabled:hover:to-emerald-500"
+                >
+                  <div className="flex items-center gap-2">
+                    {generating ? (
+                      <>
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                        </svg>
+                        Generate SFX
                       </>
                     )}
                   </div>

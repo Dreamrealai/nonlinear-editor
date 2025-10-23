@@ -962,7 +962,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps) {
     toast.loading('Detecting scenes...', { id: 'detect-scenes' });
 
     try {
-      const res = await fetch('/api/scenes/detect', {
+      const res = await fetch('/api/video/split-scenes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ projectId, assetId: latestVideo.id }),

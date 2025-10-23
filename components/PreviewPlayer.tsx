@@ -762,8 +762,22 @@ export default function PreviewPlayer() {
     if (selectedClipIds.size > 0) {
       // Default to crossfade with 0.5s duration
       addTransitionToSelectedClips('crossfade', 0.5);
+    } else if (timeline) {
+      // If no clips selected, find the clip at current playback time and add transition
+      const clipAtCurrentTime = timeline.clips.find(
+        (clip) => clip.timelinePosition <= currentTime && clip.timelinePosition + (clip.end - clip.start) >= currentTime
+      );
+
+      if (clipAtCurrentTime) {
+        // Select the clip at current time and add transition
+        const clipId = clipAtCurrentTime.id;
+        if (clipId) {
+          useEditorStore.getState().selectClip(clipId, false);
+          addTransitionToSelectedClips('crossfade', 0.5);
+        }
+      }
     }
-  }, [selectedClipIds, addTransitionToSelectedClips]);
+  }, [selectedClipIds, addTransitionToSelectedClips, timeline, currentTime]);
 
   if (!timeline) {
     return null;
@@ -796,6 +810,22 @@ export default function PreviewPlayer() {
             onAddTransition={handleAddTransition}
             currentTime={currentTime}
           />
+        )}
+
+        {/* Centered Play Button Overlay */}
+        {!isPlaying && timeline.clips.length > 0 && (
+          <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+            <button
+              type="button"
+              onClick={togglePlayPause}
+              className="pointer-events-auto flex items-center justify-center rounded-full bg-white/90 hover:bg-white p-6 text-black transition-all hover:scale-110 shadow-2xl backdrop-blur-sm"
+              title="Play (Space)"
+            >
+              <svg className="h-12 w-12" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </button>
+          </div>
         )}
 
         {/* Overlay Controls - Auto-hide on play */}
