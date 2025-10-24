@@ -141,10 +141,12 @@ When dragging clips, the snapping logic works (0.1s intervals with 0.05s thresho
 - **Issue:** When dragging clips, the playhead can become obscured by the dragged clip
 - **Location:** `/components/timeline/TimelinePlayhead.tsx:20-38`, z-index configuration
 - **Reported In:** Timeline UI/UX Analysis (2025-10-24)
-- **Status:** Open
+- **Status:** Fixed
 - **Priority:** P0 (Critical UX Issue)
 - **Effort:** 1-2 hours
 - **Impact:** High - Users lose reference point during edits, cannot align clips to playhead accurately
+- **Fixed:** 2025-10-24 (Commit fd305f5)
+- **Solution:** Increased z-index from z-20 to z-40, increased handle size from 3px to 7px with 8px hover state, added smooth transition animations
 
 **Problem:**
 
