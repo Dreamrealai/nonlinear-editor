@@ -9,8 +9,8 @@
 
 import { NextRequest } from 'next/server';
 import { serverLogger } from '@/lib/serverLogger';
-import { validateString, validateUUID, validateEnum, validateAll } from '@/lib/api/validation';
-import { validationError, errorResponse, successResponse } from '@/lib/api/response';
+import { validateString, validateUUID, validateEnum, ValidationError } from '@/lib/validation';
+import { errorResponse, successResponse } from '@/lib/api/response';
 import { withAuth, type AuthContext } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 
@@ -23,88 +23,66 @@ async function handleChatMessagePost(
   const { user, supabase, params } = context;
   const projectId = params?.projectId;
 
-  // Validate projectId from URL params
-  const projectIdValidation = validateAll([validateUUID(projectId, 'projectId')]);
+  try {
+    // Validate projectId from URL params
+    validateUUID(projectId, 'projectId');
 
-  if (!projectIdValidation.valid) {
-    const firstError = projectIdValidation.errors[0];
-    if (!firstError) {
-      return validationError('Validation failed');
+    // Parse request body
+    const body = await request.json();
+    const { role, content, model, attachments } = body;
+
+    // Validate all required inputs using centralized validation utilities
+    validateEnum(role, 'role', VALID_ROLES);
+    validateString(content, 'content', { minLength: 1 });
+    validateString(model, 'model', { required: false });
+
+    // After validation, TypeScript knows these are strings
+    const validatedRole = role as string;
+    const validatedContent = content as string;
+
+    // Insert message (RLS ensures ownership)
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .insert({
+        project_id: projectId,
+        role: validatedRole,
+        content: validatedContent,
+        model: typeof model === 'string' ? model : null,
+        attachments: attachments || null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      serverLogger.error(
+        { error, projectId, userId: user.id, event: 'chat.save.error' },
+        'Failed to save chat message'
+      );
+      return errorResponse('Failed to save chat message', 500);
     }
 
-    serverLogger.warn(
-      {
-        event: 'chat.save.validation_error',
-        userId: user.id,
-        field: firstError.field,
-        error: firstError.message,
-      },
-      `Validation error: ${firstError.message}`
+    serverLogger.info(
+      { projectId, userId: user.id, role: validatedRole, event: 'chat.save.success' },
+      'Chat message saved'
     );
-    return validationError(firstError.message, firstError.field);
-  }
 
-  // Parse request body
-  const body = await request.json();
-  const { role, content, model, attachments } = body;
-
-  // Validate all required inputs using centralized validation utilities
-  const validation = validateAll([
-    validateEnum(role, 'role', VALID_ROLES, true),
-    validateString(content, 'content', { minLength: 1 }),
-    validateString(model, 'model', { required: false }),
-  ]);
-
-  if (!validation.valid) {
-    const firstError = validation.errors[0];
-    if (!firstError) {
-      return validationError('Validation failed');
+    return successResponse({ message: data }, undefined, 201);
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      serverLogger.warn(
+        {
+          event: 'chat.save.validation_error',
+          userId: user.id,
+          projectId,
+          field: error.field,
+          error: error.message,
+        },
+        `Validation error: ${error.message}`
+      );
+      return errorResponse(error.message, 400, error.field);
     }
-
-    serverLogger.warn(
-      {
-        event: 'chat.save.validation_error',
-        userId: user.id,
-        projectId,
-        field: firstError.field,
-        error: firstError.message,
-      },
-      `Validation error: ${firstError.message}`
-    );
-    return validationError(firstError.message, firstError.field);
+    throw error;
   }
-
-  // After validation, TypeScript knows these are strings
-  const validatedRole = role as string;
-  const validatedContent = content as string;
-
-  // Insert message (RLS ensures ownership)
-  const { data, error } = await supabase
-    .from('chat_messages')
-    .insert({
-      project_id: projectId,
-      role: validatedRole,
-      content: validatedContent,
-      model: typeof model === 'string' ? model : null,
-      attachments: attachments || null,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    serverLogger.error(
-      { error, projectId, userId: user.id, event: 'chat.save.error' },
-      'Failed to save chat message'
-    );
-    return errorResponse('Failed to save chat message', 500);
-  }
-
-  serverLogger.info(
-    { projectId, userId: user.id, role: validatedRole, event: 'chat.save.success' },
-    'Chat message saved'
-  );
-
-  return successResponse({ message: data }, undefined, 201);
 }
 
 // Export with authentication middleware and rate limiting

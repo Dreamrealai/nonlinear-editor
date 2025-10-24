@@ -1,6 +1,6 @@
 import { fetchWithTimeout } from '@/lib/fetchWithTimeout';
 import { serverLogger } from '@/lib/serverLogger';
-import { validateString, validateUUID } from '@/lib/api/validation';
+import { validateString, validateUUID } from '@/lib/validation';
 import { successResponse } from '@/lib/api/response';
 import { createGenerationRoute } from '@/lib/api/createGenerationRoute';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -150,10 +150,10 @@ async function executeSFXGeneration(options: {
 export const POST = createGenerationRoute<SFXGenerateRequest, SFXGenerateResponse>({
   routeId: 'audio.sfx',
   rateLimitPrefix: 'audio-sfx',
-  getValidationRules: (body) => [
-    validateString(body.prompt, 'prompt', { minLength: 3, maxLength: 500 }),
-    validateUUID(body.projectId, 'projectId'),
-  ],
+  validateRequest: (body: Record<string, unknown>) => {
+    validateString(body.prompt as string, 'prompt', { minLength: 3, maxLength: 500 });
+    validateUUID(body.projectId as string, 'projectId');
+  },
   execute: executeSFXGeneration,
   formatResponse: (result) => successResponse(result),
 });

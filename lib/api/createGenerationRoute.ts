@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
-import { validateAll, ValidationError as ValidationErrorResult } from '@/lib/api/validation';
+import { ValidationError } from '@/lib/validation';
 import {
   unauthorizedResponse,
   rateLimitResponse,
-  validationError,
   withErrorHandling,
 } from '@/lib/api/response';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
@@ -27,11 +26,11 @@ export interface GenerationRouteConfig<TRequest, TResponse> {
   rateLimitPrefix: string;
 
   /**
-   * Validation rules for the request body
+   * Validation function for the request body
    * @param body - The parsed request body
-   * @returns Array of validation rules to check
+   * @throws {ValidationError} if validation fails
    */
-  getValidationRules: (body: Record<string, unknown>) => Array<ValidationErrorResult | null>;
+  validateRequest: (body: Record<string, unknown>) => void;
 
   /**
    * Execute the generation operation
@@ -165,21 +164,22 @@ export function createGenerationRoute<TRequest extends Record<string, unknown>, 
     const body = (await req.json()) as Record<string, unknown>;
     const projectId = body.projectId as string;
 
-    const validationRules = config.getValidationRules(body);
-    const validation = validateAll(validationRules);
-
-    if (!validation.valid) {
-      const firstError = validation.errors[0];
-      serverLogger.warn(
-        {
-          event: `${config.routeId}.validation_error`,
-          userId: user.id,
-          field: firstError?.field,
-          error: firstError?.message,
-        },
-        `Validation error: ${firstError?.message ?? 'Unknown error'}`
-      );
-      return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
+    try {
+      config.validateRequest(body);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        serverLogger.warn(
+          {
+            event: `${config.routeId}.validation_error`,
+            userId: user.id,
+            field: error.field,
+            error: error.message,
+          },
+          `Validation error: ${error.message}`
+        );
+        return NextResponse.json({ error: error.message, field: error.field }, { status: 400 });
+      }
+      throw error;
     }
 
     // Step 5: Verify project ownership

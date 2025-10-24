@@ -3,58 +3,18 @@
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
 import { createCheckoutSession, getOrCreateStripeCustomer } from '@/lib/stripe';
 import { serverLogger } from '@/lib/serverLogger';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 import {
-  withErrorHandling,
-  rateLimitResponse,
-  unauthorizedResponse,
   errorResponse,
   badRequestResponse,
   successResponse,
 } from '@/lib/api/response';
+import { withAuth } from '@/lib/api/withAuth';
+import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 
-export const POST = withErrorHandling(async (request: NextRequest) => {
-  // TIER 1 RATE LIMITING: Payment operations (5/min)
-  // Critical to prevent payment fraud and abuse
-  const supabaseForRateLimit = createServerClient(
-    process.env['NEXT_PUBLIC_SUPABASE_URL']!,
-    process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']!,
-    {
-      cookies: {
-        getAll: () => request.cookies.getAll(),
-        setAll: () => {},
-      },
-    }
-  );
-
-  const {
-    data: { user: rateLimitUser },
-  } = await supabaseForRateLimit.auth.getUser();
-  const rateLimitIdentifier = rateLimitUser?.id
-    ? `stripe-checkout:${rateLimitUser.id}`
-    : `stripe-checkout:${request.headers.get('x-forwarded-for') || 'unknown'}`;
-
-  const rateLimitResult = await checkRateLimit(rateLimitIdentifier, RATE_LIMITS.tier1_auth_payment);
-
-  if (!rateLimitResult.success) {
-    serverLogger.warn(
-      {
-        event: 'stripe.checkout.rate_limited',
-        identifier: rateLimitIdentifier,
-        limit: rateLimitResult.limit,
-      },
-      'Stripe checkout rate limit exceeded'
-    );
-
-    return rateLimitResponse(
-      rateLimitResult.limit,
-      rateLimitResult.remaining,
-      rateLimitResult.resetAt
-    );
-  }
+const handleStripeCheckout: AuthenticatedHandler = async (request, { user, supabase }) => {
   const startTime = Date.now();
 
   try {
@@ -64,34 +24,6 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       },
       'Checkout session request received'
     );
-
-    // Get user from Supabase session
-    const supabase = createServerClient(
-      process.env['NEXT_PUBLIC_SUPABASE_URL']!,
-      process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']!,
-      {
-        cookies: {
-          getAll: () => request.cookies.getAll(),
-          setAll: () => {}, // Not needed for this request
-        },
-      }
-    );
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      serverLogger.warn(
-        {
-          event: 'stripe.checkout.unauthorized',
-          error: authError?.message,
-        },
-        'Unauthorized checkout attempt'
-      );
-      return unauthorizedResponse();
-    }
 
     serverLogger.debug(
       {
@@ -275,4 +207,9 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
     return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 });
   }
+};
+
+export const POST = withAuth(handleStripeCheckout, {
+  route: '/api/stripe/checkout',
+  rateLimit: RATE_LIMITS.tier1_auth_payment,
 });

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateImage } from '@/lib/imagen';
-import { createServerSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
+import { ensureHttpsProtocol } from '@/lib/supabase';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
 import { v4 as uuid } from 'uuid';
 import {
@@ -15,14 +15,13 @@ import {
   validateAll,
 } from '@/lib/api/validation';
 import {
-  unauthorizedResponse,
-  rateLimitResponse,
   validationError,
   errorResponse,
-  withErrorHandling,
 } from '@/lib/api/response';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
 import { HttpStatusCode } from '@/lib/errors/errorCodes';
+import { withAuth } from '@/lib/api/withAuth';
+import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 
 /**
  * Generate images from a text prompt using Google Imagen 3.
@@ -99,7 +98,7 @@ import { HttpStatusCode } from '@/lib/errors/errorCodes';
  *   "message": "Generated 2 image(s) successfully"
  * }
  */
-export const POST = withErrorHandling(async (req: NextRequest) => {
+const handleImageGenerate: AuthenticatedHandler = async (req, { user, supabase }) => {
   const startTime = Date.now();
   serverLogger.info(
     {
@@ -108,65 +107,12 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     'Image generation request received'
   );
 
-  const supabase = await createServerSupabaseClient();
-
-  // Check authentication
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    serverLogger.warn(
-      {
-        event: 'image.generate.unauthorized',
-        error: authError?.message,
-      },
-      'Unauthorized image generation attempt'
-    );
-    return unauthorizedResponse();
-  }
-
   serverLogger.debug(
     {
       event: 'image.generate.user_authenticated',
       userId: user.id,
     },
     'User authenticated for image generation'
-  );
-
-  // TIER 2 RATE LIMITING: Resource creation - image generation (10/min)
-  // Prevents resource exhaustion and controls AI API costs
-  const rateLimitResult = await checkRateLimit(
-    `image-gen:${user.id}`,
-    RATE_LIMITS.tier2_resource_creation
-  );
-
-  if (!rateLimitResult.success) {
-    serverLogger.warn(
-      {
-        event: 'image.generate.rate_limited',
-        userId: user.id,
-        limit: rateLimitResult.limit,
-        remaining: rateLimitResult.remaining,
-        resetAt: rateLimitResult.resetAt,
-      },
-      'Image generation rate limit exceeded'
-    );
-    return rateLimitResponse(
-      rateLimitResult.limit,
-      rateLimitResult.remaining,
-      rateLimitResult.resetAt
-    );
-  }
-
-  serverLogger.debug(
-    {
-      event: 'image.generate.rate_limit_ok',
-      userId: user.id,
-      remaining: rateLimitResult.remaining,
-    },
-    'Rate limit check passed'
   );
 
   const body = await req.json();
@@ -331,4 +277,9 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     },
     { status: HttpStatusCode.OK }
   );
+};
+
+export const POST = withAuth(handleImageGenerate, {
+  route: '/api/image/generate',
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
 });

@@ -19,7 +19,7 @@ if (process.env.NODE_ENV === 'development') {
   }
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Generate CSP nonce for this request
   const nonce = generateNonce();
   const isDevelopment = process.env.NODE_ENV === 'development';

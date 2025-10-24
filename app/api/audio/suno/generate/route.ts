@@ -1,7 +1,8 @@
 import { serverLogger } from '@/lib/serverLogger';
-import { validateString, validateUUID, validateBoolean } from '@/lib/api/validation';
+import { validateString, validateUUID, validateBoolean } from '@/lib/validation';
 import { successResponse } from '@/lib/api/response';
 import { createGenerationRoute } from '@/lib/api/createGenerationRoute';
+import { HttpError } from '@/lib/errors/HttpError';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
@@ -55,7 +56,7 @@ async function executeSunoGeneration(options: {
 
   const apiKey = process.env['COMET_API_KEY'];
   if (!apiKey) {
-    throw new Error('Comet API key not configured');
+    throw new HttpError('Comet API key not configured', 500);
   }
 
   // Prepare request payload for Suno V5 (chirp-crow)
@@ -99,9 +100,8 @@ async function executeSunoGeneration(options: {
         },
         'Suno API error'
       );
-      throw new Error(
-        'Unable to generate music with Suno AI. The service may be temporarily unavailable or experiencing high demand. Please try again in a few moments.'
-      );
+      // Preserve the HTTP status code from the external API
+      throw new HttpError(error || response.statusText, response.status);
     }
   } catch (error) {
     clearTimeout(timeout);
@@ -112,7 +112,7 @@ async function executeSunoGeneration(options: {
         },
         'Suno music generation timeout'
       );
-      throw new Error('Music generation timeout after 60s');
+      throw new HttpError('Music generation timeout after 60s', 504);
     }
     throw error;
   }
@@ -120,9 +120,12 @@ async function executeSunoGeneration(options: {
   const result: SunoTaskResponse = await response.json();
 
   if (result.code !== 200) {
-    throw new Error(
+    // Map Comet API error codes to HTTP status codes
+    const statusCode = result.code >= 400 && result.code < 600 ? result.code : 500;
+    throw new HttpError(
       result.msg ||
-        'Music generation failed. Please check your input and try again. If the problem persists, contact support.'
+        'Music generation failed. Please check your input and try again. If the problem persists, contact support.',
+      statusCode
     );
   }
 
@@ -138,31 +141,25 @@ async function executeSunoGeneration(options: {
 export const POST = createGenerationRoute<SunoGenerateRequest, SunoGenerateResponse>({
   routeId: 'audio.music',
   rateLimitPrefix: 'audio-music',
-  getValidationRules: (body) => {
-    const rules = [
-      validateUUID(body.projectId, 'projectId'),
-      validateBoolean(body.customMode, 'customMode'),
-      validateBoolean(body.instrumental, 'instrumental'),
-    ];
+  validateRequest: (body: Record<string, unknown>) => {
+    validateUUID(body.projectId as string, 'projectId');
+    validateBoolean(body.customMode as boolean, 'customMode');
+    validateBoolean(body.instrumental as boolean, 'instrumental');
 
     // Validate prompt if not in custom mode
     if (!body.customMode) {
-      rules.push(validateString(body.prompt, 'prompt', { minLength: 3, maxLength: 1000 }));
+      validateString(body.prompt as string, 'prompt', { minLength: 3, maxLength: 1000 });
     }
 
     // Validate style if in custom mode
     if (body.customMode) {
-      rules.push(
-        validateString(body.style, 'style', { minLength: 2, maxLength: 200, required: true })
-      );
+      validateString(body.style as string, 'style', { minLength: 2, maxLength: 200, required: true });
     }
 
     // Validate title if provided
     if (body.title) {
-      rules.push(validateString(body.title, 'title', { required: false, maxLength: 100 }));
+      validateString(body.title as string, 'title', { required: false, maxLength: 100 });
     }
-
-    return rules;
   },
   execute: executeSunoGeneration,
   formatResponse: (result) => successResponse(result),

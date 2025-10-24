@@ -2,6 +2,9 @@
  * Tests for GET /api/video/status - Video Generation Status Check
  */
 
+// Set NODE_ENV before importing modules to ensure error messages are visible
+process.env.NODE_ENV = 'development';
+
 import type { NextRequest } from 'next/server';
 import { GET } from '@/app/api/video/status/route';
 import {
@@ -52,13 +55,21 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
-// Mock API response helpers
-// Mock API response helpers - use actual implementation, only mock wrapper
+// Mock API response helpers - use actual implementation with instrumented withErrorHandling
 jest.mock('@/lib/api/response', () => {
   const actual = jest.requireActual('@/lib/api/response');
   return {
     ...actual,
-    withErrorHandling: jest.fn((handler) => handler),
+    withErrorHandling: (handler) => {
+      return async (...args) => {
+        try {
+          return await handler(...args);
+        } catch (error) {
+          console.log('ERROR CAUGHT BY withErrorHandling:', error);
+          return actual.withErrorHandling(handler)(...args);
+        }
+      };
+    },
   };
 });
 
@@ -100,6 +111,29 @@ describe('GET /api/video/status', () => {
     mockSupabase.storage.getPublicUrl.mockReturnValue({
       data: { publicUrl: 'https://example.com/video.mp4' },
     });
+    mockSupabase.storage.remove.mockResolvedValue({
+      data: null,
+      error: null,
+    });
+
+    // Setup default database mocks with full chain
+    mockSupabase.from.mockReturnValue(mockSupabase);
+    mockSupabase.insert.mockReturnValue(mockSupabase);
+    mockSupabase.select.mockReturnValue(mockSupabase);
+    mockSupabase.single.mockResolvedValue({
+      data: {
+        id: 'asset-123',
+        user_id: 'test-user-id',
+        project_id: 'test-project-id',
+        type: 'video',
+        source: 'genai',
+        storage_url: 'supabase://assets/test-path',
+        metadata: {},
+        created_at: new Date().toISOString(),
+      },
+      error: null,
+    });
+
     (checkRateLimit as jest.Mock).mockResolvedValue({
       success: true,
       limit: 30,
@@ -150,6 +184,7 @@ describe('GET /api/video/status', () => {
       mockAuthenticatedUser(mockSupabase);
       mockRequest = createRequest('/api/video/status?projectId=123') as unknown as NextRequest;
 
+      console.log('NODE_ENV at test time:', process.env.NODE_ENV);
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
@@ -208,17 +243,6 @@ describe('GET /api/video/status', () => {
         ok: true,
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1024)),
       }) as unknown as typeof fetch;
-
-      // Mock database insert
-      mockSupabase.insert.mockReturnThis();
-      mockSupabase.select.mockReturnThis();
-      mockSupabase.single.mockResolvedValue({
-        data: {
-          id: 'asset-123',
-          storage_url: 'supabase://assets/test-path',
-        },
-        error: null,
-      });
 
       mockRequest = createRequest(
         '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
@@ -304,16 +328,6 @@ describe('GET /api/video/status', () => {
         },
       });
 
-      mockSupabase.insert.mockReturnThis();
-      mockSupabase.select.mockReturnThis();
-      mockSupabase.single.mockResolvedValue({
-        data: {
-          id: 'asset-456',
-          storage_url: 'supabase://assets/test-path',
-        },
-        error: null,
-      });
-
       mockRequest = createRequest(
         '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
       ) as unknown as NextRequest;
@@ -330,9 +344,18 @@ describe('GET /api/video/status', () => {
     it('should download Veo video from GCS URI', async () => {
       mockAuthenticatedUser(mockSupabase);
 
+      // Mock with complete service account credentials
       process.env.GOOGLE_SERVICE_ACCOUNT = JSON.stringify({
         type: 'service_account',
-        project_id: 'test',
+        project_id: 'test-project',
+        private_key_id: 'test-key-id',
+        private_key: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7W6L2hnCfPfAz\n-----END PRIVATE KEY-----\n',
+        client_email: 'test@test-project.iam.gserviceaccount.com',
+        client_id: '123456789',
+        auth_uri: 'https://accounts.google.com/o/oauth2/auth',
+        token_uri: 'https://oauth2.googleapis.com/token',
+        auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
+        client_x509_cert_url: 'https://www.googleapis.com/robot/v1/metadata/x509/test%40test-project.iam.gserviceaccount.com',
       });
 
       checkOperationStatus.mockResolvedValue({
@@ -347,27 +370,10 @@ describe('GET /api/video/status', () => {
         },
       });
 
-      // Mock GoogleAuth
-      const mockGetClient = jest.fn().mockResolvedValue({
-        getAccessToken: jest.fn().mockResolvedValue({ token: 'test-token' }),
-      });
-      jest.mock('google-auth-library', () => ({
-        GoogleAuth: jest.fn().mockImplementation(() => ({
-          getClient: mockGetClient,
-        })),
-      }));
-
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1024)),
       }) as unknown as typeof fetch;
-
-      mockSupabase.insert.mockReturnThis();
-      mockSupabase.select.mockReturnThis();
-      mockSupabase.single.mockResolvedValue({
-        data: { id: 'asset-789' },
-        error: null,
-      });
 
       mockRequest = createRequest(
         '/api/video/status?operationName=operations/veo-456&projectId=test-project-id'
@@ -421,13 +427,6 @@ describe('GET /api/video/status', () => {
         },
       });
 
-      mockSupabase.insert.mockReturnThis();
-      mockSupabase.select.mockReturnThis();
-      mockSupabase.single.mockResolvedValue({
-        data: { id: 'asset-123' },
-        error: null,
-      });
-
       mockRequest = createRequest(
         '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
       ) as unknown as NextRequest;
@@ -468,16 +467,10 @@ describe('GET /api/video/status', () => {
         },
       });
 
-      mockSupabase.insert.mockReturnThis();
-      mockSupabase.select.mockReturnThis();
-      mockSupabase.single.mockResolvedValue({
+      // Override the default mock to return an error
+      mockSupabase.single.mockResolvedValueOnce({
         data: null,
         error: { message: 'Database error' },
-      });
-
-      mockSupabase.storage.remove.mockResolvedValue({
-        data: null,
-        error: null,
       });
 
       mockRequest = createRequest(
@@ -504,13 +497,6 @@ describe('GET /api/video/status', () => {
             },
           ],
         },
-      });
-
-      mockSupabase.insert.mockReturnThis();
-      mockSupabase.select.mockReturnThis();
-      mockSupabase.single.mockResolvedValue({
-        data: { id: 'asset-123' },
-        error: null,
       });
 
       mockRequest = createRequest(
@@ -718,7 +704,15 @@ describe('GET /api/video/status', () => {
 
       process.env.GOOGLE_SERVICE_ACCOUNT = JSON.stringify({
         type: 'service_account',
-        project_id: 'test',
+        project_id: 'test-project',
+        private_key_id: 'test-key-id',
+        private_key: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7W6L2hnCfPfAz\n-----END PRIVATE KEY-----\n',
+        client_email: 'test@test-project.iam.gserviceaccount.com',
+        client_id: '123456789',
+        auth_uri: 'https://accounts.google.com/o/oauth2/auth',
+        token_uri: 'https://oauth2.googleapis.com/token',
+        auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
+        client_x509_cert_url: 'https://www.googleapis.com/robot/v1/metadata/x509/test%40test-project.iam.gserviceaccount.com',
       });
 
       checkOperationStatus.mockResolvedValue({

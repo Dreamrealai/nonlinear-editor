@@ -12,6 +12,7 @@ import { browserLogger } from '@/lib/browserLogger';
 import { usePolling } from '@/lib/hooks/usePolling';
 import type { AssetRow } from '@/types/assets';
 import { mapAssetRow } from '@/lib/utils/assetUtils';
+import type { GenerateVideoResponse } from '@/types/api';
 
 interface VideoGenerationParams {
   prompt: string;
@@ -105,13 +106,20 @@ export function useVideoGeneration(
           }),
         });
 
-        const json = await res.json();
+        const json = (await res.json()) as GenerateVideoResponse | { error: string };
 
         if (!res.ok) {
-          throw new Error(json.error || 'Video generation failed');
+          const errorMessage =
+            'error' in json ? json.error : 'Video generation failed';
+          throw new Error(errorMessage);
         }
 
-        setVideoOperationName(json.operationName);
+        // Type guard: after checking res.ok, json must be GenerateVideoResponse
+        if ('operationName' in json) {
+          setVideoOperationName(json.operationName);
+        } else {
+          throw new Error('Invalid response from server');
+        }
         toast.loading('Video generation in progress... This may take several minutes.', {
           id: 'generate-video',
         });

@@ -1,5 +1,5 @@
 import { serverLogger } from '@/lib/serverLogger';
-import { validateString, validateUUID } from '@/lib/api/validation';
+import { validateString, validateUUID } from '@/lib/validation';
 import { successResponse } from '@/lib/api/response';
 import { createGenerationRoute } from '@/lib/api/createGenerationRoute';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -277,10 +277,10 @@ async function executeElevenLabsGeneration(options: {
 export const POST = createGenerationRoute<ElevenLabsGenerateRequest, ElevenLabsGenerateResponse>({
   routeId: 'audio.tts',
   rateLimitPrefix: 'audio-tts',
-  getValidationRules: (body) => [
-    validateString(body.text, 'text', { minLength: 1, maxLength: 5000 }),
-    validateUUID(body.projectId, 'projectId'),
-  ],
+  validateRequest: (body) => {
+    validateString(body.text, 'text', { minLength: 1, maxLength: 5000 });
+    validateUUID(body.projectId, 'projectId');
+  },
   execute: executeElevenLabsGeneration,
   formatResponse: (result) => successResponse(result, 'Audio generated successfully'),
 });

@@ -329,6 +329,12 @@ export function withErrorHandling<T extends unknown[]>(
       // by global error handlers in browserLogger
 
       if (error instanceof Error) {
+        // Check if this is an HttpError with a specific status code
+        const httpError = error as { status?: number };
+        if (typeof httpError.status === 'number') {
+          return errorResponse(error.message, httpError.status);
+        }
+
         const isDevelopment = process?.env?.NODE_ENV !== 'production';
         const publicMessage = isDevelopment ? error.message : undefined;
         const details = isDevelopment ? { name: error.name, stack: error.stack } : undefined;

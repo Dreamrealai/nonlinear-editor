@@ -40,7 +40,7 @@ export function KeyboardShortcutsHelp({
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
 
-  const handleClose = () => {
+  const handleClose = (): void => {
     if (controlledIsOpen !== undefined) {
       onClose?.();
     } else {
@@ -56,7 +56,7 @@ export function KeyboardShortcutsHelp({
         keys: ['meta', '?'],
         description: 'Show keyboard shortcuts',
         category: 'general',
-        action: () => {
+        action: (): void => {
           if (controlledIsOpen === undefined) {
             setInternalIsOpen(true);
           }
@@ -68,7 +68,7 @@ export function KeyboardShortcutsHelp({
         keys: ['meta', '/'],
         description: 'Show keyboard shortcuts',
         category: 'general',
-        action: () => {
+        action: (): void => {
           if (controlledIsOpen === undefined) {
             setInternalIsOpen(true);
           }
@@ -81,14 +81,14 @@ export function KeyboardShortcutsHelp({
 
   // Close on Escape key
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
+    const handleEscape = (e: KeyboardEvent): void => {
       if (e.key === 'Escape' && isOpen) {
         handleClose();
       }
     };
 
     window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
+    return (): void => window.removeEventListener('keydown', handleEscape);
   }, [isOpen]);
 
   // Prevent body scroll when modal is open
@@ -99,7 +99,7 @@ export function KeyboardShortcutsHelp({
       document.body.style.overflow = '';
     }
 
-    return () => {
+    return (): void => {
       document.body.style.overflow = '';
     };
   }, [isOpen]);
@@ -194,12 +194,12 @@ export function KeyboardShortcutsHelp({
 /**
  * Hook to manage keyboard shortcuts help modal
  */
-export function useKeyboardShortcutsHelp() {
+export function useKeyboardShortcutsHelp(): { isOpen: boolean; open: () => void; close: () => void; toggle: () => void } {
   const [isOpen, setIsOpen] = useState(false);
 
-  const open = () => setIsOpen(true);
-  const close = () => setIsOpen(false);
-  const toggle = () => setIsOpen((prev) => !prev);
+  const open = (): void => setIsOpen(true);
+  const close = (): void => setIsOpen(false);
+  const toggle = (): void => setIsOpen((prev) => !prev);
 
   return {
     isOpen,

@@ -1,14 +1,14 @@
 import { NextRequest } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import {
-  unauthorizedResponse,
   validationError,
   errorResponse,
-  withErrorHandling,
   successResponse,
 } from '@/lib/api/response';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
 import { serverLogger } from '@/lib/serverLogger';
+import { withAuth } from '@/lib/api/withAuth';
+import type { AuthenticatedHandler } from '@/lib/api/withAuth';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
 interface SunoStatusResponse {
   code: number;
@@ -26,21 +26,11 @@ interface SunoStatusResponse {
   }[];
 }
 
-export const GET = withErrorHandling(async (req: NextRequest) => {
+const handleSunoStatus: AuthenticatedHandler = async (req, { user, supabase }) => {
   const apiKey = process.env['COMET_API_KEY'];
 
   if (!apiKey) {
     return errorResponse('Comet API key not configured', 500);
-  }
-
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return unauthorizedResponse();
   }
 
   const { searchParams } = new URL(req.url);
@@ -94,4 +84,9 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
   return successResponse({
     tasks: result.data,
   });
+};
+
+export const GET = withAuth(handleSunoStatus, {
+  route: '/api/audio/suno/status',
+  rateLimit: RATE_LIMITS.tier3_status_read,
 });

@@ -1,23 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
-import { withErrorHandling } from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
+import { withAuth } from '@/lib/api/withAuth';
+import type { AuthenticatedHandler } from '@/lib/api/withAuth';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
-export const POST = withErrorHandling(async (req: NextRequest) => {
-  const supabase = await createServerSupabaseClient();
-
+const handleSplitAudio: AuthenticatedHandler = async (req, { user, supabase }) => {
   serverLogger.info({ event: 'split_audio.request_started' }, 'Audio split request received');
-
-  // Check authentication
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    serverLogger.warn({ event: 'split_audio.unauthorized' }, 'Unauthorized audio split request');
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
 
   const body = await req.json();
   const { assetId, projectId } = body;
@@ -116,4 +104,9 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     assetId,
     videoUrl: asset.metadata?.sourceUrl || asset.storage_url,
   });
+};
+
+export const POST = withAuth(handleSplitAudio, {
+  route: '/api/video/split-audio',
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
 });

@@ -135,7 +135,7 @@ export function DragDropZone({
   /**
    * Handle file selection
    */
-  const handleFiles = (files: File[]) => {
+  const handleFiles = (files: File[]): void => {
     const { valid, errors: validationErrors } = validateFiles(files);
 
     if (validationErrors.length > 0) {
@@ -164,12 +164,12 @@ export function DragDropZone({
   /**
    * Handle drag events
    */
-  const handleDrag = (e: DragEvent<HTMLDivElement>) => {
+  const handleDrag = (e: DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
     e.stopPropagation();
   };
 
-  const handleDragIn = (e: DragEvent<HTMLDivElement>) => {
+  const handleDragIn = (e: DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
     e.stopPropagation();
     if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
@@ -177,13 +177,13 @@ export function DragDropZone({
     }
   };
 
-  const handleDragOut = (e: DragEvent<HTMLDivElement>) => {
+  const handleDragOut = (e: DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragActive(false);
   };
 
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragActive(false);
@@ -199,7 +199,7 @@ export function DragDropZone({
   /**
    * Handle file input change
    */
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
     if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files);
       handleFiles(files);
@@ -209,7 +209,7 @@ export function DragDropZone({
   /**
    * Remove a file from selection
    */
-  const removeFile = (index: number) => {
+  const removeFile = (index: number): void => {
     const newFiles = selectedFiles.filter((_, i) => i !== index);
 
     // Revoke object URL to prevent memory leaks
@@ -226,7 +226,7 @@ export function DragDropZone({
   /**
    * Open file picker
    */
-  const openFilePicker = () => {
+  const openFilePicker = (): void => {
     if (!disabled && fileInputRef.current) {
       fileInputRef.current.click();
     }
@@ -236,7 +236,7 @@ export function DragDropZone({
    * Cleanup previews on unmount
    */
   React.useEffect(() => {
-    return () => {
+    return (): void => {
       selectedFiles.forEach((file) => {
         if (file.preview) {
           URL.revokeObjectURL(file.preview);

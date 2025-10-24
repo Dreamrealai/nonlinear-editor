@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import sanitize from 'sanitize-filename';
 import { serverLogger } from '@/lib/serverLogger';
 import { badRequestResponse, errorResponse, successResponse } from '@/lib/api/response';
-import { validateUUID, validateEnum, validateAll } from '@/lib/api/validation';
+import { validateUUID, validateEnum, ValidationError } from '@/lib/validation';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
@@ -121,17 +121,14 @@ const handleAssetUpload: AuthenticatedHandler = async (request, { user, supabase
   }
 
   // Validate inputs
-  const validation = validateAll([
-    validateUUID(projectId, 'projectId'),
-    validateEnum(type, 'type', VALID_ASSET_TYPES, false),
-  ]);
-
-  if (!validation.valid) {
-    return errorResponse(
-      validation.errors[0]?.message ?? 'Invalid input',
-      400,
-      validation.errors[0]?.field
-    );
+  try {
+    validateUUID(projectId, 'projectId');
+    validateEnum(type, 'type', VALID_ASSET_TYPES);
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return errorResponse(error.message, 400, error.field);
+    }
+    throw error;
   }
 
   // SECURITY: Verify user owns the project

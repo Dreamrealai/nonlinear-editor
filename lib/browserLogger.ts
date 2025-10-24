@@ -152,7 +152,7 @@ class BrowserLogger {
   /**
    * Add log entry to queue
    */
-  private log(level: LogLevel, ...args: unknown[]) {
+  private log(level: LogLevel, ...args: unknown[]): void {
     const { message, data } = this.formatArgs(args);
 
     const entry: LogEntry = {
@@ -202,7 +202,7 @@ class BrowserLogger {
   /**
    * Flush queued logs to server
    */
-  async flush(sync = false) {
+  async flush(sync = false): Promise<void> {
     if (this.flushTimer) {
       clearTimeout(this.flushTimer);
       this.flushTimer = null;
@@ -215,7 +215,7 @@ class BrowserLogger {
     const logsToSend = [...this.queue];
     this.queue = [];
 
-    const sendLogs = async () => {
+    const sendLogs = async (): Promise<void> => {
       try {
         const response = await fetch(LOG_ENDPOINT, {
           method: 'POST',
@@ -261,27 +261,27 @@ class BrowserLogger {
   /**
    * Log methods
    */
-  trace(...args: unknown[]) {
+  trace(...args: unknown[]): void {
     this.log('trace', ...args);
   }
 
-  debug(...args: unknown[]) {
+  debug(...args: unknown[]): void {
     this.log('debug', ...args);
   }
 
-  info(...args: unknown[]) {
+  info(...args: unknown[]): void {
     this.log('info', ...args);
   }
 
-  warn(...args: unknown[]) {
+  warn(...args: unknown[]): void {
     this.log('warn', ...args);
   }
 
-  error(...args: unknown[]) {
+  error(...args: unknown[]): void {
     this.log('error', ...args);
   }
 
-  fatal(...args: unknown[]) {
+  fatal(...args: unknown[]): void {
     this.log('fatal', ...args);
   }
 
@@ -364,7 +364,7 @@ if (typeof window !== 'undefined' && !globalHandlersInstalled) {
   const originalConsoleError = console.error;
   const originalConsoleWarn = console.warn;
 
-  console.error = (...args: unknown[]) => {
+  console.error = (...args: unknown[]): void => {
     // Call original console.error
     originalConsoleError.apply(console, args);
 

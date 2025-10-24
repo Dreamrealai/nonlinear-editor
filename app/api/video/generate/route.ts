@@ -1,8 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { generateVideo } from '@/lib/veo';
 import { generateFalVideo } from '@/lib/fal-video';
-import { createServerSupabaseClient } from '@/lib/supabase';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
 import {
   validateString,
@@ -15,12 +13,11 @@ import {
 } from '@/lib/api/validation';
 import {
   errorResponse,
-  unauthorizedResponse,
-  rateLimitResponse,
   validationError,
-  withErrorHandling,
   successResponse,
 } from '@/lib/api/response';
+import { withAuth } from '@/lib/api/withAuth';
+import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 import { HttpStatusCode } from '@/lib/errors/errorCodes';
 import { verifyProjectOwnership, verifyAssetOwnership } from '@/lib/api/project-verification';
 
@@ -111,7 +108,7 @@ const DEFAULT_VIDEO_MODEL: SupportedVideoModel = 'veo-3.1-generate-preview';
  *   "message": "Video generation started. Use the operation name to check status."
  * }
  */
-export const POST = withErrorHandling(async (req: NextRequest) => {
+const handleVideoGenerate: AuthenticatedHandler = async (req, { user, supabase }) => {
   const startTime = Date.now();
 
   serverLogger.info(
@@ -121,85 +118,12 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     'Video generation request received'
   );
 
-  const supabase =
-    (await createServerSupabaseClient()) ??
-    ((globalThis as Record<string, unknown>).__TEST_SUPABASE_CLIENT__ as ReturnType<
-      typeof createServerSupabaseClient
-    > | null);
-
-  if (!supabase) {
-    throw new Error(
-      'Video generation service is temporarily unavailable. Please try again in a few moments.'
-    );
-  }
-
-  // Check authentication
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    serverLogger.warn(
-      {
-        event: 'video.generate.unauthorized',
-        error: authError?.message,
-      },
-      'Unauthorized video generation attempt'
-    );
-    return ensureResponse(unauthorizedResponse(), () =>
-      NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    );
-  }
-
   serverLogger.debug(
     {
       event: 'video.generate.user_authenticated',
       userId: user.id,
     },
     'User authenticated for video generation'
-  );
-
-  // TIER 2 RATE LIMITING: Resource creation - video generation (10/min)
-  // Prevents resource exhaustion and controls AI API costs
-  const rateLimitResult = await checkRateLimit(
-    `video-gen:${user.id}`,
-    RATE_LIMITS.tier2_resource_creation
-  );
-
-  if (!rateLimitResult.success) {
-    serverLogger.warn(
-      {
-        event: 'video.generate.rate_limited',
-        userId: user.id,
-        limit: rateLimitResult.limit,
-        remaining: rateLimitResult.remaining,
-        resetAt: rateLimitResult.resetAt,
-      },
-      'Video generation rate limit exceeded'
-    );
-    return ensureResponse(
-      rateLimitResponse(rateLimitResult.limit, rateLimitResult.remaining, rateLimitResult.resetAt),
-      () =>
-        NextResponse.json(
-          {
-            error: 'Rate limit exceeded',
-            limit: rateLimitResult.limit,
-            remaining: rateLimitResult.remaining,
-            resetAt: rateLimitResult.resetAt,
-          },
-          { status: 429 }
-        )
-    );
-  }
-
-  serverLogger.debug(
-    {
-      event: 'video.generate.rate_limit_ok',
-      userId: user.id,
-      remaining: rateLimitResult.remaining,
-    },
-    'Rate limit check passed'
   );
 
   let body: Record<string, unknown>;
@@ -213,9 +137,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       },
       'Invalid JSON body for video generation request'
     );
-    return ensureResponse(validationError('Invalid JSON body'), () =>
-      NextResponse.json({ error: 'Invalid JSON body' }, { status: HttpStatusCode.BAD_REQUEST })
-    );
+    return validationError('Invalid JSON body');
   }
   const {
     prompt,
@@ -247,19 +169,9 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       'Unsupported video generation model requested'
     );
 
-    return ensureResponse(
-      validationError(
-        `The video model '${requestedModel}' is not supported. Please use one of: ${Object.keys(MODEL_DEFINITIONS).join(', ')}`,
-        'model'
-      ),
-      () =>
-        NextResponse.json(
-          {
-            error: `The video model '${requestedModel}' is not supported. Please use one of: ${Object.keys(MODEL_DEFINITIONS).join(', ')}`,
-            field: 'model',
-          },
-          { status: HttpStatusCode.BAD_REQUEST }
-        )
+    return validationError(
+      `The video model '${requestedModel}' is not supported. Please use one of: ${Object.keys(MODEL_DEFINITIONS).join(', ')}`,
+      'model'
     );
   }
 
@@ -314,9 +226,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     const firstError = validation.errors[0];
 
     if (!firstError) {
-      return ensureResponse(validationError('Validation failed'), () =>
-        NextResponse.json({ error: 'Validation failed' }, { status: 400 })
-      );
+      return validationError('Validation failed');
     }
 
     serverLogger.warn(
@@ -328,9 +238,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       },
       `Validation error: ${firstError.message}`
     );
-    return ensureResponse(validationError(firstError.message, firstError.field), () =>
-      NextResponse.json({ error: firstError.message, field: firstError.field }, { status: 400 })
-    );
+    return validationError(firstError.message, firstError.field);
   }
 
   // Type assertions after validation succeeds
@@ -530,11 +438,9 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       return errorResponse(message, HttpStatusCode.INTERNAL_SERVER_ERROR);
     }
   }
-});
+};
 
-function ensureResponse<T extends Response>(candidate: T | undefined, fallback: () => T): T {
-  if (candidate) {
-    return candidate;
-  }
-  return fallback();
-}
+export const POST = withAuth(handleVideoGenerate, {
+  route: '/api/video/generate',
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
+});

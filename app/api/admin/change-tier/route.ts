@@ -8,12 +8,11 @@ import type { UserTier } from '@/lib/types/subscription';
 import { serverLogger } from '@/lib/serverLogger';
 import { withAdminAuth, logAdminAction, type AdminAuthContext } from '@/lib/api/withAuth';
 import {
-  validationError,
   forbiddenResponse,
   errorResponse,
   successResponse,
 } from '@/lib/api/response';
-import { validateUUID, validateEnum, validateAll } from '@/lib/api/validation';
+import { validateUUID, validateEnum, ValidationError } from '@/lib/validation';
 import { invalidateUserProfile } from '@/lib/cacheInvalidation';
 
 async function handleChangeTier(
@@ -45,27 +44,27 @@ async function handleChangeTier(
         },
         'Missing required fields in tier change request'
       );
-      return validationError('userId and tier are required');
+      return errorResponse('userId and tier are required', 400);
     }
 
     const VALID_TIERS = ['free', 'premium', 'admin'] as const;
-    const validation = validateAll([
-      validateUUID(userId, 'userId'),
-      validateEnum(tier, 'tier', VALID_TIERS, true),
-    ]);
-
-    if (!validation.valid) {
-      serverLogger.warn(
-        {
-          event: 'admin.change_tier.invalid_input',
-          adminId: user.id,
-          targetUserId: userId,
-          tier,
-        },
-        'Invalid input in tier change request'
-      );
-      const firstError = validation.errors[0];
-      return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
+    try {
+      validateUUID(userId, 'userId');
+      validateEnum(tier, 'tier', VALID_TIERS);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        serverLogger.warn(
+          {
+            event: 'admin.change_tier.invalid_input',
+            adminId: user.id,
+            targetUserId: userId,
+            tier,
+          },
+          'Invalid input in tier change request'
+        );
+        return errorResponse(error.message, 400, error.field);
+      }
+      throw error;
     }
 
     // SECURITY: Prevent admin from modifying their own tier

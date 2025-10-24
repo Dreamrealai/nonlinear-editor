@@ -49,7 +49,26 @@ type HorizontalTimelineProps = {
 };
 
 // Memoized selector to prevent re-renders when unrelated state changes
-const selectTimelineState = (state: ReturnType<typeof useEditorStore.getState>) => ({
+const selectTimelineState = (state: ReturnType<typeof useEditorStore.getState>): {
+  timeline: ReturnType<typeof useEditorStore.getState>['timeline'];
+  currentTime: number;
+  zoom: number;
+  selectedClipIds: string[];
+  setCurrentTime: (time: number) => void;
+  setZoom: (zoom: number) => void;
+  updateClip: (clipId: string, updates: Partial<Clip>) => void;
+  removeClip: (clipId: string) => void;
+  selectClip: (clipId: string, multi?: boolean) => void;
+  clearSelection: () => void;
+  splitClipAtTime: (clipId: string, time: number) => void;
+  copyClips: () => void;
+  pasteClips: () => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  removeTextOverlay: (overlayId: string) => void;
+} => ({
   timeline: state.timeline,
   currentTime: state.currentTime,
   zoom: state.zoom,
@@ -82,7 +101,7 @@ function HorizontalTimeline({
   onSplitScenesFromClip,
   splitAudioPending = false,
   splitScenesPending = false,
-}: HorizontalTimelineProps = {}) {
+}: HorizontalTimelineProps = {}): React.JSX.Element {
   // Store state - use single selector to reduce re-renders
   const {
     timeline,
@@ -151,12 +170,12 @@ function HorizontalTimeline({
   });
 
   // Zoom controls - memoized to prevent re-creation on every render
-  const handleZoomIn = useCallback(() => setZoom(zoom * 1.2), [setZoom, zoom]);
-  const handleZoomOut = useCallback(() => setZoom(zoom / 1.2), [setZoom, zoom]);
+  const handleZoomIn = useCallback((): void => setZoom(zoom * 1.2), [setZoom, zoom]);
+  const handleZoomOut = useCallback((): void => setZoom(zoom / 1.2), [setZoom, zoom]);
 
   // Playhead dragging - memoized
   const handlePlayheadMouseDown = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.MouseEvent): void => {
       e.preventDefault();
       setIsDraggingPlayhead(true);
     },
@@ -164,7 +183,7 @@ function HorizontalTimeline({
   );
 
   // Clip dragging
-  const handleClipMouseDown = (e: React.MouseEvent, clip: Clip) => {
+  const handleClipMouseDown = (e: React.MouseEvent, clip: Clip): void => {
     if (!containerRef.current) return;
     e.stopPropagation();
     const isMulti = e.metaKey || e.ctrlKey || e.shiftKey;
@@ -182,7 +201,7 @@ function HorizontalTimeline({
   };
 
   // Trim handle handlers
-  const handleTrimHandleMouseDown = (e: React.MouseEvent, clip: Clip, handle: 'left' | 'right') => {
+  const handleTrimHandleMouseDown = (e: React.MouseEvent, clip: Clip, handle: 'left' | 'right'): void => {
     e.stopPropagation();
     e.preventDefault();
     selectClip(clip.id, e.metaKey || e.ctrlKey || e.shiftKey);
@@ -197,7 +216,7 @@ function HorizontalTimeline({
   };
 
   // Click to select clip
-  const handleClipClick = (e: React.MouseEvent, clip: Clip) => {
+  const handleClipClick = (e: React.MouseEvent, clip: Clip): void => {
     e.stopPropagation();
     const isMulti = e.metaKey || e.ctrlKey || e.shiftKey;
     selectClip(clip.id, isMulti);
@@ -205,14 +224,14 @@ function HorizontalTimeline({
   };
 
   // Click to select text overlay
-  const handleTextOverlayClick = (e: React.MouseEvent, overlay: TextOverlay) => {
+  const handleTextOverlayClick = (e: React.MouseEvent, overlay: TextOverlay): void => {
     e.stopPropagation();
     setSelectedTextOverlayId(overlay.id);
     clearSelection();
   };
 
   // Split clip at playhead - memoized
-  const handleSplitAtPlayhead = useCallback(() => {
+  const handleSplitAtPlayhead = useCallback((): void => {
     if (!timeline || !timeline.clips || !splitClipAtTime) return;
     const clipAtPlayhead = timeline.clips.find((clip) => {
       const clipStart = clip.timelinePosition;
@@ -225,7 +244,7 @@ function HorizontalTimeline({
   }, [timeline, splitClipAtTime, currentTime]);
 
   // Timeline click to set playhead
-  const handleTimelineClick = (e: React.MouseEvent) => {
+  const handleTimelineClick = (e: React.MouseEvent): void => {
     if (!containerRef.current) return;
 
     const rect = containerRef.current.getBoundingClientRect();

@@ -62,7 +62,7 @@ export function useTimelineDragging({
   const [draggingClip, setDraggingClip] = useState<DraggingClip | null>(null);
   const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false);
   const [trimmingClip, setTrimmingClip] = useState<TrimmingClip | null>(null);
-  // @ts-ignore - snapInfo is exposed in the API but not currently used internally
+  // @ts-expect-error - snapInfo is exposed in the API but not currently used internally
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [snapInfo, setSnapInfo] = useState<SnapInfo | null>(null);
 

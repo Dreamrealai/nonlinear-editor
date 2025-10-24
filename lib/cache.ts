@@ -65,7 +65,7 @@ class LRUCache {
   /**
    * Start automatic cleanup of expired entries
    */
-  private startCleanup() {
+  private startCleanup(): void {
     // Clean up expired entries every 60 seconds
     this.cleanupInterval = setInterval(() => {
       this.cleanupExpired();
@@ -75,7 +75,7 @@ class LRUCache {
   /**
    * Remove expired entries from cache
    */
-  private cleanupExpired() {
+  private cleanupExpired(): void {
     const now = Date.now();
     let cleaned = 0;
 
@@ -98,7 +98,7 @@ class LRUCache {
   /**
    * Evict least recently used entry when cache is full
    */
-  private evictLRU() {
+  private evictLRU(): void {
     let lruKey: string | null = null;
     let lruTime = Infinity;
 
@@ -236,7 +236,7 @@ class LRUCache {
   /**
    * Stop cleanup interval
    */
-  stop() {
+  stop(): void {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = null;
@@ -327,13 +327,13 @@ export const cache = {
  * Cache key builders for consistency
  */
 export const CacheKeys = {
-  userProfile: (userId: string) => `user:profile:${userId}`,
-  userSettings: (userId: string) => `user:settings:${userId}`,
-  userSubscription: (userId: string) => `user:subscription:${userId}`,
-  projectMetadata: (projectId: string) => `project:metadata:${projectId}`,
-  userProjects: (userId: string) => `user:projects:${userId}`,
-  asset: (assetId: string) => `asset:${assetId}`,
-  userAssets: (userId: string, projectId: string) => `user:${userId}:project:${projectId}:assets`,
+  userProfile: (userId: string): string => `user:profile:${userId}`,
+  userSettings: (userId: string): string => `user:settings:${userId}`,
+  userSubscription: (userId: string): string => `user:subscription:${userId}`,
+  projectMetadata: (projectId: string): string => `project:metadata:${projectId}`,
+  userProjects: (userId: string): string => `user:projects:${userId}`,
+  asset: (assetId: string): string => `asset:${assetId}`,
+  userAssets: (userId: string, projectId: string): string => `user:${userId}:project:${projectId}:assets`,
 };
 
 /**

@@ -39,31 +39,48 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
-// Mock validation functions
+// Import the real ValidationError class for use in mocks
+const { ValidationError } = jest.requireActual('@/lib/validation');
+
+// Mock validation functions from @/lib/api/validation (the backward compatibility wrapper)
 jest.mock('@/lib/api/validation', () => {
   const actual = jest.requireActual('@/lib/api/validation');
+  const { ValidationError: VError } = jest.requireActual('@/lib/validation');
+
   return {
     ...actual,
     validateString: jest.fn((value, field, options) => {
-      if (
-        !value ||
-        value.length < (options?.minLength || 0) ||
-        value.length > (options?.maxLength || Infinity)
-      ) {
-        return { valid: false, errors: [{ field, message: `Invalid ${field}` }] };
+      const required = options?.required ?? true;
+      if (!required && (value === undefined || value === null || value === '')) {
+        return null;
       }
-      return { valid: true, errors: [] };
+      if (!value || typeof value !== 'string') {
+        return { field, message: `${field} is required` };
+      }
+      if (options?.minLength && value.length < options.minLength) {
+        return { field, message: `Invalid ${field}` };
+      }
+      if (options?.maxLength && value.length > options.maxLength) {
+        return { field, message: `Invalid ${field}` };
+      }
+      return null;
     }),
     validateUUID: jest.fn((id, field) => {
       if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
-        return { valid: false, errors: [{ field, message: `${field} must be a valid UUID` }] };
+        return { field, message: `${field} must be a valid UUID` };
       }
-      return { valid: true, errors: [] };
+      return null;
     }),
-    validateAll: jest.fn((validations) => {
-      const errors = validations.flatMap((v: any) => v.errors || []);
-      return { valid: errors.length === 0, errors };
+    validateBoolean: jest.fn((value, field, required = false) => {
+      if (!required && (value === undefined || value === null)) {
+        return null;
+      }
+      if (value !== undefined && value !== null && typeof value !== 'boolean') {
+        return { field, message: `${field} must be a boolean` };
+      }
+      return null;
     }),
+    validateAll: actual.validateAll,
   };
 });
 

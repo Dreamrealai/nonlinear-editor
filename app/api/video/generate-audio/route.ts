@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { serverLogger } from '@/lib/serverLogger';
-import { withErrorHandling } from '@/lib/api/response';
+import { withAuth } from '@/lib/api/withAuth';
+import type { AuthenticatedHandler } from '@/lib/api/withAuth';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
 /**
  * POST /api/video/generate-audio
@@ -14,7 +15,7 @@ import { withErrorHandling } from '@/lib/api/response';
  * - model: 'minimax' | 'mureka-1.5' | 'kling-turbo-2.5' - Model to use
  * - prompt?: string - Optional text prompt to guide audio generation
  */
-export const POST = withErrorHandling(async (request: NextRequest) => {
+const handleGenerateAudio: AuthenticatedHandler = async (request, { user, supabase }) => {
   const body = await request.json();
   const { assetId, projectId, model = 'minimax', prompt } = body;
 
@@ -27,19 +28,6 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       { error: 'Invalid model. Must be minimax, mureka-1.5, or kling-turbo-2.5' },
       { status: 400 }
     );
-  }
-
-  // Initialize Supabase client
-  const supabase = await createServerSupabaseClient();
-
-  // Verify user authentication
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   // Get the asset from database
@@ -104,7 +92,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-  let falResponse;
+  let falResponse: Response;
   try {
     falResponse = await fetch(`https://queue.fal.run/${endpoint}`, {
       method: 'POST',
@@ -147,7 +135,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     throw error;
   }
 
-  const falData = await falResponse.json();
+  const falData = (await falResponse.json()) as { request_id?: string };
 
   // Store the request ID for polling
   const requestId = falData.request_id;
@@ -191,4 +179,9 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     model,
     message: 'Video-to-audio generation started',
   });
+};
+
+export const POST = withAuth(handleGenerateAudio, {
+  route: '/api/video/generate-audio',
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
 });

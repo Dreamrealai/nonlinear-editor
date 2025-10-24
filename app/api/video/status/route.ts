@@ -1,18 +1,14 @@
-import { NextRequest } from 'next/server';
 import { checkOperationStatus } from '@/lib/veo';
 import { checkFalVideoStatus } from '@/lib/fal-video';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import { GoogleAuth } from 'google-auth-library';
 import {
-  unauthorizedResponse,
   validationError,
-  withErrorHandling,
-  rateLimitResponse,
   successResponse,
 } from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
+import { RATE_LIMITS } from '@/lib/rateLimit';
+import { withAuth } from '@/lib/api/withAuth';
 import { createAssetWithCleanup } from '@/lib/api/statusCheckHandler';
 
 const normalizeStorageUrl = (bucket: string, path: string): string =>
@@ -88,7 +84,7 @@ const parseGcsUri = (uri: string): { bucket: string; objectPath: string } | null
  *   "progress": 0
  * }
  */
-export const GET = withErrorHandling(async (req: NextRequest) => {
+const handleVideoStatus = async (req: Parameters<typeof withAuth>[0], { user, supabase }: { user: { id: string }, supabase: Parameters<typeof createAssetWithCleanup>[0] }) => {
   const startTime = Date.now();
 
   serverLogger.info(
@@ -97,48 +93,6 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
     },
     'Video status check request received'
   );
-
-  const supabase = await createServerSupabaseClient();
-
-  // Check authentication
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    serverLogger.warn(
-      {
-        event: 'video.status.unauthorized',
-        error: authError?.message,
-      },
-      'Unauthorized video status check attempt'
-    );
-    return unauthorizedResponse();
-  }
-
-  // TIER 3 RATE LIMITING: Status/polling operations (30/min)
-  const rateLimitResult = await checkRateLimit(
-    `video-status:${user.id}`,
-    RATE_LIMITS.tier3_status_read
-  );
-
-  if (!rateLimitResult.success) {
-    serverLogger.warn(
-      {
-        event: 'video.status.rate_limited',
-        userId: user.id,
-        limit: rateLimitResult.limit,
-      },
-      'Video status check rate limit exceeded'
-    );
-
-    return rateLimitResponse(
-      rateLimitResult.limit,
-      rateLimitResult.remaining,
-      rateLimitResult.resetAt
-    );
-  }
 
   const { searchParams } = new URL(req.url);
   const operationName = searchParams.get('operationName');
@@ -458,4 +412,9 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
     progress: result.metadata?.progressPercentage || 0,
     error: result.error?.message,
   });
+};
+
+export const GET = withAuth(handleVideoStatus, {
+  route: '/api/video/status',
+  rateLimit: RATE_LIMITS.tier3_status_read,
 });

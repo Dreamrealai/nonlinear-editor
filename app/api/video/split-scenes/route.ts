@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { VideoIntelligenceServiceClient, protos } from '@google-cloud/video-intelligence';
 import { Storage } from '@google-cloud/storage';
 import { serverLogger } from '@/lib/serverLogger';
 import {
-  withErrorHandling,
-  unauthorizedResponse,
   validationError,
   forbiddenResponse,
   successResponse,
 } from '@/lib/api/response';
+import { withAuth } from '@/lib/api/withAuth';
+import type { AuthenticatedHandler } from '@/lib/api/withAuth';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
 const parseStorageUrl = (storageUrl: string): { bucket: string; path: string } | null => {
   // SECURITY: Validate input format
@@ -37,21 +37,8 @@ const parseStorageUrl = (storageUrl: string): { bucket: string; path: string } |
 // Set max duration for Vercel serverless function (10 seconds on hobby, 60 on pro)
 export const maxDuration = 60;
 
-export const POST = withErrorHandling(async (req: NextRequest) => {
+const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) => {
   serverLogger.info('Scene detection request received');
-  const supabase = await createServerSupabaseClient();
-
-  // Check authentication
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    serverLogger.warn({ authError }, 'Unauthorized scene detection attempt');
-    return unauthorizedResponse();
-  }
-
   serverLogger.info({ userId: user.id }, 'User authenticated for scene detection');
 
   const body = await req.json();
@@ -423,4 +410,9 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     count: scenes.length,
     note: 'Scene frames can be extracted in the Keyframe Editor',
   });
+};
+
+export const POST = withAuth(handleSplitScenes, {
+  route: '/api/video/split-scenes',
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
 });

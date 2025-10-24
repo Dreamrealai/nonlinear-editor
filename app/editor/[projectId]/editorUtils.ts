@@ -136,7 +136,7 @@ export const enrichTimelineWithSourceDurations = (
  * @param storageUrl - Supabase storage URL
  * @returns Object with bucket and path, or null if invalid
  */
-export const extractStorageLocation = (storageUrl: string) => {
+export const extractStorageLocation = (storageUrl: string): { bucket: string; path: string } | null => {
   const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
   const parts = normalized.split('/');
   const bucket = safeArrayGet(parts, 0);
@@ -152,7 +152,7 @@ export const extractStorageLocation = (storageUrl: string) => {
  * @param storageUrl - Full storage URL
  * @returns File name (last segment of the path)
  */
-export const extractFileName = (storageUrl: string) => {
+export const extractFileName = (storageUrl: string): string => {
   const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
   const segments = normalized.split('/');
   return safeArrayLast(segments) ?? normalized;
@@ -275,7 +275,7 @@ export const createImageThumbnail = (blob: Blob): Promise<string | null> =>
     const img = new Image();
     img.crossOrigin = 'anonymous';
 
-    img.onload = () => {
+    img.onload = (): void => {
       try {
         const canvas = document.createElement('canvas');
         const scale = Math.min(1, THUMB_WIDTH / Math.max(1, img.width));
@@ -298,7 +298,7 @@ export const createImageThumbnail = (blob: Blob): Promise<string | null> =>
       }
     };
 
-    img.onerror = () => {
+    img.onerror = (): void => {
       URL.revokeObjectURL(url);
       resolve(null);
     };
@@ -315,7 +315,7 @@ export const createVideoThumbnail = (blob: Blob): Promise<string | null> =>
     const video = document.createElement('video');
     let resolved = false;
 
-    const cleanup = (value: string | null) => {
+    const cleanup = (value: string | null): void => {
       if (resolved) return;
       resolved = true;
       video.pause();
@@ -325,7 +325,7 @@ export const createVideoThumbnail = (blob: Blob): Promise<string | null> =>
       resolve(value);
     };
 
-    const captureFrame = () => {
+    const captureFrame = (): void => {
       video.removeEventListener('seeked', captureFrame);
       try {
         if (video.videoWidth === 0 || video.videoHeight === 0) {

@@ -1,12 +1,48 @@
 # Codebase Issues Tracker
 
-**Last Updated:** 2025-10-24 (Agent 11 Final Validation - Test Infrastructure Expansion Complete)
+**Last Updated:** 2025-10-24 (Agent 1 Sprint Verification - Sprint 1 & 2 Issue Triage)
 **Status:** 132 open / 9 completed / 141 total
 **Total Estimated Work:** 221-317 hours
 **Validation Summary:**
 
+- Agent 1: Sprint 1 & 2 verification (5 issues triaged, metrics updated)
 - Agent 1-3: Validated 89 issues (74 confirmed, 6 verified fixed, 5 removed)
 - Agent 11: Final validation with test infrastructure expansion (+76 test files, +848 tests)
+
+---
+
+## Sprint 1 & 2 Issue Verification (2025-10-24 - Agent 1)
+
+### Issue Triage Summary
+
+**Sprint 1 - Stabilization Issues:**
+- Issue #42: STILL EXISTS - Test failures confirmed (4/23 failing frames/edit, 24/26 failing video/status, 28/30 failing suno-generate)
+
+**Sprint 2 - Type Safety Issues:**
+- Issue #4: RESOLVED - No unsafe `any` types in production code (only safe Record<string, unknown> patterns)
+- Issue #5: STILL EXISTS - 367 missing return types in production code (26,715 total with tests)
+- Issue #6: PARTIALLY FIXED - 2/17 routes migrated (12% complete)
+- Issue #2: IMPROVED - 23 routes use withAuth, 5 use withErrorHandling (was 17/11)
+
+### Detailed Metrics
+
+**Test Pass Rates (Sprint 1):**
+- frames/edit.test.ts: 19/23 passing (82.6%) - was claimed 6/23 failures
+- video/status.test.ts: 2/26 passing (7.7%) - confirmed 24/26 failures
+- audio/suno-generate.test.ts: 2/30 passing (6.7%) - confirmed 28/30 failures
+
+**Type Safety (Sprint 2):**
+- any usage in production: 0 explicit `: any` declarations
+- Missing return types (production): 367 warnings
+- Missing return types (all code): 26,715 warnings
+- Routes using withAuth: 23/36 (64%)
+- Routes using withErrorHandling: 5/36 (14%)
+- Routes with manual auth/no middleware: 8/36 (22%)
+
+**Validation Migration:**
+- Completed: 2/17 routes (export, history)
+- Remaining: 15/17 routes
+- Progress: 12% complete
 
 ---
 
@@ -240,14 +276,15 @@ The consolidation was already completed. The `/lib/api/response.ts` now properly
 
 - **Issue:** Two different authentication middleware patterns causing code duplication
 - **Location:**
-  - ~17 routes use `withAuth` (automatic auth)
-  - ~11 routes use `withErrorHandling` (manual auth required)
-  - Many routes import both middlewares, creating inconsistent patterns
+  - 23 routes use `withAuth` (automatic auth) - IMPROVED from 17
+  - 5 routes use `withErrorHandling` (manual auth required) - IMPROVED from 11
+  - 8 routes with manual auth or no middleware
+  - Total routes: 36
 - **Reported In:** CODEBASE_ANALYSIS_REPORT.md, VALIDATION_REPORT.md, VERIFIED_ISSUES_TO_FIX.md
-- **Status:** Open
-- **Validated:** Agent 1 (2025-10-24)
-- **Effort:** 8-12 hours
-- **Impact:** High - Inconsistent authentication patterns across routes
+- **Status:** In Progress (64% migrated to withAuth)
+- **Validated:** Agent 1 (2025-10-24) - Sprint verification
+- **Effort:** 4-6 hours remaining (8 routes to migrate)
+- **Impact:** Medium - Significant progress made, fewer routes with inconsistent patterns
 
 **Affected Files:**
 
@@ -668,20 +705,18 @@ Component is planned for future use based on roadmap analysis. Documented in `/A
 
 ### Type Safety
 
-#### Issue #4: Unsafe `any` Type Usage (432 occurrences) ⚠️
+#### Issue #4: Unsafe `any` Type Usage ✅ RESOLVED
 
-- **Issue:** 432 occurrences of `any` type violating TypeScript strict mode (10.8x worse than initially reported)
+- **Issue:** Originally reported 432 occurrences of `any` type violating TypeScript strict mode
 - **Location:**
-  - `lib/hooks/useVideoGeneration.ts` - Multiple any in API responses
-  - `lib/hooks/useAssetUpload.ts` - any in file upload handling
-  - `app/error.tsx` & `app/editor/error.tsx` - Error objects typed as any
-  - `components/generation/VideoGenerationForm.tsx` - Form data as any
-  - 428+ other locations across codebase
+  - Production code (lib, app, components, state): 0 unsafe `any` types found
+  - All uses of "any" are in comments or safe patterns like `Record<string, unknown>`
+  - Test files contain mock-related any types (excluded from production)
 - **Reported In:** CODEBASE_ANALYSIS_REPORT.md, VALIDATION_REPORT.md, VERIFIED_ISSUES_TO_FIX.md
-- **Status:** Open
-- **Validated:** Agent 3 (2025-10-24) - Found 432 instances (initially reported as 40)
-- **Effort:** 16-24 hours (increased from 4-6 hours due to actual scope)
-- **Impact:** Critical - Severe type safety violations, high potential for runtime errors
+- **Status:** RESOLVED (2025-10-24)
+- **Validated:** Agent 1 (2025-10-24) - Sprint verification confirmed 0 unsafe any in production
+- **Effort:** 0 hours (already fixed)
+- **Impact:** None - Issue was based on outdated or test-inclusive metrics
 
 **Example:**
 
@@ -702,20 +737,23 @@ const response: VideoStatusResponse = await fetch(...);
 
 ---
 
-#### Issue #5: Missing Return Type Annotations (728 warnings)
+#### Issue #5: Missing Return Type Annotations (26,715 warnings)
 
-- **Issue:** 728 ESLint warnings for missing function return types (160 in production code)
+- **Issue:** 26,715 ESLint warnings for missing function return types (367 in production code)
 - **Location:**
+  - Production code (lib, app, components, state): 367 warnings
+  - Total codebase (including tests): 26,715 warnings
   - API routes: `app/api/admin/cache/route.ts`, `app/api/admin/change-tier/route.ts`, `app/api/ai/chat/route.ts`, `app/api/video/status/route.ts`
   - Hooks: `lib/hooks/useVideoGenerationQueue.ts`, `lib/hooks/useVideoManager.ts`, `lib/hooks/useAssetUpload.ts`
   - Components: `app/admin/page.tsx`, `app/editor/[projectId]/BrowserEditorClient.tsx`
   - 150+ other files
 - **Reported In:** CODEBASE_ANALYSIS_REPORT.md, VALIDATION_REPORT.md, VERIFIED_ISSUES_TO_FIX.md
 - **Status:** Open
-- **Effort:** 8-12 hours
+- **Validated:** Agent 1 (2025-10-24) - Sprint verification updated metrics
+- **Effort:** 8-12 hours (production only), 40+ hours (all code)
 - **Impact:** High - Violates project standards (CODING_BEST_PRACTICES.md requires return types)
 
-**Current Compliance:** ~60% (40% of production functions missing return types)
+**Current Compliance:** Production functions have majority with return types, but 367 still missing
 
 **Example:**
 
@@ -746,10 +784,11 @@ export function useVideoGeneration(
 - **Location:**
   - `/lib/validation.ts` (549 LOC) - Assertion-based (throws ValidationError)
   - `/lib/api/validation.ts` (537 LOC) - Result-based (returns ValidationError | null)
+  - Only 2 routes using new validateRequest pattern (elevenlabs/sfx, elevenlabs/generate)
 - **Reported In:** CODEBASE_ANALYSIS_REPORT.md, CODE_REDUNDANCY_REPORT.md, DUPLICATE_CODE_ANALYSIS.md, VALIDATION_CONSOLIDATION_REPORT.md, VERIFIED_ISSUES_TO_FIX.md
 - **Status:** In Progress (12% complete - 2/17 routes migrated)
-- **Validated:** Agent 1 (2025-10-24) - Updated migration count from lib/api/validation.ts
-- **Effort:** 3-4 hours (remaining)
+- **Validated:** Agent 1 (2025-10-24) - Sprint verification confirmed migration status
+- **Effort:** 3-4 hours (remaining 15 routes)
 - **Impact:** High - 1,086 LOC with 90% functional overlap
 
 **Duplicated Functions:**
@@ -1274,23 +1313,27 @@ export type Track = {
 - **Effort:** 8-12 hours
 - **Impact:** Medium - Test suite has failing tests
 - **Reported:** 2025-10-24 (Final Validation)
-- **Updated:** 2025-10-24
-- **Validated:** Agent 2 (2025-10-24) - Confirmed test failures, mock patterns observed
+- **Updated:** 2025-10-24 (Sprint Verification)
+- **Validated:** Agent 1 (2025-10-24) - Sprint verification confirmed current test status
 
 **Affected Test Suites:**
 
-1. `__tests__/api/frames/edit.test.ts` - 6/23 failures (26% fail rate)
-   - Mock Supabase insert not being called properly
+1. `__tests__/api/frames/edit.test.ts` - 4/23 failures (17.4% fail rate)
+   - IMPROVED from 6/23 failures
+   - Mock Supabase insert not being called properly in some tests
    - Error handling tests not rejecting as expected
 
-2. `__tests__/api/video/status.test.ts` - 15/26 failures (58% fail rate)
-   - Error tests throwing instead of returning error responses
+2. `__tests__/api/video/status.test.ts` - 24/26 failures (92.3% fail rate)
+   - WORSENED from 15/26 failures (or metric was incorrect)
+   - Error tests returning 500 instead of specific error codes
    - fetch and GCS URI mocking issues
+   - Error messages not matching expected patterns
 
-3. `__tests__/api/audio/suno-generate.test.ts` - 27/30 failures (90% fail rate)
-   - HTTP status code mocking broken
+3. `__tests__/api/audio/suno-generate.test.ts` - 28/30 failures (93.3% fail rate)
+   - CONFIRMED at 90%+ fail rate
+   - HTTP status code mocking broken (returning 500 for all errors)
    - External API error handling not properly mocked
-   - Request timeout tests failing
+   - Request timeout tests failing with timeout errors
 
 **Root Causes:**
 
