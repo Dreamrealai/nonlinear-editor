@@ -9,8 +9,10 @@ import { useEffect, useRef } from 'react';
 import { browserLogger } from '@/lib/browserLogger';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { safeArrayFirst } from '@/lib/utils/arrayUtils';
-import { THUMBNAIL_WIDTH } from '@/lib/utils/assetUtils';
+import { THUMBNAIL_CONSTANTS } from '@/lib/constants';
 import type { AssetRow } from '@/components/editor/AssetPanel';
+
+const { THUMBNAIL_WIDTH, THUMBNAIL_QUALITY } = THUMBNAIL_CONSTANTS;
 
 /**
  * Creates a thumbnail from an image blob.
@@ -35,7 +37,7 @@ export const createImageThumbnail = (blob: Blob): Promise<string | null> =>
           return;
         }
         ctx.drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        const dataUrl = canvas.toDataURL('image/jpeg', THUMBNAIL_QUALITY);
         resolve(dataUrl);
       } catch (error) {
         browserLogger.error({ error }, 'Failed to create image thumbnail');
@@ -91,7 +93,7 @@ export const createVideoThumbnail = (blob: Blob): Promise<string | null> =>
           return;
         }
         ctx.drawImage(video, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        const dataUrl = canvas.toDataURL('image/jpeg', THUMBNAIL_QUALITY);
         cleanup(dataUrl);
       } catch (error) {
         browserLogger.error({ error }, 'Failed to capture video thumbnail');

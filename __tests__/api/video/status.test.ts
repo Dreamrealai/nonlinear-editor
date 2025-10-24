@@ -2,7 +2,7 @@
  * Tests for GET /api/video/status - Video Generation Status Check
  */
 
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { GET } from '@/app/api/video/status/route';
 import {
   createMockSupabaseClient,
@@ -25,28 +25,17 @@ jest.mock('@/lib/fal-video', () => ({
   checkFalVideoStatus: jest.fn(),
 }));
 
-jest.mock('@/lib/api/response', () => {
-  const jsonResponse = (payload: unknown, init?: ResponseInit) =>
-    new Response(JSON.stringify(payload), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-      ...init,
-    });
-
-  return {
-    unauthorizedResponse: jest.fn(() => jsonResponse({ error: 'Unauthorized' }, { status: 401 })),
-    validationError: jest.fn((message: string, field: string) =>
-      jsonResponse({ error: message, field }, { status: 400 })
-    ),
-    errorResponse: jest.fn((message: string, status: number) =>
-      jsonResponse({ error: message }, { status })
-    ),
-    withErrorHandling: jest.fn((handler: unknown) => handler),
-    rateLimitResponse: jest.fn(() =>
-      jsonResponse({ error: 'Rate limit exceeded' }, { status: 429 })
-    ),
-  };
-});
+jest.mock('@/lib/rateLimit', () => ({
+  checkRateLimit: jest.fn().mockResolvedValue({
+    success: true,
+    limit: 30,
+    remaining: 29,
+    resetAt: Date.now() + 60_000,
+  }),
+  RATE_LIMITS: {
+    tier3_status_read: { max: 30, windowMs: 60_000 },
+  },
+}));
 
 jest.mock('@/lib/serverLogger', () => ({
   serverLogger: {
@@ -58,6 +47,9 @@ jest.mock('@/lib/serverLogger', () => ({
 jest.mock('uuid', () => ({
   v4: jest.fn(() => 'mock-uuid'),
 }));
+
+const createRequest = (path: string, init: RequestInit = {}) =>
+  new Request(`http://localhost${path}`, init);
 
 describe('GET /api/video/status', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
@@ -88,9 +80,9 @@ describe('GET /api/video/status', () => {
   describe('Authentication', () => {
     it('should return 401 when user is not authenticated', async () => {
       mockUnauthenticatedUser(mockSupabase);
-      mockRequest = new NextRequest(
-        'http://localhost/api/video/status?operationName=test&projectId=123'
-      );
+      mockRequest = createRequest(
+        '/api/video/status?operationName=test&projectId=123'
+      ) as unknown as NextRequest;
 
       const response = await GET(mockRequest);
 
@@ -101,7 +93,7 @@ describe('GET /api/video/status', () => {
   describe('Input Validation', () => {
     it('should return 400 when operationName is missing', async () => {
       mockAuthenticatedUser(mockSupabase);
-      mockRequest = new NextRequest('http://localhost/api/video/status?projectId=123');
+      mockRequest = createRequest('/api/video/status?projectId=123') as unknown as NextRequest;
 
       const response = await GET(mockRequest);
 
@@ -112,7 +104,7 @@ describe('GET /api/video/status', () => {
 
     it('should return 400 when projectId is missing', async () => {
       mockAuthenticatedUser(mockSupabase);
-      mockRequest = new NextRequest('http://localhost/api/video/status?operationName=test');
+      mockRequest = createRequest('/api/video/status?operationName=test') as unknown as NextRequest;
 
       const response = await GET(mockRequest);
 
@@ -131,9 +123,9 @@ describe('GET /api/video/status', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
-      );
+      mockRequest = createRequest(
+        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
 
       const response = await GET(mockRequest);
 
@@ -175,9 +167,9 @@ describe('GET /api/video/status', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
-      );
+      mockRequest = createRequest(
+        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
 
       const response = await GET(mockRequest);
 
@@ -197,9 +189,9 @@ describe('GET /api/video/status', () => {
         error: 'Generation failed',
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
-      );
+      mockRequest = createRequest(
+        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
 
       const response = await GET(mockRequest);
 
@@ -212,9 +204,9 @@ describe('GET /api/video/status', () => {
     it('should validate FAL operation name format', async () => {
       mockAuthenticatedUser(mockSupabase);
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/video/status?operationName=fal:invalid&projectId=test-project-id'
-      );
+      mockRequest = createRequest(
+        '/api/video/status?operationName=fal:invalid&projectId=test-project-id'
+      ) as unknown as NextRequest;
 
       const response = await GET(mockRequest);
 
@@ -231,9 +223,9 @@ describe('GET /api/video/status', () => {
         metadata: { progressPercentage: 50 },
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
-      );
+      mockRequest = createRequest(
+        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
 
       const response = await GET(mockRequest);
 
@@ -272,9 +264,9 @@ describe('GET /api/video/status', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
-      );
+      mockRequest = createRequest(
+        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
 
       const response = await GET(mockRequest);
 
@@ -328,9 +320,9 @@ describe('GET /api/video/status', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/video/status?operationName=operations/veo-456&projectId=test-project-id'
-      );
+      mockRequest = createRequest(
+        '/api/video/status?operationName=operations/veo-456&projectId=test-project-id'
+      ) as unknown as NextRequest;
 
       const response = await GET(mockRequest);
 
@@ -351,9 +343,9 @@ describe('GET /api/video/status', () => {
         },
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
-      );
+      mockRequest = createRequest(
+        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
 
       const response = await GET(mockRequest);
 

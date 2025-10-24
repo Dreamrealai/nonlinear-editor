@@ -7,12 +7,13 @@
 
 import type { AssetMetadata, AssetRow } from '@/components/editor/AssetPanel';
 import { ensureHttpsProtocol } from '@/lib/supabase';
+import { CLIP_CONSTANTS, THUMBNAIL_CONSTANTS } from '@/lib/constants';
 
 /** Minimum duration for a clip in seconds */
-export const MIN_CLIP_DURATION = 0.1;
+export const MIN_CLIP_DURATION = CLIP_CONSTANTS.MIN_CLIP_DURATION;
 
 /** Maximum width for generated thumbnails in pixels */
-export const THUMBNAIL_WIDTH = 320;
+export const THUMBNAIL_WIDTH = THUMBNAIL_CONSTANTS.THUMBNAIL_WIDTH;
 
 /**
  * Safely converts unknown values to a number representing duration in seconds.

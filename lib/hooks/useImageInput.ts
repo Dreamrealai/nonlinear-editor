@@ -45,7 +45,7 @@ export function useImageInput(): UseImageInputReturn {
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [imageAssetId, setImageAssetId] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null) as React.RefObject<HTMLInputElement>;
 
   // Clear selected image and preview
   const clearImage = useCallback(() => {

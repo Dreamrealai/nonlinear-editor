@@ -23,3 +23,21 @@ export const ASSET_PAGINATION_CONSTANTS = {
   /** Default number of assets to show per page */
   DEFAULT_PAGE_SIZE: 50,
 } as const;
+
+/** Editor state constants */
+export const EDITOR_CONSTANTS = {
+  /** Maximum history entries for undo/redo */
+  MAX_HISTORY: 50,
+  /** Debounce delay for history saves in milliseconds */
+  HISTORY_DEBOUNCE_MS: 300,
+} as const;
+
+/** Zoom constants for timeline */
+export const ZOOM_CONSTANTS = {
+  /** Minimum zoom level */
+  MIN_ZOOM: 10,
+  /** Maximum zoom level */
+  MAX_ZOOM: 200,
+  /** Default zoom level */
+  DEFAULT_ZOOM: 50,
+} as const;

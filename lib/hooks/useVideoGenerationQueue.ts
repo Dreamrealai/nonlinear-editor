@@ -40,10 +40,7 @@ export interface UseVideoGenerationQueueReturn {
 /**
  * Hook to manage video generation queue with polling
  */
-export function useVideoGenerationQueue(
-  projectId: string,
-  onImageUpload?: (file: File) => Promise<string>
-): UseVideoGenerationQueueReturn {
+export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQueueReturn {
   const [videoQueue, setVideoQueue] = useState<VideoQueueItemData[]>([]);
   const [generating, setGenerating] = useState(false);
   const pollingIntervalsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());

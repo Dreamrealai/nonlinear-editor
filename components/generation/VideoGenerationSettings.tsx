@@ -8,12 +8,12 @@
 'use client';
 
 import { useState } from 'react';
-import type { VideoModelConfig } from '@/lib/config/models';
+import type { ModelConfig } from '@/lib/config/models';
 import { MODEL_PROVIDERS } from '@/lib/config/models';
 
 interface VideoGenerationSettingsProps {
   /** Current model configuration */
-  modelConfig: VideoModelConfig;
+  modelConfig: ModelConfig;
   /** Resolution setting */
   resolution: '720p' | '1080p';
   /** Sample count (number of videos to generate) */

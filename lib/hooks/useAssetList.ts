@@ -9,7 +9,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { browserLogger } from '@/lib/browserLogger';
 import { mapAssetRow } from '@/lib/utils/assetUtils';
+import { ASSET_PAGINATION_CONSTANTS } from '@/lib/constants';
 import type { AssetRow } from '@/components/editor/AssetPanel';
+
+const { DEFAULT_PAGE_SIZE } = ASSET_PAGINATION_CONSTANTS;
 
 export interface UseAssetListReturn {
   /** List of all assets for current page */
@@ -50,7 +53,10 @@ export interface UseAssetListReturn {
  * Fetches assets from database, handles pagination,
  * and provides methods to update the asset list.
  */
-export function useAssetList(projectId: string, pageSize: number = 50): UseAssetListReturn {
+export function useAssetList(
+  projectId: string,
+  pageSize: number = DEFAULT_PAGE_SIZE
+): UseAssetListReturn {
   const supabase = createBrowserSupabaseClient();
   const [assets, setAssets] = useState<AssetRow[]>([]);
   const [loadingAssets, setLoadingAssets] = useState(false);

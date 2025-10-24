@@ -13,313 +13,20 @@
  * - Maintains one <video> element per clip for parallel loading
  * - Computes opacity dynamically for transitions and fades
  * - Prevents memory leaks with proper cleanup on unmount
+ *
+ * Refactored to use extracted hooks and components for maintainability.
  */
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
-import type { Clip, ColorCorrection, Transform, TransitionType } from '@/types/timeline';
 import TextOverlayRenderer from './TextOverlayRenderer';
 import TextOverlayEditor from './TextOverlayEditor';
+import PlaybackControls from './preview/PlaybackControls';
 import { browserLogger } from '@/lib/browserLogger';
-
-/** Default TTL for signed URLs in seconds (10 minutes) */
-const SIGNED_URL_TTL_DEFAULT = 600;
-
-/** Buffer time before URL expiration to refresh (5 seconds) */
-const SIGNED_URL_BUFFER_MS = 5_000;
-
-/**
- * Computed metadata for a clip on the timeline.
- * Includes fade/crossfade information for rendering.
- */
-type ClipMeta = {
-  /** Duration of the clip in seconds (end - start) */
-  length: number;
-  /** Original timeline position before crossfades */
-  timelineStart: number;
-  /** Effective start position accounting for crossfades */
-  effectiveStart: number;
-  /** Fade-in duration in seconds */
-  fadeIn: number;
-  /** Fade-out duration in seconds */
-  fadeOut: number;
-  /** Transition type for rendering */
-  transitionType: TransitionType;
-  /** Transition duration in seconds */
-  transitionDuration: number;
-};
-
-/**
- * Clamps a value between min and max.
- * @param value - Value to clamp
- * @param min - Minimum bound (default 0)
- * @param max - Maximum bound (default 1)
- * @returns Clamped value
- */
-const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
-
-/**
- * Generates CSS filter string from color correction settings.
- * @param colorCorrection - Color correction settings (optional)
- * @returns CSS filter string
- */
-const generateCSSFilter = (colorCorrection?: ColorCorrection): string => {
-  if (!colorCorrection) {
-    return 'none';
-  }
-
-  const filters: string[] = [];
-
-  // Brightness: 0-200% (100 = no change)
-  if (colorCorrection.brightness !== 100) {
-    filters.push(`brightness(${colorCorrection.brightness}%)`);
-  }
-
-  // Contrast: 0-200% (100 = no change)
-  if (colorCorrection.contrast !== 100) {
-    filters.push(`contrast(${colorCorrection.contrast}%)`);
-  }
-
-  // Saturation: 0-200% (100 = no change)
-  if (colorCorrection.saturation !== 100) {
-    filters.push(`saturate(${colorCorrection.saturation}%)`);
-  }
-
-  // Hue: 0-360 degrees (0 = no change)
-  if (colorCorrection.hue !== 0) {
-    filters.push(`hue-rotate(${colorCorrection.hue}deg)`);
-  }
-
-  return filters.length > 0 ? filters.join(' ') : 'none';
-};
-
-/**
- * Generates CSS transform string from transform settings.
- * @param transform - Transform settings (optional)
- * @returns CSS transform string
- */
-const generateCSSTransform = (transform?: Transform): string => {
-  if (!transform) {
-    return 'translateZ(0)';
-  }
-
-  const transforms: string[] = ['translateZ(0)']; // Always include for GPU acceleration
-
-  // Flip horizontal/vertical (apply before scale to avoid double scaling)
-  const scaleX = transform.flipHorizontal ? -1 : 1;
-  const scaleY = transform.flipVertical ? -1 : 1;
-
-  // Combined scale (user scale * flip scale)
-  const finalScale = transform.scale || 1.0;
-  transforms.push(`scale(${scaleX * finalScale}, ${scaleY * finalScale})`);
-
-  // Rotation: 0-360 degrees (0 = no change)
-  if (transform.rotation !== 0) {
-    transforms.push(`rotate(${transform.rotation}deg)`);
-  }
-
-  return transforms.join(' ');
-};
-
-/**
- * Computes playback metadata for all clips including transition effects.
- *
- * This function processes crossfade transitions between clips on the same track.
- * When clip A has a crossfade-out transition, it overlaps with clip B, and
- * clip B's effective start is adjusted backwards to create the overlap.
- *
- * Process:
- * 1. Extract fade-in, fade-out, and crossfade settings from each clip
- * 2. Group clips by track index
- * 3. For each track, adjust effectiveStart for clips with crossfade-in
- * 4. Return a map of clip IDs to their computed metadata
- *
- * @param clips - Array of timeline clips
- * @returns Map of clip IDs to computed metadata
- */
-const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
-  if (clips.length === 0) {
-    return new Map();
-  }
-
-  // Extended metadata type that tracks crossfade-in and crossfade-out separately
-  type InternalMeta = ClipMeta & { crossfadeOut: number; crossfadeIn: number };
-
-  // Initialize metadata for each clip
-  const base: InternalMeta[] = clips.map((clip) => {
-    const length = Math.max(0, clip.end - clip.start);
-    const timelineStart = Math.max(0, clip.timelinePosition);
-    const transition = clip.transitionToNext;
-
-    // Extract transition durations (minimum 50ms to avoid issues)
-    const fadeInBase =
-      transition?.type === 'fade-in' ? Math.max(0.05, transition.duration || 0.5) : 0;
-    const fadeOutBase =
-      transition?.type === 'fade-out' ? Math.max(0.05, transition.duration || 0.5) : 0;
-    const crossfadeOut =
-      transition?.type === 'crossfade'
-        ? Math.min(length, Math.max(0.05, transition.duration || 0.5))
-        : 0;
-
-    return {
-      length,
-      timelineStart,
-      effectiveStart: timelineStart, // Will be adjusted for crossfades
-      fadeIn: fadeInBase,
-      fadeOut: fadeOutBase,
-      crossfadeOut,
-      crossfadeIn: 0,
-      transitionType: transition?.type || 'none',
-      transitionDuration: transition?.duration || 0,
-    };
-  });
-
-  // Group clips by track index for crossfade processing
-  const clipsByTrack = new Map<number, number[]>();
-  clips.forEach((clip, index) => {
-    const list = clipsByTrack.get(clip.trackIndex) ?? [];
-    list.push(index);
-    clipsByTrack.set(clip.trackIndex, list);
-  });
-
-  // Process crossfades: adjust effectiveStart for overlapping clips
-  clipsByTrack.forEach((indices) => {
-    // Sort clips by timeline position within each track
-    indices.sort((a, b) => clips[a].timelinePosition - clips[b].timelinePosition);
-
-    // Check adjacent clips for crossfade transitions
-    for (let i = 1; i < indices.length; i += 1) {
-      const prev = base[indices[i - 1]];
-      const next = base[indices[i]];
-      if (!prev || !next) {
-        continue;
-      }
-      // If previous clip has crossfade-out, adjust next clip's start
-      if (prev.crossfadeOut > 0) {
-        const overlapStart = prev.timelineStart + Math.max(0, prev.length - prev.crossfadeOut);
-        next.effectiveStart = Math.min(next.effectiveStart, overlapStart);
-        next.crossfadeIn = Math.max(next.crossfadeIn, prev.crossfadeOut);
-      }
-    }
-  });
-
-  // Build final metadata map combining fades and crossfades
-  const metaMap = new Map<string, ClipMeta>();
-  base.forEach((meta, index) => {
-    metaMap.set(clips[index].id, {
-      length: meta.length,
-      timelineStart: meta.timelineStart,
-      effectiveStart: Math.max(0, meta.effectiveStart),
-      // Use the maximum of fade-in and crossfade-in
-      fadeIn: Math.max(meta.fadeIn, meta.crossfadeIn),
-      // Use the maximum of fade-out and crossfade-out
-      fadeOut: Math.max(meta.fadeOut, meta.crossfadeOut),
-      transitionType: meta.transitionType,
-      transitionDuration: meta.transitionDuration,
-    });
-  });
-
-  return metaMap;
-};
-
-/**
- * Computes opacity for a clip based on its progress and fade settings.
- *
- * Opacity curve:
- * - Fades in from 0 to 1 over fadeIn duration
- * - Remains at 1 during middle section
- * - Fades out from 1 to 0 over fadeOut duration
- *
- * @param meta - Clip metadata with fade settings
- * @param progress - Playback progress within the clip (0 to meta.length)
- * @returns Opacity value between 0 and 1
- */
-const computeOpacity = (meta: ClipMeta, progress: number) => {
-  // Clip is not visible outside its duration
-  if (progress < 0 || progress > meta.length) {
-    return 0;
-  }
-
-  let opacity = 1;
-
-  // Apply fade-in at the start
-  if (meta.fadeIn > 0) {
-    opacity = Math.min(opacity, clamp(progress / meta.fadeIn));
-  }
-
-  // Apply fade-out at the end
-  if (meta.fadeOut > 0) {
-    const remaining = meta.length - progress;
-    opacity = Math.min(opacity, clamp(remaining / meta.fadeOut));
-  }
-
-  return clamp(opacity);
-};
-
-/**
- * Formats time in seconds to MM:SS:FF timecode.
- * FF represents frames at 30fps.
- *
- * @param seconds - Time in seconds
- * @returns Formatted timecode string (e.g., "01:23:15")
- */
-const formatTimecode = (seconds: number): string => {
-  if (!Number.isFinite(seconds)) {
-    return '00:00:00';
-  }
-  const safe = Math.max(0, seconds);
-  const totalSeconds = Math.floor(safe);
-  const minutes = Math.floor(totalSeconds / 60);
-  const secs = totalSeconds % 60;
-  const frames = Math.floor((safe - totalSeconds) * 30); // 30fps
-  return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}:${frames
-    .toString()
-    .padStart(2, '0')}`;
-};
-
-/**
- * Ensures video has buffered enough data for smooth playback.
- * Waits for readyState >= 3 (HAVE_FUTURE_DATA) instead of just metadata.
- */
-async function ensureBuffered(video: HTMLVideoElement, timeout = 10000): Promise<void> {
-  // readyState 3 = HAVE_FUTURE_DATA (enough data to play without immediate stalling)
-  if (video.readyState >= 3) {
-    return;
-  }
-
-  return new Promise<void>((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
-      cleanup();
-      reject(
-        new Error(`Video buffering timeout after ${timeout}ms (readyState: ${video.readyState})`)
-      );
-    }, timeout);
-
-    const cleanup = () => {
-      clearTimeout(timeoutId);
-      video.removeEventListener('canplay', handler);
-      video.removeEventListener('canplaythrough', handler);
-      video.removeEventListener('error', errorHandler);
-    };
-
-    const handler = () => {
-      if (video.readyState >= 3) {
-        cleanup();
-        resolve();
-      }
-    };
-
-    const errorHandler = () => {
-      cleanup();
-      reject(new Error(`Video loading error: ${video.error?.message || 'Unknown error'}`));
-    };
-
-    video.addEventListener('canplay', handler);
-    video.addEventListener('canplaythrough', handler);
-    video.addEventListener('error', errorHandler);
-  });
-}
+import { computeClipMetas } from '@/lib/utils/videoUtils';
+import { useVideoManager } from '@/lib/hooks/useVideoManager';
+import { useVideoPlayback } from '@/lib/hooks/useVideoPlayback';
 
 export default function PreviewPlayer() {
   const timeline = useEditorStore((state) => state.timeline);
@@ -327,43 +34,20 @@ export default function PreviewPlayer() {
   const setCurrentTime = useEditorStore((state) => state.setCurrentTime);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const videoMapRef = useRef<Map<string, HTMLVideoElement>>(new Map());
-  const videoPromisesRef = useRef<Map<string, Promise<HTMLVideoElement>>>(new Map());
-  const signedUrlCacheRef = useRef<Map<string, { url: string; expiresAt: number }>>(new Map());
-  const signedUrlRequestRef = useRef<Map<string, Promise<string | null>>>(new Map());
-  // Track event listeners for proper cleanup
-  const videoErrorHandlersRef = useRef<Map<string, (e: Event) => void>>(new Map());
-
-  /**
-   * Video Element Pool Strategy:
-   * - Maximum 10 reusable video elements to prevent memory leaks
-   * - Aggressive cleanup when returning elements to pool
-   * - Elements exceeding pool size are destroyed immediately
-   */
-  const videoPoolRef = useRef<HTMLVideoElement[]>([]);
-  const VIDEO_POOL_MAX_SIZE = 10;
-
-  const playingRef = useRef(false);
-  const playbackRafRef = useRef<number | null>(null);
-  const playStartRef = useRef(0);
-  const startTimeRef = useRef(0);
-  const globalTimeRef = useRef(0);
-
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [showControls, setShowControls] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isDraggingSlider, setIsDraggingSlider] = useState(false);
   const playerContainerRef = useRef<HTMLDivElement>(null);
-  const progressBarRef = useRef<HTMLDivElement>(null);
-  const hideControlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Sort clips by timeline position
   const sortedClips = useMemo(() => {
     if (!timeline) return [];
     return [...timeline.clips].sort((a, b) => a.timelinePosition - b.timelinePosition);
   }, [timeline]);
 
+  // Compute clip metadata (fades, crossfades, etc.)
   const clipMetas = useMemo(() => computeClipMetas(sortedClips), [sortedClips]);
 
+  // Calculate total duration
   const totalDuration = useMemo(() => {
     let max = 0;
     sortedClips.forEach((clip) => {
@@ -374,561 +58,24 @@ export default function PreviewPlayer() {
     return max;
   }, [sortedClips, clipMetas]);
 
-  // Proper video cleanup to prevent memory leaks
-  const cleanupVideo = useCallback((clipId: string, video: HTMLVideoElement) => {
-    // Remove event listeners
-    const errorHandler = videoErrorHandlersRef.current.get(clipId);
-    if (errorHandler) {
-      video.removeEventListener('error', errorHandler);
-      videoErrorHandlersRef.current.delete(clipId);
-    }
-
-    // Aggressive cleanup before pooling/destroying
-    video.pause();
-    video.removeAttribute('src');
-    video.load(); // Critical: forces browser to release media resources
-    video.style.opacity = '0';
-
-    // Return to pool or destroy based on pool size
-    if (videoPoolRef.current.length < VIDEO_POOL_MAX_SIZE) {
-      videoPoolRef.current.push(video);
-    } else {
-      video.remove(); // Destroy if pool is full
-    }
-  }, []);
-
-  const locateClipSrc = useCallback(async (clip: Clip) => {
-    try {
-      if (!clip.filePath) {
-        throw new Error('Clip is missing file path information.');
-      }
-
-      const directUrl = typeof clip.previewUrl === 'string' ? clip.previewUrl.trim() : '';
-      if (directUrl && (directUrl.startsWith('http') || directUrl.startsWith('blob:'))) {
-        return directUrl;
-      }
-
-      if (clip.filePath.startsWith('http') || clip.filePath.startsWith('blob:')) {
-        return clip.filePath;
-      }
-
-      const cacheKey = clip.assetId ?? clip.filePath;
-      const cached = signedUrlCacheRef.current.get(cacheKey);
-      if (cached && cached.expiresAt > Date.now()) {
-        return cached.url;
-      }
-
-      const pending = signedUrlRequestRef.current.get(cacheKey);
-      if (pending) {
-        const result = await pending;
-        if (!result) {
-          throw new Error('Unable to resolve signed URL');
-        }
-        return result;
-      }
-
-      const params = new URLSearchParams(
-        clip.assetId ? { assetId: clip.assetId } : { storageUrl: clip.filePath }
-      );
-
-      const request = (async () => {
-        try {
-          const response = await fetch(`/api/assets/sign?${params.toString()}`);
-          if (!response.ok) {
-            const detail = await response.text().catch(() => '');
-            throw new Error(`Sign request failed (${response.status}) ${detail}`.trim());
-          }
-
-          const payload = (await response.json()) as { signedUrl?: string; expiresIn?: number };
-          if (typeof payload.signedUrl !== 'string' || payload.signedUrl.length === 0) {
-            throw new Error('Sign response missing signedUrl');
-          }
-          const expiresInSeconds =
-            typeof payload.expiresIn === 'number' && Number.isFinite(payload.expiresIn)
-              ? payload.expiresIn
-              : SIGNED_URL_TTL_DEFAULT;
-          const expiresAt =
-            Date.now() + Math.max(0, expiresInSeconds * 1000 - SIGNED_URL_BUFFER_MS);
-          signedUrlCacheRef.current.set(cacheKey, { url: payload.signedUrl, expiresAt });
-          return payload.signedUrl;
-        } catch (error) {
-          browserLogger.error(
-            { assetId: clip.assetId, error },
-            'Failed to fetch signed URL for clip'
-          );
-          return null;
-        } finally {
-          signedUrlRequestRef.current.delete(cacheKey);
-        }
-      })();
-
-      signedUrlRequestRef.current.set(cacheKey, request);
-      const resolved = await request;
-      if (!resolved) {
-        throw new Error('Unable to resolve signed URL');
-      }
-      return resolved;
-    } catch (error) {
-      browserLogger.error(
-        {
-          clipId: clip.id,
-          assetId: clip.assetId,
-          filePath: clip.filePath,
-          error,
-        },
-        'Failed to locate clip source'
-      );
-      throw error;
-    }
-  }, []);
-
-  const ensureClipElement = useCallback(
-    async (clip: Clip): Promise<HTMLVideoElement> => {
-      try {
-        const existing = videoMapRef.current.get(clip.id);
-        if (existing) {
-          return existing;
-        }
-
-        let pending = videoPromisesRef.current.get(clip.id);
-        if (!pending) {
-          pending = (async () => {
-            try {
-              const container = containerRef.current;
-              if (!container) {
-                throw new Error('Preview container not mounted');
-              }
-
-              // Get video from pool or create new one
-              const video = videoPoolRef.current.pop() ?? document.createElement('video');
-              video.playsInline = true;
-              video.preload = 'auto';
-              video.controls = false;
-              video.disablePictureInPicture = true;
-              video.style.position = 'absolute';
-              video.style.inset = '0';
-              video.style.width = '100%';
-              video.style.height = '100%';
-              video.style.objectFit = 'contain';
-              video.style.pointerEvents = 'none';
-              video.style.opacity = '0';
-              // Remove CSS transition - RAF will handle opacity smoothly
-              video.style.transition = 'none';
-              video.style.zIndex = String(1000 - clip.trackIndex);
-              video.style.willChange = 'opacity, transform, filter';
-              video.style.transform = generateCSSTransform(clip.transform);
-              video.style.filter = generateCSSFilter(clip.colorCorrection);
-              video.style.backfaceVisibility = 'hidden';
-              // Mute non-primary tracks to prevent browser audio throttling
-              video.muted = clip.trackIndex !== 0;
-
-              const source = await locateClipSrc(clip);
-              // Set crossOrigin BEFORE src to avoid CORS issues
-              video.crossOrigin = 'anonymous';
-              video.src = source;
-
-              // Store error handler for cleanup
-              const errorHandler = (error: Event) => {
-                browserLogger.error(
-                  {
-                    clipId: clip.id,
-                    src: source,
-                    error,
-                    videoError: video.error,
-                    readyState: video.readyState,
-                    networkState: video.networkState,
-                  },
-                  'Video playback error'
-                );
-              };
-              video.addEventListener('error', errorHandler);
-              videoErrorHandlersRef.current.set(clip.id, errorHandler);
-
-              // Wait for video to buffer enough data for smooth playback
-              await ensureBuffered(video).catch((bufferError) => {
-                browserLogger.error(
-                  {
-                    clipId: clip.id,
-                    src: source,
-                    error: bufferError,
-                    readyState: video.readyState,
-                    networkState: video.networkState,
-                  },
-                  'Video buffering failed'
-                );
-                throw bufferError;
-              });
-
-              videoMapRef.current.set(clip.id, video);
-              container.appendChild(video);
-              return video;
-            } catch (error) {
-              browserLogger.error(
-                {
-                  clipId: clip.id,
-                  error,
-                },
-                'Failed to create video element for clip'
-              );
-              throw error;
-            }
-          })();
-
-          videoPromisesRef.current.set(clip.id, pending);
-        }
-
-        return pending;
-      } catch (error) {
-        browserLogger.error(
-          {
-            clipId: clip.id,
-            error,
-          },
-          'Failed to ensure clip element'
-        );
-        throw error;
-      }
-    },
-    [locateClipSrc]
-  );
-
-  const stopPlayback = useCallback(
-    (options?: { finalTime?: number }) => {
-      if (playbackRafRef.current !== null) {
-        cancelAnimationFrame(playbackRafRef.current);
-        playbackRafRef.current = null;
-      }
-      playingRef.current = false;
-      setIsPlaying(false);
-
-      const finalTime = options?.finalTime ?? globalTimeRef.current;
-      sortedClips.forEach((clip) => {
-        const video = videoMapRef.current.get(clip.id);
-        const meta = clipMetas.get(clip.id);
-        if (!video || !meta) return;
-        const localProgress = finalTime - meta.effectiveStart;
-        if (localProgress < 0 || localProgress > meta.length) {
-          video.pause();
-          video.style.opacity = '0';
-          return;
-        }
-        const clipEnd = clip.start + meta.length;
-        const targetTime = clamp(
-          clip.start + localProgress,
-          clip.start,
-          clipEnd > clip.start ? clipEnd - 0.001 : clip.start
-        );
-        if (Math.abs(video.currentTime - targetTime) > 0.05) {
-          video.currentTime = targetTime;
-        }
-        video.pause();
-        video.style.opacity = computeOpacity(meta, localProgress).toString();
-        // Apply color correction and transforms
-        video.style.filter = generateCSSFilter(clip.colorCorrection);
-        video.style.transform = generateCSSTransform(clip.transform);
-      });
-    },
-    [sortedClips, clipMetas]
-  );
-
-  // Component unmount cleanup
-  useEffect(() => {
-    const videoMap = videoMapRef.current;
-    const videoPromises = videoPromisesRef.current;
-    const errorHandlers = videoErrorHandlersRef.current;
-    const signedUrlCache = signedUrlCacheRef.current;
-    const signedUrlRequests = signedUrlRequestRef.current;
-    const videoPool = videoPoolRef.current;
-
-    return () => {
-      // Stop playback
-      if (playbackRafRef.current !== null) {
-        cancelAnimationFrame(playbackRafRef.current);
-        playbackRafRef.current = null;
-      }
-      playingRef.current = false;
-
-      // Clean up all active video elements (will return to pool or destroy)
-      videoMap.forEach((video, clipId) => {
-        cleanupVideo(clipId, video);
-      });
-      videoMap.clear();
-      videoPromises.clear();
-      errorHandlers.clear();
-      signedUrlCache.clear();
-      signedUrlRequests.clear();
-
-      // Destroy all pooled video elements on unmount
-      videoPool.forEach((video) => {
-        video.pause();
-        video.removeAttribute('src');
-        video.load();
-        video.remove();
-      });
-      videoPool.length = 0;
-    };
-  }, [cleanupVideo]);
-
-  useEffect(() => {
-    const clips = timeline?.clips ?? [];
-    const validKeys = new Set(
-      clips
-        .map((clip) => clip.assetId ?? clip.filePath)
-        .filter((key): key is string => typeof key === 'string' && key.length > 0)
-    );
-
-    signedUrlCacheRef.current.forEach((_, key) => {
-      if (!validKeys.has(key)) {
-        signedUrlCacheRef.current.delete(key);
-      }
-    });
-    signedUrlRequestRef.current.forEach((_, key) => {
-      if (!validKeys.has(key)) {
-        signedUrlRequestRef.current.delete(key);
-      }
-    });
-
-    if (!timeline) {
-      signedUrlCacheRef.current.clear();
-      signedUrlRequestRef.current.clear();
-    }
-  }, [timeline]);
-
-  // Track last sync time to throttle updates during RAF loop
-  const lastSyncTimeRef = useRef<number>(0);
-  const frameTimeThresholdRef = useRef<number>(16); // Adaptive: 16ms = 60fps, 33ms = 30fps
-  const droppedFramesRef = useRef<number>(0);
-  const performanceCheckCountRef = useRef<number>(0);
-
-  // Detect device capabilities and adjust frame rate adaptively
-  useEffect(() => {
-    // Check CPU cores and memory as indicators of device capability
-    const hardwareConcurrency = navigator.hardwareConcurrency || 4;
-    // @ts-expect-error - deviceMemory is not in TypeScript definitions yet
-    const deviceMemory = navigator.deviceMemory || 4; // In GB
-
-    // Lower-end devices: 2 cores or less, or 2GB RAM or less
-    const isLowerEndDevice = hardwareConcurrency <= 2 || deviceMemory <= 2;
-
-    if (isLowerEndDevice) {
-      // Reduce to 30fps for lower-end devices
-      frameTimeThresholdRef.current = 33;
-      browserLogger.info(
-        {
-          cores: hardwareConcurrency,
-          memory: deviceMemory,
-          targetFps: 30,
-        },
-        'PreviewPlayer: Adaptive frame rate - Lower-end device detected, using 30fps'
-      );
-    } else {
-      // Use 60fps for capable devices
-      frameTimeThresholdRef.current = 16;
-      browserLogger.info(
-        {
-          cores: hardwareConcurrency,
-          memory: deviceMemory,
-          targetFps: 60,
-        },
-        'PreviewPlayer: Adaptive frame rate - High-end device detected, using 60fps'
-      );
-    }
-  }, []);
-
-  const syncClipsAtTime = useCallback(
-    (time: number, play: boolean) => {
-      // Throttle sync during playback based on adaptive frame rate
-      const now = performance.now();
-      const threshold = frameTimeThresholdRef.current;
-
-      if (play && now - lastSyncTimeRef.current < threshold) {
-        return;
-      }
-
-      // Track frame timing for dynamic adjustment
-      const timeSinceLastFrame = now - lastSyncTimeRef.current;
-      if (play && timeSinceLastFrame > threshold * 2) {
-        // Frame took more than 2x the threshold - likely a dropped frame
-        droppedFramesRef.current += 1;
-        performanceCheckCountRef.current += 1;
-
-        // Every 60 frames, check if we should reduce frame rate further
-        if (performanceCheckCountRef.current >= 60) {
-          const dropRate = droppedFramesRef.current / performanceCheckCountRef.current;
-
-          // If dropping more than 20% of frames, reduce target frame rate
-          if (dropRate > 0.2 && frameTimeThresholdRef.current < 50) {
-            frameTimeThresholdRef.current = Math.min(50, frameTimeThresholdRef.current + 8);
-            browserLogger.warn(
-              {
-                dropRate: Math.round(dropRate * 100),
-                newThreshold: frameTimeThresholdRef.current,
-                newFps: Math.round(1000 / frameTimeThresholdRef.current),
-              },
-              'PreviewPlayer: High frame drop rate detected, reducing target frame rate'
-            );
-          }
-
-          // Reset counters
-          droppedFramesRef.current = 0;
-          performanceCheckCountRef.current = 0;
-        }
-      }
-
-      lastSyncTimeRef.current = now;
-
-      sortedClips.forEach((clip) => {
-        const meta = clipMetas.get(clip.id);
-        const video = videoMapRef.current.get(clip.id);
-        if (!meta || !video) {
-          return;
-        }
-
-        const localProgress = time - meta.effectiveStart;
-        if (localProgress < 0 || localProgress > meta.length) {
-          video.style.opacity = '0';
-          if (!video.paused) {
-            video.pause();
-          }
-          return;
-        }
-
-        const clipEnd = clip.start + meta.length;
-        const targetTime = clamp(
-          clip.start + localProgress,
-          clip.start,
-          clipEnd > clip.start ? clipEnd - 0.001 : clip.start
-        );
-
-        // Increased threshold from 0.05s to 0.3s to reduce excessive seeking
-        // Only seek if video is buffered and not currently seeking
-        const drift = Math.abs(video.currentTime - targetTime);
-        if (drift > 0.3 && video.readyState >= 2 && !video.seeking) {
-          video.currentTime = targetTime;
-        }
-
-        // Sync playback rate if clip has custom speed
-        const desiredSpeed = clip.speed ?? 1.0;
-        if (Math.abs(video.playbackRate - desiredSpeed) > 0.01) {
-          video.playbackRate = desiredSpeed;
-        }
-
-        const opacity = computeOpacity(meta, localProgress);
-        video.style.opacity = opacity.toString();
-
-        // Apply color correction and transforms
-        video.style.filter = generateCSSFilter(clip.colorCorrection);
-        video.style.transform = generateCSSTransform(clip.transform);
-
-        if (play) {
-          if (video.paused && video.readyState >= 3) {
-            // Only play if video has buffered enough data
-            video.play().catch((error) => {
-              browserLogger.warn(
-                {
-                  clipId: clip.id,
-                  error: error.message,
-                  readyState: video.readyState,
-                  networkState: video.networkState,
-                },
-                `Video play failed for clip ${clip.id}`
-              );
-            });
-          }
-        } else if (!video.paused) {
-          video.pause();
-        }
-      });
-    },
-    [sortedClips, clipMetas]
-  );
-
-  const playAll = useCallback(async () => {
-    try {
-      if (!timeline || timeline.clips.length === 0) {
-        return;
-      }
-
-      await Promise.all(
-        sortedClips.map((clip) =>
-          ensureClipElement(clip).catch((error) => {
-            browserLogger.error({ clipId: clip.id, error }, 'Failed to prepare clip for preview');
-          })
-        )
-      );
-
-      const start = clamp(currentTime, 0, totalDuration);
-      syncClipsAtTime(start, false);
-
-      playingRef.current = true;
-      setIsPlaying(true);
-      startTimeRef.current = start;
-      playStartRef.current = performance.now();
-      globalTimeRef.current = start;
-
-      const loop = () => {
-        if (!playingRef.current) {
-          return;
-        }
-
-        const elapsedSeconds = (performance.now() - playStartRef.current) / 1000;
-        const timelineTime = startTimeRef.current + elapsedSeconds;
-        globalTimeRef.current = timelineTime;
-
-        if (timelineTime >= totalDuration) {
-          setCurrentTime(totalDuration);
-          stopPlayback({ finalTime: totalDuration });
-          return;
-        }
-
-        syncClipsAtTime(timelineTime, true);
-        setCurrentTime(timelineTime);
-        playbackRafRef.current = requestAnimationFrame(loop);
-      };
-
-      playbackRafRef.current = requestAnimationFrame(loop);
-    } catch (error) {
-      browserLogger.error({ error }, 'Failed to start playback');
-      // Stop playback on error
-      stopPlayback({ finalTime: currentTime });
-    }
-  }, [
+  // Video element management (pooling, signed URLs, cleanup)
+  const { videoMapRef, ensureClipElement, cleanupVideo } = useVideoManager({
+    containerRef,
     timeline,
+  });
+
+  // Playback state management (RAF loop, sync, play/pause)
+  const { isPlaying, stopPlayback, togglePlayPause, syncClipsAtTime } = useVideoPlayback({
     sortedClips,
-    ensureClipElement,
+    clipMetas,
+    videoMapRef,
     currentTime,
     totalDuration,
-    syncClipsAtTime,
     setCurrentTime,
-    stopPlayback,
-  ]);
+    ensureClipElement,
+  });
 
-  // Auto-hide controls after inactivity
-  const resetHideControlsTimeout = useCallback(() => {
-    if (hideControlsTimeoutRef.current) {
-      clearTimeout(hideControlsTimeoutRef.current);
-    }
-
-    setShowControls(true);
-
-    // Only auto-hide if playing
-    if (isPlaying) {
-      hideControlsTimeoutRef.current = setTimeout(() => {
-        setShowControls(false);
-      }, 3000); // Hide after 3 seconds of inactivity
-    }
-  }, [isPlaying]);
-
-  const togglePlayPause = useCallback(() => {
-    if (isPlaying) {
-      stopPlayback({ finalTime: currentTime });
-    } else {
-      playAll().catch((error) => {
-        browserLogger.error({ error }, 'Playback failed in togglePlayPause');
-      });
-    }
-  }, [isPlaying, currentTime, stopPlayback, playAll]);
-
+  // Fullscreen toggle
   const toggleFullscreen = useCallback(async () => {
     if (!playerContainerRef.current) return;
 
@@ -945,79 +92,19 @@ export default function PreviewPlayer() {
     }
   }, []);
 
-  // Calculate time from mouse position on progress bar
-  const getTimeFromMouseEvent = useCallback(
-    (e: React.MouseEvent | MouseEvent) => {
-      if (!progressBarRef.current) return 0;
-
-      const rect = progressBarRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const percentage = clamp(x / rect.width, 0, 1);
-      return percentage * totalDuration;
-    },
-    [totalDuration]
-  );
-
-  // Handle seeking by clicking or dragging the progress bar
-  const handleProgressBarMouseDown = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      setIsDraggingSlider(true);
-
-      const newTime = getTimeFromMouseEvent(e);
+  // Handle seeking from progress bar
+  const handleSeek = useCallback(
+    (newTime: number) => {
       setCurrentTime(newTime);
-
       // Pause during seeking for smoother experience
       if (isPlaying) {
         stopPlayback({ finalTime: newTime });
       }
     },
-    [getTimeFromMouseEvent, setCurrentTime, isPlaying, stopPlayback]
+    [setCurrentTime, isPlaying, stopPlayback]
   );
 
-  // Resume playback after dragging ends (if it was playing before)
-  const handleProgressBarMouseUp = useCallback(
-    (wasPlaying: boolean) => {
-      setIsDraggingSlider(false);
-      if (wasPlaying) {
-        playAll().catch((error) => {
-          browserLogger.error({ error }, 'Playback failed after progress bar drag');
-        });
-      }
-    },
-    [playAll]
-  );
-
-  // Handle mouse move and mouse up for slider dragging
-  useEffect(() => {
-    if (!isDraggingSlider) return;
-
-    const wasPlaying = isPlaying;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const newTime = getTimeFromMouseEvent(e);
-      setCurrentTime(newTime);
-    };
-
-    const handleMouseUp = () => {
-      handleProgressBarMouseUp(wasPlaying);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [
-    isDraggingSlider,
-    isPlaying,
-    getTimeFromMouseEvent,
-    setCurrentTime,
-    handleProgressBarMouseUp,
-  ]);
-
+  // Handle fullscreen change events
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -1029,20 +116,7 @@ export default function PreviewPlayer() {
     };
   }, []);
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (hideControlsTimeoutRef.current) {
-        clearTimeout(hideControlsTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Reset timeout when playing state changes
-  useEffect(() => {
-    resetHideControlsTimeout();
-  }, [isPlaying, resetHideControlsTimeout]);
-
+  // Handle keyboard shortcuts (Space = play/pause)
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.code === 'Space' && event.target === document.body) {
@@ -1057,30 +131,9 @@ export default function PreviewPlayer() {
     };
   }, [togglePlayPause]);
 
+  // Warm up video elements when current time changes (not playing)
   useEffect(() => {
-    if (!timeline) {
-      stopPlayback({ finalTime: 0 });
-      videoMapRef.current.forEach((video, clipId) => {
-        cleanupVideo(clipId, video);
-      });
-      videoMapRef.current.clear();
-      videoPromisesRef.current.clear();
-      videoErrorHandlersRef.current.clear();
-      return;
-    }
-
-    const clipIds = new Set(timeline.clips.map((clip) => clip.id));
-    videoMapRef.current.forEach((video, id) => {
-      if (!clipIds.has(id)) {
-        cleanupVideo(id, video);
-        videoMapRef.current.delete(id);
-        videoPromisesRef.current.delete(id);
-      }
-    });
-  }, [timeline, stopPlayback, cleanupVideo]);
-
-  useEffect(() => {
-    if (!timeline || timeline.clips.length === 0 || playingRef.current) {
+    if (!timeline || timeline.clips.length === 0 || isPlaying) {
       return;
     }
 
@@ -1117,23 +170,25 @@ export default function PreviewPlayer() {
     return () => {
       cancelled = true;
     };
-  }, [timeline, currentTime, ensureClipElement, syncClipsAtTime, clipMetas]);
+  }, [timeline, currentTime, ensureClipElement, syncClipsAtTime, clipMetas, isPlaying]);
+
+  // Clean up videos when timeline is removed
+  useEffect(() => {
+    if (!timeline) {
+      stopPlayback({ finalTime: 0 });
+      videoMapRef.current.forEach((video, clipId) => {
+        cleanupVideo(clipId, video);
+      });
+      videoMapRef.current.clear();
+    }
+  }, [timeline, stopPlayback, cleanupVideo, videoMapRef]);
 
   if (!timeline) {
     return null;
   }
 
-  const progress = totalDuration > 0 ? clamp(currentTime / totalDuration, 0, 1) : 0;
-  const formattedCurrent = formatTimecode(currentTime);
-  const formattedTotal = formatTimecode(totalDuration);
-
   return (
-    <div
-      ref={playerContainerRef}
-      className="relative flex h-full flex-col"
-      onMouseMove={resetHideControlsTimeout}
-      onMouseEnter={resetHideControlsTimeout}
-    >
+    <div ref={playerContainerRef} className="relative flex h-full flex-col">
       {/* Video Preview with overlay controls */}
       <div className="relative flex-1 overflow-hidden rounded-xl bg-black">
         <div ref={containerRef} className="absolute inset-0" />
@@ -1153,112 +208,17 @@ export default function PreviewPlayer() {
           </>
         )}
 
-        {/* Overlay Controls - Auto-hide on play */}
-        {showControls && (
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 transition-opacity duration-300 z-[1050]">
-            {/* Fullscreen Button */}
-            <button
-              type="button"
-              onClick={toggleFullscreen}
-              className="absolute top-4 right-4 rounded-full bg-black/50 hover:bg-black/70 p-2 text-white transition-all backdrop-blur-sm"
-              title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-            >
-              {isFullscreen ? (
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25"
-                  />
-                </svg>
-              ) : (
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
-                  />
-                </svg>
-              )}
-            </button>
-
-            {/* Bottom Controls Container */}
-            <div className="absolute bottom-0 left-0 right-0 px-6 pb-2">
-              {/* Progress Bar */}
-              <div className="mb-2">
-                <div
-                  ref={progressBarRef}
-                  className="h-1.5 w-full rounded-full bg-white/30 backdrop-blur-sm cursor-pointer hover:h-2 transition-all group"
-                  onMouseDown={handleProgressBarMouseDown}
-                  role="slider"
-                  aria-label="Video progress"
-                  aria-valuemin={0}
-                  aria-valuemax={totalDuration}
-                  aria-valuenow={currentTime}
-                  tabIndex={0}
-                >
-                  <div
-                    className="h-full rounded-full bg-white transition-all duration-200 relative"
-                    style={{ width: `${progress * 100}%` }}
-                  >
-                    {/* Draggable thumb */}
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Play/Pause Button and Time Display */}
-              <div className="flex items-center justify-center gap-3">
-                {/* Small Play/Pause Button */}
-                <button
-                  type="button"
-                  onClick={togglePlayPause}
-                  className="flex items-center justify-center rounded-full bg-white/90 hover:bg-white hover:scale-110 p-1.5 text-black transition-all disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 shadow-lg"
-                  disabled={!timeline.clips.length}
-                  title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
-                >
-                  {isPlaying ? (
-                    <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                    </svg>
-                  ) : (
-                    <svg className="h-3 w-3 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  )}
-                </button>
-
-                {/* Time Display */}
-                <div className="flex items-center gap-2 text-xs font-mono font-semibold text-white drop-shadow-lg">
-                  <span>{formattedCurrent}</span>
-                  <span className="text-white/60">/</span>
-                  <span>{formattedTotal}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Show controls button when hidden */}
-        {!showControls && (
-          <button
-            type="button"
-            onClick={() => setShowControls(true)}
-            className="absolute bottom-4 right-4 rounded-full bg-black/50 hover:bg-black/70 p-3 text-white transition-all backdrop-blur-sm opacity-0 hover:opacity-100"
-            title="Show controls"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-              />
-            </svg>
-          </button>
-        )}
+        {/* Playback Controls */}
+        <PlaybackControls
+          isPlaying={isPlaying}
+          currentTime={currentTime}
+          totalDuration={totalDuration}
+          isFullscreen={isFullscreen}
+          hasClips={timeline.clips.length > 0}
+          onPlayPause={togglePlayPause}
+          onSeek={handleSeek}
+          onToggleFullscreen={toggleFullscreen}
+        />
       </div>
     </div>
   );

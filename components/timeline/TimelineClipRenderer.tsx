@@ -1,7 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import type { Clip } from '@/types/timeline';
 import { AudioWaveform } from '../AudioWaveform';
 import { getClipFileName } from '@/lib/utils/timelineUtils';
@@ -60,15 +60,18 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
       >
         <div className="relative h-full w-full select-none">
           {thumbnail ? (
-            <img
-              src={thumbnail}
-              alt={`${getClipFileName(clip)} thumbnail`}
-              className="pointer-events-none h-full w-full object-cover"
-              loading="lazy"
-              onError={(event) => {
-                (event.currentTarget as HTMLImageElement).style.display = 'none';
-              }}
-            />
+            <div className="relative h-full w-full">
+              <Image
+                src={thumbnail}
+                alt={`${getClipFileName(clip)} thumbnail`}
+                fill
+                className="pointer-events-none object-cover"
+                sizes="(max-width: 768px) 100vw, 200px"
+                onError={(event) => {
+                  (event.currentTarget as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            </div>
           ) : (
             <div className="h-full w-full bg-gradient-to-br from-blue-200 via-blue-100 to-blue-200" />
           )}
