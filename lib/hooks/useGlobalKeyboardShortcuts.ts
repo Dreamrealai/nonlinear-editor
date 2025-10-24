@@ -188,6 +188,9 @@ export function getShortcutsByCategory(
 
   shortcuts.forEach((shortcut) => {
     if (shortcut.enabled !== false) {
+      if (!grouped[shortcut.category]) {
+        grouped[shortcut.category] = [];
+      }
       grouped[shortcut.category].push(shortcut);
     }
   });
