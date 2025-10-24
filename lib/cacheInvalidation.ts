@@ -19,7 +19,7 @@
  * ```
  */
 
-import { cache, CacheKeys } from './cache';
+import { cache, CacheKeys, type CacheStats } from './cache';
 import { serverLogger } from './serverLogger';
 
 /**

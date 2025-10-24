@@ -3,6 +3,7 @@
 import React, {  useState, useEffect, useCallback  } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import { useDebounce } from '@/lib/hooks/useDebounce';
+import type { Clip } from '@/types/timeline';
 
 /**
  * ClipPropertiesPanel Component (Enhanced)
@@ -297,7 +298,7 @@ export function ClipPropertiesPanel(): React.ReactElement {
                 <button
                   key={preset.name}
                   type="button"
-                  onClick={(): void => updateClip(selectedClip.id, { color: preset.value })}
+                  onClick={(): void => { if (preset.value) updateClip(selectedClip.id, { color: preset.value }); }}
                   className={`h-8 rounded border-2 transition-all hover:scale-110 ${
                     selectedClip.color === preset.value
                       ? 'border-white ring-2 ring-white/50'

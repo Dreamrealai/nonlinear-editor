@@ -259,14 +259,14 @@ export function GenerationDashboard({
           <label className="text-xs font-semibold text-neutral-700 mb-2 block">Type</label>
           <div className="flex gap-2">
             <Button
-              variant={typeFilter === 'all' ? 'primary' : 'secondary'}
+              variant={typeFilter === 'all' ? 'default' : 'secondary'}
               size="sm"
               onClick={(): void => setTypeFilter('all')}
             >
               All ({jobs.length})
             </Button>
             <Button
-              variant={typeFilter === 'video' ? 'primary' : 'secondary'}
+              variant={typeFilter === 'video' ? 'default' : 'secondary'}
               size="sm"
               onClick={(): void => setTypeFilter('video')}
             >
@@ -274,7 +274,7 @@ export function GenerationDashboard({
               Video ({videoJobs.length})
             </Button>
             <Button
-              variant={typeFilter === 'audio' ? 'primary' : 'secondary'}
+              variant={typeFilter === 'audio' ? 'default' : 'secondary'}
               size="sm"
               onClick={(): void => setTypeFilter('audio')}
             >
@@ -282,7 +282,7 @@ export function GenerationDashboard({
               Audio ({audioJobs.length})
             </Button>
             <Button
-              variant={typeFilter === 'image' ? 'primary' : 'secondary'}
+              variant={typeFilter === 'image' ? 'default' : 'secondary'}
               size="sm"
               onClick={(): void => setTypeFilter('image')}
             >
@@ -297,28 +297,28 @@ export function GenerationDashboard({
           <label className="text-xs font-semibold text-neutral-700 mb-2 block">Status</label>
           <div className="flex gap-2">
             <Button
-              variant={statusFilter === 'all' ? 'primary' : 'secondary'}
+              variant={statusFilter === 'all' ? 'default' : 'secondary'}
               size="sm"
               onClick={(): void => setStatusFilter('all')}
             >
               All
             </Button>
             <Button
-              variant={statusFilter === 'active' ? 'primary' : 'secondary'}
+              variant={statusFilter === 'active' ? 'default' : 'secondary'}
               size="sm"
               onClick={(): void => setStatusFilter('active')}
             >
               Active ({activeJobs.length})
             </Button>
             <Button
-              variant={statusFilter === 'completed' ? 'primary' : 'secondary'}
+              variant={statusFilter === 'completed' ? 'default' : 'secondary'}
               size="sm"
               onClick={(): void => setStatusFilter('completed')}
             >
               Completed ({completedJobs.length})
             </Button>
             <Button
-              variant={statusFilter === 'failed' ? 'primary' : 'secondary'}
+              variant={statusFilter === 'failed' ? 'default' : 'secondary'}
               size="sm"
               onClick={(): void => setStatusFilter('failed')}
             >

@@ -5,16 +5,16 @@
  * Sends metrics to analytics for monitoring and alerting.
  *
  * Metrics tracked:
- * - Time to Interactive (TTI)
  * - First Contentful Paint (FCP)
  * - Largest Contentful Paint (LCP)
  * - Cumulative Layout Shift (CLS)
- * - First Input Delay (FID)
+ * - Interaction to Next Paint (INP) - replaces FID
+ * - Time to First Byte (TTFB)
  * - Custom metrics (timeline render, asset load, etc.)
  */
 'use client';
 
-import { onCLS, onFCP, onFID, onLCP, onINP, onTTFB, type Metric } from 'web-vitals';
+import { onCLS, onFCP, onLCP, onINP, onTTFB, type Metric } from 'web-vitals';
 
 /**
  * Custom performance metric

@@ -1,0 +1,27 @@
+
+> nonlinear-editor@0.1.0 build
+> next build
+
+   ▲ Next.js 16.0.0 (Turbopack)
+   - Environments: .env.local
+   - Experiments (use with caution):
+     ✓ optimizeCss
+     · optimizePackageImports
+     · serverActions
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 8.7s
+   Running TypeScript ...
+Failed to compile.
+
+./components/editor/TimelineCorrectionsMenu.tsx:28:41
+Type error: Cannot find name 'Clip'.
+
+[0m [90m 26 |[39m
+ [90m 27 |[39m   [36mconst[39m selectedClips [33m=[39m useEditorStore((state)[33m:[39m [33mSet[39m[33m<[39m[33mstring[39m[33m>[39m [33m=>[39m state[33m.[39mselectedClipIds)[33m;[39m
+[31m[1m>[22m[39m[90m 28 |[39m   [36mconst[39m clips [33m=[39m useEditorStore((state)[33m:[39m [33mClip[39m[] [33m=>[39m state[33m.[39mtimeline[33m?[39m[33m.[39mclips [33m?[39m[33m?[39m [])[33m;[39m
+ [90m    |[39m                                         [31m[1m^[22m[39m
+ [90m 29 |[39m   [36mconst[39m updateClipStore [33m=[39m useEditorStore((state)[33m:[39m (id[33m:[39m string[33m,[39m patch[33m:[39m [33mPartial[39m[33m<[39m[33mClip[39m[33m>[39m) [33m=>[39m [36mvoid[39m [33m=>[39m state[33m.[39mupdateClip)[33m;[39m
+ [90m 30 |[39m
+ [90m 31 |[39m   [90m// Stable reference for updateClip[39m[0m
+Next.js build worker exited with code: 1 and signal: null

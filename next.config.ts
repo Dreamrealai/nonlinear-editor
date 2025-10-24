@@ -82,13 +82,14 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              // Strict script policy - removed unsafe-eval and unsafe-inline
-              // Next.js bundles all scripts, so 'self' is sufficient
+              // Script policy - allow Vercel Analytics, PostHog, and third-party monitoring scripts
               // wasm-unsafe-eval required for Next.js SWC (Rust/WASM compiler) and dependencies
               // (@napi-rs/wasm-runtime, @tybys/wasm-util used by Next.js build toolchain)
               // Note: wasm-unsafe-eval is MUCH safer than unsafe-eval as it only allows
               // WebAssembly compilation, not arbitrary JavaScript eval()
-              "script-src 'self' 'wasm-unsafe-eval'",
+              // unsafe-inline required for PostHog's dynamically injected scripts (pushca, callable-future, etc.)
+              // This is necessary for PostHog's real-time features to work properly
+              "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://va.vercel-scripts.com https://cdn.vercel-insights.com https://us-assets.i.posthog.com https://us.i.posthog.com https://app.posthog.com",
               // Style sources - keep unsafe-inline only for Tailwind v4 CSS-in-JS
               // Google Fonts stylesheets allowed for next/font/google
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
@@ -96,8 +97,8 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https://*.supabase.co",
               // Media sources - Supabase storage for video/audio assets
               "media-src 'self' blob: https://*.supabase.co",
-              // API connections - Supabase realtime, Fal.ai video, Google Gemini, Sentry, PostHog
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://queue.fal.run https://fal.run https://generativelanguage.googleapis.com https://*.ingest.sentry.io https://app.posthog.com",
+              // API connections - Supabase realtime, Fal.ai video, Google Gemini, Sentry, PostHog, Vercel Analytics
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://queue.fal.run https://fal.run https://generativelanguage.googleapis.com https://*.ingest.sentry.io https://app.posthog.com https://us.i.posthog.com https://va.vercel-scripts.com https://vitals.vercel-insights.com",
               // Font sources - Google Fonts CDN for optimized font delivery
               "font-src 'self' data: https://fonts.gstatic.com",
               // Prevent object/embed/applet tags (no Flash, Java, etc.)

@@ -144,11 +144,13 @@ export function TimelineMinimap({
         (1 / numTracks) * (MINIMAP_HEIGHT - 2 * MINIMAP_PADDING) - 1
       );
 
-      // Color based on clip type
+      // Color based on clip type (determined from mime)
+      const isVideo = clip.mime?.startsWith('video/');
+      const isAudio = clip.mime?.startsWith('audio/');
       const clipColor =
-        clip.type === 'video'
+        isVideo
           ? 'bg-blue-500'
-          : clip.type === 'audio'
+          : isAudio
             ? 'bg-green-500'
             : 'bg-purple-500';
 
@@ -162,7 +164,7 @@ export function TimelineMinimap({
             width: `${clipWidth}px`,
             height: `${clipHeight}px`,
           }}
-          title={`${clip.metadata?.filename || 'Clip'} (Track ${clip.trackIndex + 1})`}
+          title={`${clip.filePath?.split('/').pop() || 'Clip'} (Track ${clip.trackIndex + 1})`}
         />
       );
     });

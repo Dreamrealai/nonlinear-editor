@@ -6,7 +6,7 @@
  */
 'use client';
 
-import React, {  type ChangeEvent, useRef, useState, useMemo  } from 'react';
+import React, {  type ChangeEvent, useRef, useState, useMemo, useCallback  } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { AssetRow } from '@/types/assets';
@@ -189,8 +189,8 @@ export function AssetPanel({
           break;
         }
         case 'size': {
-          const sizeA = a.metadata?.size || a.metadata?.fileSize || 0;
-          const sizeB = b.metadata?.size || b.metadata?.fileSize || 0;
+          const sizeA = Number(a.metadata?.size || a.metadata?.fileSize || 0);
+          const sizeB = Number(b.metadata?.size || b.metadata?.fileSize || 0);
           comparison = sizeA - sizeB;
           break;
         }
@@ -721,7 +721,7 @@ export function AssetPanel({
                 {/* Asset size badge */}
                 {(asset.metadata?.size || asset.metadata?.fileSize) && (
                   <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                    {formatFileSize(asset.metadata.size || asset.metadata.fileSize || 0)}
+                    {formatFileSize(Number(asset.metadata.size || asset.metadata.fileSize || 0))}
                   </p>
                 )}
                 {/* Usage indicator */}

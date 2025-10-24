@@ -6,7 +6,7 @@
  */
 'use client';
 
-import React, {  useMemo, useState, useEffect, type RefObject  } from 'react';
+import React, {  useMemo, useState, useEffect, type RefObject, type ReactNode  } from 'react';
 import type { Clip } from '@/types/timeline';
 
 interface VirtualizedClipRendererProps<T extends Clip | unknown> {

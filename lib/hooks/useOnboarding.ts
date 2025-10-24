@@ -5,9 +5,9 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { createBrowserSupabaseClient } from '@/lib/supabase/client';
+import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { browserLogger } from '@/lib/browserLogger';
-import type { UserOnboardingState, OnboardingTour } from '@/types/onboarding';
+import type { UserOnboardingState } from '@/types/onboarding';
 
 export interface UseOnboardingReturn {
   state: UserOnboardingState | null;

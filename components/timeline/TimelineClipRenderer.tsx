@@ -2,11 +2,12 @@
 import React from 'react';
 
 import Image from 'next/image';
-import { Clip } from '@/types/timeline';
+import type { Clip, Timeline } from '@/types/timeline';
 import { AudioWaveform } from '../AudioWaveform';
 import { getClipFileName, formatTimecode } from '@/lib/utils/timelineUtils';
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
 import { useEditorStore } from '@/state/useEditorStore';
+import type { TrimPreviewInfo } from './TimelineTrimOverlay';
 
 const { TRACK_HEIGHT } = TIMELINE_CONSTANTS;
 

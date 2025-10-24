@@ -1,0 +1,27 @@
+
+> nonlinear-editor@0.1.0 build
+> next build
+
+   ▲ Next.js 16.0.0 (Turbopack)
+   - Environments: .env.local
+   - Experiments (use with caution):
+     ✓ optimizeCss
+     · optimizePackageImports
+     · serverActions
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 8.2s
+   Running TypeScript ...
+Failed to compile.
+
+./components/editor/TransitionPanel.tsx:66:44
+Type error: Cannot find name 'Timeline'.
+
+[0m [90m 64 |[39m   [36mconst[39m selectedClipIds [33m=[39m useEditorStore((state)[33m:[39m [33mSet[39m[33m<[39m[33mstring[39m[33m>[39m [33m=>[39m state[33m.[39mselectedClipIds)[33m;[39m
+ [90m 65 |[39m   [36mconst[39m addTransitionToSelectedClips [33m=[39m useEditorStore((state)[33m:[39m (transitionType[33m:[39m [33mTransitionType[39m[33m,[39m duration[33m:[39m number) [33m=>[39m [36mvoid[39m [33m=>[39m state[33m.[39maddTransitionToSelectedClips)[33m;[39m
+[31m[1m>[22m[39m[90m 66 |[39m   [36mconst[39m timeline [33m=[39m useEditorStore((state)[33m:[39m [33mTimeline[39m [33m|[39m [36mnull[39m [33m=>[39m state[33m.[39mtimeline)[33m;[39m
+ [90m    |[39m                                            [31m[1m^[22m[39m
+ [90m 67 |[39m
+ [90m 68 |[39m   [36mconst[39m [selectedType[33m,[39m setSelectedType] [33m=[39m useState[33m<[39m[33mTransitionType[39m[33m>[39m([32m'crossfade'[39m)[33m;[39m
+ [90m 69 |[39m   [36mconst[39m [duration[33m,[39m setDuration] [33m=[39m useState([35m0.5[39m)[33m;[39m[0m
+Next.js build worker exited with code: 1 and signal: null

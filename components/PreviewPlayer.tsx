@@ -20,11 +20,12 @@
 
 import React, {  useCallback, useEffect, useMemo, useRef, useState  } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
+import type { Timeline } from '@/types/timeline';
 import { TextOverlayRenderer } from './TextOverlayRenderer';
 import { TextOverlayEditor } from './TextOverlayEditor';
 import { PlaybackControls } from './preview/PlaybackControls';
 import { browserLogger } from '@/lib/browserLogger';
-import { computeClipMetas } from '@/lib/utils/videoUtils';
+import { computeClipMetas, type ClipMeta } from '@/lib/utils/videoUtils';
 import { useVideoManager } from '@/lib/hooks/useVideoManager';
 import { useVideoPlayback } from '@/lib/hooks/useVideoPlayback';
 

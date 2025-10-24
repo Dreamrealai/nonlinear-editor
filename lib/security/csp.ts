@@ -54,11 +54,19 @@ export function buildCSPHeader(options: CSPOptions = {}): string {
     "'wasm-unsafe-eval'",
     // Add nonce for inline scripts (Next.js hydration, config, etc.)
     nonce ? `'nonce-${nonce}'` : null,
-    // Vercel Analytics (when deployed on Vercel)
+    // Vercel Analytics and Insights (when deployed on Vercel)
     // Allows both script loading and performance data collection
     'https://va.vercel-scripts.com',
+    'https://cdn.vercel-insights.com',
+    // PostHog Analytics (US region)
+    // PostHog loads additional scripts dynamically that may execute inline code
+    'https://us-assets.i.posthog.com',
+    'https://us.i.posthog.com',
+    'https://app.posthog.com',
     // Development: allow eval for hot reloading
     isDevelopment ? "'unsafe-eval'" : null,
+    // Note: PostHog's dynamic scripts may require unsafe-inline in production
+    // If CSP errors persist, add: "'unsafe-inline'" (less secure but needed for some analytics)
   ]
     .filter(Boolean)
     .join(' ');
@@ -73,8 +81,8 @@ export function buildCSPHeader(options: CSPOptions = {}): string {
     "img-src 'self' data: blob: https://*.supabase.co",
     // Media sources - Supabase storage for video/audio assets
     "media-src 'self' blob: https://*.supabase.co",
-    // API connections - Supabase, Fal.ai, Google Gemini, Vercel Analytics
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://queue.fal.run https://fal.run https://generativelanguage.googleapis.com https://va.vercel-scripts.com",
+    // API connections - Supabase, Fal.ai, Google Gemini, Vercel Analytics, PostHog
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://queue.fal.run https://fal.run https://generativelanguage.googleapis.com https://va.vercel-scripts.com https://vitals.vercel-insights.com https://app.posthog.com https://us.i.posthog.com",
     // Font sources - Google Fonts CDN
     "font-src 'self' data: https://fonts.gstatic.com",
     // Prevent object/embed/applet tags

@@ -13,8 +13,7 @@
 
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
-import type { Clip, TextOverlay } from '@/types/timeline';
-import type { Marker } from '@/types/timeline';
+import type { Clip, TextOverlay, Timeline, ClipGroup, Marker } from '@/types/timeline';
 import { useTimelineScroll } from './VirtualizedClipRenderer';
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
 
@@ -96,14 +95,7 @@ const selectActions = (state: ReturnType<typeof useEditorStore.getState>) => ({
   updateTextOverlay: state.updateTextOverlay,
   toggleClipLock: state.toggleClipLock,
   toggleAutoScroll: state.toggleAutoScroll,
-<<<<<<< Updated upstream
   toggleSnap: state.toggleSnap,
-=======
-    addMarker,
-    // removeMarker,
-    // updateMarker,
-    jumpToMarker,
->>>>>>> Stashed changes
   addMarker: state.addMarker,
   selectClipsInRange: state.selectClipsInRange,
   selectAllClips: state.selectAllClips,
@@ -152,18 +144,9 @@ function HorizontalTimeline({
     toggleAutoScroll,
     toggleSnap,
     addMarker,
-<<<<<<< Updated upstream
     selectClipsInRange,
     selectAllClips,
     selectAllClipsInTrack,
-=======
-    // removeMarker,
-    // updateMarker,
-    jumpToMarker,
-    selectClipsInRange,
-    selectAllClipsInTrack,
-    selectAllClips,
->>>>>>> Stashed changes
   } = useEditorStore(selectActions);
 
   // Playback state for auto-scroll
@@ -243,17 +226,6 @@ function HorizontalTimeline({
     addMarker(marker);
   }, [currentTime, markers, addMarker]);
 
-<<<<<<< Updated upstream
-=======
-  // Marker click handler - jump playhead to marker position
-  // const handleMarkerClick = useCallback(
-    // (markerId: string): void => {
-      // jumpToMarker(markerId);
-    },
-    // [jumpToMarker]
-  );
-
->>>>>>> Stashed changes
   // Keyboard shortcuts
   useTimelineKeyboardShortcuts({
     timeline,
@@ -269,10 +241,7 @@ function HorizontalTimeline({
     toggleClipLock,
     onAddTransition,
     onAddMarker: handleAddMarker,
-<<<<<<< Updated upstream
     onToggleSnap: toggleSnap,
-=======
->>>>>>> Stashed changes
     onSelectAll: selectAllClips,
   });
 

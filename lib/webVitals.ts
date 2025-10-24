@@ -72,6 +72,7 @@ function reportMetric(metric: Metric): void {
   );
 
   // Send to analytics endpoint if available
+  // Use sendBeacon for non-blocking, reliable delivery
   if (typeof window !== 'undefined' && 'navigator' in window && 'sendBeacon' in navigator) {
     const body = JSON.stringify({
       name: metric.name,
@@ -82,9 +83,25 @@ function reportMetric(metric: Metric): void {
       navigationType: metric.navigationType,
     });
 
-    // Only send if analytics endpoint is configured
-    const analyticsUrl = '/api/analytics/web-vitals';
-    navigator.sendBeacon(analyticsUrl, body);
+    try {
+      // Attempt to send metric to analytics endpoint
+      // sendBeacon returns false if the data couldn't be queued
+      const analyticsUrl = '/api/analytics/web-vitals';
+      const queued = navigator.sendBeacon(analyticsUrl, body);
+
+      if (!queued) {
+        browserLogger.warn(
+          { metric: metric.name },
+          'Failed to queue web vitals metric for transmission'
+        );
+      }
+    } catch (error) {
+      // Silently fail - web vitals tracking is non-critical
+      browserLogger.debug(
+        { error, metric: metric.name },
+        'Error sending web vitals metric'
+      );
+    }
   }
 }
 

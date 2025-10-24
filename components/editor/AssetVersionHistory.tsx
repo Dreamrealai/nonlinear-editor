@@ -221,7 +221,7 @@ export function AssetVersionHistory({
           {/* Loading state */}
           {loading && (
             <div className="flex justify-center py-8">
-              <LoadingSpinner size="lg" />
+              <LoadingSpinner size={32} />
             </div>
           )}
 
@@ -296,7 +296,7 @@ export function AssetVersionHistory({
                       >
                         {reverting === version.id ? (
                           <>
-                            <LoadingSpinner size="sm" className="mr-2" />
+                            <LoadingSpinner size={16} className="mr-2" />
                             Reverting...
                           </>
                         ) : (

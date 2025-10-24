@@ -166,7 +166,7 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
     let colorIndex = 0;
 
     interval = setInterval((): void => {
-      document.body.style.background = colors[colorIndex % colors.length];
+      document.body.style.background = colors[colorIndex % colors.length] || '';
       colorIndex++;
     }, 200);
 
@@ -285,7 +285,7 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
         if (egg.enabled === false) return;
 
         // Already triggered
-        if (easterEgsTriggered.includes(egg.id)) return;
+        if (easterEggsTriggered.includes(egg.id)) return;
 
         // Check sequence-based easter eggs
         if (egg.keys) {
@@ -416,7 +416,7 @@ function createConfetti(): void {
       confetti.className = 'confetti';
       confetti.style.left = `${Math.random() * 100}%`;
       confetti.style.top = '-10px';
-      confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+      confetti.style.color = colors[Math.floor(Math.random() * colors.length)] || '#ff6b6b';
       confetti.style.animationDelay = `${Math.random() * 0.5}s`;
       document.body.appendChild(confetti);
 
@@ -465,7 +465,7 @@ function createMatrixRain(): void {
     ctx.font = `${fontSize}px monospace`;
 
     for (let i = 0; i < drops.length; i++) {
-      const text = chars[Math.floor(Math.random() * chars.length)];
+      const text = chars[Math.floor(Math.random() * chars.length)] || '0';
       const dropValue = drops[i] ?? 0;
       ctx.fillText(text, i * fontSize, dropValue * fontSize);
 

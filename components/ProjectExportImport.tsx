@@ -3,6 +3,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Download, Upload, AlertCircle, CheckCircle } from 'lucide-react';
 import { useEditorStore } from '@/state/useEditorStore';
+import type { Timeline } from '@/types/timeline';
 import {
   exportProjectToJSON,
   downloadProjectJSON,

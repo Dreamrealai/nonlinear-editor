@@ -31,7 +31,7 @@ export function useTimelineIntegration(): {
     jumpToMarker,
     addGuide,
     updateGuide,
-    deleteGuide,
+    removeGuide,
     setZoomPreset,
     fitToTimeline,
     fitToSelection,
@@ -44,7 +44,7 @@ export function useTimelineIntegration(): {
     jumpToMarker: state.jumpToMarker,
     addGuide: state.addGuide,
     updateGuide: state.updateGuide,
-    deleteGuide: state.deleteGuide,
+    removeGuide: state.removeGuide,
     setZoomPreset: state.setZoomPreset,
     fitToTimeline: state.fitToTimeline,
     fitToSelection: state.fitToSelection,
@@ -65,8 +65,20 @@ export function useTimelineIntegration(): {
 
   // Add guide at current playhead position
   const handleAddGuide = useCallback((): void => {
-    addGuide(currentTime);
+    const guideId = `guide-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    addGuide({
+      id: guideId,
+      position: currentTime,
+      orientation: 'vertical',
+      color: '#3b82f6', // Blue color
+      visible: true,
+    });
   }, [addGuide, currentTime]);
+
+  // Update guide position
+  const handleGuideUpdate = useCallback((guideId: string, time: number): void => {
+    updateGuide(guideId, { position: time });
+  }, [updateGuide]);
 
   // Zoom preset handlers
   const handleZoomPreset = useCallback((preset: 25 | 50 | 100 | 200 | 400): void => {
@@ -90,8 +102,8 @@ export function useTimelineIntegration(): {
 
     // Guide handlers
     handleAddGuide,
-    handleGuideUpdate: updateGuide,
-    handleGuideDelete: deleteGuide,
+    handleGuideUpdate,
+    handleGuideDelete: removeGuide,
 
     // Zoom handlers
     handleZoomPreset,

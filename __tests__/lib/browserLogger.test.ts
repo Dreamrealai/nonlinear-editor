@@ -15,6 +15,11 @@ describe('BrowserLogger', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
+    // Delete window first if it exists to allow redefinition
+    if (global.window) {
+      delete (global as any).window;
+    }
+
     // Mock window
     Object.defineProperty(global, 'window', {
       value: {
@@ -25,6 +30,11 @@ describe('BrowserLogger', () => {
       writable: true,
       configurable: true,
     });
+
+    // Delete navigator first if it exists to allow redefinition
+    if (global.navigator) {
+      delete (global as any).navigator;
+    }
 
     // Mock navigator
     Object.defineProperty(global, 'navigator', {
@@ -54,8 +64,13 @@ describe('BrowserLogger', () => {
   });
 
   afterAll(() => {
-    global.window = originalWindow;
-    global.navigator = originalNavigator;
+    // Restore originals
+    if (originalWindow) {
+      (global as any).window = originalWindow;
+    }
+    if (originalNavigator) {
+      (global as any).navigator = originalNavigator;
+    }
     global.fetch = originalFetch;
     jest.restoreAllMocks();
   });

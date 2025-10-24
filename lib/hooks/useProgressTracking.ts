@@ -6,7 +6,7 @@
  */
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, type RefObject } from 'react';
 import type { OperationType, ProgressState } from '@/components/ProgressModal';
 
 interface UseProgressTrackingReturn {

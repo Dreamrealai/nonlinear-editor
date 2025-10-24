@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import { createBrowserSupabaseClient } from '@/lib/supabase/client';
+import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { browserLogger } from '@/lib/browserLogger';
 
 export interface PresenceUser {
@@ -64,7 +64,7 @@ export function useProjectPresence({
       }
 
       setActiveUsers(
-        (data || []).map((user): { user_id: any; is_online: any; last_seen_at: any; } => ({
+        (data || []).map((user: any): { user_id: any; is_online: any; last_seen_at: any; } => ({
           user_id: user.user_id,
           is_online: user.is_online,
           last_seen_at: user.last_seen_at,
@@ -140,7 +140,7 @@ export function useProjectPresence({
           table: 'project_collaborators',
           filter: `project_id=eq.${projectId}`,
         },
-        (payload): void => {
+        (payload: any): void => {
           browserLogger.debug({ payload, projectId }, 'Presence change detected');
           // Refetch active users when any collaborator record changes
           fetchActiveUsers();

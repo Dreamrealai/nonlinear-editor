@@ -59,79 +59,10 @@ jest.mock('uuid', () => ({
   v4: jest.fn(() => 'mock-edit-id'),
 }));
 
-<<<<<<< Updated upstream
-jest.mock('@/lib/api/withAuth', () => ({
-  withAuth: (handler: any, options: any) => {
-    return async (req: NextRequest, context: any) => {
-      try {
-        const { createServerSupabaseClient } = require('@/lib/supabase');
-        const supabase = await createServerSupabaseClient();
-
-        if (!supabase || !supabase.auth) {
-          return new Response(JSON.stringify({ error: 'Internal server error' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user) {
-          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-            status: 401,
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-
-        // Check rate limiting if configured
-        if (options?.rateLimit) {
-          const { checkRateLimit } = require('@/lib/rateLimit');
-          const rateLimitResult = await checkRateLimit(`user:${user.id}`, options.rateLimit);
-
-          if (!rateLimitResult.success) {
-            return new Response(
-              JSON.stringify({
-                error: 'Rate limit exceeded',
-                limit: rateLimitResult.limit,
-                remaining: rateLimitResult.remaining,
-                resetAt: rateLimitResult.resetAt,
-              }),
-              {
-                status: 429,
-                headers: { 'Content-Type': 'application/json' },
-              }
-            );
-          }
-        }
-
-        // Await params if it's a Promise
-        const params =
-          context?.params instanceof Promise ? await context.params : context?.params || {};
-
-        // Pass params in routeContext to match real withAuth signature
-        const routeContext = params ? { params: Promise.resolve(params) } : undefined;
-        return await handler(req, { user, supabase }, routeContext);
-      } catch (error) {
-        console.error('Error in withAuth mock:', error);
-        return new Response(
-          JSON.stringify({ error: 'Internal server error', details: (error as Error).message }),
-          {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          }
-        );
-      }
-    };
-  },
-}));
-=======
 jest.mock('@/lib/api/withAuth', () => {
   const { mockWithAuth } = require('@/test-utils/mockWithAuth');
   return { withAuth: mockWithAuth };
 });
->>>>>>> Stashed changes
 
 // Mock global fetch
 global.fetch = jest.fn();
@@ -599,11 +530,7 @@ describe('POST /api/frames/[frameId]/edit', () => {
       expect(mockGenerateContent).toHaveBeenCalledTimes(1);
     });
 
-<<<<<<< Updated upstream
-    it('should reject numVariations greater than 8', async () => {
-=======
     it('should reject numVariations over maximum of 8', async () => {
->>>>>>> Stashed changes
       const mockRequest = new NextRequest('http://localhost/api/frames/test/edit', {
         method: 'POST',
         body: JSON.stringify({
@@ -618,11 +545,7 @@ describe('POST /api/frames/[frameId]/edit', () => {
 
       expect(response.status).toBe(400);
       const data = await response.json();
-<<<<<<< Updated upstream
-      expect(data.error).toContain('must be between 1 and 8');
-=======
       expect(data.error).toContain('numVariations must be between 1 and 8');
->>>>>>> Stashed changes
     });
 
     it('should increment version numbers correctly', async () => {

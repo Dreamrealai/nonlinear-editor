@@ -86,8 +86,8 @@ export function useAssetList(
         }
 
         const mapped = (data ?? [])
-          .map((row): AssetRow | null => mapAssetRow(row as Record<string, unknown>))
-          .filter((asset): asset is AssetRow => Boolean(asset));
+          .map((row: unknown): AssetRow | null => mapAssetRow(row as Record<string, unknown>))
+          .filter((asset: AssetRow | null): asset is AssetRow => Boolean(asset));
 
         setAssets(mapped);
         setCurrentPage(page);

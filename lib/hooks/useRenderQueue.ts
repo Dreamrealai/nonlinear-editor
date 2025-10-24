@@ -104,12 +104,13 @@ export function useRenderQueue(options: UseRenderQueueOptions = {}): UseRenderQu
 
   // Auto-refresh queue
   useEffect((): (() => void) | undefined => {
-    fetchJobs();
+    void fetchJobs();
 
     if (autoRefresh) {
-      const interval = setInterval(fetchJobs, refreshInterval);
+      const interval = setInterval(() => void fetchJobs(), refreshInterval);
       return (): void => clearInterval(interval);
     }
+    return undefined;
   }, [fetchJobs, autoRefresh, refreshInterval]);
 
   const cancelJob = useCallback(async (jobId: string): Promise<boolean> => {

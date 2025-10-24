@@ -7,7 +7,9 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import React, {  ComponentType, ReactElement  } from 'react';
+import React, { ComponentType, ReactElement, NamedExoticComponent } from 'react';
+import type { Clip } from '@/types/timeline';
+import type { ProjectListProps } from '@/components/ProjectList';
 
 /**
  * Loading component shown while lazy components are loading

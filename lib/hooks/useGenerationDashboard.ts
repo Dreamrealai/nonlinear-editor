@@ -7,7 +7,6 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { usePolling } from '@/lib/hooks/usePolling';
 
 export type GenerationType = 'video' | 'audio' | 'image';
 export type GenerationStatus = 'queued' | 'processing' | 'completed' | 'failed';
@@ -292,12 +291,18 @@ export function useGenerationDashboard({
     }
   }, [jobs, checkJobStatus, autoRemoveCompletedAfter, removeJob]);
 
-  // Use polling hook for automatic refresh
-  usePolling({
-    callback: refresh,
-    interval: pollingInterval,
-    enabled: enabled && jobs.some((j): boolean => j.status === 'processing' || j.status === 'queued'),
-  });
+  // Use polling for automatic refresh when jobs are active
+  useEffect(() => {
+    if (!enabled || !jobs.some((j): boolean => j.status === 'processing' || j.status === 'queued')) {
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      void refresh();
+    }, pollingInterval);
+
+    return () => clearInterval(intervalId);
+  }, [enabled, jobs, pollingInterval, refresh]);
 
   // Filter jobs by type
   const videoJobs = jobs.filter((j): boolean => j.type === 'video');

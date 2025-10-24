@@ -17,6 +17,7 @@
 
 import { useEffect } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
+import type { Timeline } from '@/types/timeline';
 import toast from 'react-hot-toast';
 
 type KeyboardShortcutOptions = {

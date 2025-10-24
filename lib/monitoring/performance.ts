@@ -585,7 +585,3 @@ export function initPerformanceMonitoring(): void {
   }
 }
 
-/**
- * Export types
- */
-export type { PerformanceMetadata, PerformanceThreshold };

@@ -1,0 +1,29 @@
+
+> nonlinear-editor@0.1.0 build
+> next build
+
+   ▲ Next.js 16.0.0 (Turbopack)
+   - Environments: .env.local
+   - Experiments (use with caution):
+     ✓ optimizeCss
+     · optimizePackageImports
+     · serverActions
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 8.5s
+   Running TypeScript ...
+Failed to compile.
+
+./components/EasterEggFeedback.tsx:155:41
+Type error: Type 'Dispatch<SetStateAction<"" | "none" | EasterEggId>>' is not assignable to type '(value: string) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string' is not assignable to type 'SetStateAction<"" | "none" | EasterEggId>'.
+
+[0m [90m 153 |[39m               [33mWhich[39m was your favorite[33m?[39m
+ [90m 154 |[39m             [33m<[39m[33m/[39m[33mLabel[39m[33m>[39m
+[31m[1m>[22m[39m[90m 155 |[39m             [33m<[39m[33mSelect[39m value[33m=[39m{favoriteEgg} onValueChange[33m=[39m{setFavoriteEgg}[33m>[39m
+ [90m     |[39m                                         [31m[1m^[22m[39m
+ [90m 156 |[39m               [33m<[39m[33mSelectTrigger[39m id[33m=[39m[32m"favorite-egg"[39m className[33m=[39m[32m"w-full"[39m[33m>[39m
+ [90m 157 |[39m                 [33m<[39m[33mSelectValue[39m placeholder[33m=[39m[32m"Select your favorite..."[39m [33m/[39m[33m>[39m
+ [90m 158 |[39m               [33m<[39m[33m/[39m[33mSelectTrigger[39m[33m>[39m[0m
+Next.js build worker exited with code: 1 and signal: null

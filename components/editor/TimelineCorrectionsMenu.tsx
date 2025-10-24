@@ -9,6 +9,7 @@ import { TransformSection } from './corrections/TransformSection';
 import { AudioEffectsSection } from './corrections/AudioEffectsSection';
 import { SectionTabs } from './corrections/SectionTabs';
 import type { SectionType } from './corrections/types';
+import type { Clip } from '@/types/timeline';
 
 /**
  * TimelineCorrectionsMenu Component

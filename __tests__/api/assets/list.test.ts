@@ -10,8 +10,9 @@ import {
   createMockSupabaseClient,
   createMockUser,
   mockAuthenticatedUser,
+  createMockRequest,
   resetAllMocks,
-} from '@/test-utils/mockSupabase';
+} from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
 jest.mock('@/lib/api/withAuth', () => ({

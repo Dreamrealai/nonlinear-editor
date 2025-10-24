@@ -1,7 +1,7 @@
 'use client';
 
 import React, {  createContext, useContext, useEffect, useState  } from 'react';
-import type { SupabaseClient, User, Session } from '@supabase/supabase-js';
+import type { SupabaseClient, User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { createBrowserSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 import { browserLogger } from '@/lib/browserLogger';
 
@@ -52,11 +52,13 @@ export function SupabaseProvider({ children, session: initialSession, enabled = 
 
     // Get initial session if not provided
     if (!initialSession) {
-      supabaseClient.auth.getSession().then(({ data: { session } }): void => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      const fetchSession = async (): Promise<void> => {
+        const { data } = await supabaseClient.auth.getSession();
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
         setIsLoading(false);
-      });
+      };
+      void fetchSession();
     } else {
       setIsLoading(false);
     }
@@ -64,7 +66,7 @@ export function SupabaseProvider({ children, session: initialSession, enabled = 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange((_event, session): void => {
+    } = supabaseClient.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);

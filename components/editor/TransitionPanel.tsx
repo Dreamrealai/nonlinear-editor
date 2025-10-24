@@ -14,7 +14,7 @@
 
 import React, { useState } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
-import type { TransitionType } from '@/types/timeline';
+import type { TransitionType, Timeline } from '@/types/timeline';
 
 const TRANSITION_OPTIONS: Array<{
   type: TransitionType;

@@ -80,9 +80,7 @@ function createChainableMethod(builder: Record<string, unknown>) {
  * - Thenable so it can be awaited directly
  * - Helpers to control the eventual resolved/rejected value
  */
-function createQueryBuilder() {
-  const builder: Record<string, any> = {};
-
+function createQueryBuilder(): any {
   let pending: PendingValue = Promise.resolve({
     data: null,
     error: null,
@@ -94,7 +92,32 @@ function createQueryBuilder() {
       typeof (value as PromiseLike<unknown>).then === 'function'
         ? (value as Promise<QueryResult>)
         : Promise.resolve(value as QueryResult);
-    return builder;
+  };
+
+  const builder: any = {
+    then: (
+      onFulfilled: (value: QueryResult) => unknown,
+      onRejected?: (reason: unknown) => unknown
+    ) => pending.then(onFulfilled, onRejected),
+    catch: (onRejected: (reason: unknown) => unknown) => pending.catch(onRejected),
+    finally: (onFinally: () => unknown) => pending.finally(onFinally),
+    mockResolvedValue: (value: QueryResult) => {
+      setPending(value);
+      builder.single.mockResolvedValue(value);
+      builder.maybeSingle.mockResolvedValue(value);
+      return builder;
+    },
+    mockRejectedValue: (error: unknown) => {
+      const rejection =
+        error instanceof Error
+          ? error
+          : Object.assign(new Error('Mock query rejected'), { cause: error });
+      const rejectionPromise = Promise.reject(rejection);
+      pending = rejectionPromise as PendingValue;
+      builder.single.mockRejectedValue(rejection);
+      builder.maybeSingle.mockRejectedValue(rejection);
+      return builder;
+    },
   };
 
   const chainableMethods = [
@@ -119,37 +142,11 @@ function createQueryBuilder() {
   ] as const;
 
   chainableMethods.forEach((method) => {
-    builder[method] = createChainableMethod(builder);
+    builder[method] = jest.fn(() => builder);
   });
 
   builder.single = jest.fn(() => pending);
   builder.maybeSingle = jest.fn(() => pending);
-
-  builder.then = (
-    onFulfilled: (value: QueryResult) => unknown,
-    onRejected?: (reason: unknown) => unknown
-  ) => pending.then(onFulfilled, onRejected);
-  builder.catch = (onRejected: (reason: unknown) => unknown) => pending.catch(onRejected);
-  builder.finally = (onFinally: () => unknown) => pending.finally(onFinally);
-
-  builder.mockResolvedValue = (value: QueryResult) => {
-    setPending(value);
-    builder.single.mockResolvedValue(value);
-    builder.maybeSingle.mockResolvedValue(value);
-    return builder;
-  };
-
-  builder.mockRejectedValue = (error: unknown) => {
-    const rejection =
-      error instanceof Error
-        ? error
-        : Object.assign(new Error('Mock query rejected'), { cause: error });
-    const rejectionPromise = Promise.reject(rejection);
-    pending = rejectionPromise as PendingValue;
-    builder.single.mockRejectedValue(rejection);
-    builder.maybeSingle.mockRejectedValue(rejection);
-    return builder;
-  };
 
   return builder;
 }

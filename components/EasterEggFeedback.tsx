@@ -8,10 +8,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { achievementService, EasterEggIds, type EasterEggId } from '@/lib/services/achievementService';
-import { Button } from './ui/button';
-import { Textarea } from './ui/textarea';
-import { Label } from './ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Button } from '@/components/ui/Button';
+import { Textarea } from '@/components/ui/Textarea';
+import { Label } from '@/components/ui/Label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 
 interface EasterEggFeedbackProps {
   /** Whether feedback dialog is open */
@@ -152,7 +152,7 @@ export function EasterEggFeedback({ isOpen, onClose }: EasterEggFeedbackProps): 
             >
               Which was your favorite?
             </Label>
-            <Select value={favoriteEgg} onValueChange={setFavoriteEgg}>
+            <Select value={favoriteEgg} onValueChange={(value: string): void => setFavoriteEgg(value as EasterEggId | 'none' | '')}>
               <SelectTrigger id="favorite-egg" className="w-full">
                 <SelectValue placeholder="Select your favorite..." />
               </SelectTrigger>

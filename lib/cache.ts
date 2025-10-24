@@ -35,7 +35,7 @@ interface CacheEntry<T> {
   lastAccessed: number;
 }
 
-interface CacheStats {
+export interface CacheStats {
   hits: number;
   misses: number;
   sets: number;

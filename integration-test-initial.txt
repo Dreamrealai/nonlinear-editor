@@ -1,0 +1,936 @@
+
+> nonlinear-editor@0.1.0 test
+> NODE_OPTIONS='--max-old-space-size=4096' jest --maxWorkers=3 --workerIdleMemoryLimit=1024MB __tests__/integration --no-coverage
+
+FAIL __tests__/integration/user-account-workflow.test.ts
+  ● Integration: User Account Workflow › Multi-Project Management › should switch between projects seamlessly
+
+    TypeError: Cannot read properties of undefined (reading 'clips')
+
+      572 |
+      573 |       // Assert
+    > 574 |       expect(fetchedProject1?.timeline_state_jsonb.clips[0].end).toBe(5000);
+          |                               ^
+      575 |       expect(fetchedProject2?.timeline_state_jsonb.clips[0].end).toBe(3000);
+      576 |     });
+      577 |   });
+
+      at Object.timeline_state_jsonb (__tests__/integration/user-account-workflow.test.ts:574:31)
+
+  ● Integration: User Account Workflow › Account Deletion with Cascade › should delete user account and cascade to all projects and assets
+
+    TypeError: this.supabase.from(...).select is not a function
+
+      523 |       const { data: asset, error: fetchError } = await this.supabase
+      524 |         .from('assets')
+    > 525 |         .select('storage_url')
+          |          ^
+      526 |         .eq('id', assetId)
+      527 |         .eq('user_id', userId)
+      528 |         .single();
+
+      at AssetService.select [as deleteAsset] (lib/services/assetService.ts:525:10)
+      at Object.deleteAsset (__tests__/integration/user-account-workflow.test.ts:614:28)
+
+  ● Integration: User Account Workflow › Account Deletion with Cascade › should handle partial deletion failure
+
+    TypeError: this.supabase.from(...).select is not a function
+
+      523 |       const { data: asset, error: fetchError } = await this.supabase
+      524 |         .from('assets')
+    > 525 |         .select('storage_url')
+          |          ^
+      526 |         .eq('id', assetId)
+      527 |         .eq('user_id', userId)
+      528 |         .single();
+
+      at AssetService.select [as deleteAsset] (lib/services/assetService.ts:525:10)
+      at Object.deleteAsset (__tests__/integration/user-account-workflow.test.ts:654:26)
+
+{"level":30,"time":1761342584953,"env":"development","service":"genai-video-production","event":"cache.initialized","type":"lru","maxSize":1000,"msg":"Cache initialized with LRU strategy (max 1000 entries)"}
+{"level":30,"time":1761342584953,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584955,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584954,"env":"development","service":"genai-video-production","event":"cache.initialized","type":"lru","maxSize":1000,"msg":"Cache initialized with LRU strategy (max 1000 entries)"}
+{"level":30,"time":1761342584955,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584955,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584957,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":1,"msg":"Cache cleared: 1 entries removed"}
+{"level":30,"time":1761342584957,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584958,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584964,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584979,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584980,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584981,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584981,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584982,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":1,"msg":"Cache cleared: 1 entries removed"}
+{"level":30,"time":1761342584986,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584987,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584987,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584988,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":1,"msg":"Cache cleared: 1 entries removed"}
+{"level":30,"time":1761342584988,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584989,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584993,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584996,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584996,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584996,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584997,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584998,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342584998,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585000,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585003,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585004,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585006,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585007,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585007,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+FAIL __tests__/integration/asset-upload-flow.test.ts
+  ● Integration: Asset Upload Flow › Asset Retrieval Flow › should fetch single asset by ID
+
+    ValidationError: Invalid Asset ID format
+
+      38 |   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      39 |   if (!uuidRegex.test(value)) {
+    > 40 |     throw new ValidationError(`Invalid ${fieldName} format`, fieldName, 'INVALID_UUID');
+         |           ^
+      41 |   }
+      42 | }
+      43 |
+
+      at validateUUID (lib/validation.ts:40:11)
+      at AssetService.getAssetById (lib/services/assetService.ts:624:19)
+      at Object.getAssetById (__tests__/integration/asset-upload-flow.test.ts:362:40)
+
+  ● Integration: Asset Upload Flow › Asset Retrieval Flow › should return null for non-existent asset
+
+    ValidationError: Invalid Asset ID format
+
+      38 |   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      39 |   if (!uuidRegex.test(value)) {
+    > 40 |     throw new ValidationError(`Invalid ${fieldName} format`, fieldName, 'INVALID_UUID');
+         |           ^
+      41 |   }
+      42 | }
+      43 |
+
+      at validateUUID (lib/validation.ts:40:11)
+      at AssetService.getAssetById (lib/services/assetService.ts:624:19)
+      at Object.getAssetById (__tests__/integration/asset-upload-flow.test.ts:378:40)
+
+  ● Integration: Asset Upload Flow › Asset Retrieval Flow › should fetch paginated assets
+
+    expect(received).toHaveLength(expected)
+
+    Expected length: 5
+    Received length: 0
+    Received array:  []
+
+      404 |
+      405 |       // Assert
+    > 406 |       expect(result.assets).toHaveLength(5);
+          |                             ^
+      407 |       expect(result.totalCount).toBe(10);
+      408 |       expect(result.totalPages).toBe(2);
+      409 |       expect(mockSupabase.range).toHaveBeenCalledWith(0, 4);
+
+      at Object.toHaveLength (__tests__/integration/asset-upload-flow.test.ts:406:29)
+
+  ● Integration: Asset Upload Flow › Asset Deletion Flow › should delete asset from storage and database
+
+    ValidationError: Invalid Asset ID format
+
+      38 |   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      39 |   if (!uuidRegex.test(value)) {
+    > 40 |     throw new ValidationError(`Invalid ${fieldName} format`, fieldName, 'INVALID_UUID');
+         |           ^
+      41 |   }
+      42 | }
+      43 |
+
+      at validateUUID (lib/validation.ts:40:11)
+      at AssetService.deleteAsset (lib/services/assetService.ts:520:19)
+      at Object.deleteAsset (__tests__/integration/asset-upload-flow.test.ts:447:26)
+
+  ● Integration: Asset Upload Flow › Asset Deletion Flow › should delete from database even if storage deletion fails
+
+    ValidationError: Invalid Asset ID format
+
+      38 |   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      39 |   if (!uuidRegex.test(value)) {
+    > 40 |     throw new ValidationError(`Invalid ${fieldName} format`, fieldName, 'INVALID_UUID');
+         |           ^
+      41 |   }
+      42 | }
+      43 |
+
+      at validateUUID (lib/validation.ts:40:11)
+      at AssetService.deleteAsset (lib/services/assetService.ts:520:19)
+      at Object.deleteAsset (__tests__/integration/asset-upload-flow.test.ts:484:26)
+
+  ● Integration: Asset Upload Flow › Asset Deletion Flow › should throw error if asset not found during deletion
+
+    expect(received).rejects.toThrow(expected)
+
+    Expected substring: "Failed to fetch asset"
+    Received message:   "Invalid Asset ID format"
+
+          38 |   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+          39 |   if (!uuidRegex.test(value)) {
+        > 40 |     throw new ValidationError(`Invalid ${fieldName} format`, fieldName, 'INVALID_UUID');
+             |           ^
+          41 |   }
+          42 | }
+          43 |
+
+      at validateUUID (lib/validation.ts:40:11)
+      at AssetService.deleteAsset (lib/services/assetService.ts:520:19)
+      at Object.deleteAsset (__tests__/integration/asset-upload-flow.test.ts:498:33)
+      at Object.toThrow (node_modules/expect/build/index.js:2155:20)
+      at Object.toThrow (__tests__/integration/asset-upload-flow.test.ts:498:86)
+
+  ● Integration: Asset Upload Flow › Complete Asset Lifecycle › should complete full asset lifecycle: upload → verify → use in project → delete
+
+    ValidationError: Invalid Asset ID format
+
+      38 |   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      39 |   if (!uuidRegex.test(value)) {
+    > 40 |     throw new ValidationError(`Invalid ${fieldName} format`, fieldName, 'INVALID_UUID');
+         |           ^
+      41 |   }
+      42 | }
+      43 |
+
+      at validateUUID (lib/validation.ts:40:11)
+      at AssetService.getAssetById (lib/services/assetService.ts:624:19)
+      at Object.getAssetById (__tests__/integration/asset-upload-flow.test.ts:689:48)
+
+FAIL __tests__/integration/video-generation-flow.test.ts
+  ● Integration: Video Generation Flow › Google Veo Video Generation Flow › should complete Veo video generation and create asset
+
+    TypeError: this.supabase.from(...).insert(...).select is not a function
+
+      401 |         },
+      402 |       })
+    > 403 |       .select()
+          |        ^
+      404 |       .single();
+      405 |
+      406 |     if (assetError) {
+
+      at VideoService.select [as uploadAndCreateVideoAsset] (lib/services/videoService.ts:403:8)
+      at VideoService.checkVeoVideoStatus (lib/services/videoService.ts:312:21)
+      at VideoService.checkVideoStatus (lib/services/videoService.ts:217:16)
+      at Object.<anonymous> (__tests__/integration/video-generation-flow.test.ts:195:22)
+
+  ● Integration: Video Generation Flow › Google Veo Video Generation Flow › should handle Veo video from GCS URI
+
+    error:1E08010C:DECODER routines::unsupported
+
+      439 |
+      440 |     const client = await auth.getClient();
+    > 441 |     const { token } = await client.getAccessToken();
+          |                                    ^
+      442 |
+      443 |     if (!token) {
+      444 |       throw new Error('Failed to obtain Google access token');
+
+      at Object.sign (node_modules/jwa/index.js:166:45)
+      at Object.jwsSign [as sign] (node_modules/jws/lib/sign-stream.js:32:24)
+      at GoogleToken.<anonymous> (node_modules/gtoken/build/cjs/src/index.cjs:407:27)
+      at Generator.<anonymous> (node_modules/gtoken/build/cjs/src/index.cjs:36:1660)
+      at Generator.next (node_modules/gtoken/build/cjs/src/index.cjs:37:362)
+      at asyncGeneratorStep (node_modules/gtoken/build/cjs/src/index.cjs:38:70)
+      at _next (node_modules/gtoken/build/cjs/src/index.cjs:39:163)
+      at node_modules/gtoken/build/cjs/src/index.cjs:39:299
+      at GoogleToken.<anonymous> (node_modules/gtoken/build/cjs/src/index.cjs:39:90)
+      at GoogleToken._requestToken2 (node_modules/gtoken/build/cjs/src/index.cjs:449:25)
+      at GoogleToken._requestToken (node_modules/gtoken/build/cjs/src/index.cjs:389:25)
+      at GoogleToken.<anonymous> (node_modules/gtoken/build/cjs/src/index.cjs:315:92)
+      at Generator.<anonymous> (node_modules/gtoken/build/cjs/src/index.cjs:36:1660)
+      at Generator.next (node_modules/gtoken/build/cjs/src/index.cjs:37:362)
+      at asyncGeneratorStep (node_modules/gtoken/build/cjs/src/index.cjs:38:70)
+      at _next (node_modules/gtoken/build/cjs/src/index.cjs:39:163)
+      at node_modules/gtoken/build/cjs/src/index.cjs:39:299
+      at GoogleToken.<anonymous> (node_modules/gtoken/build/cjs/src/index.cjs:39:90)
+      at GoogleToken._getTokenAsyncInner2 (node_modules/gtoken/build/cjs/src/index.cjs:319:31)
+      at GoogleToken._getTokenAsyncInner (node_modules/gtoken/build/cjs/src/index.cjs:281:31)
+      at GoogleToken.<anonymous> (node_modules/gtoken/build/cjs/src/index.cjs:266:129)
+      at Generator.<anonymous> (node_modules/gtoken/build/cjs/src/index.cjs:36:1660)
+      at Generator.next (node_modules/gtoken/build/cjs/src/index.cjs:37:362)
+      at asyncGeneratorStep (node_modules/gtoken/build/cjs/src/index.cjs:38:70)
+      at _next (node_modules/gtoken/build/cjs/src/index.cjs:39:163)
+      at node_modules/gtoken/build/cjs/src/index.cjs:39:299
+      at GoogleToken.<anonymous> (node_modules/gtoken/build/cjs/src/index.cjs:39:90)
+      at GoogleToken._getTokenAsync2 (node_modules/gtoken/build/cjs/src/index.cjs:278:26)
+      at GoogleToken._getTokenAsync (node_modules/gtoken/build/cjs/src/index.cjs:251:26)
+      at GoogleToken.getToken (node_modules/gtoken/build/cjs/src/index.cjs:177:74)
+      at JWT.refreshTokenNoCache (node_modules/google-auth-library/build/src/auth/jwtclient.js:188:36)
+      at JWT.refreshToken (node_modules/google-auth-library/build/src/auth/oauth2client.js:228:24)
+      at JWT.refreshAccessTokenAsync (node_modules/google-auth-library/build/src/auth/oauth2client.js:288:30)
+      at JWT.getAccessTokenAsync (node_modules/google-auth-library/build/src/auth/oauth2client.js:317:34)
+      at JWT.getAccessToken (node_modules/google-auth-library/build/src/auth/oauth2client.js:299:25)
+      at VideoService.getAccessToken [as downloadFromGCS] (lib/services/videoService.ts:441:36)
+      at VideoService.checkVeoVideoStatus (lib/services/videoService.ts:306:23)
+      at VideoService.checkVideoStatus (lib/services/videoService.ts:217:16)
+      at Object.<anonymous> (__tests__/integration/video-generation-flow.test.ts:270:22)
+
+  ● Integration: Video Generation Flow › FAL.ai Video Generation Flow › should complete FAL video generation and create asset
+
+    TypeError: this.supabase.from(...).insert(...).select is not a function
+
+      401 |         },
+      402 |       })
+    > 403 |       .select()
+          |        ^
+      404 |       .single();
+      405 |
+      406 |     if (assetError) {
+
+      at VideoService.select [as uploadAndCreateVideoAsset] (lib/services/videoService.ts:403:8)
+      at VideoService.downloadAndCreateVideoAsset (lib/services/videoService.ts:352:12)
+      at VideoService.checkFalVideoStatus (lib/services/videoService.ts:255:21)
+      at VideoService.checkVideoStatus (lib/services/videoService.ts:215:16)
+      at Object.<anonymous> (__tests__/integration/video-generation-flow.test.ts:384:22)
+
+  ● Integration: Video Generation Flow › Video Integration with Project › should add generated video to project timeline
+
+    TypeError: this.supabase.from(...).insert(...).select is not a function
+
+      401 |         },
+      402 |       })
+    > 403 |       .select()
+          |        ^
+      404 |       .single();
+      405 |
+      406 |     if (assetError) {
+
+      at VideoService.select [as uploadAndCreateVideoAsset] (lib/services/videoService.ts:403:8)
+      at VideoService.checkVeoVideoStatus (lib/services/videoService.ts:312:21)
+      at VideoService.checkVideoStatus (lib/services/videoService.ts:217:16)
+      at Object.<anonymous> (__tests__/integration/video-generation-flow.test.ts:585:27)
+
+  ● Integration: Video Generation Flow › Complete Video Generation End-to-End › should complete full workflow: request → poll → receive → add to project
+
+    TypeError: this.supabase.from(...).insert(...).select is not a function
+
+      401 |         },
+      402 |       })
+    > 403 |       .select()
+          |        ^
+      404 |       .single();
+      405 |
+      406 |     if (assetError) {
+
+      at VideoService.select [as uploadAndCreateVideoAsset] (lib/services/videoService.ts:403:8)
+      at VideoService.checkVeoVideoStatus (lib/services/videoService.ts:312:21)
+      at VideoService.checkVideoStatus (lib/services/videoService.ts:217:16)
+      at Object.<anonymous> (__tests__/integration/video-generation-flow.test.ts:728:23)
+
+FAIL __tests__/integration/video-editor-workflow.test.ts
+  ● Integration: Video Editor Workflow › Complete Video Editing Session › should complete full editing workflow: create → add clips → edit → export
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      587 |  */
+      588 | export function assertTimelineValid(timeline: any) {
+    > 589 |   expect(timeline).toBeDefined();
+          |                    ^
+      590 |   expect(timeline.projectId).toBeDefined();
+      591 |   expect(Array.isArray(timeline.clips)).toBe(true);
+      592 |
+
+      at toBeDefined (__tests__/integration/helpers/integration-helpers.ts:589:20)
+      at Object.<anonymous> (__tests__/integration/video-editor-workflow.test.ts:122:26)
+
+  ● Integration: Video Editor Workflow › Timeline Operations › should trim clip start and end points
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 5000
+    Received: 0
+
+      356 |       // Assert
+      357 |       const clip = updated.timeline_state_jsonb.clips[0];
+    > 358 |       expect(clip.start).toBe(5000);
+          |                          ^
+      359 |       expect(clip.end).toBe(25000);
+      360 |       expect(clip.end - clip.start).toBe(20000); // 20 seconds
+      361 |     });
+
+      at Object.toBe (__tests__/integration/video-editor-workflow.test.ts:358:26)
+
+  ● Integration: Video Editor Workflow › Timeline Operations › should split clip into two clips
+
+    expect(received).toHaveLength(expected)
+
+    Expected length: 2
+    Received length: 1
+    Received array:  [{"assetId": "550e8400-e29b-41d4-a716-446655440002", "end": 10000, "id": "clip-1", "start": 0, "timelinePosition": 0, "trackIndex": 0}]
+
+      423 |
+      424 |       // Assert
+    > 425 |       expect(updated.timeline_state_jsonb.clips).toHaveLength(2);
+          |                                                  ^
+      426 |       expect(updated.timeline_state_jsonb.clips[0].end).toBe(5000);
+      427 |       expect(updated.timeline_state_jsonb.clips[1].start).toBe(5000);
+      428 |       expect(updated.timeline_state_jsonb.clips[1].end).toBe(10000);
+
+      at Object.toHaveLength (__tests__/integration/video-editor-workflow.test.ts:425:50)
+
+FAIL __tests__/integration/asset-management-workflow.test.ts
+  ● Integration: Asset Management Workflow › Upload → Process → Timeline Integration › should handle image upload with metadata extraction
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "test-image.jpg"
+    Received: "sample.jpg"
+
+      168 |       expect(imageAsset.type).toBe('image');
+      169 |       expect(imageAsset.metadata).toBeDefined();
+    > 170 |       expect(imageAsset.metadata.filename).toBe('test-image.jpg');
+          |                                            ^
+      171 |       expect(imageAsset.metadata.mimeType).toBe('image/jpeg');
+      172 |     });
+      173 |
+
+      at Object.toBe (__tests__/integration/asset-management-workflow.test.ts:170:44)
+
+  ● Integration: Asset Management Workflow › Asset Organization and Search › should get asset by ID
+
+    ValidationError: Invalid Asset ID format
+
+      38 |   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      39 |   if (!uuidRegex.test(value)) {
+    > 40 |     throw new ValidationError(`Invalid ${fieldName} format`, fieldName, 'INVALID_UUID');
+         |           ^
+      41 |   }
+      42 | }
+      43 |
+
+      at validateUUID (lib/validation.ts:40:11)
+      at AssetService.getAssetById (lib/services/assetService.ts:624:19)
+      at Object.getAssetById (__tests__/integration/asset-management-workflow.test.ts:567:40)
+
+  ● Integration: Asset Management Workflow › Asset Deletion with Timeline Updates › should delete asset and remove from timeline
+
+    TypeError: this.supabase.from(...).select is not a function
+
+      523 |       const { data: asset, error: fetchError } = await this.supabase
+      524 |         .from('assets')
+    > 525 |         .select('storage_url')
+          |          ^
+      526 |         .eq('id', assetId)
+      527 |         .eq('user_id', userId)
+      528 |         .single();
+
+      at AssetService.select [as deleteAsset] (lib/services/assetService.ts:525:10)
+      at Object.deleteAsset (__tests__/integration/asset-management-workflow.test.ts:626:26)
+
+  ● Integration: Asset Management Workflow › Asset Deletion with Timeline Updates › should handle deletion of asset used in multiple clips
+
+    TypeError: this.supabase.from(...).select is not a function
+
+      523 |       const { data: asset, error: fetchError } = await this.supabase
+      524 |         .from('assets')
+    > 525 |         .select('storage_url')
+          |          ^
+      526 |         .eq('id', assetId)
+      527 |         .eq('user_id', userId)
+      528 |         .single();
+
+      at AssetService.select [as deleteAsset] (lib/services/assetService.ts:525:10)
+      at Object.deleteAsset (__tests__/integration/asset-management-workflow.test.ts:705:26)
+
+  ● Integration: Asset Management Workflow › Asset Deletion with Timeline Updates › should handle storage cleanup on asset deletion
+
+    TypeError: this.supabase.from(...).select is not a function
+
+      523 |       const { data: asset, error: fetchError } = await this.supabase
+      524 |         .from('assets')
+    > 525 |         .select('storage_url')
+          |          ^
+      526 |         .eq('id', assetId)
+      527 |         .eq('user_id', userId)
+      528 |         .single();
+
+      at AssetService.select [as deleteAsset] (lib/services/assetService.ts:525:10)
+      at Object.deleteAsset (__tests__/integration/asset-management-workflow.test.ts:761:26)
+
+  ● Integration: Asset Management Workflow › Asset Validation and Error Handling › should validate asset ownership before operations
+
+    ValidationError: Invalid Asset ID format
+
+      38 |   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      39 |   if (!uuidRegex.test(value)) {
+    > 40 |     throw new ValidationError(`Invalid ${fieldName} format`, fieldName, 'INVALID_UUID');
+         |           ^
+      41 |   }
+      42 | }
+      43 |
+
+      at validateUUID (lib/validation.ts:40:11)
+      at AssetService.getAssetById (lib/services/assetService.ts:624:19)
+      at Object.getAssetById (__tests__/integration/asset-management-workflow.test.ts:792:40)
+
+FAIL __tests__/integration/ai-generation-complete-workflow.test.ts
+  ● Integration: Complete AI Generation Workflows › Video Generation Complete Workflow › should complete workflow: request → poll → receive → add to timeline → export
+
+    TypeError: this.supabase.from(...).insert(...).select is not a function
+
+      401 |         },
+      402 |       })
+    > 403 |       .select()
+          |        ^
+      404 |       .single();
+      405 |
+      406 |     if (assetError) {
+
+      at VideoService.select [as uploadAndCreateVideoAsset] (lib/services/videoService.ts:403:8)
+      at VideoService.checkVeoVideoStatus (lib/services/videoService.ts:312:21)
+      at VideoService.checkVideoStatus (lib/services/videoService.ts:217:16)
+      at Object.<anonymous> (__tests__/integration/ai-generation-complete-workflow.test.ts:193:31)
+
+  ● Integration: Complete AI Generation Workflows › Video Generation Complete Workflow › should handle video generation with multiple retries
+
+    TypeError: this.supabase.from(...).insert(...).select is not a function
+
+      401 |         },
+      402 |       })
+    > 403 |       .select()
+          |        ^
+      404 |       .single();
+      405 |
+      406 |     if (assetError) {
+
+      at VideoService.select [as uploadAndCreateVideoAsset] (lib/services/videoService.ts:403:8)
+      at VideoService.checkVeoVideoStatus (lib/services/videoService.ts:312:21)
+      at VideoService.checkVideoStatus (lib/services/videoService.ts:217:16)
+      at Object.<anonymous> (__tests__/integration/ai-generation-complete-workflow.test.ts:287:27)
+
+  ● Integration: Complete AI Generation Workflows › Multi-Step AI Workflows › should generate video, then add audio track, then add effects
+
+    TypeError: this.supabase.from(...).insert(...).select is not a function
+
+      401 |         },
+      402 |       })
+    > 403 |       .select()
+          |        ^
+      404 |       .single();
+      405 |
+      406 |     if (assetError) {
+
+      at VideoService.select [as uploadAndCreateVideoAsset] (lib/services/videoService.ts:403:8)
+      at VideoService.checkVeoVideoStatus (lib/services/videoService.ts:312:21)
+      at VideoService.checkVideoStatus (lib/services/videoService.ts:217:16)
+      at Object.<anonymous> (__tests__/integration/ai-generation-complete-workflow.test.ts:374:27)
+
+  ● Integration: Complete AI Generation Workflows › Multi-Step AI Workflows › should generate multiple assets and combine into single project
+
+    TypeError: this.supabase.from(...).insert(...).select is not a function
+
+      401 |         },
+      402 |       })
+    > 403 |       .select()
+          |        ^
+      404 |       .single();
+      405 |
+      406 |     if (assetError) {
+
+      at VideoService.select [as uploadAndCreateVideoAsset] (lib/services/videoService.ts:403:8)
+      at VideoService.checkVeoVideoStatus (lib/services/videoService.ts:312:21)
+      at VideoService.checkVideoStatus (lib/services/videoService.ts:217:16)
+      at Object.<anonymous> (__tests__/integration/ai-generation-complete-workflow.test.ts:456:24)
+
+  ● Integration: Complete AI Generation Workflows › Parallel AI Generation › should poll multiple generations concurrently
+
+    No downloadable video returned by Veo operation
+
+      306 |         videoBinary = await this.downloadFromGCS(videoArtifact.gcsUri);
+      307 |       } else {
+    > 308 |         throw new Error('No downloadable video returned by Veo operation');
+          |               ^
+      309 |       }
+      310 |
+      311 |       // Upload to storage and create asset
+
+      at VideoService.checkVeoVideoStatus (lib/services/videoService.ts:308:15)
+      at VideoService.checkVideoStatus (lib/services/videoService.ts:217:16)
+          at async Promise.all (index 2)
+      at Object.<anonymous> (__tests__/integration/ai-generation-complete-workflow.test.ts:583:24)
+
+  ● Integration: Complete AI Generation Workflows › FAL.ai Video Generation Workflow › should complete FAL video generation workflow
+
+    TypeError: this.supabase.from(...).insert(...).select is not a function
+
+      401 |         },
+      402 |       })
+    > 403 |       .select()
+          |        ^
+      404 |       .single();
+      405 |
+      406 |     if (assetError) {
+
+      at VideoService.select [as uploadAndCreateVideoAsset] (lib/services/videoService.ts:403:8)
+      at VideoService.downloadAndCreateVideoAsset (lib/services/videoService.ts:352:12)
+      at VideoService.checkFalVideoStatus (lib/services/videoService.ts:255:21)
+      at VideoService.checkVideoStatus (lib/services/videoService.ts:215:16)
+      at Object.<anonymous> (__tests__/integration/ai-generation-complete-workflow.test.ts:660:27)
+
+{"level":30,"time":1761342585058,"env":"development","service":"genai-video-production","event":"cache.initialized","type":"lru","maxSize":1000,"msg":"Cache initialized with LRU strategy (max 1000 entries)"}
+{"level":30,"time":1761342585058,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585059,"env":"development","service":"genai-video-production","event":"cache.initialized","type":"lru","maxSize":1000,"msg":"Cache initialized with LRU strategy (max 1000 entries)"}
+{"level":30,"time":1761342585059,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585061,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585068,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585069,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585069,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585070,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585070,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585073,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585073,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585073,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585074,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585074,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585076,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585077,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585078,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585078,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585078,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585079,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585080,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585080,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585080,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585081,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585081,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585082,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585082,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585082,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585086,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585086,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585129,"env":"development","service":"genai-video-production","event":"cache.initialized","type":"lru","maxSize":1000,"msg":"Cache initialized with LRU strategy (max 1000 entries)"}
+{"level":30,"time":1761342585130,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585130,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585137,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585138,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585140,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585141,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585142,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585142,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585143,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585144,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":1,"msg":"Cache cleared: 1 entries removed"}
+{"level":30,"time":1761342585145,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585147,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585147,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":1,"msg":"Cache cleared: 1 entries removed"}
+{"level":30,"time":1761342585148,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585149,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585150,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":1,"msg":"Cache cleared: 1 entries removed"}
+{"level":30,"time":1761342585153,"env":"development","service":"genai-video-production","event":"cache.initialized","type":"lru","maxSize":1000,"msg":"Cache initialized with LRU strategy (max 1000 entries)"}
+{"level":30,"time":1761342585154,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":1,"msg":"Cache cleared: 1 entries removed"}
+{"level":30,"time":1761342585154,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+FAIL __tests__/integration/project-workflow.test.ts
+  ● Integration: Project Workflow › Timeline Building Flow › should handle empty timeline state
+
+    expect(received).toEqual(expected) // deep equality
+
+    Expected: []
+    Received: undefined
+
+      446 |
+      447 |       // Assert
+    > 448 |       expect(result.timeline_state_jsonb.clips).toEqual([]);
+          |                                                 ^
+      449 |     });
+      450 |
+      451 |     it('should verify project ownership before updating timeline', async () => {
+
+      at Object.toEqual (__tests__/integration/project-workflow.test.ts:448:49)
+
+PASS __tests__/integration/auth-flow.test.ts
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+PASS __tests__/integration/memory-leak-prevention.test.ts
+{"level":30,"time":1761342585159,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585160,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":1,"msg":"Cache cleared: 1 entries removed"}
+{"level":30,"time":1761342585181,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585182,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585182,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585183,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585185,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585188,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585188,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585189,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585189,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585191,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":1,"msg":"Cache cleared: 1 entries removed"}
+{"level":30,"time":1761342585192,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342585193,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":1,"msg":"Cache cleared: 1 entries removed"}
+{"level":30,"time":1761342585195,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":1,"msg":"Cache cleared: 1 entries removed"}
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+FAIL __tests__/integration/helpers/integration-helpers.ts
+  ● Test suite failed to run
+
+    Your test suite must contain at least one test.
+
+      at onResult (node_modules/@jest/core/build/index.js:1057:18)
+      at node_modules/@jest/core/build/index.js:1127:165
+      at node_modules/emittery/index.js:363:13
+          at Array.map (<anonymous>)
+      at Emittery.emit (node_modules/emittery/index.js:361:23)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
+Test Suites: 8 failed, 2 passed, 10 total
+Tests:       31 failed, 115 passed, 146 total
+Snapshots:   0 total
+Time:        1.286 s
+Ran all test suites matching __tests__/integration.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
