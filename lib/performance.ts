@@ -212,7 +212,7 @@ export function exportPerformanceReport(): string {
  * Note: This is a placeholder that should be implemented in a .tsx file
  * @deprecated Use measureComponentRender instead
  */
-export function useRenderPerformance(_componentName: string) {
+export function useRenderPerformance() {
   // Placeholder - actual implementation requires React hooks in a .tsx file
   return;
 }
@@ -222,8 +222,7 @@ export function useRenderPerformance(_componentName: string) {
  * Note: This is a placeholder implementation that requires proper React integration
  */
 export function withPerformanceMonitoring<P extends object>(
-  Component: React.ComponentType<P>,
-  _componentName?: string
+  Component: React.ComponentType<P>
 ): React.ComponentType<P> {
   // Return the component as-is in the current implementation
   // Full implementation would require this file to be .tsx

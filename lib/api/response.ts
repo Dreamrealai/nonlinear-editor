@@ -253,6 +253,23 @@ export function conflictResponse(message: string): NextResponse<ErrorResponse> {
 }
 
 /**
+ * Creates a service unavailable (503) error response
+ *
+ * @param message - Error message
+ * @param details - Optional error details
+ * @returns NextResponse with 503 status
+ *
+ * @example
+ * return serviceUnavailableResponse('AI service not configured');
+ */
+export function serviceUnavailableResponse(
+  message: string,
+  details?: unknown
+): NextResponse<ErrorResponse> {
+  return errorResponse(message, HttpStatusCode.SERVICE_UNAVAILABLE, undefined, details);
+}
+
+/**
  * Wraps an async handler with try-catch and returns proper error responses
  *
  * @param handler - Async function to wrap

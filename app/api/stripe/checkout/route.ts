@@ -7,7 +7,13 @@ import { createServerClient } from '@supabase/ssr';
 import { createCheckoutSession, getOrCreateStripeCustomer } from '@/lib/stripe';
 import { serverLogger } from '@/lib/serverLogger';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
-import { withErrorHandling } from '@/lib/api/response';
+import {
+  withErrorHandling,
+  rateLimitResponse,
+  unauthorizedResponse,
+  errorResponse,
+  badRequestResponse,
+} from '@/lib/api/response';
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
   // TIER 1 RATE LIMITING: Payment operations (5/min)
@@ -42,21 +48,10 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       'Stripe checkout rate limit exceeded'
     );
 
-    return NextResponse.json(
-      {
-        error: 'Rate limit exceeded',
-        limit: rateLimitResult.limit,
-        remaining: rateLimitResult.remaining,
-        resetAt: rateLimitResult.resetAt,
-      },
-      {
-        status: 429,
-        headers: {
-          'X-RateLimit-Limit': rateLimitResult.limit.toString(),
-          'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-          'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
-        },
-      }
+    return rateLimitResponse(
+      rateLimitResult.limit,
+      rateLimitResult.remaining,
+      rateLimitResult.resetAt
     );
   }
   const startTime = Date.now();
@@ -94,7 +89,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
         },
         'Unauthorized checkout attempt'
       );
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return unauthorizedResponse();
     }
 
     serverLogger.debug(
@@ -123,7 +118,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
         },
         'Failed to fetch user profile'
       );
-      return NextResponse.json({ error: 'Failed to fetch user profile' }, { status: 500 });
+      return errorResponse('Failed to fetch user profile', 500);
     }
 
     serverLogger.debug(
@@ -148,10 +143,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
         },
         'User already has active subscription'
       );
-      return NextResponse.json(
-        { error: 'You already have an active subscription' },
-        { status: 400 }
-      );
+      return badRequestResponse('You already have an active subscription');
     }
 
     // Get or create Stripe customer
@@ -232,7 +224,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
         },
         'Price ID not configured'
       );
-      return NextResponse.json({ error: 'Price ID not configured' }, { status: 500 });
+      return errorResponse('Price ID not configured', 500);
     }
 
     // Create checkout session
