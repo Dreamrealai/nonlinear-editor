@@ -94,6 +94,9 @@ const selectActions = (state: ReturnType<typeof useEditorStore.getState>) => ({
   groupSelectedClips: state.groupSelectedClips,
   ungroupClips: state.ungroupClips,
   getClipGroupId: state.getClipGroupId,
+  updateGuide: state.updateGuide,
+  removeGuide: state.removeGuide,
+  addGuide: state.addGuide,
 });
 
 // Selector for undo/redo state
