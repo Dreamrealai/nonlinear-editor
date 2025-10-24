@@ -614,6 +614,20 @@ export function AssetPanel({
           </div>
         </nav>
       )}
+
+      {/* Version History Dialog */}
+      {versionHistoryAsset && (
+        <AssetVersionHistory
+          assetId={versionHistoryAsset.id}
+          assetType={versionHistoryAsset.type}
+          isOpen={!!versionHistoryAsset}
+          onClose={() => setVersionHistoryAsset(null)}
+          onReverted={() => {
+            // Optionally reload assets or show a success message
+            setVersionHistoryAsset(null);
+          }}
+        />
+      )}
     </aside>
   );
 }
