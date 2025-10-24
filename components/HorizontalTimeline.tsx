@@ -25,9 +25,10 @@ import { TimelineTracks } from './timeline/TimelineTracks';
 import { TimelineContextMenu } from './timeline/TimelineContextMenu';
 import { TimelinePlayhead } from './timeline/TimelinePlayhead';
 import { TimelineTextOverlayTrack } from './timeline/TimelineTextOverlayTrack';
+import { TimelineSnapGuides } from './timeline/TimelineSnapGuides';
 
 // Extracted hooks
-import { useTimelineDragging } from '@/lib/hooks/useTimelineDragging';
+import { useTimelineDraggingWithSnap } from '@/lib/hooks/useTimelineDraggingWithSnap';
 import { useTimelineKeyboardShortcuts } from '@/lib/hooks/useTimelineKeyboardShortcuts';
 import { useTimelineCalculations } from '@/lib/hooks/useTimelineCalculations';
 
@@ -125,8 +126,8 @@ function HorizontalTimeline({
     zoom,
   });
 
-  // Dragging state (clip, playhead, trim)
-  const { setDraggingClip, setIsDraggingPlayhead, setTrimmingClip } = useTimelineDragging({
+  // Dragging state (clip, playhead, trim) and snap info
+  const { snapInfo, setDraggingClip, setIsDraggingPlayhead, setTrimmingClip } = useTimelineDraggingWithSnap({
     containerRef,
     timeline,
     zoom,
@@ -362,6 +363,13 @@ function HorizontalTimeline({
               currentTime={currentTime}
               zoom={zoom}
               onMouseDown={handlePlayheadMouseDown}
+            />
+
+            {/* Snap Guides - Visual feedback during dragging */}
+            <TimelineSnapGuides
+              snapInfo={snapInfo}
+              zoom={zoom}
+              timelineHeight={numTracks * TRACK_HEIGHT}
             />
           </div>
         </div>
