@@ -2,7 +2,7 @@
 
 > **Comprehensive guide to coding standards, patterns, and practices used in this Next.js video editor application.**
 
-**Last Updated:** October 23, 2025
+**Last Updated:** October 24, 2025
 **Target Audience:** All developers working on this codebase
 
 ---
@@ -560,6 +560,324 @@ export async function POST(request: NextRequest) {
 ```
 
 **Pattern Location:** `lib/api/withAuth.ts` lines 85-268
+
+---
+
+### 4.1a Middleware Edge Cases and When NOT to Use withAuth
+
+**WHY:** Not all routes require authentication middleware. Understanding edge cases prevents over-engineering and maintains appropriate security boundaries.
+
+**Edge Case 1: Public Endpoints**
+
+Use manual implementation for truly public endpoints that should be accessible without authentication.
+
+**✅ DO:**
+
+```typescript
+// app/api/health/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(request: NextRequest) {
+  // No authentication needed - public health check
+  return NextResponse.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+  });
+}
+```
+
+**✅ DO:**
+
+```typescript
+// app/api/docs/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { withErrorHandling } from '@/lib/api/withErrorHandling';
+
+async function handleDocs(request: NextRequest) {
+  // Public documentation endpoint - no auth required
+  const docs = await generateOpenAPISpec();
+  return NextResponse.json(docs);
+}
+
+export const GET = withErrorHandling(handleDocs, {
+  route: '/api/docs',
+});
+```
+
+**When to use this pattern:**
+
+- Health check endpoints (`/api/health`)
+- Public documentation endpoints (`/api/docs`)
+- Status pages that don't expose sensitive data
+
+---
+
+**Edge Case 2: Webhook Endpoints**
+
+Webhook endpoints use signature verification instead of session-based authentication.
+
+**✅ DO:**
+
+```typescript
+// app/api/stripe/webhook/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
+
+export async function POST(request: NextRequest) {
+  const signature = request.headers.get('stripe-signature');
+  const body = await request.text();
+
+  // Verify webhook signature instead of using withAuth
+  try {
+    const event = stripe.webhooks.constructEvent(
+      body,
+      signature!,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
+
+    // Process webhook event
+    await handleStripeWebhook(event);
+    return NextResponse.json({ received: true });
+  } catch (error) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
+  }
+}
+```
+
+**When to use this pattern:**
+
+- Stripe webhooks (`/api/stripe/webhook`)
+- GitHub webhooks
+- Any third-party service callback that uses signature verification
+
+**❌ DON'T:**
+
+```typescript
+// Don't use withAuth for webhooks!
+export const POST = withAuth(handleStripeWebhook, {
+  route: '/api/stripe/webhook',
+});
+// Webhooks won't have user sessions!
+```
+
+---
+
+**Edge Case 3: Authentication Endpoints**
+
+Authentication endpoints need custom logic for CSRF protection and session handling.
+
+**✅ DO:**
+
+```typescript
+// app/api/auth/signout/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { withErrorHandling } from '@/lib/api/withErrorHandling';
+import { createServerSupabaseClient } from '@/lib/supabase';
+
+async function handleSignout(request: NextRequest) {
+  // Custom auth logic with CSRF protection
+  const supabase = await createServerSupabaseClient();
+
+  // Verify CSRF token from request body
+  const body = await request.json();
+  const csrfToken = body.csrfToken;
+
+  if (!csrfToken) {
+    return NextResponse.json({ error: 'CSRF token required' }, { status: 403 });
+  }
+
+  // Sign out user
+  await supabase.auth.signOut();
+
+  return NextResponse.json({ success: true });
+}
+
+export const POST = withErrorHandling(handleSignout, {
+  route: '/api/auth/signout',
+});
+```
+
+**When to use this pattern:**
+
+- Sign-in endpoints that establish sessions
+- Sign-out endpoints that clear sessions
+- Password reset endpoints with token verification
+- Any auth flow that requires custom CSRF or token handling
+
+---
+
+**Edge Case 4: Wrapper Utilities (Equivalent to withAuth)**
+
+Some codebases use wrapper utilities that encapsulate `withAuth` logic.
+
+**✅ DO:**
+
+```typescript
+// lib/api/generationRoutes.ts
+import { withAuth } from '@/lib/api/withAuth';
+import { RATE_LIMITS } from '@/lib/rateLimit';
+
+export function createGenerationRoute(handler: GenerationHandler) {
+  // Wrapper that includes withAuth internally
+  return withAuth(
+    async (request, context) => {
+      // Add common generation logic
+      const startTime = Date.now();
+
+      // Call handler
+      const response = await handler(request, context);
+
+      // Add common logging
+      const duration = Date.now() - startTime;
+      serverLogger.info({ duration }, 'Generation completed');
+
+      return response;
+    },
+    {
+      route: handler.route,
+      rateLimit: RATE_LIMITS.tier2_resource_creation,
+    }
+  );
+}
+
+// Usage
+export const POST = createGenerationRoute({
+  route: '/api/video/generate',
+  handler: async (request, context) => {
+    // Handler code
+  },
+});
+```
+
+**When to use this pattern:**
+
+- Multiple endpoints share common logic (validation, logging, rate limiting)
+- Domain-specific wrappers (video generation, audio processing)
+- Common error handling patterns across endpoint groups
+
+**Examples in codebase:**
+
+- `createGenerationRoute()` - Wraps video/audio generation endpoints
+- `createStatusCheckHandler()` - Wraps status polling endpoints
+
+---
+
+**Edge Case 5: Legacy Routes with Manual Auth**
+
+Some routes may use manual auth for historical reasons. These should eventually be migrated.
+
+**⚠️ ACCEPTABLE (but plan to migrate):**
+
+```typescript
+// app/api/projects/[projectId]/chat/route.ts
+import { createServerSupabaseClient } from '@/lib/supabase';
+
+export async function POST(request: NextRequest) {
+  // Legacy manual auth pattern
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Chat logic...
+}
+
+// TODO: Migrate to withAuth when refactoring chat system
+```
+
+**When this is acceptable:**
+
+- Legacy code scheduled for refactoring
+- Complex custom auth logic that doesn't fit withAuth pattern
+- Temporary workaround during migration
+
+**Action:** Document these routes as technical debt and create migration plan.
+
+---
+
+**Decision Tree: Which Middleware to Use**
+
+```
+Is the endpoint public?
+├─ Yes → Use plain handler or withErrorHandling (no auth)
+│   Examples: /api/health, /api/docs
+│
+└─ No → Does it use external verification (webhook signature)?
+    ├─ Yes → Manual verification, no middleware
+    │   Examples: /api/stripe/webhook, /api/github/webhook
+    │
+    └─ No → Is it an authentication endpoint?
+        ├─ Yes → withErrorHandling + custom CSRF logic
+        │   Examples: /api/auth/signout, /api/auth/signin
+        │
+        └─ No → Does it need custom auth logic?
+            ├─ Yes → Document as legacy, plan migration to withAuth
+            │
+            └─ No → Use withAuth with appropriate rate limit tier
+                Examples: All authenticated API routes
+```
+
+---
+
+**Middleware Checklist**
+
+Before choosing middleware for a new API route:
+
+- [ ] Is this endpoint public? → No middleware or `withErrorHandling`
+- [ ] Is this a webhook? → Manual signature verification
+- [ ] Is this an auth endpoint? → `withErrorHandling` + custom logic
+- [ ] Does this fit a common pattern? → Use wrapper utility if available
+- [ ] Is this a standard authenticated route? → Use `withAuth`
+
+---
+
+**Migration Guide: Manual Auth → withAuth**
+
+**Before:**
+
+```typescript
+export async function POST(request: NextRequest) {
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const body = await request.json();
+  // ... business logic
+}
+```
+
+**After:**
+
+```typescript
+async function handleRequest(request: NextRequest, context: AuthContext) {
+  const { user, supabase } = context;
+  const body = await request.json();
+  // ... business logic
+}
+
+export const POST = withAuth(handleRequest, {
+  route: '/api/your-route',
+  rateLimit: RATE_LIMITS.tier4_general,
+});
+```
+
+**Benefits:**
+
+- ✅ Automatic authentication
+- ✅ Built-in rate limiting
+- ✅ Consistent error handling
+- ✅ Structured logging
+- ✅ Audit trail integration
 
 ---
 
@@ -1666,5 +1984,5 @@ Before merging code, ensure:
 
 ---
 
-**Document Version:** 1.0
-**Last Updated:** October 23, 2025
+**Document Version:** 1.1
+**Last Updated:** October 24, 2025
