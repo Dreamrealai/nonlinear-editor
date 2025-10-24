@@ -422,12 +422,34 @@ All required indexes have been implemented in migration `20251024100000_add_perf
 
 ### Issue #13: Duplicate Time Formatting Functions
 
-- **Status:** Open
+- **Status:** Fixed
 - **Priority:** P2
-- **Effort:** 1-2 hours
+- **Effort:** 1-2 hours (actual: 2 hours)
 - **Impact:** Code duplication
+- **Fixed:** 2025-10-24
+- **Location:** `/lib/utils/timeFormatting.ts`
 
-**Action:** Consolidate `formatTime()` and `formatDuration()` functions
+**Resolution:**
+- Created consolidated time formatting utilities module at `/lib/utils/timeFormatting.ts`
+- Consolidated 5 duplicate `formatTime()` implementations into single module
+- Consolidated 2 duplicate `formatTimecode()` implementations
+- Added comprehensive formatting functions:
+  - `formatTimeMMSSCS()` - MM:SS.CS format for timeline displays
+  - `formatTimecode()` - Professional timecode HH:MM:SS.MS format
+  - `formatTimecodeFrames()` - Frame-based MM:SS:FF format (30fps)
+  - `formatTimeSeconds()` - Simple X.XXs format
+  - `formatDuration()` - Human-readable duration (Xs, Xm Ys, Xh Ym)
+  - `formatTimeRemaining()` - Approximate duration with ~ prefix
+- Updated 7 files to use consolidated utilities:
+  - `/lib/utils/timelineUtils.ts` - Re-exports for backward compatibility
+  - `/lib/utils/videoUtils.ts` - Re-exports formatTimecodeFrames
+  - `/components/ProgressModal.tsx` - Uses formatDuration
+  - `/components/ui/ProgressBar.tsx` - Uses formatDuration
+  - `/components/ui/GenerationProgress.tsx` - Uses formatTimeRemaining
+  - `/components/timeline/TimelineContextMenu.tsx` - Uses formatTimeMMSSCS
+  - `/components/timeline/TimelineRuler.tsx` - Uses formatTimeSeconds
+- Fixed pre-existing test bug in `/tests/components/ui/ProgressBar.test.tsx`
+- All tests passing, build successful
 
 ---
 
