@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import PreviewPlayer from '@/components/PreviewPlayer';
+import { PreviewPlayer } from '@/components/PreviewPlayer';
 import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip, Timeline } from '@/types/timeline';
 

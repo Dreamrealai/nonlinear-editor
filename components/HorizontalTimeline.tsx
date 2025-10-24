@@ -108,7 +108,7 @@ const selectHistoryState = (state: ReturnType<typeof useEditorStore.getState>): 
   canRedo: state.canRedo(),
 });
 
-function HorizontalTimeline({
+export function HorizontalTimeline({
   onDetectScenes,
   sceneDetectPending = false,
   onAddText,
@@ -619,5 +619,3 @@ function HorizontalTimeline({
     </div>
   );
 }
-
-export default HorizontalTimeline;

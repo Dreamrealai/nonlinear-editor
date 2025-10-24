@@ -173,5 +173,3 @@ export function AssetLibraryModal({ projectId, onSelect, onClose }: AssetLibrary
     </div>
   );
 }
-
-export default AssetLibraryModal;

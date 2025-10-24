@@ -1,0 +1,564 @@
+/**
+ * Integration Test: Export Modal Workflow
+ *
+ * Tests the complete export workflow with real component interactions:
+ * - Open export modal
+ * - Select export preset
+ * - Configure export settings
+ * - Submit export request
+ * - Monitor export progress
+ * - Handle export completion/errors
+ *
+ * This test verifies that ExportModal integrates correctly with the timeline
+ * and export API, providing a smooth user experience.
+ */
+
+import React from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import '@testing-library/jest-dom';
+import ExportModal from '@/components/ExportModal';
+import toast from 'react-hot-toast';
+import type { Timeline } from '@/types/timeline';
+
+// Mock dependencies
+jest.mock('react-hot-toast');
+jest.mock('@/lib/browserLogger', () => ({
+  browserLogger: {
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+  },
+}));
+
+// Mock fetch
+global.fetch = jest.fn();
+
+describe('Integration: Export Modal Workflow', () => {
+  const projectId = 'test-project-123';
+
+  const mockTimeline: Timeline = {
+    clips: [
+      {
+        id: 'clip-1',
+        type: 'video',
+        assetId: 'asset-1',
+        startTime: 0,
+        duration: 10,
+        trimStart: 0,
+        trimEnd: 10,
+        url: 'https://example.com/video1.mp4',
+        thumbnailUrl: 'https://example.com/thumb1.jpg',
+      },
+      {
+        id: 'clip-2',
+        type: 'video',
+        assetId: 'asset-2',
+        startTime: 10,
+        duration: 15,
+        trimStart: 0,
+        trimEnd: 15,
+        url: 'https://example.com/video2.mp4',
+        thumbnailUrl: 'https://example.com/thumb2.jpg',
+      },
+    ],
+  } as Timeline;
+
+  const defaultProps = {
+    isOpen: true,
+    onClose: jest.fn(),
+    projectId,
+    timeline: mockTimeline,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (global.fetch as jest.Mock).mockReset();
+  });
+
+  describe('Modal Opening and Initial State', () => {
+    it('should render modal when isOpen is true', () => {
+      render(<ExportModal {...defaultProps} />);
+
+      expect(screen.getByText('Export Video')).toBeInTheDocument();
+      expect(screen.getByText(/Select a preset to export your video/)).toBeInTheDocument();
+    });
+
+    it('should not render modal when isOpen is false', () => {
+      render(<ExportModal {...defaultProps} isOpen={false} />);
+
+      expect(screen.queryByText('Export Video')).not.toBeInTheDocument();
+    });
+
+    it('should display default preset selected (1080p HD)', () => {
+      render(<ExportModal {...defaultProps} />);
+
+      // Default preset should be highlighted
+      const preset1080p = screen.getByText('1080p HD').closest('button');
+      expect(preset1080p).toHaveClass('border-blue-500');
+
+      // Settings should show 1080p values
+      expect(screen.getByText('1920x1080')).toBeInTheDocument();
+      expect(screen.getByText('30 fps')).toBeInTheDocument();
+      expect(screen.getByText('MP4')).toBeInTheDocument();
+    });
+
+    it('should show all available export presets', () => {
+      render(<ExportModal {...defaultProps} />);
+
+      expect(screen.getByText('1080p HD')).toBeInTheDocument();
+      expect(screen.getByText('720p HD')).toBeInTheDocument();
+      expect(screen.getByText('480p SD')).toBeInTheDocument();
+      expect(screen.getByText('Web Optimized')).toBeInTheDocument();
+    });
+
+    it('should display timeline duration in modal', () => {
+      render(<ExportModal {...defaultProps} />);
+
+      // Total timeline duration is 25 seconds (10s + 15s)
+      expect(screen.getByText(/25/)).toBeInTheDocument();
+    });
+  });
+
+  describe('Preset Selection Workflow', () => {
+    it('should update settings when user selects different preset', async () => {
+      const user = userEvent.setup();
+      render(<ExportModal {...defaultProps} />);
+
+      // Initially 1080p
+      expect(screen.getByText('1920x1080')).toBeInTheDocument();
+
+      // Click 720p preset
+      const preset720p = screen.getByText('720p HD').closest('button');
+      await user.click(preset720p!);
+
+      // Settings should update
+      await waitFor(() => {
+        expect(screen.getByText('1280x720')).toBeInTheDocument();
+      });
+    });
+
+    it('should highlight selected preset', async () => {
+      const user = userEvent.setup();
+      render(<ExportModal {...defaultProps} />);
+
+      // Click 480p preset
+      const preset480p = screen.getByText('480p SD').closest('button');
+      await user.click(preset480p!);
+
+      // Should be highlighted
+      await waitFor(() => {
+        expect(preset480p).toHaveClass('border-blue-500');
+      });
+
+      // Previous preset should not be highlighted
+      const preset1080p = screen.getByText('1080p HD').closest('button');
+      expect(preset1080p).not.toHaveClass('border-blue-500');
+    });
+
+    it('should show different format for Web Optimized preset', async () => {
+      const user = userEvent.setup();
+      render(<ExportModal {...defaultProps} />);
+
+      // Click Web Optimized preset
+      const presetWeb = screen.getByText('Web Optimized').closest('button');
+      await user.click(presetWeb!);
+
+      // Should show WEBM format
+      await waitFor(() => {
+        expect(screen.getByText('WEBM')).toBeInTheDocument();
+      });
+    });
+
+    it('should navigate presets with keyboard', async () => {
+      const user = userEvent.setup();
+      render(<ExportModal {...defaultProps} />);
+
+      // Focus first preset
+      const preset1080p = screen.getByText('1080p HD').closest('button');
+      preset1080p!.focus();
+
+      // Tab to next preset
+      await user.tab();
+
+      // Should focus next preset
+      const preset720p = screen.getByText('720p HD').closest('button');
+      expect(document.activeElement).toBe(preset720p);
+    });
+  });
+
+  describe('Export Submission Flow', () => {
+    it('should submit export request with correct parameters', async () => {
+      const user = userEvent.setup();
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ jobId: 'export-job-123', message: 'Export started' }),
+      });
+
+      render(<ExportModal {...defaultProps} />);
+
+      // Click Start Export
+      const exportButton = screen.getByRole('button', { name: /start export/i });
+      await user.click(exportButton);
+
+      // Verify API call
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith(
+          '/api/export',
+          expect.objectContaining({
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: expect.stringContaining(projectId),
+          })
+        );
+      });
+    });
+
+    it('should show success message on successful export', async () => {
+      const user = userEvent.setup();
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ jobId: 'export-job-123', message: 'Export started' }),
+      });
+
+      render(<ExportModal {...defaultProps} />);
+
+      const exportButton = screen.getByRole('button', { name: /start export/i });
+      await user.click(exportButton);
+
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith('Export started successfully');
+      });
+
+      expect(screen.getByText('Export Started')).toBeInTheDocument();
+    });
+
+    it('should show error message on export failure', async () => {
+      const user = userEvent.setup();
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({ error: 'Export failed: insufficient credits' }),
+      });
+
+      render(<ExportModal {...defaultProps} />);
+
+      const exportButton = screen.getByRole('button', { name: /start export/i });
+      await user.click(exportButton);
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Export failed: insufficient credits');
+      });
+
+      expect(screen.getByText('Export Failed')).toBeInTheDocument();
+    });
+
+    it('should disable buttons during export submission', async () => {
+      const user = userEvent.setup();
+
+      let resolvePromise: (value: any) => void;
+      const pendingPromise = new Promise((resolve) => {
+        resolvePromise = resolve;
+      });
+      (global.fetch as jest.Mock).mockImplementationOnce(() => pendingPromise);
+
+      render(<ExportModal {...defaultProps} />);
+
+      const exportButton = screen.getByRole('button', { name: /start export/i });
+      const cancelButton = screen.getByRole('button', { name: /cancel/i });
+
+      await user.click(exportButton);
+
+      // Both buttons should be disabled
+      await waitFor(() => {
+        expect(exportButton).toBeDisabled();
+        expect(cancelButton).toBeDisabled();
+      });
+
+      // Cleanup
+      resolvePromise!({
+        ok: true,
+        json: async () => ({ jobId: 'export-job-123' }),
+      });
+    });
+
+    it('should show loading spinner during export', async () => {
+      const user = userEvent.setup();
+
+      let resolvePromise: (value: any) => void;
+      const pendingPromise = new Promise((resolve) => {
+        resolvePromise = resolve;
+      });
+      (global.fetch as jest.Mock).mockImplementationOnce(() => pendingPromise);
+
+      render(<ExportModal {...defaultProps} />);
+
+      const exportButton = screen.getByRole('button', { name: /start export/i });
+      await user.click(exportButton);
+
+      // Should show loading indicator
+      await waitFor(() => {
+        expect(exportButton.querySelector('svg')).toBeInTheDocument();
+      });
+
+      // Cleanup
+      resolvePromise!({
+        ok: true,
+        json: async () => ({ jobId: 'export-job-123' }),
+      });
+    });
+
+    it('should disable export when no timeline is present', () => {
+      render(<ExportModal {...defaultProps} timeline={null} />);
+
+      const exportButton = screen.getByRole('button', { name: /start export/i });
+      expect(exportButton).toBeDisabled();
+    });
+
+    it('should show warning when timeline is empty', () => {
+      const emptyTimeline: Timeline = { clips: [] } as Timeline;
+
+      render(<ExportModal {...defaultProps} timeline={emptyTimeline} />);
+
+      expect(screen.getByText(/no clips to export/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('Modal Closing Workflow', () => {
+    it('should close modal when Cancel button is clicked', async () => {
+      const user = userEvent.setup();
+      const onClose = jest.fn();
+
+      render(<ExportModal {...defaultProps} onClose={onClose} />);
+
+      const cancelButton = screen.getByRole('button', { name: /cancel/i });
+      await user.click(cancelButton);
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('should close modal when clicking outside', async () => {
+      const user = userEvent.setup();
+      const onClose = jest.fn();
+
+      render(<ExportModal {...defaultProps} onClose={onClose} />);
+
+      // Click on backdrop
+      const backdrop = screen.getByRole('dialog').parentElement;
+      if (backdrop) {
+        await user.click(backdrop);
+        expect(onClose).toHaveBeenCalled();
+      }
+    });
+
+    it('should close modal with Escape key', async () => {
+      const user = userEvent.setup();
+      const onClose = jest.fn();
+
+      render(<ExportModal {...defaultProps} onClose={onClose} />);
+
+      await user.keyboard('{Escape}');
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('should prevent closing during active export', async () => {
+      const user = userEvent.setup();
+      const onClose = jest.fn();
+
+      let resolvePromise: (value: any) => void;
+      const pendingPromise = new Promise((resolve) => {
+        resolvePromise = resolve;
+      });
+      (global.fetch as jest.Mock).mockImplementationOnce(() => pendingPromise);
+
+      render(<ExportModal {...defaultProps} onClose={onClose} />);
+
+      const exportButton = screen.getByRole('button', { name: /start export/i });
+      await user.click(exportButton);
+
+      // Try to close with Escape
+      await user.keyboard('{Escape}');
+
+      // Should not close
+      expect(onClose).not.toHaveBeenCalled();
+
+      // Cleanup
+      resolvePromise!({
+        ok: true,
+        json: async () => ({ jobId: 'export-job-123' }),
+      });
+    });
+  });
+
+  describe('Retry After Failure', () => {
+    it('should allow retry after export failure', async () => {
+      const user = userEvent.setup();
+
+      // First attempt fails
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({ error: 'Network error' }),
+      });
+
+      render(<ExportModal {...defaultProps} />);
+
+      const exportButton = screen.getByRole('button', { name: /start export/i });
+      await user.click(exportButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Export Failed')).toBeInTheDocument();
+      });
+
+      // Second attempt succeeds
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ jobId: 'export-job-123' }),
+      });
+
+      await user.click(exportButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Export Started')).toBeInTheDocument();
+      });
+
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('should clear previous error state on new export attempt', async () => {
+      const user = userEvent.setup();
+
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: false,
+          json: async () => ({ error: 'First error' }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ jobId: 'export-job-123' }),
+        });
+
+      render(<ExportModal {...defaultProps} />);
+
+      const exportButton = screen.getByRole('button', { name: /start export/i });
+
+      // First attempt
+      await user.click(exportButton);
+      await waitFor(() => {
+        expect(screen.getByText('Export Failed')).toBeInTheDocument();
+      });
+
+      // Second attempt
+      await user.click(exportButton);
+      await waitFor(() => {
+        expect(screen.queryByText('Export Failed')).not.toBeInTheDocument();
+        expect(screen.getByText('Export Started')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Accessibility', () => {
+    it('should have proper dialog role and labels', () => {
+      render(<ExportModal {...defaultProps} />);
+
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).toBeInTheDocument();
+      expect(dialog).toHaveAttribute('aria-labelledby');
+    });
+
+    it('should trap focus within modal', async () => {
+      const user = userEvent.setup();
+      render(<ExportModal {...defaultProps} />);
+
+      // Tab through elements
+      await user.tab();
+
+      // Focus should be within modal
+      const dialog = screen.getByRole('dialog');
+      expect(dialog.contains(document.activeElement)).toBe(true);
+    });
+
+    it('should have descriptive button labels', () => {
+      render(<ExportModal {...defaultProps} />);
+
+      expect(screen.getByRole('button', { name: /start export/i })).toHaveAccessibleName();
+      expect(screen.getByRole('button', { name: /cancel/i })).toHaveAccessibleName();
+    });
+
+    it('should announce export status changes', async () => {
+      const user = userEvent.setup();
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ jobId: 'export-job-123' }),
+      });
+
+      render(<ExportModal {...defaultProps} />);
+
+      const exportButton = screen.getByRole('button', { name: /start export/i });
+      await user.click(exportButton);
+
+      // Status message should be present
+      await waitFor(() => {
+        expect(screen.getByText('Export Started')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle network errors gracefully', async () => {
+      const user = userEvent.setup();
+
+      (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+
+      render(<ExportModal {...defaultProps} />);
+
+      const exportButton = screen.getByRole('button', { name: /start export/i });
+      await user.click(exportButton);
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Network error');
+      });
+    });
+
+    it('should handle invalid API responses', async () => {
+      const user = userEvent.setup();
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({ error: 'Internal server error' }),
+      });
+
+      render(<ExportModal {...defaultProps} />);
+
+      const exportButton = screen.getByRole('button', { name: /start export/i });
+      await user.click(exportButton);
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle malformed export data', async () => {
+      const user = userEvent.setup();
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ jobId: null }), // Invalid response
+      });
+
+      render(<ExportModal {...defaultProps} />);
+
+      const exportButton = screen.getByRole('button', { name: /start export/i });
+      await user.click(exportButton);
+
+      // Should handle gracefully
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalled();
+      });
+    });
+  });
+});

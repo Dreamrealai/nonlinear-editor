@@ -224,5 +224,3 @@ export function PreviewPlayer(): React.ReactElement | null {
     </div>
   );
 }
-
-export default PreviewPlayer;

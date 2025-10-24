@@ -363,5 +363,3 @@ export function KeyframeEditorShell({ assets }: KeyframeEditorShellProps): React
 
   return <KeyframeEditorContent assets={assets} supabase={supabaseClient} />;
 }
-
-export default KeyframeEditorShell;

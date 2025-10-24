@@ -89,5 +89,3 @@ export function PresenceIndicator({ projectId, className }: PresenceIndicatorPro
     </div>
   );
 }
-
-export default PresenceIndicator;

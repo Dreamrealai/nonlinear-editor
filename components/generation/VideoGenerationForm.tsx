@@ -308,5 +308,3 @@ export function VideoGenerationForm({
     </>
   );
 }
-
-export default VideoGenerationForm;

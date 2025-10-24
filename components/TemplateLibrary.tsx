@@ -334,5 +334,3 @@ export function TemplateLibrary({ isOpen, onClose, onSelectTemplate }: TemplateL
     </Dialog>
   );
 }
-
-export default TemplateLibrary;

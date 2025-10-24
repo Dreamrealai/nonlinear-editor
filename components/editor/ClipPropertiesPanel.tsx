@@ -362,5 +362,3 @@ export function ClipPropertiesPanel(): React.ReactElement {
     </div>
   );
 }
-
-export default ClipPropertiesPanel;

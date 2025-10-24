@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import VideoGenerationForm from '@/components/generation/VideoGenerationForm';
+import { VideoGenerationForm } from '@/components/generation/VideoGenerationForm';
 import { VIDEO_MODELS, VIDEO_MODEL_CONFIGS } from '@/lib/config/models';
 
 // Mock Next.js Image component

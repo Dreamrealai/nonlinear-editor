@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ClipPropertiesPanel from '@/components/editor/ClipPropertiesPanel';
+import { ClipPropertiesPanel } from '@/components/editor/ClipPropertiesPanel';
 import { useEditorStore } from '@/state/useEditorStore';
 
 // Mock the editor store

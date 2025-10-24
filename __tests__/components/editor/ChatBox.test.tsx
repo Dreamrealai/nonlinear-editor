@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import ChatBox from '@/components/editor/ChatBox';
+import { ChatBox } from '@/components/editor/ChatBox';
 import { createMockSupabaseClient } from '@/test-utils/mockSupabase';
 
 // Mock the SupabaseProvider

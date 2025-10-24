@@ -345,5 +345,3 @@ export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue 
     </Dialog>
   );
 }
-
-export default ExportModal;

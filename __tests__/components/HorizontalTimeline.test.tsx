@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import HorizontalTimeline from '@/components/HorizontalTimeline';
+import { HorizontalTimeline } from '@/components/HorizontalTimeline';
 import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip, Timeline } from '@/types/timeline';
 

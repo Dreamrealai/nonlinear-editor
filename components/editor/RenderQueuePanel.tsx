@@ -354,5 +354,3 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps): React.Re
     </div>
   );
 }
-
-export default RenderQueuePanel;

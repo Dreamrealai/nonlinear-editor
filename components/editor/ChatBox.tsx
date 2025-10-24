@@ -604,5 +604,3 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): React.ReactElem
     </div>
   );
 }
-
-export default ChatBox;

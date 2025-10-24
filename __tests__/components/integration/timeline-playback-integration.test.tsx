@@ -1,0 +1,513 @@
+/**
+ * Integration Test: Timeline and Playback Controls Integration
+ *
+ * Tests the integration between timeline controls, playback functionality,
+ * and preview player:
+ * - Play/pause controls update timeline state
+ * - Timeline playhead syncs with playback time
+ * - Seeking in timeline updates playback position
+ * - Timeline controls (zoom, snap) affect UI
+ * - Keyboard shortcuts control playback
+ *
+ * This test verifies that PlaybackControls, TimelineControls, TimelinePlayhead,
+ * and the playback state work together correctly.
+ */
+
+import React from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import '@testing-library/jest-dom';
+import { PlaybackControls } from '@/components/preview/PlaybackControls';
+import { TimelineControls } from '@/components/timeline/TimelineControls';
+import { usePlaybackStore } from '@/state/usePlaybackStore';
+import { useEditorStore } from '@/state/useEditorStore';
+
+// Mock Next.js Image
+jest.mock('next/image', () => ({
+  __esModule: true,
+  default: function MockImage({ src, alt, ...props }: any) {
+    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+    return <img src={src} alt={alt} {...props} />;
+  },
+}));
+
+// Create a wrapper component to test integration
+const PlaybackIntegrationWrapper = () => {
+  return (
+    <div>
+      <PlaybackControls />
+      <TimelineControls
+        onUndo={jest.fn()}
+        onRedo={jest.fn()}
+        canUndo={false}
+        canRedo={false}
+      />
+    </div>
+  );
+};
+
+describe('Integration: Timeline and Playback Controls', () => {
+  beforeEach(() => {
+    // Reset stores before each test
+    usePlaybackStore.getState().reset();
+    useEditorStore.getState().reset();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('Play/Pause Integration', () => {
+    it('should render both playback and timeline controls', () => {
+      render(<PlaybackIntegrationWrapper />);
+
+      // Playback controls
+      expect(screen.getByRole('button', { name: /play/i })).toBeInTheDocument();
+
+      // Timeline controls
+      expect(screen.getByRole('button', { name: /zoom in/i })).toBeInTheDocument();
+    });
+
+    it('should toggle play/pause state when play button is clicked', async () => {
+      const user = userEvent.setup();
+      render(<PlaybackIntegrationWrapper />);
+
+      const playButton = screen.getByRole('button', { name: /play/i });
+      expect(playButton).toBeInTheDocument();
+
+      // Click play
+      await user.click(playButton);
+
+      // Button should change to pause
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /pause/i })).toBeInTheDocument();
+      });
+
+      // Click pause
+      const pauseButton = screen.getByRole('button', { name: /pause/i });
+      await user.click(pauseButton);
+
+      // Button should change back to play
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /play/i })).toBeInTheDocument();
+      });
+    });
+
+    it('should use spacebar to toggle play/pause', async () => {
+      const user = userEvent.setup();
+      render(<PlaybackIntegrationWrapper />);
+
+      // Initially should show play button
+      expect(screen.getByRole('button', { name: /play/i })).toBeInTheDocument();
+
+      // Press spacebar
+      await user.keyboard(' ');
+
+      // Should toggle to playing state
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /pause/i })).toBeInTheDocument();
+      });
+
+      // Press spacebar again
+      await user.keyboard(' ');
+
+      // Should toggle back to paused
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /play/i })).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Timeline Controls Integration', () => {
+    it('should zoom in when zoom in button is clicked', async () => {
+      const user = userEvent.setup();
+      render(<PlaybackIntegrationWrapper />);
+
+      const initialZoom = useEditorStore.getState().zoom;
+
+      const zoomInButton = screen.getByRole('button', { name: /zoom in/i });
+      await user.click(zoomInButton);
+
+      await waitFor(() => {
+        const currentZoom = useEditorStore.getState().zoom;
+        expect(currentZoom).toBeGreaterThan(initialZoom);
+      });
+    });
+
+    it('should zoom out when zoom out button is clicked', async () => {
+      const user = userEvent.setup();
+
+      // Set initial zoom higher than default
+      useEditorStore.getState().setZoom(2);
+
+      render(<PlaybackIntegrationWrapper />);
+
+      const initialZoom = useEditorStore.getState().zoom;
+
+      const zoomOutButton = screen.getByRole('button', { name: /zoom out/i });
+      await user.click(zoomOutButton);
+
+      await waitFor(() => {
+        const currentZoom = useEditorStore.getState().zoom;
+        expect(currentZoom).toBeLessThan(initialZoom);
+      });
+    });
+
+    it('should toggle snap when snap button is clicked', async () => {
+      const user = userEvent.setup();
+      render(<PlaybackIntegrationWrapper />);
+
+      const snapButton = screen.getByRole('button', { name: /snap/i });
+
+      // Get initial snap state
+      const initialSnapEnabled = useEditorStore.getState().snapEnabled;
+
+      await user.click(snapButton);
+
+      await waitFor(() => {
+        const currentSnapEnabled = useEditorStore.getState().snapEnabled;
+        expect(currentSnapEnabled).toBe(!initialSnapEnabled);
+      });
+    });
+  });
+
+  describe('Playback State Synchronization', () => {
+    it('should update current time when timeline is playing', async () => {
+      const user = userEvent.setup();
+      render(<PlaybackIntegrationWrapper />);
+
+      // Start playback
+      const playButton = screen.getByRole('button', { name: /play/i });
+      await user.click(playButton);
+
+      const initialTime = useEditorStore.getState().currentTime;
+
+      // Wait for time to advance
+      await waitFor(
+        () => {
+          const currentTime = useEditorStore.getState().currentTime;
+          expect(currentTime).toBeGreaterThan(initialTime);
+        },
+        { timeout: 1000 }
+      );
+    });
+
+    it('should stop time advancement when paused', async () => {
+      const user = userEvent.setup();
+      render(<PlaybackIntegrationWrapper />);
+
+      // Start playback
+      const playButton = screen.getByRole('button', { name: /play/i });
+      await user.click(playButton);
+
+      // Wait a bit
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Pause
+      const pauseButton = screen.getByRole('button', { name: /pause/i });
+      await user.click(pauseButton);
+
+      const timeWhenPaused = useEditorStore.getState().currentTime;
+
+      // Wait a bit more
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Time should not have advanced
+      const timeAfterWaiting = useEditorStore.getState().currentTime;
+      expect(timeAfterWaiting).toBe(timeWhenPaused);
+    });
+  });
+
+  describe('Skip Controls Integration', () => {
+    it('should skip backward when skip back button is clicked', async () => {
+      const user = userEvent.setup();
+
+      // Set initial time to 10 seconds
+      useEditorStore.getState().setCurrentTime(10);
+
+      render(<PlaybackIntegrationWrapper />);
+
+      const initialTime = useEditorStore.getState().currentTime;
+      expect(initialTime).toBe(10);
+
+      // Click skip backward
+      const skipBackButton = screen.getByRole('button', { name: /skip backward/i });
+      await user.click(skipBackButton);
+
+      await waitFor(() => {
+        const currentTime = useEditorStore.getState().currentTime;
+        expect(currentTime).toBeLessThan(initialTime);
+      });
+    });
+
+    it('should skip forward when skip forward button is clicked', async () => {
+      const user = userEvent.setup();
+
+      // Set initial time
+      useEditorStore.getState().setCurrentTime(5);
+
+      render(<PlaybackIntegrationWrapper />);
+
+      const initialTime = useEditorStore.getState().currentTime;
+
+      // Click skip forward
+      const skipForwardButton = screen.getByRole('button', { name: /skip forward/i });
+      await user.click(skipForwardButton);
+
+      await waitFor(() => {
+        const currentTime = useEditorStore.getState().currentTime;
+        expect(currentTime).toBeGreaterThan(initialTime);
+      });
+    });
+
+    it('should not skip before timeline start (time 0)', async () => {
+      const user = userEvent.setup();
+
+      // Set time to 0
+      useEditorStore.getState().setCurrentTime(0);
+
+      render(<PlaybackIntegrationWrapper />);
+
+      const skipBackButton = screen.getByRole('button', { name: /skip backward/i });
+      await user.click(skipBackButton);
+
+      // Time should stay at 0
+      await waitFor(() => {
+        const currentTime = useEditorStore.getState().currentTime;
+        expect(currentTime).toBe(0);
+      });
+    });
+  });
+
+  describe('Keyboard Shortcuts', () => {
+    it('should play/pause with spacebar', async () => {
+      const user = userEvent.setup();
+      render(<PlaybackIntegrationWrapper />);
+
+      // Press spacebar to play
+      await user.keyboard(' ');
+
+      await waitFor(() => {
+        expect(usePlaybackStore.getState().isPlaying).toBe(true);
+      });
+
+      // Press spacebar to pause
+      await user.keyboard(' ');
+
+      await waitFor(() => {
+        expect(usePlaybackStore.getState().isPlaying).toBe(false);
+      });
+    });
+
+    it('should skip forward with arrow right', async () => {
+      const user = userEvent.setup();
+      useEditorStore.getState().setCurrentTime(5);
+
+      render(<PlaybackIntegrationWrapper />);
+
+      const initialTime = useEditorStore.getState().currentTime;
+
+      await user.keyboard('{ArrowRight}');
+
+      await waitFor(() => {
+        const currentTime = useEditorStore.getState().currentTime;
+        expect(currentTime).toBeGreaterThan(initialTime);
+      });
+    });
+
+    it('should skip backward with arrow left', async () => {
+      const user = userEvent.setup();
+      useEditorStore.getState().setCurrentTime(10);
+
+      render(<PlaybackIntegrationWrapper />);
+
+      const initialTime = useEditorStore.getState().currentTime;
+
+      await user.keyboard('{ArrowLeft}');
+
+      await waitFor(() => {
+        const currentTime = useEditorStore.getState().currentTime;
+        expect(currentTime).toBeLessThan(initialTime);
+      });
+    });
+
+    it('should go to start with Home key', async () => {
+      const user = userEvent.setup();
+      useEditorStore.getState().setCurrentTime(20);
+
+      render(<PlaybackIntegrationWrapper />);
+
+      await user.keyboard('{Home}');
+
+      await waitFor(() => {
+        const currentTime = useEditorStore.getState().currentTime;
+        expect(currentTime).toBe(0);
+      });
+    });
+
+    it('should zoom in with + key', async () => {
+      const user = userEvent.setup();
+      render(<PlaybackIntegrationWrapper />);
+
+      const initialZoom = useEditorStore.getState().zoom;
+
+      await user.keyboard('+');
+
+      await waitFor(() => {
+        const currentZoom = useEditorStore.getState().zoom;
+        expect(currentZoom).toBeGreaterThan(initialZoom);
+      });
+    });
+
+    it('should zoom out with - key', async () => {
+      const user = userEvent.setup();
+      useEditorStore.getState().setZoom(2);
+
+      render(<PlaybackIntegrationWrapper />);
+
+      const initialZoom = useEditorStore.getState().zoom;
+
+      await user.keyboard('-');
+
+      await waitFor(() => {
+        const currentZoom = useEditorStore.getState().zoom;
+        expect(currentZoom).toBeLessThan(initialZoom);
+      });
+    });
+  });
+
+  describe('Loop Mode', () => {
+    it('should toggle loop mode when loop button is clicked', async () => {
+      const user = userEvent.setup();
+      render(<PlaybackIntegrationWrapper />);
+
+      const loopButton = screen.getByRole('button', { name: /loop/i });
+
+      const initialLoopState = usePlaybackStore.getState().loop;
+
+      await user.click(loopButton);
+
+      await waitFor(() => {
+        const currentLoopState = usePlaybackStore.getState().loop;
+        expect(currentLoopState).toBe(!initialLoopState);
+      });
+    });
+
+    it('should restart from beginning when loop is enabled and timeline ends', async () => {
+      const user = userEvent.setup();
+
+      // Enable loop mode
+      usePlaybackStore.getState().setLoop(true);
+
+      // Set time near end of a short timeline
+      useEditorStore.getState().setCurrentTime(9.9);
+
+      render(<PlaybackIntegrationWrapper />);
+
+      // Start playback
+      const playButton = screen.getByRole('button', { name: /play/i });
+      await user.click(playButton);
+
+      // Wait for loop to occur
+      await waitFor(
+        () => {
+          const currentTime = useEditorStore.getState().currentTime;
+          // Should have looped back to near zero
+          expect(currentTime).toBeLessThan(1);
+        },
+        { timeout: 2000 }
+      );
+    });
+  });
+
+  describe('Accessibility', () => {
+    it('should have proper ARIA labels for all buttons', () => {
+      render(<PlaybackIntegrationWrapper />);
+
+      expect(screen.getByRole('button', { name: /play/i })).toHaveAttribute('aria-label');
+      expect(screen.getByRole('button', { name: /skip backward/i })).toHaveAttribute('aria-label');
+      expect(screen.getByRole('button', { name: /skip forward/i })).toHaveAttribute('aria-label');
+      expect(screen.getByRole('button', { name: /zoom in/i })).toHaveAttribute('aria-label');
+      expect(screen.getByRole('button', { name: /zoom out/i })).toHaveAttribute('aria-label');
+    });
+
+    it('should announce playback state changes to screen readers', async () => {
+      const user = userEvent.setup();
+      render(<PlaybackIntegrationWrapper />);
+
+      const playButton = screen.getByRole('button', { name: /play/i });
+      await user.click(playButton);
+
+      // Button label should update
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /pause/i })).toBeInTheDocument();
+      });
+    });
+
+    it('should show visual feedback for active states', async () => {
+      const user = userEvent.setup();
+      render(<PlaybackIntegrationWrapper />);
+
+      // Toggle snap
+      const snapButton = screen.getByRole('button', { name: /snap/i });
+      await user.click(snapButton);
+
+      // Button should have active styling
+      await waitFor(() => {
+        expect(snapButton).toHaveClass('bg-blue-500', 'text-white');
+      });
+    });
+  });
+
+  describe('Performance', () => {
+    it('should not cause excessive re-renders during playback', async () => {
+      const user = userEvent.setup();
+      const renderCount = { current: 0 };
+
+      const TestWrapper = () => {
+        renderCount.current++;
+        return <PlaybackIntegrationWrapper />;
+      };
+
+      render(<TestWrapper />);
+
+      const initialRenderCount = renderCount.current;
+
+      // Start playback
+      const playButton = screen.getByRole('button', { name: /play/i });
+      await user.click(playButton);
+
+      // Wait a bit
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Should not have excessive renders (allow some for time updates)
+      // This is a basic check; real performance monitoring would be more sophisticated
+      expect(renderCount.current - initialRenderCount).toBeLessThan(100);
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle missing timeline gracefully', () => {
+      // Clear timeline
+      useEditorStore.getState().setTimeline(null);
+
+      render(<PlaybackIntegrationWrapper />);
+
+      // Controls should still render
+      expect(screen.getByRole('button', { name: /play/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /zoom in/i })).toBeInTheDocument();
+    });
+
+    it('should recover from playback errors', async () => {
+      const user = userEvent.setup();
+      render(<PlaybackIntegrationWrapper />);
+
+      // Try to play empty timeline
+      const playButton = screen.getByRole('button', { name: /play/i });
+      await user.click(playButton);
+
+      // Should not crash
+      expect(screen.getByRole('button', { name: /pause/i })).toBeInTheDocument();
+    });
+  });
+});

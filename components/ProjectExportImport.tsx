@@ -289,5 +289,3 @@ export function ProjectExportImport({ projectId, projectName }: ProjectExportImp
     </>
   );
 }
-
-export default ProjectExportImport;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import VideoGenerationQueue from '@/components/generation/VideoGenerationQueue';
+import { VideoGenerationQueue } from '@/components/generation/VideoGenerationQueue';
 import type { VideoQueueItemData } from '@/lib/utils/videoGenerationUtils';
 
 // Mock VideoQueueItem component

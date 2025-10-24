@@ -93,5 +93,3 @@ export function GenerateAudioTab({ projectId }: GenerateAudioTabProps): React.Re
     </div>
   );
 }
-
-export default GenerateAudioTab;

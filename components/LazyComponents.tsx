@@ -27,17 +27,20 @@ const LoadingFallback = (): React.ReactElement => (
  * Lazy-loaded ExportModal component
  * Only loaded when user triggers export
  */
-export const LazyExportModal = dynamic(() => import('@/components/ExportModal'), {
-  loading: LoadingFallback,
-  ssr: false,
-});
+export const LazyExportModal = dynamic(
+  (): Promise<{ default: typeof import('@/components/ExportModal').ExportModal; }> => import('@/components/ExportModal').then((mod): { default: typeof mod.ExportModal; } => ({ default: mod.ExportModal })),
+  {
+    loading: LoadingFallback,
+    ssr: false,
+  }
+);
 
 /**
  * Lazy-loaded ClipPropertiesPanel component
  * Only loaded when a clip is selected
  */
 export const LazyClipPropertiesPanel = dynamic(
-  () => import('@/components/editor/ClipPropertiesPanel'),
+  (): Promise<{ default: typeof import('@/components/editor/ClipPropertiesPanel').ClipPropertiesPanel; }> => import('@/components/editor/ClipPropertiesPanel').then((mod): { default: typeof mod.ClipPropertiesPanel; } => ({ default: mod.ClipPropertiesPanel })),
   {
     loading: (): React.ReactElement => (
       <div className="h-full w-80 border-l border-gray-700 bg-gray-900 p-4">
@@ -72,7 +75,7 @@ type HorizontalTimelineProps = {
  * Only loaded when editor is fully initialized
  */
 export const LazyHorizontalTimeline = dynamic<HorizontalTimelineProps>(
-  () => import('@/components/HorizontalTimeline'),
+  (): Promise<{ default: typeof import('@/components/HorizontalTimeline').HorizontalTimeline; }> => import('@/components/HorizontalTimeline').then((mod): { default: typeof mod.HorizontalTimeline; } => ({ default: mod.HorizontalTimeline })),
   {
     loading: (): React.ReactElement => (
       <div className="flex h-full w-full items-center justify-center bg-neutral-50 dark:bg-neutral-900">
@@ -90,17 +93,20 @@ export const LazyHorizontalTimeline = dynamic<HorizontalTimelineProps>(
  * Lazy-loaded PreviewPlayer component
  * Only loaded when needed for video playback
  */
-export const LazyPreviewPlayer = dynamic(() => import('@/components/PreviewPlayer'), {
-  loading: (): React.ReactElement => (
-    <div className="flex h-full w-full items-center justify-center bg-black">
-      <div className="flex flex-col items-center gap-3">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-700 border-t-neutral-400"></div>
-        <span className="text-sm text-neutral-400">Loading player...</span>
+export const LazyPreviewPlayer = dynamic(
+  (): Promise<{ default: typeof import('@/components/PreviewPlayer').PreviewPlayer; }> => import('@/components/PreviewPlayer').then((mod): { default: typeof mod.PreviewPlayer; } => ({ default: mod.PreviewPlayer })),
+  {
+    loading: (): React.ReactElement => (
+      <div className="flex h-full w-full items-center justify-center bg-black">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-700 border-t-neutral-400"></div>
+          <span className="text-sm text-neutral-400">Loading player...</span>
+        </div>
       </div>
-    </div>
-  ),
-  ssr: false,
-});
+    ),
+    ssr: false,
+  }
+);
 
 /**
  * Lazy-loaded AudioWaveform component
@@ -118,17 +124,20 @@ export const LazyAudioWaveform = dynamic(
  * Lazy-loaded TextOverlayEditor component
  * Only loaded when editing text overlays
  */
-export const LazyTextOverlayEditor = dynamic(() => import('@/components/TextOverlayEditor'), {
-  loading: LoadingFallback,
-  ssr: false,
-});
+export const LazyTextOverlayEditor = dynamic(
+  (): Promise<{ default: typeof import('@/components/TextOverlayEditor').TextOverlayEditor; }> => import('@/components/TextOverlayEditor').then((mod): { default: typeof mod.TextOverlayEditor; } => ({ default: mod.TextOverlayEditor })),
+  {
+    loading: LoadingFallback,
+    ssr: false,
+  }
+);
 
 /**
  * Lazy-loaded KeyframeEditor component
  * Only loaded when editing keyframes
  */
 export const LazyKeyframeEditor = dynamic(
-  () => import('@/components/keyframes/KeyframeEditorShell'),
+  (): Promise<{ default: typeof import('@/components/keyframes/KeyframeEditorShell').KeyframeEditorShell; }> => import('@/components/keyframes/KeyframeEditorShell').then((mod): { default: typeof mod.KeyframeEditorShell; } => ({ default: mod.KeyframeEditorShell })),
   {
     loading: LoadingFallback,
     ssr: false,
@@ -139,10 +148,13 @@ export const LazyKeyframeEditor = dynamic(
  * Lazy-loaded ChatBox component
  * Only loaded when user opens chat interface
  */
-export const LazyChatBox = dynamic(() => import('@/components/editor/ChatBox'), {
-  loading: LoadingFallback,
-  ssr: false,
-});
+export const LazyChatBox = dynamic(
+  (): Promise<{ default: typeof import('@/components/editor/ChatBox').ChatBox; }> => import('@/components/editor/ChatBox').then((mod): { default: typeof mod.ChatBox; } => ({ default: mod.ChatBox })),
+  {
+    loading: LoadingFallback,
+    ssr: false,
+  }
+);
 
 /**
  * Lazy-loaded ProjectList component
@@ -173,7 +185,7 @@ export const LazyActivityHistory = dynamic(
  * Only loaded when user opens video generation
  */
 export const LazyVideoGenerationForm = dynamic(
-  () => import('@/components/generation/VideoGenerationForm'),
+  (): Promise<{ default: typeof import('@/components/generation/VideoGenerationForm').VideoGenerationForm; }> => import('@/components/generation/VideoGenerationForm').then((mod): { default: typeof mod.VideoGenerationForm; } => ({ default: mod.VideoGenerationForm })),
   {
     loading: LoadingFallback,
     ssr: false,
@@ -185,7 +197,7 @@ export const LazyVideoGenerationForm = dynamic(
  * Only loaded when user opens audio generation
  */
 export const LazyGenerateAudioTab = dynamic(
-  () => import('@/components/generation/GenerateAudioTab'),
+  (): Promise<{ default: typeof import('@/components/generation/GenerateAudioTab').GenerateAudioTab; }> => import('@/components/generation/GenerateAudioTab').then((mod): { default: typeof mod.GenerateAudioTab; } => ({ default: mod.GenerateAudioTab })),
   {
     loading: LoadingFallback,
     ssr: false,
@@ -197,7 +209,7 @@ export const LazyGenerateAudioTab = dynamic(
  * Only loaded when user opens asset library
  */
 export const LazyAssetLibraryModal = dynamic(
-  () => import('@/components/generation/AssetLibraryModal'),
+  (): Promise<{ default: typeof import('@/components/generation/AssetLibraryModal').AssetLibraryModal; }> => import('@/components/generation/AssetLibraryModal').then((mod): { default: typeof mod.AssetLibraryModal; } => ({ default: mod.AssetLibraryModal })),
   {
     loading: LoadingFallback,
     ssr: false,
@@ -209,7 +221,7 @@ export const LazyAssetLibraryModal = dynamic(
  * Only loaded in video generation context
  */
 export const LazyVideoGenerationQueue = dynamic(
-  () => import('@/components/generation/VideoGenerationQueue'),
+  (): Promise<{ default: typeof import('@/components/generation/VideoGenerationQueue').VideoGenerationQueue; }> => import('@/components/generation/VideoGenerationQueue').then((mod): { default: typeof mod.VideoGenerationQueue; } => ({ default: mod.VideoGenerationQueue })),
   {
     loading: LoadingFallback,
     ssr: false,
