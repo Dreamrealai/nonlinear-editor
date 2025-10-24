@@ -1,18 +1,12 @@
-import { NextRequest } from 'next/server';
-import { createServerSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
+import { ensureHttpsProtocol } from '@/lib/supabase';
 import crypto from 'crypto';
 import sanitize from 'sanitize-filename';
 import { serverLogger } from '@/lib/serverLogger';
-import {
-  unauthorizedResponse,
-  badRequestResponse,
-  errorResponse,
-  withErrorHandling,
-  rateLimitResponse,
-  successResponse,
-} from '@/lib/api/response';
+import { badRequestResponse, errorResponse, successResponse } from '@/lib/api/response';
 import { validateUUID, validateEnum, validateAll } from '@/lib/api/validation';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
+import { withAuth } from '@/lib/api/withAuth';
+import type { AuthenticatedHandler } from '@/lib/api/withAuth';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
 const VALID_ASSET_TYPES = ['image', 'video', 'audio'] as const;
 
@@ -75,61 +69,15 @@ const VALID_ASSET_TYPES = ['image', 'video', 'audio'] as const;
  *   "success": true
  * }
  */
-export const POST = withErrorHandling(async (request: NextRequest) => {
+const handleAssetUpload: AuthenticatedHandler = async (request, { user, supabase }) => {
   const startTime = Date.now();
 
   serverLogger.info(
     {
       event: 'assets.upload.request_started',
-    },
-    'Asset upload request received'
-  );
-
-  // SECURITY: Verify user authentication
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    serverLogger.warn(
-      {
-        event: 'assets.upload.unauthorized',
-      },
-      'Unauthorized asset upload attempt'
-    );
-    return unauthorizedResponse();
-  }
-
-  // TIER 2 RATE LIMITING: Resource creation - asset upload (10/min)
-  const rateLimitResult = await checkRateLimit(
-    `assets-upload:${user.id}`,
-    RATE_LIMITS.tier2_resource_creation
-  );
-
-  if (!rateLimitResult.success) {
-    serverLogger.warn(
-      {
-        event: 'assets.upload.rate_limited',
-        userId: user.id,
-        limit: rateLimitResult.limit,
-      },
-      'Asset upload rate limit exceeded'
-    );
-
-    return rateLimitResponse(
-      rateLimitResult.limit,
-      rateLimitResult.remaining,
-      rateLimitResult.resetAt
-    );
-  }
-
-  serverLogger.debug(
-    {
-      event: 'assets.upload.user_authenticated',
       userId: user.id,
     },
-    'User authenticated for asset upload'
+    'Asset upload request received'
   );
 
   const formData = await request.formData();
@@ -404,4 +352,9 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     publicUrl,
     success: true,
   });
+};
+
+export const POST = withAuth(handleAssetUpload, {
+  route: '/api/assets/upload',
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
 });

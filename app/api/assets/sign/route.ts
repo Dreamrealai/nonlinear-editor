@@ -1,29 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { safeArrayFirst } from '@/lib/utils/arrayUtils';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { serverLogger } from '@/lib/serverLogger';
 import {
-  unauthorizedResponse,
   notFoundResponse,
   forbiddenResponse,
   badRequestResponse,
   errorResponse,
-  withErrorHandling,
   validationError,
 } from '@/lib/api/response';
 import { validateUUID, validateInteger } from '@/lib/api/validation';
+import { withAuth } from '@/lib/api/withAuth';
+import type { AuthenticatedHandler } from '@/lib/api/withAuth';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
-export const GET = withErrorHandling(async (request: NextRequest) => {
-  // SECURITY: Verify user authentication
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return unauthorizedResponse();
-  }
-
+const handleSignUrl: AuthenticatedHandler = async (request, { user, supabase }) => {
   const searchParams = request.nextUrl.searchParams;
   const assetId = searchParams.get('assetId');
   let storageUrl = searchParams.get('storageUrl');
@@ -136,4 +126,9 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   response.headers.set('Vary', 'Cookie, Authorization');
 
   return response;
+};
+
+export const GET = withAuth(handleSignUrl, {
+  route: '/api/assets/sign',
+  rateLimit: RATE_LIMITS.tier3_status_read,
 });
