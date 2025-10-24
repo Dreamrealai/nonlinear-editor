@@ -3,6 +3,9 @@
  *
  * Initializes Web Vitals tracking on the client side.
  * This component should be included in the root layout.
+ *
+ * Note: Web Vitals library is imported via npm and runs client-side,
+ * so no inline scripts or CSP nonce is needed.
  */
 'use client';
 
