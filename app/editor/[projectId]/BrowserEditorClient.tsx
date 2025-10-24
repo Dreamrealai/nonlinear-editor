@@ -49,6 +49,8 @@ import {
   createImageThumbnail,
   createVideoThumbnail,
 } from './editorUtils';
+import { UserOnboarding } from '@/components/UserOnboarding';
+import { useEasterEggs } from '@/lib/hooks/useEasterEggs';
 
 type BrowserEditorClientProps = {
   projectId: string;
@@ -133,6 +135,22 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
   const pasteClips = useEditorStore((state) => state.pasteClips);
   const selectClip = useEditorStore((state) => state.selectClip);
   const clearSelection = useEditorStore((state) => state.clearSelection);
+
+  // Easter eggs hook
+  useEasterEggs({ enabled: true });
+
+  // Compute which assets are currently used in the timeline
+  const usedAssetIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (timeline?.clips) {
+      timeline.clips.forEach((clip) => {
+        if (clip.assetId) {
+          ids.add(clip.assetId);
+        }
+      });
+    }
+    return ids;
+  }, [timeline]);
 
   // Play/pause state ref for keyboard shortcuts
   const playPauseStateRef = useRef<{ isPlaying: boolean; togglePlayPause: () => void } | null>(
@@ -536,13 +554,16 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
             })
             .eq('id', asset.id);
 
-          updateAsset(asset.id, (a: AssetRow): AssetRow => ({
-            ...a,
-            metadata: {
-              ...(a.metadata ?? {}),
-              thumbnail,
-            },
-          }));
+          updateAsset(
+            asset.id,
+            (a: AssetRow): AssetRow => ({
+              ...a,
+              metadata: {
+                ...(a.metadata ?? {}),
+                thumbnail,
+              },
+            })
+          );
         } catch (error) {
           browserLogger.error({ error, assetId: asset.id }, 'Failed to generate thumbnail');
         }
@@ -551,20 +572,24 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
   }, [assets, assetsLoaded, timeline, supabase, updateAsset]);
 
   // Autosave timeline
-  useAutosave(projectId, 2000, async (projectIdParam, timelineToSave): Promise<void> => {
-    if (!timelineToSave) {
-      return;
+  const { lastSaved, isSaving } = useAutosave(
+    projectId,
+    2000,
+    async (projectIdParam, timelineToSave): Promise<void> => {
+      if (!timelineToSave) {
+        return;
+      }
+      try {
+        await saveTimeline(projectIdParam, timelineToSave);
+        toast.success('Timeline saved');
+      } catch (error) {
+        browserLogger.error({ error, projectId: projectIdParam }, 'Failed to autosave timeline');
+        toast.error('Failed to autosave timeline');
+      }
     }
-    try {
-      await saveTimeline(projectIdParam, timelineToSave);
-      toast.success('Timeline saved');
-    } catch (error) {
-      browserLogger.error({ error, projectId: projectIdParam }, 'Failed to autosave timeline');
-      toast.error('Failed to autosave timeline');
-    }
-  });
+  );
 
-  // Auto-backup project periodically (every 30 minutes)
+  // Auto-backup project periodically (every 5 minutes)
   useAutoBackup(projectId);
 
   if (!timeline) {
@@ -578,7 +603,13 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
 
   return (
     <div className="flex h-full flex-col">
-      <EditorHeader projectId={projectId} currentTab="video-editor" onExport={handleExportClick} />
+      <EditorHeader
+        projectId={projectId}
+        currentTab="video-editor"
+        onExport={handleExportClick}
+        lastSaved={lastSaved}
+        isSaving={isSaving}
+      />
       <div className="flex h-full gap-3 lg:gap-6 p-3 lg:p-6">
         <Toaster position="bottom-right" />
 
@@ -602,6 +633,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
             hasPreviousPage={hasPreviousPage}
             onNextPage={loadNextPage}
             onPreviousPage={loadPreviousPage}
+            usedAssetIds={usedAssetIds}
             initialWidth={280}
             minWidth={200}
             maxWidth={500}
@@ -638,7 +670,10 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
               <h3 className="text-sm font-semibold text-gray-900">Project Backup</h3>
               <p className="text-xs text-gray-500">Export or import project as JSON</p>
             </div>
-            <ProjectExportImport projectId={projectId} projectName={`project-${projectId.slice(0, 8)}`} />
+            <ProjectExportImport
+              projectId={projectId}
+              projectName={`project-${projectId.slice(0, 8)}`}
+            />
           </section>
 
           <TimelineCorrectionsMenu />
@@ -687,6 +722,9 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
           isOpen={showShortcutsHelp}
           onClose={() => setShowShortcutsHelp(false)}
         />
+
+        {/* User Onboarding Tour */}
+        <UserOnboarding />
       </div>
     </div>
   );

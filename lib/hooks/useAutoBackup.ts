@@ -13,7 +13,7 @@ import { useEffect, useRef } from 'react';
 import { browserLogger } from '@/lib/browserLogger';
 import type { ProjectId } from '@/types/branded';
 
-const AUTO_BACKUP_INTERVAL = 30 * 60 * 1000; // 30 minutes
+const AUTO_BACKUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 export function useAutoBackup(projectId: ProjectId | string): void {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -66,7 +66,7 @@ export function useAutoBackup(projectId: ProjectId | string): void {
     }, AUTO_BACKUP_INTERVAL);
 
     // Cleanup
-    return () => {
+    return (): void => {
       clearTimeout(initialTimeout);
       if (intervalRef.current) {
         clearInterval(intervalRef.current);

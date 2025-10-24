@@ -6,14 +6,21 @@ import Link from 'next/link';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { UserMenu } from '@/components/UserMenu';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { BackupButton } from '@/components/BackupButton';
+import { LastSavedIndicator } from '@/components/LastSavedIndicator';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
-import { GenerationDashboard, useGenerationDashboardModal } from '@/components/generation/GenerationDashboard';
+import {
+  GenerationDashboard,
+  useGenerationDashboardModal,
+} from '@/components/generation/GenerationDashboard';
 
 interface EditorHeaderProps {
   projectId: string;
   currentTab: 'video-editor' | 'generate-video' | 'generate-audio' | 'image-editor';
   onExport?: () => void;
+  lastSaved?: Date | null;
+  isSaving?: boolean;
 }
 
 interface Project {
@@ -21,7 +28,13 @@ interface Project {
   title: string;
 }
 
-export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderProps) {
+export function EditorHeader({
+  projectId,
+  currentTab,
+  onExport,
+  lastSaved,
+  isSaving,
+}: EditorHeaderProps) {
   const router = useRouter();
   const { supabaseClient } = useSupabase();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -30,12 +43,13 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const dashboard = useGenerationDashboardModal();
 
   useEffect(() => {
     if (!supabaseClient) return;
 
-    const loadProjects = async () => {
+    const loadProjects = async (): Promise<void> => {
       const { data } = await supabaseClient
         .from('projects')
         .select('id, title')
@@ -48,7 +62,7 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
       }
     };
 
-    loadProjects();
+    void loadProjects();
   }, [supabaseClient, projectId]);
 
   const handleProjectChange = useCallback(
@@ -103,6 +117,8 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
     );
     if (!confirmDelete) return;
 
+    setIsDeleting(true);
+
     try {
       const { error } = await supabaseClient.from('projects').delete().eq('id', projectId);
 
@@ -113,6 +129,8 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
     } catch (error) {
       browserLogger.error({ error, projectId }, 'Failed to delete project');
       toast.error('Failed to delete project');
+    } finally {
+      setIsDeleting(false);
     }
   }, [supabaseClient, projectId, currentProject?.title, router]);
 
@@ -127,9 +145,19 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             {isMobileMenuOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             )}
           </svg>
         </button>
@@ -200,15 +228,15 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
 
             {isDropdownOpen && (
               <>
-                <div
+                <button
+                  type="button"
                   className="fixed inset-0 z-10"
                   onClick={() => setIsDropdownOpen(false)}
                   onKeyDown={(e) => {
                     if (e.key === 'Escape') setIsDropdownOpen(false);
                   }}
-                  role="button"
-                  tabIndex={0}
                   aria-label="Close dropdown"
+                  style={{ background: 'transparent', border: 'none', cursor: 'default' }}
                 />
                 <div className="absolute left-0 top-full z-20 mt-2 w-64 rounded-lg border border-neutral-200 bg-white shadow-lg">
                   <div className="max-h-64 overflow-y-auto py-1">
@@ -260,22 +288,27 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
                                   e.stopPropagation();
                                   void handleDeleteProject();
                                 }}
-                                className="p-1 rounded hover:bg-red-100 transition-colors"
-                                title="Delete project"
+                                disabled={isDeleting}
+                                className="p-1 rounded hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title={isDeleting ? 'Deleting...' : 'Delete project'}
                               >
-                                <svg
-                                  className="h-3.5 w-3.5 text-red-500 opacity-60 group-hover:opacity-100"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                  />
-                                </svg>
+                                {isDeleting ? (
+                                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-red-500 border-t-transparent"></div>
+                                ) : (
+                                  <svg
+                                    className="h-3.5 w-3.5 text-red-500 opacity-60 group-hover:opacity-100"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                  </svg>
+                                )}
                               </button>
                             </div>
                           )}
@@ -359,6 +392,19 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
 
           {currentTab === 'video-editor' && (
             <>
+              {/* Last Saved Indicator */}
+              {(lastSaved !== undefined || isSaving !== undefined) && (
+                <LastSavedIndicator lastSaved={lastSaved ?? null} isSaving={isSaving ?? false} />
+              )}
+
+              {/* Backup Button */}
+              <BackupButton
+                projectId={projectId}
+                projectTitle={currentProject?.title}
+                variant="outline"
+                size="sm"
+              />
+
               {/* Keyboard Shortcuts Help Button */}
               <button
                 onClick={() => {
@@ -437,13 +483,20 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
           <div className="fixed inset-y-0 left-0 w-80 bg-white shadow-xl z-50 lg:hidden overflow-y-auto dark:bg-neutral-900">
             <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Menu</h2>
+                <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                  Menu
+                </h2>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="p-2 rounded-lg hover:bg-neutral-100"
                 >
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -456,12 +509,32 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="w-full flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
                   >
-                    <svg className="h-4 w-4 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                    <svg
+                      className="h-4 w-4 text-neutral-500"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                      />
                     </svg>
                     <span className="flex-1 text-left truncate">{currentProject.title}</span>
-                    <svg className={`h-4 w-4 text-neutral-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <svg
+                      className={`h-4 w-4 text-neutral-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </button>
 
@@ -532,8 +605,18 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
                 }}
                 className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center justify-center gap-2"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
                 </svg>
                 View Generations
               </button>
@@ -547,8 +630,18 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
                     }}
                     className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center justify-center gap-2"
                   >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                     Keyboard Shortcuts
                   </button>
@@ -560,8 +653,18 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
                       }}
                       className="w-full rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 flex items-center justify-center gap-2"
                     >
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                        />
                       </svg>
                       Export Video
                     </button>

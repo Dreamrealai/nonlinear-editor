@@ -11,11 +11,13 @@ export function useAutosave(
   projectId: string,
   delay = 2000,
   saveFn?: SaveFn
-): { saveError: string | null } {
+): { saveError: string | null; lastSaved: Date | null; isSaving: boolean } {
   const timeline = useEditorStore((state) => state.timeline);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!timeline) {
@@ -28,24 +30,34 @@ export function useAutosave(
 
     timeoutRef.current = setTimeout(() => {
       const handler = saveFn ?? saveTimeline;
+      setIsSaving(true);
       const result = handler(projectId, timeline);
       if (result instanceof Promise) {
-        result.catch(async (error) => {
-          const { browserLogger } = await import('@/lib/browserLogger');
-          browserLogger.error({ error, projectId }, 'Autosave failed');
-          setSaveError(error instanceof Error ? error.message : 'Failed to save timeline');
+        result
+          .then(() => {
+            setLastSaved(new Date());
+            setIsSaving(false);
+          })
+          .catch(async (error) => {
+            const { browserLogger } = await import('@/lib/browserLogger');
+            browserLogger.error({ error, projectId }, 'Autosave failed');
+            setSaveError(error instanceof Error ? error.message : 'Failed to save timeline');
+            setIsSaving(false);
 
-          // Clear any existing error timeout
-          if (errorTimeoutRef.current) {
-            clearTimeout(errorTimeoutRef.current);
-          }
+            // Clear any existing error timeout
+            if (errorTimeoutRef.current) {
+              clearTimeout(errorTimeoutRef.current);
+            }
 
-          // Clear error after 5 seconds with proper cleanup tracking
-          errorTimeoutRef.current = setTimeout(() => {
-            setSaveError(null);
-            errorTimeoutRef.current = null;
-          }, 5000);
-        });
+            // Clear error after 5 seconds with proper cleanup tracking
+            errorTimeoutRef.current = setTimeout(() => {
+              setSaveError(null);
+              errorTimeoutRef.current = null;
+            }, 5000);
+          });
+      } else {
+        setLastSaved(new Date());
+        setIsSaving(false);
       }
     }, delay);
 
@@ -62,5 +74,5 @@ export function useAutosave(
     };
   }, [projectId, timeline, delay, saveFn]);
 
-  return { saveError };
+  return { saveError, lastSaved, isSaving };
 }

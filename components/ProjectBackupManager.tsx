@@ -17,7 +17,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/Dialog';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 import type { ProjectBackup } from '@/lib/services/backupService';
@@ -27,7 +33,10 @@ interface ProjectBackupManagerProps {
   projectTitle?: string;
 }
 
-export function ProjectBackupManager({ projectId, projectTitle }: ProjectBackupManagerProps): React.JSX.Element {
+export function ProjectBackupManager({
+  projectId,
+  projectTitle,
+}: ProjectBackupManagerProps): React.JSX.Element {
   const [backups, setBackups] = useState<ProjectBackup[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -198,11 +207,7 @@ export function ProjectBackupManager({ projectId, projectTitle }: ProjectBackupM
                 {projectTitle && `${projectTitle} - `}Version history and backup management
               </CardDescription>
             </div>
-            <Button
-              onClick={() => void handleCreateBackup()}
-              disabled={creating}
-              size="sm"
-            >
+            <Button onClick={() => void handleCreateBackup()} disabled={creating} size="sm">
               {creating ? 'Creating...' : 'Create Backup'}
             </Button>
           </div>
@@ -254,9 +259,7 @@ export function ProjectBackupManager({ projectId, projectTitle }: ProjectBackupM
                         {backup.backup_type === 'auto' ? 'Auto' : 'Manual'}
                       </span>
                     </div>
-                    <p className="text-xs text-neutral-500">
-                      {formatDate(backup.created_at)}
-                    </p>
+                    <p className="text-xs text-neutral-500">{formatDate(backup.created_at)}</p>
                   </div>
                   <div className="flex items-center gap-2 ml-4">
                     <Button
@@ -267,11 +270,7 @@ export function ProjectBackupManager({ projectId, projectTitle }: ProjectBackupM
                     >
                       Restore
                     </Button>
-                    <Button
-                      onClick={() => void handleDownload(backup)}
-                      variant="outline"
-                      size="sm"
-                    >
+                    <Button onClick={() => void handleDownload(backup)} variant="outline" size="sm">
                       Download
                     </Button>
                     <Button
@@ -307,7 +306,7 @@ export function ProjectBackupManager({ projectId, projectTitle }: ProjectBackupM
               <div className="flex-1">
                 <h5 className="text-sm font-semibold text-blue-900 mb-1">About Backups</h5>
                 <ul className="text-xs text-blue-800 space-y-1">
-                  <li>• Auto backups are created every 30 minutes during editing</li>
+                  <li>• Auto backups are created every 5 minutes during editing</li>
                   <li>• Only the 10 most recent auto backups are kept</li>
                   <li>• Manual backups are never auto-deleted</li>
                   <li>• Download backups as JSON for local storage</li>
@@ -337,10 +336,7 @@ export function ProjectBackupManager({ projectId, projectTitle }: ProjectBackupM
             >
               Cancel
             </Button>
-            <Button
-              onClick={() => void handleRestoreConfirm()}
-              disabled={restoring}
-            >
+            <Button onClick={() => void handleRestoreConfirm()} disabled={restoring}>
               {restoring ? 'Restoring...' : 'Restore Backup'}
             </Button>
           </div>
