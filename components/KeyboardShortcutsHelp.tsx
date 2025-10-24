@@ -41,7 +41,7 @@ export function KeyboardShortcutsHelp({
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
 
   const handleClose = () => {
-    if (onClose) {
+    if (controlledIsOpen !== undefined) {
       onClose?.();
     } else {
       setInternalIsOpen(false);
@@ -109,7 +109,6 @@ export function KeyboardShortcutsHelp({
   const groupedShortcuts = getShortcutsByCategory(shortcuts);
 
   return (
-     
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={handleClose}
