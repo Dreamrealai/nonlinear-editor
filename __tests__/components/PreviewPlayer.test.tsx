@@ -91,7 +91,7 @@ describe('PreviewPlayer', () => {
       return selector(state);
     });
 
-    // Mock requestAnimationFrame
+    // Mock requestAnimationFrame and performance timing
     const performanceMock = {
       now: jest.fn(() => 0),
       mark: jest.fn(),
@@ -106,8 +106,9 @@ describe('PreviewPlayer', () => {
     } as unknown as Performance;
 
     globalThis.performance = performanceMock;
+    (global as unknown as { performance: Performance }).performance = performanceMock;
     (window as unknown as { performance: Performance }).performance = performanceMock;
-    performanceNowSpy = jest.spyOn(globalThis.performance, 'now');
+    performanceNowSpy = jest.spyOn(performanceMock, 'now');
 
     globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
       cb(0);
