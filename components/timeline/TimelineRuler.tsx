@@ -52,10 +52,10 @@ function calculateLabelInterval(zoom: number): {
   ];
 
   // Find the smallest nice interval that's >= minInterval
-  let majorInterval = niceIntervals.find((interval) => interval >= minInterval) || 1800;
+  const majorInterval = niceIntervals.find((interval) => interval >= minInterval) || 1800;
 
   // Calculate minor interval (for tick marks between labels)
-  let minorInterval = majorInterval / 5;
+  const minorInterval = majorInterval / 5;
 
   // Determine format type based on interval
   let formatType: 'frames' | 'seconds' | 'timecode';
@@ -84,9 +84,17 @@ function generateMarkers(
   // Calculate how many markers we need
   const maxTime = Math.ceil(duration / majorInterval) * majorInterval + majorInterval;
 
-  // Generate markers
-  for (let time = 0; time <= maxTime; time += minorInterval) {
-    const isMajor = Math.abs((time % majorInterval) - 0) < 0.001; // Handle floating point precision
+  // Use integer counting to avoid floating point accumulation errors
+  // Calculate total number of minor intervals needed
+  const totalMinorIntervals = Math.ceil(maxTime / minorInterval);
+  const minorsPerMajor = Math.round(majorInterval / minorInterval);
+
+  // Generate markers using integer index to avoid floating point errors
+  for (let i = 0; i <= totalMinorIntervals; i++) {
+    const time = i * minorInterval;
+
+    // Check if this is a major marker (every nth minor interval)
+    const isMajor = i % minorsPerMajor === 0;
 
     if (isMajor) {
       // Major marker with label
@@ -139,10 +147,7 @@ export const TimelineRuler = React.memo<TimelineRulerProps>(function TimelineRul
 
   // Memoize markers calculation to avoid recalculating on every render
   // Only recalculates when timelineDuration or zoom changes
-  const markers = useMemo(
-    () => generateMarkers(timelineDuration, zoom),
-    [timelineDuration, zoom]
-  );
+  const markers = useMemo(() => generateMarkers(timelineDuration, zoom), [timelineDuration, zoom]);
 
   /**
    * Calculate time position from mouse X coordinate
@@ -202,6 +207,7 @@ export const TimelineRuler = React.memo<TimelineRulerProps>(function TimelineRul
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         role="button"
+        tabIndex={0}
         aria-label="Timeline ruler - click to set playhead position"
         data-testid="timeline-ruler"
       >
