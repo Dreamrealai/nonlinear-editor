@@ -8,6 +8,7 @@ import { UserMenu } from '@/components/UserMenu';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
+import { GenerationDashboard, useGenerationDashboardModal } from '@/components/generation/GenerationDashboard';
 
 interface EditorHeaderProps {
   projectId: string;
@@ -29,6 +30,7 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const dashboard = useGenerationDashboardModal();
 
   useEffect(() => {
     if (!supabaseClient) return;
@@ -333,6 +335,28 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
 
         {/* Export Video Button, Theme Toggle, and User Menu - Desktop */}
         <div className="hidden lg:flex items-center gap-3">
+          {/* Generation Dashboard Button - Always visible */}
+          <button
+            onClick={dashboard.open}
+            className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 shadow-sm hover:bg-neutral-50 transition-colors flex items-center gap-2"
+            title="View all AI generations"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
+            </svg>
+            <span className="hidden sm:inline">Generations</span>
+          </button>
+
           {currentTab === 'video-editor' && (
             <>
               {/* Keyboard Shortcuts Help Button */}
@@ -381,6 +405,14 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
           <ThemeToggle />
           <UserMenu />
         </div>
+
+        {/* Generation Dashboard Modal */}
+        <GenerationDashboard
+          projectId={projectId}
+          isOpen={dashboard.isOpen}
+          onClose={dashboard.close}
+          variant="modal"
+        />
 
         {/* Mobile: Current Tab Title, Theme Toggle, and User Menu */}
         <div className="flex lg:hidden items-center gap-2">
@@ -491,36 +523,52 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
             </nav>
 
             {/* Actions - Mobile */}
-            {currentTab === 'video-editor' && (
-              <div className="p-4 border-t border-neutral-200 space-y-2">
-                <button
-                  onClick={() => {
-                    window.dispatchEvent(new CustomEvent('show-shortcuts-help'));
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center justify-center gap-2"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Keyboard Shortcuts
-                </button>
-                {onExport && (
+            <div className="p-4 border-t border-neutral-200 space-y-2">
+              {/* Generation Dashboard - Always visible */}
+              <button
+                onClick={() => {
+                  dashboard.open();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center justify-center gap-2"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                View Generations
+              </button>
+
+              {currentTab === 'video-editor' && (
+                <>
                   <button
                     onClick={() => {
-                      onExport();
+                      window.dispatchEvent(new CustomEvent('show-shortcuts-help'));
                       setIsMobileMenuOpen(false);
                     }}
-                    className="w-full rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 flex items-center justify-center gap-2"
+                    className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center justify-center gap-2"
                   >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    Export Video
+                    Keyboard Shortcuts
                   </button>
-                )}
-              </div>
-            )}
+                  {onExport && (
+                    <button
+                      onClick={() => {
+                        onExport();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 flex items-center justify-center gap-2"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Export Video
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </>
       )}

@@ -28,10 +28,8 @@ import { TimelinePlayhead } from './timeline/TimelinePlayhead';
 import { TimelineTextOverlayTrack } from './timeline/TimelineTextOverlayTrack';
 import { TimelineSnapGuides } from './timeline/TimelineSnapGuides';
 import { TimelineTrimOverlay } from './timeline/TimelineTrimOverlay';
-import { TimelineMarkers } from './timeline/TimelineMarkers';
 import { KeyboardShortcutsPanel } from './timeline/KeyboardShortcutsPanel';
-import { TimelineSelectionRectangle } from './timeline/TimelineSelectionRectangle';
-import { TimelineSelectionInfo } from './timeline/TimelineSelectionInfo';
+import { EditModeFeedback } from './timeline/EditModeFeedback';
 
 // Extracted hooks
 import { useTimelineDraggingWithSnap } from '@/lib/hooks/useTimelineDraggingWithSnap';
@@ -95,14 +93,8 @@ const selectActions = (state: ReturnType<typeof useEditorStore.getState>) => ({
   updateTextOverlay: state.updateTextOverlay,
   toggleClipLock: state.toggleClipLock,
   toggleAutoScroll: state.toggleAutoScroll,
-    addMarker,
-    removeMarker,
-    updateMarker,
-    jumpToMarker,
+  toggleSnap: state.toggleSnap,
   addMarker: state.addMarker,
-  removeMarker: state.removeMarker,
-  updateMarker: state.updateMarker,
-  jumpToMarker: state.jumpToMarker,
 });
 
 // Selector for undo/redo state
@@ -116,7 +108,6 @@ function HorizontalTimeline({
   sceneDetectPending = false,
   onAddText,
   onAddTransition,
-    onAddMarker: handleAddMarker,
   onGenerateAudioFromClip,
   onUpscaleVideo,
   upscaleVideoPending = false,
@@ -146,10 +137,8 @@ function HorizontalTimeline({
     updateTextOverlay,
     toggleClipLock,
     toggleAutoScroll,
+    toggleSnap,
     addMarker,
-    removeMarker,
-    updateMarker,
-    jumpToMarker,
   } = useEditorStore(selectActions);
 
   // Playback state for auto-scroll
@@ -189,15 +178,23 @@ function HorizontalTimeline({
   });
 
   // Dragging state (clip, playhead, trim) and snap info
-  const { snapInfo, trimPreviewInfo, setDraggingClip, setIsDraggingPlayhead, setTrimmingClip } =
-    useTimelineDraggingWithSnap({
-      containerRef,
-      timeline,
-      zoom,
-      numTracks,
-      setCurrentTime,
-      updateClip,
-    });
+  const {
+    snapInfo,
+    trimPreviewInfo,
+    setDraggingClip,
+    setIsDraggingPlayhead,
+    setTrimmingClip,
+    currentEditMode,
+    editModeModifiers,
+    trimFeedback,
+  } = useTimelineDraggingWithSnap({
+    containerRef,
+    timeline,
+    zoom,
+    numTracks,
+    setCurrentTime,
+    updateClip,
+  });
 
   // Add marker at playhead position
   const handleAddMarker = useCallback((): void => {
@@ -209,14 +206,6 @@ function HorizontalTimeline({
     };
     addMarker(marker);
   }, [currentTime, markers, addMarker]);
-
-  // Marker click handler - jump playhead to marker position
-  const handleMarkerClick = useCallback(
-    (markerId: string): void => {
-      jumpToMarker(markerId);
-    },
-    [jumpToMarker]
-  );
 
   // Keyboard shortcuts
   useTimelineKeyboardShortcuts({
@@ -233,6 +222,7 @@ function HorizontalTimeline({
     toggleClipLock,
     onAddTransition,
     onAddMarker: handleAddMarker,
+    onToggleSnap: toggleSnap,
   });
 
   // Zoom controls - memoized to prevent re-creation on every render
@@ -485,7 +475,6 @@ function HorizontalTimeline({
                 clip={clip}
                 zoom={zoom}
                 isSelected={selectedClipIds.has(clip.id)}
-                trimPreviewInfo={trimPreviewInfo?.clipId === clip.id ? trimPreviewInfo : undefined}
                 onMouseDown={handleClipMouseDown}
                 onClick={handleClipClick}
                 onContextMenu={handleClipContextMenu}
@@ -507,6 +496,9 @@ function HorizontalTimeline({
               zoom={zoom}
               timelineHeight={numTracks * TRACK_HEIGHT}
             />
+
+            {/* Trim Preview Overlay - Visual feedback during trimming */}
+            <TimelineTrimOverlay trimInfo={trimPreviewInfo} />
           </div>
         </div>
       </div>
@@ -534,6 +526,15 @@ function HorizontalTimeline({
         open={showKeyboardShortcuts}
         onOpenChange={setShowKeyboardShortcuts}
       />
+
+      {/* Edit Mode Feedback - Shows current trimming mode and keyboard modifiers */}
+      {trimPreviewInfo && (
+        <EditModeFeedback
+          currentMode={currentEditMode || 'normal'}
+          feedback={trimFeedback}
+          modifiers={editModeModifiers || { shift: false, alt: false, cmd: false, ctrl: false }}
+        />
+      )}
     </div>
   );
 }

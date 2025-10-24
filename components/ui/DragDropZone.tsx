@@ -262,8 +262,8 @@ export function DragDropZone({
         className={cn(
           'relative cursor-pointer rounded-lg border-2 border-dashed transition-all duration-200',
           isDragActive
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-neutral-300 bg-neutral-50 hover:border-neutral-400 hover:bg-neutral-100',
+            ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 scale-[1.02] shadow-lg ring-2 ring-purple-500 ring-offset-2'
+            : 'border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-800 hover:border-purple-400 dark:hover:border-purple-500 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 hover:scale-[1.01]',
           disabled && 'cursor-not-allowed opacity-50',
           className
         )}
@@ -285,17 +285,46 @@ export function DragDropZone({
         <div className="flex flex-col items-center justify-center py-12 px-6">
           <Upload
             className={cn(
-              'mb-4 h-12 w-12 transition-colors',
-              isDragActive ? 'text-blue-500' : 'text-neutral-400'
+              'mb-4 h-12 w-12 transition-all duration-200',
+              isDragActive
+                ? 'text-purple-600 dark:text-purple-400 animate-bounce scale-110'
+                : 'text-neutral-400 dark:text-neutral-500'
             )}
           />
-          <p className="mb-2 text-sm font-semibold text-neutral-700">
+          <p className={cn(
+            'mb-2 text-sm font-semibold transition-colors',
+            isDragActive
+              ? 'text-purple-700 dark:text-purple-300'
+              : 'text-neutral-700 dark:text-neutral-300'
+          )}>
             {isDragActive ? 'Drop files here' : 'Drag and drop files here'}
           </p>
-          <p className="text-xs text-neutral-500">
+          <p className={cn(
+            'text-xs transition-colors',
+            isDragActive
+              ? 'text-purple-600 dark:text-purple-400'
+              : 'text-neutral-500 dark:text-neutral-400'
+          )}>
             {description || `or click to browse (max ${formatFileSize(maxFileSize)})`}
           </p>
-          {accept && <p className="mt-2 text-xs text-neutral-400">Accepted: {accept}</p>}
+          {accept && (
+            <p className={cn(
+              'mt-2 text-xs transition-colors',
+              isDragActive
+                ? 'text-purple-500 dark:text-purple-400'
+                : 'text-neutral-400 dark:text-neutral-500'
+            )}>
+              Accepted: {accept}
+            </p>
+          )}
+          {isDragActive && (
+            <div className="mt-4 flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 rounded-full">
+              <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+              <span className="text-xs font-medium text-purple-700 dark:text-purple-300">
+                Ready to upload
+              </span>
+            </div>
+          )}
         </div>
       </div>
 

@@ -7,7 +7,6 @@ import { AudioWaveform } from '../AudioWaveform';
 import { getClipFileName, formatTimecode } from '@/lib/utils/timelineUtils';
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
 import { useEditorStore } from '@/state/useEditorStore';
-import type { TrimPreviewInfo } from '@/lib/hooks/useTimelineDragging';
 
 const { TRACK_HEIGHT } = TIMELINE_CONSTANTS;
 
@@ -143,6 +142,18 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
         aria-label={`Timeline clip: ${getClipFileName(clip)}${groupInfo.isGrouped ? ` (${groupInfo.group?.name || 'Grouped'})` : ''}`}
       >
         <div className="relative h-full w-full select-none">
+          {/* Color Label Indicator */}
+          {clip.color && (
+            <div
+              className="absolute left-0 top-0 bottom-0 w-1 z-10"
+              style={{
+                backgroundColor: clip.color,
+                boxShadow: `0 0 8px ${clip.color}80`
+              }}
+              title={`Color: ${clip.color}`}
+            />
+          )}
+
           {thumbnail ? (
             <div className="relative h-full w-full">
               <Image
@@ -177,36 +188,50 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
             </div>
           )}
 
-          {/* Trim Handles */}
-          {/* Left trim handle with expanded hit area */}
+          {/* Trim Handles - Enhanced with better visual feedback */}
+          {/* Left trim handle with expanded hit area and ripple animation */}
           <div
-            className="absolute left-0 top-0 bottom-0 w-2.5 cursor-ew-resize pointer-events-auto group"
-            style={{ marginLeft: '-2px' }}
+            className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize pointer-events-auto group"
+            style={{ marginLeft: '-3px' }}
             onMouseDown={(e) => onTrimHandleMouseDown(e, clip, 'left')}
             role="slider"
             tabIndex={0}
-            aria-label="Trim clip start"
+            aria-label="Trim clip start (Shift=Ripple, Alt=Roll, Cmd=Slip)"
             aria-valuenow={clip.start || 0}
             aria-valuemin={0}
             aria-valuemax={clip.sourceDuration || 0}
-            title="Trim start"
+            title="Trim start • Shift: Ripple • Alt: Roll • Cmd: Slip"
           >
-            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-white/40 group-hover:w-2.5 group-hover:bg-white/60 transition-all duration-150" />
+            {/* Main handle bar */}
+            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-white/50 group-hover:w-3 group-hover:bg-blue-400 transition-all duration-150 shadow-lg" />
+            {/* Grip lines indicator */}
+            <div className="absolute left-0.5 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+              <div className="w-0.5 h-1 bg-white rounded-full" />
+              <div className="w-0.5 h-1 bg-white rounded-full" />
+              <div className="w-0.5 h-1 bg-white rounded-full" />
+            </div>
           </div>
-          {/* Right trim handle with expanded hit area */}
+          {/* Right trim handle with expanded hit area and ripple animation */}
           <div
-            className="absolute right-0 top-0 bottom-0 w-2.5 cursor-ew-resize pointer-events-auto group"
-            style={{ marginRight: '-2px' }}
+            className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize pointer-events-auto group"
+            style={{ marginRight: '-3px' }}
             onMouseDown={(e) => onTrimHandleMouseDown(e, clip, 'right')}
             role="slider"
             tabIndex={0}
-            aria-label="Trim clip end"
+            aria-label="Trim clip end (Shift=Ripple, Alt=Roll, Cmd=Slip)"
             aria-valuenow={clip.end || clip.sourceDuration || 0}
             aria-valuemin={0}
             aria-valuemax={clip.sourceDuration || 0}
-            title="Trim end"
+            title="Trim end • Shift: Ripple • Alt: Roll • Cmd: Slip"
           >
-            <div className="absolute right-0 top-0 bottom-0 w-1.5 bg-white/40 group-hover:w-2.5 group-hover:bg-white/60 transition-all duration-150" />
+            {/* Main handle bar */}
+            <div className="absolute right-0 top-0 bottom-0 w-1.5 bg-white/50 group-hover:w-3 group-hover:bg-purple-400 transition-all duration-150 shadow-lg" />
+            {/* Grip lines indicator */}
+            <div className="absolute right-0.5 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+              <div className="w-0.5 h-1 bg-white rounded-full" />
+              <div className="w-0.5 h-1 bg-white rounded-full" />
+              <div className="w-0.5 h-1 bg-white rounded-full" />
+            </div>
           </div>
 
           <div className="absolute inset-0 flex h-full flex-col justify-between p-2 text-white pointer-events-none">

@@ -187,6 +187,10 @@ describe('GET /api/video/status', () => {
       console.log('NODE_ENV at test time:', process.env.NODE_ENV);
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
+      if (response.status === 500) {
+        const errorData = await response.json();
+        console.log('Got 500 error:', errorData);
+      }
       expect(response.status).toBe(400);
       const data = await response.json();
       expect(data.field).toBe('operationName');

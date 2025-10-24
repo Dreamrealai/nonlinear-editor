@@ -60,6 +60,16 @@ export interface AssetRow {
   created_at: string | null;
   type: 'video' | 'audio' | 'image';
   title?: string | null;
+  /** User-defined tags for organization */
+  tags?: string[];
+  /** Number of times asset has been used in timelines */
+  usage_count?: number;
+  /** Last time asset was added to a timeline */
+  last_used_at?: string | null;
+  /** Whether user has favorited this asset */
+  is_favorite?: boolean;
+  /** Last update timestamp */
+  updated_at?: string | null;
 }
 
 /**

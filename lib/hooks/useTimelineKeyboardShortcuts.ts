@@ -6,6 +6,7 @@
  * - Copy/Paste (Cmd+C / Cmd+V)
  * - Delete/Backspace
  * - Split clip (S key)
+ * - Toggle snap (Shift+S key)
  * - Lock/Unlock selected clips (L key)
  * - Add transition (T key)
  * - Add marker (M key)
@@ -38,6 +39,7 @@ type UseTimelineKeyboardShortcutsOptions = {
   onGroupClips?: () => void;
   onUngroupClips?: () => void;
   onAddGuide?: () => void;
+  onToggleSnap?: () => void;
   onZoomIn?: () => void;
   onZoomOut?: () => void;
   onZoomReset?: () => void;
@@ -60,6 +62,7 @@ export function useTimelineKeyboardShortcuts({
   onGroupClips,
   onUngroupClips,
   onAddGuide,
+  onToggleSnap,
   onZoomIn,
   onZoomOut,
   onZoomReset,
@@ -117,8 +120,8 @@ export function useTimelineKeyboardShortcuts({
         }
       }
 
-      // S: Split clip at playhead
-      if (e.key === 's' || e.key === 'S') {
+      // S: Split clip at playhead (without Shift)
+      if ((e.key === 's' || e.key === 'S') && !e.shiftKey) {
         e.preventDefault();
         if (!timeline || !timeline.clips || !splitClipAtTime) return;
         const clipAtPlayhead = timeline.clips.find((clip) => {
@@ -128,6 +131,14 @@ export function useTimelineKeyboardShortcuts({
         });
         if (clipAtPlayhead) {
           splitClipAtTime(clipAtPlayhead.id, currentTime);
+        }
+      }
+
+      // Shift+S: Toggle snap
+      if ((e.key === 's' || e.key === 'S') && e.shiftKey) {
+        e.preventDefault();
+        if (onToggleSnap) {
+          onToggleSnap();
         }
       }
 
@@ -202,5 +213,6 @@ export function useTimelineKeyboardShortcuts({
     onGroupClips,
     onUngroupClips,
     onAddGuide,
+    onToggleSnap,
   ]);
 }

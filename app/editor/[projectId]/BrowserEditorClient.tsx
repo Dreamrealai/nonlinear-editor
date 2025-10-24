@@ -39,6 +39,7 @@ import { safeArrayGet } from '@/lib/utils/arrayUtils';
 import { ResizableAssetPanel } from '@/components/editor/ResizableAssetPanel';
 import { AudioGenerationModal } from './AudioGenerationModal';
 import { VideoGenerationModal } from './VideoGenerationModal';
+import { ProjectExportImport } from '@/components/ProjectExportImport';
 import { useEditorHandlers } from './useEditorHandlers';
 import { useAssetList } from '@/lib/hooks/useAssetList';
 import type { AssetRow } from '@/types/assets';
@@ -629,6 +630,15 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
               splitAudioPending={splitAudioPending}
               splitScenesPending={splitScenesPending}
             />
+          </section>
+
+          {/* Project Export/Import - Below Timeline */}
+          <section className="rounded-lg lg:rounded-xl border border-neutral-200 bg-white p-2 lg:p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-semibold text-gray-900">Project Backup</h3>
+              <p className="text-xs text-gray-500">Export or import project as JSON</p>
+            </div>
+            <ProjectExportImport projectId={projectId} projectName={`project-${projectId.slice(0, 8)}`} />
           </section>
 
           <TimelineCorrectionsMenu />

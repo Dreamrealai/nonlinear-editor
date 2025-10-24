@@ -26,7 +26,7 @@ import { enableMapSet } from 'immer';
 import type { Timeline, Clip, Marker, Track, TextOverlay, TransitionType, Guide } from '@/types/timeline';
 import { EDITOR_CONSTANTS, CLIP_CONSTANTS, ZOOM_CONSTANTS } from '@/lib/constants';
 import { timelineAnnouncements } from '@/lib/utils/screenReaderAnnouncer';
-import { getClipFileName, formatTimecode } from '@/lib/utils/timelineUtils';
+import { getClipFileName } from '@/lib/utils/timelineUtils';
 
 const { MAX_HISTORY, HISTORY_DEBOUNCE_MS} = EDITOR_CONSTANTS;
 const { MIN_CLIP_DURATION } = CLIP_CONSTANTS;
@@ -78,6 +78,10 @@ type EditorStore = {
   autoScrollEnabled: boolean;
   /** Timeline guides for precise alignment */
   guides: Guide[];
+  /** Enable/disable snapping to grid and clip edges */
+  snapEnabled: boolean;
+  /** Snap grid interval in seconds */
+  snapGridInterval: number;
 
   // ===== Timeline Actions =====
   /** Replace entire timeline (initializes history) */
@@ -104,6 +108,10 @@ type EditorStore = {
   toggleTimecodeDisplayMode: () => void;
   /** Toggle auto-scroll during playback */
   toggleAutoScroll: () => void;
+  /** Toggle snap to grid and clip edges */
+  toggleSnap: () => void;
+  /** Set snap grid interval in seconds */
+  setSnapGridInterval: (interval: number) => void;
   /** Calculate zoom to fit entire timeline in viewport */
   calculateFitToTimelineZoom: (viewportWidth: number) => number;
   /** Calculate zoom to fit selected clips in viewport */
@@ -277,6 +285,8 @@ export const useEditorStore = create<EditorStore>()(
     timecodeDisplayMode: 'duration',
     autoScrollEnabled: true,
     guides: [],
+    snapEnabled: true,
+    snapGridInterval: 0.1,
 
     setTimeline: (timeline) =>
       set((state) => {
@@ -546,6 +556,15 @@ export const useEditorStore = create<EditorStore>()(
     toggleAutoScroll: () =>
       set((state) => {
         state.autoScrollEnabled = !state.autoScrollEnabled;
+      }),
+    toggleSnap: () =>
+      set((state) => {
+        state.snapEnabled = !state.snapEnabled;
+      }),
+    setSnapGridInterval: (interval) =>
+      set((state) => {
+        // Clamp interval between 0.01s (10ms) and 10s
+        state.snapGridInterval = Math.max(0.01, Math.min(10, interval));
       }),
     addMarker: (marker) =>
       set((state) => {

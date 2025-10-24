@@ -68,6 +68,7 @@ export type Clip = {
   audioEffects?: AudioEffects; // Audio effects (EQ, compression, normalization)
   locked?: boolean; // Clip locked flag (prevents moving/editing, default false)
   groupId?: string; // Group ID if this clip belongs to a group (default undefined)
+  color?: string; // Clip label color for visual organization (hex color, default undefined)
 };
 
 export type ClipGroup = {

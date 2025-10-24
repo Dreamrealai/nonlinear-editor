@@ -109,7 +109,9 @@ jest.mock('@/lib/api/withAuth', () => ({
         const params =
           context?.params instanceof Promise ? await context.params : context?.params || {};
 
-        return await handler(req, { user, supabase, params });
+        // Pass params in routeContext to match real withAuth signature
+        const routeContext = params ? { params: Promise.resolve(params) } : undefined;
+        return await handler(req, { user, supabase }, routeContext);
       } catch (error) {
         console.error('Error in withAuth mock:', error);
         return new Response(
@@ -279,10 +281,10 @@ describe('POST /api/frames/[frameId]/edit', () => {
 
       expect(response.status).toBe(400);
       const data = await response.json();
-      expect(data.error).toContain('Prompt is required');
+      expect(data.error).toContain('prompt is required');
       expect(auditLog).toHaveBeenCalledWith(
         expect.objectContaining({
-          metadata: expect.objectContaining({ error: 'Invalid prompt' }),
+          metadata: expect.objectContaining({ error: 'prompt is required' }),
         })
       );
     });
@@ -590,7 +592,7 @@ describe('POST /api/frames/[frameId]/edit', () => {
       expect(mockGenerateContent).toHaveBeenCalledTimes(1);
     });
 
-    it('should limit numVariations to maximum of 8', async () => {
+    it('should reject numVariations greater than 8', async () => {
       const mockRequest = new NextRequest('http://localhost/api/frames/test/edit', {
         method: 'POST',
         body: JSON.stringify({
@@ -603,10 +605,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
         params: Promise.resolve({ frameId: validFrameId }),
       });
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(400);
       const data = await response.json();
-      expect(data.edits).toHaveLength(8);
-      expect(mockGenerateContent).toHaveBeenCalledTimes(8);
+      expect(data.error).toContain('must be between 1 and 8');
     });
 
     it('should increment version numbers correctly', async () => {

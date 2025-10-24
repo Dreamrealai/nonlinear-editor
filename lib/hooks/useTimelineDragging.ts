@@ -5,6 +5,7 @@
  * - Clip dragging with collision detection and snapping
  * - Playhead dragging for seeking
  * - Trim handle dragging (left/right) with constraints
+ * - Advanced edit modes (ripple, roll, slip, slide)
  *
  * Performance optimized with RAF throttling to prevent excessive re-renders
  */
@@ -13,12 +14,15 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Clip, Timeline } from '@/types/timeline';
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
+import { CLIP_CONSTANTS } from '@/lib/constants/editor';
+import { useAdvancedTrimming } from './useAdvancedTrimming';
 
 const {
   TRACK_HEIGHT,
   SNAP_INTERVAL_SECONDS: SNAP_INTERVAL,
   SNAP_THRESHOLD_SECONDS: SNAP_THRESHOLD,
 } = TIMELINE_CONSTANTS;
+const { MIN_CLIP_DURATION } = CLIP_CONSTANTS;
 
 export type DraggingClip = {
   id: string;
@@ -81,6 +85,12 @@ export function useTimelineDragging({
   // @ts-expect-error - snapInfo is exposed in the API but not currently used internally
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [snapInfo, setSnapInfo] = useState<SnapInfo | null>(null);
+
+  // Advanced trimming with edit modes support
+  const advancedTrimming = useAdvancedTrimming({
+    timeline,
+    updateClip,
+  });
 
   // RAF throttling for performance
   const rafIdRef = useRef<number | null>(null);
@@ -189,7 +199,7 @@ export function useTimelineDragging({
           if (!clip) return;
 
           if (trimmingClip.handle === 'left') {
-            // Trim start
+            // Trim start with advanced edit modes
             const deltaTime = time - trimmingClip.originalPosition;
             const maxEnd =
               typeof clip.sourceDuration === 'number'
@@ -197,90 +207,99 @@ export function useTimelineDragging({
                 : (trimmingClip.sourceDuration ?? trimmingClip.originalEnd);
             const newStart = Math.max(
               0,
-              Math.min(trimmingClip.originalStart + deltaTime, Math.max(0, maxEnd - SNAP_INTERVAL))
+              Math.min(trimmingClip.originalStart + deltaTime, Math.max(0, maxEnd - MIN_CLIP_DURATION))
             );
             const newPosition = Math.max(
               0,
               trimmingClip.originalPosition + (newStart - trimmingClip.originalStart)
             );
-            const minDuration = SNAP_INTERVAL;
 
-            // Calculate new duration for preview
-            const newDuration = maxEnd - newStart;
-            const originalDuration = trimmingClip.originalEnd - trimmingClip.originalStart;
-
-            // Update trim preview info
-            setTrimPreviewInfo({
-              clipId: trimmingClip.id,
-              handle: 'left',
-              originalDuration,
-              newDuration,
-              originalStart: trimmingClip.originalStart,
-              originalEnd: trimmingClip.originalEnd,
+            // Calculate trim operation with current edit mode
+            const operation = advancedTrimming.calculateTrimOperation(
+              clip,
+              'left',
               newStart,
-              newEnd: maxEnd,
-              position: {
-                x: newPosition * zoom,
-                y: clip.trackIndex * TRACK_HEIGHT,
-              },
-            });
+              maxEnd,
+              newPosition
+            );
 
-            if (
-              maxEnd - newStart >= minDuration &&
-              (Math.abs(newStart - clip.start) > 1e-4 ||
-                Math.abs(newPosition - clip.timelinePosition) > 1e-4)
-            ) {
-              updateClip(trimmingClip.id, {
-                start: newStart,
-                timelinePosition: snapToGrid(newPosition),
+            if (operation) {
+              // Calculate new duration for preview
+              const newDuration = maxEnd - newStart;
+              const originalDuration = trimmingClip.originalEnd - trimmingClip.originalStart;
+
+              // Update trim preview info
+              setTrimPreviewInfo({
+                clipId: trimmingClip.id,
+                handle: 'left',
+                originalDuration,
+                newDuration,
+                originalStart: trimmingClip.originalStart,
+                originalEnd: trimmingClip.originalEnd,
+                newStart,
+                newEnd: maxEnd,
+                position: {
+                  x: newPosition * zoom,
+                  y: clip.trackIndex * TRACK_HEIGHT,
+                },
               });
+
+              // Execute trim operation (applies to main clip and affected clips)
+              if (
+                maxEnd - newStart >= MIN_CLIP_DURATION &&
+                (Math.abs(newStart - clip.start) > 1e-4 ||
+                  Math.abs(newPosition - clip.timelinePosition) > 1e-4)
+              ) {
+                advancedTrimming.executeTrimOperation(operation);
+              }
             }
           } else {
-            // Trim end
+            // Trim end with advanced edit modes
             const clipWidth = time - clip.timelinePosition;
             const newEnd = clip.start + clipWidth;
-            const minDuration = SNAP_INTERVAL;
             const maxEnd =
               typeof clip.sourceDuration === 'number'
                 ? clip.sourceDuration
                 : (trimmingClip.sourceDuration ?? undefined);
             const boundedEnd = Math.max(
-              clip.start + minDuration,
+              clip.start + MIN_CLIP_DURATION,
               typeof maxEnd === 'number' ? Math.min(newEnd, maxEnd) : newEnd
             );
 
-            // Calculate new duration for preview
-            const newDuration = boundedEnd - clip.start;
-            const originalDuration = trimmingClip.originalEnd - trimmingClip.originalStart;
+            // Calculate trim operation with current edit mode
+            const operation = advancedTrimming.calculateTrimOperation(
+              clip,
+              'right',
+              clip.start,
+              boundedEnd,
+              clip.timelinePosition
+            );
 
-            // Update trim preview info
-            setTrimPreviewInfo({
-              clipId: trimmingClip.id,
-              handle: 'right',
-              originalDuration,
-              newDuration,
-              originalStart: trimmingClip.originalStart,
-              originalEnd: trimmingClip.originalEnd,
-              newStart: clip.start,
-              newEnd: boundedEnd,
-              position: {
-                x: (clip.timelinePosition + newDuration) * zoom,
-                y: clip.trackIndex * TRACK_HEIGHT,
-              },
-            });
+            if (operation) {
+              // Calculate new duration for preview
+              const newDuration = boundedEnd - clip.start;
+              const originalDuration = trimmingClip.originalEnd - trimmingClip.originalStart;
 
-            if (boundedEnd - clip.start >= minDuration && Math.abs(boundedEnd - clip.end) > 1e-4) {
-              updateClip(trimmingClip.id, {
-                end: boundedEnd,
-                ...(typeof clip.sourceDuration !== 'number'
-                  ? {
-                      sourceDuration: Math.max(
-                        typeof maxEnd === 'number' ? maxEnd : boundedEnd,
-                        boundedEnd
-                      ),
-                    }
-                  : {}),
+              // Update trim preview info
+              setTrimPreviewInfo({
+                clipId: trimmingClip.id,
+                handle: 'right',
+                originalDuration,
+                newDuration,
+                originalStart: trimmingClip.originalStart,
+                originalEnd: trimmingClip.originalEnd,
+                newStart: clip.start,
+                newEnd: boundedEnd,
+                position: {
+                  x: (clip.timelinePosition + newDuration) * zoom,
+                  y: clip.trackIndex * TRACK_HEIGHT,
+                },
               });
+
+              // Execute trim operation (applies to main clip and affected clips)
+              if (boundedEnd - clip.start >= MIN_CLIP_DURATION && Math.abs(boundedEnd - clip.end) > 1e-4) {
+                advancedTrimming.executeTrimOperation(operation);
+              }
             }
           }
         } else if (draggingClip) {
@@ -395,5 +414,9 @@ export function useTimelineDragging({
     setDraggingClip,
     setIsDraggingPlayhead,
     setTrimmingClip,
+    // Advanced trimming data
+    currentEditMode: advancedTrimming.currentEditMode,
+    editModeModifiers: advancedTrimming.modifiers,
+    trimFeedback: advancedTrimming.feedback,
   };
 }

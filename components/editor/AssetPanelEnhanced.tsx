@@ -1,12 +1,12 @@
 /**
- * AssetPanel Component
+ * Enhanced AssetPanel Component
  *
- * Displays and manages assets (videos, images, audio) for a project.
- * Provides upload, delete, search, filter, sort, and organization functionality with tabbed interface.
+ * Displays and manages assets with comprehensive search, filter, sort, and tagging functionality.
+ * This is an enhancement of the original AssetPanel with advanced organization features.
  */
 'use client';
 
-import { type ChangeEvent, useRef, useState, useMemo } from 'react';
+import { type ChangeEvent, useRef, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { AssetRow } from '@/types/assets';
@@ -15,10 +15,11 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { AssetVersionHistory } from '@/components/editor/AssetVersionHistory';
 
-type SortOption = 'name' | 'date' | 'size' | 'type';
+type SortOption = 'name' | 'date' | 'size' | 'type' | 'usage' | 'recent';
 type SortDirection = 'asc' | 'desc';
+type FilterPreset = 'all' | 'favorites' | 'unused' | 'recent' | 'tagged';
 
-interface AssetPanelProps {
+interface AssetPanelEnhancedProps {
   /** List of all assets */
   assets: AssetRow[];
   /** ID of the current project */
@@ -39,6 +40,10 @@ interface AssetPanelProps {
   onAssetAdd: (asset: AssetRow) => Promise<void>;
   /** Callback when asset delete is requested */
   onAssetDelete: (asset: AssetRow) => Promise<void>;
+  /** Callback when asset tags are updated */
+  onAssetTagsUpdate?: (assetId: string, tags: string[]) => Promise<void>;
+  /** Callback when asset favorite status changes */
+  onAssetFavoriteToggle?: (assetId: string, isFavorite: boolean) => Promise<void>;
   /** Current page number (0-indexed) */
   currentPage?: number;
   /** Total number of pages */
@@ -64,7 +69,22 @@ const extractFileName = (storageUrl: string) => {
   return segments[segments.length - 1] ?? normalized;
 };
 
-export function AssetPanel({
+/**
+ * Formats file size in human-readable format
+ */
+const formatFileSize = (bytes: number | undefined): string => {
+  if (!bytes) return 'Unknown';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let size = bytes;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex++;
+  }
+  return `${size.toFixed(1)} ${units[unitIndex]}`;
+};
+
+export function AssetPanelEnhanced({
   assets,
   projectId,
   loadingAssets,
@@ -75,6 +95,8 @@ export function AssetPanel({
   onFileSelect,
   onAssetAdd,
   onAssetDelete,
+  onAssetTagsUpdate,
+  onAssetFavoriteToggle,
   currentPage = 0,
   totalPages = 1,
   totalCount = 0,
@@ -82,7 +104,7 @@ export function AssetPanel({
   hasPreviousPage = false,
   onNextPage,
   onPreviousPage,
-}: AssetPanelProps) {
+}: AssetPanelEnhancedProps) {
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
   // Search and filter state
@@ -90,9 +112,42 @@ export function AssetPanel({
   const [sortBy, setSortBy] = useState<SortOption>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [showFilters, setShowFilters] = useState(false);
+  const [filterPreset, setFilterPreset] = useState<FilterPreset>('all');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  // Tag editing state
+  const [editingTagsForAsset, setEditingTagsForAsset] = useState<string | null>(null);
+  const [newTag, setNewTag] = useState('');
 
   // Version history state
   const [versionHistoryAsset, setVersionHistoryAsset] = useState<AssetRow | null>(null);
+
+  // Extract all unique tags from assets
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    assets.forEach((asset) => {
+      asset.tags?.forEach((tag) => tagSet.add(tag));
+    });
+    return Array.from(tagSet).sort();
+  }, [assets]);
+
+  // Toggle tag selection
+  const toggleTagFilter = useCallback((tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  }, []);
+
+  // Clear all filters
+  const clearFilters = useCallback(() => {
+    setSearchQuery('');
+    setFilterPreset('all');
+    setSelectedTags([]);
+    setDateFrom('');
+    setDateTo('');
+  }, []);
 
   // Filter, search, and sort assets
   const filteredAssets = useMemo(() => {
@@ -110,7 +165,48 @@ export function AssetPanel({
       filtered = filtered.filter((asset) => {
         const filename = (asset.metadata?.filename || extractFileName(asset.storage_url)).toLowerCase();
         const type = asset.type.toLowerCase();
-        return filename.includes(query) || type.includes(query);
+        const tagsMatch = asset.tags?.some((tag) => tag.toLowerCase().includes(query));
+        return filename.includes(query) || type.includes(query) || tagsMatch;
+      });
+    }
+
+    // Apply filter preset
+    if (filterPreset === 'favorites') {
+      filtered = filtered.filter((a) => a.is_favorite);
+    } else if (filterPreset === 'unused') {
+      filtered = filtered.filter((a) => !a.usage_count || a.usage_count === 0);
+    } else if (filterPreset === 'recent') {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      filtered = filtered.filter((a) => {
+        if (!a.last_used_at) return false;
+        return new Date(a.last_used_at) >= sevenDaysAgo;
+      });
+    } else if (filterPreset === 'tagged') {
+      filtered = filtered.filter((a) => a.tags && a.tags.length > 0);
+    }
+
+    // Apply tag filters
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter((a) =>
+        selectedTags.every((tag) => a.tags?.includes(tag))
+      );
+    }
+
+    // Apply date range filter
+    if (dateFrom) {
+      const fromDate = new Date(dateFrom);
+      filtered = filtered.filter((a) => {
+        if (!a.created_at) return false;
+        return new Date(a.created_at) >= fromDate;
+      });
+    }
+    if (dateTo) {
+      const toDate = new Date(dateTo);
+      toDate.setHours(23, 59, 59, 999); // End of day
+      filtered = filtered.filter((a) => {
+        if (!a.created_at) return false;
+        return new Date(a.created_at) <= toDate;
       });
     }
 
@@ -126,19 +222,31 @@ export function AssetPanel({
           break;
         }
         case 'date': {
-          const dateA = new Date(a.created_at).getTime();
-          const dateB = new Date(b.created_at).getTime();
+          const dateA = new Date(a.created_at || 0).getTime();
+          const dateB = new Date(b.created_at || 0).getTime();
           comparison = dateA - dateB;
           break;
         }
         case 'size': {
-          const sizeA = a.metadata?.size || 0;
-          const sizeB = b.metadata?.size || 0;
+          const sizeA = a.metadata?.fileSize || 0;
+          const sizeB = b.metadata?.fileSize || 0;
           comparison = sizeA - sizeB;
           break;
         }
         case 'type': {
           comparison = a.type.localeCompare(b.type);
+          break;
+        }
+        case 'usage': {
+          const usageA = a.usage_count || 0;
+          const usageB = b.usage_count || 0;
+          comparison = usageA - usageB;
+          break;
+        }
+        case 'recent': {
+          const recentA = a.last_used_at ? new Date(a.last_used_at).getTime() : 0;
+          const recentB = b.last_used_at ? new Date(b.last_used_at).getTime() : 0;
+          comparison = recentA - recentB;
           break;
         }
       }
@@ -147,7 +255,43 @@ export function AssetPanel({
     });
 
     return filtered;
-  }, [assets, activeTab, searchQuery, sortBy, sortDirection]);
+  }, [assets, activeTab, searchQuery, sortBy, sortDirection, filterPreset, selectedTags, dateFrom, dateTo]);
+
+  // Handle adding tags to an asset
+  const handleAddTag = useCallback(async (assetId: string, tag: string) => {
+    if (!tag.trim() || !onAssetTagsUpdate) return;
+
+    const asset = assets.find((a) => a.id === assetId);
+    if (!asset) return;
+
+    const currentTags = asset.tags || [];
+    if (currentTags.includes(tag.trim())) return; // Tag already exists
+
+    const newTags = [...currentTags, tag.trim()];
+    await onAssetTagsUpdate(assetId, newTags);
+    setNewTag('');
+  }, [assets, onAssetTagsUpdate]);
+
+  // Handle removing a tag from an asset
+  const handleRemoveTag = useCallback(async (assetId: string, tagToRemove: string) => {
+    if (!onAssetTagsUpdate) return;
+
+    const asset = assets.find((a) => a.id === assetId);
+    if (!asset) return;
+
+    const newTags = (asset.tags || []).filter((tag) => tag !== tagToRemove);
+    await onAssetTagsUpdate(assetId, newTags);
+  }, [assets, onAssetTagsUpdate]);
+
+  // Handle favorite toggle
+  const handleFavoriteToggle = useCallback(async (assetId: string) => {
+    if (!onAssetFavoriteToggle) return;
+
+    const asset = assets.find((a) => a.id === assetId);
+    if (!asset) return;
+
+    await onAssetFavoriteToggle(assetId, !asset.is_favorite);
+  }, [assets, onAssetFavoriteToggle]);
 
   /**
    * Handle files from drag-and-drop zone
@@ -185,6 +329,14 @@ export function AssetPanel({
     }
   };
 
+  const activeFiltersCount = [
+    searchQuery ? 1 : 0,
+    filterPreset !== 'all' ? 1 : 0,
+    selectedTags.length,
+    dateFrom ? 1 : 0,
+    dateTo ? 1 : 0,
+  ].reduce((sum, count) => sum + count, 0);
+
   return (
     <aside className="flex flex-col gap-4 overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
       <div className="flex items-center justify-between gap-2">
@@ -206,7 +358,7 @@ export function AssetPanel({
           <button
             type="button"
             onClick={() => setShowFilters(!showFilters)}
-            className="rounded-lg bg-neutral-100 dark:bg-neutral-800 px-3 py-1.5 text-xs font-semibold text-neutral-900 dark:text-neutral-100 shadow hover:bg-neutral-200 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="relative rounded-lg bg-neutral-100 dark:bg-neutral-800 px-3 py-1.5 text-xs font-semibold text-neutral-900 dark:text-neutral-100 shadow hover:bg-neutral-200 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             aria-label="Toggle filters"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -217,6 +369,11 @@ export function AssetPanel({
                 d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
               />
             </svg>
+            {activeFiltersCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-purple-500 text-xs text-white">
+                {activeFiltersCount}
+              </span>
+            )}
           </button>
           <button
             type="button"
@@ -231,7 +388,7 @@ export function AssetPanel({
         </div>
       </div>
 
-      {/* Search and Filter Controls */}
+      {/* Advanced Search and Filter Controls */}
       {showFilters && (
         <div className="space-y-3 pb-3 border-b border-neutral-200 dark:border-neutral-700">
           {/* Search Input */}
@@ -240,7 +397,7 @@ export function AssetPanel({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={`Search ${activeTab}s...`}
+              placeholder={`Search ${activeTab}s, tags...`}
               className="w-full rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-2 pl-9 text-sm text-neutral-900 dark:text-neutral-100 placeholder-neutral-500 dark:placeholder-neutral-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
             <svg
@@ -274,6 +431,73 @@ export function AssetPanel({
             )}
           </div>
 
+          {/* Filter Presets */}
+          <div className="flex flex-wrap gap-2">
+            {(['all', 'favorites', 'unused', 'recent', 'tagged'] as FilterPreset[]).map((preset) => (
+              <button
+                key={preset}
+                onClick={() => setFilterPreset(preset)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition ${
+                  filterPreset === preset
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                }`}
+              >
+                {preset === 'all' && 'All'}
+                {preset === 'favorites' && '★ Favorites'}
+                {preset === 'unused' && 'Unused'}
+                {preset === 'recent' && 'Recently Used'}
+                {preset === 'tagged' && 'Tagged'}
+              </button>
+            ))}
+          </div>
+
+          {/* Tag Filters */}
+          {allTags.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                Filter by Tags:
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {allTags.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => toggleTagFilter(tag)}
+                    className={`px-2 py-1 text-xs font-medium rounded-md transition ${
+                      selectedTags.includes(tag)
+                        ? 'bg-purple-500 text-white'
+                        : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-600'
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Date Range Filter */}
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300">From:</label>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-full rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-2 py-1.5 text-xs text-neutral-900 dark:text-neutral-100 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300">To:</label>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-full rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-2 py-1.5 text-xs text-neutral-900 dark:text-neutral-100 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+          </div>
+
           {/* Sort Controls */}
           <div className="flex gap-2">
             <select
@@ -285,6 +509,8 @@ export function AssetPanel({
               <option value="name">Sort by Name</option>
               <option value="size">Sort by Size</option>
               <option value="type">Sort by Type</option>
+              <option value="usage">Sort by Usage</option>
+              <option value="recent">Sort by Recent Use</option>
             </select>
             <button
               type="button"
@@ -308,33 +534,35 @@ export function AssetPanel({
             </button>
           </div>
 
-          {/* Results Count */}
-          {searchQuery && (
-            <p className="text-xs text-neutral-600 dark:text-neutral-400">
-              Found {filteredAssets.length} {filteredAssets.length === 1 ? 'result' : 'results'}
-            </p>
+          {/* Clear Filters Button */}
+          {activeFiltersCount > 0 && (
+            <button
+              onClick={clearFilters}
+              className="w-full rounded-lg bg-neutral-200 dark:bg-neutral-700 px-3 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-600"
+            >
+              Clear All Filters
+            </button>
           )}
+
+          {/* Results Count */}
+          <p className="text-xs text-neutral-600 dark:text-neutral-400">
+            Showing {filteredAssets.length} of {totalCount} {filteredAssets.length === 1 ? 'asset' : 'assets'}
+          </p>
         </div>
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-neutral-200" role="tablist" aria-label="Asset types">
+      <div className="flex gap-2 border-b border-neutral-200 dark:border-neutral-700" role="tablist" aria-label="Asset types">
         <button
           type="button"
           role="tab"
           aria-selected={activeTab === 'video'}
           aria-controls="video-tabpanel"
           onClick={() => onTabChange('video')}
-          onKeyDown={(e) => {
-            if (e.key === 'ArrowRight') {
-              e.preventDefault();
-              onTabChange('image');
-            }
-          }}
           className={`px-3 py-2 text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-t ${
             activeTab === 'video'
-              ? 'border-b-2 border-neutral-900 text-neutral-900'
-              : 'text-neutral-600 hover:text-neutral-900'
+              ? 'border-b-2 border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100'
+              : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
           }`}
         >
           Videos
@@ -345,19 +573,10 @@ export function AssetPanel({
           aria-selected={activeTab === 'image'}
           aria-controls="image-tabpanel"
           onClick={() => onTabChange('image')}
-          onKeyDown={(e) => {
-            if (e.key === 'ArrowLeft') {
-              e.preventDefault();
-              onTabChange('video');
-            } else if (e.key === 'ArrowRight') {
-              e.preventDefault();
-              onTabChange('audio');
-            }
-          }}
           className={`px-3 py-2 text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-t ${
             activeTab === 'image'
-              ? 'border-b-2 border-neutral-900 text-neutral-900'
-              : 'text-neutral-600 hover:text-neutral-900'
+              ? 'border-b-2 border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100'
+              : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
           }`}
         >
           Images
@@ -368,23 +587,17 @@ export function AssetPanel({
           aria-selected={activeTab === 'audio'}
           aria-controls="audio-tabpanel"
           onClick={() => onTabChange('audio')}
-          onKeyDown={(e) => {
-            if (e.key === 'ArrowLeft') {
-              e.preventDefault();
-              onTabChange('image');
-            }
-          }}
           className={`px-3 py-2 text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-t ${
             activeTab === 'audio'
-              ? 'border-b-2 border-neutral-900 text-neutral-900'
-              : 'text-neutral-600 hover:text-neutral-900'
+              ? 'border-b-2 border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100'
+              : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
           }`}
         >
           Audio
         </button>
       </div>
 
-      {/* Video Tab Buttons */}
+      {/* Tab Content: Drag-Drop Zone and Generation Links */}
       {activeTab === 'video' && (
         <div className="flex flex-col gap-2">
           <DragDropZone
@@ -416,7 +629,6 @@ export function AssetPanel({
         </div>
       )}
 
-      {/* Images Tab Buttons */}
       {activeTab === 'image' && (
         <div className="flex flex-col gap-2">
           <DragDropZone
@@ -448,7 +660,6 @@ export function AssetPanel({
         </div>
       )}
 
-      {/* Audio Tab Buttons */}
       {activeTab === 'audio' && (
         <div className="flex flex-col gap-2">
           <DragDropZone
@@ -482,7 +693,7 @@ export function AssetPanel({
 
       {assetError && (
         <div
-          className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600"
+          className="rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-2 text-xs text-red-600 dark:text-red-400"
           role="alert"
           aria-live="assertive"
         >
@@ -511,7 +722,7 @@ export function AssetPanel({
         )}
         {!loadingAssets && filteredAssets.length === 0 && (
           <div
-            className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-700"
+            className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300"
             role="status"
           >
             {activeTab === 'video'
@@ -526,14 +737,8 @@ export function AssetPanel({
             <button
               type="button"
               onClick={() => void onAssetAdd(asset)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  void onAssetAdd(asset);
-                }
-              }}
               aria-label={`Add ${asset.metadata?.filename ?? asset.type} to timeline`}
-              className="flex w-full items-center gap-3 rounded-lg border border-transparent bg-neutral-50 px-3 py-2 text-left transition hover:border-neutral-200 hover:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex w-full items-start gap-3 rounded-lg border border-transparent bg-neutral-50 dark:bg-neutral-800/50 px-3 py-2 text-left transition hover:border-neutral-200 dark:hover:border-neutral-700 hover:bg-white dark:hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {asset.metadata?.thumbnail ? (
                 <Image
@@ -544,24 +749,92 @@ export function AssetPanel({
                   height={64}
                   className="h-16 w-28 rounded-md object-cover"
                   unoptimized
-                  loading="lazy"
-                  placeholder="blur"
-                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEyIiBoZWlnaHQ9IjY0IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iNjQiIGZpbGw9IiNlNWU3ZWIiLz48L3N2Zz4="
                 />
               ) : (
-                <div className="flex h-16 w-28 items-center justify-center rounded-md bg-neutral-200 text-xs text-neutral-600">
+                <div className="flex h-16 w-28 items-center justify-center rounded-md bg-neutral-200 dark:bg-neutral-700 text-xs text-neutral-600 dark:text-neutral-400">
                   {asset.type.toUpperCase()}
                 </div>
               )}
-              <div className="flex-1 text-xs">
-                <p className="font-medium text-neutral-900">
+              <div className="flex-1 min-w-0 text-xs space-y-1">
+                <p className="font-medium text-neutral-900 dark:text-neutral-100 truncate">
                   {asset.metadata?.filename ?? extractFileName(asset.storage_url)}
                 </p>
+                <div className="flex flex-wrap gap-2 text-neutral-600 dark:text-neutral-400">
+                  {asset.metadata?.fileSize && (
+                    <span>{formatFileSize(asset.metadata.fileSize)}</span>
+                  )}
+                  {asset.usage_count !== undefined && asset.usage_count > 0 && (
+                    <span className="text-purple-600 dark:text-purple-400">
+                      Used {asset.usage_count}x
+                    </span>
+                  )}
+                </div>
+                {/* Tags Display */}
+                {asset.tags && asset.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {asset.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </button>
 
             {/* Action buttons */}
             <div className="absolute right-2 top-1 z-10 flex gap-1">
+              {/* Favorite button */}
+              {onAssetFavoriteToggle && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void handleFavoriteToggle(asset.id);
+                  }}
+                  aria-label={asset.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
+                  className={`rounded-md p-1 text-white shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                    asset.is_favorite
+                      ? 'bg-yellow-500 hover:bg-yellow-600 focus:ring-yellow-500'
+                      : 'bg-neutral-500 hover:bg-neutral-600 focus:ring-neutral-500'
+                  }`}
+                  title={asset.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <svg className="h-3 w-3" fill={asset.is_favorite ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                    />
+                  </svg>
+                </button>
+              )}
+
+              {/* Tags button */}
+              {onAssetTagsUpdate && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingTagsForAsset(editingTagsForAsset === asset.id ? null : asset.id);
+                  }}
+                  aria-label="Manage tags"
+                  className="rounded-md bg-blue-500 p-1 text-white shadow-lg transition-all hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  title="Manage tags"
+                >
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                    />
+                  </svg>
+                </button>
+              )}
+
               {/* Version history button */}
               <button
                 onClick={(e) => {
@@ -602,6 +875,58 @@ export function AssetPanel({
                 </svg>
               </button>
             </div>
+
+            {/* Tag Editor Dropdown */}
+            {editingTagsForAsset === asset.id && onAssetTagsUpdate && (
+              <div
+                className="absolute top-full left-0 right-0 z-20 mt-1 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-3 shadow-lg"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newTag}
+                      onChange={(e) => setNewTag(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          void handleAddTag(asset.id, newTag);
+                        }
+                      }}
+                      placeholder="Add tag..."
+                      className="flex-1 rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-2 py-1 text-xs text-neutral-900 dark:text-neutral-100 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                    <button
+                      onClick={() => void handleAddTag(asset.id, newTag)}
+                      className="rounded-md bg-purple-500 px-3 py-1 text-xs font-medium text-white hover:bg-purple-600"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {asset.tags && asset.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {asset.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs"
+                        >
+                          {tag}
+                          <button
+                            onClick={() => void handleRemoveTag(asset.id, tag)}
+                            className="hover:text-purple-900 dark:hover:text-purple-100"
+                            aria-label={`Remove tag ${tag}`}
+                          >
+                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -609,10 +934,10 @@ export function AssetPanel({
       {/* Pagination Controls */}
       {totalPages > 1 && (
         <nav
-          className="flex items-center justify-between border-t border-neutral-200 pt-3 text-xs"
+          className="flex items-center justify-between border-t border-neutral-200 dark:border-neutral-700 pt-3 text-xs"
           aria-label="Asset pagination"
         >
-          <div className="text-neutral-700" aria-live="polite" aria-atomic="true">
+          <div className="text-neutral-700 dark:text-neutral-300" aria-live="polite" aria-atomic="true">
             Page {currentPage + 1} of {totalPages} ({totalCount} total)
           </div>
           <div className="flex gap-2">
@@ -621,7 +946,7 @@ export function AssetPanel({
               onClick={() => onPreviousPage?.()}
               disabled={!hasPreviousPage || loadingAssets}
               aria-label="Go to previous page"
-              className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 font-medium text-neutral-700 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-1.5 font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Previous
             </button>
@@ -630,7 +955,7 @@ export function AssetPanel({
               onClick={() => onNextPage?.()}
               disabled={!hasNextPage || loadingAssets}
               aria-label="Go to next page"
-              className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 font-medium text-neutral-700 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-1.5 font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Next
             </button>
@@ -646,7 +971,6 @@ export function AssetPanel({
           isOpen={!!versionHistoryAsset}
           onClose={() => setVersionHistoryAsset(null)}
           onReverted={() => {
-            // Optionally reload assets or show a success message
             setVersionHistoryAsset(null);
           }}
         />
