@@ -1957,6 +1957,7 @@ export const POST = withAuth(handleProjectCreate, {
 
 Before merging code, ensure:
 
+### Code Quality
 - [ ] TypeScript strict mode is satisfied (no `any`, proper types)
 - [ ] Branded types are used for IDs
 - [ ] API routes use `withAuth` middleware
@@ -1970,6 +1971,24 @@ Before merging code, ensure:
 - [ ] Code is organized according to conventions
 - [ ] Documentation is updated
 
+### Accessibility (WCAG 2.1 AA)
+- [ ] All interactive elements are keyboard accessible (Tab, Enter, Space, Escape)
+- [ ] All images have meaningful `alt` text (or `alt=""` for decorative images)
+- [ ] Color contrast meets WCAG AA standards (4.5:1 for text, 3:1 for UI components)
+- [ ] Focus indicators are visible on all focusable elements (outline or box-shadow)
+- [ ] All form inputs have proper labels (`htmlFor` + `id` association or `aria-label`)
+- [ ] Custom controls have appropriate ARIA roles (`role="button"`, `role="slider"`, etc.)
+- [ ] ARIA attributes are complete (e.g., `aria-valuenow`, `aria-valuemin`, `aria-valuemax` for sliders)
+- [ ] Dynamic content changes use ARIA live regions (`role="status"`, `role="alert"`)
+- [ ] Modal dialogs have `role="dialog"` and `aria-modal="true"`
+- [ ] Modal dialogs trap focus and restore it on close
+- [ ] Reduced motion preference is respected (`@media (prefers-reduced-motion: reduce)`)
+- [ ] Screen reader tested (VoiceOver on macOS or NVDA on Windows)
+- [ ] Automated accessibility tests passing (`npm run a11y:test`)
+- [ ] No ESLint jsx-a11y warnings
+
+See [ACCESSIBILITY.md](./ACCESSIBILITY.md) for complete guidelines.
+
 ---
 
 ## Additional Resources
@@ -1981,8 +2000,9 @@ Before merging code, ensure:
 - [Service Layer Guide](./SERVICE_LAYER_GUIDE.md)
 - [API Documentation](./api/)
 - [Testing Guide](./TESTING.md)
+- [Accessibility Guidelines](./ACCESSIBILITY.md)
 
 ---
 
-**Document Version:** 1.1
-**Last Updated:** October 24, 2025
+**Document Version:** 1.2
+**Last Updated:** January 24, 2025
