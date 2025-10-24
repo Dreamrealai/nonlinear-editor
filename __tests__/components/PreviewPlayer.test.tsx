@@ -8,6 +8,27 @@ import type { Clip, Timeline } from '@/types/timeline';
 // Mock the editor store
 jest.mock('@/state/useEditorStore');
 
+// Mock the video hooks
+jest.mock('@/lib/hooks/useVideoManager', () => ({
+  useVideoManager: () => ({
+    videoMapRef: { current: new Map() },
+    ensureClipElement: jest.fn(),
+    cleanupVideo: jest.fn(),
+  }),
+}));
+
+jest.mock('@/lib/hooks/useVideoPlayback', () => ({
+  useVideoPlayback: () => {
+    const [isPlaying, setIsPlaying] = require('react').useState(false);
+    return {
+      isPlaying,
+      stopPlayback: jest.fn(),
+      togglePlayPause: () => setIsPlaying((prev: boolean) => !prev),
+      syncClipsAtTime: jest.fn(),
+    };
+  },
+}));
+
 // Mock child components
 jest.mock('@/components/TextOverlayRenderer', () => {
   return function MockTextOverlayRenderer() {
@@ -15,9 +36,48 @@ jest.mock('@/components/TextOverlayRenderer', () => {
   };
 });
 
-jest.mock('@/components/VideoPlayerHoverMenu', () => {
-  return function MockVideoPlayerHoverMenu() {
-    return <div data-testid="hover-menu">Hover Menu</div>;
+jest.mock('@/components/TextOverlayEditor', () => {
+  return function MockTextOverlayEditor() {
+    return <div data-testid="text-overlay-editor">Text Overlay Editor</div>;
+  };
+});
+
+jest.mock('@/components/preview/PlaybackControls', () => {
+  const React = require('react');
+  return function MockPlaybackControls({
+    isPlaying,
+    hasClips,
+    onPlayPause,
+  }: {
+    isPlaying: boolean;
+    hasClips: boolean;
+    onPlayPause: () => void;
+  }) {
+    const [controlsHidden, setControlsHidden] = React.useState(false);
+
+    return (
+      <div data-testid="playback-controls">
+        {!controlsHidden ? (
+          <>
+            <button
+              title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
+              disabled={!hasClips}
+              onClick={onPlayPause}
+            >
+              {isPlaying ? 'Pause' : 'Play'}
+            </button>
+            <button title="Enter fullscreen">Fullscreen</button>
+            <button title="Hide controls" onClick={() => setControlsHidden(true)}>
+              Hide
+            </button>
+          </>
+        ) : (
+          <button title="Show controls" onClick={() => setControlsHidden(false)}>
+            Show
+          </button>
+        )}
+      </div>
+    );
   };
 });
 
@@ -239,7 +299,7 @@ describe('PreviewPlayer', () => {
     expect(progressBar).toHaveStyle({ width: '50%' });
   });
 
-  it('should render text overlays when present', () => {
+  it('should render text overlay editor when present and not playing', () => {
     (useEditorStore as unknown as jest.Mock).mockImplementation((selector) => {
       const state = {
         timeline: {
@@ -266,24 +326,15 @@ describe('PreviewPlayer', () => {
 
     render(<PreviewPlayer />);
 
-    expect(screen.getByTestId('text-overlay-renderer')).toBeInTheDocument();
+    // Should render editor when not playing
+    expect(screen.getByTestId('text-overlay-editor')).toBeInTheDocument();
+    expect(screen.queryByTestId('text-overlay-renderer')).not.toBeInTheDocument();
   });
 
-  it('should show hover menu when not playing', () => {
+  it('should show playback controls', () => {
     render(<PreviewPlayer />);
 
-    expect(screen.getByTestId('hover-menu')).toBeInTheDocument();
-  });
-
-  it('should hide hover menu when playing', async () => {
-    render(<PreviewPlayer />);
-
-    const playButton = screen.getByTitle('Play (Space)');
-    fireEvent.click(playButton);
-
-    await waitFor(() => {
-      expect(screen.queryByTestId('hover-menu')).not.toBeInTheDocument();
-    });
+    expect(screen.getByTestId('playback-controls')).toBeInTheDocument();
   });
 
   it('should show fullscreen button', () => {

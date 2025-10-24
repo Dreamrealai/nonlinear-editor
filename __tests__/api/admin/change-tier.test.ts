@@ -25,9 +25,11 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
+const ADMIN_ID = '00000000-0000-0000-0000-000000000001';
+
 jest.mock('@/lib/api/withAuth', () => ({
   withAdminAuth: jest.fn((handler) => async (req: NextRequest) => {
-    const mockUser = createMockUser({ id: 'admin-123', email: 'admin@example.com' });
+    const mockUser = createMockUser({ id: ADMIN_ID, email: 'admin@example.com' });
     return handler(req, { user: mockUser, supabase: null });
   }),
   logAdminAction: jest.fn(),
@@ -35,7 +37,9 @@ jest.mock('@/lib/api/withAuth', () => ({
 
 jest.mock('@/lib/api/response', () => ({
   validationError: jest.fn((msg) => new Response(JSON.stringify({ error: msg }), { status: 400 })),
-  forbiddenResponse: jest.fn((msg) => new Response(JSON.stringify({ error: msg }), { status: 403 })),
+  forbiddenResponse: jest.fn(
+    (msg) => new Response(JSON.stringify({ error: msg }), { status: 403 })
+  ),
   errorResponse: jest.fn((msg, status) => new Response(JSON.stringify({ error: msg }), { status })),
   successResponse: jest.fn(() => new Response(JSON.stringify({ success: true }), { status: 200 })),
 }));
@@ -82,7 +86,7 @@ describe('POST /api/admin/change-tier', () => {
     it('should prevent admin from changing own tier', async () => {
       const mockRequest = new NextRequest('http://localhost/api/admin/change-tier', {
         method: 'POST',
-        body: JSON.stringify({ userId: 'admin-123', tier: 'premium' }),
+        body: JSON.stringify({ userId: ADMIN_ID, tier: 'premium' }),
       });
 
       const response = await POST(mockRequest);
@@ -94,7 +98,7 @@ describe('POST /api/admin/change-tier', () => {
     it('should change user tier successfully', async () => {
       const mockRequest = new NextRequest('http://localhost/api/admin/change-tier', {
         method: 'POST',
-        body: JSON.stringify({ userId: 'user-456-valid-uuid', tier: 'premium' }),
+        body: JSON.stringify({ userId: '00000000-0000-0000-0000-000000000002', tier: 'premium' }),
       });
 
       const response = await POST(mockRequest);

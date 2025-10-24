@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { CreateProjectButton } from '@/components/CreateProjectButton';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
@@ -20,8 +21,14 @@ jest.mock('@/lib/browserLogger', () => ({
 // Mock fetch
 global.fetch = jest.fn();
 
-// Mock window.alert
-global.alert = jest.fn();
+// Mock toast
+jest.mock('react-hot-toast', () => ({
+  __esModule: true,
+  default: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
+}));
 
 describe('CreateProjectButton', () => {
   const mockPush = jest.fn();
@@ -32,7 +39,6 @@ describe('CreateProjectButton', () => {
       push: mockPush,
     });
     (global.fetch as jest.Mock).mockReset();
-    (global.alert as jest.Mock).mockReset();
   });
 
   describe('Rendering', () => {
@@ -105,11 +111,18 @@ describe('CreateProjectButton', () => {
     });
 
     it('should show loading state while creating', async () => {
-      (global.fetch as jest.Mock).mockImplementation(() =>
-        new Promise(resolve => setTimeout(() => resolve({
-          ok: true,
-          json: async () => ({ id: 'project-123' }),
-        }), 1000))
+      (global.fetch as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  ok: true,
+                  json: async () => ({ id: 'project-123' }),
+                }),
+              1000
+            )
+          )
       );
 
       const user = userEvent.setup();
@@ -119,17 +132,27 @@ describe('CreateProjectButton', () => {
       await user.click(button);
 
       // Should show loading state immediately
-      await waitFor(() => {
-        expect(screen.getByText('Creating...')).toBeInTheDocument();
-      }, { timeout: 100 });
+      await waitFor(
+        () => {
+          expect(screen.getByText('Creating...')).toBeInTheDocument();
+        },
+        { timeout: 100 }
+      );
     });
 
     it('should disable button while creating', async () => {
-      (global.fetch as jest.Mock).mockImplementation(() =>
-        new Promise(resolve => setTimeout(() => resolve({
-          ok: true,
-          json: async () => ({ id: 'project-123' }),
-        }), 1000))
+      (global.fetch as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  ok: true,
+                  json: async () => ({ id: 'project-123' }),
+                }),
+              1000
+            )
+          )
       );
 
       const user = userEvent.setup();
@@ -139,9 +162,12 @@ describe('CreateProjectButton', () => {
       await user.click(button);
 
       // Button should be disabled
-      await waitFor(() => {
-        expect(button).toBeDisabled();
-      }, { timeout: 100 });
+      await waitFor(
+        () => {
+          expect(button).toBeDisabled();
+        },
+        { timeout: 100 }
+      );
     });
 
     it('should navigate to editor on successful creation', async () => {
@@ -163,7 +189,7 @@ describe('CreateProjectButton', () => {
   });
 
   describe('Error Handling', () => {
-    it('should show alert on API error', async () => {
+    it('should show toast error on API error', async () => {
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 500,
@@ -176,11 +202,11 @@ describe('CreateProjectButton', () => {
       await user.click(button);
 
       await waitFor(() => {
-        expect(global.alert).toHaveBeenCalledWith('Failed to create project. Please try again.');
+        expect(toast.error).toHaveBeenCalledWith('Failed to create project. Please try again.');
       });
     });
 
-    it('should show alert on network error', async () => {
+    it('should show toast error on network error', async () => {
       (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
 
       const user = userEvent.setup();
@@ -190,7 +216,7 @@ describe('CreateProjectButton', () => {
       await user.click(button);
 
       await waitFor(() => {
-        expect(global.alert).toHaveBeenCalledWith('Failed to create project. Please try again.');
+        expect(toast.error).toHaveBeenCalledWith('Failed to create project. Please try again.');
       });
     });
 
@@ -205,7 +231,7 @@ describe('CreateProjectButton', () => {
 
       // Wait for error handling
       await waitFor(() => {
-        expect(global.alert).toHaveBeenCalled();
+        expect(toast.error).toHaveBeenCalled();
       });
 
       // Button should be re-enabled
@@ -225,7 +251,7 @@ describe('CreateProjectButton', () => {
 
       // Wait for error handling
       await waitFor(() => {
-        expect(global.alert).toHaveBeenCalled();
+        expect(toast.error).toHaveBeenCalled();
       });
 
       // Should show normal text again
@@ -245,7 +271,7 @@ describe('CreateProjectButton', () => {
       await user.click(button);
 
       await waitFor(() => {
-        expect(global.alert).toHaveBeenCalled();
+        expect(toast.error).toHaveBeenCalled();
       });
 
       expect(mockPush).not.toHaveBeenCalled();
@@ -254,11 +280,18 @@ describe('CreateProjectButton', () => {
 
   describe('Multiple Clicks', () => {
     it('should prevent multiple simultaneous API calls', async () => {
-      (global.fetch as jest.Mock).mockImplementation(() =>
-        new Promise(resolve => setTimeout(() => resolve({
-          ok: true,
-          json: async () => ({ id: 'project-123' }),
-        }), 1000))
+      (global.fetch as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  ok: true,
+                  json: async () => ({ id: 'project-123' }),
+                }),
+              1000
+            )
+          )
       );
 
       const user = userEvent.setup();
@@ -291,11 +324,18 @@ describe('CreateProjectButton', () => {
     });
 
     it('should indicate disabled state to screen readers', async () => {
-      (global.fetch as jest.Mock).mockImplementation(() =>
-        new Promise(resolve => setTimeout(() => resolve({
-          ok: true,
-          json: async () => ({ id: 'project-123' }),
-        }), 1000))
+      (global.fetch as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  ok: true,
+                  json: async () => ({ id: 'project-123' }),
+                }),
+              1000
+            )
+          )
       );
 
       const user = userEvent.setup();
@@ -304,19 +344,29 @@ describe('CreateProjectButton', () => {
       const button = screen.getByRole('button', { name: /New Project/i });
       await user.click(button);
 
-      await waitFor(() => {
-        expect(button).toHaveAttribute('disabled');
-      }, { timeout: 100 });
+      await waitFor(
+        () => {
+          expect(button).toHaveAttribute('disabled');
+        },
+        { timeout: 100 }
+      );
     });
   });
 
   describe('Visual States', () => {
     it('should have opacity-50 when disabled', async () => {
-      (global.fetch as jest.Mock).mockImplementation(() =>
-        new Promise(resolve => setTimeout(() => resolve({
-          ok: true,
-          json: async () => ({ id: 'project-123' }),
-        }), 1000))
+      (global.fetch as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  ok: true,
+                  json: async () => ({ id: 'project-123' }),
+                }),
+              1000
+            )
+          )
       );
 
       const user = userEvent.setup();
@@ -325,9 +375,12 @@ describe('CreateProjectButton', () => {
       const button = screen.getByRole('button', { name: /New Project/i });
       await user.click(button);
 
-      await waitFor(() => {
-        expect(button).toHaveClass('disabled:opacity-50');
-      }, { timeout: 100 });
+      await waitFor(
+        () => {
+          expect(button).toHaveClass('disabled:opacity-50');
+        },
+        { timeout: 100 }
+      );
     });
 
     it('should have hover state classes', () => {
@@ -370,7 +423,7 @@ describe('CreateProjectButton', () => {
       await user.click(button);
 
       await waitFor(() => {
-        expect(global.alert).toHaveBeenCalledWith('Failed to create project. Please try again.');
+        expect(toast.error).toHaveBeenCalledWith('Failed to create project. Please try again.');
       });
     });
 

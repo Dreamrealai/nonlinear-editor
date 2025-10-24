@@ -3,6 +3,7 @@ import React from 'react';
 
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
 import type { Clip } from '@/types/timeline';
+import { Button } from '@/components/ui/Button';
 
 const { TRACK_HEIGHT, MIN_TRACKS, MAX_TRACKS } = TIMELINE_CONSTANTS;
 
@@ -38,24 +39,27 @@ export const TimelineTracks = React.memo<TimelineTracksProps>(function TimelineT
           <div className="absolute left-2 top-2 flex items-center gap-2">
             <span className="text-xs font-semibold text-neutral-400">Track {trackIndex + 1}</span>
             {trackIndex === numTracks - 1 && numTracks < MAX_TRACKS && (
-              <button
+              <Button
                 onClick={onAddTrack}
-                className="rounded px-1.5 py-0.5 text-[10px] font-bold bg-green-500 text-white hover:bg-green-600 transition-colors"
+                size="sm"
+                className="px-1.5 py-0.5 text-[10px]"
                 title="Add new track"
               >
                 +
-              </button>
+              </Button>
             )}
             {trackIndex === numTracks - 1 &&
               numTracks > MIN_TRACKS &&
               clips.filter((c) => c.trackIndex === trackIndex).length === 0 && (
-                <button
+                <Button
                   onClick={onRemoveTrack}
-                  className="rounded px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white hover:bg-red-600 transition-colors"
+                  variant="destructive"
+                  size="sm"
+                  className="px-1.5 py-0.5 text-[10px]"
                   title="Delete this track"
                 >
                   −
-                </button>
+                </Button>
               )}
           </div>
         </div>

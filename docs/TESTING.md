@@ -3,6 +3,7 @@
 Comprehensive testing strategy and guidelines for the Non-Linear Video Editor.
 
 ## Table of Contents
+
 1. [Testing Philosophy](#testing-philosophy)
 2. [Testing Strategy](#testing-strategy)
 3. [Test Types](#test-types)
@@ -27,6 +28,7 @@ This project currently focuses on **manual testing** and **integration testing**
 - Future testing roadmap
 
 ### Current Testing Approach
+
 - Manual feature testing before each release
 - API endpoint testing via tools (Postman, curl)
 - Database integrity checks
@@ -56,6 +58,7 @@ This project currently focuses on **manual testing** and **integration testing**
 ### Priority Levels
 
 **P0 (Critical)**: Must test before every release
+
 - User authentication
 - Project creation/deletion
 - File upload/download
@@ -63,17 +66,20 @@ This project currently focuses on **manual testing** and **integration testing**
 - Security policies
 
 **P1 (High)**: Test for major features
+
 - Video generation
 - Scene detection
 - AI chat
 - Asset management
 
 **P2 (Medium)**: Test periodically
+
 - UI interactions
 - Keyboard shortcuts
 - Error messages
 
 **P3 (Low)**: Nice to have
+
 - Tooltips
 - Animation smoothness
 - Loading states
@@ -83,18 +89,23 @@ This project currently focuses on **manual testing** and **integration testing**
 ## Test Types
 
 ### 1. Functional Testing
+
 Verify features work as expected.
 
 ### 2. Integration Testing
+
 Test API endpoints and database operations.
 
 ### 3. Security Testing
+
 Verify RLS policies and authentication.
 
 ### 4. Performance Testing
+
 Measure response times and resource usage.
 
 ### 5. Regression Testing
+
 Ensure bug fixes don't break existing features.
 
 ---
@@ -104,6 +115,7 @@ Ensure bug fixes don't break existing features.
 ### Authentication Flow Testing
 
 #### Test Case: User Signup
+
 ```
 Prerequisites: None
 Steps:
@@ -127,6 +139,7 @@ Edge Cases to Test:
 ```
 
 #### Test Case: User Signin
+
 ```
 Prerequisites: User account exists
 Steps:
@@ -148,6 +161,7 @@ Edge Cases:
 ```
 
 #### Test Case: Password Reset
+
 ```
 Prerequisites: User account exists
 Steps:
@@ -170,6 +184,7 @@ Expected Results:
 ### Project Management Testing
 
 #### Test Case: Create Project
+
 ```
 Prerequisites: Authenticated user
 Steps:
@@ -187,6 +202,7 @@ Expected Results:
 ```
 
 #### Test Case: Delete Project
+
 ```
 Prerequisites: User owns project
 Steps:
@@ -204,6 +220,7 @@ Expected Results:
 ### Asset Management Testing
 
 #### Test Case: Upload Video
+
 ```
 Prerequisites: Project open
 Steps:
@@ -226,6 +243,7 @@ Edge Cases:
 ```
 
 #### Test Case: Upload Image
+
 ```
 Steps:
 1. Upload PNG/JPEG image
@@ -242,6 +260,7 @@ Expected Results:
 ### Timeline Editing Testing
 
 #### Test Case: Add Clip to Timeline
+
 ```
 Prerequisites: Asset uploaded
 Steps:
@@ -258,6 +277,7 @@ Expected Results:
 ```
 
 #### Test Case: Move Clip
+
 ```
 Steps:
 1. Click and hold clip
@@ -273,6 +293,7 @@ Expected Results:
 ```
 
 #### Test Case: Trim Clip
+
 ```
 Steps:
 1. Hover over clip edge
@@ -289,6 +310,7 @@ Expected Results:
 ```
 
 #### Test Case: Delete Clip
+
 ```
 Steps:
 1. Select clip
@@ -302,6 +324,7 @@ Expected Results:
 ```
 
 #### Test Case: Undo/Redo
+
 ```
 Prerequisites: Some timeline changes made
 Steps:
@@ -320,6 +343,7 @@ Expected Results:
 ### Playback Testing
 
 #### Test Case: Play Video
+
 ```
 Prerequisites: Clips on timeline
 Steps:
@@ -336,6 +360,7 @@ Expected Results:
 ```
 
 #### Test Case: Scrubbing
+
 ```
 Steps:
 1. Click and drag playhead
@@ -352,6 +377,7 @@ Expected Results:
 ### AI Features Testing
 
 #### Test Case: AI Chat
+
 ```
 Prerequisites: GEMINI_API_KEY configured
 Steps:
@@ -368,6 +394,7 @@ Expected Results:
 ```
 
 #### Test Case: Video Generation
+
 ```
 Prerequisites: GOOGLE_SERVICE_ACCOUNT configured
 Steps:
@@ -391,6 +418,7 @@ Expected Results:
 ### Using curl
 
 #### Test: Create Project
+
 ```bash
 # Get session cookie first (signin)
 curl -X POST http://localhost:3000/api/auth/signin \
@@ -409,6 +437,7 @@ curl -X POST http://localhost:3000/api/projects \
 ```
 
 #### Test: Upload Asset
+
 ```bash
 curl -X POST http://localhost:3000/api/assets/upload \
   -b cookies.txt \
@@ -421,6 +450,7 @@ curl -X POST http://localhost:3000/api/assets/upload \
 ```
 
 #### Test: Generate Signed URL
+
 ```bash
 curl -X GET "http://localhost:3000/api/assets/sign?storageUrl=supabase://assets/user/project/file.mp4&ttl=3600" \
   -b cookies.txt
@@ -430,6 +460,7 @@ curl -X GET "http://localhost:3000/api/assets/sign?storageUrl=supabase://assets/
 ```
 
 #### Test: AI Chat
+
 ```bash
 curl -X POST http://localhost:3000/api/ai/chat \
   -H "Content-Type: application/json" \
@@ -460,6 +491,7 @@ curl -X POST http://localhost:3000/api/ai/chat \
 ### RLS Policy Testing
 
 #### Test: User Can Only See Own Projects
+
 ```sql
 -- As user 1 (authenticated)
 SELECT * FROM projects;
@@ -475,17 +507,17 @@ INSERT INTO projects (user_id, title) VALUES ('<user-2-id>', 'Hack');
 ```
 
 #### Test: Service Role Bypasses RLS
+
 ```javascript
 // Using service role client
-const { data } = await supabaseAdmin
-  .from('projects')
-  .select('*');
+const { data } = await supabaseAdmin.from('projects').select('*');
 // Expected: All projects from all users
 ```
 
 ### Data Integrity Testing
 
 #### Test: Cascading Deletes
+
 ```sql
 -- Create project with assets
 INSERT INTO projects (id, user_id, title) VALUES (...);
@@ -500,6 +532,7 @@ SELECT * FROM assets WHERE project_id = '...';
 ```
 
 #### Test: Foreign Key Constraints
+
 ```sql
 -- Try to insert asset with non-existent project
 INSERT INTO assets (project_id, ...) VALUES ('fake-uuid', ...);
@@ -510,15 +543,11 @@ INSERT INTO assets (project_id, ...) VALUES ('fake-uuid', ...);
 
 ```javascript
 // Test: User can upload to own folder
-const { data, error } = await supabase.storage
-  .from('assets')
-  .upload(`${userId}/test.jpg`, file);
+const { data, error } = await supabase.storage.from('assets').upload(`${userId}/test.jpg`, file);
 // Expected: Success
 
 // Test: User cannot upload to another user's folder
-const { error } = await supabase.storage
-  .from('assets')
-  .upload(`other-user-id/test.jpg`, file);
+const { error } = await supabase.storage.from('assets').upload(`other-user-id/test.jpg`, file);
 // Expected: Policy violation error
 ```
 
@@ -529,6 +558,7 @@ const { error } = await supabase.storage
 ### Authentication Testing
 
 #### Test: Unauthenticated Access Blocked
+
 ```bash
 # Try to access protected API without auth
 curl http://localhost:3000/api/projects
@@ -537,6 +567,7 @@ curl http://localhost:3000/api/projects
 ```
 
 #### Test: Expired Token Rejected
+
 ```bash
 # Use expired/invalid token
 curl -H "Authorization: Bearer invalid-token" \
@@ -548,13 +579,11 @@ curl -H "Authorization: Bearer invalid-token" \
 ### Authorization Testing
 
 #### Test: Cannot Access Other Users' Data
+
 ```javascript
 // Logged in as user A
 // Try to fetch user B's project
-const { data, error } = await supabase
-  .from('projects')
-  .select('*')
-  .eq('id', userBProjectId);
+const { data, error } = await supabase.from('projects').select('*').eq('id', userBProjectId);
 
 // Expected: Empty result (RLS blocks)
 ```
@@ -562,6 +591,7 @@ const { data, error } = await supabase
 ### Input Validation Testing
 
 #### Test: XSS Prevention
+
 ```javascript
 // Try to inject script tag
 const malicious = '<script>alert("XSS")</script>';
@@ -569,7 +599,7 @@ const malicious = '<script>alert("XSS")</script>';
 // Create project with malicious name
 await fetch('/api/projects', {
   method: 'POST',
-  body: JSON.stringify({ title: malicious })
+  body: JSON.stringify({ title: malicious }),
 });
 
 // Verify: Script tag escaped in UI
@@ -577,6 +607,7 @@ await fetch('/api/projects', {
 ```
 
 #### Test: SQL Injection Prevention
+
 ```javascript
 // Try SQL injection in search
 const malicious = "'; DROP TABLE projects; --";
@@ -607,14 +638,14 @@ done
 
 ### Response Time Benchmarks
 
-| Endpoint | Target | Acceptable |
-|----------|--------|------------|
-| GET /api/projects | < 100ms | < 500ms |
-| POST /api/projects | < 200ms | < 1s |
-| GET /api/assets/sign | < 150ms | < 500ms |
-| POST /api/assets/upload | < 5s (10MB) | < 30s |
-| POST /api/ai/chat | < 2s | < 5s |
-| POST /api/video/generate | < 1s (async) | < 3s |
+| Endpoint                 | Target       | Acceptable |
+| ------------------------ | ------------ | ---------- |
+| GET /api/projects        | < 100ms      | < 500ms    |
+| POST /api/projects       | < 200ms      | < 1s       |
+| GET /api/assets/sign     | < 150ms      | < 500ms    |
+| POST /api/assets/upload  | < 5s (10MB)  | < 30s      |
+| POST /api/ai/chat        | < 2s         | < 5s       |
+| POST /api/video/generate | < 1s (async) | < 3s       |
 
 ### Load Testing
 
@@ -636,6 +667,7 @@ ab -n 100 -c 10 -H "Cookie: auth-token=xxx" \
 ### Frontend Performance
 
 #### Metrics to Monitor
+
 - **First Contentful Paint (FCP)**: < 1.5s
 - **Largest Contentful Paint (LCP)**: < 2.5s
 - **Time to Interactive (TTI)**: < 3.5s
@@ -643,6 +675,7 @@ ab -n 100 -c 10 -H "Cookie: auth-token=xxx" \
 - **Cumulative Layout Shift (CLS)**: < 0.1
 
 #### Test with Lighthouse
+
 ```bash
 # Install Lighthouse CI
 npm install -g @lhci/cli
@@ -748,7 +781,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run type-check
-      - run: npm run test  # When implemented
+      - run: npm run test # When implemented
       - run: npm run build
 
   e2e:
@@ -758,7 +791,7 @@ jobs:
       - uses: actions/setup-node@v3
       - run: npm ci
       - run: npx playwright install
-      - run: npm run test:e2e  # When implemented
+      - run: npm run test:e2e # When implemented
 ```
 
 ---
@@ -766,12 +799,14 @@ jobs:
 ## Test Coverage Goals
 
 ### Current Coverage
+
 - Manual testing: Core features
 - API testing: Critical endpoints
 - Security testing: RLS policies
 - Performance: Basic benchmarks
 
 ### Target Coverage (Future)
+
 - Unit tests: 80%+ coverage
 - Integration tests: All API endpoints
 - E2E tests: Critical user flows
@@ -812,15 +847,423 @@ jobs:
 
 ---
 
+## Test Helper Utilities
+
+### Overview
+
+Comprehensive test helper utilities are available in `__tests__/helpers/` to standardize testing patterns and reduce boilerplate code.
+
+```typescript
+import {
+  createMockSupabaseClient,
+  mockAuthenticatedUser,
+  expectSuccessResponse,
+  renderWithProviders,
+  mockFetch,
+} from '@/__tests__/helpers';
+```
+
+### Available Helpers
+
+#### 1. Supabase Helpers (`__tests__/helpers/supabase.ts`)
+
+Utilities for mocking Supabase clients and database operations.
+
+```typescript
+// Create a mock Supabase client
+const mockSupabase = createMockSupabaseClient();
+
+// Setup authenticated user
+const user = mockAuthenticatedUser(mockSupabase, {
+  email: 'custom@example.com',
+});
+
+// Mock successful query
+mockQuerySuccess(mockSupabase, { id: '123', title: 'Test' });
+
+// Mock query error
+mockQueryError(mockSupabase, 'Database error');
+
+// Mock storage operations
+mockStorageUploadSuccess(mockSupabase, 'path/to/file.jpg');
+mockStorageUploadError(mockSupabase, 'File too large');
+
+// Clean up after tests
+afterEach(() => {
+  resetAllMocks(mockSupabase);
+});
+```
+
+**Available Functions:**
+
+- `createMockSupabaseClient()` - Full mock Supabase client with chainable methods
+- `createMockQueryBuilder()` - Mock query builder for specific chains
+- `createMockAuthUser()` - Generate mock user objects
+- `createMockSession()` - Generate mock session objects
+- `createMockStorageClient()` - Mock storage API
+- `mockAuthenticatedUser()` - Setup authenticated state
+- `mockUnauthenticatedUser()` - Setup unauthenticated state
+- `mockQuerySuccess()` - Mock successful database queries
+- `mockQueryError()` - Mock database errors
+- `mockStorageUploadSuccess()` - Mock successful uploads
+- `mockStorageUploadError()` - Mock upload errors
+- `resetAllMocks()` - Clean up all mocks
+
+#### 2. API Helpers (`__tests__/helpers/api.ts`)
+
+Utilities for testing Next.js API routes and HTTP requests.
+
+```typescript
+// Create authenticated request
+const request = createAuthenticatedRequest('user-123', {
+  method: 'POST',
+  body: JSON.stringify({ title: 'Test' }),
+});
+
+// Create JSON request
+const request = createJSONRequest('http://localhost:3000/api/projects', 'POST', {
+  title: 'Test Project',
+});
+
+// Assert successful response
+const response = await POST(request);
+const data = await expectSuccessResponse(response, {
+  id: expect.any(String),
+  title: 'Test Project',
+});
+
+// Assert error response
+await expectErrorResponse(response, 401, 'Unauthorized');
+
+// Convenience methods
+await expectUnauthorized(response);
+await expectNotFound(response);
+await expectBadRequest(response, 'Invalid input');
+await expectInternalServerError(response);
+
+// Mock fetch responses
+mockFetchResponses([
+  { data: { success: true }, status: 200 },
+  { data: { error: 'Failed' }, status: 500, ok: false },
+]);
+```
+
+**Available Functions:**
+
+- `createAuthenticatedRequest()` - Create NextRequest with auth headers
+- `createJSONRequest()` - Create request with JSON body
+- `createFormDataRequest()` - Create request with FormData
+- `createMockResponse()` - Mock Response object
+- `createMockFetchResponse()` - Mock fetch response
+- `expectSuccessResponse()` - Assert 2xx response
+- `expectErrorResponse()` - Assert error response
+- `expectUnauthorized()` - Assert 401 response
+- `expectNotFound()` - Assert 404 response
+- `expectBadRequest()` - Assert 400 response
+- `expectInternalServerError()` - Assert 500 response
+- `mockFetchResponses()` - Setup global fetch mock
+- `parseResponse()` - Parse JSON response safely
+- `expectHeaders()` - Assert specific headers
+- `expectHeaderContains()` - Assert header contains value
+
+#### 3. Component Helpers (`__tests__/helpers/components.ts`)
+
+Utilities for testing React components with Testing Library.
+
+```typescript
+// Render with providers and get user event
+const { getByText, user } = renderWithProviders(
+  <MyComponent />,
+  { route: '/editor/123' }
+);
+
+// Wait for loading to finish
+await waitForLoadingToFinish();
+
+// User interactions
+await user.click(getByText('Submit'));
+await user.type(input, 'Hello world');
+
+// Fill forms
+const user = setupUserEvent();
+await fillForm(user, {
+  email: 'test@example.com',
+  password: 'password123'
+});
+
+// Submit forms
+await submitForm(user, 'form[name="login"]');
+
+// Wait for elements
+const element = await waitForElement(
+  () => screen.getByRole('button', { name: 'Submit' })
+);
+
+await waitForElementToDisappear(
+  () => screen.getByText('Loading...')
+);
+
+// Assertions
+expectToHaveClasses(button, 'bg-blue-500', 'text-white');
+expectToBeInteractive(button);
+expectTextContent(heading, 'Welcome');
+expectNoErrors();
+expectErrorMessage('Invalid input');
+
+// Mock router
+const mockRouter = createMockRouter({
+  pathname: '/editor/123',
+  query: { id: '123' }
+});
+
+// Mock dialogs
+const alertMock = mockAlert();
+const confirmMock = mockConfirm(true);
+const promptMock = mockPrompt('User input');
+```
+
+**Available Functions:**
+
+- `renderWithProviders()` - Render with common providers
+- `waitForLoadingToFinish()` - Wait for loading states
+- `createMockRouter()` - Mock Next.js router
+- `setupUserEvent()` - Setup user event utilities
+- `waitForElement()` - Wait for element to appear
+- `waitForElementToDisappear()` - Wait for element to disappear
+- `fillForm()` - Fill form fields
+- `clickButton()` - Click button by text
+- `submitForm()` - Submit a form
+- `wait()` - Wait for milliseconds
+- `expectToHaveClasses()` - Assert CSS classes
+- `expectToBeInteractive()` - Assert element is visible and enabled
+- `expectToBeDisabled()` - Assert element is disabled
+- `expectTextContent()` - Assert text content
+- `getErrorMessages()` - Get all error elements
+- `expectNoErrors()` - Assert no errors present
+- `expectErrorMessage()` - Assert specific error message
+- `mockAlert()` - Mock window.alert
+- `mockConfirm()` - Mock window.confirm
+- `mockPrompt()` - Mock window.prompt
+
+#### 4. Mock Utilities (`__tests__/helpers/mocks.ts`)
+
+General-purpose mocking utilities for browser APIs and common objects.
+
+```typescript
+// Mock fetch
+mockFetch([{ data: { success: true } }, { data: { error: 'Failed' }, status: 500, ok: false }]);
+
+// Create mock files
+const videoFile = createMockFile('video.mp4', 'video/mp4', 1024 * 1024);
+const imageFile = createMockFile('image.jpg', 'image/jpeg', 512 * 1024);
+
+const files = createMockFiles([
+  { name: 'video1.mp4', type: 'video/mp4', size: 1024 * 1024 },
+  { name: 'video2.mp4', type: 'video/mp4', size: 2048 * 1024 },
+]);
+
+// Mock storage
+const localStorage = mockLocalStorage();
+localStorage.setItem('key', 'value');
+
+const sessionStorage = mockSessionStorage();
+
+// Mock browser APIs
+mockIntersectionObserver();
+mockResizeObserver();
+mockMatchMedia(true); // Simulate mobile
+mockURL();
+
+// Mock console
+const { log, error } = mockConsole();
+console.log('test'); // Silent
+expect(log).toHaveBeenCalledWith('test');
+
+// Mock timers
+const timers = mockTimers();
+setTimeout(callback, 1000);
+timers.advanceTimersByTime(1000);
+timers.restore();
+
+// Async utilities
+await nextTick();
+await flushPromises();
+```
+
+**Available Functions:**
+
+- `mockFetch()` - Mock global fetch
+- `createMockFile()` - Create mock File object
+- `createMockFiles()` - Create multiple mock files
+- `mockLocalStorage()` - Mock localStorage
+- `mockSessionStorage()` - Mock sessionStorage
+- `mockIntersectionObserver()` - Mock IntersectionObserver
+- `mockResizeObserver()` - Mock ResizeObserver
+- `mockMatchMedia()` - Mock window.matchMedia
+- `mockURL()` - Mock URL.createObjectURL
+- `mockConsole()` - Mock console methods
+- `restoreConsole()` - Restore original console
+- `mockTimers()` - Mock timers for controlled testing
+- `createMockBlob()` - Create mock Blob
+- `createMockFileList()` - Create mock FileList
+- `nextTick()` - Wait for next event loop tick
+- `flushPromises()` - Flush all pending promises
+
+#### 5. Test Data Generators
+
+Pre-configured test data generators for common entities.
+
+```typescript
+import { testData } from '@/__tests__/helpers';
+
+const user = testData.user({ email: 'custom@example.com' });
+const project = testData.project({ title: 'My Project' });
+const asset = testData.asset({ type: 'video' });
+const userProfile = testData.userProfile({ tier: 'premium' });
+const message = testData.message({ content: 'Hello' });
+const activity = testData.activity({ activity_type: 'video_generation' });
+const videoJob = testData.videoJob({ status: 'completed' });
+const checkoutSession = testData.checkoutSession();
+const subscription = testData.subscription({ status: 'active' });
+```
+
+#### 6. Setup and Cleanup Utilities
+
+Convenient functions for setting up and cleaning up test environments.
+
+```typescript
+import { setup, cleanup } from '@/__tests__/helpers';
+
+beforeEach(() => {
+  // Mock all browser APIs at once
+  setup.mockBrowserAPIs();
+
+  // Mock all storage APIs
+  setup.mockStorage();
+
+  // Setup authenticated environment
+  const { mockSupabase, user, router } = setup.authenticatedEnvironment();
+
+  // Or unauthenticated environment
+  const { mockSupabase, router } = setup.unauthenticatedEnvironment();
+});
+
+afterEach(() => {
+  // Clean up everything
+  cleanup.all();
+
+  // Or clean up specific areas
+  cleanup.mocks();
+  cleanup.storage();
+  cleanup.timers();
+});
+```
+
+### Example: Complete Test with Helpers
+
+```typescript
+import {
+  createMockSupabaseClient,
+  mockAuthenticatedUser,
+  createJSONRequest,
+  expectSuccessResponse,
+  testData,
+  setup,
+  cleanup,
+} from '@/__tests__/helpers';
+import { POST } from '@/app/api/projects/route';
+
+describe('POST /api/projects', () => {
+  let mockSupabase: any;
+
+  beforeEach(() => {
+    setup.mockBrowserAPIs();
+    mockSupabase = createMockSupabaseClient();
+
+    const { createServerSupabaseClient } = require('@/lib/supabase');
+    createServerSupabaseClient.mockResolvedValue(mockSupabase);
+  });
+
+  afterEach(() => {
+    cleanup.all();
+  });
+
+  it('should create a project successfully', async () => {
+    // Setup
+    const user = mockAuthenticatedUser(mockSupabase);
+    const project = testData.project({ user_id: user.id });
+
+    mockSupabase.single.mockResolvedValue({
+      data: project,
+      error: null,
+    });
+
+    // Execute
+    const request = createJSONRequest('http://localhost:3000/api/projects', 'POST', {
+      title: 'Test Project',
+    });
+    const response = await POST(request);
+
+    // Assert
+    const data = await expectSuccessResponse(response, {
+      id: expect.any(String),
+      title: 'Test Project',
+    });
+  });
+
+  it('should return 401 when unauthenticated', async () => {
+    // Setup
+    mockUnauthenticatedUser(mockSupabase);
+
+    // Execute
+    const request = createJSONRequest('http://localhost:3000/api/projects', 'POST', {
+      title: 'Test',
+    });
+    const response = await POST(request);
+
+    // Assert
+    await expectUnauthorized(response);
+  });
+});
+```
+
+### Best Practices
+
+1. **Use Helpers Consistently**: Always use helpers instead of manually creating mocks
+2. **Clean Up After Tests**: Always reset mocks in `afterEach()` to prevent test pollution
+3. **Use Test Data Generators**: Use `testData.*` for consistent test data
+4. **Leverage Setup Utilities**: Use `setup.*` functions to reduce boilerplate
+5. **Type Safety**: Import types from helpers for better TypeScript support
+6. **Documentation**: Helpers include JSDoc comments - use your IDE's autocomplete
+
+### Migration Guide
+
+If you have existing tests, you can gradually migrate to using helpers:
+
+1. **Identify Patterns**: Look for repeated mock setup code
+2. **Replace with Helpers**: Replace custom mocks with helper functions
+3. **Test Migration**: Ensure tests still pass after migration
+4. **Remove Duplication**: Delete custom mock factories in favor of helpers
+
+### Helper Maintenance
+
+- All helpers are located in `__tests__/helpers/`
+- Each helper file focuses on a specific domain (supabase, api, components, mocks)
+- The `index.ts` file exports all helpers for convenience
+- Helpers include TypeScript types and JSDoc documentation
+
+---
+
 ## Resources
 
 - [Jest Documentation](https://jestjs.io/docs/getting-started)
 - [Playwright Testing](https://playwright.dev)
 - [Testing Library](https://testing-library.com)
 - [Supabase Testing Guide](https://supabase.com/docs/guides/local-development)
+- [Test Helpers Documentation](__tests__/helpers/index.ts)
 
 ---
 
-**Last Updated**: 2025-01-23
-**Version**: 1.0.0
-**Test Coverage**: Manual testing, API testing
+**Last Updated**: 2025-10-23
+**Version**: 1.1.0
+**Test Coverage**: Manual testing, API testing, Unit tests with comprehensive helpers

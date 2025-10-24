@@ -1,11 +1,21 @@
 /* eslint-env node, jest */
 
 // Polyfill structuredClone for Node.js < 17
-if (typeof structuredClone === 'undefined') {
-  globalThis.structuredClone = (obj) => {
+if (typeof global.structuredClone === 'undefined') {
+  global.structuredClone = (obj) => {
     return JSON.parse(JSON.stringify(obj));
   };
 }
+
+// Polyfill TextEncoder/TextDecoder for Node < 18
+if (typeof global.TextEncoder === 'undefined') {
+  const { TextEncoder, TextDecoder } = require('util');
+  global.TextEncoder = TextEncoder;
+  global.TextDecoder = TextDecoder;
+}
+
+// Note: Request/Response are NOT polyfilled globally to avoid conflicts with Next.js
+// API route tests should mock NextRequest/NextResponse individually if needed
 
 // Mock IntersectionObserver
 if (typeof global.IntersectionObserver === 'undefined') {
