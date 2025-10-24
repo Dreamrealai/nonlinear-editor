@@ -27,6 +27,7 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 import { serverLogger } from '@/lib/serverLogger';
 import { HttpStatusCode, isClientError, isServerError } from '../errors/errorCodes';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
+import { auditSecurityEvent, auditRateLimitViolation, AuditAction } from '@/lib/auditLog';
 
 export interface AuthContext {
   /** Authenticated user from Supabase */
@@ -59,9 +60,8 @@ function getRateLimitIdentifier(request: NextRequest, userId?: string): string {
     return `user:${userId}`;
   }
 
-  const ip = request.headers.get('x-forwarded-for') ||
-             request.headers.get('x-real-ip') ||
-             'unknown';
+  const ip =
+    request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
   return `ip:${ip}`;
 }
 
@@ -94,25 +94,41 @@ export function withAuth<TParams = Record<string, never>>(
     const params = (await context.params) as TParams;
 
     try {
-      serverLogger.info({
-        event: 'api.request',
-        route,
-        method: request.method,
-      }, `${request.method} ${route} - Starting`);
+      serverLogger.info(
+        {
+          event: 'api.request',
+          route,
+          method: request.method,
+        },
+        `${request.method} ${route} - Starting`
+      );
 
       // Create Supabase client and verify authentication
       const supabase = await createServerSupabaseClient();
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
 
       if (authError || !user) {
         const duration = Date.now() - startTime;
-        serverLogger.warn({
-          event: 'api.unauthorized',
+        serverLogger.warn(
+          {
+            event: 'api.unauthorized',
+            route,
+            method: request.method,
+            duration,
+            error: authError?.message,
+          },
+          `${request.method} ${route} - Unauthorized (${duration}ms)`
+        );
+
+        // Audit log: Unauthorized access attempt
+        await auditSecurityEvent(AuditAction.SECURITY_UNAUTHORIZED_ACCESS, null, request, {
           route,
           method: request.method,
-          duration,
           error: authError?.message,
-        }, `${request.method} ${route} - Unauthorized (${duration}ms)`);
+        });
 
         return NextResponse.json(
           { error: 'Unauthorized' },
@@ -127,15 +143,26 @@ export function withAuth<TParams = Record<string, never>>(
         const rateLimitResult = await checkRateLimit(identifier, rateLimit);
 
         if (!rateLimitResult.success) {
-          serverLogger.warn({
-            event: 'api.rate_limited',
+          serverLogger.warn(
+            {
+              event: 'api.rate_limited',
+              route,
+              method: request.method,
+              userId: user.id,
+              identifier,
+              limit: rateLimitResult.limit,
+              resetAt: rateLimitResult.resetAt,
+            },
+            `${request.method} ${route} - Rate limit exceeded`
+          );
+
+          // Audit log: Rate limit violation
+          await auditRateLimitViolation(user.id, request, identifier, {
             route,
-            method: request.method,
-            userId: user.id,
-            identifier,
             limit: rateLimitResult.limit,
+            remaining: rateLimitResult.remaining,
             resetAt: rateLimitResult.resetAt,
-          }, `${request.method} ${route} - Rate limit exceeded`);
+          });
 
           return NextResponse.json(
             {
@@ -163,9 +190,12 @@ export function withAuth<TParams = Record<string, never>>(
         route,
       });
 
-      logger.debug({
-        event: 'api.authenticated',
-      }, 'User authenticated successfully');
+      logger.debug(
+        {
+          event: 'api.authenticated',
+        },
+        'User authenticated successfully'
+      );
 
       // Call the authenticated handler with user and supabase context
       const context: AuthContext & { params?: TParams } = {
@@ -180,40 +210,54 @@ export function withAuth<TParams = Record<string, never>>(
       const status = response.status;
 
       if (isServerError(status)) {
-        logger.error({
-          event: 'api.error',
-          status,
-          duration,
-        }, `${request.method} ${route} - Server error ${status} (${duration}ms)`);
+        logger.error(
+          {
+            event: 'api.error',
+            status,
+            duration,
+          },
+          `${request.method} ${route} - Server error ${status} (${duration}ms)`
+        );
       } else if (isClientError(status)) {
-        logger.warn({
-          event: 'api.client_error',
-          status,
-          duration,
-        }, `${request.method} ${route} - Client error ${status} (${duration}ms)`);
+        logger.warn(
+          {
+            event: 'api.client_error',
+            status,
+            duration,
+          },
+          `${request.method} ${route} - Client error ${status} (${duration}ms)`
+        );
       } else {
-        logger.info({
-          event: 'api.success',
-          status,
-          duration,
-        }, `${request.method} ${route} - Success ${status} (${duration}ms)`);
+        logger.info(
+          {
+            event: 'api.success',
+            status,
+            duration,
+          },
+          `${request.method} ${route} - Success ${status} (${duration}ms)`
+        );
       }
 
       return response;
-
     } catch (error) {
       const duration = Date.now() - startTime;
-      serverLogger.error({
-        event: 'api.exception',
-        route,
-        method: request.method,
-        duration,
-        error: error instanceof Error ? {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-        } : error,
-      }, `${request.method} ${route} - Exception (${duration}ms)`);
+      serverLogger.error(
+        {
+          event: 'api.exception',
+          route,
+          method: request.method,
+          duration,
+          error:
+            error instanceof Error
+              ? {
+                  name: error.name,
+                  message: error.message,
+                  stack: error.stack,
+                }
+              : error,
+        },
+        `${request.method} ${route} - Exception (${duration}ms)`
+      );
 
       return NextResponse.json(
         { error: 'Internal server error' },
@@ -268,13 +312,16 @@ export function withAdminAuth<TParams = Record<string, never>>(
         .single();
 
       if (adminError || adminProfile?.tier !== 'admin') {
-        serverLogger.warn({
-          event: 'api.forbidden',
-          route,
-          userId: user.id,
-          userTier: adminProfile?.tier,
-          error: adminError?.message,
-        }, `${request.method} ${route} - Forbidden (non-admin access attempt)`);
+        serverLogger.warn(
+          {
+            event: 'api.forbidden',
+            route,
+            userId: user.id,
+            userTier: adminProfile?.tier,
+            error: adminError?.message,
+          },
+          `${request.method} ${route} - Forbidden (non-admin access attempt)`
+        );
 
         return NextResponse.json(
           { error: 'Admin access required' },
@@ -282,11 +329,14 @@ export function withAdminAuth<TParams = Record<string, never>>(
         );
       }
 
-      serverLogger.info({
-        event: 'api.admin_access',
-        route,
-        adminId: user.id,
-      }, 'Admin access granted');
+      serverLogger.info(
+        {
+          event: 'api.admin_access',
+          route,
+          adminId: user.id,
+        },
+        'Admin access granted'
+      );
 
       // Call admin handler with admin context
       const adminContext: AdminAuthContext & { params?: TParams } = {
@@ -298,18 +348,23 @@ export function withAdminAuth<TParams = Record<string, never>>(
       };
 
       return await handler(request, adminContext);
-
     } catch (error) {
-      serverLogger.error({
-        event: 'api.admin_check_error',
-        route,
-        userId: user.id,
-        error: error instanceof Error ? {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-        } : error,
-      }, 'Error checking admin privileges');
+      serverLogger.error(
+        {
+          event: 'api.admin_check_error',
+          route,
+          userId: user.id,
+          error:
+            error instanceof Error
+              ? {
+                  name: error.name,
+                  message: error.message,
+                  stack: error.stack,
+                }
+              : error,
+        },
+        'Error checking admin privileges'
+      );
 
       return NextResponse.json(
         { error: 'Internal server error' },
@@ -331,40 +386,47 @@ export async function logAdminAction(
   details: Record<string, unknown>
 ): Promise<void> {
   try {
-    const { error } = await supabase
-      .from('admin_audit_log')
-      .insert({
-        action,
-        admin_id: adminId,
-        target_user_id: targetUserId,
-        details,
-        created_at: new Date().toISOString(),
-      });
+    const { error } = await supabase.from('admin_audit_log').insert({
+      action,
+      admin_id: adminId,
+      target_user_id: targetUserId,
+      details,
+      created_at: new Date().toISOString(),
+    });
 
     if (error) {
       // Log to server logger if database insert fails
-      serverLogger.error({
-        event: 'admin.audit_log_failed',
-        action,
-        adminId,
-        targetUserId,
-        error: error.message,
-      }, 'Failed to write admin audit log');
+      serverLogger.error(
+        {
+          event: 'admin.audit_log_failed',
+          action,
+          adminId,
+          targetUserId,
+          error: error.message,
+        },
+        'Failed to write admin audit log'
+      );
     } else {
-      serverLogger.info({
-        event: 'admin.audit_log_recorded',
-        action,
-        adminId,
-        targetUserId,
-      }, 'Admin action logged to audit trail');
+      serverLogger.info(
+        {
+          event: 'admin.audit_log_recorded',
+          action,
+          adminId,
+          targetUserId,
+        },
+        'Admin action logged to audit trail'
+      );
     }
   } catch (error) {
-    serverLogger.error({
-      event: 'admin.audit_log_exception',
-      action,
-      adminId,
-      targetUserId,
-      error,
-    }, 'Exception writing admin audit log');
+    serverLogger.error(
+      {
+        event: 'admin.audit_log_exception',
+        action,
+        adminId,
+        targetUserId,
+        error,
+      },
+      'Exception writing admin audit log'
+    );
   }
 }

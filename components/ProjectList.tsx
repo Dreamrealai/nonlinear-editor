@@ -1,20 +1,28 @@
+/**
+ * ProjectList Component
+ *
+ * Displays list of user projects with delete functionality
+ * - Memoized project items for performance
+ * - Delete confirmation dialog
+ * - Auto-refresh after deletion
+ */
 'use client';
 
 import React, { useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createBrowserSupabaseClient } from '@/lib/supabase';
 import toast from 'react-hot-toast';
+import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { browserLogger } from '@/lib/browserLogger';
 import { ICON_SIZES } from '@/lib/constants/ui';
 
-interface Project {
+export interface Project {
   id: string;
   title: string;
   created_at: string;
 }
 
-interface ProjectListProps {
+export interface ProjectListProps {
   projects: Project[];
 }
 

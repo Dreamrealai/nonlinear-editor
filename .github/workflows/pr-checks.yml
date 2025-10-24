@@ -1,0 +1,177 @@
+name: PR Quality Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  # PR title and description check
+  pr-metadata:
+    name: PR Metadata Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check PR title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            chore
+            ci
+            build
+            revert
+          requireScope: false
+
+  # File size check
+  file-size-check:
+    name: File Size Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for large files
+        run: |
+          echo "Checking for files larger than 1MB..."
+          LARGE_FILES=$(find . -type f -size +1M -not -path "*/node_modules/*" -not -path "*/.next/*" -not -path "*/coverage/*" || true)
+
+          if [ -n "$LARGE_FILES" ]; then
+            echo "Warning: Found large files:"
+            echo "$LARGE_FILES" | while read file; do
+              size=$(du -h "$file" | cut -f1)
+              echo "  - $file ($size)"
+            done
+            echo ""
+            echo "Consider optimizing these files or adding them to .gitignore if they're generated"
+          else
+            echo "No large files found"
+          fi
+
+  # Line count check
+  complexity-check:
+    name: Code Complexity Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check file line counts
+        run: |
+          echo "Checking for files with >500 lines..."
+          LARGE_FILES=$(find app components lib state -type f \( -name "*.ts" -o -name "*.tsx" \) -exec wc -l {} + 2>/dev/null | awk '$1 > 500 {print}' | sort -rn || echo "")
+
+          if [ -n "$LARGE_FILES" ]; then
+            echo "Warning: Found files with more than 500 lines:"
+            echo "$LARGE_FILES" | head -10
+            echo ""
+            echo "Consider breaking these into smaller, more maintainable files"
+          else
+            echo "No overly large files found"
+          fi
+
+  # Changed files summary
+  changed-files:
+    name: Changed Files Summary
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+
+      - name: List changed files
+        run: |
+          echo "Changed files in this PR:"
+          echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n'
+          echo ""
+          echo "Total files changed: ${{ steps.changed-files.outputs.all_changed_files_count }}"
+
+      - name: Check for sensitive files
+        run: |
+          SENSITIVE_PATTERNS=".env .env.local .env.*.local credentials.json service-account.json"
+          CHANGED_FILES="${{ steps.changed-files.outputs.all_changed_files }}"
+
+          for pattern in $SENSITIVE_PATTERNS; do
+            if echo "$CHANGED_FILES" | grep -q "$pattern"; then
+              echo "⚠️  Warning: Potentially sensitive file detected: $pattern"
+              echo "Make sure you haven't committed secrets!"
+              exit 1
+            fi
+          done
+
+          echo "✅ No sensitive files detected"
+
+  # Documentation check
+  docs-check:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: contains(github.event.pull_request.labels.*.name, 'needs-docs')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for documentation updates
+        run: |
+          DOCS_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.md$' || echo "")
+
+          if [ -z "$DOCS_CHANGED" ]; then
+            echo "⚠️  This PR is labeled 'needs-docs' but no documentation files were updated"
+            echo "Please update relevant documentation files"
+            exit 1
+          else
+            echo "✅ Documentation files updated:"
+            echo "$DOCS_CHANGED"
+          fi
+
+  # Test coverage check
+  coverage-check:
+    name: Test Coverage Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Coverage comment
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        if: always()
+        with:
+          lcov-file: ./coverage/lcov.info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          delete-old-comments: true

@@ -1,17 +1,26 @@
+/**
+ * ExportModal Component
+ *
+ * Modal for exporting video projects
+ * - Multiple export presets (1080p, 720p, 480p, Web)
+ * - Quality settings display
+ * - FFmpeg processing integration
+ */
 'use client';
 
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 import type { Timeline } from '@/types/timeline';
 
-interface ExportModalProps {
+export interface ExportModalProps {
   isOpen: boolean;
   onClose: () => void;
   projectId: string;
   timeline: Timeline | null;
 }
 
-interface ExportPreset {
+export interface ExportPreset {
   name: string;
   description: string;
   width: number;
@@ -67,18 +76,21 @@ const EXPORT_PRESETS: ExportPreset[] = [
 
 export default function ExportModal({ isOpen, onClose, projectId, timeline }: ExportModalProps) {
   const [selectedPreset, setSelectedPreset] = useState(0);
-  const [exporting, setExporting] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'error' | 'success'; message: string } | null>(
+    null
+  );
 
   if (!isOpen) return null;
 
   const handleExport = async () => {
     if (!timeline) {
       setFeedback({ type: 'error', message: 'No timeline to export' });
+      toast.error('No timeline to export');
       return;
     }
 
-    setExporting(true);
+    setIsLoading(true);
     setFeedback(null);
 
     try {
@@ -112,16 +124,20 @@ export default function ExportModal({ isOpen, onClose, projectId, timeline }: Ex
       }
 
       browserLogger.info({ projectId, jobId: data.jobId, preset: preset.name }, 'Export started');
+      const successMessage =
+        data.message || `Export job queued. Track progress with job ID ${data.jobId}.`;
       setFeedback({
         type: 'success',
-        message: data.message || `Export job queued. Track progress with job ID ${data.jobId}.`,
+        message: successMessage,
       });
+      toast.success('Export started successfully');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to start export';
       setFeedback({ type: 'error', message: errorMessage });
-      browserLogger.error({ error: err, projectId }, 'Export failed');
+      toast.error(errorMessage);
+      browserLogger.error({ error: err, projectId }, 'Failed to start export');
     } finally {
-      setExporting(false);
+      setIsLoading(false);
     }
   };
 
@@ -132,11 +148,16 @@ export default function ExportModal({ isOpen, onClose, projectId, timeline }: Ex
           <h2 className="text-2xl font-bold text-white">Export Video</h2>
           <button
             onClick={onClose}
-            disabled={exporting}
-            className="rounded-lg p-2 text-neutral-400 hover:bg-neutral-800 hover:text-white disabled:opacity-50"
+            disabled={isLoading}
+            className="rounded-lg p-2 text-neutral-400 hover:bg-neutral-800 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -155,9 +176,7 @@ export default function ExportModal({ isOpen, onClose, projectId, timeline }: Ex
 
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-neutral-300">
-              Export Preset
-            </label>
+            <label className="mb-2 block text-sm font-medium text-neutral-300">Export Preset</label>
             <div className="grid grid-cols-2 gap-3">
               {EXPORT_PRESETS.map((preset, index) => (
                 <button
@@ -203,11 +222,23 @@ export default function ExportModal({ isOpen, onClose, projectId, timeline }: Ex
 
           <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-4">
             <div className="flex items-start gap-3">
-              <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               <div className="text-sm text-blue-200">
-                <strong>Note:</strong> Video export requires FFmpeg processing infrastructure. This feature is currently a placeholder and will need server-side implementation to generate actual video files.
+                <strong>Note:</strong> Video export requires FFmpeg processing infrastructure. This
+                feature is currently a placeholder and will need server-side implementation to
+                generate actual video files.
               </div>
             </div>
           </div>
@@ -215,17 +246,17 @@ export default function ExportModal({ isOpen, onClose, projectId, timeline }: Ex
           <div className="flex gap-3 pt-4">
             <button
               onClick={onClose}
-              disabled={exporting}
-              className="flex-1 rounded-lg border border-neutral-700 bg-neutral-800 px-4 py-2 font-semibold text-white hover:bg-neutral-700 disabled:opacity-50"
+              disabled={isLoading}
+              className="flex-1 rounded-lg border border-neutral-700 bg-neutral-800 px-4 py-2 font-semibold text-white hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleExport}
-              disabled={exporting || !timeline}
-              className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+              disabled={isLoading || !timeline}
+              className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {exporting ? 'Starting Export...' : 'Start Export'}
+              {isLoading ? 'Starting Export...' : 'Start Export'}
             </button>
           </div>
         </div>

@@ -47,6 +47,28 @@ type HorizontalTimelineProps = {
   splitScenesPending?: boolean;
 };
 
+// Memoized selector to prevent re-renders when unrelated state changes
+const selectTimelineState = (state: ReturnType<typeof useEditorStore.getState>) => ({
+  timeline: state.timeline,
+  currentTime: state.currentTime,
+  zoom: state.zoom,
+  selectedClipIds: state.selectedClipIds,
+  setCurrentTime: state.setCurrentTime,
+  setZoom: state.setZoom,
+  updateClip: state.updateClip,
+  removeClip: state.removeClip,
+  selectClip: state.selectClip,
+  clearSelection: state.clearSelection,
+  splitClipAtTime: state.splitClipAtTime,
+  copyClips: state.copyClips,
+  pasteClips: state.pasteClips,
+  undo: state.undo,
+  redo: state.redo,
+  canUndo: state.canUndo,
+  canRedo: state.canRedo,
+  removeTextOverlay: state.removeTextOverlay,
+});
+
 export default function HorizontalTimeline({
   onDetectScenes,
   sceneDetectPending = false,
@@ -60,25 +82,27 @@ export default function HorizontalTimeline({
   splitAudioPending = false,
   splitScenesPending = false,
 }: HorizontalTimelineProps = {}) {
-  // Store state
-  const timeline = useEditorStore((state) => state.timeline);
-  const currentTime = useEditorStore((state) => state.currentTime);
-  const zoom = useEditorStore((state) => state.zoom);
-  const selectedClipIds = useEditorStore((state) => state.selectedClipIds);
-  const setCurrentTime = useEditorStore((state) => state.setCurrentTime);
-  const setZoom = useEditorStore((state) => state.setZoom);
-  const updateClip = useEditorStore((state) => state.updateClip);
-  const removeClip = useEditorStore((state) => state.removeClip);
-  const selectClip = useEditorStore((state) => state.selectClip);
-  const clearSelection = useEditorStore((state) => state.clearSelection);
-  const splitClipAtTime = useEditorStore((state) => state.splitClipAtTime);
-  const copyClips = useEditorStore((state) => state.copyClips);
-  const pasteClips = useEditorStore((state) => state.pasteClips);
-  const undo = useEditorStore((state) => state.undo);
-  const redo = useEditorStore((state) => state.redo);
-  const canUndo = useEditorStore((state) => state.canUndo);
-  const canRedo = useEditorStore((state) => state.canRedo);
-  const removeTextOverlay = useEditorStore((state) => state.removeTextOverlay);
+  // Store state - use single selector to reduce re-renders
+  const {
+    timeline,
+    currentTime,
+    zoom,
+    selectedClipIds,
+    setCurrentTime,
+    setZoom,
+    updateClip,
+    removeClip,
+    selectClip,
+    clearSelection,
+    splitClipAtTime,
+    copyClips,
+    pasteClips,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    removeTextOverlay,
+  } = useEditorStore(selectTimelineState);
 
   // Local state
   const [forcedTrackCount, setForcedTrackCount] = useState<number | null>(null);
@@ -125,15 +149,18 @@ export default function HorizontalTimeline({
     splitClipAtTime,
   });
 
-  // Zoom controls
-  const handleZoomIn = () => setZoom(zoom * 1.2);
-  const handleZoomOut = () => setZoom(zoom / 1.2);
+  // Zoom controls - memoized to prevent re-creation on every render
+  const handleZoomIn = useCallback(() => setZoom(zoom * 1.2), [setZoom, zoom]);
+  const handleZoomOut = useCallback(() => setZoom(zoom / 1.2), [setZoom, zoom]);
 
-  // Playhead dragging
-  const handlePlayheadMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDraggingPlayhead(true);
-  };
+  // Playhead dragging - memoized
+  const handlePlayheadMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      setIsDraggingPlayhead(true);
+    },
+    [setIsDraggingPlayhead]
+  );
 
   // Clip dragging
   const handleClipMouseDown = (e: React.MouseEvent, clip: Clip) => {
@@ -183,8 +210,8 @@ export default function HorizontalTimeline({
     clearSelection();
   };
 
-  // Split clip at playhead
-  const handleSplitAtPlayhead = () => {
+  // Split clip at playhead - memoized
+  const handleSplitAtPlayhead = useCallback(() => {
     if (!timeline || !timeline.clips || !splitClipAtTime) return;
     const clipAtPlayhead = timeline.clips.find((clip) => {
       const clipStart = clip.timelinePosition;
@@ -194,7 +221,7 @@ export default function HorizontalTimeline({
     if (clipAtPlayhead) {
       splitClipAtTime(clipAtPlayhead.id, currentTime);
     }
-  };
+  }, [timeline, splitClipAtTime, currentTime]);
 
   // Timeline click to set playhead
   const handleTimelineClick = (e: React.MouseEvent) => {
@@ -208,13 +235,15 @@ export default function HorizontalTimeline({
     setSelectedTextOverlayId(null);
   };
 
-  // Check if playhead is over any clip (for split button)
-  const clipAtPlayhead = timeline?.clips?.find((clip) => {
-    if (!clip) return false;
-    const clipStart = clip.timelinePosition;
-    const clipEnd = clipStart + (clip.end - clip.start);
-    return currentTime > clipStart && currentTime < clipEnd;
-  });
+  // Check if playhead is over any clip (for split button) - memoized
+  const clipAtPlayhead = React.useMemo(() => {
+    return timeline?.clips?.find((clip) => {
+      if (!clip) return false;
+      const clipStart = clip.timelinePosition;
+      const clipEnd = clipStart + (clip.end - clip.start);
+      return currentTime > clipStart && currentTime < clipEnd;
+    });
+  }, [timeline?.clips, currentTime]);
 
   // Close context menu when clicking elsewhere
   useEffect(() => {

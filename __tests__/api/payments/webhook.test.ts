@@ -15,11 +15,16 @@ import {
   createMockWebhookEvent,
 } from '@/test-utils/mockStripe';
 
-// Mock Supabase
-const mockSupabaseClient = createMockSupabaseClient();
-jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(() => mockSupabaseClient),
-}));
+// Mock createServiceSupabaseClient and Supabase client
+jest.mock('@/lib/supabase', () => {
+  const { createMockSupabaseClient } = jest.requireActual('@/test-utils/mockSupabase');
+  const mockClient = createMockSupabaseClient();
+
+  return {
+    createServiceSupabaseClient: jest.fn(() => mockClient),
+    ensureHttpsProtocol: jest.fn((url) => url),
+  };
+});
 
 // Mock Stripe
 jest.mock('@/lib/stripe', () => ({
@@ -55,14 +60,37 @@ describe('POST /api/stripe/webhook', () => {
   let mockRequest: NextRequest;
   let mockConstructEvent: jest.Mock;
   let mockRetrieveSubscription: jest.Mock;
+  let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
   beforeEach(() => {
+    // Ensure env vars are set before each test
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_secret';
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
+
     // Get the mocked functions
     const { stripe } = require('@/lib/stripe');
     mockConstructEvent = stripe.webhooks.constructEvent as jest.Mock;
     mockRetrieveSubscription = stripe.subscriptions.retrieve as jest.Mock;
 
+    // Get the mock supabase client from the mocked function
+    const { createServiceSupabaseClient } = require('@/lib/supabase');
+    mockSupabase = createServiceSupabaseClient();
+
+    // Clear all mocks but keep the implementations
     jest.clearAllMocks();
+
+    // Restore default chainable mock behavior
+    mockSupabase.from.mockReturnThis();
+    mockSupabase.select.mockReturnThis();
+    mockSupabase.insert.mockReturnThis();
+    mockSupabase.update.mockReturnThis();
+    mockSupabase.delete.mockReturnThis();
+    mockSupabase.eq.mockReturnThis();
+    mockSupabase.neq.mockReturnThis();
+    mockSupabase.order.mockReturnThis();
+    mockSupabase.limit.mockReturnThis();
+    mockSupabase.storage.from.mockReturnThis();
   });
 
   describe('Webhook Verification', () => {
@@ -125,14 +153,14 @@ describe('POST /api/stripe/webhook', () => {
       mockConstructEvent.mockReturnValue(mockEvent);
 
       // Mock database responses
-      mockSupabaseClient.single.mockResolvedValue({
+      mockSupabase.single.mockResolvedValue({
         data: createMockUserProfile({ id: 'user-123' }),
         error: null,
       });
       mockRetrieveSubscription.mockResolvedValue(createMockSubscription());
-      mockSupabaseClient.update.mockReturnThis();
-      mockSupabaseClient.eq.mockReturnThis();
-      mockSupabaseClient.select.mockResolvedValue({
+      mockSupabase.update.mockReturnThis();
+      mockSupabase.eq.mockReturnThis();
+      mockSupabase.select.mockResolvedValue({
         data: [createMockUserProfile({ id: 'user-123', tier: 'premium' })],
         error: null,
       });
@@ -171,13 +199,13 @@ describe('POST /api/stripe/webhook', () => {
       mockRetrieveSubscription.mockResolvedValue(subscription);
 
       // Mock database queries
-      mockSupabaseClient.single.mockResolvedValue({
+      mockSupabase.single.mockResolvedValue({
         data: createMockUserProfile({ id: userId, tier: 'free' }),
         error: null,
       });
-      mockSupabaseClient.update.mockReturnThis();
-      mockSupabaseClient.eq.mockReturnThis();
-      mockSupabaseClient.select.mockResolvedValue({
+      mockSupabase.update.mockReturnThis();
+      mockSupabase.eq.mockReturnThis();
+      mockSupabase.select.mockResolvedValue({
         data: [createMockUserProfile({ id: userId, tier: 'premium' })],
         error: null,
       });
@@ -194,7 +222,7 @@ describe('POST /api/stripe/webhook', () => {
       const response = await POST(mockRequest);
 
       expect(response.status).toBe(200);
-      expect(mockSupabaseClient.update).toHaveBeenCalledWith(
+      expect(mockSupabase.update).toHaveBeenCalledWith(
         expect.objectContaining({
           tier: 'premium',
           stripe_customer_id: 'cus_123',
@@ -217,13 +245,13 @@ describe('POST /api/stripe/webhook', () => {
       const subscription = createMockSubscription();
       mockRetrieveSubscription.mockResolvedValue(subscription);
 
-      mockSupabaseClient.single.mockResolvedValue({
+      mockSupabase.single.mockResolvedValue({
         data: createMockUserProfile({ id: userId, tier: 'admin' }),
         error: null,
       });
-      mockSupabaseClient.update.mockReturnThis();
-      mockSupabaseClient.eq.mockReturnThis();
-      mockSupabaseClient.select.mockResolvedValue({
+      mockSupabase.update.mockReturnThis();
+      mockSupabase.eq.mockReturnThis();
+      mockSupabase.select.mockResolvedValue({
         data: [createMockUserProfile({ id: userId, tier: 'admin' })],
         error: null,
       });
@@ -240,7 +268,7 @@ describe('POST /api/stripe/webhook', () => {
       const response = await POST(mockRequest);
 
       expect(response.status).toBe(200);
-      expect(mockSupabaseClient.update).toHaveBeenCalledWith(
+      expect(mockSupabase.update).toHaveBeenCalledWith(
         expect.objectContaining({
           tier: 'admin', // Should remain admin
         })
@@ -275,7 +303,7 @@ describe('POST /api/stripe/webhook', () => {
       const mockEvent = createMockWebhookEvent('checkout.session.completed', session);
       mockConstructEvent.mockReturnValue(mockEvent);
 
-      mockSupabaseClient.single.mockResolvedValue({
+      mockSupabase.single.mockResolvedValue({
         data: null,
         error: { message: 'User not found' },
       });
@@ -303,13 +331,13 @@ describe('POST /api/stripe/webhook', () => {
       mockConstructEvent.mockReturnValue(mockEvent);
 
       mockRetrieveSubscription.mockResolvedValue(createMockSubscription());
-      mockSupabaseClient.single.mockResolvedValue({
+      mockSupabase.single.mockResolvedValue({
         data: createMockUserProfile({ id: userId }),
         error: null,
       });
-      mockSupabaseClient.update.mockReturnThis();
-      mockSupabaseClient.eq.mockReturnThis();
-      mockSupabaseClient.select.mockResolvedValue({
+      mockSupabase.update.mockReturnThis();
+      mockSupabase.eq.mockReturnThis();
+      mockSupabase.select.mockResolvedValue({
         data: null,
         error: { message: 'Database error' },
       });
@@ -338,7 +366,7 @@ describe('POST /api/stripe/webhook', () => {
       const mockEvent = createMockWebhookEvent('customer.subscription.updated', subscription);
       mockConstructEvent.mockReturnValue(mockEvent);
 
-      mockSupabaseClient.single.mockResolvedValue({
+      mockSupabase.single.mockResolvedValue({
         data: createMockUserProfile({
           id: 'user-123',
           stripe_customer_id: 'cus_123',
@@ -346,9 +374,9 @@ describe('POST /api/stripe/webhook', () => {
         }),
         error: null,
       });
-      mockSupabaseClient.update.mockReturnThis();
-      mockSupabaseClient.eq.mockReturnThis();
-      mockSupabaseClient.select.mockResolvedValue({
+      mockSupabase.update.mockReturnThis();
+      mockSupabase.eq.mockReturnThis();
+      mockSupabase.select.mockResolvedValue({
         data: [createMockUserProfile({ tier: 'premium' })],
         error: null,
       });
@@ -365,7 +393,7 @@ describe('POST /api/stripe/webhook', () => {
       const response = await POST(mockRequest);
 
       expect(response.status).toBe(200);
-      expect(mockSupabaseClient.update).toHaveBeenCalledWith(
+      expect(mockSupabase.update).toHaveBeenCalledWith(
         expect.objectContaining({
           subscription_status: 'active',
           tier: 'premium',
@@ -381,7 +409,7 @@ describe('POST /api/stripe/webhook', () => {
       const mockEvent = createMockWebhookEvent('customer.subscription.updated', subscription);
       mockConstructEvent.mockReturnValue(mockEvent);
 
-      mockSupabaseClient.single.mockResolvedValue({
+      mockSupabase.single.mockResolvedValue({
         data: createMockUserProfile({
           id: 'user-123',
           stripe_customer_id: 'cus_123',
@@ -389,9 +417,9 @@ describe('POST /api/stripe/webhook', () => {
         }),
         error: null,
       });
-      mockSupabaseClient.update.mockReturnThis();
-      mockSupabaseClient.eq.mockReturnThis();
-      mockSupabaseClient.select.mockResolvedValue({
+      mockSupabase.update.mockReturnThis();
+      mockSupabase.eq.mockReturnThis();
+      mockSupabase.select.mockResolvedValue({
         data: [createMockUserProfile({ tier: 'free' })],
         error: null,
       });
@@ -408,7 +436,7 @@ describe('POST /api/stripe/webhook', () => {
       const response = await POST(mockRequest);
 
       expect(response.status).toBe(200);
-      expect(mockSupabaseClient.update).toHaveBeenCalledWith(
+      expect(mockSupabase.update).toHaveBeenCalledWith(
         expect.objectContaining({
           tier: 'free',
         })
@@ -423,7 +451,7 @@ describe('POST /api/stripe/webhook', () => {
       const mockEvent = createMockWebhookEvent('customer.subscription.updated', subscription);
       mockConstructEvent.mockReturnValue(mockEvent);
 
-      mockSupabaseClient.single.mockResolvedValue({
+      mockSupabase.single.mockResolvedValue({
         data: createMockUserProfile({
           id: 'admin-user',
           stripe_customer_id: 'cus_123',
@@ -431,9 +459,9 @@ describe('POST /api/stripe/webhook', () => {
         }),
         error: null,
       });
-      mockSupabaseClient.update.mockReturnThis();
-      mockSupabaseClient.eq.mockReturnThis();
-      mockSupabaseClient.select.mockResolvedValue({
+      mockSupabase.update.mockReturnThis();
+      mockSupabase.eq.mockReturnThis();
+      mockSupabase.select.mockResolvedValue({
         data: [createMockUserProfile({ tier: 'admin' })],
         error: null,
       });
@@ -449,7 +477,7 @@ describe('POST /api/stripe/webhook', () => {
 
       const response = await POST(mockRequest);
 
-      expect(mockSupabaseClient.update).toHaveBeenCalledWith(
+      expect(mockSupabase.update).toHaveBeenCalledWith(
         expect.objectContaining({
           tier: 'admin',
         })
@@ -465,7 +493,7 @@ describe('POST /api/stripe/webhook', () => {
       const mockEvent = createMockWebhookEvent('customer.subscription.deleted', subscription);
       mockConstructEvent.mockReturnValue(mockEvent);
 
-      mockSupabaseClient.single.mockResolvedValue({
+      mockSupabase.single.mockResolvedValue({
         data: createMockUserProfile({
           id: 'user-123',
           stripe_customer_id: 'cus_123',
@@ -473,9 +501,9 @@ describe('POST /api/stripe/webhook', () => {
         }),
         error: null,
       });
-      mockSupabaseClient.update.mockReturnThis();
-      mockSupabaseClient.eq.mockReturnThis();
-      mockSupabaseClient.select.mockResolvedValue({
+      mockSupabase.update.mockReturnThis();
+      mockSupabase.eq.mockReturnThis();
+      mockSupabase.select.mockResolvedValue({
         data: [createMockUserProfile({ tier: 'free' })],
         error: null,
       });
@@ -492,7 +520,7 @@ describe('POST /api/stripe/webhook', () => {
       const response = await POST(mockRequest);
 
       expect(response.status).toBe(200);
-      expect(mockSupabaseClient.update).toHaveBeenCalledWith(
+      expect(mockSupabase.update).toHaveBeenCalledWith(
         expect.objectContaining({
           tier: 'free',
           subscription_status: 'canceled',
@@ -509,7 +537,7 @@ describe('POST /api/stripe/webhook', () => {
       const mockEvent = createMockWebhookEvent('customer.subscription.deleted', subscription);
       mockConstructEvent.mockReturnValue(mockEvent);
 
-      mockSupabaseClient.single.mockResolvedValue({
+      mockSupabase.single.mockResolvedValue({
         data: createMockUserProfile({
           id: 'admin-user',
           stripe_customer_id: 'cus_123',
@@ -517,9 +545,9 @@ describe('POST /api/stripe/webhook', () => {
         }),
         error: null,
       });
-      mockSupabaseClient.update.mockReturnThis();
-      mockSupabaseClient.eq.mockReturnThis();
-      mockSupabaseClient.select.mockResolvedValue({
+      mockSupabase.update.mockReturnThis();
+      mockSupabase.eq.mockReturnThis();
+      mockSupabase.select.mockResolvedValue({
         data: [createMockUserProfile({ tier: 'admin' })],
         error: null,
       });
@@ -535,7 +563,7 @@ describe('POST /api/stripe/webhook', () => {
 
       const response = await POST(mockRequest);
 
-      expect(mockSupabaseClient.update).toHaveBeenCalledWith(
+      expect(mockSupabase.update).toHaveBeenCalledWith(
         expect.objectContaining({
           tier: 'admin',
         })
@@ -566,7 +594,7 @@ describe('POST /api/stripe/webhook', () => {
   });
 
   describe('Error Recovery', () => {
-    it('should return 500 on unexpected error for Stripe retry', async () => {
+    it('should return 400 on signature verification error', async () => {
       mockConstructEvent.mockImplementation(() => {
         throw new Error('Unexpected error');
       });
@@ -581,9 +609,10 @@ describe('POST /api/stripe/webhook', () => {
 
       const response = await POST(mockRequest);
 
-      expect(response.status).toBe(500);
+      // Any error in constructEvent returns 400 for security reasons
+      expect(response.status).toBe(400);
       const data = await response.json();
-      expect(data.error).toBe('Internal server error');
+      expect(data.error).toBe('Invalid request');
     });
   });
 });

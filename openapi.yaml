@@ -1,0 +1,933 @@
+openapi: 3.0.3
+info:
+  title: Non-Linear Video Editor API
+  description: |
+    API for managing video editing projects, generating AI content (videos, images, audio),
+    and handling user subscriptions.
+
+    ## Authentication
+    All endpoints require session-based authentication via Supabase Auth cookies.
+
+    ## Rate Limiting
+    The API uses a tiered rate limiting system:
+    - Tier 1: 5 req/min (auth, payments)
+    - Tier 2: 10 req/min (resource creation)
+    - Tier 3: 30 req/min (read operations)
+    - Tier 4: 60 req/min (general)
+  version: 1.0.0
+  contact:
+    name: API Support
+  license:
+    name: MIT
+
+servers:
+  - url: https://your-domain.com/api
+    description: Production server
+  - url: http://localhost:3000/api
+    description: Development server
+
+tags:
+  - name: Authentication
+    description: User authentication operations
+  - name: Projects
+    description: Project management
+  - name: Assets
+    description: Media asset management
+  - name: Video
+    description: Video generation and processing
+  - name: Image
+    description: Image generation
+  - name: Audio
+    description: Audio generation and processing
+  - name: AI
+    description: AI chat and assistance
+  - name: Export
+    description: Video export and rendering
+  - name: History
+    description: Activity history
+  - name: Admin
+    description: Admin operations (requires admin role)
+  - name: Stripe
+    description: Payment and subscription management
+  - name: User
+    description: User account management
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: supabase-auth-token
+      description: Supabase authentication session cookie
+
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+        field:
+          type: string
+          description: Field that caused the error
+
+    RateLimitError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            limit:
+              type: integer
+              description: Rate limit maximum
+            remaining:
+              type: integer
+              description: Remaining requests
+            resetAt:
+              type: integer
+              format: int64
+              description: Timestamp when limit resets
+
+    Project:
+      type: object
+      required:
+        - id
+        - user_id
+        - title
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Project UUID
+        user_id:
+          type: string
+          format: uuid
+          description: Owner user ID
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Project title
+        timeline_state_jsonb:
+          type: object
+          description: Timeline state
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    Asset:
+      type: object
+      required:
+        - id
+        - project_id
+        - user_id
+        - type
+        - storage_url
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [image, video, audio]
+        source:
+          type: string
+          enum: [upload, genai]
+        storage_url:
+          type: string
+          description: Internal storage URL
+        mime_type:
+          type: string
+        width:
+          type: integer
+          nullable: true
+        height:
+          type: integer
+          nullable: true
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      required:
+        - page
+        - pageSize
+        - totalCount
+        - totalPages
+        - hasNextPage
+        - hasPreviousPage
+      properties:
+        page:
+          type: integer
+          description: Current page (0-based)
+        pageSize:
+          type: integer
+          description: Items per page
+        totalCount:
+          type: integer
+          description: Total number of items
+        totalPages:
+          type: integer
+          description: Total number of pages
+        hasNextPage:
+          type: boolean
+        hasPreviousPage:
+          type: boolean
+
+    VideoGenerationRequest:
+      type: object
+      required:
+        - prompt
+        - projectId
+        - model
+      properties:
+        prompt:
+          type: string
+          minLength: 3
+          maxLength: 1000
+          description: Text description of the video
+        projectId:
+          type: string
+          format: uuid
+        model:
+          type: string
+          enum:
+            - veo-3.1-generate-preview
+            - veo-3.1-fast-generate-preview
+            - veo-2.0-generate-001
+            - seedance-1.0-pro
+            - minimax-hailuo-02-pro
+        aspectRatio:
+          type: string
+          enum: ['16:9', '9:16', '1:1', '4:3', '3:4']
+        duration:
+          type: number
+          minimum: 1
+          maximum: 10
+        resolution:
+          type: string
+          enum: ['480p', '720p', '1080p']
+        negativePrompt:
+          type: string
+          maxLength: 1000
+        personGeneration:
+          type: string
+          enum: [dont_allow, allow_adult, allow_all]
+        enhancePrompt:
+          type: boolean
+        generateAudio:
+          type: boolean
+        seed:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+        sampleCount:
+          type: integer
+          minimum: 1
+          maximum: 4
+        compressionQuality:
+          type: integer
+          minimum: 0
+          maximum: 100
+        imageAssetId:
+          type: string
+          format: uuid
+
+    VideoGenerationResponse:
+      type: object
+      required:
+        - operationName
+        - status
+        - message
+      properties:
+        operationName:
+          type: string
+          description: Operation ID for status polling
+        status:
+          type: string
+          enum: [processing]
+        message:
+          type: string
+
+    VideoStatusResponse:
+      oneOf:
+        - type: object
+          required:
+            - done
+            - progress
+          properties:
+            done:
+              type: boolean
+              enum: [false]
+            progress:
+              type: number
+              minimum: 0
+              maximum: 100
+        - type: object
+          required:
+            - done
+            - asset
+            - storageUrl
+          properties:
+            done:
+              type: boolean
+              enum: [true]
+            asset:
+              $ref: '#/components/schemas/Asset'
+            storageUrl:
+              type: string
+              format: uri
+        - type: object
+          required:
+            - done
+            - error
+          properties:
+            done:
+              type: boolean
+              enum: [true]
+            error:
+              type: string
+
+    ImageGenerationRequest:
+      type: object
+      required:
+        - prompt
+        - projectId
+      properties:
+        prompt:
+          type: string
+          minLength: 3
+          maxLength: 1000
+        projectId:
+          type: string
+          format: uuid
+        model:
+          type: string
+          default: imagen-3.0-generate-001
+        aspectRatio:
+          type: string
+          enum: ['1:1', '3:4', '4:3', '9:16', '16:9']
+        negativePrompt:
+          type: string
+          maxLength: 1000
+        sampleCount:
+          type: integer
+          minimum: 1
+          maximum: 8
+        seed:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+        safetyFilterLevel:
+          type: string
+          enum: [block_most, block_some, block_few]
+        personGeneration:
+          type: string
+          enum: [dont_allow, allow_adult, allow_all]
+        addWatermark:
+          type: boolean
+        language:
+          type: string
+        outputMimeType:
+          type: string
+          enum: [image/png, image/jpeg]
+
+    TTSRequest:
+      type: object
+      required:
+        - text
+        - projectId
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        projectId:
+          type: string
+          format: uuid
+        voiceId:
+          type: string
+          default: EXAVITQu4vr4xnSDxMaL
+        modelId:
+          type: string
+          default: eleven_multilingual_v2
+        stability:
+          type: number
+          minimum: 0
+          maximum: 1
+          default: 0.5
+        similarity:
+          type: number
+          minimum: 0
+          maximum: 1
+          default: 0.75
+
+    ActivityHistoryEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        activity_type:
+          type: string
+          enum:
+            - video_generation
+            - audio_generation
+            - image_upload
+            - video_upload
+            - audio_upload
+            - frame_edit
+            - video_upscale
+        title:
+          type: string
+        description:
+          type: string
+        model:
+          type: string
+        asset_id:
+          type: string
+          format: uuid
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Unauthorized
+
+    RateLimitError:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RateLimitError'
+
+    ValidationError:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ForbiddenError:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+security:
+  - cookieAuth: []
+
+paths:
+  /auth/signout:
+    post:
+      tags:
+        - Authentication
+      summary: Sign out user
+      description: Signs out the currently authenticated user
+      operationId: signOut
+      responses:
+        '200':
+          description: Successfully signed out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Invalid origin (CSRF protection)
+        '500':
+          description: Sign out failed
+
+  /projects:
+    post:
+      tags:
+        - Projects
+      summary: Create project
+      description: Create a new video editing project
+      operationId: createProject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                  default: Untitled Project
+      responses:
+        '200':
+          description: Project created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /assets:
+    get:
+      tags:
+        - Assets
+      summary: List assets
+      description: Retrieve assets with optional filtering and pagination
+      operationId: listAssets
+      parameters:
+        - name: projectId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [image, video, audio]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: Assets retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  assets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Asset'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /assets/upload:
+    post:
+      tags:
+        - Assets
+      summary: Upload asset
+      description: Upload a media file (image, video, or audio)
+      operationId: uploadAsset
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - projectId
+                - type
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: File to upload (max 100MB)
+                projectId:
+                  type: string
+                  format: uuid
+                type:
+                  type: string
+                  enum: [image, video, audio]
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  assetId:
+                    type: string
+                    format: uuid
+                  storageUrl:
+                    type: string
+                  publicUrl:
+                    type: string
+                    format: uri
+                  success:
+                    type: boolean
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '413':
+          description: File too large (max 100MB)
+        '415':
+          description: Unsupported media type
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /video/generate:
+    post:
+      tags:
+        - Video
+      summary: Generate video
+      description: Generate a video from text or image using AI
+      operationId: generateVideo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoGenerationRequest'
+      responses:
+        '200':
+          description: Video generation started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoGenerationResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /video/status:
+    get:
+      tags:
+        - Video
+      summary: Check video generation status
+      description: Poll the status of a video generation operation
+      operationId: getVideoStatus
+      parameters:
+        - name: operationName
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Operation ID from /video/generate
+        - name: projectId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoStatusResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /image/generate:
+    post:
+      tags:
+        - Image
+      summary: Generate image
+      description: Generate images from text using Google Imagen 3
+      operationId: generateImage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImageGenerationRequest'
+      responses:
+        '200':
+          description: Images generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  assets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Asset'
+                  message:
+                    type: string
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /audio/elevenlabs/generate:
+    post:
+      tags:
+        - Audio
+      summary: Generate speech
+      description: Generate speech from text using ElevenLabs TTS
+      operationId: generateSpeech
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TTSRequest'
+      responses:
+        '200':
+          description: Audio generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  asset:
+                    $ref: '#/components/schemas/Asset'
+                  message:
+                    type: string
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '504':
+          description: Request timeout (60s)
+
+  /audio/elevenlabs/voices:
+    get:
+      tags:
+        - Audio
+      summary: Get available voices
+      description: List available ElevenLabs voices
+      operationId: getVoices
+      responses:
+        '200':
+          description: Voices retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  voices:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        voice_id:
+                          type: string
+                        name:
+                          type: string
+                        category:
+                          type: string
+                        labels:
+                          type: object
+                        description:
+                          type: string
+                        preview_url:
+                          type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /history:
+    get:
+      tags:
+        - History
+      summary: Get activity history
+      description: Retrieve user's activity history with pagination
+      operationId: getHistory
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: History retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  history:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ActivityHistoryEntry'
+                  count:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+    delete:
+      tags:
+        - History
+      summary: Clear activity history
+      description: Delete all activity history for current user
+      operationId: clearHistory
+      responses:
+        '200':
+          description: History cleared
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /user/delete-account:
+    delete:
+      tags:
+        - User
+      summary: Delete account
+      description: |
+        Permanently delete user account and all associated data.
+        WARNING: This operation is irreversible!
+      operationId: deleteAccount
+      responses:
+        '200':
+          description: Account deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          description: Deletion failed
+
+  /stripe/checkout:
+    post:
+      tags:
+        - Stripe
+      summary: Create checkout session
+      description: Create a Stripe checkout session for subscription
+      operationId: createCheckout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                priceId:
+                  type: string
+                  description: Stripe price ID (optional)
+      responses:
+        '200':
+          description: Checkout session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId:
+                    type: string
+                  url:
+                    type: string
+                    format: uri
+        '400':
+          description: User already has active subscription
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'

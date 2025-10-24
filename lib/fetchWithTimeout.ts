@@ -4,6 +4,24 @@
 
 import { HttpStatusCode, shouldRetryOnStatus } from './errors/errorCodes';
 
+/**
+ * Timeout constants (in milliseconds)
+ */
+export const TIMEOUT = {
+  DEFAULT: 60000, // 60 seconds
+  SHORT: 30000, // 30 seconds
+  LONG: 90000, // 90 seconds
+  VERY_LONG: 120000, // 2 minutes
+} as const;
+
+/**
+ * Retry constants
+ */
+export const RETRY = {
+  DEFAULT_MAX_RETRIES: 3,
+  DEFAULT_BASE_DELAY: 1000, // 1 second
+} as const;
+
 export interface FetchWithTimeoutOptions extends RequestInit {
   timeout?: number;
   maxRetries?: number;
@@ -19,7 +37,7 @@ export async function fetchWithTimeout(
   url: string,
   options: FetchWithTimeoutOptions = {}
 ): Promise<Response> {
-  const { timeout = 60000, ...fetchOptions } = options;
+  const { timeout = TIMEOUT.DEFAULT, ...fetchOptions } = options;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -50,7 +68,11 @@ export async function fetchWithRetry(
   url: string,
   options: FetchWithTimeoutOptions = {}
 ): Promise<Response> {
-  const { maxRetries = 3, timeout = 60000, ...fetchOptions } = options;
+  const {
+    maxRetries = RETRY.DEFAULT_MAX_RETRIES,
+    timeout = TIMEOUT.DEFAULT,
+    ...fetchOptions
+  } = options;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
@@ -62,18 +84,20 @@ export async function fetchWithRetry(
       // Handle rate limiting
       if (response.status === HttpStatusCode.RATE_LIMITED) {
         const retryAfter = response.headers.get('Retry-After');
-        const delay = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
+        const delay = retryAfter
+          ? parseInt(retryAfter) * 1000
+          : Math.pow(2, attempt) * RETRY.DEFAULT_BASE_DELAY;
 
         if (attempt < maxRetries - 1) {
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
           continue;
         }
       }
 
       // Handle server errors with retry
       if (shouldRetryOnStatus(response.status) && attempt < maxRetries - 1) {
-        const delay = Math.pow(2, attempt) * 1000;
-        await new Promise(resolve => setTimeout(resolve, delay));
+        const delay = Math.pow(2, attempt) * RETRY.DEFAULT_BASE_DELAY;
+        await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
 
@@ -81,8 +105,8 @@ export async function fetchWithRetry(
     } catch (error) {
       if (attempt === maxRetries - 1) throw error;
 
-      const delay = Math.pow(2, attempt) * 1000;
-      await new Promise(resolve => setTimeout(resolve, delay));
+      const delay = Math.pow(2, attempt) * RETRY.DEFAULT_BASE_DELAY;
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 

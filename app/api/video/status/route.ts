@@ -4,7 +4,12 @@ import { checkFalVideoStatus } from '@/lib/fal-video';
 import { createServerSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import { GoogleAuth } from 'google-auth-library';
-import { unauthorizedResponse, validationError, withErrorHandling } from '@/lib/api/response';
+import {
+  unauthorizedResponse,
+  validationError,
+  withErrorHandling,
+  rateLimitResponse,
+} from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 
@@ -81,6 +86,15 @@ const parseGcsUri = (uri: string) => {
  * }
  */
 export const GET = withErrorHandling(async (req: NextRequest) => {
+  const startTime = Date.now();
+
+  serverLogger.info(
+    {
+      event: 'video.status.request_started',
+    },
+    'Video status check request received'
+  );
+
   const supabase = await createServerSupabaseClient();
 
   // Check authentication
@@ -90,6 +104,13 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
+    serverLogger.warn(
+      {
+        event: 'video.status.unauthorized',
+        error: authError?.message,
+      },
+      'Unauthorized video status check attempt'
+    );
     return unauthorizedResponse();
   }
 
@@ -109,21 +130,10 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
       'Video status check rate limit exceeded'
     );
 
-    return NextResponse.json(
-      {
-        error: 'Rate limit exceeded',
-        limit: rateLimitResult.limit,
-        remaining: rateLimitResult.remaining,
-        resetAt: rateLimitResult.resetAt,
-      },
-      {
-        status: 429,
-        headers: {
-          'X-RateLimit-Limit': rateLimitResult.limit.toString(),
-          'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-          'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
-        },
-      }
+    return rateLimitResponse(
+      rateLimitResult.limit,
+      rateLimitResult.remaining,
+      rateLimitResult.resetAt
     );
   }
 
@@ -150,6 +160,10 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
     }
     const endpoint = parts.slice(1, -1).join(':'); // Reconstruct endpoint (may contain colons)
     const requestId = parts[parts.length - 1];
+
+    if (!requestId || !endpoint) {
+      return validationError('Invalid FAL operation name format', 'operationName');
+    }
 
     // Check FAL operation status
     const falResult = await checkFalVideoStatus(requestId, endpoint);
@@ -235,6 +249,18 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
         },
       });
 
+      const duration = Date.now() - startTime;
+      serverLogger.info(
+        {
+          event: 'video.status.fal_completed',
+          userId: user.id,
+          projectId,
+          assetId: asset.id,
+          duration,
+        },
+        `FAL video generation completed successfully in ${duration}ms`
+      );
+
       return NextResponse.json({
         done: true,
         asset,
@@ -243,6 +269,17 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
     }
 
     if (falResult.error) {
+      serverLogger.error(
+        {
+          event: 'video.status.fal_error',
+          userId: user.id,
+          projectId,
+          operationName,
+          error: falResult.error,
+        },
+        'FAL video generation failed'
+      );
+
       return NextResponse.json({
         done: true,
         error: falResult.error,
@@ -250,6 +287,16 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
     }
 
     // Still processing
+    serverLogger.debug(
+      {
+        event: 'video.status.fal_processing',
+        userId: user.id,
+        projectId,
+        operationName,
+      },
+      'FAL video still processing'
+    );
+
     return NextResponse.json({
       done: false,
       progress: 0,
@@ -394,6 +441,18 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
       },
     });
 
+    const duration = Date.now() - startTime;
+    serverLogger.info(
+      {
+        event: 'video.status.veo_completed',
+        userId: user.id,
+        projectId,
+        assetId: asset.id,
+        duration,
+      },
+      `Veo video generation completed successfully in ${duration}ms`
+    );
+
     return NextResponse.json({
       done: true,
       asset,
@@ -402,6 +461,30 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
   }
 
   // Still processing or error
+  if (result.error) {
+    serverLogger.error(
+      {
+        event: 'video.status.veo_error',
+        userId: user.id,
+        projectId,
+        operationName,
+        error: result.error.message,
+      },
+      'Veo video generation failed'
+    );
+  } else {
+    serverLogger.debug(
+      {
+        event: 'video.status.veo_processing',
+        userId: user.id,
+        projectId,
+        operationName,
+        progress: result.metadata?.progressPercentage || 0,
+      },
+      'Veo video still processing'
+    );
+  }
+
   return NextResponse.json({
     done: result.done,
     progress: result.metadata?.progressPercentage || 0,

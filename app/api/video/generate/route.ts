@@ -240,6 +240,11 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
 
   if (!validation.valid) {
     const firstError = validation.errors[0];
+
+    if (!firstError) {
+      return validationError('Validation failed');
+    }
+
     serverLogger.warn(
       {
         event: 'video.generate.validation_error',
@@ -281,6 +286,10 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     const [bucket, ...pathParts] = storageUrl.split('/');
     const path = pathParts.join('/');
 
+    if (!bucket) {
+      throw new Error('Invalid storage URL: missing bucket');
+    }
+
     const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(path);
 
     imageUrl = publicUrlData.publicUrl;
@@ -313,7 +322,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       aspectRatio,
       duration,
       resolution,
-      imageUrl,
+      ...(imageUrl && { imageUrl }),
       promptOptimizer: enhancePrompt,
     });
 
@@ -352,7 +361,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       seed,
       sampleCount,
       compressionQuality,
-      imageUrl,
+      ...(imageUrl && { imageUrl }),
     });
 
     const duration_ms = Date.now() - startTime;

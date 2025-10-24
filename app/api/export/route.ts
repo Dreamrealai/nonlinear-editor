@@ -326,7 +326,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
           : job.status === 'processing'
             ? `Export in progress (${job.progress_percentage}%)`
             : 'Export queued for processing',
-    estimatedTime: job.status === 'pending' ? 30 : undefined,
+    ...(job.status === 'pending' && { estimatedTime: 30 }),
   };
 
   return successResponse(response);

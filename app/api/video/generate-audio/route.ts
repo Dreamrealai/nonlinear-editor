@@ -68,8 +68,17 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   if (asset.storage_url) {
     const storageUrl = asset.storage_url as string;
     const [, bucketPath] = storageUrl.split('://');
+
+    if (!bucketPath) {
+      throw new Error('Invalid storage URL format');
+    }
+
     const [bucket, ...pathParts] = bucketPath.split('/');
     const path = pathParts.join('/');
+
+    if (!bucket) {
+      throw new Error('Invalid storage URL: missing bucket');
+    }
 
     const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
 

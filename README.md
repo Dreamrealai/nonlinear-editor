@@ -5,12 +5,14 @@ A modern, browser-based non-linear video editor built with Next.js 15, React 19,
 ## Features
 
 ✅ **Multi-Track Timeline**
+
 - Unlimited video, audio, and image tracks
 - Drag-and-drop clip positioning
 - Visual timeline with zoom controls
 - Snap-to-grid functionality
 
 ✅ **Advanced Editing**
+
 - Clip trimming with precision handles
 - Transitions (crossfade, fade-in, fade-out)
 - Per-clip opacity and volume control
@@ -19,29 +21,34 @@ A modern, browser-based non-linear video editor built with Next.js 15, React 19,
 - Split clips at playhead
 
 ✅ **Playback Engine**
+
 - Multi-track video synchronization
 - RAF-based smooth playback
 - Buffering management
 - Timecode display
 
 ✅ **State Management**
+
 - Undo/redo (50-action history)
 - Autosave (2-second debounce)
 - Copy/paste clips
 - Multi-select support
 
 ✅ **Asset Management**
+
 - Upload video, audio, and images
 - Automatic thumbnail generation
 - Secure signed URLs
 - Scene detection
 
 ✅ **AI Assistant**
+
 - Powered by Google Gemini
 - Context-aware help
 - Project-specific chat history
 
 ✅ **Authentication & Security**
+
 - Supabase Auth integration
 - Row-level security (RLS)
 - Email/password + anonymous sign-in
@@ -51,12 +58,14 @@ A modern, browser-based non-linear video editor built with Next.js 15, React 19,
 - Session timeouts (24h/8h)
 
 ✅ **Logging & Monitoring**
+
 - Browser error tracking
 - Axiom integration
 - Structured logging
 - Error boundaries
 
 ⚠️ **Export (Placeholder)**
+
 - Export API endpoint ready
 - Requires FFmpeg server integration
 - Multiple quality presets
@@ -87,12 +96,14 @@ A modern, browser-based non-linear video editor built with Next.js 15, React 19,
 ### Installation
 
 1. **Clone the repository:**
+
 ```bash
 git clone https://github.com/Dreamrealai/nonlinear-editor.git
 cd nonlinear-editor
 ```
 
 2. **Install dependencies:**
+
 ```bash
 npm install
 ```
@@ -100,6 +111,7 @@ npm install
 3. **Set up Supabase:**
 
 Follow the detailed [Supabase Setup Guide](docs/SUPABASE_SETUP.md) to:
+
 - Create Supabase project
 - Run database migrations
 - Configure storage buckets
@@ -107,6 +119,7 @@ Follow the detailed [Supabase Setup Guide](docs/SUPABASE_SETUP.md) to:
 - Get API keys
 
 **Quick Supabase Setup:**
+
 ```bash
 # 1. Create project at https://supabase.com/dashboard
 # 2. Get your project URL and keys
@@ -117,6 +130,7 @@ Follow the detailed [Supabase Setup Guide](docs/SUPABASE_SETUP.md) to:
 4. **Configure environment variables:**
 
 Copy the example file:
+
 ```bash
 cp .env.local.example .env.local
 ```
@@ -181,14 +195,16 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 See [Environment Variables](#environment-variables) section below for detailed descriptions.
 
 5. **Run the development server:**
+
 ```bash
 npm run dev
 ```
 
 6. **Open the app:**
-Navigate to [http://localhost:3000](http://localhost:3000)
+   Navigate to [http://localhost:3000](http://localhost:3000)
 
 7. **Create an account:**
+
 - Go to `/signup`
 - Enter email and password
 - Confirm email (if enabled)
@@ -196,7 +212,14 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 
 ## Documentation
 
-- [API Documentation](docs/API.md) - Complete API reference with all 23 endpoints
+### API Documentation
+
+- [API Documentation](API_DOCUMENTATION.md) - Comprehensive API reference with all 31 endpoints
+- [Quick Reference](API_QUICK_REFERENCE.md) - Quick reference guide for developers
+- [OpenAPI Specification](openapi.yaml) - Machine-readable API spec for tools like Swagger/Postman
+
+### Setup & Architecture
+
 - [Supabase Setup](docs/SUPABASE_SETUP.md) - Step-by-step database setup guide
 - [Architecture](docs/ARCHITECTURE.md) - System architecture and design
 - [Security](docs/SECURITY.md) - Security features and best practices
@@ -208,26 +231,26 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 
 ### Required Variables
 
-| Variable | Description | Get From |
-|----------|-------------|----------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | [Supabase Dashboard](https://supabase.com/dashboard) → Project Settings → API |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key (RLS-enforced) | Supabase Dashboard → Project Settings → API |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (server-side only) | Supabase Dashboard → Project Settings → API |
+| Variable                        | Description                         | Get From                                                                      |
+| ------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Your Supabase project URL           | [Supabase Dashboard](https://supabase.com/dashboard) → Project Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key (RLS-enforced)      | Supabase Dashboard → Project Settings → API                                   |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Service role key (server-side only) | Supabase Dashboard → Project Settings → API                                   |
 
 ### Optional AI Variables
 
-| Variable | Description | Get From |
-|----------|-------------|----------|
+| Variable                 | Description                       | Get From                                                                          |
+| ------------------------ | --------------------------------- | --------------------------------------------------------------------------------- |
 | `GOOGLE_SERVICE_ACCOUNT` | Google Cloud service account JSON | [Google Cloud Console](https://console.cloud.google.com) → IAM → Service Accounts |
-| `GCS_BUCKET_NAME` | GCS bucket for video processing | Auto-created if not specified |
-| `GEMINI_API_KEY` | Google Gemini API key | [Google AI Studio](https://ai.google.dev) |
-| `FAL_API_KEY` | fal.ai API key for upscaling | [fal.ai](https://fal.ai) |
-| `COMET_API_KEY` | Comet API (Suno wrapper) | [Comet API](https://cometapi.com) |
-| `ELEVENLABS_API_KEY` | ElevenLabs TTS API key | [ElevenLabs](https://elevenlabs.io) |
-| `WAVESPEED_API_KEY` | Wavespeed audio API key | Wavespeed provider |
-| `AXIOM_TOKEN` | Axiom logging token | [Axiom](https://axiom.co) |
-| `AXIOM_DATASET` | Axiom dataset name | Axiom Dashboard |
-| `NEXT_PUBLIC_APP_URL` | Application URL | Auto-detected (optional) |
+| `GCS_BUCKET_NAME`        | GCS bucket for video processing   | Auto-created if not specified                                                     |
+| `GEMINI_API_KEY`         | Google Gemini API key             | [Google AI Studio](https://ai.google.dev)                                         |
+| `FAL_API_KEY`            | fal.ai API key for upscaling      | [fal.ai](https://fal.ai)                                                          |
+| `COMET_API_KEY`          | Comet API (Suno wrapper)          | [Comet API](https://cometapi.com)                                                 |
+| `ELEVENLABS_API_KEY`     | ElevenLabs TTS API key            | [ElevenLabs](https://elevenlabs.io)                                               |
+| `WAVESPEED_API_KEY`      | Wavespeed audio API key           | Wavespeed provider                                                                |
+| `AXIOM_TOKEN`            | Axiom logging token               | [Axiom](https://axiom.co)                                                         |
+| `AXIOM_DATASET`          | Axiom dataset name                | Axiom Dashboard                                                                   |
+| `NEXT_PUBLIC_APP_URL`    | Application URL                   | Auto-detected (optional)                                                          |
 
 See [API Documentation](docs/API.md#environment-variables) for detailed descriptions.
 
@@ -253,6 +276,7 @@ npm run start
 ```
 
 The build creates an optimized production bundle with:
+
 - Minified JavaScript and CSS
 - Automatic code splitting
 - Optimized images
@@ -265,6 +289,7 @@ The build creates an optimized production bundle with:
 ### Vercel (Recommended)
 
 1. **Push to GitHub:**
+
 ```bash
 git add .
 git commit -m "Ready for deployment"
@@ -272,6 +297,7 @@ git push origin main
 ```
 
 2. **Import to Vercel:**
+
 - Go to [vercel.com/new](https://vercel.com/new)
 - Import your GitHub repository
 - Configure environment variables (see below)
@@ -292,16 +318,18 @@ GEMINI_API_KEY=xxx                      # Mark as "Secret"
 ```
 
 4. **Update Supabase Auth Settings:**
+
 - Go to Supabase Dashboard → Authentication → Settings
 - Update Site URL: `https://your-app.vercel.app`
 - Add to Redirect URLs: `https://your-app.vercel.app/**`
 
 5. **Deploy:**
-Vercel will automatically deploy on every push to main.
+   Vercel will automatically deploy on every push to main.
 
 ### Other Platforms
 
 **Docker:**
+
 ```dockerfile
 FROM node:20-alpine
 WORKDIR /app
@@ -327,6 +355,7 @@ Similar to Vercel - set environment variables and deploy from GitHub.
 **Problem:** Missing or invalid Supabase environment variables.
 
 **Solution:**
+
 ```bash
 # Verify .env.local contains:
 NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co  # Must start with https://
@@ -342,6 +371,7 @@ npm run dev
 **Problem:** RLS policies not set up correctly.
 
 **Solution:**
+
 1. Run migration: `/supabase/migrations/20251022000000_fix_projects_rls.sql`
 2. Verify in Supabase Dashboard → Database → Tables → projects → Policies
 3. Should see: `projects_owner_select`, `projects_owner_insert`, `projects_owner_update`, `projects_owner_delete`
@@ -351,6 +381,7 @@ npm run dev
 **Problem:** Storage bucket or policies missing.
 
 **Solution:**
+
 1. Run initial migration: `/supabase/migrations/20250101000000_init_schema.sql`
 2. Verify buckets exist: Supabase Dashboard → Storage
 3. Check policies: Storage → Policies → assets bucket
@@ -360,6 +391,7 @@ npm run dev
 **Problem:** Missing Google Cloud credentials.
 
 **Solution:**
+
 ```bash
 # Set GOOGLE_SERVICE_ACCOUNT in .env.local
 GOOGLE_SERVICE_ACCOUNT={"type":"service_account","project_id":"your-project",...}
@@ -375,6 +407,7 @@ GOOGLE_SERVICE_ACCOUNT={"type":"service_account","project_id":"your-project",...
 **Problem:** GCS bucket doesn't exist or no permissions.
 
 **Solution:**
+
 1. Set `GCS_BUCKET_NAME` environment variable (optional)
 2. Or let it auto-create: `{project-id}-video-processing`
 3. Grant service account Storage Admin role in Google Cloud
@@ -384,6 +417,7 @@ GOOGLE_SERVICE_ACCOUNT={"type":"service_account","project_id":"your-project",...
 **Problem:** Missing Gemini API key.
 
 **Solution:**
+
 ```bash
 # Get API key from https://ai.google.dev
 GEMINI_API_KEY=your-api-key
@@ -397,6 +431,7 @@ curl "https://generativelanguage.googleapis.com/v1/models?key=YOUR_API_KEY"
 **Problem:** TypeScript errors or missing dependencies.
 
 **Solution:**
+
 ```bash
 # Clear cache and reinstall
 rm -rf node_modules .next
@@ -411,6 +446,7 @@ npm run build
 **Problem:** Incorrect Supabase keys.
 
 **Solution:**
+
 - Re-copy keys from Supabase Dashboard
 - Ensure no extra spaces or newlines
 - Verify using correct project keys
@@ -421,6 +457,7 @@ npm run build
 **Problem:** Default SMTP limits hit.
 
 **Solution for Production:**
+
 1. Configure custom SMTP (Resend recommended):
    - Get API key from [resend.com](https://resend.com)
    - Supabase Dashboard → Project Settings → Auth → SMTP Settings
@@ -433,6 +470,7 @@ npm run build
      ```
 
 **Solution for Development:**
+
 - Check Supabase Dashboard → Authentication → Logs
 - Temporarily disable email confirmation:
   - Auth → Settings → Disable "Enable email confirmations"
@@ -442,6 +480,7 @@ npm run build
 **Problem:** Too many clips on timeline.
 
 **Solution:**
+
 - Limit to ~100-200 clips per project
 - Close other browser tabs
 - Increase browser memory limit

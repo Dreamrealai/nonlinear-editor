@@ -11,7 +11,7 @@ import {
   withErrorHandling,
   validationError,
 } from '@/lib/api/response';
-import { validateUUID, validateInteger, validateAll } from '@/lib/api/validation';
+import { validateUUID, validateInteger } from '@/lib/api/validation';
 
 export const GET = withErrorHandling(async (request: NextRequest) => {
   // SECURITY: Verify user authentication

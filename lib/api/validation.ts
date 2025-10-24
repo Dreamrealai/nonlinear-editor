@@ -242,7 +242,10 @@ export function validateDuration(duration: unknown): ValidationError | null {
     return null;
   }
 
-  if (typeof duration !== 'number' || !VALID_DURATIONS.includes(duration as typeof VALID_DURATIONS[number])) {
+  if (
+    typeof duration !== 'number' ||
+    !VALID_DURATIONS.includes(duration as (typeof VALID_DURATIONS)[number])
+  ) {
     return {
       field: 'duration',
       message: `Invalid duration. Must be ${VALID_DURATIONS.join(', ')} seconds`,
@@ -302,6 +305,170 @@ export const VALID_PERSON_GENERATION = ['dont_allow', 'allow_adult', 'allow_all'
  */
 export function validatePersonGeneration(personGeneration: unknown): ValidationError | null {
   return validateEnum(personGeneration, 'personGeneration', VALID_PERSON_GENERATION, false);
+}
+
+/**
+ * URL regex pattern for validation
+ */
+export const URL_REGEX =
+  /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
+
+/**
+ * Validates a URL format
+ *
+ * @param value - Value to validate
+ * @param fieldName - Name of the field for error messages
+ * @param options - Validation options
+ * @returns Validation error if invalid, null if valid
+ *
+ * @example
+ * const error = validateUrl(imageUrl, 'imageUrl', { httpsOnly: true });
+ * if (error) return errorResponse(error.message, 400);
+ */
+export function validateUrl(
+  value: unknown,
+  fieldName: string,
+  options: {
+    required?: boolean;
+    httpsOnly?: boolean;
+    maxLength?: number;
+  } = {}
+): ValidationError | null {
+  const { required = false, httpsOnly = false, maxLength = 2048 } = options;
+
+  if (!value || typeof value !== 'string') {
+    if (required) {
+      return {
+        field: fieldName,
+        message: `${fieldName} is required`,
+      };
+    }
+    return null;
+  }
+
+  if (value.length > maxLength) {
+    return {
+      field: fieldName,
+      message: `${fieldName} must not exceed ${maxLength} characters`,
+      value: value.length,
+    };
+  }
+
+  if (!URL_REGEX.test(value)) {
+    return {
+      field: fieldName,
+      message: `Invalid ${fieldName} format`,
+      value,
+    };
+  }
+
+  if (httpsOnly && !value.startsWith('https://')) {
+    return {
+      field: fieldName,
+      message: `${fieldName} must use HTTPS protocol`,
+      value,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Validates a number with min/max constraints
+ *
+ * @param value - Value to validate
+ * @param fieldName - Name of the field for error messages
+ * @param options - Validation options
+ * @returns Validation error if invalid, null if valid
+ *
+ * @example
+ * const error = validateNumber(stability, 'stability', { min: 0, max: 1 });
+ * if (error) return errorResponse(error.message, 400);
+ */
+export function validateNumber(
+  value: unknown,
+  fieldName: string,
+  options: {
+    required?: boolean;
+    min?: number;
+    max?: number;
+  } = {}
+): ValidationError | null {
+  const { required = false, min, max } = options;
+
+  if (value === undefined || value === null) {
+    if (required) {
+      return {
+        field: fieldName,
+        message: `${fieldName} is required`,
+      };
+    }
+    return null;
+  }
+
+  if (typeof value !== 'number' || isNaN(value)) {
+    return {
+      field: fieldName,
+      message: `${fieldName} must be a number`,
+      value,
+    };
+  }
+
+  if (min !== undefined && value < min) {
+    return {
+      field: fieldName,
+      message: `${fieldName} must be at least ${min}`,
+      value,
+    };
+  }
+
+  if (max !== undefined && value > max) {
+    return {
+      field: fieldName,
+      message: `${fieldName} must not exceed ${max}`,
+      value,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Validates a boolean value
+ *
+ * @param value - Value to validate
+ * @param fieldName - Name of the field for error messages
+ * @param required - Whether the field is required
+ * @returns Validation error if invalid, null if valid
+ *
+ * @example
+ * const error = validateBoolean(instrumental, 'instrumental', false);
+ * if (error) return errorResponse(error.message, 400);
+ */
+export function validateBoolean(
+  value: unknown,
+  fieldName: string,
+  required: boolean = false
+): ValidationError | null {
+  if (value === undefined || value === null) {
+    if (required) {
+      return {
+        field: fieldName,
+        message: `${fieldName} is required`,
+      };
+    }
+    return null;
+  }
+
+  if (typeof value !== 'boolean') {
+    return {
+      field: fieldName,
+      message: `${fieldName} must be a boolean`,
+      value,
+    };
+  }
+
+  return null;
 }
 
 /**

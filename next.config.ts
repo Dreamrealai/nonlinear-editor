@@ -1,5 +1,15 @@
 import type { NextConfig } from 'next';
 
+// Bundle analyzer configuration
+const withBundleAnalyzer =
+  process.env.ANALYZE === 'true'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('@next/bundle-analyzer')({
+        enabled: true,
+        openAnalyzer: true,
+      })
+    : (config: NextConfig) => config;
+
 const nextConfig: NextConfig = {
   // Production optimizations
   compiler: {
@@ -120,4 +130,4 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

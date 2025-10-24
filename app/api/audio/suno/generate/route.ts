@@ -156,7 +156,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
 
   if (customMode) {
     payload.custom_mode = true;
-    payload.tags = style;
+    if (style) payload.tags = style;
     if (title) payload.title = title;
     if (instrumental) payload.make_instrumental = true;
   }

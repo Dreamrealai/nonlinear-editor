@@ -66,18 +66,31 @@ if (typeof global === 'object' && typeof global.performance === 'undefined') {
 if (typeof globalThis.Request === 'undefined') {
   class PolyfilledRequest {
     constructor(input, init = {}) {
-      this.url = typeof input === 'string' ? input : input.url;
+      this._url = typeof input === 'string' ? input : input.url;
       this.method = init?.method ?? 'GET';
-      this.headers = new Map(Object.entries(init?.headers ?? {}));
+      this.headers = init?.headers ? new Headers(init.headers) : new Headers();
       this.body = init?.body;
       this._bodyInit = init?.body;
+      this._bodyUsed = false;
+    }
+
+    get url() {
+      return this._url;
     }
 
     async json() {
+      if (this._bodyUsed) {
+        throw new TypeError('Body has already been consumed');
+      }
+      this._bodyUsed = true;
       return typeof this._bodyInit === 'string' ? JSON.parse(this._bodyInit) : this._bodyInit;
     }
 
     async text() {
+      if (this._bodyUsed) {
+        throw new TypeError('Body has already been consumed');
+      }
+      this._bodyUsed = true;
       return typeof this._bodyInit === 'string' ? this._bodyInit : JSON.stringify(this._bodyInit);
     }
   }

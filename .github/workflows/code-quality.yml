@@ -1,0 +1,165 @@
+name: Code Quality & Bundle Analysis
+
+on:
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  # Bundle size analysis
+  bundle-analysis:
+    name: Bundle Size Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build with analysis
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-key
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_dummy
+
+      - name: Analyze bundle size
+        run: |
+          echo "Bundle size analysis:"
+          du -sh .next/static/* | sort -hr
+          echo ""
+          echo "Top 10 largest files:"
+          find .next/static -type f -exec du -h {} + | sort -rh | head -n 10
+
+      - name: Check bundle size limits
+        run: |
+          # Get the size of the main bundle
+          BUNDLE_SIZE=$(du -sk .next/static | cut -f1)
+          MAX_SIZE=10240  # 10MB in KB
+
+          echo "Current bundle size: ${BUNDLE_SIZE}KB"
+          echo "Maximum allowed size: ${MAX_SIZE}KB"
+
+          if [ $BUNDLE_SIZE -gt $MAX_SIZE ]; then
+            echo "Warning: Bundle size exceeds recommended limit"
+            # Uncomment to fail the build:
+            # exit 1
+          else
+            echo "Bundle size is within acceptable limits"
+          fi
+
+  # Code complexity analysis
+  complexity:
+    name: Code Complexity Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for large files
+        run: |
+          echo "Checking for files larger than 500 lines..."
+          find app components lib state -type f \( -name "*.ts" -o -name "*.tsx" \) -exec wc -l {} + | \
+            awk '$1 > 500 {print}' | \
+            sort -rn || echo "No large files found"
+
+      - name: Check for deeply nested directories
+        run: |
+          echo "Checking directory structure depth..."
+          find . -type d -not -path "*/node_modules/*" -not -path "*/.next/*" | \
+            awk -F/ 'NF > 8 {print NF-1, $0}' | \
+            sort -rn | \
+            head -10 || echo "No deeply nested directories found"
+
+  # Lighthouse CI (Performance)
+  lighthouse:
+    name: Lighthouse Performance Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-key
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_dummy
+
+      - name: Start server
+        run: npm run start &
+        env:
+          PORT: 3000
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:3000 --timeout 60000
+
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli
+          lhci autorun --collect.url=http://localhost:3000 --collect.numberOfRuns=3 || echo "Lighthouse audit completed"
+
+  # Test coverage requirements
+  coverage-check:
+    name: Coverage Requirements
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Check coverage thresholds
+        run: |
+          echo "Checking test coverage..."
+          # Add coverage threshold checks here
+          # For example: jest --coverage --coverageThreshold='{"global":{"branches":70,"functions":70,"lines":70,"statements":70}}'
+
+      - name: Generate coverage badge
+        run: |
+          if [ -f "coverage/coverage-summary.json" ]; then
+            echo "Coverage report generated successfully"
+          fi

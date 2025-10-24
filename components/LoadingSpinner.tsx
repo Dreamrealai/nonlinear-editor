@@ -2,12 +2,14 @@
  * LoadingSpinner Component
  *
  * A reusable loading spinner component with customizable size and color.
- * Uses CSS animations for smooth spinning effect.
+ * - Uses CSS animations for smooth spinning effect
+ * - Optional text label
+ * - Multiple size variants
  */
 
 import clsx from 'clsx';
 
-interface LoadingSpinnerProps {
+export interface LoadingSpinnerProps {
   /** Size of the spinner */
   size?: 'sm' | 'md' | 'lg' | 'xl';
   /** Custom className for additional styling */

@@ -32,3 +32,23 @@ build/
 # Other
 coverage/
 *.tsbuildinfo
+
+# Test output
+playwright-report/
+test-results/
+e2e/test-results/
+e2e/playwright-report/
+
+# Package manager lockfiles
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Generated Next.js types
+next-env.d.ts
+
+# Supabase
+.supabase/
+
+# Keep .env.example
+!.env.example

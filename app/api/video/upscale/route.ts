@@ -104,8 +104,17 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   // Get public URL for the video
   const storageUrl = asset.storage_url as string;
   const [, bucketPath] = storageUrl.split('://');
+
+  if (!bucketPath) {
+    return internalServerError('Invalid storage URL format');
+  }
+
   const [bucket, ...pathParts] = bucketPath.split('/');
   const path = pathParts.join('/');
+
+  if (!bucket) {
+    return internalServerError('Invalid storage URL: missing bucket');
+  }
 
   const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
 
