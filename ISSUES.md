@@ -1,8 +1,8 @@
 # Codebase Issues Tracker
 
 **Last Updated:** 2025-10-24
-**Status:** 74 open issues (Issue #2 downgraded from P0 to P2)
-**Priority Breakdown:** P0: 2 | P1: 25 | P2: 32 | P3: 15
+**Status:** 69 open issues (5 issues fixed and removed)
+**Priority Breakdown:** P0: 0 | P1: 23 | P2: 31 | P3: 15
 
 This document tracks all open issues in the codebase. Fixed/resolved issues are removed to keep this document focused and efficient.
 
@@ -10,81 +10,7 @@ This document tracks all open issues in the codebase. Fixed/resolved issues are 
 
 ## Priority 0: Critical Issues
 
-### Issue #145: TypeScript Build Error in Chat Messages Route
-
-- **Status:** Open
-- **Priority:** P0 (Blocks deployment)
-- **Location:** `/app/api/projects/[projectId]/chat/messages/route.ts:115`
-- **Effort:** 1-2 hours
-- **Impact:** Production build fails
-
-**Problem:** Handler returns `Response` but `withAuth` requires `NextResponse`
-
-**Solution:** Update handler to return NextResponse for type safety
-
----
-
-### Issue #47: No Visual Feedback for Snap-to-Grid During Dragging
-
-- **Status:** Open
-- **Priority:** P0 (Critical UX)
-- **Location:** `/lib/hooks/useTimelineDragging.ts:65-138`, `/components/timeline/TimelineClipRenderer.tsx`
-- **Effort:** 4-6 hours
-- **Impact:** Users cannot see where clips will snap
-
-**Problem:** Snapping logic works but zero visual feedback (no guidelines, magnetic pull, or indicators)
-
-**Needed:**
-
-1. Snap guidelines (vertical dashed lines)
-2. Magnetic zone indicator
-3. Distance tooltip showing exact time
-4. Snap flash animation
-5. Cursor change in magnetic zone
-
----
-
-### Issue #2: Mixed Middleware Patterns
-
-- **Status:** Mostly Resolved - Only 2 edge cases remain (94% complete)
-- **Priority:** P0 → P2 (downgraded)
-- **Updated:** 2025-10-24
-- **Effort:** 1-2 hours remaining (edge case analysis)
-- **Impact:** Core middleware migration complete
-
-**Final State (Validated 2025-10-24):**
-
-- **25/36 routes** use `withAuth` middleware ✅ (69%)
-- **2/36 routes** use `withErrorHandling` (manual auth) - Valid edge cases
-- **9/36 routes** with no middleware - By design (public/webhook endpoints)
-
-**Routes Using `withErrorHandling` (Edge Cases):**
-
-1. `/api/docs/route.ts` - Public documentation endpoint (no auth required)
-2. `/api/auth/signout/route.ts` - Auth endpoint (manual auth with CSRF protection)
-
-**Routes with No Middleware (Valid):**
-
-1. `/api/health/route.ts` - Public health check endpoint
-2. `/api/stripe/webhook/route.ts` - Webhook endpoint (Stripe signature verification)
-3. `/api/projects/[projectId]/chat/route.ts` - Legacy manual auth (uses createServerSupabaseClient)
-
-**Routes Using Wrapper Utilities (Equivalent to withAuth):**
-
-- `createGenerationRoute()` - Wraps `withErrorHandling` + manual auth (1 route)
-  - `/api/audio/elevenlabs/sfx/route.ts`
-- `createStatusCheckHandler()` - Wraps `withErrorHandling` + manual auth (2 routes)
-  - `/api/video/generate-audio-status/route.ts`
-  - `/api/video/upscale-status/route.ts`
-
-**Analysis:**
-
-- Core migration goal achieved: Most routes now use standardized middleware
-- Remaining `withErrorHandling` routes are intentional edge cases
-- Wrapper utilities (`createGenerationRoute`, `createStatusCheckHandler`) use `withErrorHandling` internally but provide auth + validation - acceptable pattern
-- No unsafe routes found (all routes have authentication where needed)
-
-**Recommendation:** Close issue as **Resolved**. The 2 `withErrorHandling` routes and wrapper utilities are valid patterns for their use cases.
+**All P0 issues have been resolved! 🎉**
 
 ---
 
@@ -261,40 +187,6 @@ This document tracks all open issues in the codebase. Fixed/resolved issues are 
 - **Impact:** Progress bar jumps or stalls
 
 **Problem:** Using upload progress instead of total progress (upload + processing)
-
----
-
-### Issue #83: Duplicate Password Validation Files
-
-- **Status:** Fixed
-- **Priority:** P1
-- **Effort:** 1-2 hours
-- **Impact:** 184 LOC duplicated across 2 files
-- **Fixed:** 2025-10-24
-- **Validation:** Complete
-
-**Resolution:**
-
-- Removed duplicate file `/lib/password-validation.ts`
-- Consolidated into single implementation at `/lib/validation/password.ts`
-- All imports updated to use canonical location (`@/lib/validation/password`)
-- Both test files verified to import from correct location
-- Test files cover different function sets (backward compatibility vs. new API)
-
----
-
-### Issue #84: Orphaned Component Files
-
-- **Status:** Open
-- **Priority:** P1
-- **Effort:** 30 minutes
-- **Impact:** 300+ LOC unused code
-
-**Files to Delete:**
-
-- `/components/keyframes/VideoPlayerModal.tsx`
-- `/components/keyframes/KeyframeVersions.tsx`
-- `/components/VideoPlayerHoverMenu.tsx`
 
 ---
 
@@ -490,6 +382,50 @@ This document tracks all open issues in the codebase. Fixed/resolved issues are 
 ---
 
 ## Priority 2: Medium Priority Issues
+
+### Issue #2: Mixed Middleware Patterns
+
+- **Status:** Mostly Resolved (94% complete)
+- **Priority:** P2 (downgraded from P0)
+- **Updated:** 2025-10-24
+- **Effort:** 1-2 hours remaining (edge case documentation)
+- **Impact:** Core middleware migration complete
+
+**Final State (Validated 2025-10-24):**
+
+- **25/36 routes** use `withAuth` middleware ✅ (69%)
+- **2/36 routes** use `withErrorHandling` (manual auth) - Valid edge cases
+- **9/36 routes** with no middleware - By design (public/webhook endpoints)
+
+**Routes Using `withErrorHandling` (Edge Cases):**
+
+1. `/api/docs/route.ts` - Public documentation endpoint (no auth required)
+2. `/api/auth/signout/route.ts` - Auth endpoint (manual auth with CSRF protection)
+
+**Routes with No Middleware (Valid):**
+
+1. `/api/health/route.ts` - Public health check endpoint
+2. `/api/stripe/webhook/route.ts` - Webhook endpoint (Stripe signature verification)
+3. `/api/projects/[projectId]/chat/route.ts` - Legacy manual auth (uses createServerSupabaseClient)
+
+**Routes Using Wrapper Utilities (Equivalent to withAuth):**
+
+- `createGenerationRoute()` - Wraps `withErrorHandling` + manual auth (1 route)
+  - `/api/audio/elevenlabs/sfx/route.ts`
+- `createStatusCheckHandler()` - Wraps `withErrorHandling` + manual auth (2 routes)
+  - `/api/video/generate-audio-status/route.ts`
+  - `/api/video/upscale-status/route.ts`
+
+**Analysis:**
+
+- Core migration goal achieved: Most routes now use standardized middleware
+- Remaining `withErrorHandling` routes are intentional edge cases
+- Wrapper utilities use `withErrorHandling` internally but provide auth + validation - acceptable pattern
+- No unsafe routes found (all routes have authentication where needed)
+
+**Conclusion:** Issue mostly resolved. Remaining work is documentation of edge cases.
+
+---
 
 ### Issue #13: Duplicate Time Formatting Functions
 
@@ -741,18 +677,6 @@ This document tracks all open issues in the codebase. Fixed/resolved issues are 
 - Local backup option
 - Version history
 - Restore functionality
-
----
-
-### Issue #33: Redundant ErrorBoundary Export
-
-- **Status:** Open
-- **Priority:** P2
-- **Location:** `/components/ErrorBoundary.tsx`
-- **Effort:** 15 minutes
-- **Impact:** Low - code cleanup
-
-**Action:** Remove redundant export pattern
 
 ---
 
@@ -1051,44 +975,48 @@ This document tracks all open issues in the codebase. Fixed/resolved issues are 
 
 ### Issues by Component Area
 
-**Timeline:** #47, #50, #51, #92, #96, #97, #99, #25, #27, #31, #37, #100, #103, #59, #63, #64, #66
-**API/Backend:** #145, #2, #5, #6, #44, #45, #46, #87, #22
+**Timeline:** #50, #51, #92, #96, #97, #99, #25, #27, #31, #37, #100, #103, #59, #63, #64, #66
+**API/Backend:** #2, #5, #6, #44, #45, #46, #87, #22
 **Testing:** #42, #20
 **Assets:** #52, #90, #98, #24, #29, #32, #102, #57, #62, #65
 **Security:** #43, #22, #23
 **Performance:** #50, #37, #21
 **Documentation:** #43, #49, #19
-**UX/UI:** #47, #92, #93, #94, #95, #96, #16, #18, #56, #61
+**UX/UI:** #92, #93, #94, #95, #96, #16, #18, #56, #61
 
 ### Estimated Total Work
 
-- **P0:** 9-14 hours
-- **P1:** 320-450 hours
-- **P2:** 340-470 hours
+- **P0:** 0 hours (All resolved!)
+- **P1:** 316-446 hours (down from 320-450h)
+- **P2:** 341-472 hours (up from 340-470h due to Issue #2 moved from P0)
 - **P3:** 100-140 hours
-- **Total:** 769-1074 hours
+- **Total:** 757-1058 hours (down from 769-1074h)
+
+### Recent Fixes (2025-10-24)
+
+**Completed Issues:**
+
+- Issue #145: TypeScript Build Error - Already fixed ✅
+- Issue #47: Snap Visual Feedback - Fully implemented ✅
+- Issue #83: Duplicate Password Validation - Consolidated ✅
+- Issue #84: Orphaned Component Files - Deleted ✅
+- Issue #33: Redundant ErrorBoundary Export - Fixed ✅
+
+**Downgraded:**
+
+- Issue #2: Mixed Middleware Patterns - P0 → P2 (94% complete)
 
 ### Sprint Planning Suggestions
 
-**Sprint 1 - Critical Fixes (2 weeks):**
-
-- Issue #145 (Build Error) - 2h
-- Issue #47 (Snap Visual Feedback) - 6h
-- Issue #2 (Migrate to withAuth) - 6h
-- Issue #42 (Test Fixes) - 16h
-- Issue #52 (Upload Progress) - 6h
-- Issue #83 (Password Validation) - 2h
-- Issue #84 (Orphaned Files) - 1h
-- **Total: 39 hours**
-
-**Sprint 2 - Type Safety & API Standardization (2 weeks):**
+**Sprint 1 - Type Safety & API Standardization (2 weeks):**
 
 - Issue #4 (Return Types) - 30h
 - Issue #5 (API Response Formats) - 4h
 - Issue #6 (Input Validation) - 12h
-- **Total: 46 hours**
+- Issue #42 (Test Fixes) - 16h
+- **Total: 62 hours**
 
-**Sprint 3 - Timeline UX (3 weeks):**
+**Sprint 2 - Timeline UX (3 weeks):**
 
 - Issue #51 (Undo/Redo) - 32h
 - Issue #99 (Clip Trimming) - 20h
@@ -1096,3 +1024,11 @@ This document tracks all open issues in the codebase. Fixed/resolved issues are 
 - Issue #92 (Zoom UX) - 8h
 - Issue #25 (Scrolling) - 8h
 - **Total: 80 hours**
+
+**Sprint 3 - Performance & Infrastructure (2 weeks):**
+
+- Issue #50 (Timeline Performance) - 20h
+- Issue #46 (Database Indexes) - 6h
+- Issue #45 (Rate Limiting) - 10h
+- Issue #44 (Error Tracking) - 16h
+- **Total: 52 hours**
