@@ -49,7 +49,7 @@ export interface AuthOptions {
 export type AuthenticatedHandler<TParams = Record<string, never>> = (
   request: NextRequest,
   context: AuthContext & { params?: TParams }
-) => Promise<NextResponse>;
+) => Promise<Response>;
 
 /**
  * Extracts identifier for rate limiting
@@ -305,7 +305,7 @@ export interface AdminAuthContext extends AuthContext {
 export type AdminAuthenticatedHandler<TParams = Record<string, never>> = (
   request: NextRequest,
   context: AdminAuthContext & { params?: TParams }
-) => Promise<NextResponse>;
+) => Promise<Response>;
 
 /**
  * Admin authentication middleware wrapper for API routes
