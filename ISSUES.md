@@ -27,7 +27,6 @@ This document tracks all open issues in the codebase. Fixed/resolved issues are 
 
 ---
 
-
 ### Issue #6: Missing Input Validation Migration
 
 - **Status:** Open (12% complete)
@@ -430,6 +429,7 @@ All required indexes have been implemented in migration `20251024100000_add_perf
 - **Location:** `/lib/utils/timeFormatting.ts`
 
 **Resolution:**
+
 - Created consolidated time formatting utilities module at `/lib/utils/timeFormatting.ts`
 - Consolidated 5 duplicate `formatTime()` implementations into single module
 - Consolidated 2 duplicate `formatTimecode()` implementations
@@ -628,12 +628,55 @@ All required indexes have been implemented in migration `20251024100000_add_perf
 
 ### Issue #26: No Clip Locking Feature
 
-- **Status:** Open
+- **Status:** Fixed
 - **Priority:** P2
-- **Effort:** 4-6 hours
+- **Effort:** 4-6 hours (actual: ~4 hours)
 - **Impact:** Easy to accidentally move clips
+- **Fixed:** 2025-10-24
+- **Commit:** 028225c
 
-**Action:** Add lock/unlock toggle for clips
+**Implementation:**
+
+Added comprehensive clip locking functionality to prevent accidental edits:
+
+1. **Data Model:** Added `locked?: boolean` property to Clip type
+2. **State Management:** Implemented lock/unlock actions in EditorStore and TimelineStore:
+   - `lockClip(id)` - Lock a single clip
+   - `unlockClip(id)` - Unlock a single clip
+   - `toggleClipLock(id)` - Toggle lock state
+   - `lockSelectedClips()` - Lock all selected clips
+   - `unlockSelectedClips()` - Unlock all selected clips
+3. **UI Controls:**
+   - Lock icon button on each clip (yellow when locked)
+   - Lock/Unlock option in context menu with "L" shortcut hint
+   - Keyboard shortcut (L key) to toggle lock for selected clips
+4. **Visual Indicators:**
+   - Gray border and background tint for locked clips
+   - Cursor changes to not-allowed
+   - Lock icon badge in hover tooltip
+   - "Locked" property in clip properties modal
+5. **Behavior:**
+   - Locked clips cannot be dragged to new positions
+   - Locked clips cannot be trimmed
+   - Locked clips can still be selected
+
+**Files Modified:**
+
+- `/types/timeline.ts` - Added locked property to Clip type
+- `/state/useEditorStore.ts` - Added lock/unlock actions
+- `/state/useTimelineStore.ts` - Added lock/unlock actions
+- `/components/timeline/TimelineClipRenderer.tsx` - Added lock UI and visual indicators
+- `/components/timeline/TimelineContextMenu.tsx` - Added lock/unlock menu option
+- `/components/HorizontalTimeline.tsx` - Added lock checks to drag handlers
+- `/lib/hooks/useTimelineKeyboardShortcuts.ts` - Added L key shortcut
+
+**Testing:**
+
+- Build passes with no TypeScript errors
+- Lock state persists in timeline state
+- Locked clips cannot be moved or trimmed
+- Visual feedback clearly indicates locked state
+- Keyboard shortcut works for multiple selected clips
 
 ---
 
@@ -864,7 +907,6 @@ All required indexes have been implemented in migration `20251024100000_add_perf
 **Action:** Add branded favicon
 
 ---
-
 
 ### Issue #56: No Loading Animation
 
