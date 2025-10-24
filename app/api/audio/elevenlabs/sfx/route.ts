@@ -11,6 +11,7 @@ import {
   rateLimitResponse,
   internalServerError,
   withErrorHandling,
+  successResponse,
 } from '@/lib/api/response';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
 
@@ -204,8 +205,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     `ElevenLabs SFX generated successfully in ${executionTime}ms`
   );
 
-  return NextResponse.json({
-    success: true,
+  return successResponse({
     asset,
     url: publicUrl,
   });
