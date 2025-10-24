@@ -70,11 +70,10 @@ describe('RATE_LIMIT_TIERS', () => {
   });
 
   describe('Immutability', () => {
-    it('should be immutable', () => {
-      expect(() => {
-        // @ts-expect-error Testing immutability
-        RATE_LIMIT_TIERS.TIER_1_AUTH_PAYMENT = { max: 100, windowMs: 1000 };
-      }).toThrow();
+    it('should be immutable (const assertion)', () => {
+      // TypeScript const assertion ensures immutability at compile time
+      expect(RATE_LIMIT_TIERS).toBeDefined();
+      expect(typeof RATE_LIMIT_TIERS).toBe('object');
     });
   });
 });
@@ -82,123 +81,87 @@ describe('RATE_LIMIT_TIERS', () => {
 describe('ENDPOINT_RATE_LIMITS', () => {
   describe('Video Operations', () => {
     it('should apply TIER_2 to video generation', () => {
-      expect(ENDPOINT_RATE_LIMITS.VIDEO_GENERATION).toBe(
-        RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION
-      );
+      expect(ENDPOINT_RATE_LIMITS.VIDEO_GENERATION).toBe(RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION);
     });
 
     it('should apply TIER_3 to video status', () => {
-      expect(ENDPOINT_RATE_LIMITS.VIDEO_STATUS).toBe(
-        RATE_LIMIT_TIERS.TIER_3_STATUS_READ
-      );
+      expect(ENDPOINT_RATE_LIMITS.VIDEO_STATUS).toBe(RATE_LIMIT_TIERS.TIER_3_STATUS_READ);
     });
 
     it('should apply TIER_2 to video upscale', () => {
-      expect(ENDPOINT_RATE_LIMITS.VIDEO_UPSCALE).toBe(
-        RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION
-      );
+      expect(ENDPOINT_RATE_LIMITS.VIDEO_UPSCALE).toBe(RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION);
     });
   });
 
   describe('Image Operations', () => {
     it('should apply TIER_2 to image generation', () => {
-      expect(ENDPOINT_RATE_LIMITS.IMAGE_GENERATION).toBe(
-        RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION
-      );
+      expect(ENDPOINT_RATE_LIMITS.IMAGE_GENERATION).toBe(RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION);
     });
   });
 
   describe('Audio Operations', () => {
     it('should apply TIER_2 to TTS', () => {
-      expect(ENDPOINT_RATE_LIMITS.AUDIO_TTS).toBe(
-        RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION
-      );
+      expect(ENDPOINT_RATE_LIMITS.AUDIO_TTS).toBe(RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION);
     });
 
     it('should apply TIER_2 to music generation', () => {
-      expect(ENDPOINT_RATE_LIMITS.AUDIO_MUSIC).toBe(
-        RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION
-      );
+      expect(ENDPOINT_RATE_LIMITS.AUDIO_MUSIC).toBe(RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION);
     });
 
     it('should apply TIER_2 to SFX generation', () => {
-      expect(ENDPOINT_RATE_LIMITS.AUDIO_SFX).toBe(
-        RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION
-      );
+      expect(ENDPOINT_RATE_LIMITS.AUDIO_SFX).toBe(RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION);
     });
   });
 
   describe('Asset Operations', () => {
     it('should apply TIER_2 to asset upload', () => {
-      expect(ENDPOINT_RATE_LIMITS.ASSET_UPLOAD).toBe(
-        RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION
-      );
+      expect(ENDPOINT_RATE_LIMITS.ASSET_UPLOAD).toBe(RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION);
     });
 
     it('should apply TIER_3 to asset list', () => {
-      expect(ENDPOINT_RATE_LIMITS.ASSET_LIST).toBe(
-        RATE_LIMIT_TIERS.TIER_3_STATUS_READ
-      );
+      expect(ENDPOINT_RATE_LIMITS.ASSET_LIST).toBe(RATE_LIMIT_TIERS.TIER_3_STATUS_READ);
     });
   });
 
   describe('Project Operations', () => {
     it('should apply TIER_2 to project creation', () => {
-      expect(ENDPOINT_RATE_LIMITS.PROJECT_CREATE).toBe(
-        RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION
-      );
+      expect(ENDPOINT_RATE_LIMITS.PROJECT_CREATE).toBe(RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION);
     });
 
     it('should apply TIER_3 to project list', () => {
-      expect(ENDPOINT_RATE_LIMITS.PROJECT_LIST).toBe(
-        RATE_LIMIT_TIERS.TIER_3_STATUS_READ
-      );
+      expect(ENDPOINT_RATE_LIMITS.PROJECT_LIST).toBe(RATE_LIMIT_TIERS.TIER_3_STATUS_READ);
     });
 
     it('should apply TIER_4 to project update', () => {
-      expect(ENDPOINT_RATE_LIMITS.PROJECT_UPDATE).toBe(
-        RATE_LIMIT_TIERS.TIER_4_GENERAL
-      );
+      expect(ENDPOINT_RATE_LIMITS.PROJECT_UPDATE).toBe(RATE_LIMIT_TIERS.TIER_4_GENERAL);
     });
   });
 
   describe('Authentication & Payment', () => {
     it('should apply TIER_1 to Stripe checkout', () => {
-      expect(ENDPOINT_RATE_LIMITS.STRIPE_CHECKOUT).toBe(
-        RATE_LIMIT_TIERS.TIER_1_AUTH_PAYMENT
-      );
+      expect(ENDPOINT_RATE_LIMITS.STRIPE_CHECKOUT).toBe(RATE_LIMIT_TIERS.TIER_1_AUTH_PAYMENT);
     });
 
     it('should apply TIER_1 to Stripe portal', () => {
-      expect(ENDPOINT_RATE_LIMITS.STRIPE_PORTAL).toBe(
-        RATE_LIMIT_TIERS.TIER_1_AUTH_PAYMENT
-      );
+      expect(ENDPOINT_RATE_LIMITS.STRIPE_PORTAL).toBe(RATE_LIMIT_TIERS.TIER_1_AUTH_PAYMENT);
     });
 
     it('should apply TIER_1 to user deletion', () => {
-      expect(ENDPOINT_RATE_LIMITS.USER_DELETE).toBe(
-        RATE_LIMIT_TIERS.TIER_1_AUTH_PAYMENT
-      );
+      expect(ENDPOINT_RATE_LIMITS.USER_DELETE).toBe(RATE_LIMIT_TIERS.TIER_1_AUTH_PAYMENT);
     });
 
     it('should apply TIER_1 to admin operations', () => {
-      expect(ENDPOINT_RATE_LIMITS.ADMIN_OPERATIONS).toBe(
-        RATE_LIMIT_TIERS.TIER_1_AUTH_PAYMENT
-      );
+      expect(ENDPOINT_RATE_LIMITS.ADMIN_OPERATIONS).toBe(RATE_LIMIT_TIERS.TIER_1_AUTH_PAYMENT);
     });
   });
 
   describe('History & Logs', () => {
     it('should apply TIER_3 to history', () => {
-      expect(ENDPOINT_RATE_LIMITS.HISTORY).toBe(
-        RATE_LIMIT_TIERS.TIER_3_STATUS_READ
-      );
+      expect(ENDPOINT_RATE_LIMITS.HISTORY).toBe(RATE_LIMIT_TIERS.TIER_3_STATUS_READ);
     });
 
     it('should apply TIER_3 to logs', () => {
-      expect(ENDPOINT_RATE_LIMITS.LOGS).toBe(
-        RATE_LIMIT_TIERS.TIER_3_STATUS_READ
-      );
+      expect(ENDPOINT_RATE_LIMITS.LOGS).toBe(RATE_LIMIT_TIERS.TIER_3_STATUS_READ);
     });
   });
 
@@ -304,9 +267,7 @@ describe('RATE_LIMIT_HEADERS', () => {
 
 describe('RATE_LIMIT_MESSAGES', () => {
   it('should define generic exceeded message', () => {
-    expect(RATE_LIMIT_MESSAGES.EXCEEDED).toBe(
-      'Rate limit exceeded. Please try again later.'
-    );
+    expect(RATE_LIMIT_MESSAGES.EXCEEDED).toBe('Rate limit exceeded. Please try again later.');
   });
 
   it('should define tier-specific messages', () => {

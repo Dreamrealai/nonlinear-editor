@@ -38,50 +38,57 @@ export function useVideoGeneration(
   const [videoGenPending, setVideoGenPending] = useState(false);
   const [videoOperationName, setVideoOperationName] = useState<string | null>(null);
 
-  // Centralized polling hook for video status checks
-  const { startPolling: startVideoPolling, stopPolling: stopVideoPolling } = usePolling<{
+  // Define video status response type
+  interface VideoStatusResponse {
     done: boolean;
     error?: string;
     asset?: Record<string, unknown>;
-  }>({
-    interval: 10000, // 10 seconds
-    maxRetries: 100, // ~16 minutes max
-    pollFn: async () => {
-      if (!videoOperationName) {
-        throw new Error('No operation name set');
-      }
-      const response = await fetch(
-        `/api/video/status?operationName=${encodeURIComponent(videoOperationName)}&projectId=${projectId}`
-      );
-      return response.json();
-    },
-    shouldContinue: (result) => !result.done,
-    onComplete: (result) => {
-      if (result.error) {
-        toast.error(result.error, { id: 'generate-video' });
-        browserLogger.error({ error: result.error, projectId }, 'Video generation failed');
-      } else {
-        toast.success('Video generated successfully!', { id: 'generate-video' });
-        const mappedAsset = mapAssetRow(result.asset as Record<string, unknown>);
-        if (mappedAsset) {
-          onVideoGenerated(mappedAsset);
+  }
+
+  // Centralized polling hook for video status checks
+  const { startPolling: startVideoPolling, stopPolling: stopVideoPolling } =
+    usePolling<VideoStatusResponse>({
+      interval: 10000, // 10 seconds
+      maxRetries: 100, // ~16 minutes max
+      pollFn: async () => {
+        if (!videoOperationName) {
+          throw new Error('No operation name set');
         }
-      }
-      setVideoGenPending(false);
-      setVideoOperationName(null);
-    },
-    onError: (error) => {
-      browserLogger.error({ error, projectId }, 'Video generation polling failed');
-      toast.error(error.message, { id: 'generate-video' });
-      setVideoGenPending(false);
-      setVideoOperationName(null);
-    },
-    enableLogging: true,
-    logContext: { projectId, operation: 'video-generation' },
-  });
+        const response = await fetch(
+          `/api/video/status?operationName=${encodeURIComponent(videoOperationName)}&projectId=${projectId}`
+        );
+        return response.json();
+      },
+      shouldContinue: (result) => !result.done,
+      onComplete: (result) => {
+        if (result.error) {
+          toast.error(result.error, { id: 'generate-video' });
+          browserLogger.error({ error: result.error, projectId }, 'Video generation failed');
+        } else {
+          toast.success('Video generated successfully!', { id: 'generate-video' });
+          // mapAssetRow already handles Record<string, unknown> | undefined safely
+          if (result.asset) {
+            const mappedAsset = mapAssetRow(result.asset);
+            if (mappedAsset) {
+              onVideoGenerated(mappedAsset);
+            }
+          }
+        }
+        setVideoGenPending(false);
+        setVideoOperationName(null);
+      },
+      onError: (error) => {
+        browserLogger.error({ error, projectId }, 'Video generation polling failed');
+        toast.error(error.message, { id: 'generate-video' });
+        setVideoGenPending(false);
+        setVideoOperationName(null);
+      },
+      enableLogging: true,
+      logContext: { projectId, operation: 'video-generation' },
+    });
 
   const handleGenerateVideo = useCallback(
-    async (params: VideoGenerationParams) => {
+    async (params: VideoGenerationParams): Promise<void> => {
       // Stop any existing polling
       stopVideoPolling();
 

@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import {
   unauthorizedResponse,
   validationError,
   errorResponse,
   withErrorHandling,
+  successResponse,
 } from '@/lib/api/response';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
 import { serverLogger } from '@/lib/serverLogger';
@@ -90,7 +91,7 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
     );
   }
 
-  return NextResponse.json({
+  return successResponse({
     tasks: result.data,
   });
 });

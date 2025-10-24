@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 import { serverLogger } from '@/lib/serverLogger';
 import {
-  unauthorizedResponse,
   validationError,
   notFoundResponse,
   errorResponse,
   successResponse,
-  withErrorHandling,
 } from '@/lib/api/response';
 import { validateUUID, validateEnum, validateInteger, validateAll } from '@/lib/api/validation';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
+import { withAuth } from '@/lib/api/withAuth';
+import type { AuthenticatedHandler } from '@/lib/api/withAuth';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
 /**
  * Video Export API Endpoint
@@ -71,17 +71,7 @@ export interface ExportResponse {
 const VALID_FORMATS = ['mp4', 'webm'] as const;
 const VALID_TRANSITIONS = ['crossfade', 'fade-in', 'fade-out'] as const;
 
-export const POST = withErrorHandling(async (request: NextRequest) => {
-  // SECURITY: Verify user authentication
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return unauthorizedResponse();
-  }
-
+const handleExportCreate: AuthenticatedHandler = async (request, { user, supabase }) => {
   const exportEnabled = process.env['VIDEO_EXPORT_ENABLED'] === 'true';
 
   if (!exportEnabled) {
@@ -93,13 +83,15 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       'Video export requested but the export worker is not configured'
     );
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         error: 'Video export is not currently available.',
         help: 'Set VIDEO_EXPORT_ENABLED=true and configure a background worker to process export jobs.',
       },
       { status: 503 }
     );
+    console.log('returning export disabled status', response.status);
+    return response;
   }
 
   const body: ExportRequest = await request.json();
@@ -271,23 +263,19 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     estimatedTime: body.timeline.clips.length * 5, // Rough estimate: 5 seconds per clip
   };
 
-  return NextResponse.json(response, { status: 202 }); // 202 Accepted
+  return successResponse(response, undefined, 202); // 202 Accepted
+};
+
+export const POST = withAuth(handleExportCreate, {
+  route: '/api/export',
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
 });
 
 /**
  * GET /api/export?jobId=xxx
  * Check status of export job
  */
-export const GET = withErrorHandling(async (request: NextRequest) => {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return unauthorizedResponse();
-  }
-
+const handleExportStatus: AuthenticatedHandler = async (request, { user, supabase }) => {
   const jobId = request.nextUrl.searchParams.get('jobId');
 
   if (!jobId) {
@@ -336,4 +324,9 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   };
 
   return successResponse(response);
+};
+
+export const GET = withAuth(handleExportStatus, {
+  route: '/api/export',
+  rateLimit: RATE_LIMITS.tier3_status_read,
 });

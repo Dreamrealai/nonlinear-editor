@@ -93,7 +93,7 @@ let supabaseClient: SupabaseClient | null = null;
 
 function getSupabaseClient() {
   if (!supabaseClient) {
-    if (!isSupabaseServiceConfigured()) {
+    if (typeof isSupabaseServiceConfigured !== 'function' || !isSupabaseServiceConfigured()) {
       serverLogger.warn(
         {
           event: 'rateLimit.supabase_unavailable',

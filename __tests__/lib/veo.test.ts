@@ -36,7 +36,7 @@ describe('generateVideo', () => {
     };
 
     mockAuth = {
-      getClient: jest.fn().resolvedValue(mockClient),
+      getClient: jest.fn().mockResolvedValue(mockClient),
     };
 
     MockGoogleAuth.mockImplementation(() => mockAuth);
@@ -214,9 +214,9 @@ describe('generateVideo', () => {
     it('should throw error when GOOGLE_SERVICE_ACCOUNT not set', async () => {
       delete process.env.GOOGLE_SERVICE_ACCOUNT;
 
-      await expect(
-        generateVideo({ prompt: 'Test' })
-      ).rejects.toThrow('GOOGLE_SERVICE_ACCOUNT environment variable is required');
+      await expect(generateVideo({ prompt: 'Test' })).rejects.toThrow(
+        'GOOGLE_SERVICE_ACCOUNT environment variable is required'
+      );
     });
 
     it('should throw error when project_id missing', async () => {
@@ -224,9 +224,9 @@ describe('generateVideo', () => {
         client_email: 'test@test.iam.gserviceaccount.com',
       });
 
-      await expect(
-        generateVideo({ prompt: 'Test' })
-      ).rejects.toThrow('Could not extract project_id from GOOGLE_SERVICE_ACCOUNT');
+      await expect(generateVideo({ prompt: 'Test' })).rejects.toThrow(
+        'Could not extract project_id from GOOGLE_SERVICE_ACCOUNT'
+      );
     });
 
     it('should handle API error response', async () => {
@@ -238,9 +238,9 @@ describe('generateVideo', () => {
 
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 
-      await expect(
-        generateVideo({ prompt: 'Test' })
-      ).rejects.toThrow('Veo API error: 400 - Invalid request');
+      await expect(generateVideo({ prompt: 'Test' })).rejects.toThrow(
+        'Veo API error: 400 - Invalid request'
+      );
     });
 
     it('should handle request timeout', async () => {
@@ -262,9 +262,7 @@ describe('generateVideo', () => {
     it('should handle network error', async () => {
       (global.fetch as jest.Mock).mockRejectedValue(new Error('Network failure'));
 
-      await expect(
-        generateVideo({ prompt: 'Test' })
-      ).rejects.toThrow('Network failure');
+      await expect(generateVideo({ prompt: 'Test' })).rejects.toThrow('Network failure');
     });
   });
 
@@ -501,17 +499,17 @@ describe('checkOperationStatus', () => {
     it('should throw error when GOOGLE_SERVICE_ACCOUNT not set', async () => {
       delete process.env.GOOGLE_SERVICE_ACCOUNT;
 
-      await expect(
-        checkOperationStatus('op-123')
-      ).rejects.toThrow('GOOGLE_SERVICE_ACCOUNT environment variable is required');
+      await expect(checkOperationStatus('op-123')).rejects.toThrow(
+        'GOOGLE_SERVICE_ACCOUNT environment variable is required'
+      );
     });
 
     it('should throw error when project_id missing', async () => {
       process.env.GOOGLE_SERVICE_ACCOUNT = JSON.stringify({});
 
-      await expect(
-        checkOperationStatus('op-123')
-      ).rejects.toThrow('Could not extract project_id from GOOGLE_SERVICE_ACCOUNT');
+      await expect(checkOperationStatus('op-123')).rejects.toThrow(
+        'Could not extract project_id from GOOGLE_SERVICE_ACCOUNT'
+      );
     });
 
     it('should handle API error response', async () => {
@@ -523,9 +521,9 @@ describe('checkOperationStatus', () => {
 
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 
-      await expect(
-        checkOperationStatus('op-123')
-      ).rejects.toThrow('Operation status check failed: 404 - Operation not found');
+      await expect(checkOperationStatus('op-123')).rejects.toThrow(
+        'Operation status check failed: 404 - Operation not found'
+      );
     });
 
     it('should handle timeout', async () => {
@@ -585,9 +583,7 @@ describe('cancelOperation', () => {
 
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 
-      await cancelOperation(
-        'projects/test-project/locations/us-central1/operations/op-123'
-      );
+      await cancelOperation('projects/test-project/locations/us-central1/operations/op-123');
 
       expect(global.fetch).toHaveBeenCalledWith(
         'https://us-central1-aiplatform.googleapis.com/v1/projects/test-project/locations/us-central1/operations/op-123:cancel',
@@ -632,9 +628,9 @@ describe('cancelOperation', () => {
     it('should throw error when GOOGLE_SERVICE_ACCOUNT not set', async () => {
       delete process.env.GOOGLE_SERVICE_ACCOUNT;
 
-      await expect(
-        cancelOperation('op-123')
-      ).rejects.toThrow('GOOGLE_SERVICE_ACCOUNT environment variable is required');
+      await expect(cancelOperation('op-123')).rejects.toThrow(
+        'GOOGLE_SERVICE_ACCOUNT environment variable is required'
+      );
     });
   });
 });

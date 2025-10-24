@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { checkOperationStatus } from '@/lib/veo';
 import { checkFalVideoStatus } from '@/lib/fal-video';
 import { createServerSupabaseClient } from '@/lib/supabase';
@@ -9,13 +9,15 @@ import {
   validationError,
   withErrorHandling,
   rateLimitResponse,
+  successResponse,
 } from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 
-const normalizeStorageUrl = (bucket: string, path: string) => `supabase://${bucket}/${path}`;
+const normalizeStorageUrl = (bucket: string, path: string): string =>
+  `supabase://${bucket}/${path}`;
 
-const parseGcsUri = (uri: string) => {
+const parseGcsUri = (uri: string): { bucket: string; objectPath: string } | null => {
   const normalized = uri.replace(/^gs:\/\//, '');
   const [bucket, ...rest] = normalized.split('/');
   if (!bucket || rest.length === 0) {
@@ -256,7 +258,7 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
         `FAL video generation completed successfully in ${duration}ms`
       );
 
-      return NextResponse.json({
+      return successResponse({
         done: true,
         asset,
       });
@@ -274,7 +276,7 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
         'FAL video generation failed'
       );
 
-      return NextResponse.json({
+      return successResponse({
         done: true,
         error: falResult.error,
       });
@@ -291,7 +293,7 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
       'FAL video still processing'
     );
 
-    return NextResponse.json({
+    return successResponse({
       done: false,
       progress: 0,
     });
@@ -442,7 +444,7 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
       `Veo video generation completed successfully in ${duration}ms`
     );
 
-    return NextResponse.json({
+    return successResponse({
       done: true,
       asset,
     });
@@ -473,7 +475,7 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
     );
   }
 
-  return NextResponse.json({
+  return successResponse({
     done: result.done,
     progress: result.metadata?.progressPercentage || 0,
     error: result.error?.message,

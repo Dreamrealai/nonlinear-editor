@@ -63,48 +63,17 @@ export interface AssetRow {
 }
 
 /**
- * Type guard to check if an object is a BaseAssetRow
+ * Type guard to check if an object is a full AssetRow
  */
-export function isBaseAssetRow(obj: unknown): obj is BaseAssetRow {
+export function isAssetRow(obj: unknown): obj is AssetRow {
   return (
     typeof obj === 'object' &&
     obj !== null &&
     'id' in obj &&
     'storage_url' in obj &&
-    typeof (obj as BaseAssetRow).id === 'string' &&
-    typeof (obj as BaseAssetRow).storage_url === 'string'
-  );
-}
-
-/**
- * Type guard to check if an object is a full AssetRow
- */
-export function isAssetRow(obj: unknown): obj is AssetRow {
-  return (
-    isBaseAssetRow(obj) &&
+    typeof (obj as AssetRow).id === 'string' &&
+    typeof (obj as AssetRow).storage_url === 'string' &&
     'type' in obj &&
     ['video', 'audio', 'image'].includes((obj as AssetRow).type)
   );
-}
-
-/**
- * Convert BaseAssetRow to AssetRow format
- * Used when upgrading from simplified to full asset representation
- */
-export function baseAssetToAssetRow(
-  base: BaseAssetRow,
-  type: AssetRow['type'],
-  durationSeconds?: number | null,
-  createdAt?: string | null
-): AssetRow {
-  return {
-    id: base.id,
-    storage_url: base.storage_url,
-    duration_seconds: durationSeconds ?? null,
-    metadata: (base.metadata as AssetMetadata | null) ?? null,
-    rawMetadata: base.metadata,
-    created_at: createdAt ?? null,
-    type,
-    title: base.title,
-  };
 }

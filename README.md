@@ -1,6 +1,6 @@
 # Non-Linear Video Editor
 
-A modern, browser-based non-linear video editor built with Next.js 15, React 19, and Supabase.
+A modern, browser-based non-linear video editor built with Next.js 16, React 19, and Supabase.
 
 ## Project Status
 
@@ -82,8 +82,8 @@ See [Test Success Report](docs/reports/TEST_SUCCESS_REPORT.md) for detailed test
 
 ## Tech Stack
 
-- **Framework:** Next.js 15.5.6 (App Router)
-- **UI:** React 19.1.0
+- **Framework:** Next.js 16.0.0 (App Router)
+- **UI:** React 19.2.0
 - **Styling:** Tailwind CSS 4.0
 - **Database:** Supabase (PostgreSQL)
 - **Auth:** Supabase Auth
@@ -597,7 +597,7 @@ MIT License - see LICENSE file for details.
 
 ## Acknowledgments
 
-- Built with [Next.js 15](https://nextjs.org)
+- Built with [Next.js 16](https://nextjs.org)
 - Powered by [Supabase](https://supabase.com)
 - AI features by [Google Gemini](https://ai.google.dev) and [Google Veo](https://deepmind.google/technologies/veo/)
 - State management by [Zustand](https://github.com/pmndrs/zustand)

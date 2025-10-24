@@ -13,6 +13,7 @@ import {
   unauthorizedResponse,
   errorResponse,
   badRequestResponse,
+  successResponse,
 } from '@/lib/api/response';
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
@@ -259,7 +260,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       `Checkout session created successfully in ${duration}ms`
     );
 
-    return NextResponse.json({
+    return successResponse({
       sessionId: session.id,
       url: session.url,
     });

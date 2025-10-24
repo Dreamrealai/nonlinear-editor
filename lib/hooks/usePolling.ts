@@ -115,7 +115,7 @@ export function usePolling<T>(options: PollingOptions<T>): UsePollingReturn {
   const retryCountRef = useRef<number>(0);
 
   // Cleanup function to stop polling and cancel requests
-  const cleanup = useCallback(() => {
+  const cleanup = useCallback((): void => {
     if (pollingTimeoutRef.current) {
       clearTimeout(pollingTimeoutRef.current);
       pollingTimeoutRef.current = null;
@@ -127,7 +127,7 @@ export function usePolling<T>(options: PollingOptions<T>): UsePollingReturn {
   }, []);
 
   // Reset state
-  const reset = useCallback(() => {
+  const reset = useCallback((): void => {
     cleanup();
     setIsPolling(false);
     setRetryCount(0);
@@ -136,7 +136,7 @@ export function usePolling<T>(options: PollingOptions<T>): UsePollingReturn {
   }, [cleanup]);
 
   // Main polling function
-  const poll = useCallback(async () => {
+  const poll = useCallback(async (): Promise<void> => {
     // Check if we've exceeded max retries
     if (retryCountRef.current >= maxRetries) {
       cleanup();
@@ -145,11 +145,14 @@ export function usePolling<T>(options: PollingOptions<T>): UsePollingReturn {
       setIsPolling(false);
 
       if (enableLogging) {
-        browserLogger.warn({
-          event: 'polling.timeout',
-          retries: maxRetries,
-          ...logContext,
-        }, `Polling timed out after ${maxRetries} attempts`);
+        browserLogger.warn(
+          {
+            event: 'polling.timeout',
+            retries: maxRetries,
+            ...logContext,
+          },
+          `Polling timed out after ${maxRetries} attempts`
+        );
       }
 
       if (onError) {
@@ -167,12 +170,15 @@ export function usePolling<T>(options: PollingOptions<T>): UsePollingReturn {
 
       if (enableLogging && retryCountRef.current % 10 === 0) {
         // Log every 10th poll to avoid spam
-        browserLogger.debug({
-          event: 'polling.progress',
-          attempt: retryCountRef.current,
-          maxRetries,
-          ...logContext,
-        }, `Polling attempt ${retryCountRef.current}/${maxRetries}`);
+        browserLogger.debug(
+          {
+            event: 'polling.progress',
+            attempt: retryCountRef.current,
+            maxRetries,
+            ...logContext,
+          },
+          `Polling attempt ${retryCountRef.current}/${maxRetries}`
+        );
       }
 
       // Execute poll function
@@ -188,11 +194,14 @@ export function usePolling<T>(options: PollingOptions<T>): UsePollingReturn {
         setIsPolling(false);
 
         if (enableLogging) {
-          browserLogger.info({
-            event: 'polling.complete',
-            attempts: retryCountRef.current,
-            ...logContext,
-          }, `Polling completed after ${retryCountRef.current} attempts`);
+          browserLogger.info(
+            {
+              event: 'polling.complete',
+              attempts: retryCountRef.current,
+              ...logContext,
+            },
+            `Polling completed after ${retryCountRef.current} attempts`
+          );
         }
 
         onComplete(result);
@@ -210,12 +219,15 @@ export function usePolling<T>(options: PollingOptions<T>): UsePollingReturn {
       setLastError(pollError);
 
       if (enableLogging) {
-        browserLogger.error({
-          event: 'polling.error',
-          error: pollError,
-          attempts: retryCountRef.current,
-          ...logContext,
-        }, 'Polling failed with error');
+        browserLogger.error(
+          {
+            event: 'polling.error',
+            error: pollError,
+            attempts: retryCountRef.current,
+            ...logContext,
+          },
+          'Polling failed with error'
+        );
       }
 
       if (onError) {
@@ -235,7 +247,7 @@ export function usePolling<T>(options: PollingOptions<T>): UsePollingReturn {
   ]);
 
   // Start polling
-  const startPolling = useCallback(() => {
+  const startPolling = useCallback((): void => {
     // Clean up any existing polling
     cleanup();
 
@@ -246,12 +258,15 @@ export function usePolling<T>(options: PollingOptions<T>): UsePollingReturn {
     setIsPolling(true);
 
     if (enableLogging) {
-      browserLogger.info({
-        event: 'polling.started',
-        interval,
-        maxRetries,
-        ...logContext,
-      }, 'Polling started');
+      browserLogger.info(
+        {
+          event: 'polling.started',
+          interval,
+          maxRetries,
+          ...logContext,
+        },
+        'Polling started'
+      );
     }
 
     // Start polling with initial delay
@@ -259,16 +274,19 @@ export function usePolling<T>(options: PollingOptions<T>): UsePollingReturn {
   }, [poll, cleanup, interval, maxRetries, enableLogging, logContext]);
 
   // Stop polling
-  const stopPolling = useCallback(() => {
+  const stopPolling = useCallback((): void => {
     cleanup();
     setIsPolling(false);
 
     if (enableLogging) {
-      browserLogger.info({
-        event: 'polling.stopped',
-        attempts: retryCountRef.current,
-        ...logContext,
-      }, 'Polling stopped manually');
+      browserLogger.info(
+        {
+          event: 'polling.stopped',
+          attempts: retryCountRef.current,
+          ...logContext,
+        },
+        'Polling stopped manually'
+      );
     }
   }, [cleanup, enableLogging, logContext]);
 

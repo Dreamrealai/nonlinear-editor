@@ -1,24 +1,57 @@
 # Documentation Index
 
-This directory contains all project documentation organized by category.
+This directory contains all project documentation organized for easy discovery and navigation.
 
 ## 🚀 Quick Start
 
-### Essential Documentation
+### New to the Project?
 
-- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - **NEW!** Comprehensive project status dashboard with all active workstreams, sprint planning, and progress tracking
-- **[ISSUETRACKING.md](./issues/ISSUETRACKING.md)** - Detailed issue tracking and resolution history
-- **[CODING_BEST_PRACTICES.md](./CODING_BEST_PRACTICES.md)** - Essential coding patterns and standards
-- **[TESTING.md](./TESTING.md)** - Testing guidelines and best practices
-- **[ARCHITECTURE_OVERVIEW.md](./ARCHITECTURE_OVERVIEW.md)** - System architecture and design
+Start here for essential onboarding documentation:
 
-### Recent Reports
+1. **[Getting Started](/docs/getting-started/)** - Setup guides and configuration
+2. **[Architecture Overview](/docs/ARCHITECTURE_OVERVIEW.md)** - System design and patterns
+3. **[Coding Best Practices](/docs/CODING_BEST_PRACTICES.md)** - Code standards and patterns
+4. **[Project Status](/docs/PROJECT_STATUS.md)** - Current status and active workstreams
 
-- **[TEST_SUCCESS_REPORT.md](./reports/TEST_SUCCESS_REPORT.md)** - Current test status (87.3% pass rate)
-- **[FINAL_QUALITY_AUDIT.md](./reports/FINAL_QUALITY_AUDIT.md)** - Code quality assessment (B+ / 7.2/10)
-- **[BUNDLE_ANALYSIS.md](./reports/BUNDLE_ANALYSIS.md)** - Bundle size optimization analysis
+### Looking for Something Specific?
 
-## Directory Structure
+- **APIs** → [`/docs/api/`](#api---api-documentation)
+- **Performance** → [`/docs/guides/PERFORMANCE.md`](/docs/guides/PERFORMANCE.md)
+- **Caching** → [`/docs/guides/CACHING.md`](/docs/guides/CACHING.md)
+- **Security** → [`/docs/security/`](#security---security-documentation)
+- **Testing** → [`/docs/TESTING.md`](/docs/TESTING.md)
+- **Setup** → [`/docs/setup/`](#setup---configuration-guides)
+
+---
+
+## 📁 Directory Structure
+
+### `/guides/` - Implementation Guides
+
+**NEW!** Comprehensive guides for key system features:
+
+- **[PERFORMANCE.md](./guides/PERFORMANCE.md)** - Complete performance optimization guide
+  - Web Vitals tracking
+  - React & bundle optimization
+  - Database query optimization
+  - Caching strategies
+  - Memory management
+  - Monitoring & metrics
+
+- **[CACHING.md](./guides/CACHING.md)** - Complete caching layer guide
+  - Quick start & usage
+  - Architecture overview
+  - Implementation details
+  - Cache invalidation strategies
+  - Performance impact (80-90% query reduction)
+  - Monitoring & troubleshooting
+
+### `/getting-started/` - Setup and Configuration
+
+**NEW!** Essential setup documentation for new developers:
+
+- Coming soon: Comprehensive getting-started guides
+- Environment variables documentation (currently in `/setup/`)
 
 ### `/api/` - API Documentation
 
@@ -29,6 +62,24 @@ Complete API documentation for all services, endpoints, and external integration
 - [API_DOCUMENTATION.md](./api/API_DOCUMENTATION.md) - Complete API reference for all endpoints
 - [API_DOCUMENTATION_SUMMARY.md](./api/API_DOCUMENTATION_SUMMARY.md) - API documentation summary
 - [API_QUICK_REFERENCE.md](./api/API_QUICK_REFERENCE.md) - Quick reference guide
+- [API_EXAMPLES.md](./api/API_EXAMPLES.md) - Code examples for common API operations
+
+**Service Provider Documentation:**
+
+- **[`/api/providers/google/`](./api/providers/google/)** - Google AI & Cloud services
+  - [VEO2.md](./api/providers/google/VEO2.md) - Veo 2 video generation
+  - [VEO3.md](./api/providers/google/VEO3.md) - Veo 3 video generation
+  - [GEMINI.md](./api/providers/google/GEMINI.md) - Gemini multimodal AI
+  - [IMAGEN.md](./api/providers/google/IMAGEN.md) - Imagen image generation
+  - [CLOUD_VISION.md](./api/providers/google/CLOUD_VISION.md) - Cloud Vision video analysis
+  - [README.md](./api/providers/google/README.md) - Google provider overview
+
+- **[`/api/providers/elevenlabs/`](./api/providers/elevenlabs/)** - Audio generation services
+  - [ELEVENLABS_TTS.md](./api/providers/elevenlabs/ELEVENLABS_TTS.md) - ElevenLabs text-to-speech
+  - [ELEVENLABS_FAL.md](./api/providers/elevenlabs/ELEVENLABS_FAL.md) - FAL ElevenLabs integration
+
+- **[`/api/providers/`](./api/providers/)** - Other providers
+  - [SUNO_COMET.md](./api/providers/SUNO_COMET.md) - Suno/Comet audio generation
 
 **External Service APIs:**
 
@@ -50,17 +101,6 @@ Complete API documentation for all services, endpoints, and external integration
 - [fal-pixverse.md](./api/fal-pixverse.md) - Pixverse video generation
 - [fal-sora-2.md](./api/fal-sora-2.md) - Sora 2 video generation
 - [minimax.md](./api/minimax.md) - Minimax API
-- [VEO2_VIDEO_GOOGLE_DOCUMENTATION.md](./api/VEO2_VIDEO_GOOGLE_DOCUMENTATION.md) - Google Veo 2
-- [VEO3_VIDEO_GOOGLE_DOCUMENTATION.md](./api/VEO3_VIDEO_GOOGLE_DOCUMENTATION.md) - Google Veo 3
-
-**Additional APIs:**
-
-- [CLOUDVISION_VIDEOANALYSIS_GOOGLE_DOCUMENTATION.md](./api/CLOUDVISION_VIDEOANALYSIS_GOOGLE_DOCUMENTATION.md) - Video analysis
-- [ELEVENLABS_TTS_ELEVENLABS_DOCUMENTATION.md](./api/ELEVENLABS_TTS_ELEVENLABS_DOCUMENTATION.md) - ElevenLabs TTS
-- [ELEVENLABS_TTS_FAL_DOCUMENTATION.md](./api/ELEVENLABS_TTS_FAL_DOCUMENTATION.md) - FAL ElevenLabs integration
-- [GEMINI25FLASH_MULTIMODAL_GOOGLE_DOCUMENTATION.md](./api/GEMINI25FLASH_MULTIMODAL_GOOGLE_DOCUMENTATION.md) - Gemini 2.5 Flash
-- [IMAGEN_IMAGE_GOOGLE_DOCUMENTATION.md](./api/IMAGEN_IMAGE_GOOGLE_DOCUMENTATION.md) - Google Imagen
-- [SUNO_AUDIO_COMET_DOCUMENTATION.md](./api/SUNO_AUDIO_COMET_DOCUMENTATION.md) - Suno audio
 
 **API Audit Reports:**
 
@@ -84,7 +124,7 @@ Security policies, audits, and implementation guides.
 - [SECURITY_AUDIT.md](./security/SECURITY_AUDIT.md) - Security audit results
 - [CORS_SECURITY_IMPLEMENTATION_SUMMARY.md](./security/CORS_SECURITY_IMPLEMENTATION_SUMMARY.md) - CORS security implementation summary
 
-### `/setup/` - Setup Guides
+### `/setup/` - Configuration Guides
 
 Configuration and setup instructions for various services and environments.
 
@@ -112,57 +152,114 @@ Issue tracking and resolution reports.
 
 Comprehensive reports, audit logs, validation reports, and codebase analysis.
 
-- [AUDIT_LOG_INTEGRATION_EXAMPLES.md](./reports/AUDIT_LOG_INTEGRATION_EXAMPLES.md) - Audit logging integration examples
+**Recent Key Reports:**
+
+- [TEST_SUCCESS_REPORT.md](./reports/TEST_SUCCESS_REPORT.md) - Current test status (87.3% pass rate)
+- [FINAL_QUALITY_AUDIT.md](./reports/FINAL_QUALITY_AUDIT.md) - Code quality assessment (B+ / 7.2/10)
+- [BUNDLE_ANALYSIS.md](./reports/BUNDLE_ANALYSIS.md) - Bundle size optimization analysis
+
+**Implementation Reports:**
+
 - [AUDIT_LOGGING_IMPLEMENTATION.md](./reports/AUDIT_LOGGING_IMPLEMENTATION.md) - Audit logging implementation
-- [AUDIT_LOGGING_SUMMARY.md](./reports/AUDIT_LOGGING_SUMMARY.md) - Audit logging summary
-- [AUTHENTICATION_AND_SUBSCRIPTION_ANALYSIS.md](./reports/AUTHENTICATION_AND_SUBSCRIPTION_ANALYSIS.md) - Authentication and subscription analysis
 - [CACHING_IMPLEMENTATION.md](./reports/CACHING_IMPLEMENTATION.md) - Caching layer implementation report
-- [CACHING_STRATEGY.md](./reports/CACHING_STRATEGY.md) - Caching strategy documentation
-- [CACHING_SUMMARY.md](./reports/CACHING_SUMMARY.md) - Caching implementation summary
+- [E2E-IMPLEMENTATION-REPORT.md](./reports/E2E-IMPLEMENTATION-REPORT.md) - End-to-end testing implementation
+
+**Analysis & Audits:**
+
+- [AUTHENTICATION_AND_SUBSCRIPTION_ANALYSIS.md](./reports/AUTHENTICATION_AND_SUBSCRIPTION_ANALYSIS.md) - Authentication and subscription analysis
 - [CODEBASE_ANALYSIS.md](./reports/CODEBASE_ANALYSIS.md) - Comprehensive codebase analysis
 - [COMPREHENSIVE_EVALUATION_REPORT.md](./reports/COMPREHENSIVE_EVALUATION_REPORT.md) - Comprehensive project evaluation
-- [CRITICAL_FIXES_SUMMARY.md](./reports/CRITICAL_FIXES_SUMMARY.md) - Critical fixes summary
-- [DEPLOYMENT_STATUS.md](./reports/DEPLOYMENT_STATUS.md) - Deployment status report
-- [E2E-IMPLEMENTATION-REPORT.md](./reports/E2E-IMPLEMENTATION-REPORT.md) - End-to-end testing implementation
-- [HIGH-015-COMPLETION-REPORT.md](./reports/HIGH-015-COMPLETION-REPORT.md) - HIGH-015 completion report
-- [IMPLEMENTATION_NOTES.md](./reports/IMPLEMENTATION_NOTES.md) - General implementation notes
-- [IMPROVEMENTS_SUMMARY.md](./reports/IMPROVEMENTS_SUMMARY.md) - Project improvements summary
-- [KEYFRAME_EDITOR_REVIEW.md](./reports/KEYFRAME_EDITOR_REVIEW.md) - Keyframe editor review
-- [NEXT_10_FIXES_REPORT.md](./reports/NEXT_10_FIXES_REPORT.md) - Next 10 fixes report
-- [PERFORMANCE_OPTIMIZATIONS.md](./reports/PERFORMANCE_OPTIMIZATIONS.md) - Performance optimizations report
 - [QUALITY_VALIDATION_REPORT.md](./reports/QUALITY_VALIDATION_REPORT.md) - Quality validation report
-- [SERVICE_LAYER_IMPROVEMENTS_SUMMARY.md](./reports/SERVICE_LAYER_IMPROVEMENTS_SUMMARY.md) - Service layer improvements
-- [SUBSCRIPTION_ANALYSIS_INDEX.md](./reports/SUBSCRIPTION_ANALYSIS_INDEX.md) - Subscription analysis index
-- [SUBSCRIPTION_IMPLEMENTATION_TEMPLATES.md](./reports/SUBSCRIPTION_IMPLEMENTATION_TEMPLATES.md) - Subscription implementation templates
-- [SUBSCRIPTION_QUICK_REFERENCE.md](./reports/SUBSCRIPTION_QUICK_REFERENCE.md) - Subscription quick reference
-- [TOPAZ_VIDEO_UPSCALE.md](./reports/TOPAZ_VIDEO_UPSCALE.md) - Topaz video upscale documentation
-- [VALIDATION_GAPS_REPORT.md](./reports/VALIDATION_GAPS_REPORT.md) - Validation gaps report
-- [VALIDATION_REPORT.md](./reports/VALIDATION_REPORT.md) - Validation report
-- [VERIFICATION_REPORT.md](./reports/VERIFICATION_REPORT.md) - Verification report
 
-## Root-Level Guides
+**[Full Reports List →](./reports/)**
 
-Core guides and references in the docs directory:
+---
 
-- [AXIOM_SETUP.md](./AXIOM_SETUP.md) - Axiom logging setup guide
-- [CACHING.md](./CACHING.md) - Caching layer developer usage guide
-- [LOGGING.md](./LOGGING.md) - Logging implementation guide
-- [PERFORMANCE.md](./PERFORMANCE.md) - Performance optimization guide (includes database indexes)
-- [RATE_LIMITING.md](./RATE_LIMITING.md) - Rate limiting implementation
+## 📖 Core Documentation (Root Level)
+
+Essential guides and references in the docs directory:
+
+**System Architecture & Design:**
+
+- [ARCHITECTURE_OVERVIEW.md](./ARCHITECTURE_OVERVIEW.md) - System architecture and design patterns
+- [CODING_BEST_PRACTICES.md](./CODING_BEST_PRACTICES.md) - Essential coding patterns and standards
+- [STYLE_GUIDE.md](./STYLE_GUIDE.md) - Code formatting and conventions
 - [SERVICE_LAYER_GUIDE.md](./SERVICE_LAYER_GUIDE.md) - Service layer architecture guide
+
+**Infrastructure & Operations:**
+
+- [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) - Infrastructure overview and deployment
+- [AXIOM_SETUP.md](./AXIOM_SETUP.md) - Axiom logging setup guide
+- [LOGGING.md](./LOGGING.md) - Logging implementation guide
+- [RATE_LIMITING.md](./RATE_LIMITING.md) - Rate limiting implementation
 - [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) - Supabase setup and configuration
+
+**Testing & Quality:**
+
 - [TESTING.md](./TESTING.md) - Testing guide and best practices
+- [TEST_FIXES_GUIDE.md](./TEST_FIXES_GUIDE.md) - Test fixing guide
+- [E2E_TESTING_GUIDE.md](./E2E_TESTING_GUIDE.md) - End-to-end testing guide
+- [E2E_CI_CD_SETUP.md](./E2E_CI_CD_SETUP.md) - E2E CI/CD setup
+- [E2E_TEST_RESULTS.md](./E2E_TEST_RESULTS.md) - E2E test results
 
-## Quick Links
+**Project Management:**
 
-- **Getting Started**: See [/setup/](./setup/) for configuration and setup guides
-- **API Reference**: See [/api/API_QUICK_REFERENCE.md](./api/API_QUICK_REFERENCE.md)
-- **Security**: See [/security/SECURITY.md](./security/SECURITY.md)
-- **Issue Tracking**: See [/issues/ISSUETRACKING.md](./issues/ISSUETRACKING.md)
-- **Architecture**: See [/architecture/ARCHITECTURE_STANDARDS.md](./architecture/ARCHITECTURE_STANDARDS.md)
-- **Performance**: See [PERFORMANCE.md](./PERFORMANCE.md)
-- **Caching**: See [CACHING.md](./CACHING.md)
+- [PROJECT_STATUS.md](./PROJECT_STATUS.md) - Comprehensive project status dashboard
+- [KEYBOARD_SHORTCUTS.md](./KEYBOARD_SHORTCUTS.md) - Editor keyboard shortcuts
 
-## Navigation
+**Security & Compliance:**
+
+- [SECURITY_AUDIT_REPORT.md](./SECURITY_AUDIT_REPORT.md) - Security audit report
+- [SECURITY_RECOMMENDATIONS.md](./SECURITY_RECOMMENDATIONS.md) - Security recommendations
+- [SECURITY_DEPLOYMENT_GUIDE.md](./SECURITY_DEPLOYMENT_GUIDE.md) - Security deployment guide
+- [SECURITY_TEST_COVERAGE.md](./SECURITY_TEST_COVERAGE.md) - Security test coverage
+
+**Performance & Optimization:**
+
+- [MEMORY_OPTIMIZATION_GUIDE.md](./MEMORY_OPTIMIZATION_GUIDE.md) - Memory optimization guide
+- [MEMORY_LEAK_VERIFICATION_REPORT.md](./MEMORY_LEAK_VERIFICATION_REPORT.md) - Memory leak verification
+- [PRODUCTION_MONITORING_MEMORY_LEAKS.md](./PRODUCTION_MONITORING_MEMORY_LEAKS.md) - Production memory monitoring
+- [POLLING_CLEANUP_FIX.md](./POLLING_CLEANUP_FIX.md) - Polling cleanup fixes
+- [ACCESSIBILITY_FIXES.md](./ACCESSIBILITY_FIXES.md) - Accessibility improvements
+
+**API & Integration:**
+
+- [API_VERSIONING.md](./API_VERSIONING.md) - API versioning strategy
+
+---
+
+## 🔍 Quick Links
+
+| Category            | Link                                                                                | Description                    |
+| ------------------- | ----------------------------------------------------------------------------------- | ------------------------------ |
+| **Getting Started** | [/setup/](./setup/)                                                                 | Configuration and setup guides |
+| **API Reference**   | [/api/API_QUICK_REFERENCE.md](./api/API_QUICK_REFERENCE.md)                         | Quick API reference            |
+| **Security**        | [/security/SECURITY.md](./security/SECURITY.md)                                     | Security policies              |
+| **Issue Tracking**  | [/issues/ISSUETRACKING.md](./issues/ISSUETRACKING.md)                               | Issue tracking                 |
+| **Architecture**    | [/architecture/ARCHITECTURE_STANDARDS.md](./architecture/ARCHITECTURE_STANDARDS.md) | Architecture standards         |
+| **Performance**     | [/guides/PERFORMANCE.md](./guides/PERFORMANCE.md)                                   | Performance optimization       |
+| **Caching**         | [/guides/CACHING.md](./guides/CACHING.md)                                           | Caching implementation         |
+| **Testing**         | [TESTING.md](./TESTING.md)                                                          | Testing practices              |
+
+---
+
+## 📚 Historical Documentation
+
+For historical reports and superseded documentation, see:
+
+- **[/archive/](../archive/)** - Archived reports and session summaries
+- **[/archive/ARCHIVE_INDEX.md](../archive/ARCHIVE_INDEX.md)** - Complete index of archived files
+
+The archive contains completed work, resolved issues, and optimization reports that document the project's journey to production readiness.
+
+---
+
+## 🧭 Navigation
 
 Return to the [main README](../README.md) for project overview and getting started information.
+
+---
+
+**Last Updated**: 2025-10-24
+**Documentation Files**: 128 files
+**Key Consolidations**: Performance (2→1), Caching (4→1), API providers (organized by vendor)

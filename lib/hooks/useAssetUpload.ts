@@ -116,7 +116,7 @@ export function useAssetUpload(
   onUploadSuccess: () => Promise<void>
 ): UseAssetUploadReturn {
   const handleAssetUpload = useCallback(
-    async (file: File) => {
+    async (file: File): Promise<void> => {
       const type = getAssetTypeFromMimeType(file.type);
 
       try {

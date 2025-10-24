@@ -60,10 +60,10 @@ export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQu
 
   // Start polling for a specific video
   const startPolling = useCallback(
-    (videoId: string, operationName: string) => {
+    (videoId: string, operationName: string): void => {
       const pollInterval = POLLING_CONFIG.INTERVALS.VIDEO_STATUS;
 
-      const poll = async () => {
+      const poll = async (): Promise<void> => {
         try {
           const statusRes = await fetch(
             `/api/video/status?operationName=${encodeURIComponent(operationName)}&projectId=${projectId}`
@@ -188,7 +188,7 @@ export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQu
 
   // Generate a new video
   const generateVideo = useCallback(
-    async (formState: VideoGenerationFormState, imageAssetId?: string) => {
+    async (formState: VideoGenerationFormState, imageAssetId?: string): Promise<void> => {
       // Validate form
       const validation = validateVideoGenerationForm(formState.prompt, videoQueue.length);
       if (!validation.valid) {
@@ -250,7 +250,7 @@ export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQu
   );
 
   // Remove a video from queue
-  const removeVideo = useCallback((videoId: string) => {
+  const removeVideo = useCallback((videoId: string): void => {
     // Clear polling interval if exists
     const interval = pollingIntervalsRef.current.get(videoId);
     if (interval) {
@@ -262,7 +262,7 @@ export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQu
   }, []);
 
   // Clear completed videos
-  const clearCompleted = useCallback(() => {
+  const clearCompleted = useCallback((): void => {
     setVideoQueue((prev) => filterCompletedItems(prev));
   }, []);
 

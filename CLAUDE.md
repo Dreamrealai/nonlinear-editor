@@ -20,6 +20,173 @@ When making changes to this project:
 
 This ensures all changes are properly built, tested, and version controlled before being pushed to the repository.
 
+## Document Management
+
+**CRITICAL**: Before creating ANY new markdown document, you MUST follow this protocol to prevent document proliferation.
+
+### Document Creation Protocol
+
+**ALWAYS follow these steps in order:**
+
+1. **Check for existing documents FIRST**
+
+   ```bash
+   # Search for existing issue/analysis documents
+   ls -la *.md | grep -iE "(issue|analysis|report|validation|tracking)"
+
+   # Check if ISSUES.md exists (canonical issue tracker)
+   test -f ISSUES.md && echo "Use ISSUES.md" || echo "Create ISSUES.md"
+   ```
+
+2. **Update existing documents instead of creating new ones**
+   - If `ISSUES.md` exists → Add new issues to it with status updates
+   - If analysis reports exist → Update existing report with new findings
+   - If documentation exists in `/docs/` → Update the appropriate doc file
+
+3. **Only create NEW documents when:**
+   - No existing document covers the topic
+   - Creating a one-time report that will be archived
+   - Document serves a distinct purpose (e.g., migration guide, specific bug report)
+
+### Canonical Document Locations
+
+**Issue Tracking:**
+
+- **`ISSUES.md`** - Single source of truth for ALL codebase issues
+  - Update this file, never create `ISSUES_2.md`, `NEW_ISSUES.md`, etc.
+  - Format: Priority-based sections (P0, P1, P2, P3), status tracking, effort estimates
+
+**Project Documentation:**
+
+- **`/docs/`** directory - All permanent documentation
+  - Architecture guides
+  - API documentation
+  - Coding standards
+  - Testing guides
+
+**Temporary Analysis:**
+
+- **Root directory** - Only for one-time reports that will be cleaned up
+  - Name format: `[TOPIC]_REPORT_[DATE].md`
+  - Example: `MIGRATION_REPORT_2025-10-24.md`
+  - Archive or delete after information is incorporated into ISSUES.md
+
+### Forbidden Document Patterns
+
+**NEVER create these types of files:**
+
+- ❌ `ISSUES_NEW.md` - Update ISSUES.md instead
+- ❌ `CODEBASE_ANALYSIS_REPORT.md` - Add findings to ISSUES.md
+- ❌ `VALIDATION_REPORT.md` - Update issue status in ISSUES.md
+- ❌ `DUPLICATE_CODE_ANALYSIS.md` - Add to ISSUES.md as duplicate code issues
+- ❌ `AGENT_[N]_FINDINGS.md` - Consolidate findings into ISSUES.md
+- ❌ Multiple files for the same topic
+
+**Instead:**
+
+- ✅ Update `ISSUES.md` with new findings
+- ✅ Add status updates to existing issues
+- ✅ Create sections in ISSUES.md for different issue categories
+
+### Document Maintenance
+
+**When running analysis tasks:**
+
+1. **Check current state:**
+
+   ```bash
+   # Count existing analysis documents
+   ls -1 *.md | wc -l
+
+   # List all analysis files
+   ls -1 *ANALYSIS*.md *REPORT*.md *VALIDATION*.md *ISSUES*.md 2>/dev/null
+   ```
+
+2. **Consolidate before creating:**
+   - If 3+ analysis documents exist → Consolidate them first
+   - Read existing ISSUES.md → Update it with new findings
+   - Archive old reports → Move to `/archive/` directory
+
+3. **Update ISSUES.md format:**
+
+   ```markdown
+   ## [Issue Category]
+
+   ### Issue #X: [Title]
+
+   - **Status:** Open/Fixed/In Progress
+   - **Priority:** P0/P1/P2/P3
+   - **Location:** [file:line]
+   - **Reported:** [Date]
+   - **Updated:** [Date]
+   - **Effort:** [Hours]
+   - **Description:** [Details]
+   ```
+
+### Pre-Document Creation Checklist
+
+Before creating ANY new markdown file in project root:
+
+- [ ] Searched for existing documents on this topic
+- [ ] Checked if ISSUES.md exists and can be updated
+- [ ] Verified this is not duplicate information
+- [ ] Confirmed this needs to be a separate document
+- [ ] Named with clear convention: `[TOPIC]_[TYPE]_[DATE].md`
+- [ ] Planned to consolidate/archive after use
+
+### Document Cleanup Protocol
+
+**Every sprint:**
+
+1. Review all `*.md` files in project root
+2. Consolidate analysis reports into ISSUES.md
+3. Move archived reports to `/archive/` directory
+4. Delete redundant or outdated reports
+5. Update ISSUES.md status for all items
+
+### Agent Instructions for Document Creation
+
+**When an agent is asked to analyze the codebase:**
+
+1. **First action:** Check if ISSUES.md exists
+   - If yes: Read it and prepare to UPDATE it
+   - If no: Create it as the canonical issue tracker
+
+2. **During analysis:** Collect all findings in memory
+
+3. **Final action:** Update ISSUES.md with:
+   - New issues discovered
+   - Status updates for existing issues
+   - Validation results
+   - Priority adjustments
+
+4. **Never:** Create separate `*_REPORT.md`, `*_ANALYSIS.md`, `*_FINDINGS.md` files unless explicitly required for a one-time deliverable
+
+### Example: Correct Document Workflow
+
+**BAD** ❌:
+
+```
+Agent 1 creates: CODEBASE_ANALYSIS_REPORT.md
+Agent 2 creates: VALIDATION_REPORT.md
+Agent 3 creates: DUPLICATE_CODE_ANALYSIS.md
+Agent 4 creates: ISSUES_VERIFIED.md
+Agent 5 creates: FINAL_CONSOLIDATED_REPORT.md
+Result: 5 overlapping documents, scattered information
+```
+
+**GOOD** ✅:
+
+```
+Agent 1: Checks for ISSUES.md (not found)
+Agent 1: Creates ISSUES.md with all findings
+Agent 2: Reads ISSUES.md, validates issues, updates status
+Agent 3: Reads ISSUES.md, adds new duplicate code issues
+Agent 4: Reads ISSUES.md, marks fixed issues as Fixed
+Agent 5: Reads ISSUES.md, adds priority adjustments
+Result: 1 comprehensive document, single source of truth
+```
+
 ## Coding Best Practices Summary
 
 **MUST READ**: Comprehensive documentation available in `/docs/`

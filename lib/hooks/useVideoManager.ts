@@ -55,7 +55,7 @@ export function useVideoManager({
   /**
    * Properly cleanup a video element before pooling or destroying.
    */
-  const cleanupVideo = useCallback((clipId: string, video: HTMLVideoElement) => {
+  const cleanupVideo = useCallback((clipId: string, video: HTMLVideoElement): void => {
     // Remove event listeners
     const errorHandler = videoErrorHandlersRef.current.get(clipId);
     if (errorHandler) {
@@ -176,7 +176,7 @@ export function useVideoManager({
               video.src = source;
 
               // Store error handler for cleanup
-              const errorHandler = (error: Event) => {
+              const errorHandler = (error: Event): void => {
                 browserLogger.error(
                   {
                     clipId: clip.id,

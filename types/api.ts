@@ -598,15 +598,6 @@ export interface ServerError extends BaseAPIError {
 }
 
 /**
- * Generic API error (backward compatibility)
- */
-export interface GenericAPIError extends BaseAPIError {
-  type: 'generic';
-  field?: string;
-  code?: string;
-}
-
-/**
  * Discriminated union of all error types
  * Allows type-safe error handling with exhaustiveness checking
  */
@@ -616,8 +607,7 @@ export type APIError =
   | AuthenticationError
   | AuthorizationError
   | NotFoundError
-  | ServerError
-  | GenericAPIError;
+  | ServerError;
 
 // ============================================================================
 // ============================================================================
@@ -672,12 +662,6 @@ export interface ErrorResponse {
  * ```
  */
 export type APIResponse<T> = SuccessResponse<T> | ErrorResponse;
-
-/**
- * Legacy type for backward compatibility
- * @deprecated Use APIResponse<T> instead
- */
-export type LegacyAPIResponse<T> = T | APIError;
 
 export interface PaginatedResponse<T> {
   data: T[];

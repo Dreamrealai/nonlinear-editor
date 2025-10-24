@@ -1,5 +1,8 @@
 /**
- * Standardized Error Response Utilities
+ * Standardized Error Response Utilities (Core)
+ *
+ * This is the canonical source for error response utilities.
+ * The lib/api/response.ts module wraps this for backward compatibility.
  *
  * Provides consistent error response formatting across all API routes.
  * All error responses follow the format: { error: string }
@@ -8,7 +11,9 @@
  * - Consistent error handling on frontend
  * - Standardized HTTP status codes
  * - Type-safe error responses
- * - Centralized error logging
+ * - Centralized error logging with structured context
+ *
+ * @module lib/api/errorResponse
  */
 
 import { NextResponse } from 'next/server';

@@ -11,16 +11,10 @@ import {
   resetAllMocks,
 } from '@/test-utils/mockSupabase';
 
-// Mock modules
-jest.mock('@/lib/supabase', () => {
-  const { createMockSupabaseClient } = jest.requireActual('@/test-utils/mockSupabase');
-  const mockClient = createMockSupabaseClient();
-
-  return {
-    createServerSupabaseClient: jest.fn(async () => mockClient),
-    __getMockClient: () => mockClient,
-  };
-});
+// Mock the Supabase module
+jest.mock('@/lib/supabase', () => ({
+  createServerSupabaseClient: jest.fn(),
+}));
 
 jest.mock('@google/generative-ai', () => ({
   GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
@@ -51,8 +45,8 @@ jest.mock('@/lib/serverLogger', () => ({
 }));
 
 jest.mock('@/lib/auditLog', () => ({
-  auditLog: jest.fn(),
-  auditSecurityEvent: jest.fn(),
+  auditLog: jest.fn().mockResolvedValue(undefined),
+  auditSecurityEvent: jest.fn().mockResolvedValue(undefined),
   AuditAction: {
     FRAME_EDIT_REQUEST: 'frame_edit_request',
     FRAME_EDIT_COMPLETE: 'frame_edit_complete',
@@ -66,30 +60,68 @@ jest.mock('uuid', () => ({
 }));
 
 jest.mock('@/lib/api/withAuth', () => ({
-  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
+  withAuth: (handler: any, options: any) => {
+    return async (req: NextRequest, context: any) => {
+      try {
+        const { createServerSupabaseClient } = require('@/lib/supabase');
+        const supabase = await createServerSupabaseClient();
 
-    if (!supabase || !supabase.auth) {
-      return new Response(JSON.stringify({ error: 'Internal server error' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+        if (!supabase || !supabase.auth) {
+          return new Response(JSON.stringify({ error: 'Internal server error' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+        if (!user) {
+          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
 
-    return handler(req, { user, supabase, params: context?.params || {} });
-  }),
+        // Check rate limiting if configured
+        if (options?.rateLimit) {
+          const { checkRateLimit } = require('@/lib/rateLimit');
+          const rateLimitResult = await checkRateLimit(`user:${user.id}`, options.rateLimit);
+
+          if (!rateLimitResult.success) {
+            return new Response(
+              JSON.stringify({
+                error: 'Rate limit exceeded',
+                limit: rateLimitResult.limit,
+                remaining: rateLimitResult.remaining,
+                resetAt: rateLimitResult.resetAt,
+              }),
+              {
+                status: 429,
+                headers: { 'Content-Type': 'application/json' },
+              }
+            );
+          }
+        }
+
+        // Await params if it's a Promise
+        const params =
+          context?.params instanceof Promise ? await context.params : context?.params || {};
+
+        return await handler(req, { user, supabase, params });
+      } catch (error) {
+        console.error('Error in withAuth mock:', error);
+        return new Response(
+          JSON.stringify({ error: 'Internal server error', details: (error as Error).message }),
+          {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+    };
+  },
 }));
 
 // Mock global fetch
@@ -111,8 +143,8 @@ describe('POST /api/frames/[frameId]/edit', () => {
     jest.clearAllMocks();
 
     // IMPORTANT: Re-setup Supabase mock after clearAllMocks
-    const { __getMockClient, createServerSupabaseClient } = require('@/lib/supabase');
-    mockSupabase = __getMockClient();
+    mockSupabase = createMockSupabaseClient();
+    const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
 
     // Setup default auth mock
@@ -128,6 +160,10 @@ describe('POST /api/frames/[frameId]/edit', () => {
       remaining: 9,
       resetAt: Date.now() + 60_000,
     });
+
+    // Reset audit log mocks
+    (auditLog as jest.Mock).mockResolvedValue(undefined);
+    (auditSecurityEvent as jest.Mock).mockResolvedValue(undefined);
 
     // Setup Gemini mock
     mockGenerateContent = jest.fn().mockResolvedValue({
@@ -194,7 +230,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const response = await POST(mockRequest, { params: Promise.resolve({ frameId: validFrameId }) });
+      const response = await POST(mockRequest, {
+        params: Promise.resolve({ frameId: validFrameId }),
+      });
 
       expect(response.status).toBe(401);
     });
@@ -235,7 +273,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const response = await POST(mockRequest, { params: Promise.resolve({ frameId: validFrameId }) });
+      const response = await POST(mockRequest, {
+        params: Promise.resolve({ frameId: validFrameId }),
+      });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -264,7 +304,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const response = await POST(mockRequest, { params: Promise.resolve({ frameId: validFrameId }) });
+      const response = await POST(mockRequest, {
+        params: Promise.resolve({ frameId: validFrameId }),
+      });
 
       expect(response.status).toBe(400);
     });
@@ -287,7 +329,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const response = await POST(mockRequest, { params: Promise.resolve({ frameId: validFrameId }) });
+      const response = await POST(mockRequest, {
+        params: Promise.resolve({ frameId: validFrameId }),
+      });
 
       expect(response.status).toBe(429);
     });
@@ -311,7 +355,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const response = await POST(mockRequest, { params: Promise.resolve({ frameId: validFrameId }) });
+      const response = await POST(mockRequest, {
+        params: Promise.resolve({ frameId: validFrameId }),
+      });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -335,7 +381,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const response = await POST(mockRequest, { params: Promise.resolve({ frameId: validFrameId }) });
+      const response = await POST(mockRequest, {
+        params: Promise.resolve({ frameId: validFrameId }),
+      });
 
       expect(response.status).toBe(403);
       const data = await response.json();
@@ -363,7 +411,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const response = await POST(mockRequest, { params: Promise.resolve({ frameId: validFrameId }) });
+      const response = await POST(mockRequest, {
+        params: Promise.resolve({ frameId: validFrameId }),
+      });
 
       expect(response.status).toBe(403);
       const data = await response.json();
@@ -392,7 +442,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const response = await POST(mockRequest, { params: Promise.resolve({ frameId: validFrameId }) });
+      const response = await POST(mockRequest, {
+        params: Promise.resolve({ frameId: validFrameId }),
+      });
 
       expect(response.status).toBe(503);
       const data = await response.json();
@@ -436,7 +488,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const response = await POST(mockRequest, { params: Promise.resolve({ frameId: validFrameId }) });
+      const response = await POST(mockRequest, {
+        params: Promise.resolve({ frameId: validFrameId }),
+      });
 
       expect(response.status).toBe(200);
     });
@@ -446,21 +500,30 @@ describe('POST /api/frames/[frameId]/edit', () => {
     beforeEach(() => {
       mockAuthenticatedUser(mockSupabase);
 
-      mockSupabase.select.mockReturnThis();
-      mockSupabase.eq.mockReturnThis();
-      mockSupabase.single.mockResolvedValue({
+      // Setup mock for frame query (first from('scene_frames'))
+      const frameBuilder = createMockSupabaseClient();
+      frameBuilder.select.mockReturnThis();
+      frameBuilder.eq.mockReturnThis();
+      frameBuilder.single.mockResolvedValue({
         data: createMockFrame(),
         error: null,
       });
 
-      mockSupabase.order.mockReturnThis();
-      mockSupabase.limit.mockResolvedValue({
+      // Setup mock for existing edits query (from('frame_edits') for version check)
+      const editsBuilder = createMockSupabaseClient();
+      editsBuilder.select.mockReturnThis();
+      editsBuilder.eq.mockReturnThis();
+      editsBuilder.order.mockReturnThis();
+      editsBuilder.limit.mockResolvedValue({
         data: [],
         error: null,
       });
 
-      mockSupabase.insert.mockReturnThis();
-      mockSupabase.single.mockResolvedValue({
+      // Setup mock for insert query (from('frame_edits') for insert)
+      const insertBuilder = createMockSupabaseClient();
+      insertBuilder.insert.mockReturnThis();
+      insertBuilder.select.mockReturnThis();
+      insertBuilder.single.mockResolvedValue({
         data: {
           id: 'mock-edit-id',
           frame_id: validFrameId,
@@ -468,6 +531,12 @@ describe('POST /api/frames/[frameId]/edit', () => {
         },
         error: null,
       });
+
+      // Setup from() to return different builders in sequence
+      mockSupabase.from
+        .mockReturnValueOnce(frameBuilder)
+        .mockReturnValueOnce(editsBuilder)
+        .mockReturnValue(insertBuilder);
     });
 
     it('should successfully edit frame in global mode', async () => {
@@ -479,7 +548,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const response = await POST(mockRequest, { params: Promise.resolve({ frameId: validFrameId }) });
+      const response = await POST(mockRequest, {
+        params: Promise.resolve({ frameId: validFrameId }),
+      });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -497,7 +568,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const response = await POST(mockRequest, { params: Promise.resolve({ frameId: validFrameId }) });
+      const response = await POST(mockRequest, {
+        params: Promise.resolve({ frameId: validFrameId }),
+      });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -514,7 +587,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const response = await POST(mockRequest, { params: Promise.resolve({ frameId: validFrameId }) });
+      const response = await POST(mockRequest, {
+        params: Promise.resolve({ frameId: validFrameId }),
+      });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -554,7 +629,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const response = await POST(mockRequest, { params: Promise.resolve({ frameId: validFrameId }) });
+      const response = await POST(mockRequest, {
+        params: Promise.resolve({ frameId: validFrameId }),
+      });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.insert).toHaveBeenCalledTimes(2);
@@ -573,21 +650,30 @@ describe('POST /api/frames/[frameId]/edit', () => {
     beforeEach(() => {
       mockAuthenticatedUser(mockSupabase);
 
-      mockSupabase.select.mockReturnThis();
-      mockSupabase.eq.mockReturnThis();
-      mockSupabase.single.mockResolvedValue({
+      // Setup mock for frame query
+      const frameBuilder = createMockSupabaseClient();
+      frameBuilder.select.mockReturnThis();
+      frameBuilder.eq.mockReturnThis();
+      frameBuilder.single.mockResolvedValue({
         data: createMockFrame(),
         error: null,
       });
 
-      mockSupabase.order.mockReturnThis();
-      mockSupabase.limit.mockResolvedValue({
+      // Setup mock for existing edits query
+      const editsBuilder = createMockSupabaseClient();
+      editsBuilder.select.mockReturnThis();
+      editsBuilder.eq.mockReturnThis();
+      editsBuilder.order.mockReturnThis();
+      editsBuilder.limit.mockResolvedValue({
         data: [],
         error: null,
       });
 
-      mockSupabase.insert.mockReturnThis();
-      mockSupabase.single.mockResolvedValue({
+      // Setup mock for insert query
+      const insertBuilder = createMockSupabaseClient();
+      insertBuilder.insert.mockReturnThis();
+      insertBuilder.select.mockReturnThis();
+      insertBuilder.single.mockResolvedValue({
         data: {
           id: 'mock-edit-id',
           frame_id: validFrameId,
@@ -595,6 +681,11 @@ describe('POST /api/frames/[frameId]/edit', () => {
         },
         error: null,
       });
+
+      mockSupabase.from
+        .mockReturnValueOnce(frameBuilder)
+        .mockReturnValueOnce(editsBuilder)
+        .mockReturnValue(insertBuilder);
     });
 
     it('should edit with crop parameters', async () => {
@@ -611,7 +702,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const response = await POST(mockRequest, { params: Promise.resolve({ frameId: validFrameId }) });
+      const response = await POST(mockRequest, {
+        params: Promise.resolve({ frameId: validFrameId }),
+      });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.insert).toHaveBeenCalledWith(
@@ -654,21 +747,30 @@ describe('POST /api/frames/[frameId]/edit', () => {
     beforeEach(() => {
       mockAuthenticatedUser(mockSupabase);
 
-      mockSupabase.select.mockReturnThis();
-      mockSupabase.eq.mockReturnThis();
-      mockSupabase.single.mockResolvedValue({
+      // Setup mock for frame query
+      const frameBuilder = createMockSupabaseClient();
+      frameBuilder.select.mockReturnThis();
+      frameBuilder.eq.mockReturnThis();
+      frameBuilder.single.mockResolvedValue({
         data: createMockFrame(),
         error: null,
       });
 
-      mockSupabase.order.mockReturnThis();
-      mockSupabase.limit.mockResolvedValue({
+      // Setup mock for existing edits query
+      const editsBuilder = createMockSupabaseClient();
+      editsBuilder.select.mockReturnThis();
+      editsBuilder.eq.mockReturnThis();
+      editsBuilder.order.mockReturnThis();
+      editsBuilder.limit.mockResolvedValue({
         data: [],
         error: null,
       });
 
-      mockSupabase.insert.mockReturnThis();
-      mockSupabase.single.mockResolvedValue({
+      // Setup mock for insert query
+      const insertBuilder = createMockSupabaseClient();
+      insertBuilder.insert.mockReturnThis();
+      insertBuilder.select.mockReturnThis();
+      insertBuilder.single.mockResolvedValue({
         data: {
           id: 'mock-edit-id',
           frame_id: validFrameId,
@@ -676,6 +778,11 @@ describe('POST /api/frames/[frameId]/edit', () => {
         },
         error: null,
       });
+
+      mockSupabase.from
+        .mockReturnValueOnce(frameBuilder)
+        .mockReturnValueOnce(editsBuilder)
+        .mockReturnValue(insertBuilder);
     });
 
     it('should fetch and include reference images', async () => {
@@ -768,7 +875,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const response = await POST(mockRequest, { params: Promise.resolve({ frameId: validFrameId }) });
+      const response = await POST(mockRequest, {
+        params: Promise.resolve({ frameId: validFrameId }),
+      });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -833,21 +942,30 @@ describe('POST /api/frames/[frameId]/edit', () => {
     beforeEach(() => {
       mockAuthenticatedUser(mockSupabase);
 
-      mockSupabase.select.mockReturnThis();
-      mockSupabase.eq.mockReturnThis();
-      mockSupabase.single.mockResolvedValue({
+      // Setup mock for frame query
+      const frameBuilder = createMockSupabaseClient();
+      frameBuilder.select.mockReturnThis();
+      frameBuilder.eq.mockReturnThis();
+      frameBuilder.single.mockResolvedValue({
         data: createMockFrame(),
         error: null,
       });
 
-      mockSupabase.order.mockReturnThis();
-      mockSupabase.limit.mockResolvedValue({
+      // Setup mock for existing edits query
+      const editsBuilder = createMockSupabaseClient();
+      editsBuilder.select.mockReturnThis();
+      editsBuilder.eq.mockReturnThis();
+      editsBuilder.order.mockReturnThis();
+      editsBuilder.limit.mockResolvedValue({
         data: [],
         error: null,
       });
 
-      mockSupabase.insert.mockReturnThis();
-      mockSupabase.single.mockResolvedValue({
+      // Setup mock for insert query
+      const insertBuilder = createMockSupabaseClient();
+      insertBuilder.insert.mockReturnThis();
+      insertBuilder.select.mockReturnThis();
+      insertBuilder.single.mockResolvedValue({
         data: {
           id: 'mock-edit-id',
           frame_id: validFrameId,
@@ -855,6 +973,11 @@ describe('POST /api/frames/[frameId]/edit', () => {
         },
         error: null,
       });
+
+      mockSupabase.from
+        .mockReturnValueOnce(frameBuilder)
+        .mockReturnValueOnce(editsBuilder)
+        .mockReturnValue(insertBuilder);
     });
 
     it('should log frame edit request', async () => {
@@ -892,7 +1015,10 @@ describe('POST /api/frames/[frameId]/edit', () => {
 
       await POST(mockRequest, { params: Promise.resolve({ frameId: validFrameId }) });
 
-      expect(auditLog).toHaveBeenCalledWith(
+      // Should be called twice: once for request, once for completion
+      expect(auditLog).toHaveBeenCalledTimes(2);
+      expect(auditLog).toHaveBeenNthCalledWith(
+        2,
         expect.objectContaining({
           action: 'frame_edit_complete',
           statusCode: 200,

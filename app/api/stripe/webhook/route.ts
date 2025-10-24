@@ -8,7 +8,7 @@ import { createServiceSupabaseClient } from '@/lib/supabase';
 import Stripe from 'stripe';
 import { serverLogger } from '@/lib/serverLogger';
 import { invalidateOnStripeWebhook } from '@/lib/cacheInvalidation';
-import { errorResponse, serviceUnavailableResponse } from '@/lib/api/response';
+import { errorResponse, serviceUnavailableResponse, successResponse } from '@/lib/api/response';
 
 // Disable body parser to handle raw body for webhook signature verification
 export const runtime = 'nodejs';
@@ -605,7 +605,7 @@ export async function POST(request: NextRequest) {
       `Webhook processed successfully in ${duration}ms`
     );
 
-    return NextResponse.json({ received: true });
+    return successResponse({ received: true });
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

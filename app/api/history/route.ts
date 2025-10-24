@@ -1,56 +1,14 @@
-import { NextRequest } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { serverLogger } from '@/lib/serverLogger';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
-import {
-  unauthorizedResponse,
-  errorResponse,
-  validationError,
-  successResponse,
-  rateLimitResponse,
-  withErrorHandling,
-} from '@/lib/api/response';
-import { validateInteger, validateEnum, validateAll } from '@/lib/api/validation';
+import { RATE_LIMITS } from '@/lib/rateLimit';
+import { errorResponse, validationError, successResponse } from '@/lib/api/response';
+import { validateInteger, validateAll, validateEnum } from '@/lib/api/validation';
+import { withAuth } from '@/lib/api/withAuth';
+import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 
 export const dynamic = 'force-dynamic';
 
 // GET /api/history - Fetch user's activity history
-export const GET = withErrorHandling(async (request: NextRequest) => {
-  const supabase = await createServerSupabaseClient();
-
-  // Check authentication
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return unauthorizedResponse();
-  }
-
-  // TIER 3 RATE LIMITING: Read operations (30/min)
-  const rateLimitResult = await checkRateLimit(
-    `history-get:${user.id}`,
-    RATE_LIMITS.tier3_status_read
-  );
-
-  if (!rateLimitResult.success) {
-    serverLogger.warn(
-      {
-        event: 'history.get.rate_limited',
-        userId: user.id,
-        limit: rateLimitResult.limit,
-      },
-      'History GET rate limit exceeded'
-    );
-
-    return rateLimitResponse(
-      rateLimitResult.limit,
-      rateLimitResult.remaining,
-      rateLimitResult.resetAt
-    );
-  }
-
+const handleGetHistory: AuthenticatedHandler = async (request, { user, supabase }) => {
   // Parse query parameters for pagination
   const { searchParams } = new URL(request.url);
   const limit = parseInt(searchParams.get('limit') || '50', 10);
@@ -84,22 +42,15 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   }
 
   return successResponse({ history, count: history?.length || 0 });
+};
+
+export const GET = withAuth(handleGetHistory, {
+  route: '/api/history',
+  rateLimit: RATE_LIMITS.tier3_status_read,
 });
 
 // DELETE /api/history - Clear user's activity history
-export const DELETE = withErrorHandling(async () => {
-  const supabase = await createServerSupabaseClient();
-
-  // Check authentication
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return unauthorizedResponse();
-  }
-
+const handleDeleteHistory: AuthenticatedHandler = async (_request, { user, supabase }) => {
   // Delete all activity history for the user
   const { error } = await supabase.from('user_activity_history').delete().eq('user_id', user.id);
 
@@ -112,6 +63,11 @@ export const DELETE = withErrorHandling(async () => {
   }
 
   return successResponse(null, 'Activity history cleared');
+};
+
+export const DELETE = withAuth(handleDeleteHistory, {
+  route: '/api/history',
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
 });
 
 const VALID_ACTIVITY_TYPES = [
@@ -125,19 +81,7 @@ const VALID_ACTIVITY_TYPES = [
 ] as const;
 
 // POST /api/history - Add a new activity entry (for manual logging)
-export const POST = withErrorHandling(async (request: NextRequest) => {
-  const supabase = await createServerSupabaseClient();
-
-  // Check authentication
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return unauthorizedResponse();
-  }
-
+const handleAddHistory: AuthenticatedHandler = async (request, { user, supabase }) => {
   const body = await request.json();
   const { project_id, activity_type, title, description, model, asset_id, metadata } = body;
 
@@ -176,4 +120,9 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   }
 
   return successResponse({ success: true, activity: data });
+};
+
+export const POST = withAuth(handleAddHistory, {
+  route: '/api/history',
+  rateLimit: RATE_LIMITS.tier4_general,
 });

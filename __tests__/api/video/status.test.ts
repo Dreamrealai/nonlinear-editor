@@ -46,6 +46,7 @@ jest.mock('@/lib/rateLimit', () => ({
 jest.mock('@/lib/serverLogger', () => ({
   serverLogger: {
     info: jest.fn(),
+    debug: jest.fn(),
     error: jest.fn(),
     warn: jest.fn(),
   },

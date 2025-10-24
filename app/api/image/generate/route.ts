@@ -314,8 +314,11 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     `Generated ${assets.length} image(s) successfully in ${duration}ms`
   );
 
-  return NextResponse.json({
-    assets,
-    message: `Generated ${assets.length} image(s) successfully`,
-  });
+  return NextResponse.json(
+    {
+      assets,
+      message: `Generated ${assets.length} image(s) successfully`,
+    },
+    { status: 200 }
+  );
 });

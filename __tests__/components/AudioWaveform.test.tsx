@@ -67,7 +67,8 @@ describe('AudioWaveform', () => {
       fillStyle: '',
     }));
 
-    HTMLCanvasElement.prototype.getContext = mockGetContext as unknown as typeof HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext =
+      mockGetContext as unknown as typeof HTMLCanvasElement.prototype.getContext;
 
     // Mock fetch for audio data
     const mockArrayBuffer = new ArrayBuffer(100);
@@ -101,97 +102,168 @@ describe('AudioWaveform', () => {
       expect(container.firstChild).toBeNull();
     });
 
-    it('should render canvas when clip has audio', () => {
-      const { container } = render(
+    it('should render canvas when clip has audio', async () => {
+      const { container, unmount } = render(
         <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
       );
 
       const canvas = container.querySelector('canvas');
       expect(canvas).toBeInTheDocument();
+
+      // Wait for async operations to complete
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
     });
 
-    it('should render loading state initially', () => {
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
+    it('should render loading state initially', async () => {
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
 
       expect(screen.getByText('Loading waveform...')).toBeInTheDocument();
+
+      // Wait for async operations to complete
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
     });
 
-    it('should apply custom className', () => {
-      const { container } = render(
+    it('should apply custom className', async () => {
+      const { container, unmount } = render(
         <AudioWaveform clip={mockClipWithAudio} width={200} height={50} className="custom-class" />
       );
 
       const wrapper = container.firstChild as HTMLElement;
       expect(wrapper).toHaveClass('custom-class');
+
+      // Wait for async operations to complete
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
     });
 
-    it('should set correct dimensions', () => {
-      const { container } = render(
+    it('should set correct dimensions', async () => {
+      const { container, unmount } = render(
         <AudioWaveform clip={mockClipWithAudio} width={300} height={75} />
       );
 
       const wrapper = container.firstChild as HTMLElement;
       expect(wrapper).toHaveStyle({ width: '300px', height: '75px' });
+
+      // Wait for async operations to complete
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
     });
   });
 
   describe('Audio Extraction', () => {
     it('should fetch audio data from previewUrl', async () => {
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
 
       await waitFor(() => {
         expect(mockFetch).toHaveBeenCalledWith(mockClipWithAudio.previewUrl);
       });
-    });
-
-    it('should create AudioContext', async () => {
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
-
-      await waitFor(() => {
-        expect(global.AudioContext).toHaveBeenCalled();
-      });
-    });
-
-    it('should decode audio data', async () => {
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
-
-      await waitFor(() => {
-        expect(mockAudioContext.decodeAudioData).toHaveBeenCalled();
-      });
-    });
-
-    it('should close audio context after extraction', async () => {
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
 
       await waitFor(() => {
         expect(mockAudioContext.close).toHaveBeenCalled();
       });
+      unmount();
+    });
+
+    it('should create AudioContext', async () => {
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
+
+      await waitFor(() => {
+        expect(global.AudioContext).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
+    });
+
+    it('should decode audio data', async () => {
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
+
+      await waitFor(() => {
+        expect(mockAudioContext.decodeAudioData).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
+    });
+
+    it('should close audio context after extraction', async () => {
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
     });
 
     it('should extract channel data from audio buffer', async () => {
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
 
       await waitFor(() => {
         expect(mockAudioBuffer.getChannelData).toHaveBeenCalledWith(0);
       });
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
     });
 
     it('should hide loading state after extraction', async () => {
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
 
       await waitFor(() => {
         expect(screen.queryByText('Loading waveform...')).not.toBeInTheDocument();
       });
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
     });
   });
 
   describe('Canvas Rendering', () => {
     it('should get 2d context from canvas', async () => {
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
 
       await waitFor(() => {
         expect(mockGetContext).toHaveBeenCalledWith('2d');
       });
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
     });
 
     it('should scale context by device pixel ratio', async () => {
@@ -208,11 +280,18 @@ describe('AudioWaveform', () => {
         value: 2,
       });
 
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
 
       await waitFor(() => {
         expect(mockScale).toHaveBeenCalledWith(2, 2);
       });
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
     });
 
     it('should clear canvas before drawing', async () => {
@@ -224,11 +303,18 @@ describe('AudioWaveform', () => {
         fillStyle: '',
       });
 
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
 
       await waitFor(() => {
         expect(mockClearRect).toHaveBeenCalledWith(0, 0, 200, 50);
       });
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
     });
 
     it('should draw waveform bars', async () => {
@@ -240,11 +326,18 @@ describe('AudioWaveform', () => {
         fillStyle: '',
       });
 
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
 
       await waitFor(() => {
         expect(mockFillRect).toHaveBeenCalled();
       });
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
     });
 
     it('should use correct fill color for waveform', async () => {
@@ -256,11 +349,18 @@ describe('AudioWaveform', () => {
       };
       mockGetContext.mockReturnValue(mockContext);
 
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
 
       await waitFor(() => {
         expect(mockContext.fillStyle).toBe('rgba(59, 130, 246, 0.6)');
       });
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
     });
   });
 
@@ -268,32 +368,44 @@ describe('AudioWaveform', () => {
     it('should handle fetch errors gracefully', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
 
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
 
       await waitFor(() => {
         expect(screen.queryByText('Loading waveform...')).not.toBeInTheDocument();
       });
+
+      unmount();
     });
 
     it('should handle decoding errors gracefully', async () => {
       mockAudioContext.decodeAudioData.mockRejectedValue(new Error('Decode error'));
 
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
 
       await waitFor(() => {
         expect(screen.queryByText('Loading waveform...')).not.toBeInTheDocument();
       });
+
+      unmount();
     });
 
     it('should log errors when extraction fails', async () => {
       const { browserLogger } = await import('@/lib/browserLogger');
       mockFetch.mockRejectedValue(new Error('Network error'));
 
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
 
       await waitFor(() => {
         expect(browserLogger.error).toHaveBeenCalled();
       });
+
+      unmount();
     });
   });
 
@@ -313,13 +425,19 @@ describe('AudioWaveform', () => {
     });
 
     it('should re-extract when clip changes', async () => {
-      const { rerender } = render(
+      const { rerender, unmount } = render(
         <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
       );
 
       await waitFor(() => {
         expect(mockFetch).toHaveBeenCalledTimes(1);
       });
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+
+      mockAudioContext.close.mockClear();
 
       const newClip = { ...mockClipWithAudio, id: 'clip-2', previewUrl: 'new-url.mp4' };
       rerender(<AudioWaveform clip={newClip} width={200} height={50} />);
@@ -328,6 +446,12 @@ describe('AudioWaveform', () => {
         expect(mockFetch).toHaveBeenCalledTimes(2);
         expect(mockFetch).toHaveBeenLastCalledWith('new-url.mp4');
       });
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+
+      unmount();
     });
 
     it('should re-render when width changes', async () => {
@@ -339,12 +463,16 @@ describe('AudioWaveform', () => {
         fillStyle: '',
       });
 
-      const { rerender } = render(
+      const { rerender, unmount } = render(
         <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
       );
 
       await waitFor(() => {
         expect(mockFillRect).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
       });
 
       mockFillRect.mockClear();
@@ -354,40 +482,58 @@ describe('AudioWaveform', () => {
       await waitFor(() => {
         expect(mockFillRect).toHaveBeenCalled();
       });
+
+      unmount();
     });
   });
 
   describe('Edge Cases', () => {
     it('should handle clip without previewUrl', () => {
       const clipNoPreview = { ...mockClipWithAudio, previewUrl: undefined };
-      const { container } = render(
-        <AudioWaveform clip={clipNoPreview} width={200} height={50} />
-      );
+      const { container } = render(<AudioWaveform clip={clipNoPreview} width={200} height={50} />);
 
       expect(container.querySelector('canvas')).not.toBeInTheDocument();
     });
 
-    it('should handle very small width', () => {
-      const { container } = render(<AudioWaveform clip={mockClipWithAudio} width={10} height={50} />);
+    it('should handle very small width', async () => {
+      const { container, unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={10} height={50} />
+      );
 
       const wrapper = container.firstChild as HTMLElement;
       expect(wrapper).toHaveStyle({ width: '10px' });
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
     });
 
-    it('should handle very small height', () => {
-      const { container } = render(
+    it('should handle very small height', async () => {
+      const { container, unmount } = render(
         <AudioWaveform clip={mockClipWithAudio} width={200} height={5} />
       );
 
       const wrapper = container.firstChild as HTMLElement;
       expect(wrapper).toHaveStyle({ height: '5px' });
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
     });
 
     it('should cap samples at 1000 for performance', async () => {
-      render(<AudioWaveform clip={mockClipWithAudio} width={10000} height={50} />);
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={10000} height={50} />
+      );
 
       await waitFor(() => {
         expect(mockAudioBuffer.getChannelData).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
       });
 
       // Waveform data should be capped at 1000 samples even with large width
@@ -398,36 +544,56 @@ describe('AudioWaveform', () => {
         scale: jest.fn(),
         fillStyle: '',
       });
+
+      unmount();
     });
 
     it('should handle empty audio data', async () => {
       mockAudioBuffer.getChannelData.mockReturnValue(new Float32Array(0));
 
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
 
       await waitFor(() => {
         expect(screen.queryByText('Loading waveform...')).not.toBeInTheDocument();
       });
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+      unmount();
     });
 
     it('should handle missing canvas context', async () => {
       mockGetContext.mockReturnValue(null);
 
-      render(<AudioWaveform clip={mockClipWithAudio} width={200} height={50} />);
+      const { unmount } = render(
+        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
+      );
 
       await waitFor(() => {
         expect(mockGetContext).toHaveBeenCalled();
       });
 
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
+
       // Should not throw error
+      unmount();
     });
   });
 
   describe('Memoization', () => {
-    it('should not re-render when unrelated props change', () => {
-      const { rerender } = render(
+    it('should not re-render when unrelated props change', async () => {
+      const { rerender, unmount } = render(
         <AudioWaveform clip={mockClipWithAudio} width={200} height={50} className="class-1" />
       );
+
+      await waitFor(() => {
+        expect(mockAudioContext.close).toHaveBeenCalled();
+      });
 
       const firstCanvas = document.querySelector('canvas');
 
@@ -439,6 +605,8 @@ describe('AudioWaveform', () => {
 
       // Canvas element should be the same (component memoized)
       expect(firstCanvas).toBe(secondCanvas);
+
+      unmount();
     });
   });
 });

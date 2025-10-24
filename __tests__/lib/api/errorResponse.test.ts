@@ -14,13 +14,18 @@ import {
 import { serverLogger } from '@/lib/serverLogger';
 
 // Mock server logger
-jest.mock('@/lib/serverLogger');
+jest.mock('@/lib/serverLogger', () => ({
+  serverLogger: {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
 
 describe('errorResponse', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (serverLogger.error as jest.Mock) = jest.fn();
-    (serverLogger.warn as jest.Mock) = jest.fn();
   });
 
   describe('Basic Functionality', () => {
