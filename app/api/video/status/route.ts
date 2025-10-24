@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkOperationStatus } from '@/lib/veo';
 import { checkFalVideoStatus } from '@/lib/fal-video';
-import { createServerSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import { GoogleAuth } from 'google-auth-library';
 import {
@@ -192,11 +192,6 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
         throw new Error(`Storage upload failed: ${uploadError.message}`);
       }
 
-      const {
-        data: { publicUrl: rawPublicUrl },
-      } = supabase.storage.from('assets').getPublicUrl(storagePath);
-      const publicUrl = ensureHttpsProtocol(rawPublicUrl);
-
       const storageUrl = normalizeStorageUrl('assets', storagePath);
 
       const { data: asset, error: assetError } = await supabase
@@ -210,7 +205,7 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
           metadata: {
             filename: fileName,
             mimeType: falResult.result.video.content_type || 'video/mp4',
-            sourceUrl: publicUrl,
+            // Note: sourceUrl removed - use storage_url with signed URLs instead
             generator: endpoint.includes('seedance') ? 'seedance-pro' : 'minimax-video-01-live',
           },
         })
@@ -264,7 +259,6 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
       return NextResponse.json({
         done: true,
         asset,
-        storageUrl: publicUrl,
       });
     }
 
@@ -379,11 +373,6 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
       throw new Error(`Storage upload failed: ${uploadError.message}`);
     }
 
-    const {
-      data: { publicUrl: rawPublicUrl },
-    } = supabase.storage.from('assets').getPublicUrl(storagePath);
-    const publicUrl = ensureHttpsProtocol(rawPublicUrl);
-
     const storageUrl = normalizeStorageUrl('assets', storagePath);
 
     const { data: asset, error: assetError } = await supabase
@@ -397,7 +386,7 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
         metadata: {
           filename: fileName,
           mimeType,
-          sourceUrl: publicUrl,
+          // Note: sourceUrl removed - use storage_url with signed URLs instead
           generator: 'veo',
         },
       })
@@ -456,7 +445,6 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
     return NextResponse.json({
       done: true,
       asset,
-      storageUrl: publicUrl,
     });
   }
 
