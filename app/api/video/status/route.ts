@@ -118,12 +118,16 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
     throw error;
   }
 
+  // Type assertion: operationName is now guaranteed to be a non-null string after validation
+  const validOperationName: string = operationName as string;
+  const validProjectId: string = projectId as string;
+
   // Determine if this is a FAL operation or Veo operation
-  const isFalOperation = operationName.startsWith('fal:');
+  const isFalOperation = validOperationName.startsWith('fal:');
 
   if (isFalOperation) {
     // Parse FAL operation name: fal:endpoint:requestId
-    const parts = operationName.split(':');
+    const parts = validOperationName.split(':');
     if (parts.length < 3) {
       return validationError('Invalid FAL operation name format', 'operationName');
     }
@@ -148,7 +152,7 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
 
       const videoBinary = Buffer.from(await videoResponse.arrayBuffer());
       const fileName = `${uuidv4()}.mp4`;
-      const storagePath = `${user.id}/${projectId}/${fileName}`;
+      const storagePath = `${user.id}/${validProjectId}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('assets')
@@ -177,7 +181,7 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
         supabase,
         {
           user_id: user.id,
-          project_id: projectId,
+          project_id: validProjectId,
           type: 'video',
           source: 'genai',
           storage_url: storageUrl,
@@ -194,7 +198,7 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
       // Log to activity history
       await supabase.from('user_activity_history').insert({
         user_id: user.id,
-        project_id: projectId,
+        project_id: validProjectId,
         activity_type: 'video_generation',
         title: 'Video Generated',
         model: endpoint.includes('seedance') ? 'seedance-pro' : 'minimax-video-01-live',
@@ -209,7 +213,7 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
         {
           event: 'video.status.fal_completed',
           userId: user.id,
-          projectId,
+          projectId: validProjectId,
           assetId: asset.id,
           duration,
         },
@@ -227,8 +231,8 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
         {
           event: 'video.status.fal_error',
           userId: user.id,
-          projectId,
-          operationName,
+          projectId: validProjectId,
+          operationName: validOperationName,
           error: falResult.error,
         },
         'FAL video generation failed'
@@ -245,8 +249,8 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
       {
         event: 'video.status.fal_processing',
         userId: user.id,
-        projectId,
-        operationName,
+        projectId: validProjectId,
+        operationName: validOperationName,
       },
       'FAL video still processing'
     );
@@ -258,7 +262,7 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
   }
 
   // Check Veo operation status
-  const result = await checkOperationStatus(operationName);
+  const result = await checkOperationStatus(validOperationName);
 
   if (result.done && result.response) {
     const videoArtifact = result.response.videos?.[0];
@@ -322,7 +326,7 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
     }
 
     const fileName = `${uuidv4()}.mp4`;
-    const storagePath = `${user.id}/${projectId}/${fileName}`;
+    const storagePath = `${user.id}/${validProjectId}/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from('assets')
@@ -351,7 +355,7 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
       supabase,
       {
         user_id: user.id,
-        project_id: projectId,
+        project_id: validProjectId,
         type: 'video',
         source: 'genai',
         storage_url: storageUrl,
@@ -368,7 +372,7 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
     // Log to activity history
     await supabase.from('user_activity_history').insert({
       user_id: user.id,
-      project_id: projectId,
+      project_id: validProjectId,
       activity_type: 'video_generation',
       title: 'Video Generated',
       model: 'veo',
@@ -383,7 +387,7 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
       {
         event: 'video.status.veo_completed',
         userId: user.id,
-        projectId,
+        projectId: validProjectId,
         assetId: asset.id,
         duration,
       },
@@ -402,8 +406,8 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
       {
         event: 'video.status.veo_error',
         userId: user.id,
-        projectId,
-        operationName,
+        projectId: validProjectId,
+        operationName: validOperationName,
         error: result.error.message,
       },
       'Veo video generation failed'
@@ -413,8 +417,8 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
       {
         event: 'video.status.veo_processing',
         userId: user.id,
-        projectId,
-        operationName,
+        projectId: validProjectId,
+        operationName: validOperationName,
         progress: result.metadata?.progressPercentage || 0,
       },
       'Veo video still processing'

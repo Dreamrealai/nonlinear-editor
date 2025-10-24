@@ -601,7 +601,7 @@ export function useEditorHandlers({
         if (!signData) throw new Error('Asset not found');
 
         // Resolve a fetchable URL for the video asset
-        let videoUrl = asset.metadata?.sourceUrl;
+        let videoUrl: string | undefined = asset.metadata?.sourceUrl;
         if (!videoUrl) {
           const location =
             typeof signData.storage_url === 'string'
@@ -621,7 +621,12 @@ export function useEditorHandlers({
           videoUrl = signed.signedUrl;
         }
 
-        // Fetch the video
+        // Type guard: After this point, videoUrl is guaranteed to be a string
+        if (!videoUrl) {
+          throw new Error('Failed to resolve video URL');
+        }
+
+        // Fetch the video - videoUrl is now guaranteed to be string
         const videoResponse = await fetch(videoUrl);
         const videoBlob = await videoResponse.blob();
 
