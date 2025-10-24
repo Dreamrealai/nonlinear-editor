@@ -229,9 +229,19 @@ export function useTimelineDragging({
               clip,
               'left',
               newStart,
+<<<<<<< Updated upstream
               maxEnd,
               newPosition
             );
+=======
+              newEnd: maxEnd,
+              position: {
+                x: newPosition * zoom,
+                y: clip.trackIndex * TRACK_HEIGHT,
+              },
+              isSnappedToGrid,
+            });
+>>>>>>> Stashed changes
 
             if (operation) {
               // Calculate new duration for preview

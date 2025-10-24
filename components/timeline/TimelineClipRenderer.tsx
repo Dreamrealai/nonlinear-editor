@@ -14,6 +14,7 @@ type TimelineClipRendererProps = {
   clip: Clip;
   zoom: number;
   isSelected: boolean;
+  trimPreviewInfo?: TrimPreviewInfo;
   timecodeDisplayMode?: 'duration' | 'timecode';
   onMouseDown: (e: React.MouseEvent, clip: Clip) => void;
   onClick: (e: React.MouseEvent, clip: Clip) => void;
@@ -31,6 +32,7 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
     clip,
     zoom,
     isSelected,
+    trimPreviewInfo,
     timecodeDisplayMode = 'duration',
     onMouseDown,
     onClick,
@@ -171,6 +173,28 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
             <div className="h-full w-full bg-gradient-to-br from-blue-200 via-blue-100 to-blue-200" />
           )}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/40" />
+
+          {/* Trim Preview Overlay - Shows trimmed-off portions during trimming */}
+          {trimPreviewInfo && (
+            <>
+              {trimPreviewInfo.handle === "left" && (
+                <div
+                  className="pointer-events-none absolute left-0 top-0 bottom-0 bg-red-500/40 z-10"
+                  style={{
+                    width: `${(trimPreviewInfo.newStart - clip.start) * zoom}px`,
+                  }}
+                />
+              )}
+              {trimPreviewInfo.handle === "right" && (
+                <div
+                  className="pointer-events-none absolute right-0 top-0 bottom-0 bg-red-500/40 z-10"
+                  style={{
+                    width: `${(clip.end - trimPreviewInfo.newEnd) * zoom}px`,
+                  }}
+                />
+              )}
+            </>
+          )}
 
           {/* Audio Waveform */}
           {clip.hasAudio && (

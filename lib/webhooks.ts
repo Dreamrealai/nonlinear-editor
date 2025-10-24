@@ -297,7 +297,11 @@ export function validateWebhookUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
 
+<<<<<<< Updated upstream
     // Must be HTTP or HTTPS
+=======
+    // Only allow http and https protocols
+>>>>>>> Stashed changes
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
       return false;
     }
@@ -307,9 +311,21 @@ export function validateWebhookUrl(url: string): boolean {
       return false;
     }
 
+<<<<<<< Updated upstream
     // Must have a valid host with at least one dot (e.g., example.com) or be localhost
     // This rejects single-word hosts that could be interpreted paths like "webhook"
     if (!parsed.host || (!parsed.host.includes('.') && !parsed.host.startsWith('localhost'))) {
+=======
+    // Must have a host (hostname is more reliable than host)
+    if (!parsed.hostname || parsed.hostname.length === 0) {
+      return false;
+    }
+
+    // Check for malformed URLs like https:///path (hostname would be the path)
+    // The part after '//' should not start with '/'
+    const afterProtocol = url.split('//')[1];
+    if (!afterProtocol || afterProtocol.startsWith('/')) {
+>>>>>>> Stashed changes
       return false;
     }
 

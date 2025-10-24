@@ -2,6 +2,22 @@
 // Learn more: https://github.com/testing-library/jest-dom
 require('@testing-library/jest-dom');
 
+// Import and setup browser API mocks
+const {
+  setupAudioContextMock,
+  setupCanvasMock,
+  setupMediaElementMock,
+  setupObserversMock,
+  setupPerformanceMock,
+} = require('./__mocks__/browserAPIs');
+
+// Setup all browser API mocks
+setupAudioContextMock();
+setupCanvasMock();
+setupMediaElementMock();
+setupObserversMock();
+setupPerformanceMock();
+
 // Mock window.matchMedia
 if (typeof window !== 'undefined' && !window.matchMedia) {
   Object.defineProperty(window, 'matchMedia', {
@@ -23,6 +39,9 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
 const originalError = console.error;
 const originalWarn = console.warn;
 
+// Track if we're currently in a console.warn call to prevent infinite recursion
+let inConsoleWarn = false;
+
 beforeAll(() => {
   console.error = (...args) => {
     if (
@@ -30,7 +49,8 @@ beforeAll(() => {
       (args[0].includes('Warning: ReactDOM.render') ||
         args[0].includes('Warning: useLayoutEffect') ||
         args[0].includes('Not implemented: HTMLFormElement.prototype.submit') ||
-        args[0].includes('Not implemented: HTMLCanvasElement.prototype.getContext'))
+        args[0].includes('Not implemented: HTMLCanvasElement.prototype.getContext') ||
+        args[0].includes('Web Vitals not available'))
     ) {
       return;
     }
@@ -38,13 +58,27 @@ beforeAll(() => {
   };
 
   console.warn = (...args) => {
+    // Prevent infinite recursion from browserLogger
+    if (inConsoleWarn) {
+      return;
+    }
+
     if (
       typeof args[0] === 'string' &&
-      (args[0].includes('Warning: An update to') || args[0].includes('Warning: useLayoutEffect'))
+      (args[0].includes('Warning: An update to') ||
+       args[0].includes('Warning: useLayoutEffect') ||
+       args[0].includes('Web Vitals not available') ||
+       args[0].includes('[WARN]'))
     ) {
       return;
     }
-    originalWarn.call(console, ...args);
+
+    inConsoleWarn = true;
+    try {
+      originalWarn.call(console, ...args);
+    } finally {
+      inConsoleWarn = false;
+    }
   };
 });
 

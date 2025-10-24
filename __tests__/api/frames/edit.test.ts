@@ -59,6 +59,7 @@ jest.mock('uuid', () => ({
   v4: jest.fn(() => 'mock-edit-id'),
 }));
 
+<<<<<<< Updated upstream
 jest.mock('@/lib/api/withAuth', () => ({
   withAuth: (handler: any, options: any) => {
     return async (req: NextRequest, context: any) => {
@@ -125,6 +126,12 @@ jest.mock('@/lib/api/withAuth', () => ({
     };
   },
 }));
+=======
+jest.mock('@/lib/api/withAuth', () => {
+  const { mockWithAuth } = require('@/test-utils/mockWithAuth');
+  return { withAuth: mockWithAuth };
+});
+>>>>>>> Stashed changes
 
 // Mock global fetch
 global.fetch = jest.fn();
@@ -592,7 +599,11 @@ describe('POST /api/frames/[frameId]/edit', () => {
       expect(mockGenerateContent).toHaveBeenCalledTimes(1);
     });
 
+<<<<<<< Updated upstream
     it('should reject numVariations greater than 8', async () => {
+=======
+    it('should reject numVariations over maximum of 8', async () => {
+>>>>>>> Stashed changes
       const mockRequest = new NextRequest('http://localhost/api/frames/test/edit', {
         method: 'POST',
         body: JSON.stringify({
@@ -607,7 +618,11 @@ describe('POST /api/frames/[frameId]/edit', () => {
 
       expect(response.status).toBe(400);
       const data = await response.json();
+<<<<<<< Updated upstream
       expect(data.error).toContain('must be between 1 and 8');
+=======
+      expect(data.error).toContain('numVariations must be between 1 and 8');
+>>>>>>> Stashed changes
     });
 
     it('should increment version numbers correctly', async () => {

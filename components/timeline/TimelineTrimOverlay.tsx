@@ -39,7 +39,8 @@ export const TimelineTrimOverlay = React.memo<TimelineTrimOverlayProps>(
       return null;
     }
 
-    const { handle, originalDuration, newDuration, newStart, newEnd, position } = trimInfo;
+    const { handle, originalDuration, newDuration, newStart, newEnd, position, isSnappedToGrid } =
+      trimInfo;
 
     // Calculate the change in duration
     const durationChange = newDuration - originalDuration;
@@ -61,7 +62,9 @@ export const TimelineTrimOverlay = React.memo<TimelineTrimOverlayProps>(
         }}
       >
         {/* Main overlay card */}
-        <div className="flex flex-col gap-1 rounded-lg border-2 border-yellow-400 bg-gray-900/95 px-3 py-2 shadow-xl backdrop-blur-sm">
+        <div
+          className={`flex flex-col gap-1 rounded-lg border-2 ${isSnappedToGrid ? 'border-green-400' : 'border-yellow-400'} bg-gray-900/95 px-3 py-2 shadow-xl backdrop-blur-sm`}
+        >
           {/* Trim handle indicator */}
           <div className="flex items-center gap-1.5">
             <div
@@ -70,6 +73,12 @@ export const TimelineTrimOverlay = React.memo<TimelineTrimOverlayProps>(
             <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
               {handle === 'left' ? 'Trim Start' : 'Trim End'}
             </span>
+            {isSnappedToGrid && (
+              <div className="ml-auto flex items-center gap-1">
+                <div className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-[9px] font-bold text-green-400">SNAP</span>
+              </div>
+            )}
           </div>
 
           {/* Duration comparison */}
