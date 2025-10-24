@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 import { getCachedProjectMetadata } from '@/lib/cachedData';
 import { BrowserEditorClient } from '../BrowserEditorClient';
@@ -18,11 +19,61 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
  */
 export const dynamic = 'force-dynamic';
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ projectId: string }>;
+}): Promise<Metadata> {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        title: 'Timeline Editor',
+        description:
+          'Advanced timeline editing with multi-track support, transitions, and effects.',
+        robots: {
+          index: false,
+          follow: false,
+        },
+      };
+    }
+
+    const { projectId } = await params;
+    const project = await getCachedProjectMetadata(supabase, projectId, user.id);
+
+    if (project) {
+      return {
+        title: `${project.title} - Timeline Editor`,
+        description: `Edit ${project.title} with advanced timeline tools`,
+        robots: {
+          index: false,
+          follow: false,
+        },
+      };
+    }
+  } catch {
+    // Fallback metadata on error
+  }
+
+  return {
+    title: 'Timeline Editor',
+    description: 'Advanced timeline editing with multi-track support, transitions, and effects.',
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
+}
+
 export default async function TimelineEditorPage({
   params,
 }: {
   params: Promise<{ projectId: string }>;
-}) {
+}): Promise<React.JSX.Element> {
   // Redirect to home if Supabase not configured
   if (!isSupabaseConfigured()) {
     redirect('/');

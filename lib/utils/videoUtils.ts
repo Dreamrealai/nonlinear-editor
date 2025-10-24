@@ -248,27 +248,8 @@ export const computeOpacity = (meta: ClipMeta, progress: number) => {
   return clamp(opacity);
 };
 
-/**
- * Formats time in seconds to MM:SS:FF timecode.
- * FF represents frames at 30fps.
- *
- * @param seconds - Time in seconds
- * @returns Formatted timecode string (e.g., "01:23:15")
- */
-export const formatTimecode = (seconds: number): string => {
-  if (!Number.isFinite(seconds)) {
-    return '00:00:00';
-  }
-  const safe = Math.max(0, seconds);
-  const totalSeconds = Math.floor(safe);
-  const minutes = Math.floor(totalSeconds / 60);
-  const secs = totalSeconds % 60;
-  // Add small epsilon to handle floating point precision issues (e.g., 0.1 * 30 = 2.9999...)
-  const frames = Math.floor((safe - totalSeconds) * 30 + 0.0001); // 30fps
-  return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}:${frames
-    .toString()
-    .padStart(2, '0')}`;
-};
+// Re-export frame-based timecode formatter from consolidated utilities
+export { formatTimecodeFrames as formatTimecode } from '@/lib/utils/timeFormatting';
 
 /**
  * Ensures video has buffered enough data for smooth playback.

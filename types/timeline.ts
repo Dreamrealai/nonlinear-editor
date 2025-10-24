@@ -54,6 +54,7 @@ export type Clip = {
   colorCorrection?: ColorCorrection; // Color correction settings
   transform?: Transform; // Transform settings (rotation, flip, scale)
   audioEffects?: AudioEffects; // Audio effects (EQ, compression, normalization)
+  locked?: boolean; // Clip locked flag (prevents moving/editing, default false)
 };
 
 export type OutputSpec = {

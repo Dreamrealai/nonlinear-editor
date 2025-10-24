@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
 import { fetchWithTimeout } from '@/lib/fetchWithTimeout';
 import { validateUUID, validateAll } from '@/lib/api/validation';
 import {
   errorResponse,
   validationError,
   internalServerError,
+  successResponse,
 } from '@/lib/api/response';
 import { verifyAssetOwnership } from '@/lib/api/project-verification';
 import { serverLogger } from '@/lib/serverLogger';
@@ -141,7 +141,7 @@ const handleVideoUpscale: AuthenticatedHandler = async (request, { user, supabas
   );
 
   // Return the request ID for polling
-  return NextResponse.json({
+  return successResponse({
     requestId,
     message: 'Video upscale request submitted successfully',
   });

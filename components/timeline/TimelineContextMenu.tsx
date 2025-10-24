@@ -1,9 +1,10 @@
 'use client';
 
-import { Copy, Clipboard, Trash2, Files, Info, Volume2, Film, Music } from 'lucide-react';
+import { Copy, Clipboard, Trash2, Files, Info, Volume2, Film, Music, Lock, Unlock } from 'lucide-react';
 import { useState } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip } from '@/types/timeline';
+import { formatTimeMMSSCS } from '@/lib/utils/timeFormatting';
 
 type TimelineContextMenuProps = {
   clipId: string;
@@ -42,6 +43,9 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
   onClose,
 }) => {
   const [showProperties, setShowProperties] = useState(false);
+  const toggleClipLock = useEditorStore((state) => state.toggleClipLock);
+  const clip = useClipData(clipId);
+  const isLocked = clip?.locked ?? false;
 
   // Detect if Mac for keyboard shortcuts
   const isMac =
@@ -146,6 +150,18 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
           </>
         )}
 
+        {/* Lock/Unlock */}
+        <MenuDivider />
+        <MenuButton
+          icon={isLocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+          label={isLocked ? 'Unlock Clip' : 'Lock Clip'}
+          shortcut="L"
+          onClick={() => {
+            toggleClipLock(clipId);
+            onClose();
+          }}
+        />
+
         {/* Properties */}
         <MenuDivider />
         <MenuButton
@@ -232,12 +248,6 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClo
   }
 
   const duration = clip.end - clip.start;
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    const ms = Math.floor((seconds % 1) * 100);
-    return `${mins}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
-  };
 
   return (
     <div
@@ -273,15 +283,16 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClo
 
           <div className="my-3 h-px bg-neutral-200" />
 
-          <PropertyRow label="Duration" value={formatTime(duration)} />
-          <PropertyRow label="Timeline Position" value={formatTime(clip.timelinePosition)} />
+          <PropertyRow label="Duration" value={formatTimeMMSSCS(duration)} />
+          <PropertyRow label="Timeline Position" value={formatTimeMMSSCS(clip.timelinePosition)} />
           <PropertyRow label="Track" value={`Track ${clip.trackIndex + 1}`} />
+          <PropertyRow label="Locked" value={clip.locked ? 'Yes' : 'No'} />
 
           {clip.sourceDuration && (
             <>
-              <PropertyRow label="Source Duration" value={formatTime(clip.sourceDuration)} />
-              <PropertyRow label="Trim Start" value={formatTime(clip.start)} />
-              <PropertyRow label="Trim End" value={formatTime(clip.end)} />
+              <PropertyRow label="Source Duration" value={formatTimeMMSSCS(clip.sourceDuration)} />
+              <PropertyRow label="Trim Start" value={formatTimeMMSSCS(clip.start)} />
+              <PropertyRow label="Trim End" value={formatTimeMMSSCS(clip.end)} />
             </>
           )}
 

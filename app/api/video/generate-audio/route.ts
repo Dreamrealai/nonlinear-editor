@@ -1,8 +1,14 @@
-import { NextResponse } from 'next/server';
 import { serverLogger } from '@/lib/serverLogger';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
+import {
+  validationError,
+  notFoundResponse,
+  internalServerError,
+  errorResponse,
+  successResponse,
+} from '@/lib/api/response';
 
 /**
  * POST /api/video/generate-audio
@@ -20,13 +26,13 @@ const handleGenerateAudio: AuthenticatedHandler = async (request, { user, supaba
   const { assetId, projectId, model = 'minimax', prompt } = body;
 
   if (!assetId || !projectId) {
-    return NextResponse.json({ error: 'assetId and projectId are required' }, { status: 400 });
+    return validationError('assetId and projectId are required');
   }
 
   if (!['minimax', 'mureka-1.5', 'kling-turbo-2.5'].includes(model)) {
-    return NextResponse.json(
-      { error: 'Invalid model. Must be minimax, mureka-1.5, or kling-turbo-2.5' },
-      { status: 400 }
+    return validationError(
+      'Invalid model. Must be minimax, mureka-1.5, or kling-turbo-2.5',
+      'model'
     );
   }
 
@@ -40,13 +46,13 @@ const handleGenerateAudio: AuthenticatedHandler = async (request, { user, supaba
     .single();
 
   if (assetError || !asset) {
-    return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
+    return notFoundResponse('Asset');
   }
 
   // Verify FAL_API_KEY is configured
   const falKey = process.env['FAL_API_KEY'];
   if (!falKey) {
-    return NextResponse.json({ error: 'FAL_API_KEY not configured on server' }, { status: 500 });
+    return internalServerError('FAL_API_KEY not configured on server');
   }
 
   // Get public URL for the video
@@ -76,7 +82,7 @@ const handleGenerateAudio: AuthenticatedHandler = async (request, { user, supaba
   }
 
   if (!videoUrl) {
-    return NextResponse.json({ error: 'Failed to get video URL' }, { status: 500 });
+    return internalServerError('Failed to get video URL');
   }
 
   // Map model to fal.ai endpoint
@@ -115,9 +121,9 @@ const handleGenerateAudio: AuthenticatedHandler = async (request, { user, supaba
         { errorText, status: falResponse.status, userId: user.id, projectId },
         'fal.ai video-to-audio request failed'
       );
-      return NextResponse.json(
-        { error: `Failed to submit video-to-audio request: ${errorText}` },
-        { status: falResponse.status }
+      return errorResponse(
+        `Failed to submit video-to-audio request: ${errorText}`,
+        falResponse.status
       );
     }
   } catch (error) {
@@ -127,10 +133,7 @@ const handleGenerateAudio: AuthenticatedHandler = async (request, { user, supaba
         { userId: user.id, projectId, assetId },
         'FAL.ai video-to-audio submission timeout'
       );
-      return NextResponse.json(
-        { error: 'Video-to-audio submission timeout after 60s' },
-        { status: 504 }
-      );
+      return errorResponse('Video-to-audio submission timeout after 60s', 504);
     }
     throw error;
   }
@@ -141,7 +144,7 @@ const handleGenerateAudio: AuthenticatedHandler = async (request, { user, supaba
   const requestId = falData.request_id;
 
   if (!requestId) {
-    return NextResponse.json({ error: 'No request ID returned from fal.ai' }, { status: 500 });
+    return internalServerError('No request ID returned from fal.ai');
   }
 
   // Store the job details in the database for tracking
@@ -172,7 +175,7 @@ const handleGenerateAudio: AuthenticatedHandler = async (request, { user, supaba
     // Continue anyway - we can still poll using the request_id
   }
 
-  return NextResponse.json({
+  return successResponse({
     success: true,
     requestId,
     jobId: jobData?.id,

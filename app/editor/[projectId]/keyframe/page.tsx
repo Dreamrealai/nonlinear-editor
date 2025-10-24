@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 import { getCachedProjectMetadata } from '@/lib/cachedData';
 import KeyframePageClient from './KeyframePageClient';
@@ -18,11 +19,60 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
  */
 export const dynamic = 'force-dynamic';
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ projectId: string }>;
+}): Promise<Metadata> {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        title: 'Keyframe Animation',
+        description: 'Create smooth animations with advanced keyframe controls and curves.',
+        robots: {
+          index: false,
+          follow: false,
+        },
+      };
+    }
+
+    const { projectId } = await params;
+    const project = await getCachedProjectMetadata(supabase, projectId, user.id);
+
+    if (project) {
+      return {
+        title: `${project.title} - Keyframe Animation`,
+        description: `Animate ${project.title} with advanced keyframe controls`,
+        robots: {
+          index: false,
+          follow: false,
+        },
+      };
+    }
+  } catch {
+    // Fallback metadata on error
+  }
+
+  return {
+    title: 'Keyframe Animation',
+    description: 'Create smooth animations with advanced keyframe controls and curves.',
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
+}
+
 export default async function KeyFrameEditorPage({
   params,
 }: {
   params: Promise<{ projectId: string }>;
-}) {
+}): Promise<React.JSX.Element> {
   // Redirect to home if Supabase not configured
   if (!isSupabaseConfigured()) {
     redirect('/');

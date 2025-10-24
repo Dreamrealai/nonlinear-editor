@@ -195,6 +195,11 @@ function HorizontalTimeline({
     const isMulti = e.metaKey || e.ctrlKey || e.shiftKey;
     selectClip(clip.id, isMulti);
 
+    // Prevent dragging locked clips
+    if (clip.locked) {
+      return;
+    }
+
     const rect = containerRef.current.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
@@ -215,6 +220,12 @@ function HorizontalTimeline({
     e.stopPropagation();
     e.preventDefault();
     selectClip(clip.id, e.metaKey || e.ctrlKey || e.shiftKey);
+
+    // Prevent trimming locked clips
+    if (clip.locked) {
+      return;
+    }
+
     setTrimmingClip({
       id: clip.id,
       handle,

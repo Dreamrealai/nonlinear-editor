@@ -6,6 +6,7 @@ import { Clip } from '@/types/timeline';
 import { AudioWaveform } from '../AudioWaveform';
 import { getClipFileName, formatTimecode } from '@/lib/utils/timelineUtils';
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
+import { useEditorStore } from '@/state/useEditorStore';
 
 const { TRACK_HEIGHT } = TIMELINE_CONSTANTS;
 
@@ -38,11 +39,14 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
     onRemove,
   }) {
     const [isHovered, setIsHovered] = React.useState(false);
+    const toggleClipLock = useEditorStore((state) => state.toggleClipLock);
+
     const clipDuration = clip.end - clip.start;
     const clipWidth = clipDuration * zoom;
     const clipLeft = clip.timelinePosition * zoom;
     const clipTop = clip.trackIndex * TRACK_HEIGHT;
     const thumbnail = clip.thumbnailUrl;
+    const isLocked = clip.locked ?? false;
 
     // Calculate timecode values
     const inTimecode = formatTimecode(clip.start);
@@ -50,11 +54,23 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
     const clipStartTime = formatTimecode(clip.timelinePosition);
     const clipEndTime = formatTimecode(clip.timelinePosition + clipDuration);
 
+    const handleLockToggle = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      toggleClipLock(clip.id);
+    };
+
     return (
       <div
-        className={`absolute rounded-lg border-2 overflow-hidden cursor-move hover:shadow-lg transition-all ${
+        className={`absolute rounded-lg border-2 overflow-hidden transition-all ${
+          isLocked
+            ? 'cursor-not-allowed border-gray-400 bg-gray-500/20'
+            : 'cursor-move hover:shadow-lg'
+        } ${
           isSelected
             ? 'border-yellow-400 ring-2 ring-yellow-400/50'
+            : isLocked
+            ? 'border-gray-400'
             : 'border-blue-500 hover:border-blue-600'
         }`}
         style={{
@@ -159,30 +175,79 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
                   </div>
                 )}
               </div>
-              <button
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  onRemove(clip.id);
-                }}
-                className="flex-shrink-0 rounded bg-white/20 p-0.5 text-white hover:bg-red-500 pointer-events-auto"
-              >
-                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
+              <div className="flex gap-1">
+                <button
+                  onMouseDown={handleLockToggle}
+                  className={`flex-shrink-0 rounded p-0.5 pointer-events-auto transition-colors ${
+                    isLocked
+                      ? 'bg-yellow-500/80 text-white hover:bg-yellow-600'
+                      : 'bg-white/20 text-white hover:bg-white/30'
+                  }`}
+                  title={isLocked ? 'Unlock clip' : 'Lock clip'}
+                  aria-label={isLocked ? 'Unlock clip' : 'Lock clip'}
+                >
+                  {isLocked ? (
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
+                  ) : (
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                      />
+                    </svg>
+                  )}
+                </button>
+                <button
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onRemove(clip.id);
+                  }}
+                  className="flex-shrink-0 rounded bg-white/20 p-0.5 text-white hover:bg-red-500 pointer-events-auto"
+                  title="Remove clip"
+                  aria-label="Remove clip"
+                >
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             {/* Hover Timecode Display */}
             {isHovered && (
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/90 rounded-lg px-3 py-2 shadow-xl border border-white/20 z-10 pointer-events-none">
-                <div className="text-[10px] font-mono text-white/60 mb-1 text-center">
-                  Timecodes
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="text-[10px] font-mono text-white/60 text-center flex-1">
+                    Timecodes
+                  </div>
+                  {isLocked && (
+                    <div className="flex items-center gap-1 text-yellow-400">
+                      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                        />
+                      </svg>
+                      <span className="text-[9px] font-semibold">LOCKED</span>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-0.5 text-xs font-mono">
                   <div className="flex justify-between gap-4">

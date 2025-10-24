@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { formatDuration } from '@/lib/utils/timeFormatting';
 
 interface ProgressBarProps {
   /** Progress value from 0 to 100 */
@@ -44,22 +45,7 @@ const sizeClasses = {
   lg: 'h-3',
 };
 
-/**
- * Format seconds into a human-readable time string
- */
-function formatTime(seconds: number): string {
-  if (seconds < 60) {
-    return `${Math.round(seconds)}s`;
-  } else if (seconds < 3600) {
-    const minutes = Math.floor(seconds / 60);
-    const secs = Math.round(seconds % 60);
-    return `${minutes}m ${secs}s`;
-  } else {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return `${hours}h ${minutes}m`;
-  }
-}
+// formatDuration is now imported from @/lib/utils/timeFormatting
 
 export function ProgressBar({
   progress,
@@ -88,9 +74,9 @@ export function ProgressBar({
             )}
           </div>
           <div className="flex items-center gap-3 text-xs text-neutral-500">
-            {timeElapsed !== undefined && <span>Elapsed: {formatTime(timeElapsed)}</span>}
+            {timeElapsed !== undefined && <span>Elapsed: {formatDuration(timeElapsed)}</span>}
             {timeRemaining !== undefined && timeRemaining > 0 && (
-              <span>Remaining: {formatTime(timeRemaining)}</span>
+              <span>Remaining: {formatDuration(timeRemaining)}</span>
             )}
           </div>
         </div>

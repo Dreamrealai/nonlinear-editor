@@ -1,39 +1,8 @@
 import type { Clip } from '@/types/timeline';
 import { safeArrayLast } from '@/lib/utils/arrayUtils';
 
-/**
- * Formats time in seconds to MM:SS.CS format
- * @param seconds - Time in seconds
- * @returns Formatted time string (e.g., "1:23.45")
- */
-export function formatTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  const ms = Math.floor((seconds % 1) * 100);
-  return `${mins}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
-}
-
-/**
- * Formats time in seconds to professional timecode format (HH:MM:SS.MS or MM:SS.MS)
- * @param seconds - Time in seconds
- * @param showHours - Whether to always show hours (default: auto-detect)
- * @returns Formatted timecode string (e.g., "00:01:23.45" or "1:23.45")
- */
-export function formatTimecode(seconds: number, showHours?: boolean): string {
-  const hours = Math.floor(seconds / 3600);
-  const mins = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-  const ms = Math.floor((seconds % 1) * 100);
-
-  // Auto-detect: show hours if time >= 1 hour or explicitly requested
-  const includeHours = showHours ?? hours > 0;
-
-  if (includeHours) {
-    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
-  }
-
-  return `${mins}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
-}
+// Re-export time formatting utilities for backward compatibility
+export { formatTime, formatTimecode } from '@/lib/utils/timeFormatting';
 
 /**
  * Extracts the filename from a clip's file path

@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { ProgressBar, IndeterminateProgressBar } from '@/components/ui/ProgressBar';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
+import { formatDuration } from '@/lib/utils/timeFormatting';
 
 export type OperationType =
   | 'upscale'
@@ -63,17 +64,7 @@ const OPERATION_DESCRIPTIONS: Record<OperationType, string> = {
   'generate-audio': 'Generating audio using AI...',
 };
 
-/**
- * Format time in seconds to human-readable string
- */
-function formatTime(seconds: number): string {
-  if (seconds < 60) {
-    return `${Math.round(seconds)}s`;
-  }
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.round(seconds % 60);
-  return `${minutes}m ${remainingSeconds}s`;
-}
+// formatDuration is now imported from @/lib/utils/timeFormatting
 
 /**
  * Calculate estimated time remaining based on elapsed time and progress
@@ -215,9 +206,9 @@ export function ProgressModal({
           {/* Time information */}
           {!progressState.completed && !progressState.error && progressState.startTime && (
             <div className="flex items-center justify-between text-xs text-neutral-500">
-              <span>Elapsed: {formatTime(elapsedTime)}</span>
+              <span>Elapsed: {formatDuration(elapsedTime)}</span>
               {timeRemaining !== undefined && timeRemaining > 0 && (
-                <span>Estimated remaining: ~{formatTime(timeRemaining)}</span>
+                <span>Estimated remaining: {formatDuration(timeRemaining, { approximate: true })}</span>
               )}
             </div>
           )}

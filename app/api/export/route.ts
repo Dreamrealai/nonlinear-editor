@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
 import { serverLogger } from '@/lib/serverLogger';
 import {
   validationError,
   notFoundResponse,
   errorResponse,
   successResponse,
+  serviceUnavailableResponse,
+  internalServerError,
 } from '@/lib/api/response';
 import { validateUUID, validateEnum, validateInteger, ValidationError } from '@/lib/validation';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
@@ -84,13 +85,9 @@ const handleExportCreate: AuthenticatedHandler = async (request, { user, supabas
       'Video export requested but the export worker is not configured'
     );
 
-    return NextResponse.json(
-      {
-        error: 'Video export is not currently available.',
-        help: 'Set VIDEO_EXPORT_ENABLED=true and configure a background worker to process export jobs.',
-      },
-      { status: 503 }
-    );
+    return serviceUnavailableResponse('Video export is not currently available.', {
+      help: 'Set VIDEO_EXPORT_ENABLED=true and configure a background worker to process export jobs.',
+    });
   }
 
   let body: unknown;
@@ -261,12 +258,8 @@ const handleExportCreate: AuthenticatedHandler = async (request, { user, supabas
       { error: jobError, userId: user.id, projectId: payload.projectId },
       'Failed to create export job'
     );
-    return NextResponse.json(
-      {
-        error:
-          'Unable to create your video export job. Please check your timeline and try again. If the problem persists, contact support.',
-      },
-      { status: 500 }
+    return internalServerError(
+      'Unable to create your video export job. Please check your timeline and try again. If the problem persists, contact support.'
     );
   }
 

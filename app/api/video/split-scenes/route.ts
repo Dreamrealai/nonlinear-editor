@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { VideoIntelligenceServiceClient, protos } from '@google-cloud/video-intelligence';
 import { Storage } from '@google-cloud/storage';
 import { serverLogger } from '@/lib/serverLogger';
@@ -6,6 +5,8 @@ import {
   validationError,
   forbiddenResponse,
   successResponse,
+  errorResponse,
+  serviceUnavailableResponse,
 } from '@/lib/api/response';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
@@ -99,7 +100,7 @@ const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) 
     const location =
       typeof asset.storage_url === 'string' ? parseStorageUrl(asset.storage_url) : null;
     if (!location) {
-      return NextResponse.json({ error: 'Video storage location invalid' }, { status: 400 });
+      return validationError('Video storage location invalid', 'storage_url');
     }
 
     const { data: signed, error: signError } = await supabase.storage
@@ -111,10 +112,7 @@ const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) 
         { signError, assetId, location },
         'Failed to create signed URL for scene detection'
       );
-      return NextResponse.json(
-        { error: 'Unable to access video for scene detection' },
-        { status: 502 }
-      );
+      return errorResponse('Unable to access video for scene detection', 502);
     }
 
     videoUrl = signed.signedUrl;
@@ -128,15 +126,11 @@ const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) 
       { assetId, projectId },
       'Scene detection unavailable: GOOGLE_SERVICE_ACCOUNT not configured'
     );
-    return NextResponse.json(
-      {
-        error: 'Scene detection unavailable',
-        message:
-          'Google Cloud Video Intelligence is not configured on this deployment. Please configure the GOOGLE_SERVICE_ACCOUNT environment variable.',
-        details: 'Contact your administrator to enable scene detection features.',
-      },
-      { status: 503 }
-    );
+    return serviceUnavailableResponse('Scene detection unavailable', {
+      message:
+        'Google Cloud Video Intelligence is not configured on this deployment. Please configure the GOOGLE_SERVICE_ACCOUNT environment variable.',
+      details: 'Contact your administrator to enable scene detection features.',
+    });
   }
 
   serverLogger.info({ assetId, projectId }, 'Google Cloud credentials found');
@@ -151,13 +145,9 @@ const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) 
       { parseError, assetId, projectId },
       'Failed to parse GOOGLE_SERVICE_ACCOUNT'
     );
-    return NextResponse.json(
-      {
-        error: 'Invalid Google Cloud credentials',
-        message: 'GOOGLE_SERVICE_ACCOUNT is not valid JSON',
-      },
-      { status: 503 }
-    );
+    return serviceUnavailableResponse('Invalid Google Cloud credentials', {
+      message: 'GOOGLE_SERVICE_ACCOUNT is not valid JSON',
+    });
   }
 
   // Initialize clients
@@ -170,15 +160,11 @@ const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) 
   // SECURITY: Require explicit bucket configuration (no auto-creation)
   if (!bucketName) {
     serverLogger.error({ assetId, projectId }, 'GCS_BUCKET_NAME environment variable not set');
-    return NextResponse.json(
-      {
-        error: 'GCS bucket not configured',
-        message:
-          'GCS_BUCKET_NAME environment variable is not set. Configure infrastructure with Terraform.',
-        details: 'See /docs/INFRASTRUCTURE.md for setup instructions.',
-      },
-      { status: 503 }
-    );
+    return serviceUnavailableResponse('GCS bucket not configured', {
+      message:
+        'GCS_BUCKET_NAME environment variable is not set. Configure infrastructure with Terraform.',
+      details: 'See /docs/INFRASTRUCTURE.md for setup instructions.',
+    });
   }
 
   const bucket = storageClient.bucket(bucketName);
@@ -191,14 +177,10 @@ const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) 
         { bucketName, assetId, projectId },
         'GCS bucket does not exist - must be created via Terraform'
       );
-      return NextResponse.json(
-        {
-          error: 'GCS bucket not found',
-          message: `Bucket "${bucketName}" does not exist. Create it using Terraform first.`,
-          details: 'See /docs/INFRASTRUCTURE.md for setup instructions.',
-        },
-        { status: 503 }
-      );
+      return serviceUnavailableResponse('GCS bucket not found', {
+        message: `Bucket "${bucketName}" does not exist. Create it using Terraform first.`,
+        details: 'See /docs/INFRASTRUCTURE.md for setup instructions.',
+      });
     }
     serverLogger.info({ bucketName, assetId, projectId }, 'GCS bucket verified');
   } catch (bucketError) {
@@ -206,14 +188,10 @@ const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) 
       { bucketError, bucketName, assetId, projectId },
       'Error checking bucket existence'
     );
-    return NextResponse.json(
-      {
-        error: 'GCS bucket check failed',
-        message: 'Unable to verify GCS bucket existence. Check service account permissions.',
-        details: bucketError instanceof Error ? bucketError.message : 'Unknown error',
-      },
-      { status: 502 }
-    );
+    return errorResponse('GCS bucket check failed', 502, undefined, {
+      message: 'Unable to verify GCS bucket existence. Check service account permissions.',
+      details: bucketError instanceof Error ? bucketError.message : 'Unknown error',
+    });
   }
 
   // Upload video to GCS
@@ -265,17 +243,13 @@ const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) 
       { uploadError, assetId, projectId, bucketName },
       'Failed to upload video to GCS'
     );
-    return NextResponse.json(
-      {
-        error: 'Video upload to GCS failed',
-        message:
-          uploadError instanceof Error
-            ? uploadError.message
-            : 'Could not upload video to Google Cloud Storage',
-        details: 'Unable to prepare video for analysis. Check GCS bucket permissions.',
-      },
-      { status: 502 }
-    );
+    return errorResponse('Video upload to GCS failed', 502, undefined, {
+      message:
+        uploadError instanceof Error
+          ? uploadError.message
+          : 'Could not upload video to Google Cloud Storage',
+      details: 'Unable to prepare video for analysis. Check GCS bucket permissions.',
+    });
   }
 
   // Perform shot detection using GCS URI (gs://)
@@ -308,17 +282,11 @@ const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) 
       );
     }
 
-    return NextResponse.json(
-      {
-        error: 'Video analysis failed',
-        message:
-          apiError instanceof Error
-            ? apiError.message
-            : 'Google Cloud Video Intelligence API error',
-        details: 'The video format may not be supported or the API credentials may be invalid',
-      },
-      { status: 502 }
-    );
+    return errorResponse('Video analysis failed', 502, undefined, {
+      message:
+        apiError instanceof Error ? apiError.message : 'Google Cloud Video Intelligence API error',
+      details: 'The video format may not be supported or the API credentials may be invalid',
+    });
   }
 
   serverLogger.info({ assetId, projectId }, 'Processing video for shot detection');
@@ -351,7 +319,7 @@ const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) 
       );
     }
 
-    return NextResponse.json({
+    return successResponse({
       message: 'No scenes detected in video',
       count: 0,
     });
@@ -404,7 +372,7 @@ const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) 
     // Don't fail the request if cleanup fails
   }
 
-  return NextResponse.json({
+  return successResponse({
     message: `Successfully detected ${scenes.length} scenes`,
     scenes,
     count: scenes.length,

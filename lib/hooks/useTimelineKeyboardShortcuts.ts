@@ -23,6 +23,7 @@ type UseTimelineKeyboardShortcutsOptions = {
   removeClip: (clipId: string) => void;
   clearSelection: () => void;
   splitClipAtTime: (clipId: string, time: number) => void;
+  toggleClipLock?: (clipId: string) => void;
 };
 
 export function useTimelineKeyboardShortcuts({
@@ -36,6 +37,7 @@ export function useTimelineKeyboardShortcuts({
   removeClip,
   clearSelection,
   splitClipAtTime,
+  toggleClipLock,
 }: UseTimelineKeyboardShortcutsOptions) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -103,6 +105,14 @@ export function useTimelineKeyboardShortcuts({
           splitClipAtTime(clipAtPlayhead.id, currentTime);
         }
       }
+
+      // L: Toggle lock for selected clips
+      if (e.key === 'l' || e.key === 'L') {
+        e.preventDefault();
+        if (toggleClipLock && selectedClipIds.size > 0) {
+          selectedClipIds.forEach((clipId) => toggleClipLock(clipId));
+        }
+      }
     };
 
     if (typeof window !== 'undefined') {
@@ -121,5 +131,6 @@ export function useTimelineKeyboardShortcuts({
     pasteClips,
     undo,
     redo,
+    toggleClipLock,
   ]);
 }

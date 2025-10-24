@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { safeArrayFirst } from '@/lib/utils/arrayUtils';
 import { serverLogger } from '@/lib/serverLogger';
 import {
@@ -6,6 +5,7 @@ import {
   forbiddenResponse,
   badRequestResponse,
   errorResponse,
+  successResponse,
 } from '@/lib/api/response';
 import { validateUUID, validateInteger } from '@/lib/validation';
 import { withAuth } from '@/lib/api/withAuth';
@@ -111,7 +111,7 @@ const handleSignUrl: AuthenticatedHandler = async (request, { user, supabase }) 
 
     // Add cache headers to prevent browser caching of signed URLs
     // Signed URLs are time-limited and should not be cached by the browser
-    const response = NextResponse.json({ signedUrl: data.signedUrl, expiresIn: ttl });
+    const response = successResponse({ signedUrl: data.signedUrl, expiresIn: ttl });
 
     // Set cache control headers
     response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');

@@ -35,7 +35,7 @@ import { browserLogger } from '@/lib/browserLogger';
 import { safeArrayGet } from '@/lib/utils/arrayUtils';
 
 // Extracted components and utilities
-import { AssetPanel } from '@/components/editor/AssetPanel';
+import { ResizableAssetPanel } from '@/components/editor/ResizableAssetPanel';
 import { AudioGenerationModal } from './AudioGenerationModal';
 import { VideoGenerationModal } from './VideoGenerationModal';
 import { useEditorHandlers } from './useEditorHandlers';
@@ -175,10 +175,9 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
   const handleCopy = useCallback(() => {
     if (selectedClipIds.size > 0) {
       copyClips();
-      toast.success(
-        `Copied ${selectedClipIds.size} clip${selectedClipIds.size > 1 ? 's' : ''}`,
-        { duration: 1500 }
-      );
+      toast.success(`Copied ${selectedClipIds.size} clip${selectedClipIds.size > 1 ? 's' : ''}`, {
+        duration: 1500,
+      });
     }
   }, [copyClips, selectedClipIds]);
 
@@ -634,11 +633,11 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
   return (
     <div className="flex h-full flex-col">
       <EditorHeader projectId={projectId} currentTab="video-editor" onExport={handleExportClick} />
-      <div className="grid h-full grid-cols-[280px_1fr_320px] gap-6 p-6">
+      <div className="flex h-full gap-6 p-6">
         <Toaster position="bottom-right" />
 
-        {/* Assets Panel */}
-        <AssetPanel
+        {/* Assets Panel - Resizable */}
+        <ResizableAssetPanel
           projectId={projectId}
           activeTab={activeTab}
           assets={assets}
@@ -649,10 +648,13 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
           onAssetAdd={handlers.handleClipAdd}
           onAssetDelete={handlers.handleAssetDelete}
           onFileSelect={handlers.handleFileSelect}
+          initialWidth={280}
+          minWidth={200}
+          maxWidth={500}
         />
 
-        {/* Main Editor */}
-        <main className="flex h-full flex-col gap-4 overflow-hidden">
+        {/* Main Editor - Flexible width */}
+        <main className="flex h-full flex-1 flex-col gap-4 overflow-hidden">
           <section className="flex-[18] overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
             <LazyPreviewPlayer />
           </section>
@@ -675,8 +677,10 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
           <TimelineCorrectionsMenu />
         </main>
 
-        {/* Clip Properties Panel */}
-        <LazyClipPropertiesPanel />
+        {/* Clip Properties Panel - Fixed width */}
+        <div className="w-80 flex-shrink-0">
+          <LazyClipPropertiesPanel />
+        </div>
 
         {/* Audio Generation Modal */}
         <AudioGenerationModal

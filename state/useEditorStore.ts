@@ -145,6 +145,18 @@ type EditorStore = {
     multi?: boolean
   ) => void;
 
+  // ===== Lock Actions =====
+  /** Lock a clip to prevent editing/moving */
+  lockClip: (id: string) => void;
+  /** Unlock a clip to allow editing/moving */
+  unlockClip: (id: string) => void;
+  /** Toggle lock state for a clip */
+  toggleClipLock: (id: string) => void;
+  /** Lock all selected clips */
+  lockSelectedClips: () => void;
+  /** Unlock all selected clips */
+  unlockSelectedClips: () => void;
+
   // ===== Clipboard Actions =====
   /** Copy selected clips to clipboard */
   copyClips: () => void;
@@ -667,6 +679,53 @@ export const useEditorStore = create<EditorStore>()(
       const state = get();
       return state.historyIndex < state.history.length - 1;
     },
+
+    // ===== Lock Actions =====
+    lockClip: (id) =>
+      set((state) => {
+        const clip = state.timeline?.clips.find((c) => c.id === id);
+        if (clip) {
+          clip.locked = true;
+        }
+      }),
+
+    unlockClip: (id) =>
+      set((state) => {
+        const clip = state.timeline?.clips.find((c) => c.id === id);
+        if (clip) {
+          clip.locked = false;
+        }
+      }),
+
+    toggleClipLock: (id) =>
+      set((state) => {
+        const clip = state.timeline?.clips.find((c) => c.id === id);
+        if (clip) {
+          clip.locked = !clip.locked;
+        }
+      }),
+
+    lockSelectedClips: () =>
+      set((state) => {
+        if (!state.timeline) return;
+        state.selectedClipIds.forEach((clipId) => {
+          const clip = state.timeline!.clips.find((c) => c.id === clipId);
+          if (clip) {
+            clip.locked = true;
+          }
+        });
+      }),
+
+    unlockSelectedClips: () =>
+      set((state) => {
+        if (!state.timeline) return;
+        state.selectedClipIds.forEach((clipId) => {
+          const clip = state.timeline!.clips.find((c) => c.id === clipId);
+          if (clip) {
+            clip.locked = false;
+          }
+        });
+      }),
 
     // ===== Zoom Preset Actions =====
     /**

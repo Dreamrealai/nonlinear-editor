@@ -78,6 +78,11 @@ type TimelineStore = {
     transitionType: TransitionType,
     duration: number
   ) => void;
+
+  // ===== Lock Actions =====
+  lockClip: (id: string) => void;
+  unlockClip: (id: string) => void;
+  toggleClipLock: (id: string) => void;
 };
 
 export const useTimelineStore = create<TimelineStore>()(
@@ -277,6 +282,30 @@ export const useTimelineStore = create<TimelineStore>()(
             clip.transitionToNext = { type: transitionType, duration };
           }
         });
+      }),
+
+    lockClip: (id) =>
+      set((state) => {
+        const clip = state.timeline?.clips.find((c) => c.id === id);
+        if (clip) {
+          clip.locked = true;
+        }
+      }),
+
+    unlockClip: (id) =>
+      set((state) => {
+        const clip = state.timeline?.clips.find((c) => c.id === id);
+        if (clip) {
+          clip.locked = false;
+        }
+      }),
+
+    toggleClipLock: (id) =>
+      set((state) => {
+        const clip = state.timeline?.clips.find((c) => c.id === id);
+        if (clip) {
+          clip.locked = !clip.locked;
+        }
       }),
   }))
 );

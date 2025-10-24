@@ -2,6 +2,7 @@
 
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
 import React, { useCallback, useRef, useState } from 'react';
+import { formatTimeSeconds } from '@/lib/utils/timeFormatting';
 
 const { RULER_HEIGHT } = TIMELINE_CONSTANTS;
 
@@ -77,12 +78,7 @@ export const TimelineRuler = React.memo<TimelineRulerProps>(function TimelineRul
     setHoverTime(null);
   }, []);
 
-  /**
-   * Format time for display (seconds with 2 decimal places)
-   */
-  const formatTime = useCallback((time: number): string => {
-    return `${time.toFixed(2)}s`;
-  }, []);
+  // formatTimeSeconds is now imported from @/lib/utils/timeFormatting
 
   return (
     <>
@@ -124,7 +120,7 @@ export const TimelineRuler = React.memo<TimelineRulerProps>(function TimelineRul
                 className="absolute -top-6 -translate-x-1/2 px-2 py-0.5 bg-neutral-900 text-white text-[10px] font-mono rounded pointer-events-none whitespace-nowrap"
                 style={{ left: hoverPosition }}
               >
-                {formatTime(hoverTime)}
+                {formatTimeSeconds(hoverTime)}
               </div>
             </>
           )}

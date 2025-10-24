@@ -92,23 +92,23 @@ describe('ProgressBar', () => {
   // Test: Color variants
   it('applies correct color variant classes', () => {
     const { rerender, container } = render(<ProgressBar progress={50} variant="primary" />);
-    let progressBar = container.querySelector('[role="progressbar"]')?.parentElement;
+    let progressBar = container.querySelector('[role="progressbar"]');
     expect(progressBar).toHaveClass('bg-blue-200');
 
     rerender(<ProgressBar progress={50} variant="success" />);
-    progressBar = container.querySelector('[role="progressbar"]')?.parentElement;
+    progressBar = container.querySelector('[role="progressbar"]');
     expect(progressBar).toHaveClass('bg-green-200');
 
     rerender(<ProgressBar progress={50} variant="warning" />);
-    progressBar = container.querySelector('[role="progressbar"]')?.parentElement;
+    progressBar = container.querySelector('[role="progressbar"]');
     expect(progressBar).toHaveClass('bg-yellow-200');
 
     rerender(<ProgressBar progress={50} variant="danger" />);
-    progressBar = container.querySelector('[role="progressbar"]')?.parentElement;
+    progressBar = container.querySelector('[role="progressbar"]');
     expect(progressBar).toHaveClass('bg-red-200');
 
     rerender(<ProgressBar progress={50} variant="info" />);
-    progressBar = container.querySelector('[role="progressbar"]')?.parentElement;
+    progressBar = container.querySelector('[role="progressbar"]');
     expect(progressBar).toHaveClass('bg-cyan-200');
   });
 

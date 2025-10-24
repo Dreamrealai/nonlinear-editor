@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { generateImage } from '@/lib/imagen';
 import { ensureHttpsProtocol } from '@/lib/supabase';
 import { RATE_LIMITS } from '@/lib/rateLimit';
@@ -14,10 +13,7 @@ import {
   validatePersonGeneration,
   validateAll,
 } from '@/lib/api/validation';
-import {
-  validationError,
-  errorResponse,
-} from '@/lib/api/response';
+import { validationError, errorResponse, successResponse } from '@/lib/api/response';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
 import { HttpStatusCode } from '@/lib/errors/errorCodes';
 import { withAuth } from '@/lib/api/withAuth';
@@ -270,12 +266,13 @@ const handleImageGenerate: AuthenticatedHandler = async (req, { user, supabase }
     `Generated ${assets.length} image(s) successfully in ${duration}ms`
   );
 
-  return NextResponse.json(
+  return successResponse(
     {
       assets,
       message: `Generated ${assets.length} image(s) successfully`,
     },
-    { status: HttpStatusCode.OK }
+    undefined,
+    HttpStatusCode.OK
   );
 };
 

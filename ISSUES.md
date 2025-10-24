@@ -1,8 +1,8 @@
 # Codebase Issues Tracker
 
 **Last Updated:** 2025-10-24
-**Status:** 68 open issues (7 issues fixed and removed)
-**Priority Breakdown:** P0: 0 | P1: 22 | P2: 31 | P3: 15
+**Status:** 67 open issues (7 issues fixed and removed)
+**Priority Breakdown:** P0: 0 | P1: 21 | P2: 31 | P3: 15
 
 This document tracks all open issues in the codebase. Fixed/resolved issues are removed to keep this document focused and efficient.
 
@@ -152,39 +152,6 @@ All required indexes have been implemented in migration `20251024100000_add_perf
 **Migration file:** `/supabase/migrations/20251024100000_add_performance_indexes.sql`
 
 **Note:** Issue description referenced non-existent `timeline_clips` table. The actual timeline data is stored in `timelines.timeline_data` as JSONB. No additional indexes needed for this table as it has a unique index on `project_id`.
-
----
-
-### Issue #49: No Keyboard Shortcuts Documentation
-
-- **Status:** FIXED ✅
-- **Priority:** P1
-- **Fixed:** 2025-10-24
-- **Effort:** 2-3 hours (completed)
-- **Impact:** Users can now discover and learn all available shortcuts
-
-**Implementation:**
-
-1. ✅ Created comprehensive documentation at `/docs/KEYBOARD_SHORTCUTS.md`
-2. ✅ Integrated `KeyboardShortcutsHelp` modal component in editor
-3. ✅ Added Cmd/Ctrl+? and Cmd/Ctrl+/ shortcuts to open help modal
-4. ✅ Shortcuts grouped by category (General, Playback, Editing, Navigation)
-5. ✅ Platform-specific display (Cmd on Mac, Ctrl on Windows/Linux)
-6. ✅ Auto-disables shortcuts in text input contexts
-
-**Available Shortcuts:**
-
-- General: Save, Export, Show Help
-- Playback: Space (Play/Pause)
-- Editing: Undo, Redo, Copy, Paste, Select All, Delete, Split Clip
-- All shortcuts documented with examples and troubleshooting tips
-
-**Files:**
-
-- `/docs/KEYBOARD_SHORTCUTS.md` - Complete documentation
-- `/components/KeyboardShortcutsHelp.tsx` - Help modal component
-- `/lib/hooks/useGlobalKeyboardShortcuts.ts` - Shortcut system
-- `/app/editor/[projectId]/BrowserEditorClient.tsx` - Integration
 
 ---
 
@@ -1049,16 +1016,16 @@ All required indexes have been implemented in migration `20251024100000_add_perf
 **Assets:** #52, #90, #98, #24, #29, #32, #102, #57, #62, #65
 **Security:** #43, #22, #23
 **Performance:** #50, #37, #21
-**Documentation:** #43, #49, #19
+**Documentation:** #43, #19
 **UX/UI:** #92, #93, #94, #95, #96, #16, #18, #56, #61
 
 ### Estimated Total Work
 
 - **P0:** 0 hours (All resolved!)
-- **P1:** 310-440 hours (down from 316-446h after fixing Issue #46)
+- **P1:** 308-437 hours (down from 310-440h after fixing Issue #49)
 - **P2:** 341-472 hours
 - **P3:** 100-140 hours
-- **Total:** 751-1052 hours (down from 757-1058h)
+- **Total:** 749-1049 hours (down from 751-1052h)
 
 ### Recent Fixes (2025-10-24)
 
@@ -1069,6 +1036,7 @@ All required indexes have been implemented in migration `20251024100000_add_perf
 - Issue #83: Duplicate Password Validation - Consolidated ✅
 - Issue #84: Orphaned Component Files - Deleted ✅
 - Issue #33: Redundant ErrorBoundary Export - Fixed ✅
+- Issue #49: Keyboard Shortcuts Documentation - Completed ✅ (P1)
 
 **Downgraded:**
 

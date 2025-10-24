@@ -1,8 +1,13 @@
-import { NextResponse } from 'next/server';
 import { serverLogger } from '@/lib/serverLogger';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
+import {
+  validationError,
+  forbiddenResponse,
+  internalServerError,
+  successResponse,
+} from '@/lib/api/response';
 
 const handleSplitAudio: AuthenticatedHandler = async (req, { user, supabase }) => {
   serverLogger.info({ event: 'split_audio.request_started' }, 'Audio split request received');
@@ -15,7 +20,7 @@ const handleSplitAudio: AuthenticatedHandler = async (req, { user, supabase }) =
       { event: 'split_audio.missing_asset_id', userId: user.id },
       'Missing asset ID'
     );
-    return NextResponse.json({ error: 'Asset ID is required' }, { status: 400 });
+    return validationError('Asset ID is required', 'assetId');
   }
 
   if (!projectId) {
@@ -23,7 +28,7 @@ const handleSplitAudio: AuthenticatedHandler = async (req, { user, supabase }) =
       { event: 'split_audio.missing_project_id', userId: user.id },
       'Missing project ID'
     );
-    return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
+    return validationError('Project ID is required', 'projectId');
   }
 
   serverLogger.info(
@@ -54,7 +59,7 @@ const handleSplitAudio: AuthenticatedHandler = async (req, { user, supabase }) =
       },
       'Asset not found or access denied'
     );
-    return NextResponse.json({ error: 'Asset not found or access denied' }, { status: 403 });
+    return forbiddenResponse('Asset not found or access denied');
   }
 
   if (asset.type !== 'video') {
@@ -67,7 +72,7 @@ const handleSplitAudio: AuthenticatedHandler = async (req, { user, supabase }) =
       },
       'Asset must be a video'
     );
-    return NextResponse.json({ error: 'Asset must be a video' }, { status: 400 });
+    return validationError('Asset must be a video', 'assetId');
   }
 
   // Download the video file from Supabase storage
@@ -76,7 +81,7 @@ const handleSplitAudio: AuthenticatedHandler = async (req, { user, supabase }) =
     .download(asset.storage_url);
 
   if (downloadError || !videoBlob) {
-    return NextResponse.json({ error: 'Failed to download video' }, { status: 500 });
+    return internalServerError('Failed to download video');
   }
 
   // Note: In a production environment, you would use FFmpeg here to extract audio
@@ -98,7 +103,7 @@ const handleSplitAudio: AuthenticatedHandler = async (req, { user, supabase }) =
     'Recommending client-side audio processing'
   );
 
-  return NextResponse.json({
+  return successResponse({
     message: 'Audio extraction requires client-side processing or a background worker',
     recommendation: 'Use Web Audio API or HTMLMediaElement in the browser',
     assetId,

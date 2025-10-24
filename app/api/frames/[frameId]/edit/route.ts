@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { safeArrayFirst } from '@/lib/utils/arrayUtils';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { v4 as uuid } from 'uuid';
@@ -7,16 +7,20 @@ import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { auditLog, auditSecurityEvent, AuditAction } from '@/lib/auditLog';
 import { HttpStatusCode } from '@/lib/errors/errorCodes';
+import {
+  validationError,
+  forbiddenResponse,
+  notFoundResponse,
+  serviceUnavailableResponse,
+  successResponse,
+} from '@/lib/api/response';
 
 export const POST = withAuth<{ frameId: string }>(
   async (request: NextRequest, { user, supabase, params }) => {
     const startTime = Date.now();
 
     if (!params?.frameId) {
-      return NextResponse.json(
-        { error: 'Frame ID is required' },
-        { status: HttpStatusCode.BAD_REQUEST }
-      );
+      return validationError('Frame ID is required', 'frameId');
     }
 
     const { frameId } = params;
@@ -43,10 +47,7 @@ export const POST = withAuth<{ frameId: string }>(
         request,
         statusCode: HttpStatusCode.BAD_REQUEST,
       });
-      return NextResponse.json(
-        { error: 'Prompt is required' },
-        { status: HttpStatusCode.BAD_REQUEST }
-      );
+      return validationError('Prompt is required', 'prompt');
     }
 
     // Validate numVariations
@@ -96,7 +97,7 @@ export const POST = withAuth<{ frameId: string }>(
         request,
         statusCode: HttpStatusCode.NOT_FOUND,
       });
-      return NextResponse.json({ error: 'Frame not found' }, { status: HttpStatusCode.NOT_FOUND });
+      return notFoundResponse('Frame');
     }
 
     // Verify user owns the project
@@ -118,10 +119,7 @@ export const POST = withAuth<{ frameId: string }>(
         reason: 'project_ownership_mismatch',
       });
 
-      return NextResponse.json(
-        { error: 'Unauthorized - you do not own this project' },
-        { status: HttpStatusCode.FORBIDDEN }
-      );
+      return forbiddenResponse('Unauthorized - you do not own this project');
     }
 
     // Verify user owns the asset
@@ -143,10 +141,7 @@ export const POST = withAuth<{ frameId: string }>(
         reason: 'asset_ownership_mismatch',
       });
 
-      return NextResponse.json(
-        { error: 'Unauthorized - you do not own this asset' },
-        { status: HttpStatusCode.FORBIDDEN }
-      );
+      return forbiddenResponse('Unauthorized - you do not own this asset');
     }
 
     // Get the frame image URL
@@ -168,12 +163,8 @@ export const POST = withAuth<{ frameId: string }>(
         request,
         statusCode: HttpStatusCode.SERVICE_UNAVAILABLE,
       });
-      return NextResponse.json(
-        {
-          error:
-            'Gemini API key not configured. Please set AISTUDIO_API_KEY or GEMINI_API_KEY environment variable.',
-        },
-        { status: HttpStatusCode.SERVICE_UNAVAILABLE }
+      return serviceUnavailableResponse(
+        'Gemini API key not configured. Please set AISTUDIO_API_KEY or GEMINI_API_KEY environment variable.'
       );
     }
 
@@ -334,7 +325,7 @@ export const POST = withAuth<{ frameId: string }>(
       `Frame edit completed successfully (${duration}ms)`
     );
 
-    return NextResponse.json({
+    return successResponse({
       success: true,
       edits,
       count: edits.length,

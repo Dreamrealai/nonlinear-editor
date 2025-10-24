@@ -19,18 +19,89 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Nonlinear Editor',
-  description: 'Browser-based video editor with keyframe editing',
-  icons: {
-    icon: '/favicon.svg',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://nonlinear-editor.com'),
+  title: {
+    default: 'Nonlinear Editor - Professional Browser-Based Video Editor',
+    template: '%s | Nonlinear Editor',
   },
+  description:
+    'Create stunning videos with our professional browser-based video editor. Features include timeline editing, keyframe animation, AI-powered video generation, and real-time collaboration. No downloads required.',
+  keywords: [
+    'video editor',
+    'online video editor',
+    'browser-based video editor',
+    'timeline editor',
+    'keyframe animation',
+    'video editing',
+    'non-linear editor',
+    'NLE',
+    'video production',
+    'video editing software',
+    'AI video generation',
+    'video collaboration',
+    'web-based editor',
+    'cloud video editor',
+  ],
+  authors: [{ name: 'Nonlinear Editor' }],
+  creator: 'Nonlinear Editor',
+  publisher: 'Nonlinear Editor',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  icons: {
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    shortcut: '/favicon.svg',
+    apple: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: process.env.NEXT_PUBLIC_APP_URL || 'https://nonlinear-editor.com',
+    siteName: 'Nonlinear Editor',
+    title: 'Nonlinear Editor - Professional Browser-Based Video Editor',
+    description:
+      'Create stunning videos with our professional browser-based video editor. Features include timeline editing, keyframe animation, AI-powered video generation, and real-time collaboration.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Nonlinear Editor - Professional Video Editing in Your Browser',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Nonlinear Editor - Professional Browser-Based Video Editor',
+    description:
+      'Create stunning videos with professional timeline editing, keyframe animation, and AI-powered video generation. No downloads required.',
+    images: ['/og-image.png'],
+    creator: '@nonlineareditor',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  alternates: {
+    canonical: process.env.NEXT_PUBLIC_APP_URL || 'https://nonlinear-editor.com',
+  },
+  category: 'technology',
 };
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {
+}>): Promise<React.JSX.Element> {
   // Await connection to ensure proper request handling
   await connection();
 

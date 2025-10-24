@@ -2,6 +2,7 @@ import React from 'react';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { cn } from '@/lib/utils';
+import { formatTimeRemaining } from '@/lib/utils/timeFormatting';
 
 interface GenerationProgressProps {
   /** Current progress percentage (0-100) */
@@ -70,21 +71,7 @@ function estimateTimeRemaining(
   return remainingAttempts * pollInterval;
 }
 
-/**
- * Format seconds into human-readable time
- */
-function formatTimeRemaining(seconds: number): string {
-  if (seconds < 60) {
-    return `~${Math.ceil(seconds)}s`;
-  } else if (seconds < 3600) {
-    const minutes = Math.ceil(seconds / 60);
-    return `~${minutes}m`;
-  } else {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.ceil((seconds % 3600) / 60);
-    return `~${hours}h ${minutes}m`;
-  }
-}
+// formatTimeRemaining is now imported from @/lib/utils/timeFormatting
 
 export function GenerationProgress({
   progress,
