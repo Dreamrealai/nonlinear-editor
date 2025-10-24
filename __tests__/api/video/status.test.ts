@@ -381,9 +381,9 @@ describe('GET /api/video/status', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
-      );
+      mockRequest = createRequest(
+        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
 
       await GET(mockRequest);
 
@@ -434,9 +434,9 @@ describe('GET /api/video/status', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
-      );
+      mockRequest = createRequest(
+        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
 
       const response = await GET(mockRequest);
 

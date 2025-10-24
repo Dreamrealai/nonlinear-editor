@@ -5,21 +5,11 @@ import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip, TextOverlay } from '@/types/timeline';
 import { useTimelineScroll } from './VirtualizedClipRenderer';
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
-import {
-  calculateTimelineDuration,
-  computeSafeClipPosition,
-  findClipAtTime,
-  snapToGrid,
-  formatTime,
-} from '@/lib/utils/timelineUtils';
+import { formatTime } from '@/lib/utils/timelineUtils';
 
 // Extracted components
 import { TimelineClipRenderer } from './timeline/TimelineClipRenderer';
 import { TimelineTextOverlayRenderer } from './timeline/TimelineTextOverlayRenderer';
-import { TimelineRuler } from './timeline/TimelineRuler';
-import { TimelineTracks } from './timeline/TimelineTracks';
-import { TimelineControls } from './timeline/TimelineControls';
-import { TimelineContextMenu } from './timeline/TimelineContextMenu';
 
 const {
   TRACK_HEIGHT,
