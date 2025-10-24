@@ -63,7 +63,6 @@ const selectTimelineData = (state: ReturnType<typeof useEditorStore.getState>) =
   clips: state.timeline?.clips ?? [],
   textOverlays: state.timeline?.textOverlays ?? [],
   groups: state.timeline?.groups ?? [],
-  markers: state.timeline?.markers ?? [],
 });
 
 // Separate selector for frequently changing values to minimize re-renders
@@ -95,14 +94,6 @@ const selectActions = (state: ReturnType<typeof useEditorStore.getState>) => ({
   updateTextOverlay: state.updateTextOverlay,
   toggleClipLock: state.toggleClipLock,
   toggleAutoScroll: state.toggleAutoScroll,
-    addMarker,
-    removeMarker,
-    updateMarker,
-    jumpToMarker,
-  addMarker: state.addMarker,
-  removeMarker: state.removeMarker,
-  updateMarker: state.updateMarker,
-  jumpToMarker: state.jumpToMarker,
 });
 
 // Selector for undo/redo state
@@ -125,7 +116,7 @@ function HorizontalTimeline({
   splitScenesPending = false,
 }: HorizontalTimelineProps = {}): React.JSX.Element {
   // Optimized store subscriptions - separate selectors to minimize re-renders
-  const { timeline, clips, textOverlays, markers } = useEditorStore(selectTimelineData);
+  const { timeline, clips, textOverlays } = useEditorStore(selectTimelineData);
   const { currentTime, zoom, autoScrollEnabled } = useEditorStore(selectPlaybackState);
   const { selectedClipIds } = useEditorStore(selectSelectionState);
   const { canUndo, canRedo } = useEditorStore(selectHistoryState);
@@ -145,10 +136,6 @@ function HorizontalTimeline({
     updateTextOverlay,
     toggleClipLock,
     toggleAutoScroll,
-    addMarker,
-    removeMarker,
-    updateMarker,
-    jumpToMarker,
   } = useEditorStore(selectActions);
 
   // Playback state for auto-scroll
@@ -506,12 +493,6 @@ function HorizontalTimeline({
           onClose={() => setContextMenu(null)}
         />
       )}
-
-      {/* Keyboard Shortcuts Panel */}
-      <KeyboardShortcutsPanel
-        open={showKeyboardShortcuts}
-        onOpenChange={setShowKeyboardShortcuts}
-      />
     </div>
   );
 }

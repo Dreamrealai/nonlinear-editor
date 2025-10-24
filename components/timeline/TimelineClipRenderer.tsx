@@ -7,6 +7,7 @@ import { AudioWaveform } from '../AudioWaveform';
 import { getClipFileName, formatTimecode } from '@/lib/utils/timelineUtils';
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
 import { useEditorStore } from '@/state/useEditorStore';
+import type { TrimPreviewInfo } from '@/lib/hooks/useTimelineDragging';
 
 const { TRACK_HEIGHT } = TIMELINE_CONSTANTS;
 
@@ -39,6 +40,7 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
     onRemove,
   }) {
     const [isHovered, setIsHovered] = React.useState(false);
+    const [hoverX, setHoverX] = React.useState<number | null>(null);
     const toggleClipLock = useEditorStore((state) => state.toggleClipLock);
     const timeline = useEditorStore((state) => state.timeline);
 
@@ -72,12 +74,33 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
       end: formatTimecode(clip.timelinePosition + clipMetrics.duration),
     }), [clip.start, clip.end, clip.timelinePosition, clipMetrics.duration]);
 
+    // Calculate scrub position timecode based on hover position
+    const scrubTimecode = React.useMemo(() => {
+      if (hoverX === null) return null;
+      const relativeX = hoverX / clipMetrics.width;
+      const scrubTime = clip.start + (clipMetrics.duration * relativeX);
+      return formatTimecode(scrubTime);
+    }, [hoverX, clipMetrics.width, clipMetrics.duration, clip.start]);
+
     // Memoize event handlers to prevent re-renders
     const handleLockToggle = React.useCallback((e: React.MouseEvent) => {
       e.stopPropagation();
       e.preventDefault();
       toggleClipLock(clip.id);
     }, [toggleClipLock, clip.id]);
+
+    // Handle mouse move for scrubbing preview
+    const handleMouseMove = React.useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      setHoverX(x);
+    }, []);
+
+    // Handle mouse leave
+    const handleMouseLeave = React.useCallback(() => {
+      setIsHovered(false);
+      setHoverX(null);
+    }, []);
 
     return (
       <div
@@ -107,7 +130,8 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
         onClick={(e) => onClick(e, clip)}
         onContextMenu={(e) => onContextMenu(e, clip)}
         onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -324,6 +348,22 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Scrubbing Preview Indicator */}
+            {isHovered && hoverX !== null && (
+              <>
+                {/* Vertical line showing scrub position */}
+                <div
+                  className="absolute top-0 bottom-0 w-0.5 bg-yellow-400 pointer-events-none z-20"
+                  style={{ left: `${hoverX}px` }}
+                >
+                  {/* Timecode label at scrub position */}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full mb-1 bg-yellow-400 text-black text-[9px] font-mono font-bold px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap">
+                    {scrubTimecode}
+                  </div>
+                </div>
+              </>
             )}
 
             {clip.transitionToNext && clip.transitionToNext.type !== 'none' && (

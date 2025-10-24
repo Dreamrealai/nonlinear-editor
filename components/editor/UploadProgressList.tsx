@@ -73,9 +73,9 @@ export function UploadProgressList({ uploads, onClearUpload }: UploadProgressLis
           {/* Progress Percentage and Phase */}
           <div className="flex items-center justify-between mt-2 text-xs">
             <span className="text-neutral-600 dark:text-neutral-400">
-              {upload.phase === 'uploading' && 'Uploading...'}
+              {upload.phase === 'uploading' && upload.progress < 80 && 'Uploading...'}
+              {upload.phase === 'uploading' && upload.progress >= 80 && 'Upload complete'}
               {upload.phase === 'processing' && 'Processing...'}
-              {upload.phase === 'thumbnail' && 'Generating thumbnail...'}
               {upload.phase === 'complete' && 'Complete'}
               {upload.phase === 'error' && 'Failed'}
             </span>

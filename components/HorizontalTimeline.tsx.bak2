@@ -14,7 +14,6 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip, TextOverlay } from '@/types/timeline';
-import type { Marker } from '@/types/timeline';
 import { useTimelineScroll } from './VirtualizedClipRenderer';
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
 
@@ -30,8 +29,6 @@ import { TimelineSnapGuides } from './timeline/TimelineSnapGuides';
 import { TimelineTrimOverlay } from './timeline/TimelineTrimOverlay';
 import { TimelineMarkers } from './timeline/TimelineMarkers';
 import { KeyboardShortcutsPanel } from './timeline/KeyboardShortcutsPanel';
-import { TimelineSelectionRectangle } from './timeline/TimelineSelectionRectangle';
-import { TimelineSelectionInfo } from './timeline/TimelineSelectionInfo';
 
 // Extracted hooks
 import { useTimelineDraggingWithSnap } from '@/lib/hooks/useTimelineDraggingWithSnap';
@@ -63,7 +60,6 @@ const selectTimelineData = (state: ReturnType<typeof useEditorStore.getState>) =
   clips: state.timeline?.clips ?? [],
   textOverlays: state.timeline?.textOverlays ?? [],
   groups: state.timeline?.groups ?? [],
-  markers: state.timeline?.markers ?? [],
 });
 
 // Separate selector for frequently changing values to minimize re-renders
@@ -95,14 +91,6 @@ const selectActions = (state: ReturnType<typeof useEditorStore.getState>) => ({
   updateTextOverlay: state.updateTextOverlay,
   toggleClipLock: state.toggleClipLock,
   toggleAutoScroll: state.toggleAutoScroll,
-    addMarker,
-    removeMarker,
-    updateMarker,
-    jumpToMarker,
-  addMarker: state.addMarker,
-  removeMarker: state.removeMarker,
-  updateMarker: state.updateMarker,
-  jumpToMarker: state.jumpToMarker,
 });
 
 // Selector for undo/redo state
@@ -125,7 +113,7 @@ function HorizontalTimeline({
   splitScenesPending = false,
 }: HorizontalTimelineProps = {}): React.JSX.Element {
   // Optimized store subscriptions - separate selectors to minimize re-renders
-  const { timeline, clips, textOverlays, markers } = useEditorStore(selectTimelineData);
+  const { timeline, clips, textOverlays } = useEditorStore(selectTimelineData);
   const { currentTime, zoom, autoScrollEnabled } = useEditorStore(selectPlaybackState);
   const { selectedClipIds } = useEditorStore(selectSelectionState);
   const { canUndo, canRedo } = useEditorStore(selectHistoryState);
@@ -145,10 +133,6 @@ function HorizontalTimeline({
     updateTextOverlay,
     toggleClipLock,
     toggleAutoScroll,
-    addMarker,
-    removeMarker,
-    updateMarker,
-    jumpToMarker,
   } = useEditorStore(selectActions);
 
   // Playback state for auto-scroll
@@ -188,7 +172,7 @@ function HorizontalTimeline({
   });
 
   // Dragging state (clip, playhead, trim) and snap info
-  const { snapInfo, trimPreviewInfo, setDraggingClip, setIsDraggingPlayhead, setTrimmingClip } =
+  const { snapInfo, setDraggingClip, setIsDraggingPlayhead, setTrimmingClip } =
     useTimelineDraggingWithSnap({
       containerRef,
       timeline,
@@ -506,12 +490,6 @@ function HorizontalTimeline({
           onClose={() => setContextMenu(null)}
         />
       )}
-
-      {/* Keyboard Shortcuts Panel */}
-      <KeyboardShortcutsPanel
-        open={showKeyboardShortcuts}
-        onOpenChange={setShowKeyboardShortcuts}
-      />
     </div>
   );
 }

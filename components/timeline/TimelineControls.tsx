@@ -17,6 +17,7 @@ import {
   Maximize2,
   ChevronDown,
   Bookmark,
+  History,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -34,6 +35,7 @@ type TimelineControlsProps = {
   autoScrollEnabled?: boolean;
   onZoomIn: () => void;
   onZoomOut: () => void;
+  onZoomChange?: (zoom: number) => void;
   onUndo: () => void;
   onRedo: () => void;
   onSplitAtPlayhead: () => void;
@@ -47,6 +49,7 @@ type TimelineControlsProps = {
   onFitToTimeline?: () => void;
   onFitToSelection?: () => void;
   onAddMarker?: () => void;
+  onShowHistory?: () => void;
   hasSelection?: boolean;
 };
 
@@ -67,6 +70,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
   autoScrollEnabled = true,
   onZoomIn,
   onZoomOut,
+  onZoomChange,
   onUndo,
   onRedo,
   onSplitAtPlayhead,
@@ -80,10 +84,16 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
   onFitToTimeline,
   onFitToSelection,
   onAddMarker,
+  onShowHistory,
   hasSelection = false,
 }) {
   const [showZoomMenu, setShowZoomMenu] = useState(false);
   const zoomMenuRef = useRef<HTMLDivElement>(null);
+
+  // Determine keyboard shortcut based on platform
+  const isMac = typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  const undoShortcut = isMac ? 'Cmd+Z' : 'Ctrl+Z';
+  const redoShortcut = isMac ? 'Cmd+Shift+Z' : 'Ctrl+Y';
 
   // Close zoom menu when clicking outside
   useEffect(() => {
@@ -109,8 +119,8 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
             disabled={!canUndo}
             variant="outline"
             size="icon"
-            title="Undo (Cmd+Z)"
-            aria-label="Undo"
+            title={`Undo (${undoShortcut})`}
+            aria-label="Undo last action"
             className="h-8 w-8 sm:h-9 sm:w-9"
           >
             <Undo className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -120,12 +130,24 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
             disabled={!canRedo}
             variant="outline"
             size="icon"
-            title="Redo (Cmd+Shift+Z)"
-            aria-label="Redo"
+            title={`Redo (${redoShortcut})`}
+            aria-label="Redo previously undone action"
             className="h-8 w-8 sm:h-9 sm:w-9"
           >
             <Redo className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Button>
+          {onShowHistory && (
+            <Button
+              onClick={onShowHistory}
+              variant="outline"
+              size="icon"
+              title="Show edit history"
+              aria-label="Show edit history"
+              className="h-8 w-8 sm:h-9 sm:w-9"
+            >
+              <History className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            </Button>
+          )}
         </div>
 
         <div className="h-4 w-px bg-neutral-300" />
@@ -137,18 +159,36 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
             onClick={onZoomOut}
             variant="outline"
             size="icon"
-            title="Zoom out"
+            title="Zoom out (Cmd+-)"
             aria-label="Zoom out"
             className="h-8 w-8 sm:h-9 sm:w-9"
           >
             <ZoomOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Button>
-          <span className="text-xs font-mono text-neutral-700 min-w-[3rem] text-center">{Math.round(zoom)}px/s</span>
+
+          {/* Zoom Slider - Hidden on mobile */}
+          {onZoomChange && (
+            <input
+              type="range"
+              min="10"
+              max="200"
+              value={zoom}
+              onChange={(e) => {
+                const newZoom = parseFloat(e.target.value);
+                onZoomChange(newZoom);
+              }}
+              className="hidden lg:block w-20 h-1.5 bg-neutral-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-blue-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:bg-blue-600 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer"
+              title={`Zoom: ${Math.round((zoom / 50) * 100)}%`}
+              aria-label="Zoom slider"
+            />
+          )}
+
+          <span className="text-xs font-mono text-neutral-700 min-w-[3rem] text-center">{Math.round((zoom / 50) * 100)}%</span>
           <Button
             onClick={onZoomIn}
             variant="outline"
             size="icon"
-            title="Zoom in"
+            title="Zoom in (Cmd+=)"
             aria-label="Zoom in"
             className="h-8 w-8 sm:h-9 sm:w-9"
           >
@@ -177,7 +217,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
                       }}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
                     >
-                      25% (12.5 px/s)
+                      25%
                     </button>
                     <button
                       onClick={() => {
@@ -186,7 +226,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
                       }}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
                     >
-                      50% (25 px/s)
+                      50%
                     </button>
                     <button
                       onClick={() => {
@@ -195,7 +235,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
                       }}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
                     >
-                      100% (50 px/s)
+                      100% (Default)
                     </button>
                     <button
                       onClick={() => {
@@ -204,7 +244,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
                       }}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
                     >
-                      200% (100 px/s)
+                      200%
                     </button>
                     <button
                       onClick={() => {
@@ -213,7 +253,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
                       }}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
                     >
-                      400% (200 px/s)
+                      400%
                     </button>
                   </>
                 )}

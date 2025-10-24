@@ -2,10 +2,11 @@
  * useAssetUploadProgress Hook
  *
  * Handles asset upload with accurate progress tracking including:
- * - Upload progress (0-70%)
- * - Processing progress (70-100%)
- * - Thumbnail generation
- * - Database operations
+ * - Upload progress (0-80%) - File transfer to server
+ * - Processing progress (80-100%) - Server-side processing (optimization, thumbnails, waveforms)
+ *
+ * Uses XMLHttpRequest for accurate upload progress tracking.
+ * Server-side processing is synchronous, so progress jumps from 80% to 100% upon completion.
  */
 'use client';
 
@@ -14,13 +15,8 @@ import { v4 as uuid } from 'uuid';
 import toast from 'react-hot-toast';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { browserLogger } from '@/lib/browserLogger';
-import {
-  sanitizeFileName,
-  extractFileName,
-  getAssetTypeFromMimeType,
-} from '@/lib/utils/assetUtils';
-import { createImageThumbnail, createVideoThumbnail } from './useAssetThumbnails';
-import type { AssetMetadata, AssetRow } from '@/types/assets';
+import { getAssetTypeFromMimeType } from '@/lib/utils/assetUtils';
+import type { AssetRow } from '@/types/assets';
 
 export interface UploadProgress {
   /** Unique ID for this upload */
@@ -30,7 +26,7 @@ export interface UploadProgress {
   /** Overall progress percentage (0-100) */
   progress: number;
   /** Current upload phase */
-  phase: 'uploading' | 'processing' | 'thumbnail' | 'complete' | 'error';
+  phase: 'uploading' | 'processing' | 'complete' | 'error';
   /** Human-readable status message */
   status: string;
   /** Error message if upload failed */
@@ -54,17 +50,15 @@ export interface UseAssetUploadProgressReturn {
  * Hook to handle asset uploads with accurate progress tracking.
  *
  * Breaks down upload into phases:
- * 1. Uploading (0-70%): File transfer to storage
- * 2. Processing (70-85%): Server-side processing
- * 3. Thumbnail (85-95%): Thumbnail generation
- * 4. Complete (95-100%): Database operations
+ * 1. Uploading (0-80%): File transfer to server via API
+ * 2. Processing (80-100%): Server-side processing (optimization, thumbnails, waveforms, database)
  */
 export function useAssetUploadProgress(
   projectId: string,
   onUploadSuccess: () => Promise<void>
 ): UseAssetUploadProgressReturn {
   const [uploads, setUploads] = useState<UploadProgress[]>([]);
-  const abortControllersRef = useRef<Map<string, AbortController>>(new Map());
+  const xhrRef = useRef<Map<string, XMLHttpRequest>>(new Map());
 
   const updateUploadProgress = useCallback((id: string, update: Partial<UploadProgress>) => {
     setUploads((prev) =>
@@ -75,10 +69,6 @@ export function useAssetUploadProgress(
   const uploadAsset = useCallback(
     async (file: File): Promise<void> => {
       const uploadId = uuid();
-      const supabase = createBrowserSupabaseClient();
-      const abortController = new AbortController();
-      abortControllersRef.current.set(uploadId, abortController);
-
       const type = getAssetTypeFromMimeType(file.type);
 
       // Initialize upload progress
@@ -93,154 +83,98 @@ export function useAssetUploadProgress(
       setUploads((prev) => [...prev, initialUpload]);
 
       try {
-        // Phase 1: Get user session (0-5%)
+        // Phase 1: Upload file (0-80%)
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('projectId', projectId);
+        formData.append('type', type);
+
+        // Use XMLHttpRequest for accurate upload progress
+        const uploadResult = await new Promise<{ assetId: string; success: boolean }>(
+          (resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhrRef.current.set(uploadId, xhr);
+
+            // Track upload progress (0-80%)
+            xhr.upload.addEventListener('progress', (event) => {
+              if (event.lengthComputable) {
+                const percentComplete = Math.round((event.loaded / event.total) * 80); // 0-80%
+                updateUploadProgress(uploadId, {
+                  progress: percentComplete,
+                  status: 'Uploading...',
+                  phase: 'uploading',
+                });
+              }
+            });
+
+            // Upload complete - server processing starts
+            xhr.upload.addEventListener('load', () => {
+              updateUploadProgress(uploadId, {
+                progress: 80,
+                phase: 'processing',
+                status: 'Processing...',
+              });
+            });
+
+            xhr.addEventListener('load', () => {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                  const result = JSON.parse(xhr.responseText);
+                  resolve(result);
+                } catch (error) {
+                  reject(new Error('Failed to parse upload response'));
+                }
+              } else {
+                try {
+                  const errorData = JSON.parse(xhr.responseText);
+                  reject(new Error(errorData.error || `Upload failed with status ${xhr.status}`));
+                } catch {
+                  reject(new Error(`Upload failed with status ${xhr.status}`));
+                }
+              }
+            });
+
+            xhr.addEventListener('error', () => {
+              reject(new Error('Upload failed - network error'));
+            });
+
+            xhr.addEventListener('abort', () => {
+              reject(new Error('Upload cancelled'));
+            });
+
+            xhr.open('POST', '/api/assets/upload');
+            xhr.send(formData);
+          }
+        );
+
+        // Phase 2: Fetch asset to verify completion (80-100%)
         updateUploadProgress(uploadId, {
-          progress: 2,
-          status: 'Authenticating...',
-        });
-
-        const { data: userResult, error: userError } = await supabase.auth.getUser();
-
-        if (userError || !userResult?.user) {
-          throw new Error('User session is required to upload assets');
-        }
-
-        const user = userResult.user;
-
-        // Phase 2: Prepare file (5-10%)
-        updateUploadProgress(uploadId, {
-          progress: 5,
-          status: 'Preparing file...',
-        });
-
-        const sanitizedFileName = sanitizeFileName(file.name);
-        const folder = file.type.startsWith('audio')
-          ? 'audio'
-          : file.type.startsWith('image')
-            ? 'image'
-            : 'video';
-        const storagePath = `${user.id}/${projectId}/${folder}/${uuid()}-${sanitizedFileName}`;
-        const bucket = 'assets';
-
-        // Phase 3: Upload to storage (10-70%)
-        updateUploadProgress(uploadId, {
-          progress: 10,
-          status: 'Uploading file...',
-        });
-
-        const arrayBuffer = await file.arrayBuffer();
-
-        // Simulate chunked upload progress for better UX
-        // In a real implementation, you'd use XMLHttpRequest or fetch with ReadableStream
-        // to track actual upload progress. For now, we simulate it.
-        const uploadProgressInterval = setInterval(() => {
-          setUploads((prev) => {
-            const upload = prev.find((u) => u.id === uploadId);
-            if (upload && upload.phase === 'uploading' && upload.progress < 70) {
-              return prev.map((u) =>
-                u.id === uploadId
-                  ? { ...u, progress: Math.min(70, u.progress + 5) }
-                  : u
-              );
-            }
-            return prev;
-          });
-        }, 300);
-
-        const { error: uploadError } = await supabase.storage
-          .from(bucket)
-          .upload(storagePath, arrayBuffer, {
-            contentType: file.type,
-            upsert: true,
-          });
-
-        clearInterval(uploadProgressInterval);
-
-        if (uploadError) {
-          throw uploadError;
-        }
-
-        // Phase 4: Processing (70-85%)
-        updateUploadProgress(uploadId, {
-          progress: 70,
+          progress: 90,
           phase: 'processing',
-          status: 'Processing file...',
+          status: 'Processing...',
         });
 
-        const displayFileName = file.name.trim() || extractFileName(storagePath);
-
-        const metadata: AssetMetadata = {
-          filename: displayFileName,
-          mimeType: file.type,
-        };
-
-        // Phase 5: Generate thumbnail (85-95%)
-        updateUploadProgress(uploadId, {
-          progress: 85,
-          phase: 'thumbnail',
-          status: 'Generating thumbnail...',
-        });
-
-        const mimeLower = file.type.toLowerCase();
-        if (mimeLower.startsWith('image/')) {
-          const thumb = await createImageThumbnail(new Blob([arrayBuffer], { type: file.type }));
-          if (thumb) {
-            metadata.thumbnail = thumb;
-          }
-          updateUploadProgress(uploadId, {
-            progress: 92,
-            status: 'Thumbnail generated',
-          });
-        } else if (mimeLower.startsWith('video/')) {
-          const thumb = await createVideoThumbnail(new Blob([arrayBuffer], { type: file.type }));
-          if (thumb) {
-            metadata.thumbnail = thumb;
-          }
-          updateUploadProgress(uploadId, {
-            progress: 92,
-            status: 'Thumbnail generated',
-          });
-        } else {
-          // Audio files don't need thumbnails
-          updateUploadProgress(uploadId, {
-            progress: 92,
-            status: 'Processing audio...',
-          });
-        }
-
-        // Phase 6: Create database record (95-100%)
-        updateUploadProgress(uploadId, {
-          progress: 95,
-          status: 'Saving to database...',
-        });
-
+        const supabase = createBrowserSupabaseClient();
         const { data: assetData, error: assetError } = await supabase
           .from('assets')
-          .insert({
-            id: uuid(),
-            project_id: projectId,
-            user_id: user.id,
-            storage_url: `supabase://${bucket}/${storagePath}`,
-            type,
-            metadata,
-          })
-          .select()
+          .select('*')
+          .eq('id', uploadResult.assetId)
           .single();
 
-        if (assetError) {
-          throw assetError;
+        if (assetError || !assetData) {
+          throw new Error('Failed to fetch uploaded asset');
         }
 
-        // Phase 7: Complete (100%)
+        // Complete (100%)
         updateUploadProgress(uploadId, {
           progress: 100,
           phase: 'complete',
-          status: 'Upload complete',
+          status: 'Complete',
           asset: assetData as AssetRow,
         });
 
         await onUploadSuccess();
-        toast.success(`${displayFileName} uploaded successfully`);
+        toast.success(`${file.name} uploaded successfully`);
 
         // Auto-clear after 3 seconds
         setTimeout(() => {
@@ -251,13 +185,13 @@ export function useAssetUploadProgress(
 
         updateUploadProgress(uploadId, {
           phase: 'error',
-          status: 'Upload failed',
+          status: 'Failed',
           error: error instanceof Error ? error.message : 'Unknown error',
         });
 
         toast.error(`Failed to upload ${file.name}`);
       } finally {
-        abortControllersRef.current.delete(uploadId);
+        xhrRef.current.delete(uploadId);
       }
     },
     [projectId, onUploadSuccess, updateUploadProgress]
@@ -265,10 +199,10 @@ export function useAssetUploadProgress(
 
   const clearUpload = useCallback((id: string) => {
     // Cancel upload if still in progress
-    const controller = abortControllersRef.current.get(id);
-    if (controller) {
-      controller.abort();
-      abortControllersRef.current.delete(id);
+    const xhr = xhrRef.current.get(id);
+    if (xhr) {
+      xhr.abort();
+      xhrRef.current.delete(id);
     }
 
     setUploads((prev) => prev.filter((u) => u.id !== id));
@@ -276,8 +210,8 @@ export function useAssetUploadProgress(
 
   const clearAllUploads = useCallback(() => {
     // Cancel all in-progress uploads
-    abortControllersRef.current.forEach((controller) => controller.abort());
-    abortControllersRef.current.clear();
+    xhrRef.current.forEach((xhr) => xhr.abort());
+    xhrRef.current.clear();
 
     setUploads([]);
   }, []);

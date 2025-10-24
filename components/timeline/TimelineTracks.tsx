@@ -29,12 +29,13 @@ export const TimelineTracks = React.memo<TimelineTracksProps>(function TimelineT
       {Array.from({ length: numTracks }).map((_, trackIndex) => (
         <div
           key={trackIndex}
-          className="absolute w-full border-b border-neutral-200"
+          className="absolute w-full border-b border-neutral-200 timeline-track-background"
           style={{
             top: trackIndex * TRACK_HEIGHT,
             height: TRACK_HEIGHT,
             backgroundColor: trackIndex % 2 === 0 ? '#fafafa' : '#ffffff',
           }}
+          data-track-index={trackIndex}
         >
           <div className="absolute left-2 top-2 flex items-center gap-2">
             <span className="text-xs font-semibold text-neutral-400">Track {trackIndex + 1}</span>

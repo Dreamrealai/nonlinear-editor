@@ -71,10 +71,10 @@ export function useTimelineScrolling({
       const container = containerRef.current;
       if (!container) return;
 
-      // Calculate zoom center relative to mouse position
-      const rect = container.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseTimeBeforeZoom = (container.scrollLeft + mouseX) / zoom;
+      // Calculate zoom center relative to playhead position (not mouse)
+      const viewportWidth = container.clientWidth;
+      const playheadX = currentTime * zoom;
+      const playheadViewportPosition = playheadX - container.scrollLeft;
 
       // Calculate new zoom level
       const delta = -e.deltaY;
@@ -84,16 +84,17 @@ export function useTimelineScrolling({
       // Update zoom
       setZoom(newZoom);
 
-      // Adjust scroll position to keep mouse position at same time
+      // Adjust scroll position to keep playhead at same viewport position
       // Schedule scroll adjustment after zoom state updates
       requestAnimationFrame(() => {
         const container = containerRef.current;
         if (!container) return;
-        const newScrollLeft = mouseTimeBeforeZoom * newZoom - mouseX;
+        const newPlayheadX = currentTime * newZoom;
+        const newScrollLeft = newPlayheadX - playheadViewportPosition;
         container.scrollLeft = Math.max(0, newScrollLeft);
       });
     },
-    [containerRef, zoom, setZoom, minZoom, maxZoom, zoomSensitivity]
+    [containerRef, zoom, setZoom, currentTime, minZoom, maxZoom, zoomSensitivity]
   );
 
   // Space key press/release handlers

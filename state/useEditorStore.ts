@@ -90,6 +90,8 @@ type EditorStore = {
   updateClip: (id: string, patch: Partial<Clip>) => void;
   /** Remove a clip from timeline */
   removeClip: (id: string) => void;
+  /** Duplicate a clip (places copy right after original) */
+  duplicateClip: (id: string) => void;
   /** Split a clip at a specific timeline position */
   splitClipAtTime: (clipId: string, time: number) => void;
 
@@ -166,6 +168,10 @@ type EditorStore = {
     trackHeight: number,
     multi?: boolean
   ) => void;
+  /** Select all clips in a specific track */
+  selectAllClipsInTrack: (trackIndex: number, multi?: boolean) => void;
+  /** Select all clips in the timeline */
+  selectAllClips: () => void;
 
   // ===== Lock Actions =====
   /** Lock a clip to prevent editing/moving */
@@ -402,6 +408,57 @@ export const useEditorStore = create<EditorStore>()(
         // Announce to screen readers
         if (typeof window !== 'undefined' && clipToRemove) {
           timelineAnnouncements.clipRemoved(getClipFileName(clipToRemove));
+        }
+
+        // Save to history
+        const cloned = cloneTimeline(state.timeline);
+        if (cloned) {
+          state.history = state.history.slice(0, state.historyIndex + 1);
+          state.history.push(cloned);
+          if (state.history.length > MAX_HISTORY) {
+            state.history.shift();
+          } else {
+            state.historyIndex++;
+          }
+        }
+      }),
+    duplicateClip: (id) =>
+      set((state) => {
+        if (!state.timeline) return;
+
+        const clipIndex = state.timeline.clips.findIndex((clip) => clip.id === id);
+        if (clipIndex === -1) return;
+
+        const originalClip = state.timeline.clips[clipIndex];
+        if (!originalClip) return;
+
+        // Calculate duration and position for duplicate
+        const clipDuration = originalClip.end - originalClip.start;
+        const newPosition = originalClip.timelinePosition + clipDuration;
+
+        // Create duplicate clip with new ID and position
+        const duplicateClip: Clip = {
+          ...structuredClone(originalClip),
+          id: `${id}-duplicate-${Date.now()}`,
+          timelinePosition: newPosition,
+          // Clear transition since it's a new independent clip
+          transitionToNext: { type: 'none', duration: 0 },
+        };
+
+        // Insert duplicate after original
+        state.timeline.clips.splice(clipIndex + 1, 0, duplicateClip);
+        state.timeline.clips = dedupeClips(state.timeline.clips);
+
+        // Select the duplicate clip
+        state.selectedClipIds.clear();
+        state.selectedClipIds.add(duplicateClip.id);
+
+        // Announce to screen readers
+        if (typeof window !== 'undefined') {
+          timelineAnnouncements.clipAdded(
+            `Duplicate of ${getClipFileName(originalClip)}`,
+            duplicateClip.trackIndex
+          );
         }
 
         // Save to history
@@ -707,6 +764,40 @@ export const useEditorStore = create<EditorStore>()(
             state.selectedClipIds.add(clip.id);
           }
         });
+      }),
+    selectAllClipsInTrack: (trackIndex, multi = false) =>
+      set((state) => {
+        if (!state.timeline) return;
+
+        // Clear selection if not multi-select
+        if (!multi) {
+          state.selectedClipIds.clear();
+        }
+
+        // Select all clips in the specified track
+        state.timeline.clips.forEach((clip) => {
+          if (clip.trackIndex === trackIndex) {
+            state.selectedClipIds.add(clip.id);
+          }
+        });
+
+        // Announce selection for screen readers
+        const count = Array.from(state.selectedClipIds).filter(
+          (id) => state.timeline?.clips.find((c) => c.id === id)?.trackIndex === trackIndex
+        ).length;
+        timelineAnnouncements.selectionChanged(count);
+      }),
+    selectAllClips: () =>
+      set((state) => {
+        if (!state.timeline) return;
+
+        // Select all clips in the timeline
+        state.timeline.clips.forEach((clip) => {
+          state.selectedClipIds.add(clip.id);
+        });
+
+        // Announce selection for screen readers
+        timelineAnnouncements.selectionChanged(state.selectedClipIds.size);
       }),
 
     // Copy selected clips to clipboard

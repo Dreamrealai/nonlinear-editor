@@ -12,6 +12,9 @@
  * - Group selected clips (G key)
  * - Ungroup clips (Shift+G key)
  * - Add guide at playhead (Shift+R key)
+ * - Zoom in (Cmd+=)
+ * - Zoom out (Cmd+-)
+ * - Reset zoom to 100% (Cmd+0)
  */
 'use client';
 
@@ -35,6 +38,9 @@ type UseTimelineKeyboardShortcutsOptions = {
   onGroupClips?: () => void;
   onUngroupClips?: () => void;
   onAddGuide?: () => void;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
+  onZoomReset?: () => void;
 };
 
 export function useTimelineKeyboardShortcuts({
@@ -54,6 +60,9 @@ export function useTimelineKeyboardShortcuts({
   onGroupClips,
   onUngroupClips,
   onAddGuide,
+  onZoomIn,
+  onZoomOut,
+  onZoomReset,
 }: UseTimelineKeyboardShortcutsOptions) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

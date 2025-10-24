@@ -95,10 +95,6 @@ const selectActions = (state: ReturnType<typeof useEditorStore.getState>) => ({
   updateTextOverlay: state.updateTextOverlay,
   toggleClipLock: state.toggleClipLock,
   toggleAutoScroll: state.toggleAutoScroll,
-    addMarker,
-    removeMarker,
-    updateMarker,
-    jumpToMarker,
   addMarker: state.addMarker,
   removeMarker: state.removeMarker,
   updateMarker: state.updateMarker,
@@ -145,10 +141,6 @@ function HorizontalTimeline({
     updateTextOverlay,
     toggleClipLock,
     toggleAutoScroll,
-    addMarker,
-    removeMarker,
-    updateMarker,
-    jumpToMarker,
   } = useEditorStore(selectActions);
 
   // Playback state for auto-scroll
@@ -506,12 +498,6 @@ function HorizontalTimeline({
           onClose={() => setContextMenu(null)}
         />
       )}
-
-      {/* Keyboard Shortcuts Panel */}
-      <KeyboardShortcutsPanel
-        open={showKeyboardShortcuts}
-        onOpenChange={setShowKeyboardShortcuts}
-      />
     </div>
   );
 }
