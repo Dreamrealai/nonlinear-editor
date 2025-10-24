@@ -11,6 +11,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { AssetRow } from '@/types/assets';
 import { DragDropZone } from '@/components/ui/DragDropZone';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonCard } from '@/components/ui/Skeleton';
 
 type SortOption = 'name' | 'date' | 'size' | 'type';
 type SortDirection = 'asc' | 'desc';
@@ -491,12 +493,16 @@ export function AssetPanel({
         aria-labelledby={`${activeTab}-tab`}
       >
         {loadingAssets && (
-          <div
-            className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-700"
-            role="status"
-            aria-live="polite"
-          >
-            Loading assets…
+          <div role="status" aria-live="polite" aria-label="Loading assets">
+            <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+              <LoadingSpinner size={16} variant="branded" />
+              <span className="text-xs font-medium text-purple-700 dark:text-purple-300">Loading assets...</span>
+            </div>
+            <div className="space-y-3">
+              <SkeletonCard variant="branded" showImage={true} showTitle={false} descriptionLines={1} />
+              <SkeletonCard variant="branded" showImage={true} showTitle={false} descriptionLines={1} />
+              <SkeletonCard variant="branded" showImage={true} showTitle={false} descriptionLines={1} />
+            </div>
           </div>
         )}
         {!loadingAssets && filteredAssets.length === 0 && (
