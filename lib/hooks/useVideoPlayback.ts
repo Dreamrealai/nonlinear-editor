@@ -96,23 +96,23 @@ export function useVideoPlayback({
 
     if (isLowerEndDevice) {
       // Reduce to 30fps for lower-end devices
-      frameTimeThresholdRef.current = 33;
+      frameTimeThresholdRef.current = PERFORMANCE_CONSTANTS.FRAME_TIME_30FPS;
       browserLogger.info(
         {
           cores: hardwareConcurrency,
           memory: deviceMemory,
-          targetFps: 30,
+          targetFps: PERFORMANCE_CONSTANTS.TARGET_FPS_LOW,
         },
         'useVideoPlayback: Adaptive frame rate - Lower-end device detected, using 30fps'
       );
     } else {
       // Use 60fps for capable devices
-      frameTimeThresholdRef.current = 16;
+      frameTimeThresholdRef.current = PERFORMANCE_CONSTANTS.FRAME_TIME_60FPS;
       browserLogger.info(
         {
           cores: hardwareConcurrency,
           memory: deviceMemory,
-          targetFps: 60,
+          targetFps: PERFORMANCE_CONSTANTS.TARGET_FPS_HIGH,
         },
         'useVideoPlayback: Adaptive frame rate - High-end device detected, using 60fps'
       );

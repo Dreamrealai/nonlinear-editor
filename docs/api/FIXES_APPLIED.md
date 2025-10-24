@@ -13,6 +13,7 @@
 ## Fixes by File
 
 ### stripe-api-docs.md (4 fixes)
+
 ```diff
 - https://stripe.com/docs/api
 + https://docs.stripe.com/api
@@ -28,6 +29,7 @@
 ```
 
 ### fal-ai-docs.md (2 fixes)
+
 ```diff
 - https://fal.ai/models
 + https://fal.ai/explore
@@ -37,6 +39,7 @@
 ```
 
 ### supabase-api-docs.md (3 fixes)
+
 ```diff
 - https://twitter.com/supabase
 + https://x.com/supabase
@@ -49,24 +52,28 @@
 ```
 
 ### vercel-api-docs.md (1 fix)
+
 ```diff
 - https://vercel.com/support
 + https://vercel.com/help
 ```
 
 ### resend-api-docs.md (1 fix)
+
 ```diff
 - https://resend.com/docs.
 + https://resend.com/docs/introduction
 ```
 
 ### axiom-api-docs.md (1 fix)
+
 ```diff
 - https://axiom.co/docs.
 + https://axiom.co/docs/introduction
 ```
 
 ### README.md (3 fixes)
+
 ```diff
 - https://fal.ai/models
 + https://fal.ai/explore
@@ -109,6 +116,7 @@ sed -i '' 's|https://axiom.co/docs\.|https://axiom.co/docs/introduction|g' docs/
 ## Verification
 
 All fixes have been verified to:
+
 - ✅ Point to correct, working URLs
 - ✅ Return HTTP 200 OK status
 - ✅ Load properly in browsers

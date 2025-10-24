@@ -31,15 +31,15 @@ https://api.resend.com
 
 Resend uses standard HTTP codes to indicate the success or failure of requests:
 
-| Status Code | Description |
-|-------------|-------------|
-| `200` | Successful request |
-| `400` | Check that the parameters were correct |
-| `401` | The API key used was missing |
-| `403` | The API key used was invalid |
-| `404` | The resource was not found |
-| `429` | The rate limit was exceeded |
-| `5xx` | Indicates an error with Resend servers |
+| Status Code | Description                            |
+| ----------- | -------------------------------------- |
+| `200`       | Successful request                     |
+| `400`       | Check that the parameters were correct |
+| `401`       | The API key used was missing           |
+| `403`       | The API key used was invalid           |
+| `404`       | The resource was not found             |
+| `429`       | The rate limit was exceeded            |
+| `5xx`       | Indicates an error with Resend servers |
 
 ### API Versioning
 
@@ -87,59 +87,60 @@ POST /emails
 
 ### Required Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `from` | string | Sender email address. Format: `"Your Name <sender@domain.com>"` or `sender@domain.com` |
-| `to` | string \| string[] | Recipient email address(es). Max 50 recipients. |
-| `subject` | string | Email subject line |
+| Parameter | Type               | Description                                                                            |
+| --------- | ------------------ | -------------------------------------------------------------------------------------- |
+| `from`    | string             | Sender email address. Format: `"Your Name <sender@domain.com>"` or `sender@domain.com` |
+| `to`      | string \| string[] | Recipient email address(es). Max 50 recipients.                                        |
+| `subject` | string             | Email subject line                                                                     |
 
 ### Optional Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bcc` | string \| string[] | Blind carbon copy recipient(s) |
-| `cc` | string \| string[] | Carbon copy recipient(s) |
-| `replyTo` | string \| string[] | Reply-to email address(es) |
-| `html` | string | HTML version of the message |
-| `text` | string | Plain text version. If not provided, HTML will be converted to plain text automatically. Set to empty string `""` to opt out of automatic conversion. |
-| `react` | React.ReactNode | React component for email (Node.js SDK only) |
-| `scheduledAt` | string | Schedule email for later delivery. Accepts natural language (e.g., "in 1 min") or ISO 8601 format (e.g., "2024-08-05T11:52:01.858Z") |
-| `headers` | object | Custom headers to add to the email |
-| `attachments` | array | File attachments (max 40MB per email after Base64 encoding) |
-| `tags` | array | Custom key/value pairs for categorization |
-| `template` | object | Template configuration (private beta) |
+| Parameter     | Type               | Description                                                                                                                                           |
+| ------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bcc`         | string \| string[] | Blind carbon copy recipient(s)                                                                                                                        |
+| `cc`          | string \| string[] | Carbon copy recipient(s)                                                                                                                              |
+| `replyTo`     | string \| string[] | Reply-to email address(es)                                                                                                                            |
+| `html`        | string             | HTML version of the message                                                                                                                           |
+| `text`        | string             | Plain text version. If not provided, HTML will be converted to plain text automatically. Set to empty string `""` to opt out of automatic conversion. |
+| `react`       | React.ReactNode    | React component for email (Node.js SDK only)                                                                                                          |
+| `scheduledAt` | string             | Schedule email for later delivery. Accepts natural language (e.g., "in 1 min") or ISO 8601 format (e.g., "2024-08-05T11:52:01.858Z")                  |
+| `headers`     | object             | Custom headers to add to the email                                                                                                                    |
+| `attachments` | array              | File attachments (max 40MB per email after Base64 encoding)                                                                                           |
+| `tags`        | array              | Custom key/value pairs for categorization                                                                                                             |
+| `template`    | object             | Template configuration (private beta)                                                                                                                 |
 
 ### Attachments
 
 Each attachment object can contain:
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `content` | buffer \| string | Content as buffer or Base64 string |
-| `filename` | string | Name of the attached file |
-| `path` | string | Path where the attachment file is hosted |
-| `contentType` | string | MIME type (derived from filename if not set) |
-| `contentId` | string | ID for embedding images inline using `<img src="cid:...">` |
+| Property      | Type             | Description                                                |
+| ------------- | ---------------- | ---------------------------------------------------------- |
+| `content`     | buffer \| string | Content as buffer or Base64 string                         |
+| `filename`    | string           | Name of the attached file                                  |
+| `path`        | string           | Path where the attachment file is hosted                   |
+| `contentType` | string           | MIME type (derived from filename if not set)               |
+| `contentId`   | string           | ID for embedding images inline using `<img src="cid:...">` |
 
 ### Tags
 
 Each tag object contains:
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `name` | string | Yes | Tag name. ASCII letters (a-z, A-Z), numbers (0-9), underscores (_), or dashes (-). Max 256 characters. |
-| `value` | string | Yes | Tag value. ASCII letters (a-z, A-Z), numbers (0-9), underscores (_), or dashes (-). Max 256 characters. |
+| Property | Type   | Required | Description                                                                                              |
+| -------- | ------ | -------- | -------------------------------------------------------------------------------------------------------- |
+| `name`   | string | Yes      | Tag name. ASCII letters (a-z, A-Z), numbers (0-9), underscores (\_), or dashes (-). Max 256 characters.  |
+| `value`  | string | Yes      | Tag value. ASCII letters (a-z, A-Z), numbers (0-9), underscores (\_), or dashes (-). Max 256 characters. |
 
 ### Templates (Private Beta)
 
 To send using a template:
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `id` | string | Yes | ID of the published template. Only published templates can be used. |
-| `variables` | object | No | Template variables as key/value pairs |
+| Property    | Type   | Required | Description                                                         |
+| ----------- | ------ | -------- | ------------------------------------------------------------------- |
+| `id`        | string | Yes      | ID of the published template. Only published templates can be used. |
+| `variables` | object | No       | Template variables as key/value pairs                               |
 
 **Template Variable Rules:**
+
 - Key: Max 50 characters, letters, numbers, and underscores only
 - Value types: string (max 50 chars), number (≤ 2^53 - 1), boolean, object (max 50 keys), list (max 50 indexes)
 
@@ -147,8 +148,8 @@ To send using a template:
 
 ### Headers
 
-| Header | Type | Description |
-|--------|------|-------------|
+| Header            | Type   | Description                                                                                                           |
+| ----------------- | ------ | --------------------------------------------------------------------------------------------------------------------- |
 | `Idempotency-Key` | string | Unique key to prevent duplicate emails. Expires after 24 hours. Max 256 characters. Should be unique per API request. |
 
 ### Example Request (Node.js)
@@ -201,9 +202,9 @@ const { data, error } = await resend.emails.send({
     {
       filename: 'invoice.pdf',
       content: Buffer.from(pdfData),
-      contentType: 'application/pdf'
-    }
-  ]
+      contentType: 'application/pdf',
+    },
+  ],
 });
 ```
 
@@ -217,24 +218,27 @@ const { data, error } = await resend.emails.send({
   html: '<p>Welcome to our service!</p>',
   tags: [
     { name: 'category', value: 'onboarding' },
-    { name: 'user_type', value: 'new_user' }
-  ]
+    { name: 'user_type', value: 'new_user' },
+  ],
 });
 ```
 
 ### Example with Idempotency Key
 
 ```javascript
-const { data, error } = await resend.emails.send({
-  from: 'Acme <onboarding@resend.dev>',
-  to: ['delivered@resend.dev'],
-  subject: 'Order Confirmation',
-  html: '<p>Your order has been confirmed.</p>',
-}, {
-  headers: {
-    'Idempotency-Key': 'unique-order-id-12345'
+const { data, error } = await resend.emails.send(
+  {
+    from: 'Acme <onboarding@resend.dev>',
+    to: ['delivered@resend.dev'],
+    subject: 'Order Confirmation',
+    html: '<p>Your order has been confirmed.</p>',
+  },
+  {
+    headers: {
+      'Idempotency-Key': 'unique-order-id-12345',
+    },
   }
-});
+);
 ```
 
 ---
@@ -249,18 +253,19 @@ The default maximum rate limit is **2 requests per second**. This can be increas
 
 Every API response includes rate limit information in the headers (conforming to [IETF standard draft](https://datatracker.ietf.org/doc/html/draft-ietf-httpapi-ratelimit-headers-06)):
 
-| Header | Description |
-|--------|-------------|
-| `ratelimit-limit` | Maximum number of requests allowed within a window |
-| `ratelimit-remaining` | Requests remaining in the current window |
-| `ratelimit-reset` | Seconds until the limits are reset |
-| `retry-after` | Seconds to wait before making a follow-up request |
+| Header                | Description                                        |
+| --------------------- | -------------------------------------------------- |
+| `ratelimit-limit`     | Maximum number of requests allowed within a window |
+| `ratelimit-remaining` | Requests remaining in the current window           |
+| `ratelimit-reset`     | Seconds until the limits are reset                 |
+| `retry-after`         | Seconds to wait before making a follow-up request  |
 
 ### Handling Rate Limits
 
 When you exceed the rate limit, you'll receive a `429` response error code.
 
 **Best practices:**
+
 - Implement a queue mechanism to manage request flow
 - Reduce the number of concurrent requests per second
 - Use exponential backoff for retries
@@ -282,111 +287,133 @@ All errors include a `name` and `message` field describing the error.
 ### Complete Error Reference
 
 #### `invalid_idempotency_key`
+
 - **Status:** 400
 - **Message:** The key must be between 1-256 chars
 - **Action:** Retry with a valid idempotency key
 
 #### `validation_error` (400)
+
 - **Status:** 400
 - **Message:** Error with one or more fields in the request
 - **Action:** Check the error message for specific field errors
 
 #### `missing_api_key`
+
 - **Status:** 401
 - **Message:** Missing API key in the authorization header
 - **Action:** Include `Authorization: Bearer YOUR_API_KEY` header
 
 #### `restricted_api_key`
+
 - **Status:** 401
 - **Message:** This API key is restricted to only send emails
 - **Action:** Use an API key with "Full access" for non-sending operations
 
 #### `invalid_api_key`
+
 - **Status:** 403
 - **Message:** API key is invalid
 - **Action:** Verify API key or generate a new one from the dashboard
 
 #### `validation_error` (403)
+
 - **Status:** 403
 - **Message:** You can only send testing emails to your own email address
 - **Action:** Verify a domain in the dashboard to send to any address
 
 #### `not_found`
+
 - **Status:** 404
 - **Message:** The requested endpoint does not exist
 - **Action:** Verify the API endpoint URL
 
 #### `method_not_allowed`
+
 - **Status:** 405
 - **Message:** Method is not allowed for the requested path
 - **Action:** Use the correct HTTP method for the endpoint
 
 #### `invalid_idempotent_request`
+
 - **Status:** 409
 - **Message:** Same idempotency key used with different request payload
 - **Action:** Change idempotency key or payload
 
 #### `concurrent_idempotent_requests`
+
 - **Status:** 409
 - **Message:** Same idempotency key used while original request is still in progress
 - **Action:** Wait for the original request to complete
 
 #### `invalid_attachment`
+
 - **Status:** 422
 - **Message:** Attachment must have either `content` or `path`
 - **Action:** Provide either content (Buffer/string) or path to remote resource
 
 #### `invalid_from_address`
+
 - **Status:** 422
 - **Message:** Invalid `from` field
 - **Action:** Use format `email@example.com` or `Name <email@example.com>`
 
 #### `invalid_access`
+
 - **Status:** 422
 - **Message:** Access must be "full_access" | "sending_access"
 - **Action:** Verify API key has necessary permissions
 
 #### `invalid_parameter`
+
 - **Status:** 422
 - **Message:** The parameter must be a valid UUID
 - **Action:** Check parameter value for validity
 
 #### `invalid_region`
+
 - **Status:** 422
 - **Message:** Region must be "us-east-1" | "eu-west-1" | "sa-east-1"
 - **Action:** Use a supported region
 
 #### `missing_required_field`
+
 - **Status:** 422
 - **Message:** Request body is missing required fields
 - **Action:** Check error message for list of missing fields
 
 #### `monthly_quota_exceeded`
+
 - **Status:** 429
 - **Message:** Monthly email sending quota reached
 - **Action:** Upgrade plan to increase monthly sending limit
 
 #### `daily_quota_exceeded`
+
 - **Status:** 429
 - **Message:** Daily email sending quota reached
 - **Action:** Upgrade plan or wait 24 hours to continue sending
 
 #### `rate_limit_exceeded`
+
 - **Status:** 429
 - **Message:** Too many requests
 - **Action:** Read response headers and reduce request rate. Contact support for rate increase.
 
 #### `security_error`
+
 - **Status:** 451
 - **Message:** Security issue detected with the request
 - **Action:** Review error message details and contact support
 
 #### `application_error`
+
 - **Status:** 500
 - **Message:** Unexpected error occurred
 - **Action:** Retry request. Check [status page](https://resend-status.com/) if error persists
 
 #### `internal_server_error`
+
 - **Status:** 500
 - **Message:** Unexpected error occurred
 - **Action:** Retry request. Check [status page](https://resend-status.com/) if error persists
@@ -402,6 +429,7 @@ Resend sends emails using a domain you own. Domain verification is required to s
 ### Subdomain Recommendation
 
 It's recommended to use subdomains (e.g., `updates.yourdomain.com`) to:
+
 - Isolate your sending reputation
 - Clearly communicate intent
 - Protect your root domain reputation
@@ -411,11 +439,13 @@ It's recommended to use subdomains (e.g., `updates.yourdomain.com`) to:
 To verify a domain, you must set two DNS entries:
 
 #### 1. SPF (Sender Policy Framework)
+
 - **Type:** TXT record
 - **Purpose:** Lists IP addresses authorized to send email on behalf of your domain
 - **Additional:** MX record for bounce and complaint feedback
 
 #### 2. DKIM (DomainKeys Identified Mail)
+
 - **Type:** TXT record
 - **Purpose:** Public key used to verify email authenticity
 
@@ -428,12 +458,12 @@ To verify a domain, you must set two DNS entries:
 
 ### Domain Statuses
 
-| Status | Description |
-|--------|-------------|
-| `not_started` | Domain added but verification not initiated |
-| `pending` | Resend is verifying the domain |
-| `verified` | Domain successfully verified for sending |
-| `failed` | Unable to detect DNS records within 72 hours |
+| Status              | Description                                                                        |
+| ------------------- | ---------------------------------------------------------------------------------- |
+| `not_started`       | Domain added but verification not initiated                                        |
+| `pending`           | Resend is verifying the domain                                                     |
+| `verified`          | Domain successfully verified for sending                                           |
+| `failed`            | Unable to detect DNS records within 72 hours                                       |
 | `temporary_failure` | Previously verified domain no longer detectable. Resend will recheck for 72 hours. |
 
 ### Custom Return Path
@@ -441,14 +471,16 @@ To verify a domain, you must set two DNS entries:
 By default, Resend uses the `send` subdomain for the Return-Path address. You can customize this:
 
 **Via API:**
+
 ```javascript
 resend.domains.create({
   name: 'example.com',
-  customReturnPath: 'outbound'
+  customReturnPath: 'outbound',
 });
 ```
 
 **Custom Return Path Rules:**
+
 - Max 63 characters
 - Must start with a letter
 - Must end with a letter or number
@@ -458,12 +490,14 @@ resend.domains.create({
 ### SPF Record Details
 
 SPF configuration includes:
+
 - TXT record listing approved IP addresses
 - MX record for recipient bounce/complaint feedback
 
 ### DKIM Record Details
 
 DKIM configuration includes:
+
 - TXT record with public key for email authenticity verification
 
 ### Optional: DMARC Record
@@ -475,11 +509,13 @@ After SPF and DKIM verify, you can optionally add a DMARC record to build additi
 Open and click tracking is **disabled by default** for all domains. You can enable it in domain settings.
 
 #### How Open Tracking Works
+
 - 1x1 pixel transparent GIF inserted in each email
 - Unique reference tracks when image is downloaded
 - Identifies which message was opened and by whom
 
 #### How Click Tracking Works
+
 - Modifies each link in HTML email
 - Recipients are sent to Resend server first
 - Immediately redirected to URL destination
@@ -531,6 +567,7 @@ export default (req: NextApiRequest, res: NextApiResponse) => {
 #### 2. Register Development Webhook
 
 For development, create a public tunnel to your localhost:
+
 - Use [ngrok](https://ngrok.com/download)
 - Use [VS Code Port Forwarding](https://code.visualstudio.com/docs/debugtest/port-forwarding)
 
@@ -576,6 +613,7 @@ Webhooks POST from these IP addresses (for allowlist configuration):
 ### Manual Retry
 
 You can manually retry webhook events from the dashboard:
+
 1. View webhook details
 2. Click the event you want to retry
 3. View payload and click the replay button
@@ -597,6 +635,7 @@ See [webhook code example](https://github.com/resend/resend-examples/tree/main/w
 ## Best Practices
 
 ### Authentication
+
 - Store API keys in environment variables
 - Never expose API keys in client-side code
 - Use sending-access keys when only sending is required
@@ -604,6 +643,7 @@ See [webhook code example](https://github.com/resend/resend-examples/tree/main/w
 - Keep separate keys for development and production
 
 ### Sending Emails
+
 - Use subdomains for sending (e.g., `updates.yourdomain.com`)
 - Verify your domain before production use
 - Implement proper error handling
@@ -613,6 +653,7 @@ See [webhook code example](https://github.com/resend/resend-examples/tree/main/w
 - Respect bounce and complaint notifications
 
 ### Rate Limiting
+
 - Implement request queuing to stay under rate limits
 - Monitor rate limit headers in responses
 - Use exponential backoff for retries
@@ -620,6 +661,7 @@ See [webhook code example](https://github.com/resend/resend-examples/tree/main/w
 - Batch operations when possible
 
 ### Domain Management
+
 - Verify SPF and DKIM records properly
 - Use custom return paths for branding
 - Disable click/open tracking for transactional emails
@@ -627,6 +669,7 @@ See [webhook code example](https://github.com/resend/resend-examples/tree/main/w
 - Set up DMARC after SPF/DKIM verification
 
 ### Email Content
+
 - Keep attachments under 40MB total (after Base64 encoding)
 - Use tags for categorization and analytics
 - Implement proper unsubscribe mechanisms
@@ -634,6 +677,7 @@ See [webhook code example](https://github.com/resend/resend-examples/tree/main/w
 - Test emails before production use
 
 ### Webhooks
+
 - Always respond with HTTP 200 OK
 - Implement idempotent event handling
 - Validate webhook payloads
@@ -642,6 +686,7 @@ See [webhook code example](https://github.com/resend/resend-examples/tree/main/w
 - Log webhook events for debugging
 
 ### Error Handling
+
 - Implement proper try-catch blocks
 - Log all API errors with context
 - Handle rate limit errors with backoff
@@ -649,6 +694,7 @@ See [webhook code example](https://github.com/resend/resend-examples/tree/main/w
 - Monitor error rates and types
 
 ### Testing
+
 - Use test mode API keys during development
 - Test with various email clients
 - Verify rendering on mobile and desktop
@@ -656,6 +702,7 @@ See [webhook code example](https://github.com/resend/resend-examples/tree/main/w
 - Validate email authentication (SPF, DKIM, DMARC)
 
 ### Monitoring
+
 - Track email delivery rates
 - Monitor bounce and complaint rates
 - Set up alerts for quota limits
@@ -663,6 +710,7 @@ See [webhook code example](https://github.com/resend/resend-examples/tree/main/w
 - Analyze email performance metrics
 
 ### Performance
+
 - Use batch sending for multiple recipients when appropriate
 - Implement caching for templates
 - Optimize attachment sizes
@@ -670,6 +718,7 @@ See [webhook code example](https://github.com/resend/resend-examples/tree/main/w
 - Monitor API response times
 
 ### Security
+
 - Validate all input data
 - Sanitize HTML content
 - Protect against email injection
@@ -679,6 +728,7 @@ See [webhook code example](https://github.com/resend/resend-examples/tree/main/w
 - Monitor for suspicious activity
 
 ### Compliance
+
 - Implement proper unsubscribe handling
 - Respect user preferences
 - Follow anti-spam regulations (CAN-SPAM, GDPR)
@@ -704,6 +754,7 @@ See [webhook code example](https://github.com/resend/resend-examples/tree/main/w
 ## Summary
 
 Resend provides a modern, developer-friendly email API with:
+
 - Simple REST API with HTTPS-only communication
 - Comprehensive error handling and detailed error messages
 - Built-in rate limiting with clear headers

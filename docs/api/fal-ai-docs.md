@@ -22,6 +22,7 @@ Comprehensive documentation extracted from FAL.AI's official documentation and m
 ## Overview
 
 FAL.AI is a generative media platform providing ready-to-use APIs for AI models including:
+
 - 600+ generative media models
 - Text-to-image, image-to-video, video-to-video, and audio generation
 - Queue-based processing for long-running tasks
@@ -52,11 +53,13 @@ FAL.AI uses API key-based authentication. All API requests must include the API 
 #### Using the API Key
 
 **HTTP Headers:**
+
 ```http
 Authorization: Key YOUR_FAL_KEY
 ```
 
 **JavaScript Client:**
+
 ```javascript
 import { fal } from "@fal-ai/client";
 
@@ -70,6 +73,7 @@ fal.config({
 ```
 
 **Python Client:**
+
 ```python
 import fal_client
 
@@ -96,14 +100,14 @@ fal_client.configure(credentials="YOUR_FAL_KEY")
 
 The queue system is designed for long-running requests (models taking more than a few seconds).
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `https://queue.fal.run/{model_id}` | POST | Submit request to queue |
-| `https://queue.fal.run/{model_id}/{subpath}` | POST | Submit request with subpath |
-| `https://queue.fal.run/{model_id}/requests/{request_id}/status` | GET | Get request status |
-| `https://queue.fal.run/{model_id}/requests/{request_id}/status/stream` | GET | Stream status updates (SSE) |
-| `https://queue.fal.run/{model_id}/requests/{request_id}` | GET | Get completed result |
-| `https://queue.fal.run/{model_id}/requests/{request_id}/cancel` | PUT | Cancel queued request |
+| Endpoint                                                               | Method | Description                 |
+| ---------------------------------------------------------------------- | ------ | --------------------------- |
+| `https://queue.fal.run/{model_id}`                                     | POST   | Submit request to queue     |
+| `https://queue.fal.run/{model_id}/{subpath}`                           | POST   | Submit request with subpath |
+| `https://queue.fal.run/{model_id}/requests/{request_id}/status`        | GET    | Get request status          |
+| `https://queue.fal.run/{model_id}/requests/{request_id}/status/stream` | GET    | Stream status updates (SSE) |
+| `https://queue.fal.run/{model_id}/requests/{request_id}`               | GET    | Get completed result        |
+| `https://queue.fal.run/{model_id}/requests/{request_id}/cancel`        | PUT    | Cancel queued request       |
 
 #### Parameters
 
@@ -118,6 +122,7 @@ The queue system is designed for long-running requests (models taking more than 
 ### Submitting a Request
 
 **cURL Example:**
+
 ```bash
 curl -X POST https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-video \
   -H "Authorization: Key $FAL_KEY" \
@@ -129,6 +134,7 @@ curl -X POST https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-vi
 ```
 
 **Response:**
+
 ```json
 {
   "request_id": "80e732af-660e-45cd-bd63-580e4f2a94cc",
@@ -139,18 +145,19 @@ curl -X POST https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-vi
 ```
 
 **JavaScript Client:**
+
 ```javascript
-import { fal } from "@fal-ai/client";
+import { fal } from '@fal-ai/client';
 
 // Using subscribe (recommended - handles queue automatically)
-const result = await fal.subscribe("fal-ai/minimax/hailuo-02/standard/image-to-video", {
+const result = await fal.subscribe('fal-ai/minimax/hailuo-02/standard/image-to-video', {
   input: {
-    prompt: "Man walked into winter cave with polar bear",
-    image_url: "https://example.com/image.png"
+    prompt: 'Man walked into winter cave with polar bear',
+    image_url: 'https://example.com/image.png',
   },
   logs: true,
   onQueueUpdate: (update) => {
-    if (update.status === "IN_PROGRESS") {
+    if (update.status === 'IN_PROGRESS') {
       update.logs.map((log) => log.message).forEach(console.log);
     }
   },
@@ -161,25 +168,26 @@ console.log(result.requestId);
 ```
 
 **Using Queue Directly:**
+
 ```javascript
 // Submit to queue
-const { request_id } = await fal.queue.submit("fal-ai/minimax/hailuo-02/standard/image-to-video", {
+const { request_id } = await fal.queue.submit('fal-ai/minimax/hailuo-02/standard/image-to-video', {
   input: {
-    prompt: "Man walked into winter cave with polar bear",
-    image_url: "https://example.com/image.png"
+    prompt: 'Man walked into winter cave with polar bear',
+    image_url: 'https://example.com/image.png',
   },
-  webhookUrl: "https://optional.webhook.url/for/results",
+  webhookUrl: 'https://optional.webhook.url/for/results',
 });
 
 // Check status
-const status = await fal.queue.status("fal-ai/minimax/hailuo-02/standard/image-to-video", {
+const status = await fal.queue.status('fal-ai/minimax/hailuo-02/standard/image-to-video', {
   requestId: request_id,
   logs: true,
 });
 
 // Get result when completed
-const result = await fal.queue.result("fal-ai/minimax/hailuo-02/standard/image-to-video", {
-  requestId: request_id
+const result = await fal.queue.result('fal-ai/minimax/hailuo-02/standard/image-to-video', {
+  requestId: request_id,
 });
 ```
 
@@ -200,6 +208,7 @@ const result = await fal.queue.result("fal-ai/minimax/hailuo-02/standard/image-t
    - `response_url`: URL to retrieve result
 
 **Status Example:**
+
 ```json
 {
   "status": "IN_QUEUE",
@@ -217,6 +226,7 @@ curl -X GET "https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-vi
 ```
 
 **Log Entry Structure:**
+
 ```json
 {
   "message": "INFO:TRYON:Preprocessing images...",
@@ -236,6 +246,7 @@ curl -X GET "https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-vi
 ```
 
 Stream returns multiple events until completion:
+
 ```
 data: {"status": "IN_PROGRESS", "request_id": "...", "logs": [...]}
 
@@ -255,6 +266,7 @@ curl -X PUT https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-vid
 **Responses:**
 
 Success (202 Accepted):
+
 ```json
 {
   "status": "CANCELLATION_REQUESTED"
@@ -262,6 +274,7 @@ Success (202 Accepted):
 ```
 
 Already processed (400 Bad Request):
+
 ```json
 {
   "status": "ALREADY_COMPLETED"
@@ -273,9 +286,11 @@ Already processed (400 Bad Request):
 Instead of polling, configure webhook for completion notifications:
 
 ```javascript
-const { request_id } = await fal.queue.submit("fal-ai/minimax/hailuo-02/standard/image-to-video", {
-  input: { /* ... */ },
-  webhookUrl: "https://your-server.com/webhook/callback"
+const { request_id } = await fal.queue.submit('fal-ai/minimax/hailuo-02/standard/image-to-video', {
+  input: {
+    /* ... */
+  },
+  webhookUrl: 'https://your-server.com/webhook/callback',
 });
 ```
 
@@ -290,6 +305,7 @@ curl -X GET https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-vid
 ```
 
 **Result Example:**
+
 ```json
 {
   "status": "COMPLETED",
@@ -343,21 +359,21 @@ Transform static images into dynamic video content with natural motion synthesis
 #### Example Request
 
 ```javascript
-const result = await fal.subscribe("fal-ai/minimax/hailuo-02/standard/image-to-video", {
+const result = await fal.subscribe('fal-ai/minimax/hailuo-02/standard/image-to-video', {
   input: {
-    prompt: "Man walked into winter cave with polar bear",
-    image_url: "https://storage.googleapis.com/example/image.png",
-    duration: "6",
-    resolution: "768P",
-    prompt_optimizer: true
+    prompt: 'Man walked into winter cave with polar bear',
+    image_url: 'https://storage.googleapis.com/example/image.png',
+    duration: '6',
+    resolution: '768P',
+    prompt_optimizer: true,
   },
   logs: true,
   onQueueUpdate: (update) => {
     console.log(`Status: ${update.status}`);
-    if (update.status === "IN_PROGRESS" && update.logs) {
-      update.logs.forEach(log => console.log(log.message));
+    if (update.status === 'IN_PROGRESS' && update.logs) {
+      update.logs.forEach((log) => console.log(log.message));
     }
-  }
+  },
 });
 ```
 
@@ -399,16 +415,18 @@ const result = await fal.subscribe("fal-ai/minimax/hailuo-02/standard/image-to-v
 
 ```javascript
 try {
-  const result = await fal.subscribe("fal-ai/minimax/hailuo-02/standard/image-to-video", {
-    input: { /* ... */ }
+  const result = await fal.subscribe('fal-ai/minimax/hailuo-02/standard/image-to-video', {
+    input: {
+      /* ... */
+    },
   });
 } catch (error) {
-  if (error.type === "image_too_large") {
-    console.error("Image exceeds size limits:", error.ctx);
-  } else if (error.type === "generation_timeout") {
-    console.error("Generation timed out, retry later");
-  } else if (error.type === "content_policy_violation") {
-    console.error("Content flagged by safety filters");
+  if (error.type === 'image_too_large') {
+    console.error('Image exceeds size limits:', error.ctx);
+  } else if (error.type === 'generation_timeout') {
+    console.error('Generation timed out, retry later');
+  } else if (error.type === 'content_policy_violation') {
+    console.error('Content flagged by safety filters');
   }
 }
 ```
@@ -443,14 +461,14 @@ Professional-grade video upscaling using Topaz Video AI technology.
 #### Example Request
 
 ```javascript
-const result = await fal.subscribe("fal-ai/topaz/upscale/video", {
+const result = await fal.subscribe('fal-ai/topaz/upscale/video', {
   input: {
-    video_url: "https://v3.fal.media/files/kangaroo/video.mp4",
+    video_url: 'https://v3.fal.media/files/kangaroo/video.mp4',
     upscale_factor: 2,
     target_fps: 60,
-    H264_output: false
+    H264_output: false,
   },
-  logs: true
+  logs: true,
 });
 ```
 
@@ -484,24 +502,28 @@ const result = await fal.subscribe("fal-ai/topaz/upscale/video", {
 FAL.AI offers many additional video generation models:
 
 #### Veo 3.1 (Google)
+
 - **Endpoint:** `fal-ai/veo3.1`
 - Text-to-video and image-to-video
 - State-of-the-art quality with audio
 - Fast variant available
 
 #### Sora 2 (OpenAI)
+
 - **Endpoint:** `fal-ai/sora-2/text-to-video`
 - High-quality video with audio
 - Pro and Standard tiers
 - Video remix capabilities
 
 #### Kling Video
+
 - **Endpoint:** `fal-ai/kling-video/v2.5-turbo/pro/image-to-video`
 - Cinematic visuals
 - Exceptional prompt precision
 - Multiple quality tiers
 
 #### LTX Video
+
 - **Endpoint:** `fal-ai/ltxv-2/text-to-video`
 - Fast generation
 - High-fidelity output with audio
@@ -538,18 +560,21 @@ FAL.AI returns standardized error responses:
 ### Common Error Types
 
 #### 1. Internal Server Error
+
 - **Type:** `internal_server_error`
 - **Status:** 500
 - **Retryable:** May be true or false
 - **Action:** Check status, retry if retryable
 
 #### 2. Generation Timeout
+
 - **Type:** `generation_timeout`
 - **Status:** 504
 - **Retryable:** May be true or false
 - **Action:** Simplify input or retry later
 
 #### 3. Content Policy Violation
+
 - **Type:** `content_policy_violation`
 - **Status:** 422
 - **Retryable:** false
@@ -557,6 +582,7 @@ FAL.AI returns standardized error responses:
 - **Note:** Applies to NSFW, violence, hate speech, illegal content
 
 #### 4. Image Too Large
+
 - **Type:** `image_too_large`
 - **Status:** 422
 - **Retryable:** false
@@ -564,6 +590,7 @@ FAL.AI returns standardized error responses:
 - **Action:** Resize image to within limits
 
 #### 5. Image Too Small
+
 - **Type:** `image_too_small`
 - **Status:** 422
 - **Retryable:** false
@@ -571,18 +598,21 @@ FAL.AI returns standardized error responses:
 - **Action:** Use higher resolution image
 
 #### 6. Image Load Error
+
 - **Type:** `image_load_error`
 - **Status:** 422
 - **Retryable:** false
 - **Action:** Check image format and integrity
 
 #### 7. File Download Error
+
 - **Type:** `file_download_error`
 - **Status:** 422
 - **Retryable:** false
 - **Action:** Ensure URL is publicly accessible
 
 #### 8. Video Duration Too Long
+
 - **Type:** `video_duration_too_long`
 - **Status:** 422
 - **Retryable:** false
@@ -590,6 +620,7 @@ FAL.AI returns standardized error responses:
 - **Action:** Trim video to maximum duration
 
 #### 9. Unsupported Format
+
 - **Types:** `unsupported_image_format`, `unsupported_video_format`, `unsupported_audio_format`
 - **Status:** 422
 - **Retryable:** false
@@ -597,6 +628,7 @@ FAL.AI returns standardized error responses:
 - **Action:** Convert to supported format
 
 #### 10. Validation Errors
+
 - **Types:** `greater_than`, `less_than`, `multiple_of`, `sequence_too_long`
 - **Status:** 422
 - **Retryable:** false
@@ -633,7 +665,7 @@ async function handleFalRequest(modelId, input) {
       case 'internal_server_error':
         if (isRetryable) {
           console.log('Server error - retrying...');
-          await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s
+          await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2s
           return await handleFalRequest(modelId, input); // Retry
         }
         throw new Error('Internal server error');
@@ -658,6 +690,7 @@ async function handleFalRequest(modelId, input) {
 ### Pricing Models
 
 #### Pay-Per-Use
+
 - No subscription required
 - Pay only for what you generate
 - No hidden fees or minimum commitments
@@ -665,20 +698,25 @@ async function handleFalRequest(modelId, input) {
 #### Model-Specific Pricing
 
 **Video Models:**
+
 - MiniMax Hailuo 02 Standard (768P): $0.045/sec
 - MiniMax Hailuo 02 Standard (512P): $0.017/sec
 - MiniMax Hailuo 02 Pro (1080P): $0.08/sec
 - Topaz Video Upscale: $0.10/sec
 
 **Image Models:**
+
 - Pricing varies by model
 - Check individual model documentation
 
 ### Pricing Page
+
 For detailed pricing: https://fal.ai/pricing
 
 ### Enterprise Solutions
+
 For custom pricing and dedicated resources:
+
 - Contact: support@fal.ai
 - Enterprise page: https://fal.ai/enterprise
 
@@ -705,18 +743,20 @@ For custom pricing and dedicated resources:
 ### 3. File Handling
 
 **Upload Files:**
+
 ```javascript
 // Upload file to FAL storage
-const file = new File(["data"], "file.txt", { type: "text/plain" });
+const file = new File(['data'], 'file.txt', { type: 'text/plain' });
 const url = await fal.storage.upload(file);
 
 // Use in request
 const result = await fal.subscribe(modelId, {
-  input: { image_url: url }
+  input: { image_url: url },
 });
 ```
 
 **Supported Input Methods:**
+
 1. Public URLs (ensure CORS/rate limits)
 2. Base64 Data URIs (impacts performance for large files)
 3. FAL Storage URLs (recommended)
@@ -749,7 +789,9 @@ const result = await fal.subscribe(modelId, {
 
 ```javascript
 const result = await fal.subscribe(modelId, {
-  input: { /* ... */ },
+  input: {
+    /* ... */
+  },
   logs: true,
   onQueueUpdate: (update) => {
     // Log status changes
@@ -762,11 +804,11 @@ const result = await fal.subscribe(modelId, {
 
     // Log processing messages
     if (update.logs) {
-      update.logs.forEach(log => {
+      update.logs.forEach((log) => {
         console.log(`[${log.level}] ${log.message}`);
       });
     }
-  }
+  },
 });
 ```
 
@@ -780,12 +822,12 @@ FAL provides convenient file storage:
 
 ```javascript
 // Upload file
-const file = new File([data], "filename.ext", { type: "mime/type" });
+const file = new File([data], 'filename.ext', { type: 'mime/type' });
 const url = await fal.storage.upload(file);
 
 // Use in request
 const result = await fal.subscribe(modelId, {
-  input: { file_url: url }
+  input: { file_url: url },
 });
 ```
 
@@ -794,11 +836,11 @@ const result = await fal.subscribe(modelId, {
 The client automatically uploads binary objects:
 
 ```javascript
-const file = new File([imageData], "image.png", { type: "image/png" });
+const file = new File([imageData], 'image.png', { type: 'image/png' });
 
 // File is auto-uploaded
 const result = await fal.subscribe(modelId, {
-  input: { image: file }  // Automatically uploaded
+  input: { image: file }, // Automatically uploaded
 });
 ```
 
@@ -815,31 +857,37 @@ const result = await fal.subscribe(modelId, {
 ### JavaScript/TypeScript
 
 **Installation:**
+
 ```bash
 npm install @fal-ai/client
 ```
 
 **Basic Usage:**
+
 ```javascript
-import { fal } from "@fal-ai/client";
+import { fal } from '@fal-ai/client';
 
 fal.config({
-  credentials: process.env.FAL_KEY
+  credentials: process.env.FAL_KEY,
 });
 
 const result = await fal.subscribe(modelId, {
-  input: { /* ... */ }
+  input: {
+    /* ... */
+  },
 });
 ```
 
 ### Python
 
 **Installation:**
+
 ```bash
 pip install fal-client
 ```
 
 **Basic Usage:**
+
 ```python
 import fal_client
 
@@ -857,22 +905,26 @@ result = fal_client.subscribe(model_id, arguments={
 ## Additional Resources
 
 ### Documentation
+
 - Main Docs: https://docs.fal.ai
 - Model APIs: https://docs.fal.ai/model-apis
 - Queue API: https://docs.fal.ai/model-apis/model-endpoints/queue
 - Error Reference: https://docs.fal.ai/model-apis/errors
 
 ### Tools
+
 - Model Explorer: https://fal.ai/explore
 - Dashboard: https://fal.ai/dashboard
 - API Keys: https://fal.ai/dashboard/keys
 
 ### Community
+
 - Discord: https://discord.gg/fal-ai
 - Status Page: https://status.fal.ai
 - Blog: https://blog.fal.ai
 
 ### Support
+
 - Email: support@fal.ai
 - Documentation: https://docs.fal.ai/model-apis/support
 
@@ -883,6 +935,7 @@ result = fal_client.subscribe(model_id, arguments={
 ### Video Generation
 
 **Image-to-Video:**
+
 - `fal-ai/minimax/hailuo-02/standard/image-to-video` - MiniMax Hailuo 02
 - `fal-ai/kling-video/v2.5-turbo/pro/image-to-video` - Kling Video Pro
 - `fal-ai/veo3.1/image-to-video` - Google Veo 3.1
@@ -891,6 +944,7 @@ result = fal_client.subscribe(model_id, arguments={
 - `fal-ai/wan-25-preview/image-to-video` - Wan 2.5
 
 **Text-to-Video:**
+
 - `fal-ai/veo3.1` - Google Veo 3.1
 - `fal-ai/sora-2/text-to-video` - OpenAI Sora 2
 - `fal-ai/kling-video/v2.5-turbo/pro/text-to-video` - Kling Video Pro
@@ -898,12 +952,14 @@ result = fal_client.subscribe(model_id, arguments={
 - `fal-ai/minimax/hailuo-02/text-to-video` - MiniMax Text-to-Video
 
 **Video Enhancement:**
+
 - `fal-ai/topaz/upscale/video` - Topaz Video Upscale
 - `fal-ai/sora-2/video-to-video/remix` - Sora Video Remix
 
 ### Image Generation
 
 **Text-to-Image:**
+
 - `fal-ai/flux/dev` - FLUX.1 [dev]
 - `fal-ai/flux/schnell` - FLUX.1 [schnell]
 - `fal-ai/flux-pro/v1.1-ultra` - FLUX.1 Pro Ultra
@@ -911,6 +967,7 @@ result = fal_client.subscribe(model_id, arguments={
 - `fal-ai/recraft/v3/text-to-image` - Recraft V3
 
 **Image-to-Image:**
+
 - `fal-ai/flux-pro/kontext` - FLUX Kontext
 - `fal-ai/nano-banana/edit` - Nano Banana
 - `fal-ai/reve/edit` - Reve Edit

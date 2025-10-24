@@ -61,18 +61,21 @@ All requests to the Gemini API require an API key passed in the `x-goog-api-key`
 #### Setting API Key as Environment Variable
 
 **Linux/macOS (Bash):**
+
 ```bash
 export GEMINI_API_KEY=<YOUR_API_KEY_HERE>
 source ~/.bashrc
 ```
 
 **macOS (Zsh):**
+
 ```bash
 export GEMINI_API_KEY=<YOUR_API_KEY_HERE>
 source ~/.zshrc
 ```
 
 **Windows:**
+
 1. Search for "Environment Variables"
 2. Click "Environment Variables" button
 3. Add new variable: `GEMINI_API_KEY` with your key value
@@ -80,6 +83,7 @@ source ~/.zshrc
 #### Providing API Key Explicitly
 
 **Python:**
+
 ```python
 from google import genai
 
@@ -93,19 +97,21 @@ print(response.text)
 ```
 
 **JavaScript:**
-```javascript
-import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: "YOUR_API_KEY" });
+```javascript
+import { GoogleGenAI } from '@google/genai';
+
+const ai = new GoogleGenAI({ apiKey: 'YOUR_API_KEY' });
 
 const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: "Explain how AI works"
+  model: 'gemini-2.5-flash',
+  contents: 'Explain how AI works',
 });
 console.log(response.text);
 ```
 
 **Go:**
+
 ```go
 client, err := genai.NewClient(ctx, &genai.ClientConfig{
     APIKey: "YOUR_API_KEY",
@@ -114,6 +120,7 @@ client, err := genai.NewClient(ctx, &genai.ClientConfig{
 ```
 
 **REST:**
+
 ```bash
 curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent" \
   -H "x-goog-api-key: $GEMINI_API_KEY" \
@@ -131,11 +138,13 @@ curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:g
 ### Security Best Practices
 
 **Critical Security Rules:**
+
 - Never commit API keys to source control
 - Never expose API keys on the client-side
 - Do not use keys in production web or mobile apps
 
 **Best Practices:**
+
 - Use server-side calls with API keys
 - Use ephemeral tokens for client-side access (Live API only)
 - Add API key restrictions to limit permissions
@@ -149,17 +158,18 @@ curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:g
 
 Our most advanced thinking model for complex reasoning.
 
-| Property | Value |
-|----------|-------|
-| Model Code | `gemini-2.5-pro` |
-| Input Token Limit | 1,048,576 |
-| Output Token Limit | 65,536 |
-| Supported Inputs | Audio, images, video, text, PDF |
-| Output | Text |
-| Knowledge Cutoff | January 2025 |
-| Latest Update | June 2025 |
+| Property           | Value                           |
+| ------------------ | ------------------------------- |
+| Model Code         | `gemini-2.5-pro`                |
+| Input Token Limit  | 1,048,576                       |
+| Output Token Limit | 65,536                          |
+| Supported Inputs   | Audio, images, video, text, PDF |
+| Output             | Text                            |
+| Knowledge Cutoff   | January 2025                    |
+| Latest Update      | June 2025                       |
 
 **Capabilities:**
+
 - Audio generation: Not supported
 - Batch API: Supported
 - Caching: Supported
@@ -177,17 +187,18 @@ Our most advanced thinking model for complex reasoning.
 
 Best model for price-performance with well-rounded capabilities.
 
-| Property | Value |
-|----------|-------|
-| Model Code | `gemini-2.5-flash` |
-| Input Token Limit | 1,048,576 |
-| Output Token Limit | 65,536 |
-| Supported Inputs | Text, images, video, audio |
-| Output | Text |
-| Knowledge Cutoff | January 2025 |
-| Latest Update | June 2025 |
+| Property           | Value                      |
+| ------------------ | -------------------------- |
+| Model Code         | `gemini-2.5-flash`         |
+| Input Token Limit  | 1,048,576                  |
+| Output Token Limit | 65,536                     |
+| Supported Inputs   | Text, images, video, audio |
+| Output             | Text                       |
+| Knowledge Cutoff   | January 2025               |
+| Latest Update      | June 2025                  |
 
 **Capabilities:**
+
 - Audio generation: Not supported
 - Batch API: Supported
 - Caching: Supported
@@ -205,39 +216,41 @@ Best model for price-performance with well-rounded capabilities.
 
 Fastest flash model optimized for cost-efficiency and high throughput.
 
-| Property | Value |
-|----------|-------|
-| Model Code | `gemini-2.5-flash-lite` |
-| Input Token Limit | 1,048,576 |
-| Output Token Limit | 65,536 |
-| Supported Inputs | Text, image, video, audio, PDF |
-| Output | Text |
-| Knowledge Cutoff | January 2025 |
-| Latest Update | July 2025 |
+| Property           | Value                          |
+| ------------------ | ------------------------------ |
+| Model Code         | `gemini-2.5-flash-lite`        |
+| Input Token Limit  | 1,048,576                      |
+| Output Token Limit | 65,536                         |
+| Supported Inputs   | Text, image, video, audio, PDF |
+| Output             | Text                           |
+| Knowledge Cutoff   | January 2025                   |
+| Latest Update      | July 2025                      |
 
 ### Gemini 2.5 Flash Image
 
 Highly effective image generation model (Nano Banana).
 
-| Property | Value |
-|----------|-------|
-| Model Code | `gemini-2.5-flash-image` |
-| Input Token Limit | 32,768 |
-| Output Token Limit | 32,768 |
-| Supported Inputs | Images and text |
-| Output | Images and text |
-| Knowledge Cutoff | June 2025 |
-| Latest Update | October 2025 |
+| Property           | Value                    |
+| ------------------ | ------------------------ |
+| Model Code         | `gemini-2.5-flash-image` |
+| Input Token Limit  | 32,768                   |
+| Output Token Limit | 32,768                   |
+| Supported Inputs   | Images and text          |
+| Output             | Images and text          |
+| Knowledge Cutoff   | June 2025                |
+| Latest Update      | October 2025             |
 
 ### Previous Generation Models
 
 **Gemini 2.0 Flash:**
+
 - Model Code: `gemini-2.0-flash`
 - Input Token Limit: 1,048,576
 - Output Token Limit: 8,192
 - Knowledge Cutoff: August 2024
 
 **Gemini 2.0 Flash-Lite:**
+
 - Model Code: `gemini-2.0-flash-lite`
 - Input Token Limit: 1,048,576
 - Output Token Limit: 8,192
@@ -246,20 +259,24 @@ Highly effective image generation model (Nano Banana).
 ### Model Version Patterns
 
 **Stable:** Points to a specific stable model (e.g., `gemini-2.5-flash`)
+
 - Recommended for production
 - Usually doesn't change
 
 **Preview:** Preview model for production use (e.g., `gemini-2.5-flash-preview-09-2025`)
+
 - Has billing enabled
 - May have restrictive rate limits
 - Deprecated with at least 2 weeks notice
 
 **Latest:** Points to the latest release (e.g., `gemini-flash-latest`)
+
 - Can be stable, preview, or experimental
 - Hot-swapped with every new release
 - 2-week notice before version change
 
 **Experimental:** Experimental model (e.g., `gemini-2.0-flash-exp`)
+
 - Not suitable for production
 - More restrictive rate limits
 - Availability subject to change
@@ -311,6 +328,7 @@ https://generativelanguage.googleapis.com/v1beta/
 ### Basic Text Generation
 
 **Python:**
+
 ```python
 from google import genai
 
@@ -324,19 +342,21 @@ print(response.text)
 ```
 
 **JavaScript:**
+
 ```javascript
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from '@google/genai';
 
 const ai = new GoogleGenAI({});
 
 const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: "How does AI work?"
+  model: 'gemini-2.5-flash',
+  contents: 'How does AI work?',
 });
 console.log(response.text);
 ```
 
 **Go:**
+
 ```go
 result, _ := client.Models.GenerateContent(
     ctx,
@@ -352,6 +372,7 @@ fmt.Println(result.Text())
 2.5 Flash and Pro models have "thinking" enabled by default for enhanced quality. This may increase token usage and latency.
 
 **Disable Thinking (Python):**
+
 ```python
 from google import genai
 from google.genai import types
@@ -368,15 +389,16 @@ response = client.models.generate_content(
 ```
 
 **Disable Thinking (JavaScript):**
+
 ```javascript
 const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: "How does AI work?",
-    config: {
-        thinkingConfig: {
-            thinkingBudget: 0
-        }
-    }
+  model: 'gemini-2.5-flash',
+  contents: 'How does AI work?',
+  config: {
+    thinkingConfig: {
+      thinkingBudget: 0,
+    },
+  },
 });
 ```
 
@@ -385,6 +407,7 @@ const response = await ai.models.generateContent({
 Guide model behavior with system instructions.
 
 **Python:**
+
 ```python
 from google import genai
 from google.genai import types
@@ -401,17 +424,19 @@ response = client.models.generate_content(
 ```
 
 **JavaScript:**
+
 ```javascript
 const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: "Hello there",
-    config: {
-        systemInstruction: "You are a cat. Your name is Neko."
-    }
+  model: 'gemini-2.5-flash',
+  contents: 'Hello there',
+  config: {
+    systemInstruction: 'You are a cat. Your name is Neko.',
+  },
 });
 ```
 
 **REST:**
+
 ```bash
 curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent" \
   -H "x-goog-api-key: $GEMINI_API_KEY" \
@@ -433,6 +458,7 @@ curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:g
 ### Streaming Responses
 
 **Python:**
+
 ```python
 from google import genai
 
@@ -447,18 +473,20 @@ for chunk in response:
 ```
 
 **JavaScript:**
+
 ```javascript
 const response = await ai.models.generateContentStream({
-    model: "gemini-2.5-flash",
-    contents: "Explain how AI works"
+  model: 'gemini-2.5-flash',
+  contents: 'Explain how AI works',
 });
 
 for await (const chunk of response) {
-    console.log(chunk.text);
+  console.log(chunk.text);
 }
 ```
 
 **REST:**
+
 ```bash
 curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse" \
   -H "x-goog-api-key: $GEMINI_API_KEY" \
@@ -480,6 +508,7 @@ curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:s
 ### Image Understanding
 
 Gemini models support native image processing for:
+
 - Image captioning
 - Visual question answering
 - Object detection
@@ -497,6 +526,7 @@ Gemini models support native image processing for:
 #### Passing Inline Image Data
 
 **Python:**
+
 ```python
 from google import genai
 from google.genai import types
@@ -519,32 +549,34 @@ print(response.text)
 ```
 
 **JavaScript:**
-```javascript
-import * as fs from "node:fs";
 
-const base64ImageFile = fs.readFileSync("path/to/image.jpg", {
-    encoding: "base64"
+```javascript
+import * as fs from 'node:fs';
+
+const base64ImageFile = fs.readFileSync('path/to/image.jpg', {
+  encoding: 'base64',
 });
 
 const contents = [
-    {
-        inlineData: {
-            mimeType: "image/jpeg",
-            data: base64ImageFile
-        }
+  {
+    inlineData: {
+      mimeType: 'image/jpeg',
+      data: base64ImageFile,
     },
-    { text: "Caption this image." }
+  },
+  { text: 'Caption this image.' },
 ];
 
 const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: contents
+  model: 'gemini-2.5-flash',
+  contents: contents,
 });
 ```
 
 #### Using File API for Images
 
 **Python:**
+
 ```python
 from google import genai
 
@@ -560,24 +592,26 @@ print(response.text)
 ```
 
 **JavaScript:**
+
 ```javascript
 const myfile = await ai.files.upload({
-    file: "path/to/sample.jpg",
-    config: { mimeType: "image/jpeg" }
+  file: 'path/to/sample.jpg',
+  config: { mimeType: 'image/jpeg' },
 });
 
 const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: createUserContent([
-        createPartFromUri(myfile.uri, myfile.mimeType),
-        "Caption this image."
-    ])
+  model: 'gemini-2.5-flash',
+  contents: createUserContent([
+    createPartFromUri(myfile.uri, myfile.mimeType),
+    'Caption this image.',
+  ]),
 });
 ```
 
 #### Multiple Images
 
 **Python:**
+
 ```python
 from google import genai
 from google.genai import types
@@ -609,6 +643,7 @@ response = client.models.generate_content(
 Gemini 2.0+ models detect objects and provide bounding box coordinates (normalized to [0, 1000]).
 
 **Python:**
+
 ```python
 from google import genai
 from google.genai import types
@@ -646,6 +681,7 @@ for bounding_box in bounding_boxes:
 Gemini 2.5+ models provide segmentation masks with contours.
 
 Response includes:
+
 - **box_2d**: Bounding box `[y0, x0, y1, x1]` with normalized coordinates (0-1000)
 - **label**: Object identifier
 - **mask**: Base64 encoded PNG probability map (0-255)
@@ -657,11 +693,13 @@ Response includes:
 ### Token Calculation
 
 **Gemini 1.5 Flash/Pro:**
+
 - 258 tokens if both dimensions ≤ 384 pixels
 - Larger images tiled (min 256px, max 768px)
 - Each tile costs 258 tokens
 
 **Gemini 2.0/2.5 Flash/Pro:**
+
 - 258 tokens if both dimensions ≤ 384 pixels
 - Larger images tiled into 768x768 pixel tiles
 - Each tile costs 258 tokens
@@ -679,6 +717,7 @@ Response includes:
 ### Creating a Chat Session
 
 **Python:**
+
 ```python
 from google import genai
 
@@ -697,33 +736,35 @@ for message in chat.get_history():
 ```
 
 **JavaScript:**
+
 ```javascript
 const chat = ai.chats.create({
-    model: "gemini-2.5-flash",
-    history: [
-        {
-            role: "user",
-            parts: [{ text: "Hello" }]
-        },
-        {
-            role: "model",
-            parts: [{ text: "Great to meet you. What would you like to know?" }]
-        }
-    ]
+  model: 'gemini-2.5-flash',
+  history: [
+    {
+      role: 'user',
+      parts: [{ text: 'Hello' }],
+    },
+    {
+      role: 'model',
+      parts: [{ text: 'Great to meet you. What would you like to know?' }],
+    },
+  ],
 });
 
 const response1 = await chat.sendMessage({
-    message: "I have 2 dogs in my house."
+  message: 'I have 2 dogs in my house.',
 });
 console.log(response1.text);
 
 const response2 = await chat.sendMessage({
-    message: "How many paws are in my house?"
+  message: 'How many paws are in my house?',
 });
 console.log(response2.text);
 ```
 
 **Go:**
+
 ```go
 history := []*genai.Content{
     genai.NewContentFromText("Hi! I have 2 dogs in my house.", genai.RoleUser),
@@ -735,6 +776,7 @@ res, _ := chat.SendMessage(ctx, genai.Part{Text: "How many paws are in my house?
 ```
 
 **REST:**
+
 ```bash
 curl https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent \
   -H "x-goog-api-key: $GEMINI_API_KEY" \
@@ -761,6 +803,7 @@ curl https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:ge
 ### Streaming Chat
 
 **Python:**
+
 ```python
 chat = client.chats.create(model="gemini-2.5-flash")
 
@@ -786,14 +829,13 @@ The request body is a JSON object built from core components:
 **Blob Object:** Container for raw media bytes and MIME type
 
 **Basic Request Structure:**
+
 ```json
 {
   "contents": [
     {
       "role": "user",
-      "parts": [
-        {"text": "Hello"}
-      ]
+      "parts": [{ "text": "Hello" }]
     }
   ],
   "generationConfig": {
@@ -803,9 +845,7 @@ The request body is a JSON object built from core components:
     "maxOutputTokens": 8192
   },
   "systemInstruction": {
-    "parts": [
-      {"text": "You are a helpful assistant"}
-    ]
+    "parts": [{ "text": "You are a helpful assistant" }]
   }
 }
 ```
@@ -851,6 +891,7 @@ curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:g
 ### Response Body Structure
 
 **Standard Mode Response:**
+
 ```json
 {
   "candidates": [
@@ -877,14 +918,13 @@ curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:g
 
 **Streaming Mode Response:**
 Each chunk contains a `responseId` tying the full response together:
+
 ```json
 {
   "candidates": [
     {
       "content": {
-        "parts": [
-          {"text": "The image displays"}
-        ],
+        "parts": [{ "text": "The image displays" }],
         "role": "model"
       },
       "index": 0
@@ -905,6 +945,7 @@ Each chunk contains a `responseId` tying the full response together:
 ### GenerateContentConfig
 
 **Python:**
+
 ```python
 from google.genai import types
 
@@ -920,31 +961,32 @@ config = types.GenerateContentConfig(
 ```
 
 **JavaScript:**
+
 ```javascript
 const config = {
-    temperature: 0.9,
-    topP: 0.95,
-    topK: 40,
-    maxOutputTokens: 8192,
-    responseMimeType: "application/json",
-    systemInstruction: "You are a helpful assistant",
-    thinkingConfig: {
-        thinkingBudget: 0
-    }
+  temperature: 0.9,
+  topP: 0.95,
+  topK: 40,
+  maxOutputTokens: 8192,
+  responseMimeType: 'application/json',
+  systemInstruction: 'You are a helpful assistant',
+  thinkingConfig: {
+    thinkingBudget: 0,
+  },
 };
 ```
 
 ### Key Parameters
 
-| Parameter | Type | Description | Default |
-|-----------|------|-------------|---------|
-| `temperature` | float | Controls randomness (0.0-2.0). Higher = more random | 1.0 |
-| `top_p` | float | Nucleus sampling threshold (0.0-1.0) | 0.95 |
-| `top_k` | int | Top-k sampling parameter | 40 |
-| `max_output_tokens` | int | Maximum tokens in response | Model dependent |
-| `stop_sequences` | string[] | Sequences that stop generation | [] |
-| `response_mime_type` | string | Output format (text/plain, application/json) | text/plain |
-| `candidate_count` | int | Number of response candidates | 1 |
+| Parameter            | Type     | Description                                         | Default         |
+| -------------------- | -------- | --------------------------------------------------- | --------------- |
+| `temperature`        | float    | Controls randomness (0.0-2.0). Higher = more random | 1.0             |
+| `top_p`              | float    | Nucleus sampling threshold (0.0-1.0)                | 0.95            |
+| `top_k`              | int      | Top-k sampling parameter                            | 40              |
+| `max_output_tokens`  | int      | Maximum tokens in response                          | Model dependent |
+| `stop_sequences`     | string[] | Sequences that stop generation                      | []              |
+| `response_mime_type` | string   | Output format (text/plain, application/json)        | text/plain      |
+| `candidate_count`    | int      | Number of response candidates                       | 1               |
 
 ### Temperature Guide
 
@@ -970,14 +1012,17 @@ thinking_config=types.ThinkingConfig(
 ### Free Tier Limits
 
 **Requests per minute (RPM):**
+
 - Gemini 2.5 Flash: 15 RPM
 - Gemini 2.5 Pro: 2 RPM
 
 **Tokens per minute (TPM):**
+
 - Varies by model
 - Check [Google AI Studio](https://aistudio.google.com/) for current limits
 
 **Daily limits:**
+
 - 50 requests per day (free tier)
 
 ### Paid Tier
@@ -996,15 +1041,15 @@ Higher limits available with billing enabled. Visit Google Cloud Console to enab
 
 ### Common HTTP Status Codes
 
-| Status | Meaning |
-|--------|---------|
-| 200 | Success |
-| 400 | Bad Request - Invalid parameters |
-| 401 | Unauthorized - Invalid API key |
-| 403 | Forbidden - Insufficient permissions |
-| 429 | Too Many Requests - Rate limit exceeded |
-| 500 | Internal Server Error |
-| 503 | Service Unavailable |
+| Status | Meaning                                 |
+| ------ | --------------------------------------- |
+| 200    | Success                                 |
+| 400    | Bad Request - Invalid parameters        |
+| 401    | Unauthorized - Invalid API key          |
+| 403    | Forbidden - Insufficient permissions    |
+| 429    | Too Many Requests - Rate limit exceeded |
+| 500    | Internal Server Error                   |
+| 503    | Service Unavailable                     |
 
 ### Error Response Format
 
@@ -1051,12 +1096,14 @@ Responses may include safety ratings:
 ```
 
 **Safety Categories:**
+
 - `HARM_CATEGORY_HARASSMENT`
 - `HARM_CATEGORY_HATE_SPEECH`
 - `HARM_CATEGORY_SEXUALLY_EXPLICIT`
 - `HARM_CATEGORY_DANGEROUS_CONTENT`
 
 **Probability Levels:**
+
 - `NEGLIGIBLE`
 - `LOW`
 - `MEDIUM`
@@ -1065,6 +1112,7 @@ Responses may include safety ratings:
 ### Handling Errors
 
 **Python:**
+
 ```python
 from google import genai
 from google.api_core import exceptions
@@ -1088,21 +1136,22 @@ except Exception as e:
 ```
 
 **JavaScript:**
+
 ```javascript
 try {
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: "Hello"
-    });
-    console.log(response.text);
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: 'Hello',
+  });
+  console.log(response.text);
 } catch (error) {
-    if (error.status === 429) {
-        console.log("Rate limit exceeded");
-    } else if (error.status === 401) {
-        console.log("Invalid API key");
-    } else {
-        console.log("Error:", error.message);
-    }
+  if (error.status === 429) {
+    console.log('Rate limit exceeded');
+  } else if (error.status === 401) {
+    console.log('Invalid API key');
+  } else {
+    console.log('Error:', error.message);
+  }
 }
 ```
 
@@ -1137,6 +1186,7 @@ try {
 Request JSON responses:
 
 **Python:**
+
 ```python
 from google.genai import types
 
@@ -1225,15 +1275,18 @@ response = client.models.generate_content(
 ## Additional Resources
 
 ### Official Documentation
+
 - [Gemini API Documentation](https://ai.google.dev/gemini-api/docs)
 - [API Reference](https://ai.google.dev/api)
 - [Google AI Studio](https://aistudio.google.com/)
 
 ### Community Resources
+
 - [Gemini Cookbook](https://github.com/google-gemini/cookbook)
 - [Community Forum](https://discuss.ai.google.dev/c/gemini-api/)
 
 ### Code Examples
+
 - [Python Quickstart](https://ai.google.dev/gemini-api/docs/quickstart?lang=python)
 - [JavaScript Quickstart](https://ai.google.dev/gemini-api/docs/quickstart?lang=node)
 - [Go Quickstart](https://ai.google.dev/gemini-api/docs/quickstart?lang=go)
@@ -1253,6 +1306,7 @@ The Gemini API provides powerful multimodal AI capabilities with:
 - Advanced features like function calling, grounding, and thinking
 
 For the best experience:
+
 - Start with Gemini 2.5 Flash for balanced performance
 - Use system instructions to guide behavior
 - Implement streaming for interactive applications

@@ -1,230 +1,88 @@
-# Video Generation API Documentation
+# API Documentation
 
-This directory contains comprehensive documentation for all video generation APIs integrated into the non-linear editor.
+This directory contains comprehensive documentation for external APIs used in the non-linear-editor project.
 
-## Available Models
+## Files
 
-All models are accessed through fal.ai, which provides a unified API interface.
+### fal-ai-docs.md
 
-### 1. Sora 2 (OpenAI via fal.ai)
-📄 [Full Documentation](./fal-sora-2.md)
+Complete FAL.AI API documentation including:
 
-**Endpoints**:
-- Text-to-Video: `fal-ai/sora-2/text-to-video`
-- Image-to-Video: `fal-ai/sora-2/image-to-video`
+- **Authentication:** API key setup and security best practices
+- **Queue System:** Asynchronous request handling with status polling and webhooks
+- **Video Models:**
+  - MiniMax Hailuo 02 (image-to-video)
+  - Topaz Video Upscale (video enhancement)
+  - Veo 3.1, Sora 2, Kling Video, and more
+- **Error Handling:** Complete error type reference with examples
+- **Best Practices:** Security, performance, and implementation guidelines
+- **Pricing:** Model-specific cost information
 
-**Best For**:
-- High-quality cinematic videos
-- Videos with synchronized audio
-- Professional content creation
+## Quick Reference
 
-**Key Features**:
-- 720p resolution
-- Audio generation included
-- 4s, 8s, or 12s duration
-- Aspect ratios: 16:9, 9:16
+### Key Endpoints
 
-**Pricing**: $0.10/second
+| Service   | Base URL                | Purpose                   |
+| --------- | ----------------------- | ------------------------- |
+| Queue API | `https://queue.fal.run` | Async video processing    |
+| Sync API  | `https://fal.run`       | Fast synchronous requests |
+| Storage   | `fal.storage.upload()`  | File uploads              |
 
+### Popular Models
 
-### 2. Kling 2.5 Turbo Pro
-📄 [Full Documentation](./fal-kling.md)
+**Video Generation:**
 
-**Endpoints**:
-- Text-to-Video: `fal-ai/kling-video/v2.5-turbo/pro/text-to-video`
-- Image-to-Video: `fal-ai/kling-video/v2.5-turbo/pro/image-to-video`
+- `fal-ai/minimax/hailuo-02/standard/image-to-video` - Image to video ($0.045/sec)
+- `fal-ai/topaz/upscale/video` - Video upscaling ($0.10/sec)
+- `fal-ai/veo3.1` - Google's text-to-video
+- `fal-ai/sora-2/text-to-video` - OpenAI's video model
 
-**Best For**:
-- Cinematic visuals
-- Smooth motion
-- Prompt precision
+### Authentication
 
-**Key Features**:
-- 5s or 10s duration
-- Aspect ratios: 16:9, 9:16, 1:1
-- CFG scale control
-- Negative prompts
+```javascript
+import { fal } from '@fal-ai/client';
 
-**Pricing**: ~$0.15 for 5s, ~$0.30 for 10s
-
-### 3. MiniMax (Hailuo AI) Video 01 Live
-📄 [Full Documentation](./fal-minimax.md)
-
-**Endpoints**:
-- Text-to-Video: `fal-ai/minimax/video-01-live`
-- Image-to-Video: `fal-ai/minimax/video-01-live/image-to-video`
-- Director Mode (with camera control): `fal-ai/minimax/video-01-live/text-to-video/director`
-
-**Best For**:
-- Character animation
-- 2D illustration to video
-- Artistic styles
-
-**Key Features**:
-- Automatic prompt optimization
-- Camera movement controls
-- Wide artistic style support
-- Subject reference (consistent characters)
-
-**Pricing**: ~$0.10-0.15 per video
-
-### 4. Pixverse V5
-📄 [Full Documentation](./fal-pixverse.md)
-
-**Endpoints**:
-- Text-to-Video: `fal-ai/pixverse/v5/text-to-video`
-- Image-to-Video: `fal-ai/pixverse/v5/image-to-video`
-- Video Extension: `fal-ai/pixverse/v5/extend`
-- Video Transition: `fal-ai/pixverse/v5/transition`
-
-**Best For**:
-- Flexible aspect ratios
-- Style transformations
-- Camera movement control
-
-**Key Features**:
-- Resolutions: 360p, 540p, 720p, 1080p
-- Aspect ratios: 16:9, 4:3, 1:1, 3:4, 9:16
-- 5s or 8s duration
-- Extensive camera movements
-- Style presets
-
-**Pricing**: ~$0.10 for 5s (720p), ~$0.20 for 8s
-
-## Quick Comparison
-
-| Model | Best Quality | Best Cost | Best Speed | Audio | Max Duration |
-|-------|-------------|-----------|------------|-------|--------------|
-| Sora 2 | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ✅ | 12s |
-| Kling 2.5 Turbo | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ❌ | 10s |
-| MiniMax | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ❌ | ~6s |
-| Pixverse V5 | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ❌ | 8s |
-
-## Installation
-
-```bash
-npm install @fal-ai/client
+fal.config({
+  credentials: process.env.FAL_KEY,
+});
 ```
 
-## Basic Usage
+### Basic Usage
 
-```typescript
-import { fal } from "@fal-ai/client";
-
-// Configure API key
-fal.config({
-  credentials: process.env.FAL_KEY
-});
-
-// Generate video
-const result = await fal.subscribe("fal-ai/sora-2/text-to-video", {
+```javascript
+// Submit and wait for result
+const result = await fal.subscribe('fal-ai/minimax/hailuo-02/standard/image-to-video', {
   input: {
-    prompt: "Your video description",
-    duration: "5"
+    prompt: 'A cat walking through a garden',
+    image_url: 'https://example.com/cat.jpg',
   },
   logs: true,
   onQueueUpdate: (update) => {
-    if (update.status === "IN_PROGRESS") {
-      update.logs.map((log) => log.message).forEach(console.log);
-    }
+    console.log(`Status: ${update.status}`);
   },
 });
 
 console.log(result.data.video.url);
 ```
 
-## Production Best Practices
+## Documentation Source
 
-### 1. Use Queue API
-For production, always use the queue API with webhooks:
+All documentation was scraped from official FAL.AI sources on October 23, 2025:
 
-```typescript
-// Submit request
-const { request_id } = await fal.queue.submit("fal-ai/sora-2/text-to-video", {
-  input: { prompt: "..." },
-  webhookUrl: "https://your-app.com/webhook"
-});
+- https://docs.fal.ai - Main documentation
+- https://fal.ai/explore - Model catalog
+- https://docs.fal.ai/model-apis/model-endpoints/queue - Queue API
+- https://fal.ai/explore/fal-ai/minimax/hailuo-02/standard/image-to-video - Model pages
+- https://fal.ai/explore/fal-ai/topaz/upscale/video - Video upscaling
 
-// Check status (polling)
-const status = await fal.queue.status("fal-ai/sora-2/text-to-video", {
-  requestId: request_id
-});
+## Updates
 
-// Get result
-const result = await fal.queue.result("fal-ai/sora-2/text-to-video", {
-  requestId: request_id
-});
-```
+To refresh this documentation, run the scraping process again to capture the latest API changes and new models.
 
-### 2. Error Handling
-```typescript
-try {
-  const result = await fal.subscribe("fal-ai/sora-2/text-to-video", {
-    input: { prompt: "..." }
-  });
-} catch (error) {
-  console.error("Video generation failed:", error.message);
-  // Implement retry logic
-}
-```
+## Additional Resources
 
-### 3. Rate Limiting
-- Implement exponential backoff
-- Use webhooks instead of polling
-- Monitor your fal.ai dashboard
-
-### 4. Cost Management
-- Start with lower resolutions for iteration
-- Use shorter durations when possible
-- Consider model pricing differences
-
-## Model Selection Guide
-
-### Choose Sora 2 When:
-- You need the highest quality
-- Audio is required
-- Professional content creation
-- Budget allows premium pricing
-
-### Choose Kling 2.5 Turbo When:
-- Cinematic quality needed
-- Precise prompt control required
-- Motion fluidity is critical
-- 1:1 aspect ratio needed
-
-### Choose MiniMax When:
-- Character animation is primary use
-- Working with illustrations/2D art
-- Need camera control
-- Budget conscious
-
-### Choose Pixverse V5 When:
-- Need flexibility in aspect ratios
-- Style transformation required
-- Multiple resolution options needed
-- Most cost-effective option desired
-
-## Environment Variables
-
-```bash
-# Required
-FAL_KEY=your_fal_api_key_here
-
-# Optional (if using OpenAI key directly for Sora)
-OPENAI_API_KEY=your_openai_key_here
-```
-
-## Support & Resources
-
-- **fal.ai Documentation**: https://docs.fal.ai/
-- **fal.ai Dashboard**: https://fal.ai/dashboard
-- **fal.ai Pricing**: https://fal.ai/pricing
-- **Community Discord**: https://discord.gg/fal-ai
-
-## Notes
-
-- All models support both text-to-video and image-to-video (except where noted)
-- Queue API recommended for production workloads
-- Webhooks provide better performance than polling
-- All models return MP4 format videos
-- Safety filters applied to content
+- FAL.AI Dashboard: https://fal.ai/dashboard
+- API Keys: https://fal.ai/dashboard/keys
+- Pricing: https://fal.ai/pricing
+- Status: https://status.fal.ai
+- Discord: https://discord.gg/fal-ai

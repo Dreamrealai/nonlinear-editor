@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { ActivityHistory } from '@/components/ActivityHistory';
+import toast from 'react-hot-toast';
 
 // Mock the SupabaseProvider
 const mockSupabaseClient = {};
@@ -14,14 +15,12 @@ jest.mock('@/components/providers/SupabaseProvider', () => ({
 }));
 
 // Mock react-hot-toast
-const mockToast = {
-  success: jest.fn(),
-  error: jest.fn(),
-};
-
 jest.mock('react-hot-toast', () => ({
   __esModule: true,
-  default: mockToast,
+  default: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
 }));
 
 // Mock fetch
@@ -86,11 +85,18 @@ describe('ActivityHistory', () => {
     });
 
     it('should show loading state initially', () => {
-      (global.fetch as jest.Mock).mockImplementation(() =>
-        new Promise(resolve => setTimeout(() => resolve({
-          ok: true,
-          json: async () => ({ history: [] }),
-        }), 1000))
+      (global.fetch as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  ok: true,
+                  json: async () => ({ history: [] }),
+                }),
+              1000
+            )
+          )
       );
 
       render(<ActivityHistory />);
@@ -120,7 +126,9 @@ describe('ActivityHistory', () => {
       render(<ActivityHistory />);
       await waitFor(() => {
         expect(screen.getByText('No activity yet')).toBeInTheDocument();
-        expect(screen.getByText('Your AI generations and uploads will appear here')).toBeInTheDocument();
+        expect(
+          screen.getByText('Your AI generations and uploads will appear here')
+        ).toBeInTheDocument();
       });
     });
 
@@ -333,11 +341,18 @@ describe('ActivityHistory', () => {
 
     it('should show loading state while clearing', async () => {
       jest.spyOn(window, 'confirm').mockReturnValue(true);
-      (global.fetch as jest.Mock).mockImplementation(() =>
-        new Promise(resolve => setTimeout(() => resolve({
-          ok: true,
-          json: async () => ({}),
-        }), 1000))
+      (global.fetch as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  ok: true,
+                  json: async () => ({}),
+                }),
+              1000
+            )
+          )
       );
 
       const user = userEvent.setup();
@@ -350,9 +365,12 @@ describe('ActivityHistory', () => {
       const clearButton = screen.getByText('Clear History');
       await user.click(clearButton);
 
-      await waitFor(() => {
-        expect(screen.getByText('Clearing...')).toBeInTheDocument();
-      }, { timeout: 100 });
+      await waitFor(
+        () => {
+          expect(screen.getByText('Clearing...')).toBeInTheDocument();
+        },
+        { timeout: 100 }
+      );
     });
 
     it('should show success toast after clearing', async () => {
@@ -373,7 +391,7 @@ describe('ActivityHistory', () => {
       await user.click(clearButton);
 
       await waitFor(() => {
-        expect(mockToast.success).toHaveBeenCalledWith('Activity history cleared');
+        expect(toast.success).toHaveBeenCalledWith('Activity history cleared');
       });
     });
 
@@ -395,7 +413,7 @@ describe('ActivityHistory', () => {
       await user.click(clearButton);
 
       await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith('Failed to clear activity history');
+        expect(toast.error).toHaveBeenCalledWith('Failed to clear activity history');
       });
     });
   });
@@ -437,7 +455,7 @@ describe('ActivityHistory', () => {
         expect(screen.getByText('No activity yet')).toBeInTheDocument();
       });
 
-      expect(mockToast.error).not.toHaveBeenCalled();
+      expect(toast.error).not.toHaveBeenCalled();
     });
   });
 
@@ -472,9 +490,7 @@ describe('ActivityHistory', () => {
     });
 
     it('should handle unknown activity type', async () => {
-      const unknownTypeHistory = [
-        { ...mockHistory[0], activity_type: 'unknown_type' },
-      ];
+      const unknownTypeHistory = [{ ...mockHistory[0], activity_type: 'unknown_type' }];
 
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,

@@ -93,14 +93,14 @@ Authorization: Bearer sk-your-api-key-here
 
 The `mv` parameter specifies which Suno model version to use:
 
-| Version | Parameter | Description | Release |
-|---------|-----------|-------------|---------|
-| **v5** | `chirp-crow` | Latest model with improved quality | Current |
-| **v4.5+** | `chirp-bluejay` | Enhanced vocal clarity | 2024 |
-| **v4.5** | `chirp-auk` | Balanced performance | 2024 |
-| **v4.0** | `chirp-v4` | Standard v4 model | 2024 |
-| **v3.5** | `chirp-v3.5` | Legacy v3.5 support | 2023 |
-| **v3.0** | `chirp-v3.0` | Original v3 model | 2023 |
+| Version   | Parameter       | Description                        | Release |
+| --------- | --------------- | ---------------------------------- | ------- |
+| **v5**    | `chirp-crow`    | Latest model with improved quality | Current |
+| **v4.5+** | `chirp-bluejay` | Enhanced vocal clarity             | 2024    |
+| **v4.5**  | `chirp-auk`     | Balanced performance               | 2024    |
+| **v4.0**  | `chirp-v4`      | Standard v4 model                  | 2024    |
+| **v3.5**  | `chirp-v3.5`    | Legacy v3.5 support                | 2023    |
+| **v3.0**  | `chirp-v3.0`    | Original v3 model                  | 2023    |
 
 ### Model Selection Guidelines
 
@@ -112,6 +112,7 @@ The `mv` parameter specifies which Suno model version to use:
 ### Persona Models (Tau Variants)
 
 For artist consistency features, use tau variants:
+
 - `chirp-v3-5-tau`
 - `chirp-v4-tau`
 - `chirp-auk` (also supports tau features)
@@ -128,10 +129,10 @@ Generate song lyrics based on a topic or prompt.
 
 #### Request Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `prompt` | string | Yes | Topic or theme for lyrics generation |
-| `notify_hook` | string | No | Webhook URL for completion notification |
+| Parameter     | Type   | Required | Description                             |
+| ------------- | ------ | -------- | --------------------------------------- |
+| `prompt`      | string | Yes      | Topic or theme for lyrics generation    |
+| `notify_hook` | string | No       | Webhook URL for completion notification |
 
 #### Request Example
 
@@ -169,6 +170,7 @@ The primary endpoint for music generation. Supports three modes: Inspiration, Cu
 AI generates both lyrics and music style based on a simple topic.
 
 **Parameters:**
+
 - `gpt_description_prompt` (string): Topic description
 - `mv` (string): Model version
 
@@ -186,6 +188,7 @@ AI generates both lyrics and music style based on a simple topic.
 Full control over lyrics, style, and title.
 
 **Parameters:**
+
 - `prompt` (string): Full lyrics with verse markers
 - `tags` (string): Style/genre tags (e.g., "emotional punk", "jazz piano")
 - `mv` (string): Model version
@@ -210,6 +213,7 @@ Full control over lyrics, style, and title.
 Extend an existing song from a specific timestamp.
 
 **Parameters:**
+
 - `prompt` (string): Continuation lyrics
 - `tags` (string): Style tags
 - `mv` (string): Model version
@@ -241,6 +245,7 @@ Extend an existing song from a specific timestamp.
 Generate music using a specific voice persona.
 
 **Parameters:**
+
 - All custom mode parameters
 - `persona_id` (string): Persona ID from Create Persona endpoint
 - `artist_clip_id` (string): Reference clip ID
@@ -267,6 +272,7 @@ Generate music using a specific voice persona.
 Add instrumental backing to existing vocals.
 
 **Parameters:**
+
 - `mv` (string): Model version
 - `tags` (string): Musical style
 - `title` (string): Track title
@@ -298,6 +304,7 @@ Add instrumental backing to existing vocals.
 Add vocals to existing instrumental track.
 
 **Parameters:**
+
 - `mv` (string): Model version
 - `tags` (string): Vocal style description
 - `title` (string): Track title
@@ -330,10 +337,10 @@ Upload an existing audio file to use in Suno workflows.
 
 #### Request Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `audio_url` | string | Yes | Public URL of audio file to upload |
-| `title` | string | No | Title for the uploaded clip |
+| Parameter   | Type   | Required | Description                        |
+| ----------- | ------ | -------- | ---------------------------------- |
+| `audio_url` | string | Yes      | Public URL of audio file to upload |
+| `title`     | string | No       | Title for the uploaded clip        |
 
 ---
 
@@ -345,10 +352,10 @@ Merge extended music clips into a single continuous track.
 
 #### Request Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `clip_id` | string | Yes | ID of the extended clip |
-| `is_infill` | boolean | Yes | Whether this is an infill task |
+| Parameter   | Type    | Required | Description                    |
+| ----------- | ------- | -------- | ------------------------------ |
+| `clip_id`   | string  | Yes      | ID of the extended clip        |
+| `is_infill` | boolean | Yes      | Whether this is an infill task |
 
 #### Request Example
 
@@ -437,13 +444,13 @@ curl -X GET 'https://api.cometapi.com/suno/fetch/dcb812bd-40c5-4907-836e-3a7aa9a
 
 #### Task Status Values
 
-| Status | Description |
-|--------|-------------|
-| `NOT_START` | Task queued but not started |
-| `IN_PROGRESS` | Task is currently processing |
-| `STREAMING` | Audio is being generated |
-| `COMPLETE` | Task finished successfully |
-| `FAILED` | Task failed (check `fail_reason`) |
+| Status        | Description                       |
+| ------------- | --------------------------------- |
+| `NOT_START`   | Task queued but not started       |
+| `IN_PROGRESS` | Task is currently processing      |
+| `STREAMING`   | Audio is being generated          |
+| `COMPLETE`    | Task finished successfully        |
+| `FAILED`      | Task failed (check `fail_reason`) |
 
 ---
 
@@ -455,10 +462,10 @@ Query multiple tasks in a single request for efficient status checking.
 
 #### Request Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `ids` | array[string] | Yes | Array of task IDs to query |
-| `action` | string | Yes | Task type: "MUSIC" or "LYRICS" |
+| Parameter | Type          | Required | Description                    |
+| --------- | ------------- | -------- | ------------------------------ |
+| `ids`     | array[string] | Yes      | Array of task IDs to query     |
+| `action`  | string        | Yes      | Task type: "MUSIC" or "LYRICS" |
 
 #### Request Example
 
@@ -597,18 +604,18 @@ When a task completes successfully, the `data` array contains:
 
 ### HTTP Status Codes
 
-| Code | Meaning | Solution |
-|------|---------|----------|
-| **400** | Bad Request | Check request format and parameters |
-| **401** | Invalid Token | Verify API key is correct |
-| **403** | Token Disabled | Contact administrator or create new token |
-| **404** | Not Found | Check Base URL (try adding `/v1`) |
-| **413** | Request Too Large | Reduce prompt length |
-| **429** | Rate Limited | Backend account rate limit reached, retry |
-| **500** | Internal Server Error | Server issue, retry request |
-| **503** | No Available Channel | Model not available in current group |
-| **504** | Gateway Timeout | Upstream server timeout, retry |
-| **524** | Connection Timeout | Channel congestion, retry request |
+| Code    | Meaning               | Solution                                  |
+| ------- | --------------------- | ----------------------------------------- |
+| **400** | Bad Request           | Check request format and parameters       |
+| **401** | Invalid Token         | Verify API key is correct                 |
+| **403** | Token Disabled        | Contact administrator or create new token |
+| **404** | Not Found             | Check Base URL (try adding `/v1`)         |
+| **413** | Request Too Large     | Reduce prompt length                      |
+| **429** | Rate Limited          | Backend account rate limit reached, retry |
+| **500** | Internal Server Error | Server issue, retry request               |
+| **503** | No Available Channel  | Model not available in current group      |
+| **504** | Gateway Timeout       | Upstream server timeout, retry            |
+| **524** | Connection Timeout    | Channel congestion, retry request         |
 
 ### Error Response Example
 
@@ -623,6 +630,7 @@ When a task completes successfully, the `data` array contains:
 ### Retry Logic
 
 For 429, 500, 504, and 524 errors:
+
 1. Wait 2-5 seconds
 2. Retry with exponential backoff
 3. Maximum 3 retry attempts
@@ -640,12 +648,12 @@ For 429, 500, 504, and 524 errors:
 
 ### Pricing
 
-| Operation | Cost |
-|-----------|------|
-| Music Generation | $0.144 per create API call |
-| Continue/Extend | $0.04 per call |
-| Lyrics Generation | $0.02 per create API call |
-| Music Upload | $0.02 per call |
+| Operation         | Cost                       |
+| ----------------- | -------------------------- |
+| Music Generation  | $0.144 per create API call |
+| Continue/Extend   | $0.04 per call             |
+| Lyrics Generation | $0.02 per create API call  |
+| Music Upload      | $0.02 per call             |
 
 ### Free Credits
 
@@ -674,13 +682,13 @@ async function generateMusic() {
       'https://api.cometapi.com/suno/submit/music',
       {
         mv: 'chirp-crow',
-        gpt_description_prompt: 'upbeat electronic dance music about summer'
+        gpt_description_prompt: 'upbeat electronic dance music about summer',
       },
       {
         headers: {
-          'Authorization': 'Bearer sk-your-api-key',
-          'Content-Type': 'application/json'
-        }
+          Authorization: 'Bearer sk-your-api-key',
+          'Content-Type': 'application/json',
+        },
       }
     );
 
@@ -699,14 +707,11 @@ async function pollTaskStatus(taskId) {
   let attempts = 0;
 
   while (attempts < maxAttempts) {
-    const response = await axios.get(
-      `https://api.cometapi.com/suno/fetch/${taskId}`,
-      {
-        headers: {
-          'Authorization': 'Bearer sk-your-api-key'
-        }
-      }
-    );
+    const response = await axios.get(`https://api.cometapi.com/suno/fetch/${taskId}`, {
+      headers: {
+        Authorization: 'Bearer sk-your-api-key',
+      },
+    });
 
     const task = response.data.data;
     console.log('Status:', task.status, 'Progress:', task.progress);
@@ -719,7 +724,7 @@ async function pollTaskStatus(taskId) {
       break;
     }
 
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
     attempts++;
   }
 }
@@ -825,13 +830,13 @@ async function batchQueryTasks(taskIds: string[]) {
       `${BASE_URL}/suno/fetch`,
       {
         ids: taskIds,
-        action: 'MUSIC'
+        action: 'MUSIC',
       } as BatchQueryRequest,
       {
         headers: {
-          'Authorization': `Bearer ${API_KEY}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${API_KEY}`,
+          'Content-Type': 'application/json',
+        },
       }
     );
 
@@ -857,11 +862,7 @@ async function batchQueryTasks(taskIds: string[]) {
 }
 
 // Usage
-const taskIds = [
-  'task-id-1',
-  'task-id-2',
-  'task-id-3'
-];
+const taskIds = ['task-id-1', 'task-id-2', 'task-id-3'];
 
 batchQueryTasks(taskIds);
 ```

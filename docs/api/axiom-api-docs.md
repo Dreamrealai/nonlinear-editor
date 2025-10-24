@@ -46,15 +46,15 @@ All API requests must include the `Content-Type` header set to `application/json
 
 ### Data Types
 
-| Type | Definition | Example |
-|------|-----------|---------|
-| **ID** | Unique value for resource identification | "io12h34io1h24i" |
-| **String** | Text sequence | "string value" |
-| **Boolean** | True/false value | true |
-| **Integer** | Number without decimals | 4567 |
-| **Float** | Number with decimals | 15.67 |
-| **Map** | Key-value data structure | `{ "key": "value" }` |
-| **List** | Comma-separated values | `["value", 4567, 45.67]` |
+| Type        | Definition                               | Example                  |
+| ----------- | ---------------------------------------- | ------------------------ |
+| **ID**      | Unique value for resource identification | "io12h34io1h24i"         |
+| **String**  | Text sequence                            | "string value"           |
+| **Boolean** | True/false value                         | true                     |
+| **Integer** | Number without decimals                  | 4567                     |
+| **Float**   | Number with decimals                     | 15.67                    |
+| **Map**     | Key-value data structure                 | `{ "key": "value" }`     |
+| **List**    | Comma-separated values                   | `["value", 4567, 45.67]` |
 
 ---
 
@@ -286,7 +286,10 @@ Axiom supports complex nested arrays and objects:
       ]
     },
     "apl": {
-      "reference": [[80, 12], [30, 40]]
+      "reference": [
+        [80, 12],
+        [30, 40]
+      ]
     }
   }
 }
@@ -330,8 +333,8 @@ Content-Type: application/json
 
 **Response Headers:**
 
-- `X-QueryLimit-Limit`: Query cost limit in GB*ms
-- `X-QueryLimit-Remaining`: Remaining query GB*ms
+- `X-QueryLimit-Limit`: Query cost limit in GB\*ms
+- `X-QueryLimit-Remaining`: Remaining query GB\*ms
 - `X-QueryLimit-Reset`: UTC epoch seconds for reset
 
 ---
@@ -528,12 +531,12 @@ Axiom implements rate limiting to ensure fair usage and maintain service quality
 
 **All API responses include:**
 
-| Header | Description |
-|--------|-------------|
-| `X-RateLimit-Scope` | Scope: "user" or "organization" |
-| `X-RateLimit-Limit` | Max requests per minute |
-| `X-RateLimit-Remaining` | Remaining requests in window |
-| `X-RateLimit-Reset` | UTC epoch seconds for reset |
+| Header                  | Description                     |
+| ----------------------- | ------------------------------- |
+| `X-RateLimit-Scope`     | Scope: "user" or "organization" |
+| `X-RateLimit-Limit`     | Max requests per minute         |
+| `X-RateLimit-Remaining` | Remaining requests in window    |
+| `X-RateLimit-Reset`     | UTC epoch seconds for reset     |
 
 ### Rate Limit Types
 
@@ -553,19 +556,19 @@ HTTP 429 Too Many Requests
 
 #### 2. Query Limits
 
-| Header | Description |
-|--------|-------------|
-| `X-QueryLimit-Limit` | Query cost limit (GB*ms) |
-| `X-QueryLimit-Remaining` | Remaining query GB*ms |
-| `X-QueryLimit-Reset` | UTC epoch seconds for reset |
+| Header                   | Description                 |
+| ------------------------ | --------------------------- |
+| `X-QueryLimit-Limit`     | Query cost limit (GB\*ms)   |
+| `X-QueryLimit-Remaining` | Remaining query GB\*ms      |
+| `X-QueryLimit-Reset`     | UTC epoch seconds for reset |
 
 #### 3. Ingest Limits
 
-| Header | Description |
-|--------|-------------|
-| `X-IngestLimit-Limit` | Max bytes per month |
-| `X-IngestLimit-Remaining` | Remaining bytes in window |
-| `X-IngestLimit-Reset` | UTC epoch seconds for reset |
+| Header                    | Description                 |
+| ------------------------- | --------------------------- |
+| `X-IngestLimit-Limit`     | Max bytes per month         |
+| `X-IngestLimit-Remaining` | Remaining bytes in window   |
+| `X-IngestLimit-Reset`     | UTC epoch seconds for reset |
 
 ### Best Practices for Rate Limits
 
@@ -583,18 +586,18 @@ async function makeApiRequest(data) {
     const response = await fetch('https://api.axiom.co/v1/datasets/my-dataset/ingest', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${API_TOKEN}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${API_TOKEN}`,
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
 
     if (response.status === 429) {
       const resetTime = response.headers.get('X-RateLimit-Reset');
-      const waitTime = (resetTime * 1000) - Date.now();
+      const waitTime = resetTime * 1000 - Date.now();
 
       console.log(`Rate limited. Waiting ${waitTime}ms`);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
 
       // Retry request
       return makeApiRequest(data);
@@ -614,18 +617,18 @@ async function makeApiRequest(data) {
 
 ### HTTP Status Codes
 
-| Code | Status | Description |
-|------|--------|-------------|
-| 200 | OK | Request succeeded |
-| 201 | Created | Resource created successfully |
-| 400 | Bad Request | Invalid request parameters |
-| 401 | Unauthorized | Authentication failed or not provided |
-| 403 | Forbidden | Authenticated but access denied |
-| 404 | Not Found | Resource not found |
-| 422 | Unprocessable Entity | Validation error |
-| 429 | Too Many Requests | Rate limit exceeded |
-| 500 | Internal Server Error | Server-side error occurred |
-| 503 | Service Unavailable | Temporary service disruption |
+| Code | Status                | Description                           |
+| ---- | --------------------- | ------------------------------------- |
+| 200  | OK                    | Request succeeded                     |
+| 201  | Created               | Resource created successfully         |
+| 400  | Bad Request           | Invalid request parameters            |
+| 401  | Unauthorized          | Authentication failed or not provided |
+| 403  | Forbidden             | Authenticated but access denied       |
+| 404  | Not Found             | Resource not found                    |
+| 422  | Unprocessable Entity  | Validation error                      |
+| 429  | Too Many Requests     | Rate limit exceeded                   |
+| 500  | Internal Server Error | Server-side error occurred            |
+| 503  | Service Unavailable   | Temporary service disruption          |
 
 ### Common Error Responses
 
@@ -669,9 +672,9 @@ async function ingestData(dataset, events) {
       events,
       {
         headers: {
-          'Authorization': `Bearer ${process.env.AXIOM_API_TOKEN}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${process.env.AXIOM_API_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
       }
     );
 
@@ -716,7 +719,7 @@ async function ingestData(dataset, events) {
 const events = [
   { timestamp: new Date(), level: 'info', message: 'Event 1' },
   { timestamp: new Date(), level: 'info', message: 'Event 2' },
-  { timestamp: new Date(), level: 'info', message: 'Event 3' }
+  { timestamp: new Date(), level: 'info', message: 'Event 3' },
 ];
 await axiom.ingest('dataset', events);
 
@@ -789,7 +792,7 @@ const config = {
 const API_TOKEN = process.env.AXIOM_API_TOKEN;
 
 // Bad: Hardcoded tokens
-const API_TOKEN = 'xaat-12345...';  // Never do this!
+const API_TOKEN = 'xaat-12345...'; // Never do this!
 ```
 
 **Use Appropriate Token Types:**
@@ -817,7 +820,7 @@ async function retryWithBackoff(fn, maxRetries = 3) {
     } catch (error) {
       if (error.response?.status === 429 && i < maxRetries - 1) {
         const delay = Math.pow(2, i) * 1000; // Exponential backoff
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
       throw error;
@@ -836,7 +839,7 @@ try {
     error: error.message,
     dataset: 'dataset',
     eventCount: events.length,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 }
 ```
@@ -849,7 +852,7 @@ try {
 const usage = {
   requests: 0,
   bytesIngested: 0,
-  errors: 0
+  errors: 0,
 };
 
 async function ingestWithTracking(dataset, events) {
@@ -885,9 +888,7 @@ class AxiomClient {
   constructor(apiToken, dataset, region = 'us') {
     this.apiToken = apiToken;
     this.dataset = dataset;
-    this.baseUrl = region === 'eu'
-      ? 'https://api.eu.axiom.co'
-      : 'https://api.axiom.co';
+    this.baseUrl = region === 'eu' ? 'https://api.eu.axiom.co' : 'https://api.axiom.co';
   }
 
   async ingest(events) {
@@ -897,9 +898,9 @@ class AxiomClient {
         events,
         {
           headers: {
-            'Authorization': `Bearer ${this.apiToken}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${this.apiToken}`,
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -917,9 +918,9 @@ class AxiomClient {
         { apl, startTime, endTime },
         {
           headers: {
-            'Authorization': `Bearer ${this.apiToken}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${this.apiToken}`,
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -950,15 +951,12 @@ class AxiomClient {
 }
 
 // Usage
-const client = new AxiomClient(
-  process.env.AXIOM_API_TOKEN,
-  'my-dataset'
-);
+const client = new AxiomClient(process.env.AXIOM_API_TOKEN, 'my-dataset');
 
 // Ingest data
 await client.ingest([
   { level: 'info', message: 'Application started' },
-  { level: 'error', message: 'Connection failed' }
+  { level: 'error', message: 'Connection failed' },
 ]);
 
 // Query data
@@ -1106,13 +1104,13 @@ const log = {
   metadata: {
     user_id: 'user123',
     request_id: 'req-abc-123',
-    duration_ms: 150
+    duration_ms: 150,
   },
   error: {
     name: 'ErrorName',
     message: 'Error description',
-    stack: 'Stack trace...'
-  }
+    stack: 'Stack trace...',
+  },
 };
 ```
 

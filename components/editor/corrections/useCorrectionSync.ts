@@ -2,19 +2,6 @@ import { useEffect, useState } from 'react';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 import type { Clip } from '@/types/timeline';
 
-interface CorrectionState {
-  brightness: number;
-  contrast: number;
-  saturation: number;
-  hue: number;
-  rotation: number;
-  scale: number;
-  bassGain: number;
-  midGain: number;
-  trebleGain: number;
-  compression: number;
-}
-
 /**
  * Custom hook to manage local state and debounced updates for corrections
  */

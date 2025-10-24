@@ -391,7 +391,7 @@ describe('UserMenu', () => {
       await user.click(signOutButton);
 
       await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith('Failed to sign out');
+        expect(toast.error).toHaveBeenCalledWith('Failed to sign out');
       });
     });
 

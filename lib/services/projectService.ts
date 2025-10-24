@@ -27,18 +27,43 @@ import { isPostgresNotFound } from '../errors/errorCodes';
 import { cache, CacheKeys, CacheTTL } from '../cache';
 import { invalidateProjectCache, invalidateUserProjects } from '../cacheInvalidation';
 
+/**
+ * Timeline state structure stored in project
+ */
+export interface ProjectTimelineState {
+  projectId: string;
+  clips: Array<{
+    id: string;
+    assetId: string;
+    start: number;
+    end: number;
+    timelinePosition: number;
+    trackIndex: number;
+    [key: string]: unknown;
+  }>;
+  output?: {
+    width: number;
+    height: number;
+    fps: number;
+    vBitrateK: number;
+    aBitrateK: number;
+    format: 'mp4' | 'webm';
+  };
+  [key: string]: unknown;
+}
+
 export interface Project {
   id: string;
   user_id: string;
   title: string;
-  timeline_state_jsonb: Record<string, unknown>;
+  timeline_state_jsonb: ProjectTimelineState;
   created_at: string;
   updated_at: string;
 }
 
 export interface CreateProjectOptions {
   title?: string;
-  initialState?: Record<string, unknown>;
+  initialState?: ProjectTimelineState | Partial<ProjectTimelineState>;
 }
 
 export class ProjectService {
@@ -309,7 +334,7 @@ export class ProjectService {
   async updateProjectState(
     projectId: string,
     userId: string,
-    state: Record<string, unknown>
+    state: ProjectTimelineState | Partial<ProjectTimelineState>
   ): Promise<Project> {
     try {
       validateUUID(projectId, 'Project ID');

@@ -25,13 +25,10 @@ const LoadingFallback = () => (
  * Lazy-loaded ExportModal component
  * Only loaded when user triggers export
  */
-export const LazyExportModal = dynamic(
-  () => import('@/components/ExportModal'),
-  {
-    loading: LoadingFallback,
-    ssr: false,
-  }
-);
+export const LazyExportModal = dynamic(() => import('@/components/ExportModal'), {
+  loading: LoadingFallback,
+  ssr: false,
+});
 
 /**
  * Lazy-loaded ClipPropertiesPanel component
@@ -55,39 +52,33 @@ export const LazyClipPropertiesPanel = dynamic(
  * Lazy-loaded HorizontalTimeline component
  * Only loaded when editor is fully initialized
  */
-export const LazyHorizontalTimeline = dynamic(
-  () => import('@/components/HorizontalTimeline'),
-  {
-    loading: () => (
-      <div className="flex h-full w-full items-center justify-center bg-neutral-50">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-900"></div>
-          <span className="text-sm text-neutral-600">Loading timeline...</span>
-        </div>
+export const LazyHorizontalTimeline = dynamic(() => import('@/components/HorizontalTimeline'), {
+  loading: () => (
+    <div className="flex h-full w-full items-center justify-center bg-neutral-50">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-900"></div>
+        <span className="text-sm text-neutral-600">Loading timeline...</span>
       </div>
-    ),
-    ssr: false,
-  }
-);
+    </div>
+  ),
+  ssr: false,
+});
 
 /**
  * Lazy-loaded PreviewPlayer component
  * Only loaded when needed for video playback
  */
-export const LazyPreviewPlayer = dynamic(
-  () => import('@/components/PreviewPlayer'),
-  {
-    loading: () => (
-      <div className="flex h-full w-full items-center justify-center bg-black">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-700 border-t-neutral-400"></div>
-          <span className="text-sm text-neutral-400">Loading player...</span>
-        </div>
+export const LazyPreviewPlayer = dynamic(() => import('@/components/PreviewPlayer'), {
+  loading: () => (
+    <div className="flex h-full w-full items-center justify-center bg-black">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-700 border-t-neutral-400"></div>
+        <span className="text-sm text-neutral-400">Loading player...</span>
       </div>
-    ),
-    ssr: false,
-  }
-);
+    </div>
+  ),
+  ssr: false,
+});
 
 /**
  * Lazy-loaded AudioWaveform component
@@ -96,9 +87,7 @@ export const LazyPreviewPlayer = dynamic(
 export const LazyAudioWaveform = dynamic(
   () => import('@/components/AudioWaveform').then((mod) => ({ default: mod.AudioWaveform })),
   {
-    loading: () => (
-      <div className="h-full w-full bg-neutral-100 animate-pulse"></div>
-    ),
+    loading: () => <div className="h-full w-full bg-neutral-100 animate-pulse"></div>,
     ssr: false,
   }
 );
@@ -107,13 +96,10 @@ export const LazyAudioWaveform = dynamic(
  * Lazy-loaded TextOverlayEditor component
  * Only loaded when editing text overlays
  */
-export const LazyTextOverlayEditor = dynamic(
-  () => import('@/components/TextOverlayEditor'),
-  {
-    loading: LoadingFallback,
-    ssr: false,
-  }
-);
+export const LazyTextOverlayEditor = dynamic(() => import('@/components/TextOverlayEditor'), {
+  loading: LoadingFallback,
+  ssr: false,
+});
 
 /**
  * Lazy-loaded KeyframeEditor component
@@ -126,6 +112,33 @@ export const LazyKeyframeEditor = dynamic(
     ssr: false,
   }
 );
+
+/**
+ * Lazy-loaded ChatBox component
+ * Only loaded when user opens chat interface
+ */
+export const LazyChatBox = dynamic(() => import('@/components/editor/ChatBox'), {
+  loading: LoadingFallback,
+  ssr: false,
+});
+
+/**
+ * Lazy-loaded ProjectList component
+ * Only loaded on home/project listing page
+ */
+export const LazyProjectList = dynamic(() => import('@/components/ProjectList'), {
+  loading: LoadingFallback,
+  ssr: false,
+});
+
+/**
+ * Lazy-loaded ActivityHistory component
+ * Only loaded when viewing activity/history
+ */
+export const LazyActivityHistory = dynamic(() => import('@/components/ActivityHistory'), {
+  loading: LoadingFallback,
+  ssr: false,
+});
 
 /**
  * Generic lazy loader for any component

@@ -43,20 +43,23 @@ const { data, error } = await supabase.auth.signUp({
   email: 'user@example.com',
   password: 'secure_password',
   options: {
-    emailRedirectTo: 'https://example.com/welcome'
-  }
-})
+    emailRedirectTo: 'https://example.com/welcome',
+  },
+});
 ```
 
 **Required Parameters:**
+
 - `email` (string): User's email address
 - `password` (string): User's password
 
 **Optional Parameters:**
+
 - `options.emailRedirectTo` (string): URL to redirect after email confirmation
 - `options.data` (object): Additional user metadata
 
 **Return Type:**
+
 ```typescript
 {
   data: {
@@ -72,15 +75,17 @@ const { data, error } = await supabase.auth.signUp({
 ```javascript
 const { data, error } = await supabase.auth.signInWithPassword({
   email: 'user@example.com',
-  password: 'secure_password'
-})
+  password: 'secure_password',
+});
 ```
 
 **Required Parameters:**
+
 - `email` (string): User's email address
 - `password` (string): User's password
 
 **Return Type:**
+
 ```typescript
 {
   data: {
@@ -98,8 +103,8 @@ const { data, error } = await supabase.auth.signInWithPassword({
 ```javascript
 const { data, error } = await supabase.auth.signUp({
   phone: '+1234567890',
-  password: 'secure_password'
-})
+  password: 'secure_password',
+});
 ```
 
 **Verify OTP**
@@ -108,11 +113,12 @@ const { data, error } = await supabase.auth.signUp({
 const { data, error } = await supabase.auth.verifyOtp({
   phone: '+1234567890',
   token: '123456',
-  type: 'sms'
-})
+  type: 'sms',
+});
 ```
 
 **Required Parameters:**
+
 - `phone` (string): User's phone number with country code
 - `token` (string): 6-digit verification code
 - `type` (string): 'sms' or 'phone_change'
@@ -120,6 +126,7 @@ const { data, error } = await supabase.auth.verifyOtp({
 #### Social Authentication
 
 **Supported Providers:**
+
 - Apple
 - Azure (Microsoft)
 - Bitbucket
@@ -146,15 +153,17 @@ const { data, error } = await supabase.auth.verifyOtp({
 const { data, error } = await supabase.auth.signInWithOAuth({
   provider: 'github',
   options: {
-    redirectTo: 'https://example.com/auth/callback'
-  }
-})
+    redirectTo: 'https://example.com/auth/callback',
+  },
+});
 ```
 
 **Required Parameters:**
+
 - `provider` (string): OAuth provider name
 
 **Optional Parameters:**
+
 - `options.redirectTo` (string): Callback URL after authentication
 - `options.scopes` (string): OAuth scopes to request
 
@@ -166,26 +175,29 @@ const { data, error } = await supabase.auth.signInWithOAuth({
 const { data, error } = await supabase.auth.signInWithOtp({
   email: 'user@example.com',
   options: {
-    emailRedirectTo: 'https://example.com/welcome'
-  }
-})
+    emailRedirectTo: 'https://example.com/welcome',
+  },
+});
 ```
 
 **Required Parameters:**
+
 - `email` (string): User's email address
 
 **Optional Parameters:**
+
 - `options.emailRedirectTo` (string): URL to redirect after verification
 
 #### Anonymous Authentication
 
 ```javascript
-const { data, error } = await supabase.auth.signInAnonymously()
+const { data, error } = await supabase.auth.signInAnonymously();
 ```
 
 **No parameters required**
 
 **Return Type:**
+
 ```typescript
 {
   data: {
@@ -201,10 +213,14 @@ const { data, error } = await supabase.auth.signInAnonymously()
 #### Get Session
 
 ```javascript
-const { data: { session }, error } = await supabase.auth.getSession()
+const {
+  data: { session },
+  error,
+} = await supabase.auth.getSession();
 ```
 
 **Return Type:**
+
 ```typescript
 {
   data: {
@@ -217,10 +233,11 @@ const { data: { session }, error } = await supabase.auth.getSession()
 #### Refresh Session
 
 ```javascript
-const { data, error } = await supabase.auth.refreshSession()
+const { data, error } = await supabase.auth.refreshSession();
 ```
 
 **Return Type:**
+
 ```typescript
 {
   data: {
@@ -234,10 +251,11 @@ const { data, error } = await supabase.auth.refreshSession()
 #### Sign Out
 
 ```javascript
-const { error } = await supabase.auth.signOut()
+const { error } = await supabase.auth.signOut();
 ```
 
 **Optional Parameters:**
+
 - `scope` (string): 'global' (signs out all sessions) or 'local' (current session only)
 
 ### User Management
@@ -245,10 +263,14 @@ const { error } = await supabase.auth.signOut()
 #### Get User
 
 ```javascript
-const { data: { user }, error } = await supabase.auth.getUser()
+const {
+  data: { user },
+  error,
+} = await supabase.auth.getUser();
 ```
 
 **Return Type:**
+
 ```typescript
 {
   data: {
@@ -265,12 +287,13 @@ const { data, error } = await supabase.auth.updateUser({
   email: 'newemail@example.com',
   password: 'new_password',
   data: {
-    display_name: 'John Doe'
-  }
-})
+    display_name: 'John Doe',
+  },
+});
 ```
 
 **Optional Parameters:**
+
 - `email` (string): New email address
 - `password` (string): New password
 - `phone` (string): New phone number
@@ -281,26 +304,25 @@ const { data, error } = await supabase.auth.updateUser({
 **Step 1: Request Password Reset**
 
 ```javascript
-const { data, error } = await supabase.auth.resetPasswordForEmail(
-  'user@example.com',
-  {
-    redirectTo: 'https://example.com/reset-password'
-  }
-)
+const { data, error } = await supabase.auth.resetPasswordForEmail('user@example.com', {
+  redirectTo: 'https://example.com/reset-password',
+});
 ```
 
 **Required Parameters:**
+
 - `email` (string): User's email address
 
 **Optional Parameters:**
+
 - `redirectTo` (string): URL to redirect for password change
 
 **Step 2: Update Password**
 
 ```javascript
 const { data, error } = await supabase.auth.updateUser({
-  password: 'new_secure_password'
-})
+  password: 'new_secure_password',
+});
 ```
 
 ### Auth State Changes
@@ -309,11 +331,12 @@ const { data, error } = await supabase.auth.updateUser({
 
 ```javascript
 supabase.auth.onAuthStateChange((event, session) => {
-  console.log(event, session)
-})
+  console.log(event, session);
+});
 ```
 
 **Events:**
+
 - `SIGNED_IN`
 - `SIGNED_OUT`
 - `TOKEN_REFRESHED`
@@ -327,25 +350,28 @@ supabase.auth.onAuthStateChange((event, session) => {
 ```javascript
 const { data, error } = await supabase.auth.mfa.enroll({
   factorType: 'totp',
-  friendlyName: 'My Authenticator'
-})
+  friendlyName: 'My Authenticator',
+});
 ```
 
 **Required Parameters:**
+
 - `factorType` (string): 'totp' or 'phone'
 
 **Optional Parameters:**
+
 - `friendlyName` (string): Display name for the factor
 
 #### Challenge MFA
 
 ```javascript
 const { data, error } = await supabase.auth.mfa.challenge({
-  factorId: 'factor-id-here'
-})
+  factorId: 'factor-id-here',
+});
 ```
 
 **Required Parameters:**
+
 - `factorId` (string): MFA factor ID
 
 #### Verify MFA
@@ -354,11 +380,12 @@ const { data, error } = await supabase.auth.mfa.challenge({
 const { data, error } = await supabase.auth.mfa.verify({
   factorId: 'factor-id-here',
   challengeId: 'challenge-id-here',
-  code: '123456'
-})
+  code: '123456',
+});
 ```
 
 **Required Parameters:**
+
 - `factorId` (string): MFA factor ID
 - `challengeId` (string): Challenge ID from challenge step
 - `code` (string): Verification code
@@ -372,13 +399,16 @@ const { data, error } = await supabase.auth.mfa.verify({
 ### Pricing
 
 **Monthly Active Users (MAU):**
+
 - Free tier: 50,000 MAU
 - Pro tier: $0.00325 per MAU
 
 **Third-Party Auth:**
+
 - Additional charges for social logins and SSO
 
 **Advanced MFA:**
+
 - Phone MFA has additional SMS charges
 
 ---
@@ -419,24 +449,25 @@ CREATE TABLE movies (
 ```
 
 **Key Concepts:**
+
 - **Primary Key**: Unique identifier (use `id` with `BIGINT` or `UUID`)
 - **Data Types**: TEXT, INTEGER, BIGINT, BOOLEAN, TIMESTAMPTZ, JSONB, etc.
 - **Constraints**: NOT NULL, UNIQUE, CHECK, FOREIGN KEY
 
 #### Data Types
 
-| Type | Aliases | Description |
-|------|---------|-------------|
-| `bigint` | `int8` | 8-byte integer |
-| `boolean` | `bool` | true/false |
-| `text` | | Variable-length string |
-| `varchar(n)` | `character varying` | Variable-length with limit |
-| `integer` | `int`, `int4` | 4-byte integer |
-| `timestamptz` | `timestamp with time zone` | Date/time with timezone |
-| `uuid` | | Universal unique identifier |
-| `jsonb` | | Binary JSON data |
-| `numeric` | `decimal` | Exact numeric |
-| `real` | `float4` | 4-byte floating point |
+| Type          | Aliases                    | Description                 |
+| ------------- | -------------------------- | --------------------------- |
+| `bigint`      | `int8`                     | 8-byte integer              |
+| `boolean`     | `bool`                     | true/false                  |
+| `text`        |                            | Variable-length string      |
+| `varchar(n)`  | `character varying`        | Variable-length with limit  |
+| `integer`     | `int`, `int4`              | 4-byte integer              |
+| `timestamptz` | `timestamp with time zone` | Date/time with timezone     |
+| `uuid`        |                            | Universal unique identifier |
+| `jsonb`       |                            | Binary JSON data            |
+| `numeric`     | `decimal`                  | Exact numeric               |
+| `real`        | `float4`                   | 4-byte floating point       |
 
 ### JavaScript Client - Database Operations
 
@@ -445,29 +476,23 @@ CREATE TABLE movies (
 **Basic Select:**
 
 ```javascript
-const { data, error } = await supabase
-  .from('movies')
-  .select('*')
+const { data, error } = await supabase.from('movies').select('*');
 ```
 
 **Select Specific Columns:**
 
 ```javascript
-const { data, error } = await supabase
-  .from('movies')
-  .select('id, name, description')
+const { data, error } = await supabase.from('movies').select('id, name, description');
 ```
 
 **With Filters:**
 
 ```javascript
-const { data, error } = await supabase
-  .from('movies')
-  .select('*')
-  .eq('id', 1)
+const { data, error } = await supabase.from('movies').select('*').eq('id', 1);
 ```
 
 **Return Type:**
+
 ```typescript
 {
   data: Array<any> | null,
@@ -484,9 +509,9 @@ const { data, error } = await supabase
   .from('movies')
   .insert({
     name: 'The Matrix',
-    description: 'A computer hacker learns about the true nature of his reality.'
+    description: 'A computer hacker learns about the true nature of his reality.',
   })
-  .select()
+  .select();
 ```
 
 **Multiple Insert:**
@@ -496,15 +521,17 @@ const { data, error } = await supabase
   .from('movies')
   .insert([
     { name: 'Movie 1', description: 'Description 1' },
-    { name: 'Movie 2', description: 'Description 2' }
+    { name: 'Movie 2', description: 'Description 2' },
   ])
-  .select()
+  .select();
 ```
 
 **Required Parameters:**
+
 - Object or array of objects matching table schema
 
 **Optional Modifiers:**
+
 - `.select()`: Return inserted data
 
 #### Update Data
@@ -514,10 +541,11 @@ const { data, error } = await supabase
   .from('movies')
   .update({ name: 'Updated Name' })
   .eq('id', 1)
-  .select()
+  .select();
 ```
 
 **Required:**
+
 - Update object with fields to change
 - Filter to specify which rows to update
 
@@ -529,25 +557,24 @@ const { data, error } = await supabase
   .upsert({
     id: 1,
     name: 'The Matrix',
-    description: 'Updated description'
+    description: 'Updated description',
   })
-  .select()
+  .select();
 ```
 
 **Parameters:**
+
 - Object or array with primary key values
 - `onConflict`: Column name for conflict resolution
 
 #### Delete Data
 
 ```javascript
-const { error } = await supabase
-  .from('movies')
-  .delete()
-  .eq('id', 1)
+const { error } = await supabase.from('movies').delete().eq('id', 1);
 ```
 
 **Required:**
+
 - Filter to specify which rows to delete
 
 ### Filters
@@ -648,20 +675,16 @@ const { error } = await supabase
 
 ```javascript
 // One-to-many
-const { data, error } = await supabase
-  .from('movies')
-  .select(`
+const { data, error } = await supabase.from('movies').select(`
     *,
     actors (
       id,
       name
     )
-  `)
+  `);
 
 // Many-to-many through join table
-const { data, error } = await supabase
-  .from('movies')
-  .select(`
+const { data, error } = await supabase.from('movies').select(`
     *,
     movie_actors!inner (
       actors (
@@ -669,7 +692,7 @@ const { data, error } = await supabase
         name
       )
     )
-  `)
+  `);
 ```
 
 ### RPC (Remote Procedure Calls)
@@ -677,14 +700,14 @@ const { data, error } = await supabase
 **Call Database Functions:**
 
 ```javascript
-const { data, error } = await supabase
-  .rpc('function_name', {
-    param1: 'value1',
-    param2: 'value2'
-  })
+const { data, error } = await supabase.rpc('function_name', {
+  param1: 'value1',
+  param2: 'value2',
+});
 ```
 
 **Required Parameters:**
+
 - `function_name` (string): PostgreSQL function name
 - Parameters object matching function signature
 
@@ -698,19 +721,20 @@ const channel = supabase
     {
       event: '*',
       schema: 'public',
-      table: 'movies'
+      table: 'movies',
     },
     (payload) => {
-      console.log('Change received!', payload)
+      console.log('Change received!', payload);
     }
   )
-  .subscribe()
+  .subscribe();
 
 // Unsubscribe
-channel.unsubscribe()
+channel.unsubscribe();
 ```
 
 **Events:**
+
 - `*`: All changes
 - `INSERT`: New rows
 - `UPDATE`: Updated rows
@@ -735,9 +759,7 @@ GROUP BY movies.id;
 **Query View:**
 
 ```javascript
-const { data, error } = await supabase
-  .from('movie_overview')
-  .select('*')
+const { data, error } = await supabase.from('movie_overview').select('*');
 ```
 
 ### Materialized Views
@@ -779,19 +801,19 @@ Supabase Storage provides file storage with CDN delivery, image optimization, an
 #### Create Bucket
 
 ```javascript
-const { data, error } = await supabase
-  .storage
-  .createBucket('avatars', {
-    public: false,
-    fileSizeLimit: 1024000,
-    allowedMimeTypes: ['image/png', 'image/jpeg']
-  })
+const { data, error } = await supabase.storage.createBucket('avatars', {
+  public: false,
+  fileSizeLimit: 1024000,
+  allowedMimeTypes: ['image/png', 'image/jpeg'],
+});
 ```
 
 **Required Parameters:**
+
 - `bucketName` (string): Unique bucket identifier
 
 **Optional Parameters:**
+
 - `public` (boolean): Allow public access (default: false)
 - `fileSizeLimit` (number): Max file size in bytes
 - `allowedMimeTypes` (array): Allowed file types
@@ -799,12 +821,11 @@ const { data, error } = await supabase
 #### List Buckets
 
 ```javascript
-const { data, error } = await supabase
-  .storage
-  .listBuckets()
+const { data, error } = await supabase.storage.listBuckets();
 ```
 
 **Return Type:**
+
 ```typescript
 {
   data: Bucket[] | null,
@@ -815,20 +836,17 @@ const { data, error } = await supabase
 #### Get Bucket
 
 ```javascript
-const { data, error } = await supabase
-  .storage
-  .getBucket('avatars')
+const { data, error } = await supabase.storage.getBucket('avatars');
 ```
 
 #### Delete Bucket
 
 ```javascript
-const { data, error } = await supabase
-  .storage
-  .deleteBucket('avatars')
+const { data, error } = await supabase.storage.deleteBucket('avatars');
 ```
 
 **Required Parameters:**
+
 - `bucketName` (string): Bucket to delete
 
 ### File Operations
@@ -838,25 +856,25 @@ const { data, error } = await supabase
 **Standard Upload (< 6MB recommended):**
 
 ```javascript
-const { data, error } = await supabase
-  .storage
-  .from('avatars')
-  .upload('public/avatar1.png', file, {
-    cacheControl: '3600',
-    upsert: false
-  })
+const { data, error } = await supabase.storage.from('avatars').upload('public/avatar1.png', file, {
+  cacheControl: '3600',
+  upsert: false,
+});
 ```
 
 **Required Parameters:**
+
 - `path` (string): File path within bucket
 - `file` (File | Blob | ArrayBuffer): File to upload
 
 **Optional Parameters:**
+
 - `cacheControl` (string): Cache control header
 - `contentType` (string): File content type
 - `upsert` (boolean): Overwrite if exists (default: false)
 
 **Return Type:**
+
 ```typescript
 {
   data: {
@@ -869,32 +887,29 @@ const { data, error } = await supabase
 **Resumable Upload (> 6MB recommended):**
 
 ```javascript
-const { data, error } = await supabase
-  .storage
-  .from('videos')
-  .upload('public/video.mp4', file, {
-    cacheControl: '3600',
-    upsert: false,
-    resumable: true
-  })
+const { data, error } = await supabase.storage.from('videos').upload('public/video.mp4', file, {
+  cacheControl: '3600',
+  upsert: false,
+  resumable: true,
+});
 ```
 
 **Additional Parameters:**
+
 - `resumable` (boolean): Use TUS protocol for resumable uploads
 
 #### Download File
 
 ```javascript
-const { data, error } = await supabase
-  .storage
-  .from('avatars')
-  .download('public/avatar1.png')
+const { data, error } = await supabase.storage.from('avatars').download('public/avatar1.png');
 ```
 
 **Required Parameters:**
+
 - `path` (string): File path to download
 
 **Return Type:**
+
 ```typescript
 {
   data: Blob | null,
@@ -905,20 +920,19 @@ const { data, error } = await supabase
 #### List Files
 
 ```javascript
-const { data, error } = await supabase
-  .storage
-  .from('avatars')
-  .list('public', {
-    limit: 100,
-    offset: 0,
-    sortBy: { column: 'name', order: 'asc' }
-  })
+const { data, error } = await supabase.storage.from('avatars').list('public', {
+  limit: 100,
+  offset: 0,
+  sortBy: { column: 'name', order: 'asc' },
+});
 ```
 
 **Required Parameters:**
+
 - `path` (string): Folder path (use empty string for root)
 
 **Optional Parameters:**
+
 - `limit` (number): Max files to return
 - `offset` (number): Number of files to skip
 - `sortBy` (object): Sort configuration
@@ -927,22 +941,21 @@ const { data, error } = await supabase
 #### Get Public URL
 
 ```javascript
-const { data } = supabase
-  .storage
-  .from('avatars')
-  .getPublicUrl('public/avatar1.png')
+const { data } = supabase.storage.from('avatars').getPublicUrl('public/avatar1.png');
 
-console.log(data.publicUrl)
+console.log(data.publicUrl);
 ```
 
 **Required Parameters:**
+
 - `path` (string): File path
 
 **Return Type:**
+
 ```typescript
 {
   data: {
-    publicUrl: string
+    publicUrl: string;
   }
 }
 ```
@@ -950,20 +963,22 @@ console.log(data.publicUrl)
 #### Create Signed URL
 
 ```javascript
-const { data, error } = await supabase
-  .storage
+const { data, error } = await supabase.storage
   .from('avatars')
-  .createSignedUrl('private/avatar1.png', 60)
+  .createSignedUrl('private/avatar1.png', 60);
 ```
 
 **Required Parameters:**
+
 - `path` (string): File path
 - `expiresIn` (number): Seconds until URL expires
 
 **Optional Parameters:**
+
 - `transform` (object): Image transformation options
 
 **Return Type:**
+
 ```typescript
 {
   data: {
@@ -976,58 +991,56 @@ const { data, error } = await supabase
 #### Move File
 
 ```javascript
-const { data, error } = await supabase
-  .storage
+const { data, error } = await supabase.storage
   .from('avatars')
-  .move('public/old-path.png', 'public/new-path.png')
+  .move('public/old-path.png', 'public/new-path.png');
 ```
 
 **Required Parameters:**
+
 - `fromPath` (string): Current file path
 - `toPath` (string): New file path
 
 #### Copy File
 
 ```javascript
-const { data, error } = await supabase
-  .storage
+const { data, error } = await supabase.storage
   .from('avatars')
-  .copy('public/avatar1.png', 'public/avatar1-copy.png')
+  .copy('public/avatar1.png', 'public/avatar1-copy.png');
 ```
 
 **Required Parameters:**
+
 - `fromPath` (string): Source file path
 - `toPath` (string): Destination file path
 
 #### Delete Files
 
 ```javascript
-const { data, error } = await supabase
-  .storage
+const { data, error } = await supabase.storage
   .from('avatars')
-  .remove(['public/avatar1.png', 'public/avatar2.png'])
+  .remove(['public/avatar1.png', 'public/avatar2.png']);
 ```
 
 **Required Parameters:**
+
 - `paths` (string[]): Array of file paths to delete
 
 ### Image Transformation
 
 ```javascript
-const { data } = supabase
-  .storage
-  .from('avatars')
-  .getPublicUrl('public/avatar.png', {
-    transform: {
-      width: 200,
-      height: 200,
-      resize: 'cover',
-      quality: 80
-    }
-  })
+const { data } = supabase.storage.from('avatars').getPublicUrl('public/avatar.png', {
+  transform: {
+    width: 200,
+    height: 200,
+    resize: 'cover',
+    quality: 80,
+  },
+});
 ```
 
 **Transform Options:**
+
 - `width` (number): Target width
 - `height` (number): Target height
 - `resize` (string): 'cover', 'contain', 'fill'
@@ -1062,6 +1075,7 @@ USING (bucket_id = 'public-bucket');
 ```
 
 **Required Permissions:**
+
 - `SELECT`: Download/list files
 - `INSERT`: Upload files
 - `UPDATE`: Update files (with upsert)
@@ -1084,6 +1098,7 @@ ALTER TABLE movies ENABLE ROW LEVEL SECURITY;
 ```
 
 **Best Practice:**
+
 - Enable RLS on all tables in exposed schemas (default: `public`)
 - Tables created via Dashboard have RLS enabled by default
 
@@ -1272,10 +1287,7 @@ CREATE INDEX idx_posts_user_id ON posts(user_id);
 
 ```javascript
 // Don't rely on RLS alone
-const { data, error } = await supabase
-  .from('posts')
-  .select('*')
-  .eq('user_id', userId) // Add explicit filter
+const { data, error } = await supabase.from('posts').select('*').eq('user_id', userId); // Add explicit filter
 ```
 
 **Impact:** ~95% performance improvement
@@ -1317,6 +1329,7 @@ USING ((SELECT auth.uid()) = user_id);
 ### Bypassing RLS
 
 **Using Service Key:**
+
 - Service role key bypasses all RLS policies
 - Use only on server-side
 - Never expose in client code
@@ -1343,14 +1356,15 @@ npm install @supabase/supabase-js
 ### Initialization
 
 ```javascript
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://xyzcompany.supabase.co'
-const supabaseKey = 'your-anon-key'
-const supabase = createClient(supabaseUrl, supabaseKey)
+const supabaseUrl = 'https://xyzcompany.supabase.co';
+const supabaseKey = 'your-anon-key';
+const supabase = createClient(supabaseUrl, supabaseKey);
 ```
 
 **Required Parameters:**
+
 - `supabaseUrl` (string): Your project URL
 - `supabaseKey` (string): Your project API key (anon or service_role)
 
@@ -1361,31 +1375,29 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
   },
   realtime: {
     params: {
-      eventsPerSecond: 10
-    }
+      eventsPerSecond: 10,
+    },
   },
   global: {
-    headers: { 'x-custom-header': 'value' }
-  }
-})
+    headers: { 'x-custom-header': 'value' },
+  },
+});
 ```
 
 ### TypeScript Support
 
 ```typescript
-import { createClient } from '@supabase/supabase-js'
-import { Database } from './database.types'
+import { createClient } from '@supabase/supabase-js';
+import { Database } from './database.types';
 
-const supabase = createClient<Database>(supabaseUrl, supabaseKey)
+const supabase = createClient<Database>(supabaseUrl, supabaseKey);
 
 // Typed queries
-const { data, error } = await supabase
-  .from('movies')
-  .select('*')
+const { data, error } = await supabase.from('movies').select('*');
 
 // data is typed as Movie[]
 ```
@@ -1399,19 +1411,18 @@ npx supabase gen types typescript --project-id "your-project-id" > database.type
 ### Error Handling
 
 ```javascript
-const { data, error } = await supabase
-  .from('movies')
-  .select('*')
+const { data, error } = await supabase.from('movies').select('*');
 
 if (error) {
-  console.error('Error:', error.message)
+  console.error('Error:', error.message);
   // Handle error
 } else {
-  console.log('Data:', data)
+  console.log('Data:', data);
 }
 ```
 
 **Common Error Properties:**
+
 - `message` (string): Error description
 - `code` (string): Error code
 - `details` (string): Additional details
@@ -1423,11 +1434,11 @@ if (error) {
 
 ```javascript
 // middleware.ts
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse } from 'next/server'
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse } from 'next/server';
 
 export async function middleware(request) {
-  const response = NextResponse.next()
+  const response = NextResponse.next();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -1435,36 +1446,35 @@ export async function middleware(request) {
     {
       cookies: {
         get(name) {
-          return request.cookies.get(name)?.value
+          return request.cookies.get(name)?.value;
         },
         set(name, value, options) {
-          response.cookies.set({ name, value, ...options })
+          response.cookies.set({ name, value, ...options });
         },
         remove(name, options) {
-          response.cookies.set({ name, value: '', ...options })
-        }
-      }
+          response.cookies.set({ name, value: '', ...options });
+        },
+      },
     }
-  )
+  );
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  return response
+  return response;
 }
 ```
 
 ### Abort Requests
 
 ```javascript
-const controller = new AbortController()
+const controller = new AbortController();
 
-const { data, error } = await supabase
-  .from('movies')
-  .select('*')
-  .abortSignal(controller.signal)
+const { data, error } = await supabase.from('movies').select('*').abortSignal(controller.signal);
 
 // Cancel request
-controller.abort()
+controller.abort();
 ```
 
 ---
@@ -1484,12 +1494,14 @@ postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.co
 ```
 
 **Use Cases:**
+
 - Persistent servers (VMs, long-running containers)
 - Database migrations
 - Database GUIs
 - Commands like `pg_dump`
 
 **Requirements:**
+
 - IPv6 support
 - For IPv4, use Session Mode or get IPv4 add-on
 
@@ -1500,11 +1512,13 @@ postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.co
 ```
 
 **Use Cases:**
+
 - Persistent clients without IPv6
 - Application-side pooling
 - Long-running queries
 
 **Limitations:**
+
 - Prepared statements not supported
 
 #### Transaction Mode (Supavisor)
@@ -1514,12 +1528,14 @@ postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.co
 ```
 
 **Use Cases:**
+
 - Serverless functions
 - Edge functions
 - Auto-scaling systems
 - Short-lived connections
 
 **Limitations:**
+
 - No prepared statements
 - No long transactions
 - No session-level features
@@ -1533,11 +1549,13 @@ postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.co
 ```
 
 **Benefits:**
+
 - Co-located with database
 - Lower latency
 - Dedicated resources
 
 **Requirements:**
+
 - IPv6 or IPv4 add-on
 - Paid plan
 
@@ -1546,6 +1564,7 @@ postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.co
 #### Application-Side Poolers
 
 Built into libraries like:
+
 - Prisma
 - SQLAlchemy
 - PostgREST
@@ -1564,11 +1583,13 @@ datasource db {
 #### Server-Side Poolers
 
 **Supavisor:**
+
 - Shared pooler (free)
 - Load balancer for connections
 - Transaction and session modes
 
 **PgBouncer:**
+
 - Dedicated pooler (paid)
 - Better performance
 - Co-located with database
@@ -1578,32 +1599,33 @@ datasource db {
 **Always use SSL in production:**
 
 ```javascript
-const { Pool } = require('pg')
+const { Pool } = require('pg');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: true,
-    ca: fs.readFileSync('./prod-ca-2021.crt').toString()
-  }
-})
+    ca: fs.readFileSync('./prod-ca-2021.crt').toString(),
+  },
+});
 ```
 
 **Get SSL Certificate:**
+
 - Download from Project Settings > Database > SSL Certificate
 
 ### Connection Limits
 
 **By Compute Tier:**
 
-| Tier | Max Connections | Max Pooler Clients |
-|------|----------------|-------------------|
-| Free | 60 | 200 |
-| Small | 90 | 400 |
-| Medium | 120 | 600 |
-| Large | 160 | 800 |
-| XL | 240 | 1000 |
-| 2XL | 380 | 1500 |
+| Tier   | Max Connections | Max Pooler Clients |
+| ------ | --------------- | ------------------ |
+| Free   | 60              | 200                |
+| Small  | 90              | 400                |
+| Medium | 120             | 600                |
+| Large  | 160             | 800                |
+| XL     | 240             | 1000               |
+| 2XL    | 380             | 1500               |
 
 **Monitoring:**
 
@@ -1624,15 +1646,18 @@ WHERE name = 'max_connections';
 ### Troubleshooting
 
 **"Connection refused" error:**
+
 - Check project is running
 - Verify connection string
 - Check firewall settings
 
 **"Password authentication failed":**
+
 - Reset password in Database Settings
 - Check password in connection string
 
 **"Too many connections":**
+
 - Use connection pooling
 - Check for connection leaks
 - Upgrade compute tier
@@ -1644,37 +1669,44 @@ WHERE name = 'max_connections';
 ### Free Tier Limits
 
 **Database:**
+
 - 500 MB database size
 - 1 GB file storage
 - 2 GB bandwidth
 - 500k Edge Function invocations
 
 **Authentication:**
+
 - 50,000 Monthly Active Users (MAU)
 - 2 emails per hour (test service)
 
 **API:**
+
 - No hard rate limits on free tier
 - Fair use policy applies
 - Automatic throttling under heavy load
 
 **Realtime:**
+
 - 200 concurrent connections
 - 10,000 messages per second
 
 ### Pro Tier Limits
 
 **Database:**
+
 - 8 GB database size (expandable)
 - 100 GB file storage
 - 250 GB bandwidth
 - Unlimited Edge Function invocations
 
 **Authentication:**
+
 - $0.00325 per MAU after 50,000
 - SMTP service included
 
 **API:**
+
 - Higher throughput
 - Priority support
 - Advanced monitoring
@@ -1699,41 +1731,37 @@ const limiter = {
   lastRefill: Date.now(),
 
   async acquire() {
-    const now = Date.now()
-    const timePassed = (now - this.lastRefill) / 1000
-    this.tokens = Math.min(this.maxTokens, this.tokens + timePassed * this.refillRate)
-    this.lastRefill = now
+    const now = Date.now();
+    const timePassed = (now - this.lastRefill) / 1000;
+    this.tokens = Math.min(this.maxTokens, this.tokens + timePassed * this.refillRate);
+    this.lastRefill = now;
 
     if (this.tokens < 1) {
-      throw new Error('Rate limit exceeded')
+      throw new Error('Rate limit exceeded');
     }
 
-    this.tokens -= 1
-  }
-}
+    this.tokens -= 1;
+  },
+};
 ```
 
 2. **Cache Frequently Accessed Data:**
 
 ```javascript
-const cache = new Map()
+const cache = new Map();
 
 async function getCachedData(key) {
   if (cache.has(key)) {
-    return cache.get(key)
+    return cache.get(key);
   }
 
-  const { data, error } = await supabase
-    .from('table')
-    .select('*')
-    .eq('id', key)
-    .single()
+  const { data, error } = await supabase.from('table').select('*').eq('id', key).single();
 
   if (!error) {
-    cache.set(key, data)
+    cache.set(key, data);
   }
 
-  return data
+  return data;
 }
 ```
 
@@ -1741,10 +1769,7 @@ async function getCachedData(key) {
 
 ```javascript
 // Instead of fetching all records
-const { data, error } = await supabase
-  .from('posts')
-  .select('*')
-  .range(0, 9) // First 10 records
+const { data, error } = await supabase.from('posts').select('*').range(0, 9); // First 10 records
 ```
 
 4. **Batch Operations:**
@@ -1753,14 +1778,11 @@ const { data, error } = await supabase
 // Insert multiple records at once
 const { data, error } = await supabase
   .from('posts')
-  .insert([
-    { title: 'Post 1' },
-    { title: 'Post 2' },
-    { title: 'Post 3' }
-  ])
+  .insert([{ title: 'Post 1' }, { title: 'Post 2' }, { title: 'Post 3' }]);
 ```
 
 5. **Monitor Usage:**
+
 - Check Reports section in Dashboard
 - Set up alerts for approaching limits
 - Use database query optimization
@@ -1778,6 +1800,7 @@ ALTER TABLE your_table ENABLE ROW LEVEL SECURITY;
 ```
 
 2. **Never Expose Service Role Key:**
+
 - Use only on server-side
 - Store in environment variables
 - Use anon key for client-side
@@ -1786,25 +1809,22 @@ ALTER TABLE your_table ENABLE ROW LEVEL SECURITY;
 
 ```javascript
 // Use RLS policies instead of client-side checks
-const { data, error } = await supabase
-  .from('posts')
-  .insert({ title, content }) // RLS enforces user_id
+const { data, error } = await supabase.from('posts').insert({ title, content }); // RLS enforces user_id
 ```
 
 4. **Use Prepared Statements:**
 
 ```javascript
 // Client handles this automatically
-const { data } = await supabase
-  .from('users')
-  .select('*')
-  .eq('email', userInput) // Safe from SQL injection
+const { data } = await supabase.from('users').select('*').eq('email', userInput); // Safe from SQL injection
 ```
 
 5. **Implement MFA for Sensitive Operations:**
 
 ```javascript
-const { data: { aal } } = await supabase.auth.getClaims()
+const {
+  data: { aal },
+} = await supabase.auth.getClaims();
 
 if (aal !== 'aal2') {
   // Require MFA enrollment/verification
@@ -1824,32 +1844,24 @@ CREATE INDEX idx_posts_created_at ON posts(created_at DESC);
 
 ```javascript
 // Good - uses index
-const { data } = await supabase
-  .from('posts')
-  .select('*')
-  .eq('user_id', userId)
+const { data } = await supabase.from('posts').select('*').eq('user_id', userId);
 
 // Bad - scans all rows
-const { data } = await supabase
-  .from('posts')
-  .select('*')
+const { data } = await supabase.from('posts').select('*');
 ```
 
 3. **Select Only Required Columns:**
 
 ```javascript
 // Good
-const { data } = await supabase
-  .from('posts')
-  .select('id, title')
+const { data } = await supabase.from('posts').select('id, title');
 
 // Bad - fetches unnecessary data
-const { data } = await supabase
-  .from('posts')
-  .select('*')
+const { data } = await supabase.from('posts').select('*');
 ```
 
 4. **Use Connection Pooling:**
+
 - Transaction mode for serverless
 - Session mode for persistent clients
 - Dedicated pooler for high-traffic apps
@@ -1860,13 +1872,17 @@ const { data } = await supabase
 // Filter on server-side
 const channel = supabase
   .channel('posts')
-  .on('postgres_changes', {
-    event: 'INSERT',
-    schema: 'public',
-    table: 'posts',
-    filter: 'user_id=eq.' + userId
-  }, handleNewPost)
-  .subscribe()
+  .on(
+    'postgres_changes',
+    {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'posts',
+      filter: 'user_id=eq.' + userId,
+    },
+    handleNewPost
+  )
+  .subscribe();
 ```
 
 ### Development
@@ -1874,9 +1890,9 @@ const channel = supabase
 1. **Use TypeScript:**
 
 ```typescript
-import { Database } from './database.types'
+import { Database } from './database.types';
 
-const supabase = createClient<Database>(url, key)
+const supabase = createClient<Database>(url, key);
 ```
 
 2. **Environment Variables:**
@@ -1892,16 +1908,14 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-key
 
 ```javascript
 try {
-  const { data, error } = await supabase
-    .from('posts')
-    .insert(post)
+  const { data, error } = await supabase.from('posts').insert(post);
 
-  if (error) throw error
+  if (error) throw error;
 
-  return { success: true, data }
+  return { success: true, data };
 } catch (error) {
-  console.error('Error:', error.message)
-  return { success: false, error: error.message }
+  console.error('Error:', error.message);
+  return { success: false, error: error.message };
 }
 ```
 
@@ -1931,11 +1945,13 @@ supabase stop
 ### Monitoring
 
 1. **Enable Query Performance Insights:**
+
 - Available in Database Settings
 - Identify slow queries
 - Optimize with indexes
 
 2. **Set Up Alerts:**
+
 - CPU usage
 - Memory usage
 - Connection count
@@ -1947,9 +1963,9 @@ supabase stop
 // Enable query logging
 const supabase = createClient(url, key, {
   auth: {
-    debug: true
-  }
-})
+    debug: true,
+  },
+});
 ```
 
 4. **Monitor Auth Events:**
@@ -1957,18 +1973,20 @@ const supabase = createClient(url, key, {
 ```javascript
 supabase.auth.onAuthStateChange((event, session) => {
   // Log auth events
-  analytics.track('auth_event', { event, userId: session?.user?.id })
-})
+  analytics.track('auth_event', { event, userId: session?.user?.id });
+});
 ```
 
 ### Backup and Recovery
 
 1. **Enable Daily Backups:**
+
 - Automatic on Pro tier
 - Point-in-time recovery
 - Download backup files
 
 2. **Test Recovery Process:**
+
 - Regular restore tests
 - Document recovery procedures
 - Verify backup integrity
@@ -1986,26 +2004,31 @@ supabase storage download bucket-name/path/to/files
 ### Scaling
 
 1. **Upgrade Compute:**
+
 - Monitor CPU/memory usage
 - Upgrade when consistently >70%
 - Consider dedicated compute
 
 2. **Implement Caching:**
+
 - Use Redis/Memcached
 - Cache frequently accessed data
 - Set appropriate TTLs
 
 3. **Use CDN for Storage:**
+
 - Automatic with Supabase Storage
 - Configure cache headers
 - Use image transformations
 
 4. **Optimize Database:**
+
 - Vacuum regularly
 - Analyze query plans
 - Partition large tables
 
 5. **Consider Read Replicas:**
+
 - Available on Enterprise
 - Distribute read load
 - Reduce latency

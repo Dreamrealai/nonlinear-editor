@@ -78,12 +78,14 @@ https://api.vercel.com/v6/deployments?teamId=[TEAM_ID]
 ```
 
 Find your Team ID:
+
 - Dashboard → Team Settings → General → Team ID
 
 ### Failed Authentication
 
 - **Status Code:** `403 Forbidden`
 - **Error Response:**
+
 ```json
 {
   "error": {
@@ -125,10 +127,12 @@ curl --request POST \
 ```
 
 **Query Parameters:**
+
 - `teamId` (string): Team identifier to deploy on behalf of
 - `slug` (string): Team slug to deploy on behalf of
 
 **Request Body:**
+
 - `name` (string, required): Project name
 - `files` (array, required): Files to deploy
 - `gitSource` (object): Git repository information
@@ -136,6 +140,7 @@ curl --request POST \
 - `target` (string): Deployment target (`production`, `preview`)
 
 **Response (200):**
+
 ```json
 {
   "id": "dpl_5WJWYSyB7BpgTj3EuwF37WMRBXBtPQ2iTMJHJBJyRfd",
@@ -156,9 +161,11 @@ curl --request POST \
 Retrieves build logs and events for a deployment.
 
 **Path Parameters:**
+
 - `idOrUrl` (string, required): Deployment ID or hostname
 
 **Query Parameters:**
+
 - `direction` (enum): `forward` or `backward` (default: `forward`)
 - `follow` (enum): `0` or `1` - Enable live event streaming
 - `limit` (number): Maximum number of events (-1 for all)
@@ -174,21 +181,22 @@ Retrieves build logs and events for a deployment.
 **Request Example:**
 
 ```typescript
-import { Vercel } from "@vercel/sdk";
+import { Vercel } from '@vercel/sdk';
 
 const vercel = new Vercel({
   bearerToken: process.env.VERCEL_TOKEN,
 });
 
 const result = await vercel.deployments.getDeploymentEvents({
-  idOrUrl: "dpl_5WJWYSyB7BpgTj3EuwF37WMRBXBtPQ2iTMJHJBJyRfd",
-  direction: "backward",
+  idOrUrl: 'dpl_5WJWYSyB7BpgTj3EuwF37WMRBXBtPQ2iTMJHJBJyRfd',
+  direction: 'backward',
   limit: 100,
-  statusCode: "5xx"
+  statusCode: '5xx',
 });
 ```
 
 **Response (200):**
+
 ```json
 [
   {
@@ -213,6 +221,7 @@ const result = await vercel.deployments.getDeploymentEvents({
 **Endpoint:** `GET /v6/deployments`
 
 **Query Parameters:**
+
 - `app` (string): Filter by application name
 - `from` (number): Timestamp to list from
 - `limit` (number): Number of deployments (default: 20, max: 100)
@@ -226,9 +235,11 @@ const result = await vercel.deployments.getDeploymentEvents({
 **Endpoint:** `DELETE /v13/deployments/{id}`
 
 **Path Parameters:**
+
 - `id` (string, required): Deployment ID
 
 **Query Parameters:**
+
 - `teamId` (string): Team identifier
 - `slug` (string): Team slug
 
@@ -241,6 +252,7 @@ const result = await vercel.deployments.getDeploymentEvents({
 **Endpoint:** `POST /v11/projects`
 
 **Request Body:**
+
 - `name` (string, required): Project name
 - `framework` (string): Framework preset (e.g., "nextjs", "react", "vue")
 - `gitRepository` (object): Git repository configuration
@@ -312,9 +324,11 @@ const result = await vercel.projects.createProject({
 **Endpoint:** `GET /v9/projects/{idOrName}`
 
 **Path Parameters:**
+
 - `idOrName` (string, required): Project ID or name
 
 **Query Parameters:**
+
 - `teamId` (string): Team identifier
 - `slug` (string): Team slug
 
@@ -329,15 +343,18 @@ const result = await vercel.projects.createProject({
 **Endpoint:** `DELETE /v9/projects/{idOrName}`
 
 **Path Parameters:**
+
 - `idOrName` (string, required): Project ID or name
 
 **Query Parameters:**
+
 - `teamId` (string): Team identifier
 - `slug` (string): Team slug
 
 **Response (204):** No content - project successfully deleted
 
 **Warning:** Deleting a project also deletes:
+
 - All deployments
 - All domains
 - All environment variables
@@ -350,6 +367,7 @@ const result = await vercel.projects.createProject({
 Pauses a project's production deployment. Users accessing the production deployment will see a 503 DEPLOYMENT_PAUSED error.
 
 **Query Parameters:**
+
 - `teamId` (string, required): Team identifier
 
 **cURL Example:**
@@ -367,6 +385,7 @@ curl --request POST \
 Resumes a paused project's production deployment.
 
 **Query Parameters:**
+
 - `teamId` (string, required): Team identifier
 
 ---
@@ -377,12 +396,12 @@ Environment variables are key-value pairs configured outside source code. They a
 
 ### Environment Types
 
-| Environment | Description |
-|------------|-------------|
-| **Production** | Applied to production deployments (main branch) |
-| **Preview** | Applied to preview deployments (non-production branches) |
-| **Development** | Used for local development with `vercel dev` |
-| **Custom Environments** | User-defined custom environments |
+| Environment             | Description                                              |
+| ----------------------- | -------------------------------------------------------- |
+| **Production**          | Applied to production deployments (main branch)          |
+| **Preview**             | Applied to preview deployments (non-production branches) |
+| **Development**         | Used for local development with `vercel dev`             |
+| **Custom Environments** | User-defined custom environments                         |
 
 ### Size Limits
 
@@ -395,13 +414,16 @@ Environment variables are key-value pairs configured outside source code. They a
 **Endpoint:** `POST /v10/projects/{idOrName}/env`
 
 **Path Parameters:**
+
 - `idOrName` (string, required): Project ID or name
 
 **Query Parameters:**
+
 - `teamId` (string): Team identifier
 - `upsert` (string): If "true", updates existing variable with same key
 
 **Request Body:**
+
 - `key` (string, required): Variable name
 - `value` (string, required): Variable value
 - `type` (enum, required): `plain`, `secret`, `encrypted`, `sensitive`, `system`
@@ -437,8 +459,8 @@ const result = await vercel.projects.createProjectEnv({
     value: 'sk_live_...',
     type: 'sensitive',
     target: ['production'],
-    comment: 'Stripe API Key'
-  }
+    comment: 'Stripe API Key',
+  },
 });
 ```
 
@@ -447,6 +469,7 @@ const result = await vercel.projects.createProjectEnv({
 **Endpoint:** `GET /v9/projects/{idOrName}/env`
 
 **Query Parameters:**
+
 - `teamId` (string): Team identifier
 - `slug` (string): Team slug
 - `decrypt` (boolean): If true, decrypt encrypted values
@@ -455,6 +478,7 @@ const result = await vercel.projects.createProjectEnv({
 - `source` (string): Filter by source
 
 **Response (200):**
+
 ```json
 {
   "envs": [
@@ -478,6 +502,7 @@ const result = await vercel.projects.createProjectEnv({
 **Endpoint:** `PATCH /v9/projects/{idOrName}/env/{id}`
 
 **Path Parameters:**
+
 - `idOrName` (string, required): Project ID or name
 - `id` (string, required): Environment variable ID
 
@@ -491,8 +516,8 @@ await vercel.projects.editProjectEnv({
   id: 'env_abc123',
   requestBody: {
     value: 'new-value',
-    comment: 'Updated production database URL'
-  }
+    comment: 'Updated production database URL',
+  },
 });
 ```
 
@@ -501,10 +526,12 @@ await vercel.projects.editProjectEnv({
 **Endpoint:** `DELETE /v9/projects/{idOrName}/env/{id}`
 
 **Path Parameters:**
+
 - `idOrName` (string, required): Project ID or name
 - `id` (string, required): Environment variable ID
 
 **Query Parameters:**
+
 - `teamId` (string): Team identifier
 - `slug` (string): Team slug
 
@@ -513,6 +540,7 @@ await vercel.projects.editProjectEnv({
 ### Preview Environment Variables
 
 Preview environment variables apply to non-production branches. You can:
+
 - Apply to all preview branches
 - Apply to specific branches only
 - Branch-specific variables override general preview variables
@@ -558,17 +586,18 @@ Integrations (e.g., MongoDB, Supabase) can automatically add environment variabl
 
 All responses include rate limit information:
 
-| Header | Description |
-|--------|-------------|
-| `X-RateLimit-Limit` | Maximum requests permitted |
+| Header                  | Description                          |
+| ----------------------- | ------------------------------------ |
+| `X-RateLimit-Limit`     | Maximum requests permitted           |
 | `X-RateLimit-Remaining` | Requests remaining in current window |
-| `X-RateLimit-Reset` | UTC epoch seconds when window resets |
+| `X-RateLimit-Reset`     | UTC epoch seconds when window resets |
 
 ### Rate Limit Error
 
 **Status Code:** `429 Too Many Requests`
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -583,6 +612,7 @@ All responses include rate limit information:
 Refer to the [Vercel Limits Documentation](https://vercel.com/docs/limits#rate-limits) for specific limits by plan tier.
 
 **General Guidelines:**
+
 - Free tier: Lower limits
 - Pro tier: Higher limits
 - Enterprise: Custom limits
@@ -593,17 +623,17 @@ Refer to the [Vercel Limits Documentation](https://vercel.com/docs/limits#rate-l
 
 ### HTTP Status Codes
 
-| Code | Meaning | Common Causes |
-|------|---------|---------------|
-| `200` | OK | Request successful |
-| `204` | No Content | Successful deletion/update |
-| `400` | Bad Request | Invalid request body or parameters |
-| `401` | Unauthorized | Missing or invalid auth token |
-| `403` | Forbidden | Insufficient permissions |
-| `404` | Not Found | Resource doesn't exist |
-| `409` | Conflict | Resource already exists or state conflict |
-| `429` | Too Many Requests | Rate limit exceeded |
-| `500` | Internal Server Error | Server error |
+| Code  | Meaning               | Common Causes                             |
+| ----- | --------------------- | ----------------------------------------- |
+| `200` | OK                    | Request successful                        |
+| `204` | No Content            | Successful deletion/update                |
+| `400` | Bad Request           | Invalid request body or parameters        |
+| `401` | Unauthorized          | Missing or invalid auth token             |
+| `403` | Forbidden             | Insufficient permissions                  |
+| `404` | Not Found             | Resource doesn't exist                    |
+| `409` | Conflict              | Resource already exists or state conflict |
+| `429` | Too Many Requests     | Rate limit exceeded                       |
+| `500` | Internal Server Error | Server error                              |
 
 ### Error Response Format
 
@@ -644,6 +674,7 @@ When responses contain arrays larger than the limit, a pagination object is retu
 ```
 
 **Fields:**
+
 - `count` (number): Items in current page
 - `next` (number|null): Timestamp for next page
 - `prev` (number|null): Timestamp for previous page
@@ -694,18 +725,18 @@ let results = [];
 
 ## Data Types
 
-| Type | Definition | Example |
-|------|------------|---------|
-| **ID** | Unique identifier | `"V0fra8eEgQwEpFhYG2vTzC3K"` |
-| **String** | Text sequence | `"value"` |
-| **Integer** | Number without decimals | `1234` |
-| **Float** | Number with decimals | `12.34` |
-| **Map** | Key-value pairs | `{ "key": "value" }` |
-| **List** | Array of values | `["value", 1234, 12.34]` |
-| **Enum** | Limited string values | `"production"` or `"preview"` |
-| **Date** | Milliseconds since epoch | `1540095775941` |
-| **IsoDate** | ISO 8601 format | `"2024-01-15T10:30:00Z"` |
-| **Boolean** | True or false | `true` |
+| Type        | Definition               | Example                       |
+| ----------- | ------------------------ | ----------------------------- |
+| **ID**      | Unique identifier        | `"V0fra8eEgQwEpFhYG2vTzC3K"`  |
+| **String**  | Text sequence            | `"value"`                     |
+| **Integer** | Number without decimals  | `1234`                        |
+| **Float**   | Number with decimals     | `12.34`                       |
+| **Map**     | Key-value pairs          | `{ "key": "value" }`          |
+| **List**    | Array of values          | `["value", 1234, 12.34]`      |
+| **Enum**    | Limited string values    | `"production"` or `"preview"` |
+| **Date**    | Milliseconds since epoch | `1540095775941`               |
+| **IsoDate** | ISO 8601 format          | `"2024-01-15T10:30:00Z"`      |
+| **Boolean** | True or false            | `true`                        |
 
 ---
 
@@ -720,6 +751,7 @@ let results = [];
 - Deprecation notices provided in changelog
 
 **Example:**
+
 ```
 https://api.vercel.com/v6/deployments
 ```
@@ -847,7 +879,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - # Deploy steps...
+      -  # Deploy steps...
 ```
 
 ### Deployment Strategies
@@ -901,8 +933,8 @@ await vercel.projects.createProjectEnv({
   requestBody: {
     key: 'API_URL',
     value: 'https://api.production.com',
-    target: ['production']
-  }
+    target: ['production'],
+  },
 });
 
 await vercel.projects.createProjectEnv({
@@ -910,8 +942,8 @@ await vercel.projects.createProjectEnv({
   requestBody: {
     key: 'API_URL',
     value: 'https://api.staging.com',
-    target: ['preview']
-  }
+    target: ['preview'],
+  },
 });
 ```
 
@@ -940,7 +972,7 @@ Monitor deployment health via events endpoint:
 ```typescript
 const events = await vercel.deployments.getDeploymentEvents({
   idOrUrl: deploymentId,
-  statusCode: '5xx'
+  statusCode: '5xx',
 });
 
 if (events.length > 0) {
@@ -982,6 +1014,7 @@ if (events.length > 0) {
 #### 1. Build Caching
 
 Vercel automatically caches:
+
 - `node_modules`
 - `.next/cache`
 - Build outputs
@@ -1134,4 +1167,4 @@ POST   /v1/projects/{id}/unpause
 
 **End of Documentation**
 
-*For the latest updates, always refer to the [official Vercel API documentation](https://vercel.com/docs/rest-api).*
+_For the latest updates, always refer to the [official Vercel API documentation](https://vercel.com/docs/rest-api)._
