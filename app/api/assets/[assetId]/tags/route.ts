@@ -7,8 +7,9 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
-import { errorResponse } from '@/lib/api/errorResponse';
+import { errorResponse, ErrorResponses } from '@/lib/api/errorResponse';
 import { HttpStatusCode } from '@/lib/errors/errorCodes';
+import { validateUUID, ValidationError } from '@/lib/validation';
 
 interface TagsUpdateBody {
   tags: string[];
@@ -24,26 +25,38 @@ export const PUT = withAuth<{ assetId: string }>(
       const params = await routeContext!.params;
       const { assetId } = params;
 
+      // Validate assetId
+      try {
+        validateUUID(assetId, 'assetId');
+      } catch (error) {
+        if (error instanceof ValidationError) {
+          return ErrorResponses.badRequest(error.message);
+        }
+        throw error;
+      }
+
       // Parse request body
       const body = (await request.json()) as TagsUpdateBody;
 
       if (!body.tags || !Array.isArray(body.tags)) {
-        return errorResponse('Tags must be an array', HttpStatusCode.BAD_REQUEST);
+        return ErrorResponses.badRequest('Tags must be an array');
       }
 
       // Validate tags (max 20 tags, max 50 chars each)
       if (body.tags.length > 20) {
-        return errorResponse('Maximum 20 tags allowed', HttpStatusCode.BAD_REQUEST);
+        return ErrorResponses.badRequest('Maximum 20 tags allowed');
       }
 
       for (const tag of body.tags) {
         if (typeof tag !== 'string' || tag.length === 0 || tag.length > 50) {
-          return errorResponse('Each tag must be 1-50 characters', HttpStatusCode.BAD_REQUEST);
+          return ErrorResponses.badRequest('Each tag must be 1-50 characters');
         }
       }
 
       // Sanitize tags (trim whitespace, lowercase)
-      const sanitizedTags = body.tags.map((tag) => tag.trim().toLowerCase()).filter((tag) => tag.length > 0);
+      const sanitizedTags = body.tags
+        .map((tag) => tag.trim().toLowerCase())
+        .filter((tag) => tag.length > 0);
 
       // Verify asset exists and user owns it
       const { data: asset, error: fetchError } = await supabase
@@ -90,7 +103,7 @@ export const PUT = withAuth<{ assetId: string }>(
   },
   {
     route: '/api/assets/[assetId]/tags',
-    rateLimit: RATE_LIMITS.tier3_read,
+    rateLimit: RATE_LIMITS.tier2_resource_creation,
   }
 );
 
@@ -104,11 +117,21 @@ export const POST = withAuth<{ assetId: string }>(
       const params = await routeContext!.params;
       const { assetId } = params;
 
+      // Validate assetId
+      try {
+        validateUUID(assetId, 'assetId');
+      } catch (error) {
+        if (error instanceof ValidationError) {
+          return ErrorResponses.badRequest(error.message);
+        }
+        throw error;
+      }
+
       // Parse request body
       const body = (await request.json()) as { is_favorite: boolean };
 
       if (typeof body.is_favorite !== 'boolean') {
-        return errorResponse('is_favorite must be a boolean', HttpStatusCode.BAD_REQUEST);
+        return ErrorResponses.badRequest('is_favorite must be a boolean');
       }
 
       // Verify asset exists and user owns it
@@ -140,7 +163,10 @@ export const POST = withAuth<{ assetId: string }>(
         .eq('id', assetId);
 
       if (updateError) {
-        return errorResponse('Failed to update favorite status', HttpStatusCode.INTERNAL_SERVER_ERROR);
+        return errorResponse(
+          'Failed to update favorite status',
+          HttpStatusCode.INTERNAL_SERVER_ERROR
+        );
       }
 
       return NextResponse.json({
@@ -156,6 +182,6 @@ export const POST = withAuth<{ assetId: string }>(
   },
   {
     route: '/api/assets/[assetId]/favorite',
-    rateLimit: RATE_LIMITS.tier3_read,
+    rateLimit: RATE_LIMITS.tier2_resource_creation,
   }
 );
