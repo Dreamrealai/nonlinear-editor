@@ -9,9 +9,20 @@
 
 import { NextResponse } from 'next/server';
 import { HttpStatusCode } from '../errors/errorCodes';
+import {
+  errorResponse as coreErrorResponse,
+  ErrorResponses,
+  getErrorMessage,
+} from './errorResponse';
+import type { ErrorContext } from './errorResponse';
+
+// Re-export core utilities for convenience
+export type { ErrorContext };
+export { ErrorResponses, getErrorMessage };
 
 /**
  * Standard error response format
+ * Extended to support field and details for backward compatibility
  */
 export interface ErrorResponse {
   error: string;
@@ -42,6 +53,10 @@ export interface RateLimitResponse {
 /**
  * Creates a standardized error response
  *
+ * This is a wrapper around the core errorResponse that maintains backward
+ * compatibility with field and details parameters while using the new
+ * context-based logging system.
+ *
  * @param message - Error message to return
  * @param status - HTTP status code (default: 500)
  * @param field - Optional field name for validation errors
@@ -51,6 +66,7 @@ export interface RateLimitResponse {
  * @example
  * return errorResponse('Unauthorized', 401);
  * return errorResponse('Invalid project ID', 400, 'projectId');
+ * return errorResponse('Validation failed', 400, 'email', { pattern: /^.+@.+$/ });
  */
 export function errorResponse(
   message: string,
@@ -58,17 +74,31 @@ export function errorResponse(
   field?: string,
   details?: unknown
 ): NextResponse<ErrorResponse> {
-  const response: ErrorResponse = { error: message };
-
+  // Build context for structured logging
+  const context: ErrorContext = {};
   if (field) {
-    response.field = field;
+    context.field = field;
   }
-
   if (details) {
-    response.details = details;
+    context.details = details;
   }
 
-  return NextResponse.json(response, { status });
+  // Use core errorResponse for consistent logging
+  const response = coreErrorResponse(message, status, context);
+
+  // Extend response body with field and details for backward compatibility
+  if (field || details) {
+    return NextResponse.json(
+      {
+        error: message,
+        ...(field && { field }),
+        ...(details && { details }),
+      } as ErrorResponse,
+      { status }
+    );
+  }
+
+  return response as NextResponse<ErrorResponse>;
 }
 
 /**

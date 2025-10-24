@@ -2,7 +2,7 @@
 // Admin Cache Management API Route
 // =============================================================================
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { withAdminAuth, type AdminAuthContext } from '@/lib/api/withAuth';
 import { successResponse, errorResponse } from '@/lib/api/response';
 import { getCacheStats, clearAllCaches } from '@/lib/cacheInvalidation';
@@ -17,7 +17,7 @@ import { serverLogger } from '@/lib/serverLogger';
 async function handleGetCacheStats(
   _request: NextRequest,
   context: AdminAuthContext
-) {
+): Promise<NextResponse> {
   const { user } = context;
 
   try {
@@ -52,7 +52,7 @@ async function handleGetCacheStats(
 async function handleClearCache(
   _request: NextRequest,
   context: AdminAuthContext
-) {
+): Promise<NextResponse> {
   const { user } = context;
 
   try {

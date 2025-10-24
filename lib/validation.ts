@@ -119,6 +119,53 @@ export function validateIntegerRange(
 }
 
 /**
+ * Validate integer with options (backward compatible wrapper)
+ *
+ * @param value - Value to validate
+ * @param fieldName - Field name for error messages
+ * @param options - Validation options
+ */
+export function validateInteger(
+  value: unknown,
+  fieldName: string,
+  options: {
+    required?: boolean;
+    min?: number;
+    max?: number;
+  } = {}
+): asserts value is number {
+  const { required = false, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_SAFE_INTEGER } = options;
+
+  // Handle required validation
+  if (required && (value === null || value === undefined)) {
+    throw new ValidationError(`${fieldName} is required`, fieldName, 'REQUIRED');
+  }
+
+  // If not required and value is null/undefined, pass validation
+  if (!required && (value === null || value === undefined)) {
+    return;
+  }
+
+  // Validate type
+  if (typeof value !== 'number') {
+    throw new ValidationError(`${fieldName} must be a number`, fieldName, 'INVALID_TYPE');
+  }
+
+  if (!Number.isInteger(value)) {
+    throw new ValidationError(`${fieldName} must be an integer`, fieldName, 'NOT_INTEGER');
+  }
+
+  // Validate range
+  if (value < min || value > max) {
+    throw new ValidationError(
+      `${fieldName} must be between ${min} and ${max}`,
+      fieldName,
+      'OUT_OF_RANGE'
+    );
+  }
+}
+
+/**
  * Validate required field
  */
 export function validateRequired<T>(
@@ -250,6 +297,167 @@ export function validateBoolean(value: unknown, fieldName: string): asserts valu
   if (typeof value !== 'boolean') {
     throw new ValidationError(`${fieldName} must be a boolean`, fieldName, 'INVALID_TYPE');
   }
+}
+
+/**
+ * Common aspect ratio validation
+ */
+export const VALID_ASPECT_RATIOS = ['16:9', '9:16', '1:1', '4:3', '3:4'] as const;
+
+/**
+ * Common video duration validation
+ */
+export const VALID_DURATIONS = [4, 5, 6, 8, 10] as const;
+
+/**
+ * Common safety filter levels for AI generation
+ */
+export const VALID_SAFETY_LEVELS = ['block_none', 'block_few', 'block_some', 'block_most'] as const;
+
+/**
+ * Common person generation options
+ */
+export const VALID_PERSON_GENERATION = ['dont_allow', 'allow_adult', 'allow_all'] as const;
+
+/**
+ * Validates aspect ratio
+ */
+export function validateAspectRatio(aspectRatio: unknown, fieldName: string = 'Aspect ratio'): void {
+  if (aspectRatio === undefined || aspectRatio === null) {
+    return;
+  }
+  validateEnum(aspectRatio, fieldName, VALID_ASPECT_RATIOS);
+}
+
+/**
+ * Validates video duration
+ */
+export function validateDuration(duration: unknown, fieldName: string = 'Duration'): void {
+  if (duration === undefined || duration === null) {
+    return;
+  }
+
+  if (typeof duration !== 'number') {
+    throw new ValidationError(`${fieldName} must be a number`, fieldName, 'INVALID_TYPE');
+  }
+
+  if (!VALID_DURATIONS.includes(duration as (typeof VALID_DURATIONS)[number])) {
+    throw new ValidationError(
+      `Invalid ${fieldName}. Must be ${VALID_DURATIONS.join(', ')} seconds`,
+      fieldName,
+      'INVALID_DURATION'
+    );
+  }
+}
+
+/**
+ * Validates seed value (0-4294967295)
+ */
+export function validateSeed(seed: unknown, fieldName: string = 'Seed'): void {
+  if (seed === undefined || seed === null) {
+    return;
+  }
+  validateIntegerRange(seed, fieldName, 0, 4294967295);
+}
+
+/**
+ * Validates sample count (1-8 for images, 1-4 for videos)
+ */
+export function validateSampleCount(
+  sampleCount: unknown,
+  max: number = 8,
+  fieldName: string = 'Sample count'
+): void {
+  if (sampleCount === undefined || sampleCount === null) {
+    return;
+  }
+  validateIntegerRange(sampleCount, fieldName, 1, max);
+}
+
+/**
+ * Validates safety filter level
+ */
+export function validateSafetyFilterLevel(
+  safetyFilterLevel: unknown,
+  fieldName: string = 'Safety filter level'
+): void {
+  if (safetyFilterLevel === undefined || safetyFilterLevel === null) {
+    return;
+  }
+  validateEnum(safetyFilterLevel, fieldName, VALID_SAFETY_LEVELS);
+}
+
+/**
+ * Validates person generation option
+ */
+export function validatePersonGeneration(
+  personGeneration: unknown,
+  fieldName: string = 'Person generation'
+): void {
+  if (personGeneration === undefined || personGeneration === null) {
+    return;
+  }
+  validateEnum(personGeneration, fieldName, VALID_PERSON_GENERATION);
+}
+
+/**
+ * Validate string with flexible options (simpler API)
+ */
+export function validateString(
+  value: unknown,
+  fieldName: string,
+  options: {
+    required?: boolean;
+    minLength?: number;
+    maxLength?: number;
+  } = {}
+): void {
+  const { required = true, minLength, maxLength } = options;
+
+  if (value === undefined || value === null || value === '') {
+    if (required) {
+      throw new ValidationError(`${fieldName} is required`, fieldName, 'REQUIRED');
+    }
+    return;
+  }
+
+  if (typeof value !== 'string') {
+    throw new ValidationError(`${fieldName} must be a string`, fieldName, 'INVALID_TYPE');
+  }
+
+  if (minLength !== undefined && value.length < minLength) {
+    throw new ValidationError(
+      `${fieldName} must be at least ${minLength} characters`,
+      fieldName,
+      'TOO_SHORT'
+    );
+  }
+
+  if (maxLength !== undefined && value.length > maxLength) {
+    throw new ValidationError(
+      `${fieldName} must not exceed ${maxLength} characters`,
+      fieldName,
+      'TOO_LONG'
+    );
+  }
+}
+
+/**
+ * Batch validation helper
+ * Runs multiple validation functions and throws on the first error
+ *
+ * @param validations - Array of validation functions to run
+ * @throws {ValidationError} Throws the first validation error encountered
+ *
+ * @example
+ * validateAll(() => {
+ *   validateString(prompt, 'prompt', { minLength: 3, maxLength: 1000 });
+ *   validateUUID(projectId, 'projectId');
+ *   validateAspectRatio(aspectRatio);
+ * });
+ */
+export function validateAll(validationFn: () => void): void {
+  validationFn();
 }
 
 /**

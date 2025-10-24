@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { chat } from '@/lib/gemini';
 import { serverLogger } from '@/lib/serverLogger';
 import {
@@ -24,7 +24,10 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB per file
 const MAX_FILES = 5;
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 
-async function handleChatPost(request: NextRequest, context: AuthContext) {
+async function handleChatPost(
+  request: NextRequest,
+  context: AuthContext
+): Promise<NextResponse> {
   const { user } = context;
 
   const formData = await request.formData();
