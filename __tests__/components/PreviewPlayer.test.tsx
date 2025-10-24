@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import PreviewPlayer from '@/components/PreviewPlayer';
 import { useEditorStore } from '@/state/useEditorStore';
@@ -92,7 +92,21 @@ describe('PreviewPlayer', () => {
     });
 
     // Mock requestAnimationFrame
-    performanceNowSpy = jest.spyOn(globalThis.performance, 'now').mockImplementation(() => 0);
+    const performanceMock = {
+      now: jest.fn(() => 0),
+      mark: jest.fn(),
+      measure: jest.fn(),
+      clearMarks: jest.fn(),
+      clearMeasures: jest.fn(),
+      getEntries: jest.fn(() => []),
+      getEntriesByType: jest.fn(() => []),
+      getEntriesByName: jest.fn(() => []),
+      timeOrigin: 0,
+      toJSON: jest.fn(() => ({})),
+    } as unknown as Performance;
+
+    globalThis.performance = performanceMock;
+    performanceNowSpy = jest.spyOn(globalThis.performance, 'now');
 
     globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
       cb(0);
@@ -313,17 +327,7 @@ describe('PreviewPlayer', () => {
   it('should handle keyboard spacebar to toggle play/pause', async () => {
     render(<PreviewPlayer />);
 
-    const spaceEvent = new KeyboardEvent('keydown', {
-      code: 'Space',
-      bubbles: true,
-    });
-
-    Object.defineProperty(spaceEvent, 'target', {
-      value: document.body,
-      writable: false,
-    });
-
-    window.dispatchEvent(spaceEvent);
+    fireEvent.keyDown(window, { code: 'Space', target: document.body });
 
     await waitFor(() => {
       expect(screen.getByTitle('Pause (Space)')).toBeInTheDocument();

@@ -28,10 +28,26 @@ export interface UserProfile {
   id: string;
   email: string;
   tier: UserTier;
+
+  // Stripe subscription data
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  stripe_price_id: string | null;
+  subscription_status: string | null;
+  subscription_current_period_start: string | null;
+  subscription_current_period_end: string | null;
+  subscription_cancel_at_period_end: boolean;
+
+  // Usage tracking
   video_minutes_used: number;
   video_minutes_limit: number;
   ai_requests_used: number;
   ai_requests_limit: number;
+  storage_gb_used: number;
+  storage_gb_limit: number;
+  usage_reset_at: string;
+
+  // Metadata
   created_at: string;
   updated_at: string;
 }

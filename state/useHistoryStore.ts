@@ -1,0 +1,139 @@
+/**
+ * History Store - Undo/Redo Functionality
+ *
+ * Manages the undo/redo history for timeline operations.
+ * Works in conjunction with the Timeline store to provide
+ * time-travel debugging and operation reversal.
+ *
+ * Features:
+ * - 50-action history buffer
+ * - Debounced history saves
+ * - Deep cloning for snapshots
+ * - Undo/redo with state restoration
+ *
+ * Architecture:
+ * - Uses structuredClone for deep copying
+ * - Circular buffer for memory efficiency
+ * - Per-operation debouncing
+ * - State synchronization with Timeline store
+ */
+'use client';
+
+import { create } from 'zustand';
+import type { Timeline } from '@/types/timeline';
+import { EDITOR_CONSTANTS } from '@/lib/constants';
+
+const { MAX_HISTORY, HISTORY_DEBOUNCE_MS } = EDITOR_CONSTANTS;
+
+/**
+ * Deep clones a timeline for history snapshots.
+ */
+const cloneTimeline = (timeline: Timeline | null): Timeline | null => {
+  if (!timeline) return null;
+  return structuredClone(timeline);
+};
+
+/**
+ * Debounce helper to reduce excessive history saves
+ */
+const historyDebounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const debouncedSaveHistory = (key: string, callback: () => void) => {
+  const existingTimer = historyDebounceTimers.get(key);
+  if (existingTimer) {
+    clearTimeout(existingTimer);
+  }
+  const timer = setTimeout(() => {
+    historyDebounceTimers.delete(key);
+    callback();
+  }, HISTORY_DEBOUNCE_MS);
+  historyDebounceTimers.set(key, timer);
+};
+
+type HistoryStore = {
+  // ===== State =====
+  history: Timeline[];
+  historyIndex: number;
+
+  // ===== Actions =====
+  saveToHistory: (timeline: Timeline | null, debounceKey?: string) => void;
+  undo: () => Timeline | null;
+  redo: () => Timeline | null;
+  canUndo: () => boolean;
+  canRedo: () => boolean;
+  clearHistory: () => void;
+  initializeHistory: (timeline: Timeline | null) => void;
+};
+
+export const useHistoryStore = create<HistoryStore>()((set, get) => ({
+  history: [],
+  historyIndex: -1,
+
+  initializeHistory: (timeline) =>
+    set(() => ({
+      history: timeline ? [cloneTimeline(timeline)].filter((t): t is Timeline => t !== null) : [],
+      historyIndex: timeline ? 0 : -1,
+    })),
+
+  saveToHistory: (timeline, debounceKey) => {
+    if (!timeline) return;
+
+    const doSave = () => {
+      const state = get();
+      const cloned = cloneTimeline(timeline);
+      if (!cloned) return;
+
+      set(() => ({
+        history: [...state.history.slice(0, state.historyIndex + 1), cloned].slice(-MAX_HISTORY),
+        historyIndex: Math.min(state.historyIndex + 1, MAX_HISTORY - 1),
+      }));
+    };
+
+    if (debounceKey) {
+      debouncedSaveHistory(debounceKey, doSave);
+    } else {
+      doSave();
+    }
+  },
+
+  undo: () => {
+    const state = get();
+    if (state.historyIndex > 0) {
+      const newIndex = state.historyIndex - 1;
+      const previousState = state.history[newIndex];
+      if (previousState) {
+        set(() => ({ historyIndex: newIndex }));
+        return cloneTimeline(previousState);
+      }
+    }
+    return null;
+  },
+
+  redo: () => {
+    const state = get();
+    if (state.historyIndex < state.history.length - 1) {
+      const newIndex = state.historyIndex + 1;
+      const nextState = state.history[newIndex];
+      if (nextState) {
+        set(() => ({ historyIndex: newIndex }));
+        return cloneTimeline(nextState);
+      }
+    }
+    return null;
+  },
+
+  canUndo: () => {
+    const state = get();
+    return state.historyIndex > 0;
+  },
+
+  canRedo: () => {
+    const state = get();
+    return state.historyIndex < state.history.length - 1;
+  },
+
+  clearHistory: () =>
+    set(() => ({
+      history: [],
+      historyIndex: -1,
+    })),
+}));

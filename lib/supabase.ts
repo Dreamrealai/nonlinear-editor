@@ -264,42 +264,6 @@ export const createServiceSupabaseClient = () => {
   });
 };
 
-/**
- * Creates Supabase client with automatic fallback
- *
- * Usage: API Routes that need Supabase access but may run in environments
- * with or without service role key configured
- *
- * Fallback Strategy:
- * 1. Try to create service role client (admin privileges, bypasses RLS)
- * 2. If service role key missing, fall back to server client (respects RLS)
- *
- * This allows API routes to work in both:
- * - Production (with service role key configured)
- * - Development/preview (where service key may not be available)
- *
- * Security Notes:
- * - Service client bypasses RLS (use cautiously)
- * - Server client respects RLS (user can only access their own data)
- * - Prefer explicit client selection when security requirements are clear
- *
- * @returns Service role client if available, otherwise server client
- *
- * @example
- * // In API Route
- * export async function POST(req: NextRequest) {
- *   const supabase = await createSupabaseClientWithFallback();
- *   const { data } = await supabase.from('assets').select('*');
- *   return NextResponse.json(data);
- * }
- */
-export const createSupabaseClientWithFallback = async () => {
-  try {
-    return createServiceSupabaseClient();
-  } catch {
-    return await createServerSupabaseClient();
-  }
-};
 
 /**
  * Ensures a URL has the https:// protocol

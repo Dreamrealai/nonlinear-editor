@@ -3,7 +3,7 @@
 // =============================================================================
 
 import { NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceSupabaseClient } from '@/lib/supabase';
 import { serverLogger } from '@/lib/serverLogger';
 import { withAdminAuth, logAdminAction, type AdminAuthContext } from '@/lib/api/withAuth';
 import { validationError, errorResponse, successResponse } from '@/lib/api/response';
@@ -46,16 +46,7 @@ async function handleDeleteUser(request: NextRequest, context: AdminAuthContext)
     }
 
     // Use service role client for admin operations
-    const supabaseAdmin = createClient(
-      process.env['NEXT_PUBLIC_SUPABASE_URL']!,
-      process.env['SUPABASE_SERVICE_ROLE_KEY']!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
+    const supabaseAdmin = createServiceSupabaseClient();
 
     // Get user info before deletion for audit log
     const { data: targetUser } = await supabaseAdmin.auth.admin.getUserById(userId);

@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type { Clip, Timeline } from '@/types/timeline';
 import { browserLogger } from '@/lib/browserLogger';
+import { signedUrlCache } from '@/lib/signedUrlCache';
 import {
   ensureBuffered,
   generateCSSFilter,
@@ -47,8 +48,6 @@ export function useVideoManager({
 }: UseVideoManagerOptions): UseVideoManagerReturn {
   const videoMapRef = useRef<Map<string, HTMLVideoElement>>(new Map());
   const videoPromisesRef = useRef<Map<string, Promise<HTMLVideoElement>>>(new Map());
-  const signedUrlCacheRef = useRef<Map<string, { url: string; expiresAt: number }>>(new Map());
-  const signedUrlRequestRef = useRef<Map<string, Promise<string | null>>>(new Map());
   const videoErrorHandlersRef = useRef<Map<string, (e: Event) => void>>(new Map());
   const videoPoolRef = useRef<HTMLVideoElement[]>([]);
 
@@ -80,6 +79,7 @@ export function useVideoManager({
   /**
    * Locates the video source URL for a clip.
    * Handles signed URLs, caching, and direct URLs.
+   * Uses centralized signed URL cache with request deduplication.
    */
   const locateClipSrc = useCallback(async (clip: Clip): Promise<string> => {
     try {
@@ -96,62 +96,10 @@ export function useVideoManager({
         return clip.filePath;
       }
 
-      const cacheKey = clip.assetId ?? clip.filePath;
-      const cached = signedUrlCacheRef.current.get(cacheKey);
-      if (cached && cached.expiresAt > Date.now()) {
-        return cached.url;
-      }
-
-      const pending = signedUrlRequestRef.current.get(cacheKey);
-      if (pending) {
-        const result = await pending;
-        if (!result) {
-          throw new Error('Unable to resolve signed URL');
-        }
-        return result;
-      }
-
-      const params = new URLSearchParams(
-        clip.assetId ? { assetId: clip.assetId } : { storageUrl: clip.filePath }
-      );
-
-      const request = (async () => {
-        try {
-          const response = await fetch(`/api/assets/sign?${params.toString()}`);
-          if (!response.ok) {
-            const detail = await response.text().catch(() => '');
-            throw new Error(`Sign request failed (${response.status}) ${detail}`.trim());
-          }
-
-          const payload = (await response.json()) as { signedUrl?: string; expiresIn?: number };
-          if (typeof payload.signedUrl !== 'string' || payload.signedUrl.length === 0) {
-            throw new Error('Sign response missing signedUrl');
-          }
-          const expiresInSeconds =
-            typeof payload.expiresIn === 'number' && Number.isFinite(payload.expiresIn)
-              ? payload.expiresIn
-              : SIGNED_URL_TTL_DEFAULT;
-          const expiresAt =
-            Date.now() + Math.max(0, expiresInSeconds * 1000 - SIGNED_URL_BUFFER_MS);
-          signedUrlCacheRef.current.set(cacheKey, { url: payload.signedUrl, expiresAt });
-          return payload.signedUrl;
-        } catch (error) {
-          browserLogger.error(
-            { assetId: clip.assetId, error },
-            'Failed to fetch signed URL for clip'
-          );
-          return null;
-        } finally {
-          signedUrlRequestRef.current.delete(cacheKey);
-        }
-      })();
-
-      signedUrlRequestRef.current.set(cacheKey, request);
-      const resolved = await request;
-      if (!resolved) {
-        throw new Error('Unable to resolve signed URL');
-      }
-      return resolved;
+      // Use centralized signed URL cache with automatic request deduplication
+      const ttl = SIGNED_URL_TTL_DEFAULT - (SIGNED_URL_BUFFER_MS / 1000);
+      const signedUrl = await signedUrlCache.get(clip.assetId, clip.filePath, ttl);
+      return signedUrl;
     } catch (error) {
       browserLogger.error(
         {
@@ -282,27 +230,9 @@ export function useVideoManager({
 
   // Cleanup signed URL cache when timeline changes
   useEffect(() => {
-    const clips = timeline?.clips ?? [];
-    const validKeys = new Set(
-      clips
-        .map((clip) => clip.assetId ?? clip.filePath)
-        .filter((key): key is string => typeof key === 'string' && key.length > 0)
-    );
-
-    signedUrlCacheRef.current.forEach((_, key) => {
-      if (!validKeys.has(key)) {
-        signedUrlCacheRef.current.delete(key);
-      }
-    });
-    signedUrlRequestRef.current.forEach((_, key) => {
-      if (!validKeys.has(key)) {
-        signedUrlRequestRef.current.delete(key);
-      }
-    });
-
     if (!timeline) {
-      signedUrlCacheRef.current.clear();
-      signedUrlRequestRef.current.clear();
+      // Clear cache for this timeline when unmounting
+      signedUrlCache.prune();
     }
   }, [timeline]);
 
@@ -333,8 +263,6 @@ export function useVideoManager({
     const videoMap = videoMapRef.current;
     const videoPromises = videoPromisesRef.current;
     const errorHandlers = videoErrorHandlersRef.current;
-    const signedUrlCache = signedUrlCacheRef.current;
-    const signedUrlRequests = signedUrlRequestRef.current;
     const videoPool = videoPoolRef.current;
 
     return () => {
@@ -345,8 +273,6 @@ export function useVideoManager({
       videoMap.clear();
       videoPromises.clear();
       errorHandlers.clear();
-      signedUrlCache.clear();
-      signedUrlRequests.clear();
 
       // Destroy all pooled video elements on unmount
       videoPool.forEach((video) => {
@@ -356,6 +282,9 @@ export function useVideoManager({
         video.remove();
       });
       videoPool.length = 0;
+
+      // Prune expired signed URLs
+      signedUrlCache.prune();
     };
   }, [cleanupVideo]);
 

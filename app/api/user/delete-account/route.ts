@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, createServiceSupabaseClient } from '@/lib/supabase';
 import {
   unauthorizedResponse,
   errorResponse,
@@ -71,20 +70,7 @@ export const DELETE = withErrorHandling(async (_req: NextRequest) => {
     const userId = user.id;
 
     // Use service role client for full access (required to delete auth users)
-    const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'];
-    const serviceRoleKey = process.env['SUPABASE_SERVICE_ROLE_KEY'];
-
-    if (!supabaseUrl || !serviceRoleKey) {
-      serverLogger.error({ userId }, 'Missing Supabase configuration for account deletion');
-      return errorResponse('Service configuration error', 500);
-    }
-
-    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    const adminClient = createServiceSupabaseClient();
 
     // Step 1: Delete all user's projects
     // This will cascade delete:

@@ -11,9 +11,10 @@
  * - audio-sfx:userId - Sound effects generation (expensive: 100/min)
  */
 
-import { createClient } from '@supabase/supabase-js';
 import { serverLogger } from '@/lib/serverLogger';
 import { safeArrayFirst } from '@/lib/utils/arrayUtils';
+import { createServiceSupabaseClient, isSupabaseServiceConfigured } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 interface RateLimitEntry {
   count: number;
@@ -64,28 +65,26 @@ export function cleanupRateLimit() {
 
 // Initialize Supabase client with service role key for rate limiting
 // Service role is required because rate_limits table has RLS enabled
-let supabaseClient: ReturnType<typeof createClient> | null = null;
+let supabaseClient: SupabaseClient | null = null;
 
 function getSupabaseClient() {
   if (!supabaseClient) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!isSupabaseServiceConfigured()) {
       serverLogger.warn({
         event: 'rateLimit.supabase_unavailable',
-        hasUrl: !!supabaseUrl,
-        hasKey: !!supabaseServiceKey,
-      }, 'Supabase credentials not found, using in-memory rate limiting fallback');
+      }, 'Supabase service role not configured, using in-memory rate limiting fallback');
       return null;
     }
 
-    supabaseClient = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    try {
+      supabaseClient = createServiceSupabaseClient();
+    } catch (error) {
+      serverLogger.warn({
+        event: 'rateLimit.supabase_init_failed',
+        error,
+      }, 'Failed to initialize Supabase client, using in-memory rate limiting fallback');
+      return null;
+    }
   }
 
   return supabaseClient;

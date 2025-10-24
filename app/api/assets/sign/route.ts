@@ -81,5 +81,17 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     event: 'assets.sign.success'
   }, 'Signed URL created successfully');
 
-  return NextResponse.json({ signedUrl: data.signedUrl, expiresIn: ttl });
+  // Add cache headers to prevent browser caching of signed URLs
+  // Signed URLs are time-limited and should not be cached by the browser
+  const response = NextResponse.json({ signedUrl: data.signedUrl, expiresIn: ttl });
+
+  // Set cache control headers
+  response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+  response.headers.set('Pragma', 'no-cache');
+  response.headers.set('Expires', '0');
+
+  // Add Vary header for proper caching by CDN/proxies
+  response.headers.set('Vary', 'Cookie, Authorization');
+
+  return response;
 });

@@ -5,6 +5,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { browserLogger } from '@/lib/browserLogger';
 import clsx from 'clsx';
+import toast from 'react-hot-toast';
 
 interface Message {
   id: string;
@@ -253,13 +254,14 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
 
       if (error) {
         browserLogger.error({ error, projectId }, 'Failed to clear chat');
-        alert('Failed to clear chat history');
+        toast.error('Failed to clear chat history');
       } else {
         setMessages([]);
+        toast.success('Chat history cleared');
       }
     } catch (error) {
       browserLogger.error({ error, projectId }, 'Error clearing chat');
-      alert('Failed to clear chat history');
+      toast.error('Failed to clear chat history');
     }
   };
 

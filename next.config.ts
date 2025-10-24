@@ -19,7 +19,18 @@ const nextConfig: NextConfig = {
         pathname: '/storage/v1/object/**',
       },
     ],
-    formats: ['image/webp', 'image/avif'],
+    // Modern image formats (AVIF first for best compression, fallback to WebP)
+    formats: ['image/avif', 'image/webp'],
+    // Enable image optimization caching
+    minimumCacheTTL: 60 * 60 * 24 * 7, // 7 days
+    // Device sizes for responsive images
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    // Image sizes for different layout modes
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Disable static image imports if not using them
+    dangerouslyAllowSVG: false,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
   // Security headers
@@ -84,9 +95,11 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Optimize bundle
+  // Optimize bundle and performance
   experimental: {
-    optimizePackageImports: ['@supabase/supabase-js', 'zustand', 'clsx'],
+    optimizePackageImports: ['@supabase/supabase-js', 'zustand', 'clsx', 'lucide-react'],
+    // Enable CSS chunking for better cache efficiency
+    optimizeCss: true,
   },
 
   // Production-only optimizations
@@ -94,6 +107,16 @@ const nextConfig: NextConfig = {
 
   // Disable x-powered-by header
   poweredByHeader: false,
+
+  // Production build optimizations
+  compress: true, // Enable compression (gzip)
+  generateEtags: true, // Enable ETags for caching
+
+  // Optimize output
+  output: 'standalone',
+
+  // Disable source maps in production for smaller bundle size
+  productionBrowserSourceMaps: false,
 };
 
 export default nextConfig;

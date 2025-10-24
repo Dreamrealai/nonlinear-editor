@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { browserLogger } from '@/lib/browserLogger';
+import toast from 'react-hot-toast';
 
 interface RefImage {
   id: string;
@@ -31,7 +32,7 @@ export function useReferenceImages(
 
     const imageFiles = Array.from(files).filter((file) => file.type.startsWith('image/'));
     if (imageFiles.length === 0) {
-      alert('Please select image files');
+      toast.error('Please select image files');
       return;
     }
 
@@ -76,7 +77,7 @@ export function useReferenceImages(
           'Failed to upload reference image'
         );
         setRefImages((prev) => prev.filter((item) => item.id !== img.id));
-        alert(`Failed to upload ${img.file.name}. Please try again.`);
+        toast.error(`Failed to upload ${img.file.name}. Please try again.`);
       }
     }
 
@@ -141,7 +142,7 @@ export function useReferenceImages(
       } catch (error) {
         browserLogger.error({ error, selectedAssetId }, 'Failed to upload pasted image');
         setRefImages((prev) => prev.filter((item) => item.id !== newImage.id));
-        alert('Failed to upload pasted image. Please try again.');
+        toast.error('Failed to upload pasted image. Please try again.');
       }
     },
     [selectedAssetId, supabase, signStoragePath]

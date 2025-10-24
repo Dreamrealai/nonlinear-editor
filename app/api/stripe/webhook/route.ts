@@ -4,7 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceSupabaseClient } from '@/lib/supabase';
 import Stripe from 'stripe';
 import { serverLogger } from '@/lib/serverLogger';
 import { invalidateOnStripeWebhook } from '@/lib/cacheInvalidation';
@@ -12,16 +12,7 @@ import { invalidateOnStripeWebhook } from '@/lib/cacheInvalidation';
 // Disable body parser to handle raw body for webhook signature verification
 export const runtime = 'nodejs';
 
-const supabaseAdmin = createClient(
-  process.env['NEXT_PUBLIC_SUPABASE_URL']!,
-  process.env['SUPABASE_SERVICE_ROLE_KEY']!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  }
-);
+const supabaseAdmin = createServiceSupabaseClient();
 
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
   const userId = session.metadata?.userId;

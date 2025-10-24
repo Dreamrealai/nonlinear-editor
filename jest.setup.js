@@ -8,6 +8,60 @@ if (typeof structuredClone === 'undefined') {
   };
 }
 
+if (typeof globalThis.Response === 'undefined') {
+  class PolyfilledResponse {
+    constructor(body, init = {}) {
+      this.body = body;
+      this.status = init?.status ?? 200;
+      this.statusText = init?.statusText ?? 'OK';
+      this.headers = new Map(Object.entries(init?.headers ?? {}));
+      this.ok = this.status >= 200 && this.status < 300;
+    }
+
+    async json() {
+      return typeof this.body === 'string' ? JSON.parse(this.body) : this.body;
+    }
+
+    async text() {
+      return typeof this.body === 'string' ? this.body : JSON.stringify(this.body);
+    }
+  }
+
+  globalThis.Response = PolyfilledResponse;
+}
+
+if (typeof Response !== 'undefined' && typeof Response.json !== 'function') {
+  Object.defineProperty(Response, 'json', {
+    configurable: true,
+    writable: true,
+    value: (data, init) =>
+      new Response(JSON.stringify(data), {
+        headers: { 'Content-Type': 'application/json' },
+        ...init,
+      }),
+  });
+}
+
+if (typeof globalThis.performance === 'undefined') {
+  const now = () => Date.now();
+  globalThis.performance = {
+    now,
+    mark: () => undefined,
+    measure: () => undefined,
+    clearMarks: () => undefined,
+    clearMeasures: () => undefined,
+    getEntries: () => [],
+    getEntriesByType: () => [],
+    getEntriesByName: () => [],
+    timeOrigin: now(),
+    toJSON: () => ({}),
+  };
+}
+
+if (typeof global === 'object' && typeof global.performance === 'undefined') {
+  global.performance = globalThis.performance;
+}
+
 // Note: Request/Response are not polyfilled globally to avoid conflicts with Next.js
 // API route tests should mock NextRequest/NextResponse individually if needed
 

@@ -3,7 +3,7 @@
 // =============================================================================
 
 import { NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceSupabaseClient } from '@/lib/supabase';
 import type { UserTier } from '@/lib/types/subscription';
 import { serverLogger } from '@/lib/serverLogger';
 import { withAdminAuth, logAdminAction, type AdminAuthContext } from '@/lib/api/withAuth';
@@ -79,16 +79,7 @@ async function handleChangeTier(request: NextRequest, context: AdminAuthContext)
     }
 
     // Use service role client for admin operations
-    const supabaseAdmin = createClient(
-      process.env['NEXT_PUBLIC_SUPABASE_URL']!,
-      process.env['SUPABASE_SERVICE_ROLE_KEY']!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
+    const supabaseAdmin = createServiceSupabaseClient();
 
     // Use UserService for tier management
     const { UserService } = await import('@/lib/services/userService');

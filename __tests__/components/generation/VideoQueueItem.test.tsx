@@ -166,13 +166,15 @@ describe('VideoQueueItem', () => {
       expect(screen.queryByText('Loading video...')).not.toBeInTheDocument();
     });
 
-    it('should show error state on video error', () => {
+    it('should show error state on video error', async () => {
       const { container } = render(<VideoQueueItem {...completedProps} />);
       const video = container.querySelector('video');
 
       fireEvent.error(video!);
 
-      expect(screen.getByText('Failed to load video')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Failed to load video')).toBeInTheDocument();
+      });
     });
 
     it('should report video load errors with browserLogger', async () => {
@@ -322,7 +324,7 @@ describe('VideoQueueItem', () => {
   describe('Edge Cases', () => {
     it('should handle empty prompt', () => {
       render(<VideoQueueItem {...baseProps} prompt="" status="queued" />);
-      expect(screen.getByText('Queued')).toBeInTheDocument();
+      expect(screen.getAllByText('Queued').length).toBeGreaterThan(0);
     });
 
     it('should handle very long error messages', () => {

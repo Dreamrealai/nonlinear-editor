@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { browserLogger } from '@/lib/browserLogger';
+import { signedUrlCache } from '@/lib/signedUrlCache';
 
 function parseStoragePathClient(storagePath: string): { bucket: string; key: string } {
   const clean = storagePath.replace('supabase://', '');
@@ -29,18 +30,9 @@ export function useStorageUrls() {
     }
 
     try {
-      const params = new URLSearchParams({ storageUrl: storagePath });
-      if (Number.isFinite(expiresIn) && expiresIn > 0) {
-        params.set('ttl', Math.round(expiresIn).toString());
-      }
-      const response = await fetch(`/api/assets/sign?${params.toString()}`);
-      if (!response.ok) {
-        const detail = await response.text().catch(() => '');
-        browserLogger.error({ storagePath, status: response.status, detail }, 'Failed to sign storage path');
-        return null;
-      }
-      const payload = (await response.json()) as { signedUrl?: string };
-      return payload.signedUrl ?? null;
+      // Use signed URL cache with request deduplication
+      const signedUrl = await signedUrlCache.get(undefined, storagePath, expiresIn);
+      return signedUrl;
     } catch (error) {
       browserLogger.error({ error, storagePath }, 'Failed to sign storage path');
       return null;

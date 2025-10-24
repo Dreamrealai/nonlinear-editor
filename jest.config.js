@@ -33,6 +33,7 @@ const customJestConfig = {
     '/node_modules/',
     '/.next/',
     '/e2e/',
+    '/k6/',
   ],
   transformIgnorePatterns: [
     '/node_modules/',

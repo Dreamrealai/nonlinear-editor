@@ -51,11 +51,15 @@ jest.mock('uuid', () => ({
 const createRequest = (path: string, init: RequestInit = {}) =>
   new Request(`http://localhost${path}`, init);
 
+const { checkRateLimit } = require('@/lib/rateLimit');
+
 describe('GET /api/video/status', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   let mockRequest: NextRequest;
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
@@ -69,8 +73,12 @@ describe('GET /api/video/status', () => {
     mockSupabase.storage.getPublicUrl.mockReturnValue({
       data: { publicUrl: 'https://example.com/video.mp4' },
     });
-
-    jest.clearAllMocks();
+    (checkRateLimit as jest.Mock).mockResolvedValue({
+      success: true,
+      limit: 30,
+      remaining: 29,
+      resetAt: Date.now() + 60_000,
+    });
   });
 
   afterEach(() => {
@@ -87,6 +95,26 @@ describe('GET /api/video/status', () => {
       const response = await GET(mockRequest);
 
       expect(response.status).toBe(401);
+    });
+
+    it('should return 429 when rate limit exceeded', async () => {
+      mockAuthenticatedUser(mockSupabase);
+      (checkRateLimit as jest.Mock).mockResolvedValueOnce({
+        success: false,
+        limit: 30,
+        remaining: 0,
+        resetAt: Date.now() + 60_000,
+      });
+
+      mockRequest = createRequest(
+        '/api/video/status?operationName=test&projectId=123'
+      ) as unknown as NextRequest;
+
+      const response = await GET(mockRequest);
+
+      expect(response.status).toBe(429);
+      const body = await response.json();
+      expect(body.error).toBe('Rate limit exceeded');
     });
   });
 
@@ -468,9 +496,9 @@ describe('GET /api/video/status', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
-      );
+      mockRequest = createRequest(
+        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
 
       await GET(mockRequest);
 
@@ -490,9 +518,9 @@ describe('GET /api/video/status', () => {
       const { checkOperationStatus } = require('@/lib/veo');
       checkOperationStatus.mockRejectedValue(new Error('API error'));
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
-      );
+      mockRequest = createRequest(
+        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
 
       const response = await GET(mockRequest);
 
@@ -522,9 +550,9 @@ describe('GET /api/video/status', () => {
         error: { message: 'Storage error' },
       });
 
-      mockRequest = new NextRequest(
-        'http://localhost/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
-      );
+      mockRequest = createRequest(
+        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
 
       const response = await GET(mockRequest);
 

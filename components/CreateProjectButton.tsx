@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { browserLogger } from '@/lib/browserLogger';
+import toast from 'react-hot-toast';
 
 export function CreateProjectButton() {
   const router = useRouter();
@@ -26,10 +27,11 @@ export function CreateProjectButton() {
       }
 
       const project = await response.json();
+      toast.success('Project created successfully');
       router.push(`/editor/${project.id}`);
     } catch (error) {
       browserLogger.error({ error }, 'Error creating project');
-      alert('Failed to create project. Please try again.');
+      toast.error('Failed to create project. Please try again.');
       setIsCreating(false);
     }
   };
