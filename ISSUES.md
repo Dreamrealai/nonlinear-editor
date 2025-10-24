@@ -654,23 +654,159 @@ All required indexes have been implemented in migration `20251024100000_add_perf
 
 ### Issue #23: Missing Sentry Error Boundaries
 
-- **Status:** Open
+- **Status:** Fixed
 - **Priority:** P2
-- **Effort:** 4-6 hours
-- **Impact:** Errors not tracked consistently
+- **Effort:** 4-6 hours (actual: ~4 hours)
+- **Impact:** Errors now tracked consistently with Axiom integration
+- **Fixed Date:** 2025-10-24
 
-**Action:** Add error boundaries to key components with Sentry integration
+**Implementation:**
+
+Instead of Sentry, the project uses Axiom for error tracking via `browserLogger`. Error boundaries have been significantly enhanced and deployed across all critical components:
+
+**Enhanced ErrorBoundary Component:**
+
+- Added `name` prop to identify which boundary caught the error
+- Added `context` prop to pass additional metadata (projectId, page, component, etc.)
+- Added `onError` callback for custom error handling
+- Enhanced error logging with full context (boundary name, URL, timestamp, custom context)
+- Improved error UI with component stack traces and boundary identification
+- All errors logged to Axiom with structured metadata for analysis
+
+**Error Boundaries Deployed:**
+
+1. **Root Layout** (`app/layout.tsx`)
+   - Boundary Name: `RootLayout`
+   - Context: `{ page: 'root' }`
+   - Wraps entire application
+
+2. **Video Generation Page** (`app/editor/[projectId]/page.tsx`)
+   - Boundary Name: `VideoGenerationPage`
+   - Context: `{ projectId, page: 'generate-video' }`
+   - Custom fallback UI with reload and home navigation
+
+3. **Timeline Editor Page** (`app/editor/[projectId]/timeline/page.tsx`)
+   - Boundary Name: `TimelineEditorPage`
+   - Context: `{ projectId, page: 'timeline' }`
+   - Custom fallback UI for timeline-specific errors
+
+4. **Keyframe Editor Page** (`app/editor/[projectId]/keyframe/page.tsx`)
+   - Boundary Name: `KeyframeEditorPage`
+   - Context: `{ projectId, page: 'keyframe' }`
+   - Custom fallback UI with guidance for asset upload
+
+5. **AI Assistant** (`app/editor/[projectId]/layout.tsx`)
+   - Boundary Name: `AIAssistant`
+   - Context: `{ projectId, component: 'ChatBox' }`
+   - Isolated error boundary prevents assistant errors from affecting editor
+
+**Error Tracking Integration:**
+
+- All errors logged to Axiom via `browserLogger.error()`
+- Structured logging includes:
+  - Error details (name, message, stack trace)
+  - Component stack trace
+  - Boundary name and location
+  - Custom context (projectId, page, component)
+  - URL and timestamp
+  - User session data
+- Errors visible in Axiom dashboard with full context for debugging
+
+**Testing:**
+
+- Enhanced test suite with new test cases for:
+  - Error boundary name display
+  - onError callback invocation
+  - Context logging to Axiom
+- All tests passing
+
+**Files Modified:**
+
+- `/components/ErrorBoundary.tsx` - Enhanced with name, context, and onError props
+- `/app/layout.tsx` - Added RootLayout boundary
+- `/app/editor/[projectId]/layout.tsx` - Enhanced AIAssistant boundary
+- `/app/editor/[projectId]/page.tsx` - Enhanced VideoGenerationPage boundary
+- `/app/editor/[projectId]/timeline/page.tsx` - Enhanced TimelineEditorPage boundary
+- `/app/editor/[projectId]/keyframe/page.tsx` - Enhanced KeyframeEditorPage boundary
+- `/__tests__/components/ErrorBoundary.test.tsx` - Added tests for new features
+- `/lib/api/withAuth.ts` - Fixed Next.js 15+ async params compatibility
 
 ---
 
 ### Issue #24: No Video Preview Generation
 
-- **Status:** Open
+- **Status:** Fixed (2025-10-24)
 - **Priority:** P2
-- **Effort:** 12-16 hours
-- **Impact:** Must play video to see content
+- **Effort:** 12-16 hours (Completed: ~10 hours)
+- **Impact:** Users can now see video thumbnails without playing
+- **Fixed Date:** 2025-10-24
 
-**Action:** Generate video thumbnails and preview clips on upload
+**Implementation:**
+
+Created comprehensive server-side thumbnail generation system with FFmpeg integration:
+
+1. **ThumbnailService** (`/lib/services/thumbnailService.ts`):
+   - FFmpeg-based video frame extraction at specified timestamps
+   - Sharp-based image thumbnail generation with quality control
+   - Configurable dimensions, quality, and timestamps
+   - Multiple thumbnail sequence generation support
+   - Base64 data URL generation for backward compatibility
+   - Video duration extraction using FFprobe
+   - Automatic temporary file cleanup
+
+2. **API Endpoint** (`/app/api/assets/[assetId]/thumbnail/route.ts`):
+   - POST endpoint for on-demand thumbnail generation
+   - Supports both video and image assets
+   - Configurable timestamp, width, and quality parameters
+   - Automatic caching (returns existing thumbnail if available)
+   - Force regeneration option
+   - Proper authentication and rate limiting (Tier 2)
+   - Updates asset metadata with generated thumbnail
+
+3. **Upload Integration** (`/app/api/assets/upload/route.ts`):
+   - Automatic thumbnail generation during video upload
+   - Non-blocking (upload succeeds even if thumbnail fails)
+   - Extracts frame at 1-second mark
+   - 320px width, 80% JPEG quality by default
+   - Stores thumbnail in asset metadata
+
+4. **Existing Client-Side Support**:
+   - `/lib/hooks/useAssetThumbnails.ts` already provides browser-based fallback
+   - Client-side generation for assets without server-generated thumbnails
+   - Automatic retry mechanism
+
+**Features:**
+
+- Server-side video thumbnail extraction using FFmpeg
+- Image thumbnail generation using Sharp
+- Configurable timestamp for video frame extraction (default: 1.0 second)
+- Configurable dimensions (default: 320px width, maintains aspect ratio)
+- Configurable JPEG quality (default: 80%)
+- Base64 data URL storage in asset metadata
+- Automatic generation on video upload
+- Manual regeneration via API endpoint
+- Graceful fallback if thumbnail generation fails
+
+**Technical Details:**
+
+- FFmpeg required on server (verified: installed at `/Users/davidchen/bin/ffmpeg`)
+- Sharp library for image processing (v0.34.4)
+- Temporary file handling with automatic cleanup
+- Error tracking and structured logging
+- Rate limited to prevent abuse
+
+**Testing:**
+
+- Unit tests created for ThumbnailService
+- Image thumbnail generation tested
+- API endpoint properly authenticated and rate limited
+
+**Limitations:**
+
+- Requires FFmpeg on server for video thumbnails
+- Synchronous generation during upload (may add latency for large videos)
+- Could be enhanced with async processing jobs for very large files
+- No multi-thumbnail preview clips yet (future enhancement)
 
 ---
 
@@ -802,13 +938,25 @@ Added comprehensive clip locking functionality to prevent accidental edits:
 
 ### Issue #31: Timeline Labels Not Readable at All Zoom Levels
 
-- **Status:** Open
+- **Status:** Fixed ✅
 - **Priority:** P2
-- **Location:** `/components/timeline/`
-- **Effort:** 4-6 hours
-- **Impact:** Can't read time labels when zoomed
+- **Location:** `/components/timeline/TimelineRuler.tsx`
+- **Effort:** 4-6 hours (Actual: 5 hours)
+- **Fixed:** 2025-10-24
+- **Impact:** Can't read time labels when zoomed → Now adaptive and always readable
 
-**Action:** Implement adaptive label density based on zoom level
+**Resolution:** Implemented intelligent adaptive label density algorithm
+
+- Calculates optimal label spacing based on MIN_LABEL_SPACING_PX (80px)
+- Uses "nice" intervals: 0.1s, 0.5s, 1s, 2s, 5s, 10s, 15s, 30s, 60s, etc.
+- Major markers (labeled) + minor markers (tick marks) for visual rhythm
+- Adaptive formatting: decimal seconds (high zoom) → timecode (medium/low zoom)
+- Integer-based counting prevents floating-point precision errors
+- Comprehensive test coverage (28 tests passing)
+- Algorithm behavior:
+  - MIN_ZOOM (10 px/s): 10s intervals → readable on long timelines
+  - DEFAULT_ZOOM (50 px/s): 2s intervals → balanced detail
+  - MAX_ZOOM (200 px/s): 0.5s intervals → frame-accurate precision
 
 ---
 

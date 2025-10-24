@@ -48,7 +48,8 @@ export interface AuthOptions {
 
 export type AuthenticatedHandler<TParams = Record<string, never>> = (
   request: NextRequest,
-  context: AuthContext & { params?: TParams }
+  context: AuthContext,
+  routeContext?: { params: Promise<TParams> }
 ) => Promise<Response>;
 
 /**
@@ -225,13 +226,15 @@ export function withAuth<TParams = Record<string, never>>(
       );
 
       // Call the authenticated handler with user and supabase context
-      const context: AuthContext & { params?: TParams } = {
+      const authContext: AuthContext = {
         user,
         supabase,
-        params,
       };
 
-      const response = await handler(request, context);
+      // Pass params as a separate routeContext parameter
+      const routeContext = rawParams ? { params: Promise.resolve(params) } : undefined;
+
+      const response = await handler(request, authContext, routeContext);
 
       const duration = Date.now() - startTime;
       const status = response.status;

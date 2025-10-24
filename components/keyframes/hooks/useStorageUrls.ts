@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { browserLogger } from '@/lib/browserLogger';
 import { signedUrlCache } from '@/lib/signedUrlCache';
 
@@ -12,8 +12,25 @@ function parseStoragePathClient(storagePath: string): { bucket: string; key: str
   return { bucket, key };
 }
 
-export function useStorageUrls() {
+export interface UseStorageUrlsReturn {
+  /** Sign a storage path to create a URL */
+  signStoragePath: (storagePath: string, expiresIn?: number) => Promise<string | null>;
+  /** Error message if signing failed */
+  signError: string | null;
+  /** Clear signing error */
+  clearSignError: () => void;
+}
+
+export function useStorageUrls(): UseStorageUrlsReturn {
+  const [signError, setSignError] = useState<string | null>(null);
+
+  const clearSignError = useCallback(() => {
+    setSignError(null);
+  }, []);
+
   const signStoragePath = useCallback(async (storagePath: string, expiresIn = 3600) => {
+    setSignError(null);
+
     if (!storagePath) {
       return null;
     }
@@ -25,7 +42,9 @@ export function useStorageUrls() {
     try {
       parseStoragePathClient(storagePath);
     } catch (error) {
-      browserLogger.error({ error, storagePath }, 'Invalid storage path');
+      const errorMessage = 'Invalid storage path';
+      setSignError(errorMessage);
+      browserLogger.error({ error, storagePath }, errorMessage);
       return null;
     }
 
@@ -34,10 +53,12 @@ export function useStorageUrls() {
       const signedUrl = await signedUrlCache.get(undefined, storagePath, expiresIn);
       return signedUrl;
     } catch (error) {
-      browserLogger.error({ error, storagePath }, 'Failed to sign storage path');
+      const errorMessage = 'Failed to sign storage path';
+      setSignError(errorMessage);
+      browserLogger.error({ error, storagePath }, errorMessage);
       return null;
     }
   }, []);
 
-  return { signStoragePath };
+  return { signStoragePath, signError, clearSignError };
 }

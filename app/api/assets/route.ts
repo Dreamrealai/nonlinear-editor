@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
-import { errorResponse, successResponse } from '@/lib/api/response';
-import { validateUUID, validateEnum, validateAll } from '@/lib/api/validation';
+import { errorResponse, successResponse, validationError } from '@/lib/api/response';
+import { validateUUID, validateEnum, ValidationError } from '@/lib/validation';
 import { serverLogger } from '@/lib/serverLogger';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 
@@ -41,23 +41,18 @@ export const GET = withAuth(
     }
 
     // Validate query parameters
-    const validations: (ReturnType<typeof validateUUID> | ReturnType<typeof validateEnum>)[] = [];
-
-    if (projectId) {
-      validations.push(validateUUID(projectId, 'projectId'));
-    }
-
-    if (type) {
-      validations.push(validateEnum(type, 'type', VALID_ASSET_TYPES, false));
-    }
-
-    const validation = validateAll(validations);
-    if (!validation.valid) {
-      return errorResponse(
-        validation.errors[0]?.message ?? 'Invalid input',
-        400,
-        validation.errors[0]?.field
-      );
+    try {
+      if (projectId) {
+        validateUUID(projectId, 'projectId');
+      }
+      if (type) {
+        validateEnum(type, 'type', VALID_ASSET_TYPES);
+      }
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return validationError(error.message, error.field);
+      }
+      throw error;
     }
 
     // Calculate range for pagination

@@ -233,6 +233,23 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
             </Button>
           </>
         )}
+
+        {/* Auto-Scroll Toggle */}
+        {onToggleAutoScroll && (
+          <>
+            <div className="h-4 w-px bg-neutral-300" />
+            <Button
+              onClick={onToggleAutoScroll}
+              variant="outline"
+              size="icon"
+              className={autoScrollEnabled ? 'bg-green-100' : ''}
+              title={`Auto-scroll during playback ${autoScrollEnabled ? 'enabled' : 'disabled'} - Click to toggle`}
+              aria-label={`Auto-scroll ${autoScrollEnabled ? 'enabled' : 'disabled'}`}
+            >
+              <MousePointerClick className="h-4 w-4" />
+            </Button>
+          </>
+        )}
       </div>
 
       {/* Time Display */}

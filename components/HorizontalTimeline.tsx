@@ -352,6 +352,7 @@ function HorizontalTimeline({
         clipAtPlayhead={!!clipAtPlayhead}
         sceneDetectPending={sceneDetectPending}
         upscaleVideoPending={upscaleVideoPending}
+        autoScrollEnabled={autoScrollEnabled}
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}
         onUndo={undo}
@@ -361,6 +362,7 @@ function HorizontalTimeline({
         onAddText={onAddText}
         onAddTransition={onAddTransition}
         onUpscaleVideo={onUpscaleVideo}
+        onToggleAutoScroll={toggleAutoScroll}
       />
 
       {/* Timeline Container */}

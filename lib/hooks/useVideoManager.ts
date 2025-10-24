@@ -122,6 +122,8 @@ export function useVideoManager({
       const signedUrl = await signedUrlCache.get(clip.assetId, storageTarget, ttlSeconds);
       return signedUrl;
     } catch (error) {
+      const errorMessage = `Failed to locate clip source for ${clip.id}`;
+      setVideoError(errorMessage);
       browserLogger.error(
         {
           clipId: clip.id,
@@ -129,7 +131,7 @@ export function useVideoManager({
           filePath: clip.filePath,
           error,
         },
-        'Failed to locate clip source'
+        errorMessage
       );
       throw error;
     }
@@ -236,12 +238,14 @@ export function useVideoManager({
 
         return pending;
       } catch (error) {
+        const errorMessage = `Failed to ensure clip element for ${clip.id}`;
+        setVideoError(errorMessage);
         browserLogger.error(
           {
             clipId: clip.id,
             error,
           },
-          'Failed to ensure clip element'
+          errorMessage
         );
         throw error;
       }
@@ -313,5 +317,7 @@ export function useVideoManager({
     videoMapRef,
     ensureClipElement,
     cleanupVideo,
+    videoError,
+    clearVideoError,
   };
 }

@@ -128,29 +128,31 @@ const handleImageGenerate: AuthenticatedHandler = async (req, { user, supabase }
   } = body;
 
   // Validate all inputs using centralized validation utilities
-  const validation = validateAll([
-    validateString(prompt, 'prompt', { minLength: 3, maxLength: 1000 }),
-    validateUUID(projectId, 'projectId'),
-    validateAspectRatio(aspectRatio),
-    validateSampleCount(sampleCount, 8), // Max 8 for images
-    validateSeed(seed),
-    validateString(negativePrompt, 'negativePrompt', { required: false, maxLength: 1000 }),
-    validateSafetyFilterLevel(safetyFilterLevel),
-    validatePersonGeneration(personGeneration),
-  ]);
-
-  if (!validation.valid) {
-    const firstError = validation.errors[0];
-    serverLogger.warn(
-      {
-        event: 'image.generate.validation_error',
-        userId: user.id,
-        field: firstError?.field,
-        error: firstError?.message,
-      },
-      `Validation error: ${firstError?.message ?? 'Unknown error'}`
-    );
-    return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
+  try {
+    validateString(prompt, 'prompt', { minLength: 3, maxLength: 1000 });
+    validateUUID(projectId, 'projectId');
+    validateAspectRatio(aspectRatio);
+    validateSampleCount(sampleCount, 8); // Max 8 for images
+    validateSeed(seed);
+    if (negativePrompt !== undefined && negativePrompt !== null && negativePrompt !== '') {
+      validateString(negativePrompt, 'negativePrompt', { required: false, maxLength: 1000 });
+    }
+    validateSafetyFilterLevel(safetyFilterLevel);
+    validatePersonGeneration(personGeneration);
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      serverLogger.warn(
+        {
+          event: 'image.generate.validation_error',
+          userId: user.id,
+          field: error.field,
+          error: error.message,
+        },
+        `Validation error: ${error.message}`
+      );
+      return validationError(error.message, error.field);
+    }
+    throw error;
   }
 
   // Verify user owns the project using centralized verification

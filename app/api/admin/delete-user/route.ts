@@ -7,7 +7,7 @@ import { createServiceSupabaseClient } from '@/lib/supabase';
 import { serverLogger } from '@/lib/serverLogger';
 import { withAdminAuth, logAdminAction, type AdminAuthContext } from '@/lib/api/withAuth';
 import { validationError, errorResponse, successResponse } from '@/lib/api/response';
-import { validateUUID, validateAll } from '@/lib/api/validation';
+import { validateUUID, ValidationError } from '@/lib/validation';
 
 async function handleDeleteUser(request: NextRequest, context: AdminAuthContext) {
   const { user } = context;
@@ -27,10 +27,13 @@ async function handleDeleteUser(request: NextRequest, context: AdminAuthContext)
     }
 
     // Validate userId format
-    const validation = validateAll([validateUUID(userId, 'userId')]);
-    if (!validation.valid) {
-      const firstError = validation.errors[0];
-      return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
+    try {
+      validateUUID(userId, 'userId');
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return validationError(error.message, error.field);
+      }
+      throw error;
     }
 
     // SECURITY: Prevent admin from deleting themselves

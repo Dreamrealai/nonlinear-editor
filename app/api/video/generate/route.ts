@@ -9,8 +9,8 @@ import {
   validateDuration,
   validateSeed,
   validateSampleCount,
-  validateAll,
-} from '@/lib/api/validation';
+  ValidationError,
+} from '@/lib/validation';
 import {
   errorResponse,
   validationError,
@@ -209,36 +209,33 @@ const handleVideoGenerate: AuthenticatedHandler = async (req, { user, supabase }
   }
 
   // Validate all inputs using centralized validation utilities
-  const validationResult = validateAll([
-    validateString(prompt, 'prompt', { minLength: 3, maxLength: 1000 }),
-    validateUUID(projectId, 'projectId'),
-    validateAspectRatio(aspectRatio),
-    validateDuration(duration),
-    validateSeed(seed),
-    validateSampleCount(sampleCount, 4), // Max 4 for video
-    validateString(negativePrompt, 'negativePrompt', { required: false, maxLength: 1000 }),
-    imageAssetId ? validateUUID(imageAssetId, 'imageAssetId') : null,
-  ]);
-
-  const validation = validationResult ?? { valid: true, errors: [] };
-
-  if (!validation.valid) {
-    const firstError = validation.errors[0];
-
-    if (!firstError) {
-      return validationError('Validation failed');
+  try {
+    validateString(prompt, 'prompt', { minLength: 3, maxLength: 1000 });
+    validateUUID(projectId, 'projectId');
+    validateAspectRatio(aspectRatio);
+    validateDuration(duration);
+    validateSeed(seed);
+    validateSampleCount(sampleCount, 4); // Max 4 for video
+    if (negativePrompt !== undefined && negativePrompt !== null && negativePrompt !== '') {
+      validateString(negativePrompt, 'negativePrompt', { required: false, maxLength: 1000 });
     }
-
-    serverLogger.warn(
-      {
-        event: 'video.generate.validation_error',
-        userId: user.id,
-        field: firstError.field,
-        error: firstError.message,
-      },
-      `Validation error: ${firstError.message}`
-    );
-    return validationError(firstError.message, firstError.field);
+    if (imageAssetId) {
+      validateUUID(imageAssetId, 'imageAssetId');
+    }
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      serverLogger.warn(
+        {
+          event: 'video.generate.validation_error',
+          userId: user.id,
+          field: error.field,
+          error: error.message,
+        },
+        `Validation error: ${error.message}`
+      );
+      return validationError(error.message, error.field);
+    }
+    throw error;
   }
 
   // Type assertions after validation succeeds

@@ -81,11 +81,11 @@ interface ThumbnailRequestBody {
 const handleThumbnailGeneration: AuthenticatedHandler<{ assetId: string }> = async (
   request,
   { user, supabase },
-  { params }
+  routeContext
 ) => {
   const startTime = Date.now();
-  const resolvedParams = await params;
-  const assetId = resolvedParams.assetId;
+  const params = routeContext?.params ? await routeContext.params : { assetId: '' };
+  const assetId = params.assetId;
 
   serverLogger.info(
     {

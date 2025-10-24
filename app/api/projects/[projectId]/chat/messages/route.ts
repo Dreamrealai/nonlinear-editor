@@ -18,10 +18,11 @@ const VALID_ROLES = ['user', 'assistant'] as const;
 
 async function handleChatMessagePost(
   request: NextRequest,
-  context: AuthContext & { params?: { projectId: string } }
+  context: AuthContext & { params?: Promise<{ projectId: string }> }
 ): Promise<Response> {
   const { user, supabase, params } = context;
-  const projectId = params?.projectId;
+  const resolvedParams = await params;
+  const projectId = resolvedParams?.projectId;
 
   try {
     // Validate projectId from URL params

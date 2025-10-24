@@ -3,7 +3,7 @@ import { withAuth, type AuthContext } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
 import { validationError, errorResponse, successResponse } from '@/lib/api/response';
-import { validateInteger, validateAll } from '@/lib/api/validation';
+import { validateInteger, ValidationError } from '@/lib/validation';
 
 type LogEntry = {
   level: string;
@@ -30,13 +30,13 @@ async function handleLogsPost(request: NextRequest, context: AuthContext) {
     }
 
     // Validate log count (max 100 logs per request)
-    const validation = validateAll([
-      validateInteger(logs.length, 'logs.length', { required: true, min: 1, max: 100 }),
-    ]);
-
-    if (!validation.valid) {
-      const firstError = validation.errors[0];
-      return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
+    try {
+      validateInteger(logs.length, 'logs.length', { required: true, min: 1, max: 100 });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return validationError(error.message, error.field);
+      }
+      throw error;
     }
 
     // Validate each log entry size

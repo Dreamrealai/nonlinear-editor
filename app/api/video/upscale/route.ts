@@ -1,5 +1,5 @@
 import { fetchWithTimeout } from '@/lib/fetchWithTimeout';
-import { validateUUID, validateAll } from '@/lib/api/validation';
+import { validateUUID, ValidationError } from '@/lib/validation';
 import {
   errorResponse,
   validationError,
@@ -29,14 +29,14 @@ const handleVideoUpscale: AuthenticatedHandler = async (request, { user, supabas
   const { assetId, projectId, upscaleFactor = 2, targetFps, h264Output = false } = body;
 
   // Validate inputs using centralized validation
-  const validation = validateAll([
-    validateUUID(assetId, 'assetId'),
-    validateUUID(projectId, 'projectId'),
-  ]);
-
-  if (!validation.valid) {
-    const firstError = validation.errors[0];
-    return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
+  try {
+    validateUUID(assetId, 'assetId');
+    validateUUID(projectId, 'projectId');
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return validationError(error.message, error.field);
+    }
+    throw error;
   }
 
   // Verify asset ownership using centralized verification

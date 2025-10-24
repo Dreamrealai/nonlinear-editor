@@ -162,7 +162,7 @@ export class ThumbnailService {
         }
       } catch (cleanupError) {
         trackError(cleanupError, {
-          category: ErrorCategory.SYSTEM,
+          category: ErrorCategory.EXTERNAL_SERVICE,
           severity: ErrorSeverity.LOW,
           context: { message: 'Failed to clean up temporary files' },
         });

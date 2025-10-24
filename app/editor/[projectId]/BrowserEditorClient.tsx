@@ -69,6 +69,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
     hasPreviousPage,
     loadNextPage,
     loadPreviousPage,
+    updateAsset,
   } = useAssetList(projectId);
 
   const [timelineBootstrapped, setTimelineBootstrapped] = useState(false);
@@ -311,7 +312,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
 
   // Create a wrapper that calls reloadAssets after state updates
   const setAssetsWithReload = useCallback(
-    (updater: React.SetStateAction<AssetRow[]>) => {
+    (_updater: React.SetStateAction<AssetRow[]>) => {
       // After any asset state change, reload assets to maintain pagination
       void reloadAssets();
     },
@@ -533,25 +534,19 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
             })
             .eq('id', asset.id);
 
-          setAssets((prev) =>
-            prev.map((entry) =>
-              entry.id === asset.id
-                ? {
-                    ...entry,
-                    metadata: {
-                      ...(entry.metadata ?? {}),
-                      thumbnail,
-                    },
-                  }
-                : entry
-            )
-          );
+          updateAsset(asset.id, (a: AssetRow): AssetRow => ({
+            ...a,
+            metadata: {
+              ...(a.metadata ?? {}),
+              thumbnail,
+            },
+          }));
         } catch (error) {
           browserLogger.error({ error, assetId: asset.id }, 'Failed to generate thumbnail');
         }
       }
     })();
-  }, [assets, assetsLoaded, timeline, supabase]);
+  }, [assets, assetsLoaded, timeline, supabase, updateAsset]);
 
   // Autosave timeline
   useAutosave(projectId, 2000, async (projectIdParam, timelineToSave): Promise<void> => {

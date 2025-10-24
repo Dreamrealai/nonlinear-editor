@@ -179,7 +179,6 @@ export function useTimelineScrolling({
 
     // Auto-scroll if playhead is near the edge or outside viewport
     const edgeThreshold = viewportWidth * 0.2; // 20% from edge
-    const playheadRelativeToViewport = playheadX - scrollLeft;
 
     if (playheadX > scrollRight - edgeThreshold) {
       // Playhead approaching right edge - scroll right
