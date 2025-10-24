@@ -8,7 +8,6 @@ import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { errorResponse, ErrorResponses } from '@/lib/api/errorResponse';
-import type { ErrorResponse } from '@/lib/api/response';
 import { HttpStatusCode } from '@/lib/errors/errorCodes';
 import { validateUUID, ValidationError } from '@/lib/validation';
 
