@@ -175,9 +175,10 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
   const handleCopy = useCallback(() => {
     if (selectedClipIds.size > 0) {
       copyClips();
-      toast.success(`Copied ${selectedClipIds.size} clip${selectedClipIds.size > 1 ? 's' : ''}`, {
-        duration: 1500,
-      });
+      toast.success(
+        `Copied ${selectedClipIds.size} clip${selectedClipIds.size > 1 ? 's' : ''}`,
+        { duration: 1500 }
+      );
     }
   }, [copyClips, selectedClipIds]);
 
