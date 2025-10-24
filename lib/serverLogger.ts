@@ -50,6 +50,8 @@ class AxiomStream extends Writable {
 const axiomStream = new AxiomStream();
 
 // Create base Pino logger with multistream
+// NOTE: pino-pretty transport is disabled in development due to Turbopack compatibility issues
+// with thread-stream worker threads. Using direct stdout instead.
 const baseLogger = pino(
   {
     level: isDevelopment ? 'debug' : 'info',
@@ -70,28 +72,11 @@ const baseLogger = pino(
     // Timestamp configuration
     timestamp: () => `,"time":${Date.now()}`,
   },
-  isDevelopment
-    ? pino.multistream([
-        // Pretty print to console in development
-        {
-          level: 'debug',
-          stream: pino.transport({
-            target: 'pino-pretty',
-            options: {
-              colorize: true,
-              translateTime: 'HH:MM:ss',
-              ignore: 'pid,hostname',
-            },
-          }),
-        },
-        // Also send to Axiom
-        { level: 'debug', stream: axiomStream },
-      ])
-    : // In production, send to both stdout and Axiom
-      pino.multistream([
-        { level: 'info', stream: process.stdout },
-        { level: 'info', stream: axiomStream },
-      ])
+  // Use multistream for both dev and production
+  pino.multistream([
+    { level: isDevelopment ? 'debug' : 'info', stream: process.stdout },
+    { level: isDevelopment ? 'debug' : 'info', stream: axiomStream },
+  ])
 );
 
 /**
