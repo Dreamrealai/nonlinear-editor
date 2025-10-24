@@ -1,8 +1,8 @@
 # Codebase Issues Tracker
 
 **Last Updated:** 2025-10-24
-**Status:** 67 open issues (7 issues fixed and removed)
-**Priority Breakdown:** P0: 0 | P1: 21 | P2: 31 | P3: 15
+**Status:** 66 open issues (8 issues fixed and removed)
+**Priority Breakdown:** P0: 0 | P1: 21 | P2: 31 | P3: 14
 
 This document tracks all open issues in the codebase. Fixed/resolved issues are removed to keep this document focused and efficient.
 
@@ -27,23 +27,6 @@ This document tracks all open issues in the codebase. Fixed/resolved issues are 
 
 ---
 
-### Issue #5: Inconsistent API Response Formats
-
-- **Status:** Partially Fixed
-- **Priority:** P1
-- **Effort:** 4 hours remaining
-- **Impact:** 10-15 routes still use `NextResponse.json()` directly
-
-**Remaining Routes:**
-
-- `/api/assets/sign`
-- `/api/video/split-scenes` (11 calls)
-- `/api/frames/[frameId]/edit` (7 calls)
-- Other video processing routes
-
-**Action:** Standardize to use `successResponse()` wrapper (exclude health checks and docs)
-
----
 
 ### Issue #6: Missing Input Validation Migration
 
@@ -860,16 +843,6 @@ All required indexes have been implemented in migration `20251024100000_add_perf
 
 ---
 
-### Issue #55: Missing Meta Tags for SEO
-
-- **Status:** Open
-- **Priority:** P3
-- **Effort:** 2-3 hours
-- **Impact:** Poor SEO
-
-**Action:** Add proper meta tags to all pages
-
----
 
 ### Issue #56: No Loading Animation
 
@@ -1036,6 +1009,7 @@ All required indexes have been implemented in migration `20251024100000_add_perf
 - Issue #83: Duplicate Password Validation - Consolidated ✅
 - Issue #84: Orphaned Component Files - Deleted ✅
 - Issue #33: Redundant ErrorBoundary Export - Fixed ✅
+- Issue #5: Inconsistent API Response Formats - Fully standardized ✅
 - Issue #49: Keyboard Shortcuts Documentation - Completed ✅ (P1)
 
 **Downgraded:**
@@ -1047,10 +1021,9 @@ All required indexes have been implemented in migration `20251024100000_add_perf
 **Sprint 1 - Type Safety & API Standardization (2 weeks):**
 
 - Issue #4 (Return Types) - 30h
-- Issue #5 (API Response Formats) - 4h
 - Issue #6 (Input Validation) - 12h
 - Issue #42 (Test Fixes) - 16h
-- **Total: 62 hours**
+- **Total: 58 hours**
 
 **Sprint 2 - Timeline UX (3 weeks):**
 

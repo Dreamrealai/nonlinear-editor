@@ -71,6 +71,7 @@ const selectTimelineState = (
   canRedo: boolean;
   removeTextOverlay: (overlayId: string) => void;
   updateTextOverlay: (id: string, patch: Partial<TextOverlay>) => void;
+  toggleClipLock: (clipId: string) => void;
 } => ({
   timeline: state.timeline,
   currentTime: state.currentTime,
@@ -91,6 +92,7 @@ const selectTimelineState = (
   canRedo: state.canRedo(),
   removeTextOverlay: state.removeTextOverlay,
   updateTextOverlay: state.updateTextOverlay,
+  toggleClipLock: state.toggleClipLock,
 });
 
 function HorizontalTimeline({
@@ -127,6 +129,7 @@ function HorizontalTimeline({
     canRedo,
     removeTextOverlay,
     updateTextOverlay,
+    toggleClipLock,
   } = useEditorStore(selectTimelineState);
 
   // Local state
@@ -173,6 +176,7 @@ function HorizontalTimeline({
     removeClip,
     clearSelection,
     splitClipAtTime,
+    toggleClipLock,
   });
 
   // Zoom controls - memoized to prevent re-creation on every render

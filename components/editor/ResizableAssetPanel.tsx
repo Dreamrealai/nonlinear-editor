@@ -59,7 +59,7 @@ export function ResizableAssetPanel({
   minWidth = 200,
   maxWidth = 500,
   ...assetPanelProps
-}: ResizableAssetPanelProps) {
+}: ResizableAssetPanelProps): React.JSX.Element {
   const [width, setWidth] = useState(initialWidth);
   const [isResizing, setIsResizing] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -92,7 +92,7 @@ export function ResizableAssetPanel({
     setIsResizing(false);
   }, []);
 
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
@@ -100,7 +100,7 @@ export function ResizableAssetPanel({
       document.body.style.userSelect = 'none';
       document.body.style.cursor = 'ew-resize';
 
-      return () => {
+      return (): void => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
         document.body.style.userSelect = '';
@@ -116,6 +116,10 @@ export function ResizableAssetPanel({
 
       {/* Resize Handle */}
       <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize asset panel"
+        tabIndex={0}
         className={`
           absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize transition-all
           ${isResizing ? 'bg-blue-500 w-2' : isHovering ? 'bg-neutral-400 hover:bg-blue-400' : 'bg-neutral-300'}
@@ -145,6 +149,8 @@ export function ResizableAssetPanel({
 
       {/* Wider invisible hit area for easier interaction */}
       <div
+        role="separator"
+        aria-hidden="true"
         className="absolute -right-2 top-0 bottom-0 w-4 cursor-ew-resize"
         onMouseDown={handleMouseDown}
         onMouseEnter={() => setIsHovering(true)}

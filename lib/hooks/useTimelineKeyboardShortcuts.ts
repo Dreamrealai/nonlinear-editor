@@ -6,6 +6,7 @@
  * - Copy/Paste (Cmd+C / Cmd+V)
  * - Delete/Backspace
  * - Split clip (S key)
+ * - Lock/Unlock selected clips (L key)
  */
 'use client';
 
