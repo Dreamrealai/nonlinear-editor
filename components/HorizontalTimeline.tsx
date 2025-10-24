@@ -472,6 +472,17 @@ function HorizontalTimeline({
               onMouseDown={handlePlayheadMouseDown}
             />
 
+            {/* Timeline Guides - Draggable alignment guides */}
+            <TimelineGuides
+              guides={guides}
+              zoom={zoom}
+              timelineDuration={timelineDuration}
+              numTracks={numTracks}
+              onGuideUpdate={(guideId, patch) => updateGuide(guideId, patch)}
+              onGuideDelete={(guideId) => removeGuide(guideId)}
+              containerRef={containerRef}
+            />
+
             {/* Snap Guides - Visual feedback during dragging */}
             <TimelineSnapGuides
               snapInfo={snapInfo}
