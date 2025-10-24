@@ -36,6 +36,12 @@ export type TrimmingClip = {
   sourceDuration: number | null;
 };
 
+export type SnapInfo = {
+  snapPosition: number;
+  isSnapping: boolean;
+  snapCandidates: number[];
+};
+
 type UseTimelineDraggingOptions = {
   containerRef: React.RefObject<HTMLDivElement | null>;
   timeline: Timeline | null;
@@ -56,6 +62,7 @@ export function useTimelineDragging({
   const [draggingClip, setDraggingClip] = useState<DraggingClip | null>(null);
   const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false);
   const [trimmingClip, setTrimmingClip] = useState<TrimmingClip | null>(null);
+  const [snapInfo, setSnapInfo] = useState<SnapInfo | null>(null);
 
   // RAF throttling for performance
   const rafIdRef = useRef<number | null>(null);

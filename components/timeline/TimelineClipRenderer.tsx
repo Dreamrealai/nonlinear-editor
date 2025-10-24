@@ -102,8 +102,10 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
           )}
 
           {/* Trim Handles */}
+          {/* Left trim handle with expanded hit area */}
           <div
-            className="absolute left-0 top-0 bottom-0 w-2 bg-white/30 hover:bg-white/50 cursor-ew-resize pointer-events-auto"
+            className="absolute left-0 top-0 bottom-0 w-2.5 cursor-ew-resize pointer-events-auto group"
+            style={{ marginLeft: '-2px' }}
             onMouseDown={(e) => onTrimHandleMouseDown(e, clip, 'left')}
             role="slider"
             tabIndex={0}
@@ -112,9 +114,13 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
             aria-valuemin={0}
             aria-valuemax={clip.sourceDuration || 0}
             title="Trim start"
-          />
+          >
+            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-white/40 group-hover:w-2.5 group-hover:bg-white/60 transition-all duration-150" />
+          </div>
+          {/* Right trim handle with expanded hit area */}
           <div
-            className="absolute right-0 top-0 bottom-0 w-2 bg-white/30 hover:bg-white/50 cursor-ew-resize pointer-events-auto"
+            className="absolute right-0 top-0 bottom-0 w-2.5 cursor-ew-resize pointer-events-auto group"
+            style={{ marginRight: '-2px' }}
             onMouseDown={(e) => onTrimHandleMouseDown(e, clip, 'right')}
             role="slider"
             tabIndex={0}
@@ -123,7 +129,9 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
             aria-valuemin={0}
             aria-valuemax={clip.sourceDuration || 0}
             title="Trim end"
-          />
+          >
+            <div className="absolute right-0 top-0 bottom-0 w-1.5 bg-white/40 group-hover:w-2.5 group-hover:bg-white/60 transition-all duration-150" />
+          </div>
 
           <div className="absolute inset-0 flex h-full flex-col justify-between p-2 text-white pointer-events-none">
             <div className="flex items-start justify-between gap-1">
