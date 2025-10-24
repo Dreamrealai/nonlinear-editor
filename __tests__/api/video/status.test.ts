@@ -11,6 +11,19 @@ import {
   resetAllMocks,
 } from '@/__tests__/helpers/apiMocks';
 
+// Mock withAuth wrapper
+jest.mock('@/lib/api/withAuth', () => ({
+  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+    const { createServerSupabaseClient } = require('@/lib/supabase');
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return handler(req, { user, supabase, params: context?.params || {} });
+  }),
+}));
+
 // Mock modules
 jest.mock('@/lib/supabase', () => {
   const { createMockSupabaseClient } = jest.requireActual('@/__tests__/helpers/apiMocks');
@@ -344,13 +357,15 @@ describe('GET /api/video/status', () => {
         type: 'service_account',
         project_id: 'test-project',
         private_key_id: 'test-key-id',
-        private_key: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7W6L2hnCfPfAz\n-----END PRIVATE KEY-----\n',
+        private_key:
+          '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7W6L2hnCfPfAz\n-----END PRIVATE KEY-----\n',
         client_email: 'test@test-project.iam.gserviceaccount.com',
         client_id: '123456789',
         auth_uri: 'https://accounts.google.com/o/oauth2/auth',
         token_uri: 'https://oauth2.googleapis.com/token',
         auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
-        client_x509_cert_url: 'https://www.googleapis.com/robot/v1/metadata/x509/test%40test-project.iam.gserviceaccount.com',
+        client_x509_cert_url:
+          'https://www.googleapis.com/robot/v1/metadata/x509/test%40test-project.iam.gserviceaccount.com',
       });
 
       checkOperationStatus.mockResolvedValue({
@@ -701,13 +716,15 @@ describe('GET /api/video/status', () => {
         type: 'service_account',
         project_id: 'test-project',
         private_key_id: 'test-key-id',
-        private_key: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7W6L2hnCfPfAz\n-----END PRIVATE KEY-----\n',
+        private_key:
+          '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7W6L2hnCfPfAz\n-----END PRIVATE KEY-----\n',
         client_email: 'test@test-project.iam.gserviceaccount.com',
         client_id: '123456789',
         auth_uri: 'https://accounts.google.com/o/oauth2/auth',
         token_uri: 'https://oauth2.googleapis.com/token',
         auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
-        client_x509_cert_url: 'https://www.googleapis.com/robot/v1/metadata/x509/test%40test-project.iam.gserviceaccount.com',
+        client_x509_cert_url:
+          'https://www.googleapis.com/robot/v1/metadata/x509/test%40test-project.iam.gserviceaccount.com',
       });
 
       checkOperationStatus.mockResolvedValue({

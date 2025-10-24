@@ -11,6 +11,19 @@ import {
   resetAllMocks,
 } from '@/__tests__/helpers/apiMocks';
 
+// Mock withAuth wrapper
+jest.mock('@/lib/api/withAuth', () => ({
+  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+    const { createServerSupabaseClient } = require('@/lib/supabase');
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return handler(req, { user, supabase, params: context?.params || {} });
+  }),
+}));
+
 jest.mock('@/lib/supabase', () => ({
   createServerSupabaseClient: jest.fn(),
 }));
@@ -20,6 +33,7 @@ jest.mock('@/lib/serverLogger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),
+    debug: jest.fn(),
   },
 }));
 
@@ -160,7 +174,12 @@ describe('POST /api/video/split-scenes', () => {
       delete process.env['GOOGLE_SERVICE_ACCOUNT'];
       const mockUser = mockAuthenticatedUser(mockSupabase);
       mockSupabase.single.mockResolvedValue({
-        data: { id: validAssetId, type: 'video', user_id: mockUser.id, storage_url: 'test://video.mp4' },
+        data: {
+          id: validAssetId,
+          type: 'video',
+          user_id: mockUser.id,
+          storage_url: 'test://video.mp4',
+        },
         error: null,
       });
 
@@ -186,7 +205,12 @@ describe('POST /api/video/split-scenes', () => {
       delete process.env['GCS_BUCKET_NAME'];
       const mockUser = mockAuthenticatedUser(mockSupabase);
       mockSupabase.single.mockResolvedValue({
-        data: { id: validAssetId, type: 'video', user_id: mockUser.id, storage_url: 'test://video.mp4' },
+        data: {
+          id: validAssetId,
+          type: 'video',
+          user_id: mockUser.id,
+          storage_url: 'test://video.mp4',
+        },
         error: null,
       });
 
@@ -211,7 +235,12 @@ describe('POST /api/video/split-scenes', () => {
     it('should return 503 when GCS bucket does not exist', async () => {
       const mockUser = mockAuthenticatedUser(mockSupabase);
       mockSupabase.single.mockResolvedValue({
-        data: { id: validAssetId, type: 'video', user_id: mockUser.id, storage_url: 'test://video.mp4' },
+        data: {
+          id: validAssetId,
+          type: 'video',
+          user_id: mockUser.id,
+          storage_url: 'test://video.mp4',
+        },
         error: null,
       });
 
@@ -319,18 +348,20 @@ describe('POST /api/video/split-scenes', () => {
         return mockSupabase;
       });
 
-      mockSupabase.single.mockResolvedValueOnce({
-        data: {
-          id: validAssetId,
-          type: 'video',
-          user_id: mockUser.id,
-          storage_url: 'supabase://assets/video.mp4',
-        },
-        error: null,
-      }).mockResolvedValue({
-        data: { id: 'scene-1', start_ms: 0, end_ms: 1000 },
-        error: null,
-      });
+      mockSupabase.single
+        .mockResolvedValueOnce({
+          data: {
+            id: validAssetId,
+            type: 'video',
+            user_id: mockUser.id,
+            storage_url: 'supabase://assets/video.mp4',
+          },
+          error: null,
+        })
+        .mockResolvedValue({
+          data: { id: 'scene-1', start_ms: 0, end_ms: 1000 },
+          error: null,
+        });
 
       mockSupabase.storage.from.mockReturnValue({
         createSignedUrl: jest.fn().mockResolvedValue({
@@ -347,8 +378,14 @@ describe('POST /api/video/split-scenes', () => {
               annotationResults: [
                 {
                   shotAnnotations: [
-                    { startTimeOffset: { seconds: 0, nanos: 0 }, endTimeOffset: { seconds: 1, nanos: 0 } },
-                    { startTimeOffset: { seconds: 1, nanos: 0 }, endTimeOffset: { seconds: 2, nanos: 0 } },
+                    {
+                      startTimeOffset: { seconds: 0, nanos: 0 },
+                      endTimeOffset: { seconds: 1, nanos: 0 },
+                    },
+                    {
+                      startTimeOffset: { seconds: 1, nanos: 0 },
+                      endTimeOffset: { seconds: 2, nanos: 0 },
+                    },
                   ],
                 },
               ],

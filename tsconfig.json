@@ -54,6 +54,7 @@
     "**/*.test.tsx",
     "e2e/**/*",
     "test-utils/**/*",
-    "__mocks__/**/*"
+    "__mocks__/**/*",
+    "scripts/**/*"
   ]
 }

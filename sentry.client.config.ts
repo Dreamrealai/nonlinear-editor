@@ -39,10 +39,7 @@ if (SENTRY_DSN) {
         blockAllMedia: true, // Block all media (images, videos)
       }),
       // Browser tracing for performance monitoring
-      Sentry.browserTracingIntegration({
-        // Trace navigation and page loads
-        tracePropagationTargets: ['localhost', /^\//],
-      }),
+      Sentry.browserTracingIntegration(),
     ],
 
     // Ignore specific errors

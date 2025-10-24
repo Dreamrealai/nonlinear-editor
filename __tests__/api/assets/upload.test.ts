@@ -16,6 +16,19 @@ import {
   resetAllMocks,
 } from '@/__tests__/helpers/apiMocks';
 
+// Mock withAuth wrapper
+jest.mock('@/lib/api/withAuth', () => ({
+  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+    const { createServerSupabaseClient } = require('@/lib/supabase');
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return handler(req, { user, supabase, params: context?.params || {} });
+  }),
+}));
+
 // Mock modules
 jest.mock('@/lib/supabase', () => ({
   createServerSupabaseClient: jest.fn(),

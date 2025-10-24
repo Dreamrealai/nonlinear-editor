@@ -11,6 +11,19 @@ import {
   resetAllMocks,
 } from '@/__tests__/helpers/apiMocks';
 
+// Mock withAuth wrapper
+jest.mock('@/lib/api/withAuth', () => ({
+  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+    const { createServerSupabaseClient } = require('@/lib/supabase');
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return handler(req, { user, supabase, params: context?.params || {} });
+  }),
+}));
+
 // Mock dependencies
 jest.mock('@/lib/supabase', () => ({
   createServerSupabaseClient: jest.fn(),
@@ -104,7 +117,7 @@ describe('POST /api/image/generate', () => {
         success: false,
         limit: 10,
         remaining: 0,
-        resetAt: Date.now() + 60000
+        resetAt: Date.now() + 60000,
       });
 
       const mockRequest = new NextRequest('http://localhost/api/image/generate', {
@@ -125,10 +138,12 @@ describe('POST /api/image/generate', () => {
       mockAuthenticatedUser(mockSupabase);
       const { generateImage } = require('@/lib/imagen');
       generateImage.mockResolvedValue({
-        predictions: [{
-          bytesBase64Encoded: Buffer.from('test-image-data').toString('base64'),
-          mimeType: 'image/png',
-        }],
+        predictions: [
+          {
+            bytesBase64Encoded: Buffer.from('test-image-data').toString('base64'),
+            mimeType: 'image/png',
+          },
+        ],
       });
 
       const mockRequest = new NextRequest('http://localhost/api/image/generate', {

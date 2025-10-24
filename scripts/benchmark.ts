@@ -112,7 +112,9 @@ function printResult(result: BenchmarkResult): void {
   const icon = result.status === 'pass' ? '✅' : result.status === 'warning' ? '⚠️' : '❌';
   console.log(`   ${icon} Status: ${result.status.toUpperCase()}`);
   console.log(`   Min: ${result.min.toFixed(2)}ms | Max: ${result.max.toFixed(2)}ms`);
-  console.log(`   Avg: ${result.avg.toFixed(2)}ms | P95: ${result.p95.toFixed(2)}ms | P99: ${result.p99.toFixed(2)}ms`);
+  console.log(
+    `   Avg: ${result.avg.toFixed(2)}ms | P95: ${result.p95.toFixed(2)}ms | P99: ${result.p99.toFixed(2)}ms`
+  );
 }
 
 /**
@@ -139,7 +141,6 @@ function generateTestTimeline(numClips: number): Timeline {
   }
 
   return {
-    id: 'test-timeline',
     projectId: 'test-project',
     clips,
     textOverlays: [],
@@ -149,9 +150,14 @@ function generateTestTimeline(numClips: number): Timeline {
       { id: 'track-1', name: 'Track 2', index: 1, type: 'video' as const },
       { id: 'track-2', name: 'Track 3', index: 2, type: 'video' as const },
     ],
-    duration: numClips * 10,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    output: {
+      width: 1920,
+      height: 1080,
+      fps: 30,
+      vBitrateK: 5000,
+      aBitrateK: 192,
+      format: 'mp4' as const,
+    },
   };
 }
 
@@ -166,7 +172,7 @@ function generateTestAssets(count: number): AssetRow[] {
       project_id: 'test-project',
       user_id: 'test-user',
       storage_url: `supabase://bucket/asset-${i}.mp4`,
-      type: types[i % 3],
+      type: types[i % 3]!,
       metadata: {
         filename: `asset-${i}.mp4`,
         size: Math.floor(Math.random() * 100000000),
@@ -302,9 +308,7 @@ function benchmarkAssetSearch(): BenchmarkResult {
         const type = asset.type.toLowerCase();
         const tags = asset.tags?.join(' ').toLowerCase() || '';
         return (
-          filename.includes(searchQuery) ||
-          type.includes(searchQuery) ||
-          tags.includes(searchQuery)
+          filename.includes(searchQuery) || type.includes(searchQuery) || tags.includes(searchQuery)
         );
       });
 
@@ -381,10 +385,7 @@ function benchmarkRubberBandSelection(): BenchmarkResult {
         const clipBottom = clipTop + trackHeight;
 
         const intersects =
-          clipLeft <= right &&
-          clipRight >= left &&
-          clipTop <= bottom &&
-          clipBottom >= top;
+          clipLeft <= right && clipRight >= left && clipTop <= bottom && clipBottom >= top;
 
         if (intersects) {
           selectedClips.push(clip.id);
@@ -469,9 +470,13 @@ function generateReport(suite: BenchmarkSuite): void {
   suite.results.forEach((r) => {
     console.log(`\n${r.name}:`);
     console.log(`  Target: ${r.target}ms`);
-    console.log(`  Min: ${r.min.toFixed(2)}ms | Avg: ${r.avg.toFixed(2)}ms | Max: ${r.max.toFixed(2)}ms`);
+    console.log(
+      `  Min: ${r.min.toFixed(2)}ms | Avg: ${r.avg.toFixed(2)}ms | Max: ${r.max.toFixed(2)}ms`
+    );
     console.log(`  P95: ${r.p95.toFixed(2)}ms | P99: ${r.p99.toFixed(2)}ms`);
-    console.log(`  Status: ${r.status.toUpperCase()} ${r.status === 'pass' ? '✅' : r.status === 'warning' ? '⚠️' : '❌'}`);
+    console.log(
+      `  Status: ${r.status.toUpperCase()} ${r.status === 'pass' ? '✅' : r.status === 'warning' ? '⚠️' : '❌'}`
+    );
   });
 
   // Recommendations
@@ -504,7 +509,9 @@ function generateReport(suite: BenchmarkSuite): void {
   console.log('\n\n📊 Performance Budget Compliance:');
   console.log('─'.repeat(80));
   const compliance = (suite.passCount / suite.results.length) * 100;
-  console.log(`  Compliance Rate: ${compliance.toFixed(1)}% (${suite.passCount}/${suite.results.length} passed)`);
+  console.log(
+    `  Compliance Rate: ${compliance.toFixed(1)}% (${suite.passCount}/${suite.results.length} passed)`
+  );
 
   if (compliance >= 90) {
     console.log('  Grade: A (Excellent) ✨');

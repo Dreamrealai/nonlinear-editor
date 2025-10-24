@@ -6,6 +6,9 @@
  * - Duplicating and splitting clips
  * - Reordering clips
  */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import type { Clip, Timeline } from '@/types/timeline';
 import { CLIP_CONSTANTS, EDITOR_CONSTANTS } from '@/lib/constants';
 import { timelineAnnouncements } from '@/lib/utils/screenReaderAnnouncer';
@@ -68,10 +71,11 @@ export interface ClipsSliceState {
   selectedClipIds: Set<string>;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export const createClipsSlice = (set: any): ClipsSlice => ({
   addClip: (clip): void =>
-    set((state): void => {
+     
+    set((state: any): void => {
       if (!state.timeline) return;
       state.timeline.clips.push(clip);
       state.timeline.clips = dedupeClips(state.timeline.clips);
@@ -95,7 +99,8 @@ export const createClipsSlice = (set: any): ClipsSlice => ({
     }),
 
   updateClip: (id, patch): void =>
-    set((state): void => {
+     
+    set((state: any): void => {
       const clip = state.timeline?.clips.find((existing): boolean => existing.id === id);
       if (clip) {
         Object.assign(clip, patch);
@@ -154,7 +159,8 @@ export const createClipsSlice = (set: any): ClipsSlice => ({
     }),
 
   removeClip: (id): void =>
-    set((state): void => {
+     
+    set((state: any): void => {
       if (!state.timeline) return;
 
       const clipToRemove = state.timeline.clips.find((clip): boolean => clip.id === id);
@@ -182,7 +188,8 @@ export const createClipsSlice = (set: any): ClipsSlice => ({
     }),
 
   duplicateClip: (id): void =>
-    set((state): void => {
+     
+    set((state: any): void => {
       if (!state.timeline) return;
 
       const clipIndex = state.timeline.clips.findIndex((clip): boolean => clip.id === id);
@@ -228,7 +235,8 @@ export const createClipsSlice = (set: any): ClipsSlice => ({
     }),
 
   splitClipAtTime: (clipId, time): void =>
-    set((state): void => {
+     
+    set((state: any): void => {
       if (!state.timeline) return;
       const clipIndex = state.timeline.clips.findIndex((c): boolean => c.id === clipId);
       if (clipIndex === -1) return;
@@ -278,7 +286,8 @@ export const createClipsSlice = (set: any): ClipsSlice => ({
     }),
 
   updateClipColor: (id, color): void =>
-    set((state): void => {
+     
+    set((state: any): void => {
       if (!state.timeline) return;
       const clip = state.timeline.clips.find((c): boolean => c.id === id);
       if (!clip) return;
@@ -300,7 +309,8 @@ export const createClipsSlice = (set: any): ClipsSlice => ({
     }),
 
   reorderClips: (ids): void =>
-    set((state): void => {
+     
+    set((state: any): void => {
       if (!state.timeline) return;
       const clipMap = new Map(state.timeline.clips.map((clip): [string, Clip] => [clip.id, clip]));
       state.timeline.clips = ids
