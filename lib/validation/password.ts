@@ -9,6 +9,11 @@ export interface PasswordValidationResult {
   errors?: string[];
 }
 
+export interface PasswordStrength {
+  score: number;
+  feedback: string;
+}
+
 const MIN_LENGTH = 8;
 const SPECIAL_CHARS_REGEX = /[!@#$%^&*(),.?":{}|<>]/;
 const UPPERCASE_REGEX = /[A-Z]/;
@@ -95,4 +100,82 @@ export function getPasswordStrengthLabel(score: number): {
   } else {
     return { label: 'Weak', color: 'text-red-600' };
   }
+}
+
+/**
+ * Validate password meets minimum requirements
+ * @param password - The password to validate
+ * @param confirmPassword - Optional password confirmation to check match
+ * @returns Error message if invalid, null if valid
+ */
+export function validatePassword(password: string, confirmPassword?: string): string | null {
+  if (password.length < MIN_LENGTH) {
+    return 'Password must be at least 8 characters long';
+  }
+
+  if (!LOWERCASE_REGEX.test(password)) {
+    return 'Password must contain at least one lowercase letter';
+  }
+
+  if (!UPPERCASE_REGEX.test(password)) {
+    return 'Password must contain at least one uppercase letter';
+  }
+
+  if (!NUMBER_REGEX.test(password)) {
+    return 'Password must contain at least one number';
+  }
+
+  if (!SPECIAL_CHARS_REGEX.test(password)) {
+    return 'Password must contain at least one special character';
+  }
+
+  if (confirmPassword !== undefined && password !== confirmPassword) {
+    return 'Passwords do not match';
+  }
+
+  return null;
+}
+
+/**
+ * Calculate password strength with 0-6 scoring (for backwards compatibility)
+ * @param password - The password to evaluate
+ * @returns Object containing score (0-6) and feedback text
+ */
+export function calculatePasswordStrength(password: string): PasswordStrength {
+  if (!password) {
+    return { score: 0, feedback: '' };
+  }
+
+  let score = 0;
+
+  // Length checks
+  if (password.length >= 8) score++;
+  if (password.length >= 12) score++;
+
+  // Character variety checks
+  if (LOWERCASE_REGEX.test(password)) score++;
+  if (UPPERCASE_REGEX.test(password)) score++;
+  if (NUMBER_REGEX.test(password)) score++;
+  if (SPECIAL_CHARS_REGEX.test(password)) score++;
+
+  // Determine feedback based on score
+  let feedback = '';
+  if (score <= 2) feedback = 'Weak';
+  else if (score <= 4) feedback = 'Fair';
+  else if (score <= 5) feedback = 'Good';
+  else feedback = 'Strong';
+
+  return { score, feedback };
+}
+
+/**
+ * Get the Tailwind CSS background color class for password strength indicator
+ * @param score - The password strength score (0-6)
+ * @returns Tailwind CSS background color class
+ */
+export function getPasswordStrengthColor(score: number): string {
+  if (score <= 2) return 'bg-red-500';
+  if (score <= 4) return 'bg-yellow-500';
+  if (score <= 5) return 'bg-blue-500';
+  return 'bg-green-500';
 }

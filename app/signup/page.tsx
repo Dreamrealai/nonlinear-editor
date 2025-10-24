@@ -15,7 +15,7 @@ import {
   calculatePasswordStrength,
   getPasswordStrengthColor,
   validatePassword,
-} from '@/lib/password-validation';
+} from '@/lib/validation/password';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
