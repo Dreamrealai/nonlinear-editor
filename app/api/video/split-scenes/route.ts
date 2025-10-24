@@ -171,27 +171,56 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   const videoClient = new VideoIntelligenceServiceClient({ credentials });
   const storageClient = new Storage({ credentials });
 
-  // Get or create GCS bucket for temporary video processing
-  const bucketName = process.env['GCS_BUCKET_NAME'] || `${credentials.project_id}-video-processing`;
+  // Get GCS bucket for temporary video processing (MUST be created via Terraform)
+  const bucketName = process.env['GCS_BUCKET_NAME'];
+
+  // SECURITY: Require explicit bucket configuration (no auto-creation)
+  if (!bucketName) {
+    serverLogger.error({ assetId, projectId }, 'GCS_BUCKET_NAME environment variable not set');
+    return NextResponse.json(
+      {
+        error: 'GCS bucket not configured',
+        message:
+          'GCS_BUCKET_NAME environment variable is not set. Configure infrastructure with Terraform.',
+        details: 'See /docs/INFRASTRUCTURE.md for setup instructions.',
+      },
+      { status: 503 }
+    );
+  }
+
   const bucket = storageClient.bucket(bucketName);
 
-  // Check if bucket exists, create if it doesn't
+  // Check if bucket exists (NO AUTO-CREATION for security)
   try {
     const [exists] = await bucket.exists();
     if (!exists) {
-      serverLogger.info({ bucketName, assetId, projectId }, 'Creating GCS bucket');
-      await storageClient.createBucket(bucketName, {
-        location: 'US',
-        storageClass: 'STANDARD',
-      });
-      serverLogger.info({ bucketName, assetId, projectId }, 'GCS bucket created successfully');
+      serverLogger.error(
+        { bucketName, assetId, projectId },
+        'GCS bucket does not exist - must be created via Terraform'
+      );
+      return NextResponse.json(
+        {
+          error: 'GCS bucket not found',
+          message: `Bucket "${bucketName}" does not exist. Create it using Terraform first.`,
+          details: 'See /docs/INFRASTRUCTURE.md for setup instructions.',
+        },
+        { status: 503 }
+      );
     }
+    serverLogger.info({ bucketName, assetId, projectId }, 'GCS bucket verified');
   } catch (bucketError) {
     serverLogger.error(
       { bucketError, bucketName, assetId, projectId },
-      'Bucket check/creation error'
+      'Error checking bucket existence'
     );
-    // Continue anyway - the bucket might exist but we don't have permissions to check
+    return NextResponse.json(
+      {
+        error: 'GCS bucket check failed',
+        message: 'Unable to verify GCS bucket existence. Check service account permissions.',
+        details: bucketError instanceof Error ? bucketError.message : 'Unknown error',
+      },
+      { status: 502 }
+    );
   }
 
   // Upload video to GCS

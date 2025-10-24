@@ -161,7 +161,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...
 # Google AI Services (Veo video generation, Imagen image generation, scene detection)
 # Get from: https://console.cloud.google.com
 GOOGLE_SERVICE_ACCOUNT={"type":"service_account","project_id":"..."}
-GCS_BUCKET_NAME=your-video-processing-bucket  # Auto-created if not specified
+GCS_BUCKET_NAME=your-video-processing-bucket  # MUST be created via Terraform (see /docs/INFRASTRUCTURE.md)
 
 # Gemini AI Chat (Get from: https://ai.google.dev)
 GEMINI_API_KEY=your-gemini-api-key
@@ -226,6 +226,7 @@ All project documentation has been organized into the `/docs/` directory. See th
 ### Quick Links
 
 - **[Complete Documentation Index](docs/README.md)** - All documentation organized by category
+- **[Infrastructure Guide](docs/INFRASTRUCTURE.md)** - Terraform setup for GCS buckets (REQUIRED for video features)
 - **[API Reference](docs/api/API_QUICK_REFERENCE.md)** - Quick API reference guide
 - **[Setup Guides](docs/setup/)** - Configuration and setup instructions
 - **[Security](docs/security/SECURITY.md)** - Security features and best practices
@@ -254,18 +255,18 @@ All project documentation has been organized into the `/docs/` directory. See th
 
 ### Optional AI Variables
 
-| Variable                 | Description                       | Get From                                                                          |
-| ------------------------ | --------------------------------- | --------------------------------------------------------------------------------- |
-| `GOOGLE_SERVICE_ACCOUNT` | Google Cloud service account JSON | [Google Cloud Console](https://console.cloud.google.com) → IAM → Service Accounts |
-| `GCS_BUCKET_NAME`        | GCS bucket for video processing   | Auto-created if not specified                                                     |
-| `GEMINI_API_KEY`         | Google Gemini API key             | [Google AI Studio](https://ai.google.dev)                                         |
-| `FAL_API_KEY`            | fal.ai API key for upscaling      | [fal.ai](https://fal.ai)                                                          |
-| `COMET_API_KEY`          | Comet API (Suno wrapper)          | [Comet API](https://cometapi.com)                                                 |
-| `ELEVENLABS_API_KEY`     | ElevenLabs TTS API key            | [ElevenLabs](https://elevenlabs.io)                                               |
-| `WAVESPEED_API_KEY`      | Wavespeed audio API key           | Wavespeed provider                                                                |
-| `AXIOM_TOKEN`            | Axiom logging token               | [Axiom](https://axiom.co)                                                         |
-| `AXIOM_DATASET`          | Axiom dataset name                | Axiom Dashboard                                                                   |
-| `NEXT_PUBLIC_APP_URL`    | Application URL                   | Auto-detected (optional)                                                          |
+| Variable                 | Description                       | Get From                                                                                           |
+| ------------------------ | --------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `GOOGLE_SERVICE_ACCOUNT` | Google Cloud service account JSON | [Google Cloud Console](https://console.cloud.google.com) → IAM → Service Accounts                  |
+| `GCS_BUCKET_NAME`        | GCS bucket for video processing   | **REQUIRED** - Must be created via Terraform (see [Infrastructure Guide](/docs/INFRASTRUCTURE.md)) |
+| `GEMINI_API_KEY`         | Google Gemini API key             | [Google AI Studio](https://ai.google.dev)                                                          |
+| `FAL_API_KEY`            | fal.ai API key for upscaling      | [fal.ai](https://fal.ai)                                                                           |
+| `COMET_API_KEY`          | Comet API (Suno wrapper)          | [Comet API](https://cometapi.com)                                                                  |
+| `ELEVENLABS_API_KEY`     | ElevenLabs TTS API key            | [ElevenLabs](https://elevenlabs.io)                                                                |
+| `WAVESPEED_API_KEY`      | Wavespeed audio API key           | Wavespeed provider                                                                                 |
+| `AXIOM_TOKEN`            | Axiom logging token               | [Axiom](https://axiom.co)                                                                          |
+| `AXIOM_DATASET`          | Axiom dataset name                | Axiom Dashboard                                                                                    |
+| `NEXT_PUBLIC_APP_URL`    | Application URL                   | Auto-detected (optional)                                                                           |
 
 See [Environment Variables Documentation](docs/setup/ENVIRONMENT_VARIABLES.md) for detailed descriptions.
 

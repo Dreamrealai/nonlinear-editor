@@ -1,0 +1,71 @@
+# =============================================================================
+# Terraform Variables - Example Configuration
+# =============================================================================
+#
+# SETUP:
+# 1. Copy this file: cp terraform.tfvars.example terraform.tfvars
+# 2. Fill in your actual values (never commit terraform.tfvars)
+# 3. Run: terraform init
+# 4. Run: terraform plan
+# 5. Run: terraform apply
+#
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Required Variables
+# -----------------------------------------------------------------------------
+
+# Google Cloud Project ID
+# Get from: gcloud config get-value project
+project_id = "your-project-id"
+
+# Video processing bucket name (must be globally unique)
+# Format: lowercase, alphanumeric, hyphens only
+# Example: "mycompany-video-processing" or "mycompany-dev-video-processing"
+video_processing_bucket_name = "your-project-video-processing"
+
+# -----------------------------------------------------------------------------
+# Optional Variables
+# -----------------------------------------------------------------------------
+
+# Environment name (dev, staging, production)
+environment = "production"
+
+# Default region for resources
+region = "us-central1"
+
+# Number of days before objects are automatically deleted
+# Recommended: 7 days for temporary processing files
+lifecycle_age_days = 7
+
+# Enable object versioning (useful for auditing, but increases costs)
+enable_versioning = false
+
+# Enable uniform bucket-level access (recommended for security)
+enable_uniform_bucket_level_access = true
+
+# Service account emails that need access to buckets
+# Example: ["service-account@your-project.iam.gserviceaccount.com"]
+allowed_service_accounts = []
+
+# =============================================================================
+# Multi-Environment Examples
+# =============================================================================
+
+# Development Environment:
+# environment = "dev"
+# video_processing_bucket_name = "your-project-dev-video-processing"
+# lifecycle_age_days = 3
+# enable_versioning = false
+
+# Staging Environment:
+# environment = "staging"
+# video_processing_bucket_name = "your-project-staging-video-processing"
+# lifecycle_age_days = 5
+# enable_versioning = false
+
+# Production Environment:
+# environment = "production"
+# video_processing_bucket_name = "your-project-prod-video-processing"
+# lifecycle_age_days = 7
+# enable_versioning = true

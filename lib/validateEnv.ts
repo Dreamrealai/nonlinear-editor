@@ -73,7 +73,8 @@ const ENV_VARS: EnvVarConfig[] = [
     required: true,
     description: 'Supabase project URL',
     validator: (val) => /^https:\/\/[a-z0-9]+\.supabase\.co$/.test(val),
-    validationError: 'NEXT_PUBLIC_SUPABASE_URL must be a valid Supabase URL (https://*.supabase.co)',
+    validationError:
+      'NEXT_PUBLIC_SUPABASE_URL must be a valid Supabase URL (https://*.supabase.co)',
     example: 'https://xxxxxxxxxxxxx.supabase.co',
   },
   {
@@ -145,7 +146,8 @@ const ENV_VARS: EnvVarConfig[] = [
         return false;
       }
     },
-    validationError: 'GOOGLE_SERVICE_ACCOUNT must be valid service account JSON with type, project_id, and private_key',
+    validationError:
+      'GOOGLE_SERVICE_ACCOUNT must be valid service account JSON with type, project_id, and private_key',
     example: '{"type":"service_account","project_id":"...","private_key":"..."}',
   },
   {
@@ -166,10 +168,12 @@ const ENV_VARS: EnvVarConfig[] = [
   },
   {
     name: 'GCS_BUCKET_NAME',
-    required: false,
-    description: 'Google Cloud Storage bucket name for video processing (auto-created if not set)',
+    required: false, // Optional but strongly recommended if using Video Intelligence API
+    description:
+      'Google Cloud Storage bucket name for video processing (MUST be created via Terraform - no auto-creation)',
     validator: (val) => /^[a-z0-9][a-z0-9_-]{1,61}[a-z0-9]$/.test(val),
-    validationError: 'GCS_BUCKET_NAME must be a valid GCS bucket name (lowercase, alphanumeric, hyphens)',
+    validationError:
+      'GCS_BUCKET_NAME must be a valid GCS bucket name (lowercase, alphanumeric, hyphens, 3-63 chars)',
     example: 'my-project-video-processing',
   },
 
@@ -299,8 +303,8 @@ function validateEnvVar(config: EnvVarConfig): ValidationResult {
   if (config.required && !value) {
     errors.push(
       `Missing required environment variable: ${config.name}\n` +
-      `  Description: ${config.description}\n` +
-      (config.example ? `  Example: ${config.example}` : '')
+        `  Description: ${config.description}\n` +
+        (config.example ? `  Example: ${config.example}` : '')
     );
     return { isValid: false, errors, warnings };
   }
@@ -315,8 +319,8 @@ function validateEnvVar(config: EnvVarConfig): ValidationResult {
     const errorMsg = config.validationError || `Invalid format for ${config.name}`;
     errors.push(
       `${errorMsg}\n` +
-      `  Description: ${config.description}\n` +
-      (config.example ? `  Example: ${config.example}` : '')
+        `  Description: ${config.description}\n` +
+        (config.example ? `  Example: ${config.example}` : '')
     );
     return { isValid: false, errors, warnings };
   }
@@ -355,17 +359,14 @@ function checkCommonIssues(errors: string[], warnings: string[]) {
   const env = process.env;
 
   // Check if at least one AI service is configured
-  const hasAIService =
-    env.AISTUDIO_API_KEY ||
-    env.GEMINI_API_KEY ||
-    env.GOOGLE_SERVICE_ACCOUNT;
+  const hasAIService = env.AISTUDIO_API_KEY || env.GEMINI_API_KEY || env.GOOGLE_SERVICE_ACCOUNT;
 
   if (!hasAIService) {
     warnings.push(
       'No AI service configured. Set one of:\n' +
-      '  - AISTUDIO_API_KEY (recommended for Gemini)\n' +
-      '  - GEMINI_API_KEY (alternative for Gemini)\n' +
-      '  - GOOGLE_SERVICE_ACCOUNT (for Vertex AI, Veo, Imagen)'
+        '  - AISTUDIO_API_KEY (recommended for Gemini)\n' +
+        '  - GEMINI_API_KEY (alternative for Gemini)\n' +
+        '  - GOOGLE_SERVICE_ACCOUNT (for Vertex AI, Veo, Imagen)'
     );
   }
 
@@ -373,7 +374,7 @@ function checkCommonIssues(errors: string[], warnings: string[]) {
   if (env.SUPABASE_SERVICE_ROLE_KEY && env.SUPABASE_SERVICE_SECRET) {
     warnings.push(
       'Both SUPABASE_SERVICE_ROLE_KEY and SUPABASE_SERVICE_SECRET are set.\n' +
-      '  Only one is needed. SUPABASE_SERVICE_ROLE_KEY will be used.'
+        '  Only one is needed. SUPABASE_SERVICE_ROLE_KEY will be used.'
     );
   }
 
@@ -381,8 +382,8 @@ function checkCommonIssues(errors: string[], warnings: string[]) {
   if (env.NODE_ENV === 'production' && !env.NEXT_PUBLIC_BASE_URL && !env.NEXT_PUBLIC_APP_URL) {
     warnings.push(
       'NEXT_PUBLIC_BASE_URL is not set in production.\n' +
-      '  This may cause issues with redirects and webhooks.\n' +
-      '  Set it to your production domain (e.g., https://app.dreamreal.ai)'
+        '  This may cause issues with redirects and webhooks.\n' +
+        '  Set it to your production domain (e.g., https://app.dreamreal.ai)'
     );
   }
 
@@ -390,7 +391,7 @@ function checkCommonIssues(errors: string[], warnings: string[]) {
   if (env.NODE_ENV === 'production' && !env.STRIPE_WEBHOOK_SECRET) {
     errors.push(
       'STRIPE_WEBHOOK_SECRET is required in production for webhook verification.\n' +
-      '  Get it from Stripe Dashboard > Developers > Webhooks'
+        '  Get it from Stripe Dashboard > Developers > Webhooks'
     );
   }
 
@@ -398,7 +399,16 @@ function checkCommonIssues(errors: string[], warnings: string[]) {
   if (env.AXIOM_TOKEN && !env.AXIOM_DATASET) {
     warnings.push(
       'AXIOM_TOKEN is set but AXIOM_DATASET is missing.\n' +
-      '  Logs will not be sent to Axiom without a dataset name.'
+        '  Logs will not be sent to Axiom without a dataset name.'
+    );
+  }
+
+  // Warn if Google Cloud credentials are set but GCS bucket is not configured
+  if (env.GOOGLE_SERVICE_ACCOUNT && !env.GCS_BUCKET_NAME) {
+    warnings.push(
+      'GOOGLE_SERVICE_ACCOUNT is set but GCS_BUCKET_NAME is missing.\n' +
+        '  Video scene detection features require a GCS bucket.\n' +
+        '  Create bucket using Terraform (see /docs/INFRASTRUCTURE.md)'
     );
   }
 
@@ -412,8 +422,7 @@ function checkCommonIssues(errors: string[], warnings: string[]) {
   for (const { correct, wrong } of commonTypos) {
     if (!env[correct] && env[wrong]) {
       warnings.push(
-        `Found ${wrong} but expected ${correct}.\n` +
-        `  Did you mean to use ${correct}?`
+        `Found ${wrong} but expected ${correct}.\n` + `  Did you mean to use ${correct}?`
       );
     }
   }
@@ -423,14 +432,13 @@ function checkCommonIssues(errors: string[], warnings: string[]) {
  * Validates environment variables and throws if invalid
  * Only validates in development mode by default
  */
-export function validateEnv(options: {
-  throwOnError?: boolean;
-  mode?: 'development' | 'production' | 'all';
-} = {}) {
-  const {
-    throwOnError = true,
-    mode = 'development',
-  } = options;
+export function validateEnv(
+  options: {
+    throwOnError?: boolean;
+    mode?: 'development' | 'production' | 'all';
+  } = {}
+) {
+  const { throwOnError = true, mode = 'development' } = options;
 
   // Skip validation in production unless mode is 'all' or 'production'
   const shouldValidate =
@@ -462,7 +470,7 @@ export function validateEnv(options: {
     if (throwOnError) {
       throw new Error(
         `Environment validation failed with ${result.errors.length} error(s). ` +
-        `Check the error messages above for details.`
+          `Check the error messages above for details.`
       );
     }
   } else {
@@ -474,7 +482,7 @@ export function validateEnv(options: {
  * Gets a list of all environment variables and their status
  */
 export function getEnvStatus() {
-  return ENV_VARS.map(config => ({
+  return ENV_VARS.map((config) => ({
     name: config.name,
     required: config.required,
     configured: !!process.env[config.name]?.trim(),
@@ -490,17 +498,17 @@ export function printEnvStatus() {
 
   console.log('\n📋 Environment Variables Status:\n');
 
-  const required = status.filter(s => s.required);
-  const optional = status.filter(s => !s.required);
+  const required = status.filter((s) => s.required);
+  const optional = status.filter((s) => !s.required);
 
   console.log('Required Variables:');
-  required.forEach(s => {
+  required.forEach((s) => {
     const icon = s.configured ? '✅' : '❌';
     console.log(`  ${icon} ${s.name} - ${s.description}`);
   });
 
   console.log('\nOptional Variables:');
-  optional.forEach(s => {
+  optional.forEach((s) => {
     const icon = s.configured ? '✅' : '⚪';
     console.log(`  ${icon} ${s.name} - ${s.description}`);
   });
