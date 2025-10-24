@@ -5,14 +5,31 @@
 import Stripe from 'stripe';
 import { serverLogger } from '@/lib/serverLogger';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not set in environment variables');
+// Lazy initialization to avoid build-time errors
+// The Stripe client will be initialized on first use at runtime
+let stripeInstance: Stripe | null = null;
+
+function getStripeClient(): Stripe {
+  if (!stripeInstance) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('STRIPE_SECRET_KEY is not set in environment variables');
+    }
+
+    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-09-30.clover',
+      typescript: true,
+    });
+  }
+
+  return stripeInstance;
 }
 
-// Initialize Stripe with the secret key
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-09-30.clover',
-  typescript: true,
+// Export a getter that initializes Stripe lazily
+export const stripe = new Proxy({} as Stripe, {
+  get: (target, prop) => {
+    const client = getStripeClient();
+    return client[prop as keyof Stripe];
+  },
 });
 
 // Stripe Price IDs (you'll need to create these in your Stripe Dashboard)
@@ -37,12 +54,15 @@ export async function getOrCreateStripeCustomer(params: {
       await stripe.customers.retrieve(stripeCustomerId);
       return stripeCustomerId;
     } catch (error) {
-      serverLogger.warn({
-        event: 'stripe.customer.retrieve_failed',
-        customerId: stripeCustomerId,
-        userId,
-        error,
-      }, 'Failed to retrieve existing Stripe customer, creating new one');
+      serverLogger.warn(
+        {
+          event: 'stripe.customer.retrieve_failed',
+          customerId: stripeCustomerId,
+          userId,
+          error,
+        },
+        'Failed to retrieve existing Stripe customer, creating new one'
+      );
       // Customer doesn't exist, create a new one
     }
   }
@@ -125,9 +145,7 @@ export async function cancelSubscriptionAtPeriodEnd(
 /**
  * Resume a subscription that was set to cancel
  */
-export async function resumeSubscription(
-  subscriptionId: string
-): Promise<Stripe.Subscription> {
+export async function resumeSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
   return await stripe.subscriptions.update(subscriptionId, {
     cancel_at_period_end: false,
   });
