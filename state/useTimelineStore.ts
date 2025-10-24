@@ -49,7 +49,7 @@ type TimelineStore = {
   timeline: Timeline | null;
 
   // ===== Timeline Actions =====
-  setTimeline: (timeline: Timeline) => void;
+  setTimeline: (timeline: Timeline | null) => void;
   getTimeline: () => Timeline | null;
 
   // ===== Clip Actions =====

@@ -164,8 +164,10 @@ export const useEditorActions = () => {
   // ===== Initialization =====
 
   const initializeEditor = (timeline: Timeline | null) => {
-    useTimelineStore.getState().setTimeline(timeline);
-    useHistoryStore.getState().initializeHistory(timeline);
+    if (timeline) {
+      useTimelineStore.getState().setTimeline(timeline);
+      useHistoryStore.getState().initializeHistory(timeline);
+    }
     useSelectionStore.getState().clearSelection();
     useClipboardStore.getState().clearClipboard();
     usePlaybackStore.getState().setCurrentTime(0);
