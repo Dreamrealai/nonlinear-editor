@@ -91,6 +91,9 @@ export function AssetPanel({
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [showFilters, setShowFilters] = useState(false);
 
+  // Version history state
+  const [versionHistoryAsset, setVersionHistoryAsset] = useState<AssetRow | null>(null);
+
   // Filter, search, and sort assets
   const filteredAssets = useMemo(() => {
     let filtered = assets.filter((a) =>
