@@ -2,6 +2,22 @@
 
 This directory contains all project documentation organized by category.
 
+## 🚀 Quick Start
+
+### Essential Documentation
+
+- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - **NEW!** Comprehensive project status dashboard with all active workstreams, sprint planning, and progress tracking
+- **[ISSUETRACKING.md](./issues/ISSUETRACKING.md)** - Detailed issue tracking and resolution history
+- **[CODING_BEST_PRACTICES.md](./CODING_BEST_PRACTICES.md)** - Essential coding patterns and standards
+- **[TESTING.md](./TESTING.md)** - Testing guidelines and best practices
+- **[ARCHITECTURE_OVERVIEW.md](./ARCHITECTURE_OVERVIEW.md)** - System architecture and design
+
+### Recent Reports
+
+- **[TEST_SUCCESS_REPORT.md](./reports/TEST_SUCCESS_REPORT.md)** - Current test status (87.3% pass rate)
+- **[FINAL_QUALITY_AUDIT.md](./reports/FINAL_QUALITY_AUDIT.md)** - Code quality assessment (B+ / 7.2/10)
+- **[BUNDLE_ANALYSIS.md](./reports/BUNDLE_ANALYSIS.md)** - Bundle size optimization analysis
+
 ## Directory Structure
 
 ### `/api/` - API Documentation

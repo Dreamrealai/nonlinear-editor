@@ -7,7 +7,7 @@
 import { type ChangeEvent, useRef } from 'react';
 import NextImage from 'next/image';
 import Link from 'next/link';
-import type { AssetRow } from './editorUtils';
+import type { AssetRow } from '@/types/assets';
 import { extractFileName } from './editorUtils';
 
 type AssetPanelProps = {

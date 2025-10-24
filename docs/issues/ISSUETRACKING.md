@@ -4,6 +4,8 @@
 **Project**: Non-Linear Video Editor
 **Status**: Updated after parallel agent fixes and comprehensive infrastructure improvements
 
+> **📊 NEW: [Project Status Dashboard](../PROJECT_STATUS.md)** - For a comprehensive view of all active workstreams, see the new [PROJECT_STATUS.md](../PROJECT_STATUS.md) which includes sprint planning, progress tracking, and actionable tasks.
+
 ## Executive Summary
 
 This report tracks the status of issues identified in the comprehensive codebase audit from October 22, 2025. Significant progress made through parallel agent fixes on October 23, 2025.
@@ -11,6 +13,13 @@ This report tracks the status of issues identified in the comprehensive codebase
 **Original Issues**: 87 issues across all categories
 **Issues Resolved**: 78 (90%)
 **Issues Remaining**: 18 (10%) - includes 9 newly discovered
+
+### Quick Links
+
+- **[Project Status Dashboard](../PROJECT_STATUS.md)** - Active workstreams and sprint planning
+- **[Test Success Report](../reports/TEST_SUCCESS_REPORT.md)** - Detailed test results
+- **[Quality Audit](../reports/FINAL_QUALITY_AUDIT.md)** - Code quality assessment
+- **[Bundle Analysis](../reports/BUNDLE_ANALYSIS.md)** - Bundle size optimization
 
 ### Status by Severity
 
