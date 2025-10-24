@@ -113,7 +113,7 @@ const handleThumbnailGeneration: AuthenticatedHandler<{ assetId: string }> = asy
     if (text.trim()) {
       body = JSON.parse(text);
     }
-  } catch (parseError) {
+  } catch {
     return badRequestResponse('Invalid JSON in request body');
   }
 

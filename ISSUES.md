@@ -1326,9 +1326,9 @@ Created ResizableAssetPanel component wrapping AssetPanel with full resize funct
 
 - **P0:** 0 hours (All resolved!)
 - **P1:** 308-437 hours (down from 310-440h after fixing Issue #49)
-- **P2:** 341-472 hours
+- **P2:** 337-466 hours (down from 341-472h after fixing Issue #31)
 - **P3:** 98-136 hours (down from 100-140h after fixing Issue #53)
-- **Total:** 747-1045 hours (down from 749-1049h)
+- **Total:** 743-1039 hours (down from 747-1045h)
 
 ### Recent Fixes (2025-10-24)
 

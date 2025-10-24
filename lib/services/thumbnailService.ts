@@ -101,8 +101,14 @@ export class ThumbnailService {
 
     // Create temporary files
     const tempDir = os.tmpdir();
-    const videoPath = path.join(tempDir, `video-${Date.now()}-${Math.random().toString(36).slice(2)}.mp4`);
-    const thumbnailPath = path.join(tempDir, `thumbnail-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`);
+    const videoPath = path.join(
+      tempDir,
+      `video-${Date.now()}-${Math.random().toString(36).slice(2)}.mp4`
+    );
+    const thumbnailPath = path.join(
+      tempDir,
+      `thumbnail-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
+    );
 
     try {
       // Write video buffer to temp file
@@ -207,11 +213,7 @@ export class ThumbnailService {
     imageBuffer: Buffer,
     options: ImageThumbnailOptions = {}
   ): Promise<{ buffer: Buffer; metadata: ThumbnailMetadata }> {
-    const {
-      width = this.defaultWidth,
-      height,
-      quality = this.defaultQuality,
-    } = options;
+    const { width = this.defaultWidth, height, quality = this.defaultQuality } = options;
 
     try {
       let pipeline = sharp(imageBuffer);
@@ -259,7 +261,10 @@ export class ThumbnailService {
    */
   async getVideoDuration(videoBuffer: Buffer): Promise<number> {
     const tempDir = os.tmpdir();
-    const videoPath = path.join(tempDir, `video-${Date.now()}-${Math.random().toString(36).slice(2)}.mp4`);
+    const videoPath = path.join(
+      tempDir,
+      `video-${Date.now()}-${Math.random().toString(36).slice(2)}.mp4`
+    );
 
     try {
       await fs.promises.writeFile(videoPath, videoBuffer);
@@ -282,7 +287,7 @@ export class ThumbnailService {
         if (fs.existsSync(videoPath)) {
           await fs.promises.unlink(videoPath);
         }
-      } catch (cleanupError) {
+      } catch {
         // Ignore cleanup errors
       }
     }
