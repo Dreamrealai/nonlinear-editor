@@ -332,3 +332,5 @@ export function KeyframeEditorShell({ assets }: KeyframeEditorShellProps) {
 
   return <KeyframeEditorContent assets={assets} supabase={supabaseClient} />;
 }
+
+export default KeyframeEditorShell;

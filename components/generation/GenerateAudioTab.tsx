@@ -92,3 +92,5 @@ export function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
     </div>
   );
 }
+
+export default GenerateAudioTab;

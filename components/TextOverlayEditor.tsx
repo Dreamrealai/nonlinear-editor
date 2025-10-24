@@ -379,3 +379,5 @@ export function TextOverlayEditor({
     </>
   );
 }
+
+export default TextOverlayEditor;

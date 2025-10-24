@@ -248,3 +248,5 @@ export function ExportModal({ isOpen, onClose, projectId, timeline }: ExportModa
     </Dialog>
   );
 }
+
+export default ExportModal;

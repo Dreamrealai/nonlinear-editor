@@ -223,3 +223,5 @@ export function PreviewPlayer() {
     </div>
   );
 }
+
+export default PreviewPlayer;

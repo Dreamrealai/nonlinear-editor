@@ -25,11 +25,7 @@ interface AssetLibraryModalProps {
   onClose: () => void;
 }
 
-export function AssetLibraryModal({
-  projectId,
-  onSelect,
-  onClose,
-}: AssetLibraryModalProps) {
+export function AssetLibraryModal({ projectId, onSelect, onClose }: AssetLibraryModalProps) {
   const [assets, setAssets] = useState<ImageAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -177,3 +173,5 @@ export function AssetLibraryModal({
     </div>
   );
 }
+
+export default AssetLibraryModal;

@@ -272,3 +272,5 @@ export function ClipPropertiesPanel() {
     </div>
   );
 }
+
+export default ClipPropertiesPanel;

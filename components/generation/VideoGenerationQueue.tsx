@@ -81,3 +81,5 @@ export function VideoGenerationQueue({
     </div>
   );
 }
+
+export default VideoGenerationQueue;

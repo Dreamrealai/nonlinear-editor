@@ -577,3 +577,5 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
     </div>
   );
 }
+
+export default ChatBox;
