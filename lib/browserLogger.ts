@@ -34,6 +34,7 @@ type LogEntry = {
   data?: Record<string, unknown>;
   userAgent?: string;
   url?: string;
+  correlationId?: string; // For request tracing
 };
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
@@ -44,14 +45,42 @@ const BATCH_INTERVAL_MS = 5000;
 // Track if global handlers are installed (singleton)
 let globalHandlersInstalled = false;
 
+// Generate a unique session ID for tracking user sessions
+const sessionId =
+  typeof window !== 'undefined'
+    ? `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+    : null;
+
+/**
+ * Generate a correlation ID for request tracing
+ */
+function generateCorrelationId(): string {
+  return `cor_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+}
+
 class BrowserLogger {
   private queue: LogEntry[] = [];
   private flushTimer: NodeJS.Timeout | null = null;
   private baseContext: Record<string, unknown> = {};
+  private currentCorrelationId: string | null = null;
 
   constructor(baseContext: Record<string, unknown> = {}) {
     this.baseContext = baseContext;
     // Note: Global error handlers are set up at module level after singleton creation
+  }
+
+  /**
+   * Set correlation ID for the current operation (e.g., API request)
+   */
+  setCorrelationId(correlationId: string): void {
+    this.currentCorrelationId = correlationId;
+  }
+
+  /**
+   * Clear correlation ID after operation completes
+   */
+  clearCorrelationId(): void {
+    this.currentCorrelationId = null;
   }
 
   /**
@@ -130,13 +159,22 @@ class BrowserLogger {
       level,
       timestamp: new Date().toISOString(),
       message,
-      data: { ...this.baseContext, ...data },
+      data: {
+        ...this.baseContext,
+        ...data,
+        sessionId, // Add session tracking
+      },
     };
 
     // Add browser context
     if (typeof window !== 'undefined') {
       entry.userAgent = window.navigator.userAgent;
       entry.url = window.location.href;
+    }
+
+    // Add correlation ID if set
+    if (this.currentCorrelationId) {
+      entry.correlationId = this.currentCorrelationId;
     }
 
     // In development, also log to console
@@ -308,13 +346,14 @@ if (typeof window !== 'undefined' && !globalHandlersInstalled) {
 
     browserLogger.error(
       {
-        error: event.reason instanceof Error
-          ? {
-              name: event.reason.name,
-              message: event.reason.message,
-              stack: event.reason.stack,
-            }
-          : { value: event.reason },
+        error:
+          event.reason instanceof Error
+            ? {
+                name: event.reason.name,
+                message: event.reason.message,
+                stack: event.reason.stack,
+              }
+            : { value: event.reason },
         type: 'unhandled_rejection',
       },
       `Unhandled promise rejection: ${event.reason?.message || event.reason}`
@@ -352,13 +391,32 @@ if (typeof window !== 'undefined' && !globalHandlersInstalled) {
     // Call original console.warn
     originalConsoleWarn.apply(console, args);
 
-    // Skip PixiJS warnings
     const message = String(args[0] || '');
-    if (message.includes('PixiJS')) {
+
+    // Filter out known non-critical warnings to reduce noise
+    const ignoredPatterns = [
+      'PixiJS', // PixiJS deprecation warnings
+      'THREE.', // Three.js warnings
+      'ResizeObserver loop', // Common browser warning
+      'Chrome extensions', // Extension warnings
+      'Download the React DevTools', // React DevTools suggestion
+      'componentWillReceiveProps', // React lifecycle warnings (if using older deps)
+      'findDOMNode is deprecated', // React DOM warnings
+    ];
+
+    // Skip if message matches any ignored pattern
+    if (ignoredPatterns.some((pattern) => message.includes(pattern))) {
+      // Log to debug instead for visibility if needed
+      if (isDevelopment) {
+        browserLogger.debug(
+          { message, source: 'console.warn', filtered: true },
+          'Filtered console warning'
+        );
+      }
       return;
     }
 
-    // Log to our logger
+    // Log to our logger for non-filtered warnings
     browserLogger.warn(
       {
         consoleArgs: args,
@@ -373,3 +431,106 @@ if (typeof window !== 'undefined' && !globalHandlersInstalled) {
  * Type export for compatibility with server logger
  */
 export type Logger = BrowserLogger;
+
+/**
+ * Export correlation ID utilities for use in API calls
+ */
+export { generateCorrelationId };
+
+/**
+ * Initialize Web Vitals monitoring
+ * Reports Core Web Vitals (LCP, FID, CLS, FCP, TTFB) to Axiom
+ */
+if (typeof window !== 'undefined') {
+  // Define metric interface for type safety
+  interface WebVitalMetric {
+    value: number;
+    rating: string;
+    delta: number;
+    id: string;
+    name: string;
+    navigationType?: string;
+  }
+
+  // Use dynamic import to avoid SSR issues
+  import('web-vitals')
+    .then(({ onCLS, onLCP, onFCP, onTTFB, onINP }) => {
+      // Core Web Vitals
+      onCLS((metric: WebVitalMetric) => {
+        browserLogger.info(
+          {
+            type: 'web_vital',
+            metric: 'CLS',
+            value: metric.value,
+            rating: metric.rating,
+            delta: metric.delta,
+            id: metric.id,
+          },
+          `Web Vital: CLS = ${metric.value.toFixed(4)} (${metric.rating})`
+        );
+      });
+
+      onLCP((metric: WebVitalMetric) => {
+        browserLogger.info(
+          {
+            type: 'web_vital',
+            metric: 'LCP',
+            value: metric.value,
+            rating: metric.rating,
+            delta: metric.delta,
+            id: metric.id,
+          },
+          `Web Vital: LCP = ${metric.value.toFixed(2)}ms (${metric.rating})`
+        );
+      });
+
+      onFCP((metric: WebVitalMetric) => {
+        browserLogger.info(
+          {
+            type: 'web_vital',
+            metric: 'FCP',
+            value: metric.value,
+            rating: metric.rating,
+            delta: metric.delta,
+            id: metric.id,
+          },
+          `Web Vital: FCP = ${metric.value.toFixed(2)}ms (${metric.rating})`
+        );
+      });
+
+      onTTFB((metric: WebVitalMetric) => {
+        browserLogger.info(
+          {
+            type: 'web_vital',
+            metric: 'TTFB',
+            value: metric.value,
+            rating: metric.rating,
+            delta: metric.delta,
+            id: metric.id,
+          },
+          `Web Vital: TTFB = ${metric.value.toFixed(2)}ms (${metric.rating})`
+        );
+      });
+
+      // Interaction to Next Paint (newer metric replacing FID)
+      onINP((metric: WebVitalMetric) => {
+        browserLogger.info(
+          {
+            type: 'web_vital',
+            metric: 'INP',
+            value: metric.value,
+            rating: metric.rating,
+            delta: metric.delta,
+            id: metric.id,
+          },
+          `Web Vital: INP = ${metric.value.toFixed(2)}ms (${metric.rating})`
+        );
+      });
+    })
+    .catch((error) => {
+      // Silently fail if web-vitals package not available
+      if (isDevelopment) {
+        console.warn('Web Vitals not available:', error);
+      }
+    });
+}

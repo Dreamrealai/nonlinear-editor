@@ -1,3 +1,16 @@
+jest.mock('@/lib/browserLogger', () => {
+  const logger = {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+    child: () => logger,
+    setCorrelationId: jest.fn(),
+    clearCorrelationId: jest.fn(),
+  };
+  return { browserLogger: logger };
+});
+
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BaseAssetRow } from '@/types/assets';
 import * as frameUtils from '@/lib/utils/frameUtils';
@@ -147,8 +160,22 @@ describe('frameUtils utilities', () => {
 
   it('loadImageFromFile resolves dimensions from image load', async () => {
     const originalImage = global.Image;
-    const revokeSpy = jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
-    jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
+    const originalCreateObjectURL = (URL as unknown as { createObjectURL?: unknown })
+      .createObjectURL;
+    const originalRevokeObjectURL = (URL as unknown as { revokeObjectURL?: unknown })
+      .revokeObjectURL;
+
+    const createMock = jest.fn().mockReturnValue('blob:mock-url');
+    const revokeMock = jest.fn();
+
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: createMock,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      value: revokeMock,
+    });
 
     class MockImage {
       width = 800;
@@ -170,29 +197,64 @@ describe('frameUtils utilities', () => {
 
       expect(result.width).toBe(800);
       expect(result.height).toBe(600);
-      expect(revokeSpy).toHaveBeenCalledWith('blob:mock-url');
+      expect(createMock).toHaveBeenCalledTimes(1);
+      expect(revokeMock).toHaveBeenCalledWith('blob:mock-url');
     } finally {
       global.Image = originalImage;
+
+      if (originalCreateObjectURL) {
+        Object.defineProperty(URL, 'createObjectURL', {
+          configurable: true,
+          value: originalCreateObjectURL,
+        });
+      } else {
+        delete (URL as unknown as { createObjectURL?: unknown }).createObjectURL;
+      }
+
+      if (originalRevokeObjectURL) {
+        Object.defineProperty(URL, 'revokeObjectURL', {
+          configurable: true,
+          value: originalRevokeObjectURL,
+        });
+      } else {
+        delete (URL as unknown as { revokeObjectURL?: unknown }).revokeObjectURL;
+      }
     }
   });
 
   it('extractAndSaveVideoFrame orchestrates upload and database insert', async () => {
-    const supabase = {} as unknown as SupabaseClient;
-    const mockBlob = new Blob(['frame']);
+    const uploadMock = jest.fn().mockResolvedValue({ error: null });
+    const insertMock = jest.fn().mockResolvedValue({ error: null });
+    const supabase = {
+      storage: {
+        from: jest.fn(() => ({ upload: uploadMock })),
+      },
+      from: jest.fn((table: string) => {
+        if (table === 'scene_frames') {
+          return { insert: insertMock };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      }),
+    } as unknown as SupabaseClient;
 
-    const extractSpy = jest
-      .spyOn(frameUtils, 'extractVideoFrame')
-      .mockResolvedValue({ blob: mockBlob, width: 1280, height: 720 });
-    const generateSpy = jest
-      .spyOn(frameUtils, 'generateFrameFileName')
-      .mockReturnValue('asset-7/custom/frame.png');
-    const uploadSpy = jest
-      .spyOn(frameUtils, 'uploadFrameBlob')
-      .mockResolvedValue('supabase://frames/asset-7/custom/frame.png');
-    const insertSpy = jest.spyOn(frameUtils, 'insertSceneFrame').mockResolvedValue(undefined);
+    const blob = new Blob(['frame'], { type: 'image/png' });
+    const drawImage = jest.fn();
+    const toBlob = jest.fn((callback: (innerBlob: Blob | null) => void) => callback(blob));
+    const canvas = {
+      width: 0,
+      height: 0,
+      getContext: jest.fn(() => ({ drawImage })),
+      toBlob,
+    } as unknown as HTMLCanvasElement;
 
-    const video = { currentTime: 2.5 } as HTMLVideoElement;
-    const canvas = {} as HTMLCanvasElement;
+    const video = {
+      currentTime: 2.5,
+      videoWidth: 1280,
+      videoHeight: 720,
+    } as HTMLVideoElement;
+
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1_000_000);
+
     const assets: BaseAssetRow[] = [
       {
         id: 'asset-7',
@@ -204,73 +266,128 @@ describe('frameUtils utilities', () => {
 
     await frameUtils.extractAndSaveVideoFrame(supabase, video, canvas, 'asset-7', assets);
 
-    expect(extractSpy).toHaveBeenCalledWith(video, canvas);
-    expect(generateSpy).toHaveBeenCalledWith('asset-7', '2500ms');
-    expect(uploadSpy).toHaveBeenCalledWith(
-      supabase,
-      'asset-7/custom/frame.png',
-      mockBlob,
-      'image/png'
-    );
-    expect(insertSpy).toHaveBeenCalledWith(
-      supabase,
-      expect.objectContaining({
-        projectId: 'project-77',
-        assetId: 'asset-7',
-        storagePath: 'supabase://frames/asset-7/custom/frame.png',
-        width: 1280,
-        height: 720,
-        timeMs: 2500,
-      })
-    );
+    expect(canvas.width).toBe(1280);
+    expect(canvas.height).toBe(720);
+    expect(drawImage).toHaveBeenCalledWith(video, 0, 0, 1280, 720);
+    expect(supabase.storage.from).toHaveBeenCalledWith('frames');
+    expect(uploadMock).toHaveBeenCalledWith('asset-7/custom/1000000-2500ms.png', blob, {
+      contentType: 'image/png',
+      upsert: false,
+    });
+    expect(insertMock).toHaveBeenCalledWith({
+      project_id: 'project-77',
+      asset_id: 'asset-7',
+      scene_id: null,
+      kind: 'custom',
+      t_ms: 2500,
+      storage_path: 'supabase://frames/asset-7/custom/1000000-2500ms.png',
+      width: 1280,
+      height: 720,
+    });
+
+    nowSpy.mockRestore();
   });
 
   it('uploadAndSaveImageFrame uploads file and logs frame metadata', async () => {
-    const supabase = {} as unknown as SupabaseClient;
-    const mockFile = new File(['image-bytes'], 'still.png', { type: 'image/png' });
-
-    const loadSpy = jest.spyOn(frameUtils, 'loadImageFromFile').mockResolvedValue({
-      img: {} as HTMLImageElement,
-      width: 640,
-      height: 480,
-    });
-    const generateSpy = jest
-      .spyOn(frameUtils, 'generateFrameFileName')
-      .mockReturnValue('asset-3/custom/still.png');
-    const uploadSpy = jest
-      .spyOn(frameUtils, 'uploadFrameBlob')
-      .mockResolvedValue('supabase://frames/asset-3/custom/still.png');
-    const insertSpy = jest.spyOn(frameUtils, 'insertSceneFrame').mockResolvedValue(undefined);
-
-    const assets: BaseAssetRow[] = [
-      {
-        id: 'asset-3',
-        storage_url: 'supabase://assets/asset-3',
-        metadata: { project_id: 'project-5' },
-        title: null,
+    const uploadMock = jest.fn().mockResolvedValue({ error: null });
+    const insertMock = jest.fn().mockResolvedValue({ error: null });
+    const supabase = {
+      storage: {
+        from: jest.fn(() => ({ upload: uploadMock })),
       },
-    ];
+      from: jest.fn((table: string) => {
+        if (table === 'scene_frames') {
+          return { insert: insertMock };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      }),
+    } as unknown as SupabaseClient;
 
-    await frameUtils.uploadAndSaveImageFrame(supabase, mockFile, 'asset-3', assets, 500);
+    const originalImage = global.Image;
+    const originalCreateObjectURL = (URL as unknown as { createObjectURL?: unknown })
+      .createObjectURL;
+    const originalRevokeObjectURL = (URL as unknown as { revokeObjectURL?: unknown })
+      .revokeObjectURL;
 
-    expect(loadSpy).toHaveBeenCalledWith(mockFile);
-    expect(generateSpy).toHaveBeenCalledWith('asset-3', mockFile.name);
-    expect(uploadSpy).toHaveBeenCalledWith(
-      supabase,
-      'asset-3/custom/still.png',
-      mockFile,
-      'image/png'
-    );
-    expect(insertSpy).toHaveBeenCalledWith(
-      supabase,
-      expect.objectContaining({
-        projectId: 'project-5',
-        assetId: 'asset-3',
-        storagePath: 'supabase://frames/asset-3/custom/still.png',
+    const createMock = jest.fn().mockReturnValue('blob:upload');
+    const revokeMock = jest.fn();
+
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: createMock,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      value: revokeMock,
+    });
+
+    class MockImage {
+      width = 640;
+      height = 480;
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+
+      set src(_value: string) {
+        this.onload?.();
+      }
+    }
+
+    // @ts-expect-error override for test environment
+    global.Image = MockImage;
+
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(2_000_000);
+
+    try {
+      const mockFile = new File(['image-bytes'], 'still.png', { type: 'image/png' });
+      const assets: BaseAssetRow[] = [
+        {
+          id: 'asset-3',
+          storage_url: 'supabase://assets/asset-3',
+          metadata: { project_id: 'project-5' },
+          title: null,
+        },
+      ];
+
+      await frameUtils.uploadAndSaveImageFrame(supabase, mockFile, 'asset-3', assets, 500);
+
+      expect(createMock).toHaveBeenCalledTimes(1);
+      expect(revokeMock).toHaveBeenCalledWith('blob:upload');
+      expect(supabase.storage.from).toHaveBeenCalledWith('frames');
+      expect(uploadMock).toHaveBeenCalledWith('asset-3/custom/2000000-still.png', mockFile, {
+        contentType: 'image/png',
+        upsert: false,
+      });
+      expect(insertMock).toHaveBeenCalledWith({
+        project_id: 'project-5',
+        asset_id: 'asset-3',
+        scene_id: null,
+        kind: 'custom',
+        t_ms: 500,
+        storage_path: 'supabase://frames/asset-3/custom/2000000-still.png',
         width: 640,
         height: 480,
-        timeMs: 500,
-      })
-    );
+      });
+    } finally {
+      global.Image = originalImage;
+      nowSpy.mockRestore();
+
+      if (originalCreateObjectURL) {
+        Object.defineProperty(URL, 'createObjectURL', {
+          configurable: true,
+          value: originalCreateObjectURL,
+        });
+      } else {
+        delete (URL as unknown as { createObjectURL?: unknown }).createObjectURL;
+      }
+
+      if (originalRevokeObjectURL) {
+        Object.defineProperty(URL, 'revokeObjectURL', {
+          configurable: true,
+          value: originalRevokeObjectURL,
+        });
+      } else {
+        delete (URL as unknown as { revokeObjectURL?: unknown }).revokeObjectURL;
+      }
+    }
   });
 });

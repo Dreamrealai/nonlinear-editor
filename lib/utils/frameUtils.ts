@@ -237,7 +237,8 @@ export async function uploadAndSaveImageFrame(
   const { width, height } = await loadImageFromFile(file);
 
   // Generate filename
-  const fileName = generateFrameFileName(assetId, file.name);
+  const baseName = file.name.replace(/\.[^.]+$/, '') || 'image';
+  const fileName = generateFrameFileName(assetId, baseName);
 
   // Upload to storage
   const storagePath = await uploadFrameBlob(supabase, fileName, file, file.type);

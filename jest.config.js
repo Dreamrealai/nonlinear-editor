@@ -30,6 +30,7 @@ const customJestConfig = {
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
   testPathIgnorePatterns: ['/node_modules/', '/.next/', '/e2e/', '/k6/', '/__tests__/helpers/'],
   transformIgnorePatterns: ['/node_modules/', '^.+\\.module\\.(css|sass|scss)$'],
+  modulePathIgnorePatterns: ['<rootDir>/.next/standalone'],
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

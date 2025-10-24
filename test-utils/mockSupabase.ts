@@ -38,7 +38,23 @@ export function createMockSupabaseClient(): jest.Mocked<SupabaseClient> & MockSu
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockClient: any = {};
 
-  // Create chainable methods that return mockClient
+  // Default promise value for when mockClient is awaited
+  let promiseValue: { data: unknown; error: unknown } = { data: null, error: null };
+
+  // Make mockClient thenable so it can be awaited like Supabase's real query builder
+  // This allows: await from().select() OR from().select().eq().single()
+  mockClient.then = function (onFulfilled: (value: unknown) => unknown) {
+    return Promise.resolve(promiseValue).then(onFulfilled);
+  };
+
+  // Helper to set the value returned when mockClient is awaited
+  mockClient.mockResolvedValue = (value: { data: unknown; error: unknown }) => {
+    promiseValue = value;
+    return mockClient;
+  };
+
+  // Create chainable methods that return mockClient for proper chaining
+  // This allows: supabase.from('table').select('*').eq('field', value).single()
   mockClient.from = jest.fn(() => mockClient);
   mockClient.select = jest.fn(() => mockClient);
   mockClient.insert = jest.fn(() => mockClient);
@@ -50,6 +66,7 @@ export function createMockSupabaseClient(): jest.Mocked<SupabaseClient> & MockSu
   mockClient.limit = jest.fn(() => mockClient);
 
   // Terminal methods that return promises
+  // These should be configured with mockResolvedValue in tests
   mockClient.single = jest.fn();
   mockClient.maybeSingle = jest.fn();
 

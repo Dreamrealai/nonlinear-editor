@@ -148,14 +148,14 @@ describe('POST /api/stripe/webhook', () => {
       mockConstructEvent.mockReturnValue(mockEvent);
 
       // Mock database responses
+      // For: from().select().eq().single() - mock single()
       mockSupabase.single.mockResolvedValue({
         data: createMockUserProfile({ id: 'user-123' }),
         error: null,
       });
       mockRetrieveSubscription.mockResolvedValue(createMockSubscription());
-      mockSupabase.update.mockReturnThis();
-      mockSupabase.eq.mockReturnThis();
-      mockSupabase.select.mockResolvedValue({
+      // For: from().update().eq().select() - mock the thenable builder
+      mockSupabase.mockResolvedValue({
         data: [createMockUserProfile({ id: 'user-123', tier: 'premium' })],
         error: null,
       });
@@ -168,6 +168,19 @@ describe('POST /api/stripe/webhook', () => {
         },
         body,
       });
+
+      // Debug: check mock structure
+      console.log('Mock structure check:');
+      console.log('  mockSupabase.from type:', typeof mockSupabase.from);
+      console.log('  mockSupabase.from is mock?:', jest.isMockFunction(mockSupabase.from));
+      const fromResult = mockSupabase.from('test');
+      console.log('  from() returns:', fromResult === mockSupabase);
+      console.log('  from().select type:', typeof fromResult.select);
+      console.log('  from().select is mock?:', jest.isMockFunction(fromResult.select));
+      const selectResult = fromResult.select('*');
+      console.log('  select() returns:', selectResult === mockSupabase);
+      console.log('  select().eq type:', typeof selectResult.eq);
+      console.log('  select().eq is mock?:', jest.isMockFunction(selectResult.eq));
 
       const response = await POST(mockRequest, { params: Promise.resolve({}) });
 

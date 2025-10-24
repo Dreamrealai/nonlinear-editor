@@ -52,6 +52,34 @@ export const extractFileName = (storageUrl: string): string => {
 };
 
 /**
+ * Determines whether a URL points to a Supabase storage public endpoint.
+ * Supabase returns URLs under `/storage/v1/object/public/` even for private
+ * buckets, so we treat them as requiring signed access before playback.
+ */
+export const isSupabasePublicAssetUrl = (maybeUrl: unknown): boolean => {
+  if (typeof maybeUrl !== 'string') {
+    return false;
+  }
+
+  const trimmed = maybeUrl.trim();
+  if (!trimmed) {
+    return false;
+  }
+
+  const normalized = ensureHttpsProtocol(trimmed);
+
+  try {
+    const parsed = new URL(normalized);
+    return (
+      parsed.hostname.endsWith('.supabase.co') &&
+      parsed.pathname.includes('/storage/v1/object/public/')
+    );
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Type guard to check if a value is a valid asset type.
  */
 export const isAssetType = (value: unknown): value is AssetRow['type'] =>

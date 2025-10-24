@@ -101,12 +101,12 @@
 
 **Recommended**:
 
-1. Update `AssetPanel.tsx` to use `/types/assets.ts`
-2. Update `editorUtils.ts` to use `/types/assets.ts`
-3. Write unit tests for new utilities
+1. ✅ Completed - `AssetPanel.tsx` now imports from `/types/assets.ts`
+2. ✅ Completed - `editorUtils.ts` now imports from `/types/assets.ts`
+3. ✅ Completed - Added unit tests for new utilities
 4. Apply similar pattern to other duplicated code
 
 **Files ready for migration**:
 
-- `/components/editor/AssetPanel.tsx` (line 31)
-- `/app/editor/[projectId]/editorUtils.ts` (line 46)
+- `/components/editor/AssetPanel.tsx`
+- `/app/editor/[projectId]/editorUtils.ts`

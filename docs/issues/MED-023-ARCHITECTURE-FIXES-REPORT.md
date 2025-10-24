@@ -386,9 +386,9 @@ export type { BaseAssetRow as AssetRow } from '@/types/assets';
 
 1. ✅ **COMPLETED**: Consolidate frame operation utilities
 2. ✅ **COMPLETED**: Create centralized asset type definitions
-3. **TODO**: Update `AssetPanel.tsx` to use centralized types
-4. **TODO**: Update `editorUtils.ts` to use centralized types
-5. **TODO**: Write unit tests for new frame utilities
+3. ✅ **COMPLETED**: Updated `AssetPanel.tsx` to use centralized types
+4. ✅ **COMPLETED**: Updated `editorUtils.ts` to use centralized types
+5. ✅ **COMPLETED**: Added unit tests for new frame utilities
 
 ### 7.2 Medium-term (Next 2 Weeks)
 
