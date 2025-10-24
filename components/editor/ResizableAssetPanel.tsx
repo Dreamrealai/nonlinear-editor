@@ -46,6 +46,8 @@ interface ResizableAssetPanelProps {
   onNextPage?: () => Promise<void>;
   /** Load previous page */
   onPreviousPage?: () => Promise<void>;
+  /** Set of asset IDs that are currently used in the timeline */
+  usedAssetIds?: Set<string>;
   /** Initial width in pixels */
   initialWidth?: number;
   /** Minimum width in pixels */

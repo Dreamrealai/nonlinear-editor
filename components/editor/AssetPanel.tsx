@@ -17,6 +17,7 @@ import { AssetVersionHistory } from '@/components/editor/AssetVersionHistory';
 
 type SortOption = 'name' | 'date' | 'size' | 'type';
 type SortDirection = 'asc' | 'desc';
+type UsageFilter = 'all' | 'used' | 'unused';
 
 interface AssetPanelProps {
   /** List of all assets */
@@ -53,6 +54,8 @@ interface AssetPanelProps {
   onNextPage?: () => Promise<void>;
   /** Load previous page */
   onPreviousPage?: () => Promise<void>;
+  /** Set of asset IDs that are currently used in the timeline */
+  usedAssetIds?: Set<string>;
 }
 
 /**
@@ -62,6 +65,17 @@ const extractFileName = (storageUrl: string) => {
   const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
   const segments = normalized.split('/');
   return segments[segments.length - 1] ?? normalized;
+};
+
+/**
+ * Formats file size in human-readable format
+ */
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
 };
 
 export function AssetPanel({
@@ -82,6 +96,7 @@ export function AssetPanel({
   hasPreviousPage = false,
   onNextPage,
   onPreviousPage,
+  usedAssetIds = new Set(),
 }: AssetPanelProps) {
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
@@ -90,9 +105,32 @@ export function AssetPanel({
   const [sortBy, setSortBy] = useState<SortOption>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [showFilters, setShowFilters] = useState(false);
+  const [usageFilter, setUsageFilter] = useState<UsageFilter>('all');
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
 
   // Version history state
   const [versionHistoryAsset, setVersionHistoryAsset] = useState<AssetRow | null>(null);
+
+  // Extract all available tags from assets
+  const availableTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    assets.forEach((asset) => {
+      asset.tags?.forEach((tag) => tagSet.add(tag));
+    });
+    return Array.from(tagSet).sort();
+  }, [assets]);
+
+  // Check if any filters are active
+  const hasActiveFilters = useMemo(() => {
+    return searchQuery.trim() !== '' || usageFilter !== 'all' || selectedTags.size > 0;
+  }, [searchQuery, usageFilter, selectedTags]);
+
+  // Clear all filters
+  const clearAllFilters = useCallback(() => {
+    setSearchQuery('');
+    setUsageFilter('all');
+    setSelectedTags(new Set());
+  }, []);
 
   // Filter, search, and sort assets
   const filteredAssets = useMemo(() => {
@@ -108,9 +146,28 @@ export function AssetPanel({
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter((asset) => {
-        const filename = (asset.metadata?.filename || extractFileName(asset.storage_url)).toLowerCase();
+        const filename = (
+          asset.metadata?.filename || extractFileName(asset.storage_url)
+        ).toLowerCase();
         const type = asset.type.toLowerCase();
-        return filename.includes(query) || type.includes(query);
+        const tags = asset.tags?.join(' ').toLowerCase() || '';
+        return filename.includes(query) || type.includes(query) || tags.includes(query);
+      });
+    }
+
+    // Apply usage filter
+    if (usageFilter !== 'all') {
+      filtered = filtered.filter((asset) => {
+        const isUsed = usedAssetIds.has(asset.id);
+        return usageFilter === 'used' ? isUsed : !isUsed;
+      });
+    }
+
+    // Apply tag filter
+    if (selectedTags.size > 0) {
+      filtered = filtered.filter((asset) => {
+        if (!asset.tags || asset.tags.length === 0) return false;
+        return Array.from(selectedTags).some((tag) => asset.tags?.includes(tag));
       });
     }
 
@@ -126,14 +183,14 @@ export function AssetPanel({
           break;
         }
         case 'date': {
-          const dateA = new Date(a.created_at).getTime();
-          const dateB = new Date(b.created_at).getTime();
+          const dateA = new Date(a.created_at || 0).getTime();
+          const dateB = new Date(b.created_at || 0).getTime();
           comparison = dateA - dateB;
           break;
         }
         case 'size': {
-          const sizeA = a.metadata?.size || 0;
-          const sizeB = b.metadata?.size || 0;
+          const sizeA = a.metadata?.size || a.metadata?.fileSize || 0;
+          const sizeB = b.metadata?.size || b.metadata?.fileSize || 0;
           comparison = sizeA - sizeB;
           break;
         }
@@ -147,7 +204,16 @@ export function AssetPanel({
     });
 
     return filtered;
-  }, [assets, activeTab, searchQuery, sortBy, sortDirection]);
+  }, [
+    assets,
+    activeTab,
+    searchQuery,
+    sortBy,
+    sortDirection,
+    usageFilter,
+    usedAssetIds,
+    selectedTags,
+  ]);
 
   /**
    * Handle files from drag-and-drop zone
@@ -188,7 +254,10 @@ export function AssetPanel({
   return (
     <aside className="flex flex-col gap-4 overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100" id="asset-panel-title">
+        <h2
+          className="text-sm font-semibold text-neutral-900 dark:text-neutral-100"
+          id="asset-panel-title"
+        >
           Assets
         </h2>
         <div className="flex items-center gap-2">
@@ -308,8 +377,79 @@ export function AssetPanel({
             </button>
           </div>
 
+          {/* Usage Filter */}
+          <div>
+            <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5 block">
+              Usage Status
+            </label>
+            <div className="flex gap-2">
+              {(['all', 'used', 'unused'] as UsageFilter[]).map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  onClick={() => setUsageFilter(filter)}
+                  className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                    usageFilter === filter
+                      ? 'bg-purple-500 text-white'
+                      : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                  }`}
+                >
+                  {filter === 'all'
+                    ? 'All Assets'
+                    : filter === 'used'
+                      ? 'Used in Timeline'
+                      : 'Unused'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tag Filter */}
+          {availableTags.length > 0 && (
+            <div>
+              <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5 block">
+                Filter by Tags
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {availableTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => {
+                      const newTags = new Set(selectedTags);
+                      if (newTags.has(tag)) {
+                        newTags.delete(tag);
+                      } else {
+                        newTags.add(tag);
+                      }
+                      setSelectedTags(newTags);
+                    }}
+                    className={`rounded-md px-2 py-1 text-xs font-medium transition-colors ${
+                      selectedTags.has(tag)
+                        ? 'bg-purple-500 text-white'
+                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Clear Filters Button */}
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearAllFilters}
+              className="w-full rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-2 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+            >
+              Clear All Filters
+            </button>
+          )}
+
           {/* Results Count */}
-          {searchQuery && (
+          {hasActiveFilters && (
             <p className="text-xs text-neutral-600 dark:text-neutral-400">
               Found {filteredAssets.length} {filteredAssets.length === 1 ? 'result' : 'results'}
             </p>
@@ -318,7 +458,11 @@ export function AssetPanel({
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-neutral-200" role="tablist" aria-label="Asset types">
+      <div
+        className="flex gap-2 border-b border-neutral-200"
+        role="tablist"
+        aria-label="Asset types"
+      >
         <button
           type="button"
           role="tab"
@@ -500,12 +644,29 @@ export function AssetPanel({
           <div role="status" aria-live="polite" aria-label="Loading assets">
             <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
               <LoadingSpinner size={16} variant="branded" />
-              <span className="text-xs font-medium text-purple-700 dark:text-purple-300">Loading assets...</span>
+              <span className="text-xs font-medium text-purple-700 dark:text-purple-300">
+                Loading assets...
+              </span>
             </div>
             <div className="space-y-3">
-              <SkeletonCard variant="branded" showImage={true} showTitle={false} descriptionLines={1} />
-              <SkeletonCard variant="branded" showImage={true} showTitle={false} descriptionLines={1} />
-              <SkeletonCard variant="branded" showImage={true} showTitle={false} descriptionLines={1} />
+              <SkeletonCard
+                variant="branded"
+                showImage={true}
+                showTitle={false}
+                descriptionLines={1}
+              />
+              <SkeletonCard
+                variant="branded"
+                showImage={true}
+                showTitle={false}
+                descriptionLines={1}
+              />
+              <SkeletonCard
+                variant="branded"
+                showImage={true}
+                showTitle={false}
+                descriptionLines={1}
+              />
             </div>
           </div>
         )}
@@ -542,21 +703,40 @@ export function AssetPanel({
                   title={asset.metadata?.filename}
                   width={112}
                   height={64}
-                  className="h-16 w-28 rounded-md object-cover"
+                  className="h-16 w-28 rounded-md object-cover transition-opacity duration-300"
                   unoptimized
                   loading="lazy"
                   placeholder="blur"
-                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEyIiBoZWlnaHQ9IjY0IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iNjQiIGZpbGw9IiNlNWU3ZWIiLz48L3N2Zz4="
+                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEyIiBoZWlnaHQ9IjY0IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMTIiIGhlaWdodD0iNjQiIGZpbGw9IiNlNWU3ZWIiLz48L3N2Zz4="
                 />
               ) : (
-                <div className="flex h-16 w-28 items-center justify-center rounded-md bg-neutral-200 text-xs text-neutral-600">
+                <div className="flex h-16 w-28 items-center justify-center rounded-md bg-neutral-200 dark:bg-neutral-700 text-xs text-neutral-600 dark:text-neutral-400 animate-pulse">
                   {asset.type.toUpperCase()}
                 </div>
               )}
               <div className="flex-1 text-xs">
-                <p className="font-medium text-neutral-900">
+                <p className="font-medium text-neutral-900 dark:text-neutral-100">
                   {asset.metadata?.filename ?? extractFileName(asset.storage_url)}
                 </p>
+                {/* Asset size badge */}
+                {(asset.metadata?.size || asset.metadata?.fileSize) && (
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                    {formatFileSize(asset.metadata.size || asset.metadata.fileSize || 0)}
+                  </p>
+                )}
+                {/* Usage indicator */}
+                {usedAssetIds.has(asset.id) && (
+                  <span className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                    <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    In Timeline
+                  </span>
+                )}
               </div>
             </button>
 
@@ -572,7 +752,13 @@ export function AssetPanel({
                 className="rounded-md bg-purple-500 p-1 text-white shadow-lg transition-all hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
                 title="Version history"
               >
-                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <svg
+                  className="h-3 w-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -592,7 +778,13 @@ export function AssetPanel({
                 className="rounded-md bg-red-500 p-1 text-white shadow-lg transition-all hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                 title="Delete asset"
               >
-                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <svg
+                  className="h-3 w-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
