@@ -68,7 +68,7 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
   height,
   zoom = 50, // Default zoom level
   className = '',
-}): React.JSX.Element | null {
+}): React.ReactElement | null {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [waveformData, setWaveformData] = useState<Float32Array | null>(null);
   const [isLoading, setIsLoading] = useState(false);

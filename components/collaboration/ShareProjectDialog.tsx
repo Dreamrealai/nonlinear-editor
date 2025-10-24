@@ -9,7 +9,7 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -58,7 +58,7 @@ const ROLE_ICONS: Record<CollaboratorRole, React.ReactNode> = {
   viewer: <Eye className="h-4 w-4" />,
 };
 
-export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: ShareProjectDialogProps): JSX.Element {
+export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: ShareProjectDialogProps): React.ReactElement {
   const [activeTab, setActiveTab] = useState<TabType>('invite');
   const [loading, setLoading] = useState(false);
 
@@ -334,7 +334,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
                 <LoadingSpinner />
               ) : invites.length > 0 ? (
                 <div className="space-y-2">
-                  {invites.map((invite): JSX.Element => (
+                  {invites.map((invite): React.ReactElement => (
                     <div
                       key={invite.id}
                       className="flex items-center justify-between p-3 border border-border rounded-md"
@@ -391,7 +391,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
                 <LoadingSpinner />
               ) : shareLinks.length > 0 ? (
                 <div className="space-y-2">
-                  {shareLinks.map((link): JSX.Element => (
+                  {shareLinks.map((link): React.ReactElement => (
                     <div key={link.id} className="flex items-center gap-2 p-3 border border-border rounded-md">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
@@ -444,7 +444,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
               {loading ? (
                 <LoadingSpinner />
               ) : collaborators.length > 0 ? (
-                collaborators.map((collaborator): JSX.Element => (
+                collaborators.map((collaborator): React.ReactElement => (
                   <div
                     key={collaborator.id}
                     className="flex items-center justify-between p-3 border border-border rounded-md"
@@ -488,7 +488,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
               {loading ? (
                 <LoadingSpinner />
               ) : activities.length > 0 ? (
-                activities.map((activity): JSX.Element => (
+                activities.map((activity): React.ReactElement => (
                   <div key={activity.id} className="flex items-start gap-3 p-3 border border-border rounded-md">
                     <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div className="flex-1">

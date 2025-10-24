@@ -23,7 +23,7 @@ interface ProjectExportImportProps {
  * Provides UI for exporting and importing projects as JSON
  * Allows users to backup projects locally or transfer between systems
  */
-export function ProjectExportImport({ projectId, projectName }: ProjectExportImportProps): JSX.Element {
+export function ProjectExportImport({ projectId, projectName }: ProjectExportImportProps): React.ReactElement {
   const timeline = useEditorStore((state): Timeline | null => state.timeline);
   const setTimeline = useEditorStore((state): (timeline: Timeline) => void => state.setTimeline);
 

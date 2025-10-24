@@ -84,7 +84,7 @@ type ClipGroupStore = {
 };
 
 export const useClipGroupStore = create<ClipGroupStore>()(
-  immer((set, get) => ({
+  immer(() => ({
     createGroup: (timeline, clipIds, name): Timeline | null => {
       if (!timeline || clipIds.length < 2) return timeline;
 
@@ -122,7 +122,8 @@ export const useClipGroupStore = create<ClipGroupStore>()(
 
       const newTimeline = structuredClone(timeline);
 
-      // Remove group
+      // Remove group - add null check for groups after cloning
+      if (!newTimeline.groups) return timeline;
       newTimeline.groups = newTimeline.groups.filter((g): boolean => g.id !== groupId);
 
       // Clear groupId from clips
@@ -166,6 +167,7 @@ export const useClipGroupStore = create<ClipGroupStore>()(
       if (!timeline || !timeline.groups) return timeline;
 
       const newTimeline = structuredClone(timeline);
+      if (!newTimeline.groups) return timeline;
 
       // Lock group
       const group = newTimeline.groups.find((g): boolean => g.id === groupId);
@@ -187,6 +189,7 @@ export const useClipGroupStore = create<ClipGroupStore>()(
       if (!timeline || !timeline.groups) return timeline;
 
       const newTimeline = structuredClone(timeline);
+      if (!newTimeline.groups) return timeline;
 
       // Unlock group
       const group = newTimeline.groups.find((g): boolean => g.id === groupId);
@@ -214,6 +217,7 @@ export const useClipGroupStore = create<ClipGroupStore>()(
       if (!timeline || !timeline.groups) return timeline;
 
       const newTimeline = structuredClone(timeline);
+      if (!newTimeline.groups) return timeline;
 
       const group = newTimeline.groups.find((g): boolean => g.id === groupId);
       if (group) {
@@ -227,6 +231,7 @@ export const useClipGroupStore = create<ClipGroupStore>()(
       if (!timeline || !timeline.groups) return timeline;
 
       const newTimeline = structuredClone(timeline);
+      if (!newTimeline.groups) return timeline;
 
       const group = newTimeline.groups.find((g): boolean => g.id === groupId);
       if (group) {

@@ -28,7 +28,7 @@ export function BackupButton({
   variant = 'ghost',
   size = 'sm',
   className,
-}: BackupButtonProps): React.JSX.Element {
+}: BackupButtonProps): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false);
 
   return (

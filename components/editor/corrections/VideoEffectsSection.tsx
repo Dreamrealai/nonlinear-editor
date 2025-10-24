@@ -1,3 +1,4 @@
+import React from 'react';
 /**
  * VideoEffectsSection - Comprehensive video effects and color grading controls
  *
@@ -204,7 +205,7 @@ export function VideoEffectsSection({
   onBlurChange,
   onPresetApply,
   onReset,
-}: VideoEffectsSectionProps): JSX.Element {
+}: VideoEffectsSectionProps): React.ReactElement {
   return (
     <div className="space-y-6">
       {/* Effect Presets */}
@@ -227,7 +228,7 @@ export function VideoEffectsSection({
         </h4>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-          {VIDEO_EFFECT_PRESETS.map((preset): JSX.Element => (
+          {VIDEO_EFFECT_PRESETS.map((preset): React.ReactElement => (
             <button
               key={preset.name}
               type="button"

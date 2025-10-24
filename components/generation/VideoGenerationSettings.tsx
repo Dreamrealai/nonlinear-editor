@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import React, {  useState  } from 'react';
 import type { ModelConfig } from '@/lib/config/models';
 import { MODEL_PROVIDERS } from '@/lib/config/models';
 
@@ -60,7 +60,7 @@ export function VideoGenerationSettings({
   onNegativePromptChange,
   onEnhancePromptChange,
   onGenerateAudioChange,
-}: VideoGenerationSettingsProps): JSX.Element {
+}: VideoGenerationSettingsProps): React.ReactElement {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   return (
@@ -131,7 +131,7 @@ export function VideoGenerationSettings({
                   >
                     {[1, 2, 3, 4]
                       .filter((n): boolean => n <= modelConfig.maxSampleCount)
-                      .map((n): JSX.Element => (
+                      .map((n): React.ReactElement => (
                         <option key={n} value={n}>
                           {n} video{n > 1 ? 's' : ''}
                         </option>

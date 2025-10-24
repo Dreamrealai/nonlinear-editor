@@ -1,4 +1,8 @@
 /**
+ * @jest-environment node
+ */
+
+/**
  * Integration tests for memory leak prevention in polling operations
  *
  * Tests verify that all polling operations properly clean up resources:

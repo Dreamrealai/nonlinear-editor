@@ -6,7 +6,7 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { achievementService, EasterEggIds, type EasterEggId } from '@/lib/services/achievementService';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
@@ -25,7 +25,7 @@ interface EasterEggFeedbackProps {
  *
  * Shows after user discovers all 5 easter eggs.
  */
-export function EasterEggFeedback({ isOpen, onClose }: EasterEggFeedbackProps): JSX.Element | null {
+export function EasterEggFeedback({ isOpen, onClose }: EasterEggFeedbackProps): React.ReactElement | null {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [favoriteEgg, setFavoriteEgg] = useState<EasterEggId | 'none' | ''>('');
@@ -119,7 +119,7 @@ export function EasterEggFeedback({ isOpen, onClose }: EasterEggFeedbackProps): 
               How would you rate the easter eggs?
             </Label>
             <div className="flex justify-center gap-2">
-              {[1, 2, 3, 4, 5].map((star): JSX.Element => (
+              {[1, 2, 3, 4, 5].map((star): React.ReactElement => (
                 <button
                   key={star}
                   type="button"
@@ -157,7 +157,7 @@ export function EasterEggFeedback({ isOpen, onClose }: EasterEggFeedbackProps): 
                 <SelectValue placeholder="Select your favorite..." />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(eggNames).map(([id, name]): JSX.Element => (
+                {Object.entries(eggNames).map(([id, name]): React.ReactElement => (
                   <SelectItem key={id} value={id}>
                     {name}
                   </SelectItem>

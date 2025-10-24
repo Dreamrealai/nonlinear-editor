@@ -10,12 +10,13 @@ import { RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateBoolean, validateUUID, ValidationError } from '@/lib/validation';
 import { validationError } from '@/lib/api/response';
+import type { ShareLink } from '@/types/collaboration';
 
 /**
  * PATCH - Update a share link (deactivate, change settings)
  */
 export const PATCH = withAuth<{ projectId: string; linkId: string }>(
-  async (req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ link: any; }>> => {
+  async (req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ link: ShareLink; }>> => {
     const params = await routeContext?.params;
     const projectId = params?.projectId;
     const linkId = params?.linkId;
@@ -81,7 +82,10 @@ export const PATCH = withAuth<{ projectId: string; linkId: string }>(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  RATE_LIMITS.tier2_resource_creation
+  {
+    route: '/api/projects/[projectId]/share-links/[linkId]',
+    rateLimit: RATE_LIMITS.tier2_resource_creation,
+  }
 );
 
 /**
@@ -146,5 +150,8 @@ export const DELETE = withAuth<{ projectId: string; linkId: string }>(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  RATE_LIMITS.tier2_resource_creation
+  {
+    route: '/api/projects/[projectId]/share-links/[linkId]',
+    rateLimit: RATE_LIMITS.tier2_resource_creation,
+  }
 );

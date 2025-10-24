@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import React, {  useState, useRef, useEffect, useCallback  } from 'react';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { browserLogger } from '@/lib/browserLogger';
 import clsx from 'clsx';
@@ -48,7 +48,7 @@ const GEMINI_MODELS = [
  *
  * @returns The chat interface component, or null if collapsed
  */
-export function ChatBox({ projectId, collapsed }: ChatBoxProps): JSX.Element | null {
+export function ChatBox({ projectId, collapsed }: ChatBoxProps): React.ReactElement | null {
   const { supabaseClient } = useSupabase();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -347,7 +347,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): JSX.Element | n
             onChange={(e): void => setSelectedModel(e.target.value)}
             className="flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           >
-            {GEMINI_MODELS.map((model): JSX.Element => (
+            {GEMINI_MODELS.map((model): React.ReactElement => (
               <option key={model.id} value={model.id}>
                 {model.name}
               </option>
@@ -417,7 +417,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): JSX.Element | n
             </p>
           </div>
         ) : (
-          messages.map((message): JSX.Element => (
+          messages.map((message): React.ReactElement => (
             <div
               key={message.id}
               className={clsx(
@@ -436,7 +436,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): JSX.Element | n
                 <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
                 {message.attachments && message.attachments.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {message.attachments.map((attachment, idx): JSX.Element => {
+                    {message.attachments.map((attachment, idx): React.ReactElement => {
                       const isImage = attachment.type.startsWith('image/');
                       return (
                         <div
@@ -525,7 +525,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): JSX.Element | n
       {attachments.length > 0 && (
         <div className="border-t border-neutral-200 p-3">
           <div className="flex flex-wrap gap-2">
-            {attachments.map((file, index): JSX.Element => (
+            {attachments.map((file, index): React.ReactElement => (
               <div
                 key={index}
                 className="group relative flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1"

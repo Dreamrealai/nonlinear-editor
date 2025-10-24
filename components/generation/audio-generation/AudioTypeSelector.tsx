@@ -1,3 +1,4 @@
+import React from 'react';
 /**
  * AudioTypeSelector - Audio generation type selector tabs
  *
@@ -28,7 +29,7 @@ interface AudioTypeSelectorProps {
   onTypeChange: (type: 'music' | 'voice' | 'sfx') => void;
 }
 
-export function AudioTypeSelector({ audioType, onTypeChange }: AudioTypeSelectorProps): JSX.Element {
+export function AudioTypeSelector({ audioType, onTypeChange }: AudioTypeSelectorProps): React.ReactElement {
   return (
     <div className="mb-6 flex gap-2 rounded-lg border border-neutral-200 bg-white p-1">
       <button

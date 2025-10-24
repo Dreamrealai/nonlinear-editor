@@ -60,7 +60,7 @@ interface ActivityEntryProps {
 const ActivityEntry = React.memo<ActivityEntryProps>(function ActivityEntry({
   entry,
   formatDate,
-}): React.JSX.Element {
+}): React.ReactElement {
   return (
     <div
       key={entry.id}
@@ -111,7 +111,7 @@ const ActivityEntry = React.memo<ActivityEntryProps>(function ActivityEntry({
   );
 });
 
-export const ActivityHistory = React.memo(function ActivityHistory(): React.JSX.Element {
+export const ActivityHistory = React.memo(function ActivityHistory(): React.ReactElement {
   const { supabaseClient } = useSupabase();
   const [history, setHistory] = useState<ActivityHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -235,7 +235,7 @@ export const ActivityHistory = React.memo(function ActivityHistory(): React.JSX.
         <div className="space-y-3">
           <div className="max-h-96 overflow-y-auto">
             {history.map(
-              (entry): React.JSX.Element => (
+              (entry): React.ReactElement => (
                 <ActivityEntry key={entry.id} entry={entry} formatDate={formatDate} />
               )
             )}

@@ -43,7 +43,7 @@ export const TimelineGuides = React.memo<TimelineGuidesProps>(function TimelineG
   onGuideUpdate,
   onGuideDelete,
   containerRef,
-}): JSX.Element {
+}): React.ReactElement {
   const [draggingGuideId, setDraggingGuideId] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ guideId: string; x: number; y: number } | null>(
     null
@@ -141,7 +141,7 @@ export const TimelineGuides = React.memo<TimelineGuidesProps>(function TimelineG
   return (
     <>
       {/* Guide lines */}
-      {visibleGuides.map((guide): JSX.Element => {
+      {visibleGuides.map((guide): React.ReactElement => {
         const guideColor = guide.color || '#3b82f6'; // Default blue
         const isDragging = draggingGuideId === guide.id;
 

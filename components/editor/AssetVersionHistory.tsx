@@ -9,7 +9,7 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, {  useState, useEffect  } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -61,7 +61,7 @@ export function AssetVersionHistory({
   isOpen,
   onClose,
   onReverted,
-}: AssetVersionHistoryProps): JSX.Element {
+}: AssetVersionHistoryProps): React.ReactElement {
   const [versions, setVersions] = useState<AssetVersion[]>([]);
   const [currentVersion, setCurrentVersion] = useState<number>(1);
   const [loading, setLoading] = useState(false);
@@ -238,7 +238,7 @@ export function AssetVersionHistory({
           {/* Version list */}
           {!loading && versions.length > 0 && (
             <div className="space-y-3">
-              {versions.map((version): JSX.Element => (
+              {versions.map((version): React.ReactElement => (
                 <div
                   key={version.id}
                   className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"

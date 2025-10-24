@@ -49,11 +49,15 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
     const supabaseAdmin = createServiceSupabaseClient();
 
     // CRITICAL: Verify user profile exists before updating
+    type UserProfile = {
+      id: string;
+      tier: 'free' | 'premium' | 'admin';
+    };
     const { data: existingProfile, error: fetchError } = await supabaseAdmin
       .from('user_profiles')
       .select('id, tier')
       .eq('id', userId)
-      .single();
+      .single<UserProfile>();
 
     if (fetchError || !existingProfile) {
       serverLogger.error(
@@ -125,28 +129,29 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
     );
 
     // CRITICAL: Preserve admin tier - don't downgrade admin to premium
-    const currentTier = existingProfile.tier as UserTier;
-    const newTier: UserTier = currentTier === 'admin' ? 'admin' : 'premium';
+    const currentTier = existingProfile.tier;
+    const newTier = currentTier === 'admin' ? 'admin' : 'premium';
 
     // Update user profile
-    const { data, error } = await supabaseAdmin
+    const updateData = {
+      stripe_customer_id: customerId,
+      stripe_subscription_id: subscriptionId,
+      stripe_price_id: priceId,
+      subscription_status: subscriptionData.status,
+      subscription_current_period_start: new Date(
+        subscriptionData.current_period_start * 1000
+      ).toISOString(),
+      subscription_current_period_end: new Date(
+        subscriptionData.current_period_end * 1000
+      ).toISOString(),
+      subscription_cancel_at_period_end: subscriptionData.cancel_at_period_end,
+      tier: newTier,
+    };
+    const { data, error } = await (supabaseAdmin
       .from('user_profiles')
-      .update({
-        stripe_customer_id: customerId,
-        stripe_subscription_id: subscriptionId,
-        stripe_price_id: priceId,
-        subscription_status: subscriptionData.status,
-        subscription_current_period_start: new Date(
-          subscriptionData.current_period_start * 1000
-        ).toISOString(),
-        subscription_current_period_end: new Date(
-          subscriptionData.current_period_end * 1000
-        ).toISOString(),
-        subscription_cancel_at_period_end: subscriptionData.cancel_at_period_end,
-        tier: newTier,
-      })
+      .update(updateData as never)
       .eq('id', userId)
-      .select();
+      .select() as unknown as Promise<{ data: unknown[] | null; error: { message: string; code: string } | null }>);
 
     // CRITICAL: Check for database errors and throw to trigger Stripe retry
     if (error) {
@@ -228,11 +233,15 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Pro
     const supabaseAdmin = createServiceSupabaseClient();
 
     // Find user by customer ID
+    type UserProfile = {
+      id: string;
+      tier: 'free' | 'premium' | 'admin';
+    };
     const { data: profile, error: fetchError } = await supabaseAdmin
       .from('user_profiles')
       .select('id, tier')
       .eq('stripe_customer_id', customerId)
-      .single();
+      .single<UserProfile>();
 
     if (fetchError || !profile) {
       serverLogger.error(
@@ -262,8 +271,8 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Pro
     };
 
     // CRITICAL: Preserve admin tier - determine tier based on subscription status
-    const oldTier = profile.tier as UserTier;
-    let tier: UserTier = 'free';
+    const oldTier = profile.tier;
+    let tier: 'free' | 'premium' | 'admin' = 'free';
 
     // Don't downgrade admin users
     if (oldTier === 'admin') {
@@ -300,23 +309,24 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Pro
     );
 
     // Update user profile
-    const { data, error } = await supabaseAdmin
+    const updateData = {
+      stripe_subscription_id: subscriptionData.id,
+      stripe_price_id: priceId,
+      subscription_status: subscriptionData.status,
+      subscription_current_period_start: new Date(
+        subscriptionData.current_period_start * 1000
+      ).toISOString(),
+      subscription_current_period_end: new Date(
+        subscriptionData.current_period_end * 1000
+      ).toISOString(),
+      subscription_cancel_at_period_end: subscriptionData.cancel_at_period_end,
+      tier,
+    };
+    const { data, error } = await (supabaseAdmin
       .from('user_profiles')
-      .update({
-        stripe_subscription_id: subscriptionData.id,
-        stripe_price_id: priceId,
-        subscription_status: subscriptionData.status,
-        subscription_current_period_start: new Date(
-          subscriptionData.current_period_start * 1000
-        ).toISOString(),
-        subscription_current_period_end: new Date(
-          subscriptionData.current_period_end * 1000
-        ).toISOString(),
-        subscription_cancel_at_period_end: subscriptionData.cancel_at_period_end,
-        tier,
-      })
+      .update(updateData as never)
       .eq('id', profile.id)
-      .select();
+      .select() as unknown as Promise<{ data: unknown[] | null; error: { message: string; code: string } | null }>);
 
     // CRITICAL: Check for database errors and throw to trigger Stripe retry
     if (error) {
@@ -392,11 +402,16 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Pro
     const supabaseAdmin = createServiceSupabaseClient();
 
     // Find user by customer ID
+    type UserProfileWithSubscription = {
+      id: string;
+      tier: 'free' | 'premium' | 'admin';
+      stripe_subscription_id: string | null;
+    };
     const { data: profile, error: fetchError } = await supabaseAdmin
       .from('user_profiles')
       .select('id, tier, stripe_subscription_id')
       .eq('stripe_customer_id', customerId)
-      .single();
+      .single<UserProfileWithSubscription>();
 
     if (fetchError || !profile) {
       serverLogger.error(
@@ -411,23 +426,24 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Pro
       return;
     }
 
-    const oldTier = profile.tier as UserTier;
+    const oldTier = profile.tier;
 
     // CRITICAL: Preserve admin tier - don't downgrade admin users on subscription cancel
-    const newTier: UserTier = oldTier === 'admin' ? 'admin' : 'free';
+    const newTier = oldTier === 'admin' ? 'admin' : 'free';
 
     // Downgrade user to free tier (unless admin)
-    const { data, error } = await supabaseAdmin
+    const updateData = {
+      tier: newTier,
+      subscription_status: 'canceled',
+      stripe_subscription_id: null,
+      stripe_price_id: null,
+      subscription_cancel_at_period_end: false,
+    };
+    const { data, error } = await (supabaseAdmin
       .from('user_profiles')
-      .update({
-        tier: newTier,
-        subscription_status: 'canceled',
-        stripe_subscription_id: null,
-        stripe_price_id: null,
-        subscription_cancel_at_period_end: false,
-      })
+      .update(updateData as never)
       .eq('id', profile.id)
-      .select();
+      .select() as unknown as Promise<{ data: unknown[] | null; error: { message: string; code: string } | null }>);
 
     // CRITICAL: Check for database errors and throw to trigger Stripe retry
     if (error) {
@@ -484,7 +500,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Pro
   }
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   try {

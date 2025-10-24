@@ -1,4 +1,8 @@
 /**
+ * @jest-environment node
+ */
+
+/**
  * Integration Tests: Project Workflow
  *
  * Tests the complete project lifecycle including:

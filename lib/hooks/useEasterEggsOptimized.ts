@@ -59,8 +59,10 @@ function debounce<T extends (...args: any[]) => any>(
 }
 
 /**
- * Throttle helper
+ * Throttle helper - currently unused but kept for future use
+ * Temporarily disabled to avoid unused function warning
  */
+/*
 function throttle<T extends (...args: any[]) => any>(
   func: T,
   limit: number
@@ -74,6 +76,7 @@ function throttle<T extends (...args: any[]) => any>(
     }
   };
 }
+*/
 
 export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
   easterEggsTriggered: string[];
@@ -284,7 +287,8 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
 
         if (egg.keyPressCount) {
           const { key: targetKey, count } = egg.keyPressCount;
-          if (keyPressTracker.current[targetKey] >= count) {
+          const currentCount = keyPressTracker.current[targetKey];
+          if (currentCount !== undefined && currentCount >= count) {
             egg.action();
             keyPressTracker.current[targetKey] = 0;
           }

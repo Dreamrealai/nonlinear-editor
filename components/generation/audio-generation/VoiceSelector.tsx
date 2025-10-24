@@ -1,3 +1,4 @@
+import React from 'react';
 /**
  * VoiceSelector - AI voice selection dropdown
  *
@@ -50,7 +51,7 @@ export function VoiceSelector({
   onVoiceChange,
   loadingVoices,
   disabled = false,
-}: VoiceSelectorProps): JSX.Element {
+}: VoiceSelectorProps): React.ReactElement {
   return (
     <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
       <label htmlFor="voice" className="block text-sm font-semibold text-neutral-900 mb-2">
@@ -72,7 +73,7 @@ export function VoiceSelector({
           {voices.length === 0 ? (
             <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Default)</option>
           ) : (
-            voices.map((voice): JSX.Element => (
+            voices.map((voice): React.ReactElement => (
               <option key={voice.voice_id} value={voice.voice_id}>
                 {voice.name}
                 {voice.category ? ` - ${voice.category}` : ''}

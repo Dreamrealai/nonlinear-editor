@@ -6,7 +6,7 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, {  useState, useEffect  } from 'react';
 import { achievementService, type LeaderboardEntry } from '@/lib/services/achievementService';
 
 interface EasterEggLeaderboardProps {
@@ -19,7 +19,7 @@ interface EasterEggLeaderboardProps {
  *
  * Shows top users who discovered easter eggs.
  */
-export function EasterEggLeaderboard({ limit = 50 }: EasterEggLeaderboardProps): JSX.Element {
+export function EasterEggLeaderboard({ limit = 50 }: EasterEggLeaderboardProps): React.ReactElement {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -116,7 +116,7 @@ export function EasterEggLeaderboard({ limit = 50 }: EasterEggLeaderboardProps):
 
       {/* Leaderboard entries */}
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
-        {entries.map((entry, index): JSX.Element => {
+        {entries.map((entry, index): React.ReactElement => {
           const rank = index + 1;
           const isMaster = entry.eggsDiscovered === 5;
 
@@ -195,7 +195,7 @@ export function EasterEggLeaderboard({ limit = 50 }: EasterEggLeaderboardProps):
  *
  * Shows user's own achievements in a compact format.
  */
-export function EasterEggStats(): JSX.Element | null {
+export function EasterEggStats(): React.ReactElement | null {
   const [stats, setStats] = useState({
     discovered: 0,
     total: 5,
@@ -257,7 +257,7 @@ export function EasterEggStats(): JSX.Element | null {
       {/* Achievements */}
       {stats.achievements.length > 0 && (
         <div className="mt-3 flex gap-1">
-          {stats.achievements.map((achievement): JSX.Element => (
+          {stats.achievements.map((achievement): React.ReactElement => (
             <span key={achievement.type} title={achievement.title}>
               {achievement.icon}
             </span>

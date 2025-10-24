@@ -31,7 +31,7 @@ export const TimelineSnapGuides = React.memo<TimelineSnapGuidesProps>(function T
   snapInfo,
   zoom,
   timelineHeight,
-}): JSX.Element | null {
+}): React.ReactElement | null {
   const [showFlash, setShowFlash] = useState(false);
 
   // Trigger flash animation when snap occurs
@@ -74,7 +74,7 @@ export const TimelineSnapGuides = React.memo<TimelineSnapGuidesProps>(function T
         )}
 
         {/* Render snap candidate guidelines */}
-        {visibleCandidates.map((candidate): JSX.Element => {
+        {visibleCandidates.map((candidate): React.ReactElement => {
           const x = candidate * zoom;
           const isActiveSnap = isSnapping && Math.abs(candidate - snapPosition) < 0.001;
 

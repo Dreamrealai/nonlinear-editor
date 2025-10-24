@@ -282,8 +282,9 @@ export function createMockSupabaseClient(
 }
 
 export function createMockUser(overrides?: Record<string, unknown>) {
+  const defaultId = '550e8400-e29b-41d4-a716-446655440000';
   return {
-    id: 'test-user-id',
+    id: defaultId,
     email: 'test@example.com',
     app_metadata: {},
     user_metadata: {},
@@ -296,9 +297,11 @@ export function createMockUser(overrides?: Record<string, unknown>) {
 }
 
 export function createMockProject(overrides?: Record<string, unknown>) {
+  const defaultUserId = '550e8400-e29b-41d4-a716-446655440000';
+  const defaultProjectId = '550e8400-e29b-41d4-a716-446655440001';
   return {
-    id: 'test-project-id',
-    user_id: 'test-user-id',
+    id: defaultProjectId,
+    user_id: defaultUserId,
     title: 'Test Project',
     timeline_state_jsonb: {},
     created_at: '2025-01-01T00:00:00Z',
@@ -308,11 +311,14 @@ export function createMockProject(overrides?: Record<string, unknown>) {
 }
 
 export function createMockAsset(overrides?: Record<string, unknown>) {
+  const defaultUserId = '550e8400-e29b-41d4-a716-446655440000';
+  const defaultProjectId = '550e8400-e29b-41d4-a716-446655440001';
+  const defaultAssetId = '550e8400-e29b-41d4-a716-446655440002';
   return {
-    id: 'test-asset-id',
-    project_id: 'test-project-id',
-    user_id: 'test-user-id',
-    storage_url: 'supabase://assets/test-user-id/test-project-id/image/test.jpg',
+    id: defaultAssetId,
+    project_id: defaultProjectId,
+    user_id: defaultUserId,
+    storage_url: `supabase://assets/${defaultUserId}/${defaultProjectId}/image/test.jpg`,
     type: 'image',
     mime_type: 'image/jpeg',
     width: 1920,
@@ -330,8 +336,9 @@ export function createMockAsset(overrides?: Record<string, unknown>) {
 }
 
 export function createMockUserProfile(overrides?: Record<string, unknown>) {
+  const defaultId = '550e8400-e29b-41d4-a716-446655440000';
   return {
-    id: 'test-user-id',
+    id: defaultId,
     email: 'test@example.com',
     tier: 'free',
     subscription_status: null,

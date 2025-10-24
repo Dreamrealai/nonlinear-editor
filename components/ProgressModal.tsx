@@ -86,7 +86,7 @@ export function ProgressModal({
   progressState,
   onCancel,
   onClose,
-}: ProgressModalProps): React.JSX.Element {
+}: ProgressModalProps): React.ReactElement {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [estimatedRemaining, setEstimatedRemaining] = useState<number | undefined>(undefined);
 

@@ -1,4 +1,8 @@
 /**
+ * @jest-environment node
+ */
+
+/**
  * Integration Tests: Authentication Flow
  *
  * Tests the complete authentication lifecycle including:

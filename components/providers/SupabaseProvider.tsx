@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import React, {  createContext, useContext, useEffect, useState  } from 'react';
 import type { SupabaseClient, User, Session } from '@supabase/supabase-js';
 import { createBrowserSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 import { browserLogger } from '@/lib/browserLogger';
@@ -25,7 +25,7 @@ interface SupabaseProviderProps {
   enabled?: boolean;
 }
 
-export function SupabaseProvider({ children, session: initialSession, enabled = true }: SupabaseProviderProps): JSX.Element {
+export function SupabaseProvider({ children, session: initialSession, enabled = true }: SupabaseProviderProps): React.ReactElement {
   const [supabaseClient] = useState(() => {
     // Don't create client if disabled or not configured
     if (!enabled || !isSupabaseConfigured()) {

@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * KeyframeSidebar - Keyframe selection and management sidebar
  *
@@ -46,7 +48,6 @@
  * />
  * ```
  */
-'use client';
 
 import Image from 'next/image';
 import clsx from 'clsx';
@@ -101,7 +102,7 @@ export function KeyframeSidebar({
   onUploadImage,
   isUploadingImage,
   canExtractFrame,
-}: KeyframeSidebarProps): JSX.Element {
+}: KeyframeSidebarProps): React.ReactElement {
   const customFrames = frames.filter((f): boolean => f.kind === 'custom');
 
   return (
@@ -138,7 +139,7 @@ export function KeyframeSidebar({
           <div className="grid grid-cols-2 gap-2">
             {customFrames
               .sort((a, b): number => b.t_ms - a.t_ms)
-              .map((frame): JSX.Element => (
+              .map((frame): React.ReactElement => (
                 <button
                   key={frame.id}
                   type="button"
@@ -183,7 +184,7 @@ export function KeyframeSidebar({
           <span className="text-[10px] text-neutral-400">{scenes.length}</span>
         </div>
         <div className="space-y-3">
-          {scenes.map((scene): JSX.Element => {
+          {scenes.map((scene): React.ReactElement => {
             const sceneFrames = groupedFrames.get(scene.id) ?? [];
             return (
               <div key={scene.id} className="space-y-1.5">
@@ -193,7 +194,7 @@ export function KeyframeSidebar({
                   <span>{formatMs(scene.end_ms)}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-1.5">
-                  {sceneFrames.map((frame): JSX.Element => (
+                  {sceneFrames.map((frame): React.ReactElement => (
                     <button
                       key={frame.id}
                       type="button"

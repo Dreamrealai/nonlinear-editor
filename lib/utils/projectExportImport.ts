@@ -135,6 +135,12 @@ export function validateImportedProject(data: unknown): {
   // Validate clips
   for (let i = 0; i < timeline.clips.length; i++) {
     const clip = timeline.clips[i];
+    if (!clip) {
+      return {
+        valid: false,
+        error: `Invalid clip at index ${i}: clip is undefined`
+      };
+    }
     if (!clip.id || !clip.assetId || !clip.filePath) {
       return {
         valid: false,

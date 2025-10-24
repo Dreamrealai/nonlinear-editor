@@ -23,7 +23,7 @@
  * - EMAIL_API_KEY: SendGrid/email service API key (optional)
  */
 
-import { AxiomWithoutBatching } from '@axiomhq/js';
+// import { AxiomWithoutBatching } from '@axiomhq/js'; // Temporarily disabled - used in commented queryAxiom function
 
 interface MetricData {
   value: number;
@@ -73,8 +73,10 @@ interface WeeklyReport {
 }
 
 /**
- * Query Axiom for weekly metrics
+ * Query Axiom for weekly metrics - currently unused but kept for future use
+ * Temporarily disabled to avoid unused function warning
  */
+/*
 async function queryAxiom(query: string): Promise<unknown[]> {
   const apiToken = process.env.AXIOM_TOKEN;
   const dataset = process.env.AXIOM_DATASET;
@@ -94,6 +96,7 @@ async function queryAxiom(query: string): Promise<unknown[]> {
 
   return result.matches || [];
 }
+*/
 
 /**
  * Calculate percentage change and trend
@@ -286,7 +289,7 @@ async function sendToSlack(report: WeeklyReport): Promise<void> {
     return;
   }
 
-  const markdown = formatReportMarkdown(report);
+  // const markdown = formatReportMarkdown(report); // Currently unused but kept for future use
 
   const message = {
     text: '📊 Weekly Monitoring Report',
@@ -359,8 +362,10 @@ async function sendToSlack(report: WeeklyReport): Promise<void> {
 }
 
 /**
- * Send report via email
+ * Send report via email - currently unused but kept for future use
+ * Temporarily disabled to avoid unused function warning
  */
+/*
 async function sendEmail(report: WeeklyReport): Promise<void> {
   const apiKey = process.env.EMAIL_API_KEY;
 
@@ -372,6 +377,7 @@ async function sendEmail(report: WeeklyReport): Promise<void> {
   // TODO: Implement email sending with SendGrid or similar
   console.log('Email sending not yet implemented');
 }
+*/
 
 /**
  * Save report to file

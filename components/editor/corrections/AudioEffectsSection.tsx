@@ -1,3 +1,4 @@
+import React from 'react';
 /**
  * AudioEffectsSection - Comprehensive audio effects control panel
  *
@@ -92,7 +93,7 @@ export function AudioEffectsSection({
   onCompressionChange,
   onAudioUpdate,
   onReset,
-}: AudioEffectsSectionProps): JSX.Element {
+}: AudioEffectsSectionProps): React.ReactElement {
   return (
     <div className="space-y-6">
       {/* Volume Control */}

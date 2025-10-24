@@ -29,7 +29,7 @@ type TimelineGridSettingsProps = {
   className?: string;
 };
 
-export function TimelineGridSettings({ className }: TimelineGridSettingsProps): React.JSX.Element {
+export function TimelineGridSettings({ className }: TimelineGridSettingsProps): React.ReactElement {
   const snapEnabled = useEditorStore((state): boolean => state.snapEnabled);
   const snapGridInterval = useEditorStore((state): number => state.snapGridInterval);
   const toggleSnap = useEditorStore((state): () => void => state.toggleSnap);
@@ -116,7 +116,7 @@ export function TimelineGridSettings({ className }: TimelineGridSettingsProps): 
             <div className="p-4 space-y-2">
               <p className="text-xs font-semibold text-neutral-700 mb-2">Preset Intervals</p>
               <div className="space-y-1">
-                {PRESET_INTERVALS.map((preset): JSX.Element => (
+                {PRESET_INTERVALS.map((preset): React.ReactElement => (
                   <button
                     key={preset.value}
                     onClick={(): void => handlePresetClick(preset.value)}

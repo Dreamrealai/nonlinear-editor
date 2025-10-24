@@ -14,7 +14,7 @@
  */
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X, ChevronRight, ChevronLeft, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { analyticsService, AnalyticsEvents } from '@/lib/services/analyticsService';
@@ -87,12 +87,12 @@ type UserOnboardingProps = {
   onComplete?: () => void;
 };
 
-export function UserOnboarding({ forceShow = false, onComplete }: UserOnboardingProps): React.JSX.Element | null {
+export function UserOnboarding({ forceShow = false, onComplete }: UserOnboardingProps): React.ReactElement | null {
   const [isVisible, setIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [highlightPosition, setHighlightPosition] = useState<DOMRect | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
-  const _highlightRef = useRef<HTMLDivElement>(null); // TODO: Implement spotlight highlighting
+  // const highlightRef = useRef<HTMLDivElement>(null); // TODO: Implement spotlight highlighting
   const [onboardingStartTime, setOnboardingStartTime] = useState<number | null>(null);
   const [stepStartTime, setStepStartTime] = useState<number | null>(null);
 
@@ -227,6 +227,8 @@ export function UserOnboarding({ forceShow = false, onComplete }: UserOnboarding
   const handleNext = useCallback((): void => {
     // Track step completed
     const step = ONBOARDING_STEPS[currentStep];
+    if (!step) return;
+
     const now = Date.now();
     const timeOnStep = stepStartTime ? now - stepStartTime : 0;
 
@@ -257,14 +259,16 @@ export function UserOnboarding({ forceShow = false, onComplete }: UserOnboarding
     const step = ONBOARDING_STEPS[currentStep];
 
     // Track abandonment
-    analyticsService.track(AnalyticsEvents.ONBOARDING_SKIPPED, {
-      abandoned_at_step: currentStep + 1,
-      abandoned_at_step_id: step.id,
-      abandoned_at_step_title: step.title,
-      total_time_ms: totalTime,
-      completion_percentage: ((currentStep + 1) / ONBOARDING_STEPS.length) * 100,
-      timestamp: now,
-    });
+    if (step) {
+      analyticsService.track(AnalyticsEvents.ONBOARDING_SKIPPED, {
+        abandoned_at_step: currentStep + 1,
+        abandoned_at_step_id: step.id,
+        abandoned_at_step_title: step.title,
+        total_time_ms: totalTime,
+        completion_percentage: ((currentStep + 1) / ONBOARDING_STEPS.length) * 100,
+        timestamp: now,
+      });
+    }
 
     localStorage.setItem('onboarding-completed', 'true');
     setIsVisible(false);
@@ -294,6 +298,8 @@ export function UserOnboarding({ forceShow = false, onComplete }: UserOnboarding
   if (!isVisible) return null;
 
   const step = ONBOARDING_STEPS[currentStep];
+  if (!step) return null; // Safety check for undefined step
+
   const progress = ((currentStep + 1) / ONBOARDING_STEPS.length) * 100;
   const isLastStep = currentStep === ONBOARDING_STEPS.length - 1;
 
@@ -386,7 +392,7 @@ export function UserOnboarding({ forceShow = false, onComplete }: UserOnboarding
             </button>
 
             <div className="flex gap-1">
-              {ONBOARDING_STEPS.map((_, index): JSX.Element => (
+              {ONBOARDING_STEPS.map((_, index): React.ReactElement => (
                 <div
                   key={index}
                   className={cn(

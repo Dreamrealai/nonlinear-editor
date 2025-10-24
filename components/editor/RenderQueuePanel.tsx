@@ -10,7 +10,7 @@
  */
 'use client';
 
-import { useState } from 'react';
+import React, {  useState  } from 'react';
 import { useRenderQueue } from '@/lib/hooks/useRenderQueue';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -37,7 +37,7 @@ export interface RenderQueuePanelProps {
   className?: string;
 }
 
-export function RenderQueuePanel({ className }: RenderQueuePanelProps): JSX.Element {
+export function RenderQueuePanel({ className }: RenderQueuePanelProps): React.ReactElement {
   const { jobs, activeJobs, completedJobs, isLoading, error, refetch, cancelJob, pauseJob, resumeJob, updatePriority } = useRenderQueue({
     autoRefresh: true,
     refreshInterval: 3000, // Refresh every 3 seconds
@@ -107,7 +107,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps): JSX.Elem
     }
   };
 
-  const getStatusIcon = (status: string): JSX.Element | null => {
+  const getStatusIcon = (status: string): React.ReactElement | null => {
     switch (status) {
       case 'pending':
         return <Clock className="h-4 w-4 text-yellow-500" />;
@@ -197,7 +197,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps): JSX.Elem
       {activeJobs.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground">Active Exports</h3>
-          {activeJobs.map((job): JSX.Element => (
+          {activeJobs.map((job): React.ReactElement => (
             <Card key={job.id}>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
@@ -322,7 +322,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps): JSX.Elem
       {showCompleted && completedJobs.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground">Completed Exports</h3>
-          {completedJobs.map((job): JSX.Element => (
+          {completedJobs.map((job): React.ReactElement => (
             <Card key={job.id} className="opacity-80">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">

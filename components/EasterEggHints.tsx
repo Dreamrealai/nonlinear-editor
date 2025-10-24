@@ -6,7 +6,7 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, {  useState, useEffect  } from 'react';
 import { achievementService, EasterEggIds, type EasterEggId } from '@/lib/services/achievementService';
 
 interface Hint {
@@ -59,7 +59,7 @@ interface EasterEggHintsProps {
  *
  * Shows a collapsible hints panel when appropriate.
  */
-export function EasterEggHints({ enabled = true }: EasterEggHintsProps): JSX.Element | null {
+export function EasterEggHints({ enabled = true }: EasterEggHintsProps): React.ReactElement | null {
   const [isVisible, setIsVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [availableHints, setAvailableHints] = useState<Hint[]>([]);
@@ -166,7 +166,7 @@ export function EasterEggHints({ enabled = true }: EasterEggHintsProps): JSX.Ele
       {isExpanded && (
         <div className="max-h-96 overflow-y-auto p-4">
           <div className="space-y-3">
-            {availableHints.map((hint, index): JSX.Element => (
+            {availableHints.map((hint): React.ReactElement => (
               <div
                 key={hint.eggId}
                 className="rounded-lg border border-gray-200 p-3 dark:border-gray-700"
@@ -216,7 +216,7 @@ export function EasterEggHints({ enabled = true }: EasterEggHintsProps): JSX.Ele
  *
  * Shows a small floating indicator of easter egg progress.
  */
-export function EasterEggProgress(): JSX.Element | null {
+export function EasterEggProgress(): React.ReactElement | null {
   const [discoveredCount, setDiscoveredCount] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 

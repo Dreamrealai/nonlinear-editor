@@ -34,7 +34,7 @@ type TimelineTrimOverlayProps = {
  * Renders trim overlay with duration feedback
  */
 export const TimelineTrimOverlay = React.memo<TimelineTrimOverlayProps>(
-  function TimelineTrimOverlay({ trimInfo }): JSX.Element | null {
+  function TimelineTrimOverlay({ trimInfo }): React.ReactElement | null {
     if (!trimInfo) {
       return null;
     }

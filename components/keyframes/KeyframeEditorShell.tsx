@@ -31,7 +31,7 @@
  */
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import React, {  useCallback, useEffect, useState  } from 'react';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useKeyframeData, useFrameEdits } from './hooks/useKeyframeData';
@@ -54,7 +54,7 @@ function KeyframeEditorContent({
   supabase,
 }: KeyframeEditorShellProps & {
   supabase: NonNullable<ReturnType<typeof useSupabase>['supabaseClient']>;
-}): JSX.Element {
+}): React.ReactElement {
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(assets[0]?.id ?? null);
   const [refreshToken, setRefreshToken] = useState(0);
 
@@ -226,7 +226,7 @@ function KeyframeEditorContent({
             value={selectedAssetId ?? ''}
             onChange={(event): void => setSelectedAssetId(event.target.value || null)}
           >
-            {assets.map((asset): JSX.Element => (
+            {assets.map((asset): React.ReactElement => (
               <option key={asset.id} value={asset.id}>
                 {getAssetLabel(asset)}
               </option>
@@ -350,7 +350,7 @@ function KeyframeEditorContent({
   );
 }
 
-export function KeyframeEditorShell({ assets }: KeyframeEditorShellProps): JSX.Element {
+export function KeyframeEditorShell({ assets }: KeyframeEditorShellProps): React.ReactElement {
   const { supabaseClient, isLoading } = useSupabase();
 
   if (isLoading || !supabaseClient) {

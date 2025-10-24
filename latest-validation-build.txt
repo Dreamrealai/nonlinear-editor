@@ -1,0 +1,305 @@
+
+> nonlinear-editor@0.1.0 build
+> next build
+
+   ▲ Next.js 16.0.0 (Turbopack)
+   - Environments: .env.local
+   - Experiments (use with caution):
+     ✓ optimizeCss
+     · optimizePackageImports
+     · serverActions
+
+   Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 8 errors:
+./components/generation/VideoGenerationForm.tsx:12:1
+Ecmascript file had an error
+[0m [90m 10 |[39m [90m */[39m
+ [90m 11 |[39m
+[31m[1m>[22m[39m[90m 12 |[39m [32m'use client'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 13 |[39m
+ [90m 14 |[39m [36mimport[39m [33mImage[39m [36mfrom[39m [32m'next/image'[39m[33m;[39m
+ [90m 15 |[39m [36mimport[39m type { [33mModelConfig[39m } [36mfrom[39m [32m'@/lib/config/models'[39m[33m;[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+Import traces:
+  #1 [App Route]:
+    ./components/generation/VideoGenerationForm.tsx
+    ./node_modules/@google-cloud/storage/build/esm/src/transfer-manager.js
+    ./node_modules/@google-cloud/storage/build/esm/src/index.js
+    ./app/api/video/split-scenes/route.ts
+
+  #2 [Client Component Browser]:
+    ./components/generation/VideoGenerationForm.tsx [Client Component Browser]
+    ./components/generation/GenerateVideoTab.tsx [Client Component Browser]
+    ./components/generation/GenerateVideoTab.tsx [Server Component]
+    ./app/editor/[projectId]/page.tsx [Server Component]
+
+  #3 [Client Component SSR]:
+    ./components/generation/VideoGenerationForm.tsx [Client Component SSR]
+    ./components/generation/GenerateVideoTab.tsx [Client Component SSR]
+    ./components/generation/GenerateVideoTab.tsx [Server Component]
+    ./app/editor/[projectId]/page.tsx [Server Component]
+
+  #4 [Client Component Browser]:
+    ./components/generation/VideoGenerationForm.tsx [Client Component Browser]
+    ./components/LazyComponents.tsx [Client Component Browser]
+    ./app/editor/[projectId]/BrowserEditorClient.tsx [Client Component Browser]
+    ./app/editor/[projectId]/BrowserEditorClient.tsx [Server Component]
+    ./app/editor/[projectId]/timeline/page.tsx [Server Component]
+
+
+./components/generation/VideoGenerationQueue.tsx:9:1
+Ecmascript file had an error
+[0m [90m  7 |[39m [90m */[39m
+ [90m  8 |[39m
+[31m[1m>[22m[39m[90m  9 |[39m [32m'use client'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 10 |[39m
+ [90m 11 |[39m [36mimport[39m { [33mVideoQueueItem[39m } [36mfrom[39m [32m'./VideoQueueItem'[39m[33m;[39m
+ [90m 12 |[39m [36mimport[39m { [33mNUMERIC_LIMITS[39m } [36mfrom[39m [32m'@/lib/config'[39m[33m;[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+Import traces:
+  #1 [App Route]:
+    ./components/generation/VideoGenerationQueue.tsx
+    ./node_modules/@google-cloud/storage/build/esm/src/transfer-manager.js
+    ./node_modules/@google-cloud/storage/build/esm/src/index.js
+    ./app/api/video/split-scenes/route.ts
+
+  #2 [Client Component Browser]:
+    ./components/generation/VideoGenerationQueue.tsx [Client Component Browser]
+    ./components/generation/GenerateVideoTab.tsx [Client Component Browser]
+    ./components/generation/GenerateVideoTab.tsx [Server Component]
+    ./app/editor/[projectId]/page.tsx [Server Component]
+
+  #3 [Client Component SSR]:
+    ./components/generation/VideoGenerationQueue.tsx [Client Component SSR]
+    ./components/generation/GenerateVideoTab.tsx [Client Component SSR]
+    ./components/generation/GenerateVideoTab.tsx [Server Component]
+    ./app/editor/[projectId]/page.tsx [Server Component]
+
+  #4 [Client Component Browser]:
+    ./components/generation/VideoGenerationQueue.tsx [Client Component Browser]
+    ./components/LazyComponents.tsx [Client Component Browser]
+    ./app/editor/[projectId]/BrowserEditorClient.tsx [Client Component Browser]
+    ./app/editor/[projectId]/BrowserEditorClient.tsx [Server Component]
+    ./app/editor/[projectId]/timeline/page.tsx [Server Component]
+
+
+./components/keyframes/components/EditControls.tsx:57:1
+Ecmascript file had an error
+[0m [90m 55 |[39m [90m * ```[39m
+ [90m 56 |[39m [90m */[39m
+[31m[1m>[22m[39m[90m 57 |[39m [32m'use client'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 58 |[39m
+ [90m 59 |[39m [36mimport[39m [33mImage[39m [36mfrom[39m [32m'next/image'[39m[33m;[39m
+ [90m 60 |[39m [36mimport[39m clsx [36mfrom[39m [32m'clsx'[39m[33m;[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+Import traces:
+  App Route:
+    ./components/keyframes/components/EditControls.tsx
+    ./node_modules/@google-cloud/storage/build/esm/src/transfer-manager.js
+    ./node_modules/@google-cloud/storage/build/esm/src/index.js
+    ./app/api/video/split-scenes/route.ts
+
+  Client Component Browser:
+    ./components/keyframes/components/EditControls.tsx [Client Component Browser]
+    ./components/keyframes/KeyframeEditorShell.tsx [Client Component Browser]
+    ./app/editor/[projectId]/keyframe/KeyframePageClient.tsx [Client Component Browser]
+    ./app/editor/[projectId]/keyframe/KeyframePageClient.tsx [Server Component]
+    ./app/editor/[projectId]/keyframe/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/keyframes/components/EditControls.tsx [Client Component SSR]
+    ./components/keyframes/KeyframeEditorShell.tsx [Client Component SSR]
+    ./app/editor/[projectId]/keyframe/KeyframePageClient.tsx [Client Component SSR]
+    ./app/editor/[projectId]/keyframe/KeyframePageClient.tsx [Server Component]
+    ./app/editor/[projectId]/keyframe/page.tsx [Server Component]
+
+
+./components/keyframes/components/KeyframePreview.tsx:41:1
+Ecmascript file had an error
+[0m [90m 39 |[39m [90m * ```[39m
+ [90m 40 |[39m [90m */[39m
+[31m[1m>[22m[39m[90m 41 |[39m [32m'use client'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 42 |[39m
+ [90m 43 |[39m [36mimport[39m [33mImage[39m [36mfrom[39m [32m'next/image'[39m[33m;[39m
+ [90m 44 |[39m [36mimport[39m type { [33mCSSProperties[39m } [36mfrom[39m [32m'react'[39m[33m;[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+Import traces:
+  App Route:
+    ./components/keyframes/components/KeyframePreview.tsx
+    ./node_modules/@google-cloud/storage/build/esm/src/transfer-manager.js
+    ./node_modules/@google-cloud/storage/build/esm/src/index.js
+    ./app/api/video/split-scenes/route.ts
+
+  Client Component Browser:
+    ./components/keyframes/components/KeyframePreview.tsx [Client Component Browser]
+    ./components/keyframes/KeyframeEditorShell.tsx [Client Component Browser]
+    ./app/editor/[projectId]/keyframe/KeyframePageClient.tsx [Client Component Browser]
+    ./app/editor/[projectId]/keyframe/KeyframePageClient.tsx [Server Component]
+    ./app/editor/[projectId]/keyframe/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/keyframes/components/KeyframePreview.tsx [Client Component SSR]
+    ./components/keyframes/KeyframeEditorShell.tsx [Client Component SSR]
+    ./app/editor/[projectId]/keyframe/KeyframePageClient.tsx [Client Component SSR]
+    ./app/editor/[projectId]/keyframe/KeyframePageClient.tsx [Server Component]
+    ./app/editor/[projectId]/keyframe/page.tsx [Server Component]
+
+
+./components/keyframes/components/KeyframeSidebar.tsx:50:1
+Ecmascript file had an error
+[0m [90m 48 |[39m [90m * ```[39m
+ [90m 49 |[39m [90m */[39m
+[31m[1m>[22m[39m[90m 50 |[39m [32m'use client'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 51 |[39m
+ [90m 52 |[39m [36mimport[39m [33mImage[39m [36mfrom[39m [32m'next/image'[39m[33m;[39m
+ [90m 53 |[39m [36mimport[39m clsx [36mfrom[39m [32m'clsx'[39m[33m;[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+Import traces:
+  App Route:
+    ./components/keyframes/components/KeyframeSidebar.tsx
+    ./node_modules/@google-cloud/storage/build/esm/src/transfer-manager.js
+    ./node_modules/@google-cloud/storage/build/esm/src/index.js
+    ./app/api/video/split-scenes/route.ts
+
+  Client Component Browser:
+    ./components/keyframes/components/KeyframeSidebar.tsx [Client Component Browser]
+    ./components/keyframes/KeyframeEditorShell.tsx [Client Component Browser]
+    ./app/editor/[projectId]/keyframe/KeyframePageClient.tsx [Client Component Browser]
+    ./app/editor/[projectId]/keyframe/KeyframePageClient.tsx [Server Component]
+    ./app/editor/[projectId]/keyframe/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/keyframes/components/KeyframeSidebar.tsx [Client Component SSR]
+    ./components/keyframes/KeyframeEditorShell.tsx [Client Component SSR]
+    ./app/editor/[projectId]/keyframe/KeyframePageClient.tsx [Client Component SSR]
+    ./app/editor/[projectId]/keyframe/KeyframePageClient.tsx [Server Component]
+    ./app/editor/[projectId]/keyframe/page.tsx [Server Component]
+
+
+./components/keyframes/components/VersionsGallery.tsx:30:1
+Ecmascript file had an error
+[0m [90m 28 |[39m [90m * ```[39m
+ [90m 29 |[39m [90m */[39m
+[31m[1m>[22m[39m[90m 30 |[39m [32m'use client'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 31 |[39m
+ [90m 32 |[39m [36mimport[39m [33mImage[39m [36mfrom[39m [32m'next/image'[39m[33m;[39m
+ [90m 33 |[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+Import traces:
+  App Route:
+    ./components/keyframes/components/VersionsGallery.tsx
+    ./node_modules/@google-cloud/storage/build/esm/src/transfer-manager.js
+    ./node_modules/@google-cloud/storage/build/esm/src/index.js
+    ./app/api/video/split-scenes/route.ts
+
+  Client Component Browser:
+    ./components/keyframes/components/VersionsGallery.tsx [Client Component Browser]
+    ./components/keyframes/KeyframeEditorShell.tsx [Client Component Browser]
+    ./app/editor/[projectId]/keyframe/KeyframePageClient.tsx [Client Component Browser]
+    ./app/editor/[projectId]/keyframe/KeyframePageClient.tsx [Server Component]
+    ./app/editor/[projectId]/keyframe/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/keyframes/components/VersionsGallery.tsx [Client Component SSR]
+    ./components/keyframes/KeyframeEditorShell.tsx [Client Component SSR]
+    ./app/editor/[projectId]/keyframe/KeyframePageClient.tsx [Client Component SSR]
+    ./app/editor/[projectId]/keyframe/KeyframePageClient.tsx [Server Component]
+    ./app/editor/[projectId]/keyframe/page.tsx [Server Component]
+
+
+./components/ui/Dialog.tsx:29:1
+Ecmascript file had an error
+[0m [90m 27 |[39m [90m * ```[39m
+ [90m 28 |[39m [90m */[39m
+[31m[1m>[22m[39m[90m 29 |[39m [32m'use client'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 30 |[39m
+ [90m 31 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 32 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mDialogPrimitive[39m [36mfrom[39m [32m'@radix-ui/react-dialog'[39m[33m;[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+Import traces:
+  App Route:
+    ./components/ui/Dialog.tsx
+    ./node_modules/@google-cloud/storage/build/esm/src/transfer-manager.js
+    ./node_modules/@google-cloud/storage/build/esm/src/index.js
+    ./app/api/video/split-scenes/route.ts
+
+  Client Component Browser:
+    ./components/ui/Dialog.tsx [Client Component Browser]
+    ./components/BackupButton.tsx [Client Component Browser]
+    ./components/EditorHeader.tsx [Client Component Browser]
+    ./components/EditorHeader.tsx [Server Component]
+    ./app/editor/[projectId]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/ui/Dialog.tsx [Client Component SSR]
+    ./components/BackupButton.tsx [Client Component SSR]
+    ./components/EditorHeader.tsx [Client Component SSR]
+    ./components/EditorHeader.tsx [Server Component]
+    ./app/editor/[projectId]/page.tsx [Server Component]
+
+
+./components/ui/Tooltip.tsx:22:1
+Ecmascript file had an error
+[0m [90m 20 |[39m [90m * ```[39m
+ [90m 21 |[39m [90m */[39m
+[31m[1m>[22m[39m[90m 22 |[39m [32m'use client'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 23 |[39m
+ [90m 24 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 25 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mTooltipPrimitive[39m [36mfrom[39m [32m'@radix-ui/react-tooltip'[39m[33m;[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+Import traces:
+  App Route:
+    ./components/ui/Tooltip.tsx
+    ./node_modules/@google-cloud/storage/build/esm/src/transfer-manager.js
+    ./node_modules/@google-cloud/storage/build/esm/src/index.js
+    ./app/api/video/split-scenes/route.ts
+
+  Client Component Browser:
+    ./components/ui/Tooltip.tsx [Client Component Browser]
+    ./components/ThemeToggle.tsx [Client Component Browser]
+    ./components/EditorHeader.tsx [Client Component Browser]
+    ./components/EditorHeader.tsx [Server Component]
+    ./app/editor/[projectId]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/ui/Tooltip.tsx [Client Component SSR]
+    ./components/ThemeToggle.tsx [Client Component SSR]
+    ./components/EditorHeader.tsx [Client Component SSR]
+    ./components/EditorHeader.tsx [Server Component]
+    ./app/editor/[projectId]/page.tsx [Server Component]
+
+
+    at <unknown> (./components/generation/VideoGenerationForm.tsx:12:1)
+    at <unknown> (./components/generation/VideoGenerationQueue.tsx:9:1)
+    at <unknown> (./components/keyframes/components/EditControls.tsx:57:1)
+    at <unknown> (./components/keyframes/components/KeyframePreview.tsx:41:1)
+    at <unknown> (./components/keyframes/components/KeyframeSidebar.tsx:50:1)
+    at <unknown> (./components/keyframes/components/VersionsGallery.tsx:30:1)
+    at <unknown> (./components/ui/Dialog.tsx:29:1)
+    at <unknown> (./components/ui/Tooltip.tsx:22:1)

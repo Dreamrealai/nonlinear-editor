@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import React, {  useState, useCallback  } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import { useCorrectionSync } from './corrections/useCorrectionSync';
 import { useCorrectionHandlers } from './corrections/useCorrectionHandlers';
@@ -20,7 +20,7 @@ import type { SectionType } from './corrections/types';
  *
  * Features modern, sleek design with smooth animations and debounced updates.
  */
-export function TimelineCorrectionsMenu(): JSX.Element | null {
+export function TimelineCorrectionsMenu(): React.ReactElement | null {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionType>('color');
 

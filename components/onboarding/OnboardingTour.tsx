@@ -9,7 +9,7 @@
  */
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import React, {  useEffect, useState, useCallback  } from 'react';
 import { Button } from '@/components/ui/Button';
 import { X, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { useOnboarding } from '@/lib/hooks/useOnboarding';
@@ -22,7 +22,7 @@ interface OnboardingTourProps {
   onSkip?: () => void;
 }
 
-export function OnboardingTour({ tour, onComplete, onSkip }: OnboardingTourProps): JSX.Element | null {
+export function OnboardingTour({ tour, onComplete, onSkip }: OnboardingTourProps): React.ReactElement | null {
   const {
     state,
     isLoading,

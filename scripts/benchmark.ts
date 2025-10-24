@@ -206,12 +206,11 @@ function benchmarkOnboardingInit(): BenchmarkResult {
       ];
 
       // Simulate position calculations
-      steps.forEach((step) => {
+      steps.forEach(() => {
         const rect = { top: 100, left: 100, width: 200, height: 100 };
-        const tooltipPos = {
-          top: rect.top + rect.height + 20,
-          left: rect.left + rect.width / 2,
-        };
+        // Calculate tooltip position (simulates real calculations without assignment)
+        void (rect.top + rect.height + 20);
+        void (rect.left + rect.width / 2);
       });
     },
     TARGETS.ONBOARDING_INIT,
@@ -236,7 +235,8 @@ function benchmarkEasterEggActivation(): BenchmarkResult {
       if (matches) {
         // Simulate confetti creation (without DOM manipulation)
         for (let i = 0; i < 50; i++) {
-          const pos = { x: Math.random() * 1920, y: -10 };
+          void Math.random() * 1920; // posX calculation
+          void -10; // posY value
         }
       }
     },
@@ -335,11 +335,12 @@ function benchmarkMinimapRender(): BenchmarkResult {
       const timelineDuration = timeline.clips[timeline.clips.length - 1]!.timelinePosition + 10;
 
       timeline.clips.forEach((clip) => {
-        const clipLeft = (clip.timelinePosition / timelineDuration) * minimapWidth;
+        // Calculate clip position and dimensions (simulates real calculations without assignment)
+        void ((clip.timelinePosition / timelineDuration) * minimapWidth); // clipLeft
         const clipDuration = clip.end - clip.start;
-        const clipWidth = Math.max(2, (clipDuration / timelineDuration) * minimapWidth);
-        const clipTop = 4 + (clip.trackIndex / numTracks) * (60 - 8);
-        const clipHeight = Math.max(2, (1 / numTracks) * (60 - 8) - 1);
+        void Math.max(2, (clipDuration / timelineDuration) * minimapWidth); // clipWidth
+        void (4 + (clip.trackIndex / numTracks) * (60 - 8)); // clipTop
+        void Math.max(2, (1 / numTracks) * (60 - 8) - 1); // clipHeight
       });
     },
     TARGETS.MINIMAP_RENDER,
@@ -422,11 +423,11 @@ function benchmarkAutoSave(): BenchmarkResult {
       // Simulate JSON serialization
       const json = JSON.stringify(data);
 
-      // Simulate compression (calculate size)
-      const size = json.length;
+      // Simulate compression (calculate size - simulates real behavior)
+      void json.length;
 
-      // Simulate validation
-      const isValid = data.clips.every((c) => c.start < c.end && c.position >= 0);
+      // Simulate validation (simulates real behavior)
+      void data.clips.every((c) => c.start < c.end && c.position >= 0);
     },
     TARGETS.AUTO_SAVE,
     50

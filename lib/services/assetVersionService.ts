@@ -339,7 +339,7 @@ export class AssetVersionService {
     }
 
     // Create a version of the current state before reverting
-    const currentVersion = await this.createVersion(assetId, userId, {
+    await this.createVersion(assetId, userId, {
       changeReason: `Before reverting to version ${version.version_number}`,
       versionLabel: 'Pre-revert snapshot',
     });

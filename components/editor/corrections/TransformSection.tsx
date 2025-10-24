@@ -1,3 +1,4 @@
+import React from 'react';
 /**
  * TransformSection - Clip transformation and orientation controls
  *
@@ -58,7 +59,7 @@ export function TransformSection({
   onScaleChange,
   onFlipUpdate,
   onReset,
-}: TransformSectionProps): JSX.Element {
+}: TransformSectionProps): React.ReactElement {
   return (
     <div className="grid grid-cols-2 gap-6">
       <div className="space-y-4">

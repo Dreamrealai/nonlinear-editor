@@ -1,3 +1,4 @@
+import React from 'react';
 /**
  * SFXGenerationForm - Sound effects generation form
  *
@@ -65,7 +66,7 @@ export function SFXGenerationForm({
   setSfxDuration,
   generating,
   onSubmit,
-}: SFXGenerationFormProps): JSX.Element {
+}: SFXGenerationFormProps): React.ReactElement {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       {/* SFX Prompt */}
@@ -115,7 +116,7 @@ export function SFXGenerationForm({
       <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
         <h3 className="block text-sm font-semibold text-neutral-900 mb-3">Quick Presets</h3>
         <div className="grid grid-cols-2 gap-2">
-          {SFX_PRESETS.map((preset): JSX.Element => (
+          {SFX_PRESETS.map((preset): React.ReactElement => (
             <button
               key={preset}
               type="button"

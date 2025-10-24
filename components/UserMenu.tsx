@@ -9,14 +9,14 @@
  */
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, {  useState, useEffect, useRef  } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { browserLogger } from '@/lib/browserLogger';
 
-export function UserMenu(): JSX.Element {
+export function UserMenu(): React.ReactElement {
   const router = useRouter();
   const { supabaseClient } = useSupabase();
   const menuRef = useRef<HTMLDivElement>(null);

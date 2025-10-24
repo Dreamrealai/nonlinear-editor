@@ -14,7 +14,7 @@ interface EasterEggProviderProps {
   enabled?: boolean;
 }
 
-export function EasterEggProvider({ children, enabled = true }: EasterEggProviderProps): React.JSX.Element {
+export function EasterEggProvider({ children, enabled = true }: EasterEggProviderProps): React.ReactElement {
   // Initialize easter eggs
   useEasterEggs({ enabled });
 

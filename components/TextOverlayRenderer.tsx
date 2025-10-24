@@ -24,7 +24,7 @@ interface TextOverlayRendererProps {
 }
 
 const TextOverlayRenderer = React.memo<TextOverlayRendererProps>(
-  ({ textOverlays, currentTime }): JSX.Element | null => {
+  ({ textOverlays, currentTime }): React.ReactElement | null => {
     // Filter overlays that should be visible at the current time
     const visibleOverlays = textOverlays.filter(
       (overlay): boolean =>
@@ -41,7 +41,7 @@ const TextOverlayRenderer = React.memo<TextOverlayRendererProps>(
         className="absolute inset-0 pointer-events-none"
         style={{ zIndex: Z_INDEX.OVERLAY_TEXT }}
       >
-        {visibleOverlays.map((overlay): JSX.Element | null => {
+        {visibleOverlays.map((overlay): React.ReactElement | null => {
           // Calculate time elapsed since overlay became visible
           const elapsedTime = currentTime - overlay.timelinePosition;
 

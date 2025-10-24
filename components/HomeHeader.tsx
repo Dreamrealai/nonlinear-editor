@@ -1,3 +1,4 @@
+import React from 'react';
 /**
  * HomeHeader - Main header for the projects homepage
  *
@@ -20,7 +21,7 @@
 import { UserMenu } from '@/components/UserMenu';
 import { CreateProjectButton } from '@/components/CreateProjectButton';
 
-export function HomeHeader(): JSX.Element {
+export function HomeHeader(): React.ReactElement {
   return (
     <div className="mb-8 flex items-center justify-between">
       <h1 className="text-3xl font-bold text-neutral-900">My Projects</h1>

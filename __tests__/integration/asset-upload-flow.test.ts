@@ -1,4 +1,8 @@
 /**
+ * @jest-environment node
+ */
+
+/**
  * Integration Tests: Asset Upload Flow
  *
  * Tests the complete asset upload lifecycle including:

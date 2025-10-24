@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 /**
  * Theme Toggle Component
  *
@@ -47,7 +48,7 @@ const iconSizes = {
  * @param className - Additional CSS classes
  * @param size - Button size variant
  */
-export function ThemeToggle({ className = '', size = 'md' }: ThemeToggleProps): React.JSX.Element | null {
+export function ThemeToggle({ className = '', size = 'md' }: ThemeToggleProps): React.ReactElement | null {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
@@ -74,7 +75,7 @@ export function ThemeToggle({ className = '', size = 'md' }: ThemeToggleProps): 
     }
   };
 
-  const getIcon = (): JSX.Element => {
+  const getIcon = (): React.ReactElement => {
     const iconSize = iconSizes[size];
     switch (theme) {
       case 'light':

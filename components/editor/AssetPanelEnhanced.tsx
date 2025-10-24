@@ -6,7 +6,7 @@
  */
 'use client';
 
-import { type ChangeEvent, useRef, useState, useMemo, useCallback } from 'react';
+import React, {  type ChangeEvent, useRef, useState, useMemo, useCallback  } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { AssetRow } from '@/types/assets';
@@ -104,7 +104,7 @@ export function AssetPanelEnhanced({
   hasPreviousPage = false,
   onNextPage,
   onPreviousPage,
-}: AssetPanelEnhancedProps): JSX.Element {
+}: AssetPanelEnhancedProps): React.ReactElement {
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
   // Search and filter state
@@ -433,7 +433,7 @@ export function AssetPanelEnhanced({
 
           {/* Filter Presets */}
           <div className="flex flex-wrap gap-2">
-            {(['all', 'favorites', 'unused', 'recent', 'tagged'] as FilterPreset[]).map((preset): JSX.Element => (
+            {(['all', 'favorites', 'unused', 'recent', 'tagged'] as FilterPreset[]).map((preset): React.ReactElement => (
               <button
                 key={preset}
                 onClick={(): void => setFilterPreset(preset)}
@@ -459,7 +459,7 @@ export function AssetPanelEnhanced({
                 Filter by Tags:
               </label>
               <div className="flex flex-wrap gap-2">
-                {allTags.map((tag): JSX.Element => (
+                {allTags.map((tag): React.ReactElement => (
                   <button
                     key={tag}
                     onClick={(): void => toggleTagFilter(tag)}
@@ -732,7 +732,7 @@ export function AssetPanelEnhanced({
                 : 'No audio assets yet. Upload or generate audio.'}
           </div>
         )}
-        {filteredAssets.map((asset): JSX.Element => (
+        {filteredAssets.map((asset): React.ReactElement => (
           <div key={asset.id} className="group relative flex flex-col gap-2">
             <button
               type="button"
@@ -772,7 +772,7 @@ export function AssetPanelEnhanced({
                 {/* Tags Display */}
                 {asset.tags && asset.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {asset.tags.map((tag): JSX.Element => (
+                    {asset.tags.map((tag): React.ReactElement => (
                       <span
                         key={tag}
                         className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs"
@@ -905,7 +905,7 @@ export function AssetPanelEnhanced({
                   </div>
                   {asset.tags && asset.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {asset.tags.map((tag): JSX.Element => (
+                      {asset.tags.map((tag): React.ReactElement => (
                         <span
                           key={tag}
                           className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs"

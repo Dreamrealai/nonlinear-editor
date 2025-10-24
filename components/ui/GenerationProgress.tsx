@@ -84,7 +84,7 @@ export function GenerationProgress({
   className,
   variant = 'default',
   estimatedTimeRemaining,
-}: GenerationProgressProps): React.JSX.Element {
+}: GenerationProgressProps): React.ReactElement {
   // Calculate or use provided time estimate
   const timeRemaining =
     estimatedTimeRemaining !== undefined
@@ -180,7 +180,7 @@ export function GenerationStarting({
 }: {
   generationType?: string;
   className?: string;
-}): React.JSX.Element {
+}): React.ReactElement {
   return (
     <div
       className={cn('flex items-center gap-3 rounded-lg bg-blue-50 px-4 py-3', className)}

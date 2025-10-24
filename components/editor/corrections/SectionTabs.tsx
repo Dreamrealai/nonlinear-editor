@@ -1,3 +1,4 @@
+import React from 'react';
 /**
  * SectionTabs - Navigation tabs for timeline corrections panel
  *
@@ -33,7 +34,7 @@ interface SectionTabsProps {
   onSectionChange: (section: SectionType) => void;
 }
 
-export function SectionTabs({ activeSection, hasAudio, onSectionChange }: SectionTabsProps): JSX.Element {
+export function SectionTabs({ activeSection, hasAudio, onSectionChange }: SectionTabsProps): React.ReactElement {
   return (
     <div className="mb-4 flex gap-2">
       <button

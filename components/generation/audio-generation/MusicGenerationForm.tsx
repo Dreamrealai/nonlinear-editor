@@ -53,7 +53,7 @@
  * />
  * ```
  */
-import { useState } from 'react';
+import React, {  useState  } from 'react';
 
 interface MusicGenerationFormProps {
   prompt: string;
@@ -85,7 +85,7 @@ export function MusicGenerationForm({
   generating,
   taskId,
   onSubmit,
-}: MusicGenerationFormProps): JSX.Element {
+}: MusicGenerationFormProps): React.ReactElement {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   return (

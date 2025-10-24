@@ -86,9 +86,9 @@ type UserOnboardingProps = {
 /**
  * Memoized progress indicator component
  */
-const ProgressIndicator = memo(({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }): JSX.Element => (
+const ProgressIndicator = memo(({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }): React.ReactElement => (
   <div className="flex gap-1">
-    {Array.from({ length: totalSteps }).map((_, index): JSX.Element => (
+    {Array.from({ length: totalSteps }).map((_, index): React.ReactElement => (
       <div
         key={index}
         className={cn(
@@ -108,11 +108,11 @@ ProgressIndicator.displayName = 'ProgressIndicator';
 /**
  * Memoized step content component
  */
-const StepContent = memo(({ step, currentStep, totalSteps }: {
+const StepContent = memo(({ step }: {
   step: OnboardingStep;
   currentStep: number;
   totalSteps: number;
-}): JSX.Element => (
+}): React.ReactElement => (
   <div className="p-6">
     <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed">
       {step.description}
@@ -162,7 +162,7 @@ function calculateTooltipPosition(
   return { top, left };
 }
 
-export function UserOnboarding({ forceShow = false, onComplete }: UserOnboardingProps): React.JSX.Element | null {
+export function UserOnboarding({ forceShow = false, onComplete }: UserOnboardingProps): React.ReactElement | null {
   const [isVisible, setIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [highlightPosition, setHighlightPosition] = useState<DOMRect | null>(null);
@@ -278,6 +278,7 @@ export function UserOnboarding({ forceShow = false, onComplete }: UserOnboarding
   }, [onComplete]);
 
   if (!isVisible) return null;
+  if (!step) return null; // Safety check for undefined step
 
   return (
     <>

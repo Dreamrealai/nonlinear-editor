@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import React, {  useState, useCallback  } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { VideoGenerationForm } from './VideoGenerationForm';
 import { VideoGenerationSettings } from './VideoGenerationSettings';
@@ -24,7 +24,7 @@ interface GenerateVideoTabProps {
  * Supports all available Veo parameters including duration, aspect ratio, resolution,
  * negative prompts, person generation settings, and more.
  */
-export function GenerateVideoTab({ projectId }: GenerateVideoTabProps): JSX.Element {
+export function GenerateVideoTab({ projectId }: GenerateVideoTabProps): React.ReactElement {
   // Form state - Configured with loosest/most permissive settings for Veo 3.1
   const [formState, setFormState] = useState<VideoGenerationFormState>({
     prompt: '',

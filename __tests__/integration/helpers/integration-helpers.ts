@@ -22,7 +22,7 @@ export const UserPersonas = {
    * Free tier user with limited resources
    */
   freeTierUser: () => ({
-    id: 'free-user-123',
+    id: '550e8400-e29b-41d4-a716-446655440010',
     email: 'free@example.com',
     tier: 'free' as const,
     video_minutes_used: 5,
@@ -37,7 +37,7 @@ export const UserPersonas = {
    * Pro tier user with ample resources
    */
   proTierUser: () => ({
-    id: 'pro-user-456',
+    id: '550e8400-e29b-41d4-a716-446655440011',
     email: 'pro@example.com',
     tier: 'pro' as const,
     video_minutes_used: 30,
@@ -52,7 +52,7 @@ export const UserPersonas = {
    * Enterprise tier user with maximum resources
    */
   enterpriseUser: () => ({
-    id: 'enterprise-user-789',
+    id: '550e8400-e29b-41d4-a716-446655440012',
     email: 'enterprise@example.com',
     tier: 'enterprise' as const,
     video_minutes_used: 100,
@@ -67,7 +67,7 @@ export const UserPersonas = {
    * New user with no usage
    */
   newUser: () => ({
-    id: 'new-user-000',
+    id: '550e8400-e29b-41d4-a716-446655440013',
     email: 'new@example.com',
     tier: 'free' as const,
     video_minutes_used: 0,

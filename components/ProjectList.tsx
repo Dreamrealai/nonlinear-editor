@@ -36,7 +36,7 @@ interface ProjectItemProps {
 /**
  * Memoized project item to prevent re-renders when other projects change
  */
-const ProjectItem = React.memo<ProjectItemProps>(function ProjectItem({ project, onDelete, isDeleting }): JSX.Element {
+const ProjectItem = React.memo<ProjectItemProps>(function ProjectItem({ project, onDelete, isDeleting }): React.ReactElement {
   return (
     <div key={project.id} className="group relative">
       <Link
@@ -66,7 +66,7 @@ const ProjectItem = React.memo<ProjectItemProps>(function ProjectItem({ project,
   );
 });
 
-export const ProjectList = React.memo<ProjectListProps>(function ProjectList({ projects }): JSX.Element {
+export const ProjectList = React.memo<ProjectListProps>(function ProjectList({ projects }): React.ReactElement {
   const router = useRouter();
   const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
 
@@ -121,7 +121,7 @@ export const ProjectList = React.memo<ProjectListProps>(function ProjectList({ p
 
   return (
     <div className="space-y-4">
-      {projects.map((project): JSX.Element => (
+      {projects.map((project): React.ReactElement => (
         <ProjectItem key={project.id} project={project} onDelete={handleDeleteProject} isDeleting={deletingProjectId === project.id} />
       ))}
     </div>

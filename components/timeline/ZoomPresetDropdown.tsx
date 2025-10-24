@@ -24,7 +24,7 @@ export const ZoomPresetDropdown = React.memo<ZoomPresetDropdownProps>(function Z
   onFitToSelection,
   onSetPreset,
   hasSelection,
-}): JSX.Element {
+}): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -111,7 +111,7 @@ export const ZoomPresetDropdown = React.memo<ZoomPresetDropdownProps>(function Z
           <div className="px-3 py-1 text-xs font-semibold text-neutral-500 uppercase">
             Zoom Presets
           </div>
-          {presets.map((preset): JSX.Element => (
+          {presets.map((preset): React.ReactElement => (
             <button
               key={preset}
               onClick={(): void => handlePresetClick(preset)}

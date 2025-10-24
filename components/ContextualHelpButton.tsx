@@ -31,7 +31,7 @@ export function ContextualHelpButton({
   stepId,
   position = 'inline',
   onShowOnboarding,
-}: ContextualHelpButtonProps): React.JSX.Element {
+}: ContextualHelpButtonProps): React.ReactElement {
   const [showMenu, setShowMenu] = useState(false);
 
   // Keyboard shortcut: Cmd+? or Ctrl+?

@@ -248,7 +248,7 @@ describe('ProjectList', () => {
     it('should prevent event propagation when delete is clicked', () => {
       const handleClick = jest.fn();
       render(
-        <div onClick={handleClick}>
+        <div onClick={handleClick} onKeyDown={(e) => e.key === 'Enter' && handleClick()} role="button" tabIndex={0}>
           <ProjectList projects={mockProjects} />
         </div>
       );

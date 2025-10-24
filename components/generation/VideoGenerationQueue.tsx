@@ -1,11 +1,11 @@
+'use client';
+
 /**
  * VideoGenerationQueue Component
  *
  * Displays the video generation queue in a 2-column grid layout.
  * Shows all queued, generating, completed, and failed videos.
  */
-
-'use client';
 
 import { VideoQueueItem } from './VideoQueueItem';
 import { NUMERIC_LIMITS } from '@/lib/config';
@@ -28,7 +28,7 @@ export function VideoGenerationQueue({
   videoQueue,
   onRemove,
   onClearCompleted,
-}: VideoGenerationQueueProps): JSX.Element {
+}: VideoGenerationQueueProps): React.ReactElement {
   const showClearButton = hasCompletedItems(videoQueue);
 
   return (
@@ -72,7 +72,7 @@ export function VideoGenerationQueue({
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
-            {videoQueue.map((video): JSX.Element => (
+            {videoQueue.map((video): React.ReactElement => (
               <VideoQueueItem key={video.id} {...video} onRemove={onRemove} />
             ))}
           </div>

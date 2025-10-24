@@ -1,3 +1,4 @@
+import React from 'react';
 /**
  * Alert Component
  *
@@ -54,7 +55,7 @@ const alertVariants = cva(
 const Alert = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
->(({ className, variant, ...props }, ref): JSX.Element => (
+>(({ className, variant, ...props }, ref): React.ReactElement => (
   <div ref={ref} role="alert" className={cn(alertVariants({ variant }), className)} {...props} />
 ));
 Alert.displayName = 'Alert';
@@ -66,7 +67,7 @@ Alert.displayName = 'Alert';
  * @returns A styled heading for the alert title
  */
 const AlertTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
-  ({ className, ...props }, ref): JSX.Element => (
+  ({ className, ...props }, ref): React.ReactElement => (
     // eslint-disable-next-line jsx-a11y/heading-has-content
     <h5
       ref={ref}
@@ -86,7 +87,7 @@ AlertTitle.displayName = 'AlertTitle';
 const AlertDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref): JSX.Element => (
+>(({ className, ...props }, ref): React.ReactElement => (
   <div ref={ref} className={cn('text-sm [&_p]:leading-relaxed', className)} {...props} />
 ));
 AlertDescription.displayName = 'AlertDescription';

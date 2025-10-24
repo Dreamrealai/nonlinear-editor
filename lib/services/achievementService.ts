@@ -342,19 +342,19 @@ class AchievementService {
       }
 
       // Update achievement unlock status
-      if (discoveredCount >= 1) {
+      if (discoveredCount >= 1 && achievements[0]) {
         achievements[0].unlocked = true;
       }
-      if (discoveredCount >= 3) {
+      if (discoveredCount >= 3 && achievements[1]) {
         achievements[1].unlocked = true;
       }
-      if (discoveredCount >= 5) {
+      if (discoveredCount >= 5 && achievements[2]) {
         achievements[2].unlocked = true;
       }
-      if (isSpeedRunner) {
+      if (isSpeedRunner && achievements[3]) {
         achievements[3].unlocked = true;
       }
-      if (hasShared) {
+      if (hasShared && achievements[4]) {
         achievements[4].unlocked = true;
       }
 

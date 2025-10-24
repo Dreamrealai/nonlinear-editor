@@ -220,7 +220,7 @@ describe('BrowserLogger', () => {
     });
 
     it('should fall back to fetch when sendBeacon unavailable', async () => {
-      // @ts-ignore
+      // @ts-expect-error - Testing behavior when sendBeacon is unavailable
       delete navigator.sendBeacon;
 
       browserLogger.info('Test message');

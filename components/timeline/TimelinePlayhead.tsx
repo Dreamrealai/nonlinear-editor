@@ -26,7 +26,7 @@ export const TimelinePlayhead = React.memo<TimelinePlayheadProps>(function Timel
   currentTime,
   zoom,
   onMouseDown,
-}): JSX.Element {
+}): React.ReactElement {
   const [isHovering, setIsHovering] = useState(false);
 
   return (

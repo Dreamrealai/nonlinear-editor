@@ -1,3 +1,4 @@
+import React from 'react';
 /**
  * ColorCorrectionSection - Basic color correction controls
  *
@@ -58,7 +59,7 @@ export function ColorCorrectionSection({
   onSaturationChange,
   onHueChange,
   onReset,
-}: ColorCorrectionSectionProps): JSX.Element {
+}: ColorCorrectionSectionProps): React.ReactElement {
   return (
     <div className="grid grid-cols-2 gap-6">
       <div className="space-y-4">

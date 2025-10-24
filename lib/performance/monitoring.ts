@@ -65,8 +65,9 @@ class PerformanceMetricsStore {
   record(metric: CustomMetric): void {
     if (!this.config.enabled) return;
 
-    // Apply sampling
-    if (Math.random() > this.config.sampleRate) return;
+    // Apply sampling - default to 1.0 if undefined
+    const sampleRate = this.config.sampleRate ?? 1.0;
+    if (Math.random() > sampleRate) return;
 
     // Store metric
     const existing = this.metrics.get(metric.name) || [];

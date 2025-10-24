@@ -36,7 +36,7 @@ export type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
  * @returns A styled input element
  */
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref): JSX.Element => {
+  ({ className, type, ...props }, ref): React.ReactElement => {
     return (
       <input
         type={type}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, {  useState, useEffect, useCallback  } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 
@@ -15,7 +15,7 @@ import { useDebounce } from '@/lib/hooks/useDebounce';
  * Features debounced updates for smooth slider interaction.
  * Shows when a clip is selected on the timeline.
  */
-export function ClipPropertiesPanel(): JSX.Element {
+export function ClipPropertiesPanel(): React.ReactElement {
   const selectedClips = useEditorStore((state): Set<string> => state.selectedClipIds);
   const clips = useEditorStore((state): Clip[] => state.timeline?.clips ?? []);
   const updateClipStore = useEditorStore((state): (id: string, patch: Partial<Clip>) => void => state.updateClip);
@@ -293,7 +293,7 @@ export function ClipPropertiesPanel(): JSX.Element {
                 { name: 'Pink', value: '#ec4899', color: '#ec4899' },
                 { name: 'Teal', value: '#14b8a6', color: '#14b8a6' },
                 { name: 'Indigo', value: '#6366f1', color: '#6366f1' },
-              ].map((preset): JSX.Element => (
+              ].map((preset): React.ReactElement => (
                 <button
                   key={preset.name}
                   type="button"
@@ -331,7 +331,7 @@ export function ClipPropertiesPanel(): JSX.Element {
               {selectedClip.color && (
                 <button
                   type="button"
-                  onClick={(): void => updateClip(selectedClip.id, { color: undefined })}
+                  onClick={(): void => updateClip(selectedClip.id, { color: '' })}
                   className="px-3 py-2 text-xs font-medium text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 rounded border border-gray-600 transition-colors"
                   title="Clear color"
                 >

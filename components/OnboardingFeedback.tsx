@@ -25,7 +25,7 @@ type OnboardingFeedbackProps = {
   onDismiss: () => void;
 };
 
-export function OnboardingFeedback({ show, onDismiss }: OnboardingFeedbackProps): React.JSX.Element | null {
+export function OnboardingFeedback({ show, onDismiss }: OnboardingFeedbackProps): React.ReactElement | null {
   const [isVisible, setIsVisible] = useState(false);
   const [rating, setRating] = useState<'helpful' | 'not_helpful' | null>(null);
   const [feedbackText, setFeedbackText] = useState('');

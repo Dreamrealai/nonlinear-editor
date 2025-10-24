@@ -22,7 +22,7 @@ export function LastSavedIndicator({
   lastSaved,
   isSaving,
   className = '',
-}: LastSavedIndicatorProps): React.JSX.Element {
+}: LastSavedIndicatorProps): React.ReactElement {
   const [relativeTime, setRelativeTime] = useState<string>('');
 
   useEffect((): (() => void) | undefined => {

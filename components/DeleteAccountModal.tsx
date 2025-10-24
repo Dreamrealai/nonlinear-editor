@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, {  useState  } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -34,7 +34,7 @@ export function DeleteAccountModal({
   onOpenChange,
   onConfirm,
   loading,
-}: DeleteAccountModalProps): JSX.Element {
+}: DeleteAccountModalProps): React.ReactElement {
   const [confirmText, setConfirmText] = useState('');
   const [step, setStep] = useState<'warning' | 'confirm'>('warning');
 

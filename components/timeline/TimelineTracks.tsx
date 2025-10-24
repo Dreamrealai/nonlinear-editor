@@ -23,10 +23,10 @@ export const TimelineTracks = React.memo<TimelineTracksProps>(function TimelineT
   clips,
   onAddTrack,
   onRemoveTrack,
-}): JSX.Element {
+}): React.ReactElement {
   return (
     <>
-      {Array.from({ length: numTracks }).map((_, trackIndex): JSX.Element => (
+      {Array.from({ length: numTracks }).map((_, trackIndex): React.ReactElement => (
         <div
           key={trackIndex}
           className="absolute w-full border-b border-neutral-200 timeline-track-background"

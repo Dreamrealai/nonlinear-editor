@@ -1,4 +1,8 @@
 /**
+ * @jest-environment node
+ */
+
+/**
  * Integration Tests: User Account Workflow
  *
  * Tests complete user account workflows including:

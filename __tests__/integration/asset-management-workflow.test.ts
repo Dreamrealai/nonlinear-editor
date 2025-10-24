@@ -1,4 +1,8 @@
 /**
+ * @jest-environment node
+ */
+
+/**
  * Integration Tests: Asset Management Workflow
  *
  * Tests complete asset management workflows including:

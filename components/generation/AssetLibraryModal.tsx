@@ -6,7 +6,7 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, {  useState, useEffect  } from 'react';
 import Image from 'next/image';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
@@ -25,7 +25,7 @@ interface AssetLibraryModalProps {
   onClose: () => void;
 }
 
-export function AssetLibraryModal({ projectId, onSelect, onClose }: AssetLibraryModalProps): JSX.Element {
+export function AssetLibraryModal({ projectId, onSelect, onClose }: AssetLibraryModalProps): React.ReactElement {
   const [assets, setAssets] = useState<ImageAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -113,7 +113,7 @@ export function AssetLibraryModal({ projectId, onSelect, onClose }: AssetLibrary
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-4">
-              {assets.map((asset): JSX.Element => (
+              {assets.map((asset): React.ReactElement => (
                 <button
                   key={asset.id}
                   onClick={(): void => onSelect(asset)}

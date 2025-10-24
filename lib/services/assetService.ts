@@ -87,6 +87,18 @@ export interface CreateImageAssetOptions {
   metadata?: Partial<ImageAssetMetadata>;
 }
 
+export interface CreateVideoAssetOptions {
+  filename: string;
+  mimeType: string;
+  metadata?: Partial<VideoAssetMetadata>;
+}
+
+export interface CreateAudioAssetOptions {
+  filename: string;
+  mimeType: string;
+  metadata?: Partial<AudioAssetMetadata>;
+}
+
 export class AssetService {
   constructor(private supabase: SupabaseClient) {}
 
@@ -145,6 +157,214 @@ export class AssetService {
           user_id: userId,
           project_id: projectId,
           type: 'image',
+          source: metadata.provider ? 'genai' : 'upload',
+          storage_url: `supabase://assets/${storagePath}`,
+          metadata: assetMetadata,
+        })
+        .select()
+        .single();
+
+      if (assetError) {
+        // Clean up uploaded file if database insert fails
+        const { error: cleanupError } = await this.supabase.storage
+          .from('assets')
+          .remove([storagePath]);
+
+        if (cleanupError) {
+          trackError(cleanupError, {
+            category: ErrorCategory.EXTERNAL_SERVICE,
+            severity: ErrorSeverity.MEDIUM,
+            context: {
+              userId,
+              projectId,
+              filename,
+              message: 'Failed to clean up storage after DB insert failure',
+            },
+          });
+        }
+
+        trackError(assetError, {
+          category: ErrorCategory.DATABASE,
+          severity: ErrorSeverity.HIGH,
+          context: { userId, projectId, filename },
+        });
+        throw new Error(`Failed to create asset record: ${assetError.message}`);
+      }
+
+      if (!newAsset) {
+        throw new Error('Asset creation returned no data');
+      }
+
+      return newAsset as Asset;
+    } catch (error) {
+      trackError(error, {
+        category: ErrorCategory.DATABASE,
+        severity: ErrorSeverity.HIGH,
+        context: { userId, projectId },
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Upload video to Supabase Storage and create asset record
+   */
+  async createVideoAsset(
+    userId: string,
+    projectId: string,
+    videoBuffer: Buffer,
+    options: CreateVideoAssetOptions
+  ): Promise<Asset> {
+    try {
+      validateUUID(projectId, 'Project ID');
+
+      const { filename, mimeType, metadata = {} } = options;
+
+      // Generate storage path
+      const storagePath = `${userId}/${projectId}/videos/${filename}`;
+
+      // Upload to Supabase storage
+      const { error: uploadError } = await this.supabase.storage
+        .from('assets')
+        .upload(storagePath, videoBuffer, {
+          contentType: mimeType,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        trackError(uploadError, {
+          category: ErrorCategory.EXTERNAL_SERVICE,
+          severity: ErrorSeverity.HIGH,
+          context: { userId, projectId, filename },
+        });
+        throw new Error(`Failed to upload asset: ${uploadError.message}`);
+      }
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = this.supabase.storage.from('assets').getPublicUrl(storagePath);
+
+      // Create asset record
+      const assetId = uuid();
+      const assetMetadata: VideoAssetMetadata = {
+        filename,
+        mimeType,
+        sourceUrl: publicUrl,
+        ...metadata,
+      };
+
+      const { data: newAsset, error: assetError } = await this.supabase
+        .from('assets')
+        .insert({
+          id: assetId,
+          user_id: userId,
+          project_id: projectId,
+          type: 'video',
+          source: metadata.provider ? 'genai' : 'upload',
+          storage_url: `supabase://assets/${storagePath}`,
+          metadata: assetMetadata,
+        })
+        .select()
+        .single();
+
+      if (assetError) {
+        // Clean up uploaded file if database insert fails
+        const { error: cleanupError } = await this.supabase.storage
+          .from('assets')
+          .remove([storagePath]);
+
+        if (cleanupError) {
+          trackError(cleanupError, {
+            category: ErrorCategory.EXTERNAL_SERVICE,
+            severity: ErrorSeverity.MEDIUM,
+            context: {
+              userId,
+              projectId,
+              filename,
+              message: 'Failed to clean up storage after DB insert failure',
+            },
+          });
+        }
+
+        trackError(assetError, {
+          category: ErrorCategory.DATABASE,
+          severity: ErrorSeverity.HIGH,
+          context: { userId, projectId, filename },
+        });
+        throw new Error(`Failed to create asset record: ${assetError.message}`);
+      }
+
+      if (!newAsset) {
+        throw new Error('Asset creation returned no data');
+      }
+
+      return newAsset as Asset;
+    } catch (error) {
+      trackError(error, {
+        category: ErrorCategory.DATABASE,
+        severity: ErrorSeverity.HIGH,
+        context: { userId, projectId },
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Upload audio to Supabase Storage and create asset record
+   */
+  async createAudioAsset(
+    userId: string,
+    projectId: string,
+    audioBuffer: Buffer,
+    options: CreateAudioAssetOptions
+  ): Promise<Asset> {
+    try {
+      validateUUID(projectId, 'Project ID');
+
+      const { filename, mimeType, metadata = {} } = options;
+
+      // Generate storage path
+      const storagePath = `${userId}/${projectId}/audio/${filename}`;
+
+      // Upload to Supabase storage
+      const { error: uploadError } = await this.supabase.storage
+        .from('assets')
+        .upload(storagePath, audioBuffer, {
+          contentType: mimeType,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        trackError(uploadError, {
+          category: ErrorCategory.EXTERNAL_SERVICE,
+          severity: ErrorSeverity.HIGH,
+          context: { userId, projectId, filename },
+        });
+        throw new Error(`Failed to upload asset: ${uploadError.message}`);
+      }
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = this.supabase.storage.from('assets').getPublicUrl(storagePath);
+
+      // Create asset record
+      const assetId = uuid();
+      const assetMetadata: AudioAssetMetadata = {
+        filename,
+        mimeType,
+        sourceUrl: publicUrl,
+        ...metadata,
+      };
+
+      const { data: newAsset, error: assetError } = await this.supabase
+        .from('assets')
+        .insert({
+          id: assetId,
+          user_id: userId,
+          project_id: projectId,
+          type: 'audio',
           source: metadata.provider ? 'genai' : 'upload',
           storage_url: `supabase://assets/${storagePath}`,
           metadata: assetMetadata,

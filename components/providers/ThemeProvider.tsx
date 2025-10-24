@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 /**
  * Theme Provider Component
  *
@@ -29,7 +30,7 @@ export interface ThemeProviderProps extends NextThemeProviderProps {
  * @param children - Child components to wrap
  * @param props - Additional next-themes ThemeProvider props
  */
-export function ThemeProvider({ children, ...props }: ThemeProviderProps): React.JSX.Element {
+export function ThemeProvider({ children, ...props }: ThemeProviderProps): React.ReactElement {
   return (
     <NextThemesProvider
       attribute="class"

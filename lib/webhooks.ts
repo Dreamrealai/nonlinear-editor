@@ -297,13 +297,19 @@ export function validateWebhookUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
 
+    // Must be HTTP or HTTPS
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return false;
+    }
+
     // Must be HTTPS in production (allow HTTP in development)
     if (process.env['NODE_ENV'] === 'production' && parsed.protocol !== 'https:') {
       return false;
     }
 
-    // Must have a host
-    if (!parsed.host) {
+    // Must have a valid host with at least one dot (e.g., example.com) or be localhost
+    // This rejects single-word hosts that could be interpreted paths like "webhook"
+    if (!parsed.host || (!parsed.host.includes('.') && !parsed.host.startsWith('localhost'))) {
       return false;
     }
 

@@ -99,7 +99,7 @@ export function ProgressBar({
   animated = false,
   timeElapsed,
   timeRemaining,
-}: ProgressBarProps): React.JSX.Element {
+}: ProgressBarProps): React.ReactElement {
   // Clamp progress between 0 and 100
   const clampedProgress = Math.min(100, Math.max(0, progress));
 
@@ -173,7 +173,7 @@ export function IndeterminateProgressBar({
   size = 'md',
   variant = 'primary',
   className,
-}: Pick<ProgressBarProps, 'label' | 'size' | 'variant' | 'className'>): React.JSX.Element {
+}: Pick<ProgressBarProps, 'label' | 'size' | 'variant' | 'className'>): React.ReactElement {
   return (
     <div className={cn('w-full', className)}>
       {label && (

@@ -6,7 +6,7 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, {  useState, useEffect  } from 'react';
 import { achievementService, EasterEggIds, type EasterEggId } from '@/lib/services/achievementService';
 import toast from 'react-hot-toast';
 
@@ -26,7 +26,7 @@ const SHARE_MESSAGES: Record<EasterEggId, string> = {
 /**
  * Share button for individual easter egg
  */
-export function EasterEggShareButton({ eggId, eggName }: ShareButtonProps): JSX.Element | null {
+export function EasterEggShareButton({ eggId, eggName }: ShareButtonProps): React.ReactElement | null {
   const [isVisible, setIsVisible] = useState(false);
   const [hasShared, setHasShared] = useState(false);
 
@@ -198,7 +198,7 @@ export function useEasterEggShare(eggId: EasterEggId | null): { showShare: boole
  *
  * Special share button that appears when user discovers all 5 eggs.
  */
-export function ShareAllAchievementButton(): JSX.Element | null {
+export function ShareAllAchievementButton(): React.ReactElement | null {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect((): void => {

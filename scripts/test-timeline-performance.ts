@@ -125,7 +125,7 @@ function measureCalculations(
   // Measure duration calculation
   const calcStart = performance.now();
   const clipEndTimes = timeline.clips.map((c) => c.timelinePosition + (c.end - c.start));
-  const timelineDuration = Math.max(...clipEndTimes, 30);
+  void Math.max(...clipEndTimes, 30); // timelineDuration calculation
   const calculationTime = performance.now() - calcStart;
 
   // Measure virtualization (visible clips calculation)
@@ -178,8 +178,8 @@ function runPerformanceTest(
   timeline.clips.forEach((clip) => {
     // Simulate clip render calculations
     const clipDuration = clip.end - clip.start;
-    const clipWidth = clipDuration * zoom;
-    const clipLeft = clip.timelinePosition * zoom;
+    void (clipDuration * zoom); // clipWidth calculation
+    void (clip.timelinePosition * zoom); // clipLeft calculation
     clipCount++;
   });
   const clipRenderTime = performance.now() - clipRenderStart;
@@ -250,7 +250,7 @@ function main() {
   const allMetrics: PerformanceMetrics[] = [];
 
   // Run all test scenarios
-  for (const [key, scenario] of Object.entries(TEST_SCENARIOS)) {
+  for (const scenario of Object.values(TEST_SCENARIOS)) {
     const metrics = runPerformanceTest(scenario);
     printMetrics(metrics);
     allMetrics.push(metrics);

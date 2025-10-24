@@ -6,7 +6,7 @@
  */
 'use client';
 
-import { useMemo, useState, useEffect, type RefObject } from 'react';
+import React, {  useMemo, useState, useEffect, type RefObject  } from 'react';
 import type { Clip } from '@/types/timeline';
 
 interface VirtualizedClipRendererProps<T extends Clip | unknown> {
@@ -70,7 +70,7 @@ export function VirtualizedClipRenderer<T extends Clip | unknown>({
   getItemDuration,
   renderItem,
   overscan = 500,
-}: VirtualizedClipRendererProps<T>): JSX.Element {
+}: VirtualizedClipRendererProps<T>): React.ReactElement {
   const visibleItems = useVirtualizedItems({
     items,
     scrollLeft,

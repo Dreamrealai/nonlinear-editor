@@ -1,4 +1,8 @@
 /**
+ * @jest-environment node
+ */
+
+/**
  * Integration Tests: Video Editor Workflow
  *
  * Tests complete video editing workflows including:

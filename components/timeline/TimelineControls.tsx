@@ -89,7 +89,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
   onShowHistory,
   onShowKeyboardShortcuts: _onShowKeyboardShortcuts,
   hasSelection = false,
-}): JSX.Element {
+}): React.ReactElement {
   const [showZoomMenu, setShowZoomMenu] = useState(false);
   const zoomMenuRef = useRef<HTMLDivElement>(null);
 

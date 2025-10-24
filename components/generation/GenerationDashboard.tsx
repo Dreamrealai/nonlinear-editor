@@ -79,7 +79,7 @@ function formatDuration(startedAt: Date, completedAt?: Date): string {
 /**
  * Job Card Component
  */
-function JobCard({ job, onRemove }: { job: GenerationJob; onRemove: (id: string) => void }): React.JSX.Element {
+function JobCard({ job, onRemove }: { job: GenerationJob; onRemove: (id: string) => void }): React.ReactElement {
   const isActive = job.status === 'processing' || job.status === 'queued';
 
   return (
@@ -175,7 +175,7 @@ export function GenerationDashboard({
   isOpen,
   onClose,
   variant = 'modal',
-}: GenerationDashboardProps): React.JSX.Element | null {
+}: GenerationDashboardProps): React.ReactElement | null {
   const [typeFilter, setTypeFilter] = useState<FilterType>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
@@ -378,7 +378,7 @@ export function GenerationDashboard({
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredJobs.map((job): JSX.Element => (
+            {filteredJobs.map((job): React.ReactElement => (
               <JobCard key={job.id} job={job} onRemove={removeJob} />
             ))}
           </div>

@@ -6,7 +6,7 @@
  */
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import React, {  useState, useCallback, useRef, useEffect  } from 'react';
 import { AssetPanel } from './AssetPanel';
 import type { AssetRow } from '@/types/assets';
 import type { ChangeEvent } from 'react';
@@ -61,7 +61,7 @@ export function ResizableAssetPanel({
   minWidth = 200,
   maxWidth = 500,
   ...assetPanelProps
-}: ResizableAssetPanelProps): React.JSX.Element {
+}: ResizableAssetPanelProps): React.ReactElement {
   const [width, setWidth] = useState(initialWidth);
   const [isResizing, setIsResizing] = useState(false);
   const [isHovering, setIsHovering] = useState(false);

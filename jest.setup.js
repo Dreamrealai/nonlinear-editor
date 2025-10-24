@@ -54,10 +54,11 @@ if (typeof global.File === 'undefined') {
   global.File = File;
 }
 
-// Polyfill Request, Response, Headers, FormData from undici
+// Polyfill fetch, Request, Response, Headers, FormData from undici
 // Note: NextRequest extends Request and requires proper Web API implementation
 if (typeof global.Request === 'undefined') {
-  const { Request, Response, Headers, FormData } = require('undici');
+  const { fetch, Request, Response, Headers, FormData } = require('undici');
+  global.fetch = fetch;
   global.Request = Request;
   global.Response = Response;
   global.Headers = Headers;

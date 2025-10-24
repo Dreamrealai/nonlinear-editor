@@ -139,7 +139,7 @@ export const TimelineRuler = React.memo<TimelineRulerProps>(function TimelineRul
   currentTime,
   onPlayheadMouseDown,
   onRulerClick,
-}): JSX.Element {
+}): React.ReactElement {
   const timelineWidth = timelineDuration * zoom;
   const rulerRef = useRef<HTMLDivElement>(null);
   const [hoverTime, setHoverTime] = useState<number | null>(null);
@@ -213,7 +213,7 @@ export const TimelineRuler = React.memo<TimelineRulerProps>(function TimelineRul
       >
         <div className="relative h-full" style={{ width: timelineWidth }}>
           {/* Adaptive time markers with major (labeled) and minor (tick) marks */}
-          {markers.map((marker, index): JSX.Element => {
+          {markers.map((marker, index): React.ReactElement => {
             const position = marker.time * zoom;
             const isMajor = marker.type === 'major';
 

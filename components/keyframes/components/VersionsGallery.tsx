@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * VersionsGallery - AI-generated keyframe versions gallery
  *
@@ -26,7 +28,6 @@
  * <VersionsGallery edits={generatedVersions} />
  * ```
  */
-'use client';
 
 import Image from 'next/image';
 
@@ -43,7 +44,7 @@ interface VersionsGalleryProps {
   edits: Array<FrameEditRow & { url: string | null }>;
 }
 
-export function VersionsGallery({ edits }: VersionsGalleryProps): JSX.Element {
+export function VersionsGallery({ edits }: VersionsGalleryProps): React.ReactElement {
   return (
     <div className="bg-white p-6">
       <div className="mb-3 flex items-center justify-between">
@@ -54,7 +55,7 @@ export function VersionsGallery({ edits }: VersionsGalleryProps): JSX.Element {
       </div>
       {edits.length ? (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-          {edits.map((edit): JSX.Element => (
+          {edits.map((edit): React.ReactElement => (
             <div key={edit.id} className="space-y-1.5">
               <div className="relative aspect-[4/3] overflow-hidden rounded border border-neutral-200 bg-neutral-50">
                 {edit.url ? (

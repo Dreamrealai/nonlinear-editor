@@ -1,0 +1,332 @@
+app/api/projects/[projectId]/share-links/[linkId]/route.ts(166,3): error TS2345: Argument of type '{ readonly max: 10; readonly windowMs: number; }' is not assignable to parameter of type 'AuthOptions'.
+  Property 'route' is missing in type '{ readonly max: 10; readonly windowMs: number; }' but required in type 'AuthOptions'.
+app/api/stripe/webhook/route.ts(12,15): error TS6196: 'UserProfile' is declared but never used.
+app/api/stripe/webhook/route.ts(123,38): error TS2339: Property 'tier' does not exist on type 'never'.
+app/api/stripe/webhook/route.ts(129,41): error TS2339: Property 'tier' does not exist on type 'never'.
+app/api/stripe/webhook/route.ts(135,15): error TS2345: Argument of type '{ stripe_customer_id: string; stripe_subscription_id: string; stripe_price_id: string; subscription_status: string; subscription_current_period_start: string; subscription_current_period_end: string; subscription_cancel_at_period_end: boolean; tier: "premium" | "admin"; }' is not assignable to parameter of type 'never'.
+app/api/stripe/webhook/route.ts(266,29): error TS2339: Property 'tier' does not exist on type 'never'.
+app/api/stripe/webhook/route.ts(294,25): error TS2339: Property 'id' does not exist on type 'never'.
+app/api/stripe/webhook/route.ts(306,15): error TS2345: Argument of type '{ stripe_subscription_id: string; stripe_price_id: string; subscription_status: string; subscription_current_period_start: string; subscription_current_period_end: string; subscription_cancel_at_period_end: boolean; tier: UserTier; }' is not assignable to parameter of type 'never'.
+app/api/stripe/webhook/route.ts(319,25): error TS2339: Property 'id' does not exist on type 'never'.
+app/api/stripe/webhook/route.ts(327,27): error TS2339: Property 'id' does not exist on type 'never'.
+app/api/stripe/webhook/route.ts(342,27): error TS2339: Property 'id' does not exist on type 'never'.
+app/api/stripe/webhook/route.ts(355,25): error TS2339: Property 'id' does not exist on type 'never'.
+app/api/stripe/webhook/route.ts(415,29): error TS2339: Property 'tier' does not exist on type 'never'.
+app/api/stripe/webhook/route.ts(423,15): error TS2345: Argument of type '{ tier: "free" | "admin"; subscription_status: string; stripe_subscription_id: null; stripe_price_id: null; subscription_cancel_at_period_end: boolean; }' is not assignable to parameter of type 'never'.
+app/api/stripe/webhook/route.ts(430,25): error TS2339: Property 'id' does not exist on type 'never'.
+app/api/stripe/webhook/route.ts(438,27): error TS2339: Property 'id' does not exist on type 'never'.
+app/api/stripe/webhook/route.ts(453,27): error TS2339: Property 'id' does not exist on type 'never'.
+app/api/stripe/webhook/route.ts(466,25): error TS2339: Property 'id' does not exist on type 'never'.
+components/EasterEggFeedback.tsx(155,41): error TS2322: Type 'Dispatch<SetStateAction<"" | EasterEggId | "none">>' is not assignable to type '(value: string) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string' is not assignable to type 'SetStateAction<"" | EasterEggId | "none">'.
+components/EasterEggHints.tsx(169,40): error TS6133: 'index' is declared but its value is never read.
+components/editor/TimelineCorrectionsMenu.tsx(28,41): error TS2304: Cannot find name 'Clip'.
+components/editor/TimelineCorrectionsMenu.tsx(29,79): error TS2304: Cannot find name 'Clip'.
+components/editor/TransitionPanel.tsx(66,44): error TS2304: Cannot find name 'Timeline'.
+components/editor/TransitionPanel.tsx(73,35): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+components/editor/UploadProgressList.tsx(8,1): error TS6133: 'React' is declared but its value is never read.
+components/generation/GenerationDashboard.tsx(262,15): error TS2322: Type '"secondary" | "primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+  Type '"primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+components/generation/GenerationDashboard.tsx(269,15): error TS2322: Type '"secondary" | "primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+  Type '"primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+components/generation/GenerationDashboard.tsx(277,15): error TS2322: Type '"secondary" | "primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+  Type '"primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+components/generation/GenerationDashboard.tsx(285,15): error TS2322: Type '"secondary" | "primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+  Type '"primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+components/generation/GenerationDashboard.tsx(300,15): error TS2322: Type '"secondary" | "primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+  Type '"primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+components/generation/GenerationDashboard.tsx(307,15): error TS2322: Type '"secondary" | "primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+  Type '"primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+components/generation/GenerationDashboard.tsx(314,15): error TS2322: Type '"secondary" | "primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+  Type '"primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+components/generation/GenerationDashboard.tsx(321,15): error TS2322: Type '"secondary" | "primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+  Type '"primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+components/HorizontalTimeline.tsx(62,93): error TS2304: Cannot find name 'Timeline'.
+components/HorizontalTimeline.tsx(62,162): error TS2304: Cannot find name 'ClipGroup'.
+components/HorizontalTimeline.tsx(356,49): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+components/LazyComponents.tsx(108,26): error TS2304: Cannot find name 'NamedExoticComponent'.
+components/LazyComponents.tsx(108,55): error TS2304: Cannot find name 'Clip'.
+components/LazyComponents.tsx(108,197): error TS2304: Cannot find name 'NamedExoticComponent'.
+components/LazyComponents.tsx(108,226): error TS2304: Cannot find name 'Clip'.
+components/LazyComponents.tsx(150,26): error TS2304: Cannot find name 'NamedExoticComponent'.
+components/LazyComponents.tsx(150,47): error TS2304: Cannot find name 'ProjectListProps'.
+components/LazyComponents.tsx(150,130): error TS2304: Cannot find name 'NamedExoticComponent'.
+components/LazyComponents.tsx(150,151): error TS2304: Cannot find name 'ProjectListProps'.
+components/LazyComponents.tsx(162,26): error TS2304: Cannot find name 'NamedExoticComponent'.
+components/LazyComponents.tsx(162,124): error TS2304: Cannot find name 'NamedExoticComponent'.
+components/PreviewPlayer.tsx(32,44): error TS2304: Cannot find name 'Timeline'.
+components/PreviewPlayer.tsx(48,45): error TS2304: Cannot find name 'ClipMeta'.
+components/PreviewPlayer.tsx(143,48): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+components/PreviewPlayer.tsx(151,24): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+components/ProjectExportImport.tsx(27,44): error TS2304: Cannot find name 'Timeline'.
+components/ProjectExportImport.tsx(28,58): error TS2304: Cannot find name 'Timeline'.
+components/providers/SupabaseProvider.tsx(55,56): error TS7031: Binding element 'session' implicitly has an 'any' type.
+components/providers/SupabaseProvider.tsx(67,48): error TS7006: Parameter '_event' implicitly has an 'any' type.
+components/providers/SupabaseProvider.tsx(67,56): error TS7006: Parameter 'session' implicitly has an 'any' type.
+components/timeline/KeyboardShortcutsPanel.tsx(16,1): error TS6133: 'React' is declared but its value is never read.
+components/timeline/TimelineClipRenderer.tsx(44,46): error TS2304: Cannot find name 'Timeline'.
+components/timeline/TimelineClipRenderer.tsx(63,45): error TS7006: Parameter 'g' implicitly has an 'any' type.
+components/timeline/TimelineIntegration.tsx(47,24): error TS2339: Property 'deleteGuide' does not exist on type 'EditorStore'.
+components/timeline/TimelineIntegration.tsx(68,14): error TS2345: Argument of type 'number' is not assignable to parameter of type 'Guide'.
+components/timeline/TimelineIntegration.tsx(93,5): error TS2322: Type '(id: string, patch: Partial<Guide>) => void' is not assignable to type '(guideId: string, time: number) => void'.
+  Types of parameters 'patch' and 'time' are incompatible.
+    Type 'number' has no properties in common with type 'Partial<Guide>'.
+components/timeline/TimelineMarkers.tsx(14,35): error TS6133: 'X' is declared but its value is never read.
+components/timeline/TimelineMarkers.tsx(15,1): error TS6133: 'Button' is declared but its value is never read.
+components/timeline/TimelineMinimap.tsx(149,14): error TS2339: Property 'type' does not exist on type 'Clip'.
+components/timeline/TimelineMinimap.tsx(151,18): error TS2339: Property 'type' does not exist on type 'Clip'.
+components/timeline/TimelineMinimap.tsx(165,26): error TS2339: Property 'metadata' does not exist on type 'Clip'.
+components/UserOnboarding.tsx(95,9): error TS6133: '_highlightRef' is declared but its value is never read.
+components/UserOnboarding.tsx(234,16): error TS18048: 'step' is possibly 'undefined'.
+components/UserOnboarding.tsx(236,19): error TS18048: 'step' is possibly 'undefined'.
+components/UserOnboarding.tsx(262,29): error TS18048: 'step' is possibly 'undefined'.
+components/UserOnboarding.tsx(263,32): error TS18048: 'step' is possibly 'undefined'.
+components/UserOnboarding.tsx(340,18): error TS18048: 'step' is possibly 'undefined'.
+components/UserOnboarding.tsx(358,16): error TS18048: 'step' is possibly 'undefined'.
+components/UserOnboardingOptimized.tsx(111,35): error TS6133: 'currentStep' is declared but its value is never read.
+components/UserOnboardingOptimized.tsx(111,48): error TS6133: 'totalSteps' is declared but its value is never read.
+components/UserOnboardingOptimized.tsx(321,18): error TS18048: 'step' is possibly 'undefined'.
+components/UserOnboardingOptimized.tsx(337,24): error TS2322: Type 'OnboardingStep | undefined' is not assignable to type 'OnboardingStep'.
+  Type 'undefined' is not assignable to type 'OnboardingStep'.
+components/VirtualizedClipRenderer.tsx(84,45): error TS2304: Cannot find name 'ReactNode'.
+lib/cacheInvalidation.ts(330,34): error TS2304: Cannot find name 'CacheStats'.
+lib/hooks/useAssetList.ts(89,17): error TS7006: Parameter 'row' implicitly has an 'any' type.
+lib/hooks/useAssetList.ts(90,20): error TS7006: Parameter 'asset' implicitly has an 'any' type.
+lib/hooks/useEasterEggs.ts(169,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+lib/hooks/useEasterEggs.ts(195,27): error TS6133: 'i' is declared but its value is never read.
+lib/hooks/useEasterEggs.ts(288,13): error TS2552: Cannot find name 'easterEgsTriggered'. Did you mean 'easterEggsTriggered'?
+lib/hooks/useEasterEggs.ts(305,15): error TS2532: Object is possibly 'undefined'.
+lib/hooks/useEasterEggs.ts(418,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+lib/hooks/useEasterEggs.ts(468,20): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+lib/hooks/useEasterEggs.ts(468,40): error TS2532: Object is possibly 'undefined'.
+lib/hooks/useEasterEggs.ts(470,11): error TS2532: Object is possibly 'undefined'.
+lib/hooks/useEasterEggs.ts(473,7): error TS2532: Object is possibly 'undefined'.
+lib/hooks/useEasterEggsOptimized.ts(64,10): error TS6133: 'throttle' is declared but its value is never read.
+lib/hooks/useEasterEggsOptimized.ts(287,15): error TS2532: Object is possibly 'undefined'.
+lib/hooks/useGenerationDashboard.ts(297,5): error TS2353: Object literal may only specify known properties, and 'callback' does not exist in type 'PollingOptions<unknown>'.
+lib/hooks/useKeyboardShortcuts.ts(47,44): error TS2304: Cannot find name 'Timeline'.
+lib/hooks/useKeyboardShortcuts.ts(119,35): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+lib/hooks/useOnboarding.ts(8,45): error TS2307: Cannot find module '@/lib/supabase/client' or its corresponding type declarations.
+lib/hooks/useOnboarding.ts(10,36): error TS6196: 'OnboardingTour' is declared but never used.
+lib/hooks/useProgressTracking.ts(113,48): error TS2552: Cannot find name 'RefObject'. Did you mean 'Object'?
+lib/hooks/useProjectPresence.ts(11,45): error TS2307: Cannot find module '@/lib/supabase/client' or its corresponding type declarations.
+lib/hooks/useProjectPresence.ts(67,27): error TS7006: Parameter 'user' implicitly has an 'any' type.
+lib/hooks/useProjectPresence.ts(143,10): error TS7006: Parameter 'payload' implicitly has an 'any' type.
+lib/hooks/useRenderQueue.ts(106,17): error TS7030: Not all code paths return a value.
+lib/hooks/useTimelineShortcuts.ts(28,44): error TS2304: Cannot find name 'Timeline'.
+lib/hooks/useTimelineShortcuts.ts(115,37): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+lib/hooks/useTimelineShortcuts.ts(132,55): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+lib/monitoring/performance.ts(591,15): error TS2484: Export declaration conflicts with exported declaration of 'PerformanceMetadata'.
+lib/performance/monitoring.ts(17,24): error TS2305: Module '"web-vitals"' has no exported member 'onFID'.
+lib/performance/monitoring.ts(69,25): error TS2532: Object is possibly 'undefined'.
+lib/sentry.ts(310,7): error TS2353: Object literal may only specify known properties, and 'data' does not exist in type 'StartSpanOptions'.
+lib/services/achievementService.ts(346,9): error TS2532: Object is possibly 'undefined'.
+lib/services/achievementService.ts(349,9): error TS2532: Object is possibly 'undefined'.
+lib/services/achievementService.ts(352,9): error TS2532: Object is possibly 'undefined'.
+lib/services/achievementService.ts(355,9): error TS2532: Object is possibly 'undefined'.
+lib/services/achievementService.ts(358,9): error TS2532: Object is possibly 'undefined'.
+lib/services/assetOptimizationService.ts(254,22): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+lib/services/assetOptimizationService.ts(255,22): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+lib/services/assetOptimizationService.ts(256,24): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+lib/services/assetVersionService.ts(342,11): error TS6133: 'currentVersion' is declared but its value is never read.
+lib/supabase.ts(293,7): error TS2322: Type 'string' is not assignable to type 'undefined'.
+lib/utils/projectExportImport.ts(138,10): error TS18048: 'clip' is possibly 'undefined'.
+lib/utils/projectExportImport.ts(138,22): error TS18048: 'clip' is possibly 'undefined'.
+lib/utils/projectExportImport.ts(138,39): error TS18048: 'clip' is possibly 'undefined'.
+lib/utils/projectExportImport.ts(144,16): error TS18048: 'clip' is possibly 'undefined'.
+lib/utils/projectExportImport.ts(144,50): error TS18048: 'clip' is possibly 'undefined'.
+lib/utils/projectExportImport.ts(150,16): error TS18048: 'clip' is possibly 'undefined'.
+lib/utils/projectExportImport.ts(150,61): error TS18048: 'clip' is possibly 'undefined'.
+lib/veo.ts(122,38): error TS2304: Cannot find name 'AuthClient'.
+lib/veo.ts(239,69): error TS7006: Parameter 'token' implicitly has an 'any' type.
+lib/veo.ts(313,69): error TS7006: Parameter 'token' implicitly has an 'any' type.
+lib/veo.ts(368,69): error TS7006: Parameter 'token' implicitly has an 'any' type.
+scripts/add-return-types.ts(3,25): error TS6133: 'SyntaxKind' is declared but its value is never read.
+scripts/add-return-types.ts(3,49): error TS6133: 'Type' is declared but its value is never read.
+scripts/add-return-types.ts(166,47): error TS2345: Argument of type 'SourceFile' is not assignable to parameter of type 'TypeFormatFlags | undefined'.
+scripts/add-return-types.ts(300,55): error TS18048: 'file' is possibly 'undefined'.
+scripts/add-return-types.ts(302,67): error TS18048: 'file' is possibly 'undefined'.
+scripts/add-return-types.ts(306,39): error TS2345: Argument of type 'SourceFile | undefined' is not assignable to parameter of type 'SourceFile'.
+  Type 'undefined' is not assignable to type 'SourceFile'.
+scripts/audit-validation.ts(85,24): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+scripts/audit-validation.ts(196,7): error TS2532: Object is possibly 'undefined'.
+scripts/audit-validation.ts(213,9): error TS2532: Object is possibly 'undefined'.
+scripts/benchmark.ts(142,5): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Timeline'.
+scripts/benchmark.ts(169,7): error TS2322: Type '"video" | "image" | "audio" | undefined' is not assignable to type '"video" | "image" | "audio"'.
+  Type 'undefined' is not assignable to type '"video" | "image" | "audio"'.
+scripts/benchmark.ts(209,22): error TS6133: 'step' is declared but its value is never read.
+scripts/benchmark.ts(211,15): error TS6133: 'tooltipPos' is declared but its value is never read.
+scripts/benchmark.ts(239,17): error TS6133: 'pos' is declared but its value is never read.
+scripts/benchmark.ts(338,15): error TS6133: 'clipLeft' is declared but its value is never read.
+scripts/benchmark.ts(340,15): error TS6133: 'clipWidth' is declared but its value is never read.
+scripts/benchmark.ts(341,15): error TS6133: 'clipTop' is declared but its value is never read.
+scripts/benchmark.ts(342,15): error TS6133: 'clipHeight' is declared but its value is never read.
+scripts/benchmark.ts(409,22): error TS2339: Property 'id' does not exist on type 'Timeline'.
+scripts/benchmark.ts(419,28): error TS2339: Property 'duration' does not exist on type 'Timeline'.
+scripts/benchmark.ts(426,13): error TS6133: 'size' is declared but its value is never read.
+scripts/benchmark.ts(429,13): error TS6133: 'isValid' is declared but its value is never read.
+scripts/test-audit-logging.ts(240,74): error TS2345: Argument of type '{ retention_days: number; }' is not assignable to parameter of type 'undefined'.
+scripts/test-timeline-performance.ts(69,5): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Timeline'.
+scripts/test-timeline-performance.ts(128,9): error TS6133: 'timelineDuration' is declared but its value is never read.
+scripts/test-timeline-performance.ts(181,11): error TS6133: 'clipWidth' is declared but its value is never read.
+scripts/test-timeline-performance.ts(182,11): error TS6133: 'clipLeft' is declared but its value is never read.
+scripts/test-timeline-performance.ts(253,15): error TS6133: 'key' is declared but its value is never read.
+scripts/test-timeline-performance.ts(279,7): error TS18048: 'worstCase' is possibly 'undefined'.
+scripts/test-timeline-performance.ts(281,37): error TS18048: 'worstCase' is possibly 'undefined'.
+scripts/test-timeline-performance.ts(282,38): error TS18048: 'worstCase' is possibly 'undefined'.
+scripts/test-timeline-performance.ts(293,41): error TS18048: 'worstCase' is possibly 'undefined'.
+scripts/test-timeline-performance.ts(295,39): error TS18048: 'worstCase' is possibly 'undefined'.
+scripts/weekly-report.ts(26,38): error TS2307: Cannot find module '@axiomhq/js' or its corresponding type declarations.
+scripts/weekly-report.ts(78,16): error TS6133: 'queryAxiom' is declared but its value is never read.
+scripts/weekly-report.ts(126,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+scripts/weekly-report.ts(127,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+scripts/weekly-report.ts(270,18): error TS2532: Object is possibly 'undefined'.
+scripts/weekly-report.ts(289,9): error TS6133: 'markdown' is declared but its value is never read.
+scripts/weekly-report.ts(364,26): error TS6133: 'report' is declared but its value is never read.
+sentry.client.config.ts(44,9): error TS2353: Object literal may only specify known properties, and 'tracePropagationTargets' does not exist in type 'Partial<BrowserTracingOptions>'.
+state/selectors.ts(34,31): error TS2304: Cannot find name 'Marker'.
+state/selectors.ts(34,69): error TS2304: Cannot find name 'Marker'.
+state/selectors.ts(37,36): error TS2304: Cannot find name 'TextOverlay'.
+state/selectors.ts(38,29): error TS2304: Cannot find name 'TextOverlay'.
+state/selectors.ts(41,30): error TS2304: Cannot find name 'Track'.
+state/selectors.ts(41,67): error TS2304: Cannot find name 'Track'.
+state/selectors.ts(44,32): error TS2304: Cannot find name 'Timeline'.
+state/selectors.ts(44,77): error TS2304: Cannot find name 'Timeline'.
+state/selectors.ts(95,186): error TS2304: Cannot find name 'Timeline'.
+state/selectors.ts(96,176): error TS2304: Cannot find name 'Timeline'.
+state/slices/clips.ts(74,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/clips.ts(98,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/clips.ts(99,48): error TS7006: Parameter 'existing' implicitly has an 'any' type.
+state/slices/clips.ts(157,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/clips.ts(160,55): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+state/slices/clips.ts(162,59): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+state/slices/clips.ts(185,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/clips.ts(188,57): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+state/slices/clips.ts(231,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/clips.ts(233,57): error TS7006: Parameter 'c' implicitly has an 'any' type.
+state/slices/clips.ts(281,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/clips.ts(283,47): error TS7006: Parameter 'c' implicitly has an 'any' type.
+state/slices/clips.ts(303,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/clips.ts(305,57): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+state/slices/groups.ts(43,24): error TS7006: Parameter 'name' implicitly has an 'any' type.
+state/slices/groups.ts(44,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/groups.ts(61,37): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+state/slices/groups.ts(80,18): error TS7006: Parameter 'groupId' implicitly has an 'any' type.
+state/slices/groups.ts(81,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/groups.ts(84,61): error TS7006: Parameter 'g' implicitly has an 'any' type.
+state/slices/groups.ts(86,37): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+state/slices/groups.ts(105,21): error TS7006: Parameter 'groupId' implicitly has an 'any' type.
+state/slices/groups.ts(109,47): error TS7006: Parameter 'g' implicitly has an 'any' type.
+state/slices/groups.ts(113,19): error TS7006: Parameter 'clipId' implicitly has an 'any' type.
+state/slices/groups.ts(117,45): error TS7006: Parameter 'c' implicitly has an 'any' type.
+state/slices/groups.ts(121,20): error TS7006: Parameter 'clipId' implicitly has an 'any' type.
+state/slices/groups.ts(125,45): error TS7006: Parameter 'c' implicitly has an 'any' type.
+state/slices/guides.ts(35,14): error TS7006: Parameter 'guide' implicitly has an 'any' type.
+state/slices/guides.ts(36,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/guides.ts(44,17): error TS7006: Parameter 'id' implicitly has an 'any' type.
+state/slices/guides.ts(45,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/guides.ts(47,61): error TS7006: Parameter 'g' implicitly has an 'any' type.
+state/slices/guides.ts(50,17): error TS7006: Parameter 'id' implicitly has an 'any' type.
+state/slices/guides.ts(50,21): error TS7006: Parameter 'patch' implicitly has an 'any' type.
+state/slices/guides.ts(51,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/guides.ts(52,51): error TS7006: Parameter 'g' implicitly has an 'any' type.
+state/slices/guides.ts(58,27): error TS7006: Parameter 'id' implicitly has an 'any' type.
+state/slices/guides.ts(59,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/guides.ts(60,51): error TS7006: Parameter 'g' implicitly has an 'any' type.
+state/slices/guides.ts(67,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/guides.ts(69,54): error TS7006: Parameter 'g' implicitly has an 'any' type.
+state/slices/guides.ts(70,38): error TS7006: Parameter 'guide' implicitly has an 'any' type.
+state/slices/guides.ts(76,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/lock.ts(31,14): error TS7006: Parameter 'id' implicitly has an 'any' type.
+state/slices/lock.ts(32,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/lock.ts(33,48): error TS7006: Parameter 'c' implicitly has an 'any' type.
+state/slices/lock.ts(39,16): error TS7006: Parameter 'id' implicitly has an 'any' type.
+state/slices/lock.ts(40,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/lock.ts(41,48): error TS7006: Parameter 'c' implicitly has an 'any' type.
+state/slices/lock.ts(47,20): error TS7006: Parameter 'id' implicitly has an 'any' type.
+state/slices/lock.ts(48,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/lock.ts(49,48): error TS7006: Parameter 'c' implicitly has an 'any' type.
+state/slices/lock.ts(65,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/lock.ts(67,38): error TS7006: Parameter 'clipId' implicitly has an 'any' type.
+state/slices/lock.ts(68,50): error TS7006: Parameter 'c' implicitly has an 'any' type.
+state/slices/lock.ts(76,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/lock.ts(78,38): error TS7006: Parameter 'clipId' implicitly has an 'any' type.
+state/slices/lock.ts(79,50): error TS7006: Parameter 'c' implicitly has an 'any' type.
+state/slices/markers.ts(27,15): error TS7006: Parameter 'marker' implicitly has an 'any' type.
+state/slices/markers.ts(28,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/markers.ts(36,18): error TS7006: Parameter 'id' implicitly has an 'any' type.
+state/slices/markers.ts(37,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/markers.ts(39,63): error TS7006: Parameter 'm' implicitly has an 'any' type.
+state/slices/markers.ts(42,18): error TS7006: Parameter 'id' implicitly has an 'any' type.
+state/slices/markers.ts(42,22): error TS7006: Parameter 'patch' implicitly has an 'any' type.
+state/slices/markers.ts(43,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/markers.ts(44,53): error TS7006: Parameter 'm' implicitly has an 'any' type.
+state/slices/markers.ts(50,18): error TS7006: Parameter 'markerId' implicitly has an 'any' type.
+state/slices/markers.ts(51,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/markers.ts(52,53): error TS7006: Parameter 'm' implicitly has an 'any' type.
+state/slices/playback.ts(30,20): error TS7006: Parameter 'time' implicitly has an 'any' type.
+state/slices/playback.ts(31,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/playback.ts(36,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/playback.ts(42,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/textOverlays.ts(36,20): error TS7006: Parameter 'textOverlay' implicitly has an 'any' type.
+state/slices/textOverlays.ts(37,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/textOverlays.ts(57,23): error TS7006: Parameter 'id' implicitly has an 'any' type.
+state/slices/textOverlays.ts(58,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/textOverlays.ts(60,73): error TS7006: Parameter 't' implicitly has an 'any' type.
+state/slices/textOverlays.ts(75,23): error TS7006: Parameter 'id' implicitly has an 'any' type.
+state/slices/textOverlays.ts(75,27): error TS7006: Parameter 'patch' implicitly has an 'any' type.
+state/slices/textOverlays.ts(76,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/textOverlays.ts(77,63): error TS7006: Parameter 't' implicitly has an 'any' type.
+state/slices/tracks.ts(20,17): error TS7006: Parameter 'trackIndex' implicitly has an 'any' type.
+state/slices/tracks.ts(20,29): error TS7006: Parameter 'patch' implicitly has an 'any' type.
+state/slices/tracks.ts(21,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/tracks.ts(27,47): error TS7006: Parameter 't' implicitly has an 'any' type.
+state/slices/transitions.ts(33,34): error TS7006: Parameter 'transitionType' implicitly has an 'any' type.
+state/slices/transitions.ts(33,50): error TS7006: Parameter 'duration' implicitly has an 'any' type.
+state/slices/transitions.ts(34,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/transitions.ts(37,38): error TS7006: Parameter 'clipId' implicitly has an 'any' type.
+state/slices/transitions.ts(38,50): error TS7006: Parameter 'c' implicitly has an 'any' type.
+state/slices/zoom.ts(53,13): error TS7006: Parameter 'zoom' implicitly has an 'any' type.
+state/slices/zoom.ts(54,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/zoom.ts(59,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/zoom.ts(63,25): error TS7006: Parameter 'interval' implicitly has an 'any' type.
+state/slices/zoom.ts(64,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/slices/zoom.ts(75,36): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+state/slices/zoom.ts(91,56): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+state/slices/zoom.ts(99,56): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+state/slices/zoom.ts(101,29): error TS7006: Parameter 'clip' implicitly has an 'any' type.
+state/slices/zoom.ts(116,10): error TS7006: Parameter 's' implicitly has an 'any' type.
+state/slices/zoom.ts(124,10): error TS7006: Parameter 's' implicitly has an 'any' type.
+state/slices/zoom.ts(138,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+state/useClipGroupStore.ts(87,10): error TS6133: 'set' is declared but its value is never read.
+state/useClipGroupStore.ts(87,15): error TS6133: 'get' is declared but its value is never read.
+state/useClipGroupStore.ts(126,28): error TS18048: 'newTimeline.groups' is possibly 'undefined'.
+state/useClipGroupStore.ts(171,21): error TS18048: 'newTimeline.groups' is possibly 'undefined'.
+state/useClipGroupStore.ts(192,21): error TS18048: 'newTimeline.groups' is possibly 'undefined'.
+state/useClipGroupStore.ts(218,21): error TS18048: 'newTimeline.groups' is possibly 'undefined'.
+state/useClipGroupStore.ts(231,21): error TS18048: 'newTimeline.groups' is possibly 'undefined'.
+state/useEditorStore.ts(181,23): error TS2322: Type '{ currentTime: number; timecodeDisplayMode: string; autoScrollEnabled: boolean; setCurrentTime: (time: any) => void; toggleTimecodeDisplayMode: () => void; toggleAutoScroll: () => void; groupSelectedClips: (name: any) => void; ... 59 more ...; canRedo: () => boolean; }' is not assignable to type 'EditorStore'.
+  Type '{ currentTime: number; timecodeDisplayMode: string; autoScrollEnabled: boolean; setCurrentTime: (time: any) => void; toggleTimecodeDisplayMode: () => void; toggleAutoScroll: () => void; groupSelectedClips: (name: any) => void; ... 59 more ...; canRedo: () => boolean; }' is not assignable to type 'PlaybackSlice'.
+    Types of property 'timecodeDisplayMode' are incompatible.
+      Type 'string' is not assignable to type '"duration" | "timecode"'.
+state/useEditorStore.ts(360,30): error TS2554: Expected 1 arguments, but got 3.
+state/useEditorStore.ts(361,31): error TS2554: Expected 1 arguments, but got 3.
+state/useEditorStore.ts(362,32): error TS2554: Expected 1 arguments, but got 3.
+state/useEditorStore.ts(363,31): error TS2554: Expected 1 arguments, but got 3.
+state/useEditorStore.ts(364,34): error TS2554: Expected 2 arguments, but got 3.
+state/useEditorStore.ts(365,37): error TS2554: Expected 1 arguments, but got 3.
+state/useEditorStore.ts(366,36): error TS2554: Expected 1 arguments, but got 3.
+state/useEditorStore.ts(367,29): error TS2554: Expected 1 arguments, but got 3.
+state/useEditorStore.ts(368,36): error TS2554: Expected 2 arguments, but got 3.
+state/useEditorStore.ts(369,33): error TS2554: Expected 1 arguments, but got 3.
+state/useTimelineStore.ts(164,75): error TS2304: Cannot find name 'WritableDraft'.

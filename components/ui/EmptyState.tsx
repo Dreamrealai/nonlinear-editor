@@ -1,3 +1,4 @@
+import React from 'react';
 /**
  * EmptyState Component
  *
@@ -54,7 +55,7 @@ interface EmptyStateProps {
  * @param action - Optional action button with label and onClick
  * @returns A styled empty state container
  */
-export function EmptyState({ icon, title, description, action }: EmptyStateProps): JSX.Element {
+export function EmptyState({ icon, title, description, action }: EmptyStateProps): React.ReactElement {
   return (
     <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">

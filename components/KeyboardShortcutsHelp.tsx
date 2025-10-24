@@ -36,7 +36,7 @@ export function KeyboardShortcutsHelp({
   shortcuts,
   isOpen: controlledIsOpen,
   onClose,
-}: KeyboardShortcutsHelpProps): React.JSX.Element | null {
+}: KeyboardShortcutsHelpProps): React.ReactElement | null {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
 
@@ -144,7 +144,7 @@ export function KeyboardShortcutsHelp({
 
         {/* Content */}
         <div className="overflow-y-auto max-h-[calc(90vh-80px)] px-6 py-4">
-          {Object.entries(groupedShortcuts).map(([category, categoryShortcuts]): JSX.Element | null => {
+          {Object.entries(groupedShortcuts).map(([category, categoryShortcuts]): React.ReactElement | null => {
             if (categoryShortcuts.length === 0) return null;
 
             return (
@@ -153,7 +153,7 @@ export function KeyboardShortcutsHelp({
                   {categoryLabels[category] || category}
                 </h3>
                 <div className="space-y-2">
-                  {categoryShortcuts.map((shortcut): JSX.Element => (
+                  {categoryShortcuts.map((shortcut): React.ReactElement => (
                     <div
                       key={shortcut.id}
                       className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-neutral-50 transition-colors"

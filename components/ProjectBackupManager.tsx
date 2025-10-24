@@ -36,7 +36,7 @@ interface ProjectBackupManagerProps {
 export function ProjectBackupManager({
   projectId,
   projectTitle,
-}: ProjectBackupManagerProps): React.JSX.Element {
+}: ProjectBackupManagerProps): React.ReactElement {
   const [backups, setBackups] = useState<ProjectBackup[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -239,7 +239,7 @@ export function ProjectBackupManager({
             </div>
           ) : (
             <div className="space-y-3">
-              {backups.map((backup): JSX.Element => (
+              {backups.map((backup): React.ReactElement => (
                 <div
                   key={backup.id}
                   className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 p-4 hover:bg-neutral-100 transition-colors"

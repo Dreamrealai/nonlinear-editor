@@ -9,7 +9,7 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, {  useState, useEffect  } from 'react';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 import type { ProjectTemplate, TemplateCategory } from '@/types/template';
@@ -68,7 +68,7 @@ const CATEGORY_LABELS: Record<TemplateCategory, string> = {
   custom: 'Custom',
 };
 
-export function TemplateLibrary({ isOpen, onClose, onSelectTemplate }: TemplateLibraryProps): JSX.Element {
+export function TemplateLibrary({ isOpen, onClose, onSelectTemplate }: TemplateLibraryProps): React.ReactElement {
   const [templates, setTemplates] = useState<ProjectTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -176,7 +176,7 @@ export function TemplateLibrary({ isOpen, onClose, onSelectTemplate }: TemplateL
 
           {/* Category Filter */}
           <div className="flex gap-2 overflow-x-auto pb-2">
-            {categories.map((category): JSX.Element => {
+            {categories.map((category): React.ReactElement => {
               const Icon = category === 'all' ? Star : CATEGORY_ICONS[category];
               const label = category === 'all' ? 'All' : CATEGORY_LABELS[category];
 
@@ -220,7 +220,7 @@ export function TemplateLibrary({ isOpen, onClose, onSelectTemplate }: TemplateL
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-4 pb-4">
-              {templates.map((template): JSX.Element => {
+              {templates.map((template): React.ReactElement => {
                 const Icon = CATEGORY_ICONS[template.category];
 
                 return (
@@ -286,7 +286,7 @@ export function TemplateLibrary({ isOpen, onClose, onSelectTemplate }: TemplateL
                       {/* Tags */}
                       {template.tags && template.tags.length > 0 && (
                         <div className="flex gap-1 mt-2 flex-wrap">
-                          {template.tags.slice(0, 3).map((tag): JSX.Element => (
+                          {template.tags.slice(0, 3).map((tag): React.ReactElement => (
                             <span
                               key={tag}
                               className="px-2 py-0.5 bg-muted rounded text-xs text-muted-foreground"

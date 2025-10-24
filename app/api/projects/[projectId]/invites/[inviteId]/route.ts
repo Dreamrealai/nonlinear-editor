@@ -68,5 +68,8 @@ export const DELETE = withAuth<{ projectId: string; inviteId: string }>(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  RATE_LIMITS.tier2_resource_creation
+  {
+    route: '/api/projects/[projectId]/invites/[inviteId]',
+    rateLimit: RATE_LIMITS.tier2_resource_creation,
+  }
 );

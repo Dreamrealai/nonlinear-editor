@@ -21,7 +21,7 @@ type TimelineSelectionRectangleProps = {
 
 export const TimelineSelectionRectangle: React.FC<TimelineSelectionRectangleProps> = ({
   selectionRect,
-}): JSX.Element | null => {
+}): React.ReactElement | null => {
   if (!selectionRect) return null;
 
   const { startX, startY, endX, endY } = selectionRect;

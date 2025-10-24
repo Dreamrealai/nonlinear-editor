@@ -54,7 +54,7 @@ export function TextOverlayEditor({
   textOverlays,
   currentTime,
   containerRef,
-}: TextOverlayEditorProps): JSX.Element {
+}: TextOverlayEditorProps): React.ReactElement {
   const updateTextOverlay = useEditorStore((state): (id: string, patch: Partial<TextOverlay>) => void => state.updateTextOverlay);
   const removeTextOverlay = useEditorStore((state): (id: string) => void => state.removeTextOverlay);
 
@@ -280,7 +280,7 @@ export function TextOverlayEditor({
         tabIndex={0}
         aria-label="Text overlay workspace"
       >
-        {visibleOverlays.map((overlay): JSX.Element => {
+        {visibleOverlays.map((overlay): React.ReactElement => {
           const isSelected = overlay.id === selectedOverlayId;
           const opacity = calculateAnimationState(overlay);
 
@@ -358,7 +358,7 @@ export function TextOverlayEditor({
                 onChange={(e): void => handleFontFamilyChange(e.target.value)}
                 className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none"
               >
-                {FONT_FAMILIES.map((font): JSX.Element => (
+                {FONT_FAMILIES.map((font): React.ReactElement => (
                   <option key={font.value} value={font.value} className="bg-gray-900">
                     {font.label}
                   </option>
@@ -377,7 +377,7 @@ export function TextOverlayEditor({
                 onChange={(e): void => handleFontSizeChange(Number(e.target.value))}
                 className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none w-20"
               >
-                {FONT_SIZES.map((size): JSX.Element => (
+                {FONT_SIZES.map((size): React.ReactElement => (
                   <option key={size} value={size} className="bg-gray-900">
                     {size}px
                   </option>
@@ -389,7 +389,7 @@ export function TextOverlayEditor({
             <div className="flex flex-col gap-1">
               <div className="text-xs text-white/60 font-medium">Color</div>
               <div className="flex gap-1">
-                {COLOR_PRESETS.map((color): JSX.Element => (
+                {COLOR_PRESETS.map((color): React.ReactElement => (
                   <button
                     key={color}
                     type="button"

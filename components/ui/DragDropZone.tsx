@@ -70,7 +70,7 @@ export function DragDropZone({
   className,
   showPreviews = true,
   validate,
-}: DragDropZoneProps): React.JSX.Element {
+}: DragDropZoneProps): React.ReactElement {
   const [isDragActive, setIsDragActive] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
@@ -333,7 +333,7 @@ export function DragDropZone({
         <div className="mt-3 rounded-lg bg-red-50 px-4 py-3">
           <p className="text-sm font-semibold text-red-900 mb-1">Upload Errors:</p>
           <ul className="list-disc list-inside space-y-1">
-            {errors.map((error, index): JSX.Element => (
+            {errors.map((error, index): React.ReactElement => (
               <li key={index} className="text-xs text-red-700">
                 {error}
               </li>
@@ -349,7 +349,7 @@ export function DragDropZone({
             Selected Files ({selectedFiles.length})
           </p>
           <div className="space-y-2">
-            {selectedFiles.map((file, index): JSX.Element => (
+            {selectedFiles.map((file, index): React.ReactElement => (
               <div
                 key={index}
                 className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3"

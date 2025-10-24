@@ -6,7 +6,7 @@
  */
 'use client';
 
-import { type ChangeEvent, useRef, useState, useMemo } from 'react';
+import React, {  type ChangeEvent, useRef, useState, useMemo  } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { AssetRow } from '@/types/assets';
@@ -97,7 +97,7 @@ export function AssetPanel({
   onNextPage,
   onPreviousPage,
   usedAssetIds = new Set(),
-}: AssetPanelProps): JSX.Element {
+}: AssetPanelProps): React.ReactElement {
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
   // Search and filter state
@@ -383,7 +383,7 @@ export function AssetPanel({
               Usage Status
             </label>
             <div className="flex gap-2">
-              {(['all', 'used', 'unused'] as UsageFilter[]).map((filter): JSX.Element => (
+              {(['all', 'used', 'unused'] as UsageFilter[]).map((filter): React.ReactElement => (
                 <button
                   key={filter}
                   type="button"
@@ -411,7 +411,7 @@ export function AssetPanel({
                 Filter by Tags
               </label>
               <div className="flex flex-wrap gap-1.5">
-                {availableTags.map((tag): JSX.Element => (
+                {availableTags.map((tag): React.ReactElement => (
                   <button
                     key={tag}
                     type="button"
@@ -682,7 +682,7 @@ export function AssetPanel({
                 : 'No audio assets yet. Upload or generate audio.'}
           </div>
         )}
-        {filteredAssets.map((asset): JSX.Element => (
+        {filteredAssets.map((asset): React.ReactElement => (
           <div key={asset.id} className="group relative flex flex-col gap-2">
             <button
               type="button"

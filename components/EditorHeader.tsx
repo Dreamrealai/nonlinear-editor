@@ -36,7 +36,7 @@
  */
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, {  useState, useEffect, useCallback  } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
@@ -70,7 +70,7 @@ export function EditorHeader({
   onExport,
   lastSaved,
   isSaving,
-}: EditorHeaderProps): JSX.Element {
+}: EditorHeaderProps): React.ReactElement {
   const router = useRouter();
   const { supabaseClient } = useSupabase();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -279,7 +279,7 @@ export function EditorHeader({
                     {projects.length === 0 ? (
                       <div className="px-4 py-2 text-sm text-neutral-500">No projects found</div>
                     ) : (
-                      projects.map((project): JSX.Element => (
+                      projects.map((project): React.ReactElement => (
                         <div
                           key={project.id}
                           className={`w-full px-4 py-2 text-left text-sm hover:bg-neutral-50 transition-colors flex items-center justify-between group ${
@@ -577,7 +577,7 @@ export function EditorHeader({
                   {isDropdownOpen && (
                     <div className="mt-2 border border-neutral-200 rounded-lg bg-white">
                       <div className="max-h-48 overflow-y-auto">
-                        {projects.map((project): JSX.Element => (
+                        {projects.map((project): React.ReactElement => (
                           <button
                             key={project.id}
                             onClick={(): void => {

@@ -10,7 +10,7 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, {  useState, useEffect  } from 'react';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 import type { Timeline } from '@/types/timeline';
@@ -51,7 +51,7 @@ const PLATFORM_ICONS: Record<string, React.ComponentType<{ className?: string }>
   linkedin: Info,
 };
 
-export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue }: ExportModalProps): JSX.Element {
+export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue }: ExportModalProps): React.ReactElement {
   const [presets, setPresets] = useState<ExportPreset[]>([]);
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const [isLoadingPresets, setIsLoadingPresets] = useState(true);
@@ -192,7 +192,7 @@ export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue 
                 <div>
                   <div className="mb-2 block text-sm font-medium">Platform Presets</div>
                   <div className="grid grid-cols-2 gap-3">
-                    {platformPresets.map((preset): JSX.Element => {
+                    {platformPresets.map((preset): React.ReactElement => {
                       const Icon = preset.platform_type ? PLATFORM_ICONS[preset.platform_type] : Info;
                       return (
                         <button
@@ -229,7 +229,7 @@ export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue 
                 <div>
                   <div className="mb-2 block text-sm font-medium">Custom Presets</div>
                   <div className="grid grid-cols-2 gap-3">
-                    {customPresets.map((preset): JSX.Element => (
+                    {customPresets.map((preset): React.ReactElement => (
                       <button
                         key={preset.id}
                         onClick={(): void => setSelectedPresetId(preset.id)}

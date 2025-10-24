@@ -41,7 +41,7 @@ export function PlaybackControls({
   onPlayPause,
   onSeek,
   onToggleFullscreen,
-}: PlaybackControlsProps): JSX.Element {
+}: PlaybackControlsProps): React.ReactElement {
   const [showControls, setShowControls] = useState(true);
   const [isDraggingSlider, setIsDraggingSlider] = useState(false);
   const progressBarRef = useRef<HTMLDivElement>(null);

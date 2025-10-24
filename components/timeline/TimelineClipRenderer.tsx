@@ -37,7 +37,7 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
     onContextMenu,
     onTrimHandleMouseDown,
     onRemove,
-  }): JSX.Element {
+  }): React.ReactElement {
     const [isHovered, setIsHovered] = React.useState(false);
     const [hoverX, setHoverX] = React.useState<number | null>(null);
     const toggleClipLock = useEditorStore((state): (id: string) => void => state.toggleClipLock);

@@ -1,4 +1,8 @@
 /**
+ * @jest-environment node
+ */
+
+/**
  * Integration Tests: Complete AI Generation Workflows
  *
  * Tests multi-step AI workflows including:

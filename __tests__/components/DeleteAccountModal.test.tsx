@@ -13,7 +13,7 @@ jest.mock('@/lib/browserLogger', () => ({
 // Mock Dialog component
 jest.mock('@/components/ui/Dialog', () => ({
   Dialog: ({ children, open, onOpenChange }: { children: React.ReactNode; open: boolean; onOpenChange: (open: boolean) => void }) => (
-    open ? <div data-testid="dialog" onClick={() => onOpenChange(false)}>{children}</div> : null
+    open ? <div data-testid="dialog" onClick={() => onOpenChange(false)} onKeyDown={(e) => e.key === 'Escape' && onOpenChange(false)} role="dialog" tabIndex={-1}>{children}</div> : null
   ),
   DialogContent: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="dialog-content">{children}</div>

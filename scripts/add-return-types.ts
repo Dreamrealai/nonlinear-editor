@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { Project, Node, SyntaxKind, SourceFile, Type } from 'ts-morph';
+import { Project, Node, SourceFile } from 'ts-morph';
 import * as fs from 'fs';
 import * as path from 'path';
 

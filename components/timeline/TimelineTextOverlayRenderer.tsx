@@ -26,7 +26,7 @@ export const TimelineTextOverlayRenderer = React.memo<TimelineTextOverlayRendere
     onRemove,
     onMouseDown,
     onTrimMouseDown,
-  }): JSX.Element {
+  }): React.ReactElement {
     const overlayWidth = overlay.duration * zoom;
     const overlayLeft = overlay.timelinePosition * zoom;
 

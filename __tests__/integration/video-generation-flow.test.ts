@@ -1,4 +1,8 @@
 /**
+ * @jest-environment node
+ */
+
+/**
  * Integration Tests: Video Generation Flow
  *
  * Tests the complete video generation lifecycle including:

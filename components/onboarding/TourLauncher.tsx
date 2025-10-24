@@ -5,7 +5,7 @@
  */
 'use client';
 
-import { useState } from 'react';
+import React, {  useState  } from 'react';
 import { Button } from '@/components/ui/Button';
 import { HelpCircle, Play } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
@@ -17,7 +17,7 @@ interface TourLauncherProps {
   className?: string;
 }
 
-export function TourLauncher({ className }: TourLauncherProps): JSX.Element {
+export function TourLauncher({ className }: TourLauncherProps): React.ReactElement {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTour, setActiveTour] = useState<OnboardingTourType | null>(null);
 
@@ -59,7 +59,7 @@ export function TourLauncher({ className }: TourLauncherProps): JSX.Element {
               Learn how to use the video editor with interactive guided tours.
             </p>
 
-            {ALL_TOURS.map((tour): JSX.Element => (
+            {ALL_TOURS.map((tour): React.ReactElement => (
               <div
                 key={tour.id}
                 className="flex items-start gap-3 p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors"
@@ -94,7 +94,7 @@ export function TourLauncher({ className }: TourLauncherProps): JSX.Element {
  *
  * Auto-starts the editor tour for first-time users
  */
-export function EditorTourLauncher(): JSX.Element | null {
+export function EditorTourLauncher(): React.ReactElement | null {
   const [tourCompleted, setTourCompleted] = useState(false);
 
   if (tourCompleted) {

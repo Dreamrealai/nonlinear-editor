@@ -37,7 +37,7 @@ type TrimmingState = {
  */
 export const TimelineTextOverlayTrack = React.memo(function TimelineTextOverlayTrack(
   props: TimelineTextOverlayTrackProps
-): JSX.Element {
+): React.ReactElement {
   const {
     textOverlays,
     selectedTextOverlayId,
@@ -168,7 +168,7 @@ export const TimelineTextOverlayTrack = React.memo(function TimelineTextOverlayT
       </div>
 
       {/* Render text overlay clips */}
-      {textOverlays.map((overlay): JSX.Element => (
+      {textOverlays.map((overlay): React.ReactElement => (
         <TimelineTextOverlayRenderer
           key={overlay.id}
           overlay={overlay}

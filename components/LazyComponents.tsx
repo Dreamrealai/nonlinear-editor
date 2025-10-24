@@ -7,12 +7,12 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { ComponentType, ReactElement } from 'react';
+import React, {  ComponentType, ReactElement  } from 'react';
 
 /**
  * Loading component shown while lazy components are loading
  */
-const LoadingFallback = (): JSX.Element => (
+const LoadingFallback = (): React.ReactElement => (
   <div className="flex h-full w-full items-center justify-center">
     <div className="flex flex-col items-center gap-3">
       <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 motion-reduce:animate-none motion-reduce:border-t-8 dark:border-purple-800 dark:border-t-purple-400" role="status" aria-label="Loading"></div>
@@ -37,7 +37,7 @@ export const LazyExportModal = dynamic(() => import('@/components/ExportModal'),
 export const LazyClipPropertiesPanel = dynamic(
   () => import('@/components/editor/ClipPropertiesPanel'),
   {
-    loading: (): JSX.Element => (
+    loading: (): React.ReactElement => (
       <div className="h-full w-80 border-l border-gray-700 bg-gray-900 p-4">
         <div className="flex h-full items-center justify-center text-sm text-gray-500">
           Loading properties...
@@ -72,7 +72,7 @@ type HorizontalTimelineProps = {
 export const LazyHorizontalTimeline = dynamic<HorizontalTimelineProps>(
   () => import('@/components/HorizontalTimeline'),
   {
-    loading: (): JSX.Element => (
+    loading: (): React.ReactElement => (
       <div className="flex h-full w-full items-center justify-center bg-neutral-50 dark:bg-neutral-900">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 motion-reduce:animate-none motion-reduce:border-t-8 dark:border-purple-800 dark:border-t-purple-400" role="status" aria-label="Loading timeline"></div>
@@ -89,7 +89,7 @@ export const LazyHorizontalTimeline = dynamic<HorizontalTimelineProps>(
  * Only loaded when needed for video playback
  */
 export const LazyPreviewPlayer = dynamic(() => import('@/components/PreviewPlayer'), {
-  loading: (): JSX.Element => (
+  loading: (): React.ReactElement => (
     <div className="flex h-full w-full items-center justify-center bg-black">
       <div className="flex flex-col items-center gap-3">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-700 border-t-neutral-400"></div>
@@ -107,7 +107,7 @@ export const LazyPreviewPlayer = dynamic(() => import('@/components/PreviewPlaye
 export const LazyAudioWaveform = dynamic(
   (): Promise<{ default: NamedExoticComponent<{ clip: Clip; width: number; height: number; zoom?: number; className?: string; }>; }> => import('@/components/AudioWaveform').then((mod): { default: NamedExoticComponent<{ clip: Clip; width: number; height: number; zoom?: number; className?: string; }>; } => ({ default: mod.AudioWaveform })),
   {
-    loading: (): JSX.Element => <div className="h-full w-full bg-neutral-100 animate-pulse"></div>,
+    loading: (): React.ReactElement => <div className="h-full w-full bg-neutral-100 animate-pulse"></div>,
     ssr: false,
   }
 );

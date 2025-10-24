@@ -4,12 +4,47 @@
  * Tests listing assets with filtering and pagination
  */
 
+import { NextRequest } from 'next/server';
 import { GET } from '@/app/api/assets/route';
 import {
-  createMockRequest,
   createMockSupabaseClient,
   createMockUser,
-} from '@/__tests__/helpers/apiMocks';
+  mockAuthenticatedUser,
+  resetAllMocks,
+} from '@/test-utils/mockSupabase';
+
+// Mock withAuth wrapper
+jest.mock('@/lib/api/withAuth', () => ({
+  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+    const { createServerSupabaseClient } = require('@/lib/supabase');
+    const supabase = await createServerSupabaseClient();
+
+    if (!supabase || !supabase.auth) {
+      return new Response(JSON.stringify({ error: 'Internal server error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    return handler(req, { user, supabase, params: context?.params || {} });
+  }),
+}));
+
+// Mock the Supabase module
+jest.mock('@/lib/supabase', () => ({
+  createServerSupabaseClient: jest.fn(),
+}));
 
 jest.mock('@/lib/serverLogger', () => ({
   serverLogger: {
@@ -20,17 +55,23 @@ jest.mock('@/lib/serverLogger', () => ({
 }));
 
 describe('GET /api/assets', () => {
-  const mockUser = createMockUser();
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
+    const { createServerSupabaseClient } = require('@/lib/supabase');
+    createServerSupabaseClient.mockResolvedValue(mockSupabase);
+  });
+
+  afterEach(() => {
+    resetAllMocks();
   });
 
   describe('Successful Retrieval', () => {
     it('should return assets for authenticated user', async () => {
       // Arrange
+      const mockUser = mockAuthenticatedUser(mockSupabase);
       const mockAssets = [
         { id: '1', user_id: mockUser.id, type: 'image', name: 'asset1.png' },
         { id: '2', user_id: mockUser.id, type: 'video', name: 'asset2.mp4' },
@@ -50,14 +91,10 @@ describe('GET /api/assets', () => {
         }),
       });
 
-      const mockRequest = createMockRequest({ url: '/api/assets' });
+      const mockRequest = new NextRequest('http://localhost:3000/api/assets');
 
       // Act
-      const response = await GET(mockRequest, {
-        params: Promise.resolve({}),
-        user: mockUser,
-        supabase: mockSupabase,
-      });
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
       const data = await response.json();
 
       // Assert

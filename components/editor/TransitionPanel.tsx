@@ -60,7 +60,7 @@ type TransitionPanelProps = {
   onClose?: () => void;
 };
 
-export function TransitionPanel({ onClose }: TransitionPanelProps): React.JSX.Element {
+export function TransitionPanel({ onClose }: TransitionPanelProps): React.ReactElement {
   const selectedClipIds = useEditorStore((state): Set<string> => state.selectedClipIds);
   const addTransitionToSelectedClips = useEditorStore((state): (transitionType: TransitionType, duration: number) => void => state.addTransitionToSelectedClips);
   const timeline = useEditorStore((state): Timeline | null => state.timeline);
@@ -144,7 +144,7 @@ export function TransitionPanel({ onClose }: TransitionPanelProps): React.JSX.El
             Transition Type
           </label>
           <div className="grid grid-cols-2 gap-2">
-            {implementedOptions.map((option): JSX.Element => (
+            {implementedOptions.map((option): React.ReactElement => (
               <button
                 key={option.type}
                 onClick={(): void => setSelectedType(option.type)}
@@ -172,7 +172,7 @@ export function TransitionPanel({ onClose }: TransitionPanelProps): React.JSX.El
               Coming Soon
             </label>
             <div className="grid grid-cols-2 gap-2">
-              {comingSoonOptions.map((option): JSX.Element => (
+              {comingSoonOptions.map((option): React.ReactElement => (
                 <div
                   key={option.type}
                   className="p-3 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 opacity-50 cursor-not-allowed"

@@ -121,7 +121,7 @@ function HorizontalTimeline({
   onSplitScenesFromClip,
   splitAudioPending = false,
   splitScenesPending = false,
-}: HorizontalTimelineProps = {}): React.JSX.Element {
+}: HorizontalTimelineProps = {}): React.ReactElement {
   // Optimized store subscriptions - separate selectors to minimize re-renders
   const { timeline, clips, textOverlays, markers } = useEditorStore(selectTimelineData);
   const { currentTime, zoom, autoScrollEnabled } = useEditorStore(selectPlaybackState);
@@ -547,7 +547,7 @@ function HorizontalTimeline({
             />
 
             {/* Clips - Virtualized rendering */}
-            {visibleClips.map((clip): JSX.Element => (
+            {visibleClips.map((clip): React.ReactElement => (
               <TimelineClipRenderer
                 key={clip.id}
                 clip={clip}

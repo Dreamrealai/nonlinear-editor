@@ -28,7 +28,7 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, {  useState, useEffect  } from 'react';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { UserProfile, TIER_LIMITS } from '@/lib/types/subscription';
 import { isPostgresNotFound } from '@/lib/errors/errorCodes';
@@ -36,7 +36,7 @@ import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 import { redirectToUrl } from '@/lib/navigation';
 
-export function SubscriptionManager(): JSX.Element | null {
+export function SubscriptionManager(): React.ReactElement | null {
   const { supabaseClient } = useSupabase();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -232,7 +232,7 @@ export function SubscriptionManager(): JSX.Element | null {
           </div>
 
           <div className="space-y-2.5">
-            {tierLimits.features.map((feature, index): JSX.Element => (
+            {tierLimits.features.map((feature, index): React.ReactElement => (
               <div key={index} className="flex items-center gap-3 text-sm text-neutral-700">
                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100">
                   <svg
@@ -598,7 +598,7 @@ export function SubscriptionManager(): JSX.Element | null {
             </div>
 
             <ul className="space-y-3 mb-5">
-              {TIER_LIMITS.premium.features.map((feature, index): JSX.Element => (
+              {TIER_LIMITS.premium.features.map((feature, index): React.ReactElement => (
                 <li key={index} className="flex items-center gap-3 text-sm text-blue-900">
                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-200">
                     <svg

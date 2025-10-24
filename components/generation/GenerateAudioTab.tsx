@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Toaster } from 'react-hot-toast';
 import { useAudioGeneration } from './audio-generation/useAudioGeneration';
 import { AudioTypeSelector } from './audio-generation/AudioTypeSelector';
@@ -20,7 +21,7 @@ interface GenerateAudioTabProps {
  * This component orchestrates the audio generation UI by delegating to specialized
  * sub-components for each audio type (music, voice, sound effects).
  */
-export function GenerateAudioTab({ projectId }: GenerateAudioTabProps): JSX.Element {
+export function GenerateAudioTab({ projectId }: GenerateAudioTabProps): React.ReactElement {
   const audioGeneration = useAudioGeneration({ projectId });
 
   return (

@@ -9,13 +9,13 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import React, {  useState  } from 'react';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
-export function CreateProjectButton(): JSX.Element {
+export function CreateProjectButton(): React.ReactElement {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 

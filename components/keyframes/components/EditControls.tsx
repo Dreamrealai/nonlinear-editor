@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * EditControls - Keyframe editing controls panel
  *
@@ -53,7 +55,6 @@
  * />
  * ```
  */
-'use client';
 
 import Image from 'next/image';
 import clsx from 'clsx';
@@ -123,7 +124,7 @@ export function EditControls({
   onSubmit,
   selectedFrameId,
   clampCrop,
-}: EditControlsProps): JSX.Element {
+}: EditControlsProps): React.ReactElement {
   return (
     <div className="border-b border-neutral-200 bg-white p-6">
       <div className="flex items-center gap-2">
@@ -230,7 +231,7 @@ export function EditControls({
         />
         {refImages.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
-            {refImages.map((img): JSX.Element => (
+            {refImages.map((img): React.ReactElement => (
               <div
                 key={img.id}
                 className="group relative h-14 w-14 overflow-hidden rounded border border-neutral-200 bg-neutral-50"

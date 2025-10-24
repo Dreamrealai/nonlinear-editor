@@ -52,7 +52,7 @@ export function TimelineMinimap({
   numTracks,
   onSeek,
   onPan,
-}: TimelineMinimapProps): React.JSX.Element {
+}: TimelineMinimapProps): React.ReactElement {
   const minimapRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [minimapWidth, setMinimapWidth] = useState(0);
@@ -130,10 +130,10 @@ export function TimelineMinimap({
   );
 
   // Render clips in minimap
-  const renderClips = (): JSX.Element[] | null => {
+  const renderClips = (): React.ReactElement[] | null => {
     if (minimapWidth === 0) return null;
 
-    return clips.map((clip): JSX.Element => {
+    return clips.map((clip): React.ReactElement => {
       const clipLeft = (clip.timelinePosition / timelineDuration) * minimapWidth;
       const clipDuration = clip.end - clip.start;
       const clipWidth = Math.max(2, (clipDuration / timelineDuration) * minimapWidth);

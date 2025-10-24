@@ -192,7 +192,7 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
 
     // Apply gravity animation to random elements
     const elements = document.querySelectorAll('button, .card, img');
-    elements.forEach((el, i): void => {
+    elements.forEach((el): void => {
       if (Math.random() > 0.7 && el instanceof HTMLElement) {
         el.style.transition = 'transform 1s ease-in';
         el.style.transform = `translateY(${window.innerHeight}px) rotate(${Math.random() * 360}deg)`;
@@ -302,7 +302,8 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
         // Check key press count easter eggs
         if (egg.keyPressCount) {
           const { key: targetKey, count } = egg.keyPressCount;
-          if (keyPressTracker.current[targetKey] >= count) {
+          const currentCount = keyPressTracker.current[targetKey];
+          if (currentCount !== undefined && currentCount >= count) {
             egg.action();
             keyPressTracker.current[targetKey] = 0;
           }
@@ -465,12 +466,14 @@ function createMatrixRain(): void {
 
     for (let i = 0; i < drops.length; i++) {
       const text = chars[Math.floor(Math.random() * chars.length)];
-      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+      const dropValue = drops[i] ?? 0;
+      ctx.fillText(text, i * fontSize, dropValue * fontSize);
 
-      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+      if (dropValue * fontSize > canvas.height && Math.random() > 0.975) {
         drops[i] = 0;
+      } else {
+        drops[i] = dropValue + 1;
       }
-      drops[i]++;
     }
   }
 

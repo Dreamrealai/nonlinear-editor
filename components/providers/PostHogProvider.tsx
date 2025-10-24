@@ -25,7 +25,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import React, {  useEffect  } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { analyticsService } from '@/lib/services/analyticsService';
 
@@ -33,7 +33,7 @@ interface PostHogProviderProps {
   children: React.ReactNode;
 }
 
-export function PostHogProvider({ children }: PostHogProviderProps): JSX.Element {
+export function PostHogProvider({ children }: PostHogProviderProps): React.ReactElement {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 

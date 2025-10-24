@@ -1,3 +1,4 @@
+import React from 'react';
 /**
  * VoiceGenerationForm - Text-to-speech voice generation form
  *
@@ -65,7 +66,7 @@ export function VoiceGenerationForm({
   loadingVoices,
   generating,
   onSubmit,
-}: VoiceGenerationFormProps): JSX.Element {
+}: VoiceGenerationFormProps): React.ReactElement {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       {/* Text Input */}

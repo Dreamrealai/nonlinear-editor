@@ -29,7 +29,7 @@ const VideoQueueItem = React.memo<VideoQueueItemProps>(function VideoQueueItem({
   thumbnailUrl,
   error,
   onRemove,
-}: VideoQueueItemProps): JSX.Element {
+}: VideoQueueItemProps): React.ReactElement {
   const [videoLoading, setVideoLoading] = useState(true);
   const [videoError, setVideoError] = useState(false);
 

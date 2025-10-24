@@ -11,7 +11,7 @@
  */
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, {  useState, useEffect, useCallback  } from 'react';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { UserPreferencesService } from '@/lib/services/userPreferencesService';
 import type { KeyboardShortcutConfig } from '@/types/userPreferences';
@@ -25,7 +25,7 @@ interface ShortcutEditState {
   keys: string[];
 }
 
-export function KeyboardShortcutsPanel(): JSX.Element {
+export function KeyboardShortcutsPanel(): React.ReactElement {
   const { supabaseClient } = useSupabase();
   const [shortcuts, setShortcuts] = useState<KeyboardShortcutConfig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -254,13 +254,13 @@ export function KeyboardShortcutsPanel(): JSX.Element {
 
       {/* Shortcuts list grouped by category */}
       <div className="space-y-6">
-        {Object.entries(groupedShortcuts).map(([category, categoryShortcuts]): JSX.Element => (
+        {Object.entries(groupedShortcuts).map(([category, categoryShortcuts]): React.ReactElement => (
           <div key={category}>
             <h4 className="text-sm font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-3">
               {category}
             </h4>
             <div className="space-y-2">
-              {categoryShortcuts.map((shortcut): JSX.Element | null => {
+              {categoryShortcuts.map((shortcut): React.ReactElement | null => {
                 const metadata = SHORTCUT_METADATA[shortcut.id];
                 if (!metadata) return null;
 

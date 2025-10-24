@@ -26,7 +26,7 @@ import {
   Tag,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
+import React, {  useState  } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip, Timeline } from '@/types/timeline';
 import { formatTimeMMSSCS } from '@/lib/utils/timeFormatting';
@@ -71,7 +71,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
   onAddTransition,
   onSelectAllInTrack,
   onClose,
-}): JSX.Element => {
+}): React.ReactElement => {
   const [showProperties, setShowProperties] = useState(false);
   const [showColorSubmenu, setShowColorSubmenu] = useState(false);
   const toggleClipLock = useEditorStore((state): (id: string) => void => state.toggleClipLock);
@@ -546,7 +546,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   onClick,
   disabled = false,
   variant = 'default',
-}): JSX.Element => {
+}): React.ReactElement => {
   const variantClasses =
     variant === 'danger'
       ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950'
@@ -572,7 +572,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
 /**
  * Menu divider component
  */
-const MenuDivider: React.FC = (): JSX.Element => (
+const MenuDivider: React.FC = (): React.ReactElement => (
   <div className="my-1 h-px bg-neutral-200 dark:bg-neutral-700" />
 );
 
@@ -584,7 +584,7 @@ type MenuSectionHeaderProps = {
   label: string;
 };
 
-const MenuSectionHeader: React.FC<MenuSectionHeaderProps> = ({ label }): JSX.Element => (
+const MenuSectionHeader: React.FC<MenuSectionHeaderProps> = ({ label }): React.ReactElement => (
   <div className="px-4 py-1.5 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
     {label}
   </div>
@@ -599,7 +599,7 @@ type ClipPropertiesModalProps = {
   onClose: () => void;
 };
 
-const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClose }): JSX.Element | null => {
+const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClose }): React.ReactElement | null => {
   // Get clip data from store
   const clip = useClipData(clipId);
 
@@ -743,7 +743,7 @@ type PropertyRowProps = {
   value: string;
 };
 
-const PropertyRow: React.FC<PropertyRowProps> = ({ label, value }): JSX.Element => (
+const PropertyRow: React.FC<PropertyRowProps> = ({ label, value }): React.ReactElement => (
   <div className="flex justify-between">
     <span className="text-neutral-500 dark:text-neutral-400">{label}:</span>
     <span className="text-neutral-900 dark:text-neutral-100 font-medium">{value}</span>

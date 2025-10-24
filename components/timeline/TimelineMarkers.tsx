@@ -11,8 +11,7 @@
 
 import React, { useState } from 'react';
 import type { Marker } from '@/types/timeline';
-import { Bookmark, Edit2, Trash2, X } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Bookmark, Edit2, Trash2 } from 'lucide-react';
 
 type TimelineMarkersProps = {
   markers: Marker[];
@@ -30,7 +29,7 @@ export const TimelineMarkers = React.memo<TimelineMarkersProps>(function Timelin
   onMarkerClick,
   onMarkerDelete,
   onMarkerUpdate,
-}): JSX.Element {
+}): React.ReactElement {
   const [editingMarkerId, setEditingMarkerId] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState('');
   const [contextMenu, setContextMenu] = useState<{ markerId: string; x: number; y: number } | null>(
@@ -79,7 +78,7 @@ export const TimelineMarkers = React.memo<TimelineMarkersProps>(function Timelin
   return (
     <>
       {/* Markers */}
-      {markers.map((marker): JSX.Element => {
+      {markers.map((marker): React.ReactElement => {
         const markerLeft = marker.time * zoom;
         const isActive = Math.abs(currentTime - marker.time) < 0.1; // Within 0.1 seconds
         const markerColor = marker.color || '#3b82f6'; // Default blue

@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * KeyframePreview - Keyframe preview with crop overlay
  *
@@ -37,7 +39,6 @@
  * />
  * ```
  */
-'use client';
 
 import Image from 'next/image';
 import type { CSSProperties } from 'react';
@@ -74,7 +75,7 @@ export function KeyframePreview({
   mode,
   cropOverlayStyle,
   onImageClick,
-}: KeyframePreviewProps): JSX.Element {
+}: KeyframePreviewProps): React.ReactElement {
   return (
     <div className="border-b border-neutral-200 bg-white p-6">
       <div className="mb-3 flex items-center justify-between">
