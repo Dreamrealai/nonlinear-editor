@@ -81,10 +81,7 @@ export class BackupService {
       .single();
 
     if (error) {
-      throw new HttpError(500, 'Failed to create backup', {
-        cause: error,
-        context: { projectId, backupType },
-      });
+      throw new HttpError('Failed to create backup', 500);
     }
 
     return data;
@@ -101,10 +98,7 @@ export class BackupService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      throw new HttpError(500, 'Failed to list backups', {
-        cause: error,
-        context: { projectId },
-      });
+      throw new HttpError('Failed to list backups', 500);
     }
 
     return data || [];
@@ -121,10 +115,7 @@ export class BackupService {
       .single();
 
     if (error) {
-      throw new HttpError(500, 'Failed to get backup', {
-        cause: error,
-        context: { backupId },
-      });
+      throw new HttpError('Failed to get backup', 500);
     }
 
     return data;
@@ -140,16 +131,12 @@ export class BackupService {
     // Get the backup
     const backup = await this.getBackup(backupId);
     if (!backup) {
-      throw new HttpError(404, 'Backup not found', {
-        context: { backupId },
-      });
+      throw new HttpError('Backup not found', 404);
     }
 
     // Verify the backup belongs to the project
     if (backup.project_id !== projectId) {
-      throw new HttpError(403, 'Backup does not belong to project', {
-        context: { backupId, projectId },
-      });
+      throw new HttpError('Backup does not belong to project', 403);
     }
 
     // Update project metadata
@@ -162,10 +149,7 @@ export class BackupService {
       .eq('id', projectId);
 
     if (projectError) {
-      throw new HttpError(500, 'Failed to restore project metadata', {
-        cause: projectError,
-        context: { backupId, projectId },
-      });
+      throw new HttpError('Failed to restore project metadata', 500);
     }
 
     // Update timeline data
@@ -178,10 +162,7 @@ export class BackupService {
       });
 
     if (timelineError) {
-      throw new HttpError(500, 'Failed to restore timeline', {
-        cause: timelineError,
-        context: { backupId, projectId },
-      });
+      throw new HttpError('Failed to restore timeline', 500);
     }
 
     // Note: We don't restore assets since they are stored in Supabase storage
@@ -199,10 +180,7 @@ export class BackupService {
       .eq('id', backupId);
 
     if (error) {
-      throw new HttpError(500, 'Failed to delete backup', {
-        cause: error,
-        context: { backupId },
-      });
+      throw new HttpError('Failed to delete backup', 500);
     }
   }
 
