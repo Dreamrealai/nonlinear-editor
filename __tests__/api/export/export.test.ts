@@ -50,7 +50,7 @@ describe('POST /api/export', () => {
     // Create and configure mock Supabase client
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
-    createServerSupabaseClient.mockImplementation(() => Promise.resolve(mockSupabase));
+    createServerSupabaseClient.mockResolvedValue(mockSupabase);
 
     const { verifyProjectOwnership } = require('@/lib/api/project-verification');
     verifyProjectOwnership.mockResolvedValue({ hasAccess: true });
@@ -118,7 +118,7 @@ describe('POST /api/export', () => {
       mockAuthenticatedUser(mockSupabase);
       mockSupabase.single.mockResolvedValue({
         data: {
-          id: 'job-123',
+          id: '550e8400-e29b-41d4-a716-446655440000',
           status: 'pending',
         },
         error: null,
@@ -127,12 +127,12 @@ describe('POST /api/export', () => {
       const mockRequest = new NextRequest('http://localhost/api/export', {
         method: 'POST',
         body: JSON.stringify({
-          projectId: 'test-project-id-valid',
+          projectId: '550e8400-e29b-41d4-a716-446655440000',
           timeline: {
             clips: [
               {
-                id: 'clip-1-valid-uuid',
-                assetId: 'asset-1-valid-uuid',
+                id: '550e8400-e29b-41d4-a716-446655440001',
+                assetId: '550e8400-e29b-41d4-a716-446655440002',
                 start: 0,
                 end: 10,
                 timelinePosition: 0,
@@ -152,9 +152,10 @@ describe('POST /api/export', () => {
       });
 
       const response = await POST(mockRequest, { params: Promise.resolve({}) });
+
       expect(response.status).toBe(202);
       const data = await response.json();
-      expect(data.jobId).toBe('job-123');
+      expect(data.jobId).toBe('550e8400-e29b-41d4-a716-446655440000');
       expect(data.status).toBe('queued');
     });
   });
@@ -170,7 +171,7 @@ describe('GET /api/export', () => {
     // Create and configure mock Supabase client
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
-    createServerSupabaseClient.mockImplementation(() => Promise.resolve(mockSupabase));
+    createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
   afterEach(() => {
@@ -182,14 +183,16 @@ describe('GET /api/export', () => {
       mockAuthenticatedUser(mockSupabase);
       mockSupabase.single.mockResolvedValue({
         data: {
-          id: 'job-123',
+          id: '550e8400-e29b-41d4-a716-446655440000',
           status: 'completed',
           progress_percentage: 100,
         },
         error: null,
       });
 
-      const mockRequest = new NextRequest('http://localhost/api/export?jobId=job-123-valid-uuid');
+      const mockRequest = new NextRequest(
+        'http://localhost/api/export?jobId=550e8400-e29b-41d4-a716-446655440000'
+      );
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);

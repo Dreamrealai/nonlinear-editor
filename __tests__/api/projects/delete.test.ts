@@ -54,17 +54,7 @@ describe('DELETE /api/projects/[projectId]', () => {
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockClear();
-    // IMPORTANT: mockSupabase has a 'then' method for query chaining, but this makes
-    // Promise.resolve(mockSupabase) try to await it. We temporarily delete 'then'
-    // when returning from createServerSupabaseClient, then restore it.
-    createServerSupabaseClient.mockImplementation(async () => {
-      const thenMethod = mockSupabase.then;
-      delete (mockSupabase as any).then;
-      setImmediate(() => {
-        (mockSupabase as any).then = thenMethod;
-      });
-      return mockSupabase;
-    });
+    createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
   afterEach(() => {
@@ -137,7 +127,8 @@ describe('DELETE /api/projects/[projectId]', () => {
   describe('Success Cases', () => {
     it('should delete project successfully with valid ID', async () => {
       const mockUser = mockAuthenticatedUser(mockSupabase);
-      mockSupabase.delete.mockResolvedValue({
+      // Mock the query chain: from().delete().eq() which returns a promise
+      mockSupabase.mockResolvedValue({
         data: null,
         error: null,
       });
@@ -160,7 +151,7 @@ describe('DELETE /api/projects/[projectId]', () => {
 
     it('should delete project and cascade delete related resources', async () => {
       mockAuthenticatedUser(mockSupabase);
-      mockSupabase.delete.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: null,
         error: null,
       });
@@ -182,7 +173,7 @@ describe('DELETE /api/projects/[projectId]', () => {
   describe('Error Handling', () => {
     it('should return 500 when database delete fails', async () => {
       mockAuthenticatedUser(mockSupabase);
-      mockSupabase.delete.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: null,
         error: { message: 'Database connection failed', code: 'DB_ERROR' },
       });
@@ -223,7 +214,7 @@ describe('DELETE /api/projects/[projectId]', () => {
   describe('Authorization', () => {
     it('should respect RLS and only delete projects owned by user', async () => {
       mockAuthenticatedUser(mockSupabase);
-      mockSupabase.delete.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: null,
         error: null,
       });
@@ -244,7 +235,7 @@ describe('DELETE /api/projects/[projectId]', () => {
   describe('Database Interactions', () => {
     it('should call database methods in correct order', async () => {
       mockAuthenticatedUser(mockSupabase);
-      mockSupabase.delete.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: null,
         error: null,
       });
@@ -266,7 +257,7 @@ describe('DELETE /api/projects/[projectId]', () => {
   describe('Response Format', () => {
     it('should return success boolean on successful deletion', async () => {
       mockAuthenticatedUser(mockSupabase);
-      mockSupabase.delete.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: null,
         error: null,
       });
@@ -286,7 +277,7 @@ describe('DELETE /api/projects/[projectId]', () => {
 
     it('should return correct content-type header', async () => {
       mockAuthenticatedUser(mockSupabase);
-      mockSupabase.delete.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: null,
         error: null,
       });

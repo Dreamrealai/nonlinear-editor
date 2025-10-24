@@ -99,7 +99,7 @@ describe('POST /api/projects', () => {
 
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
-    createServerSupabaseClient.mockImplementation(() => Promise.resolve(mockSupabase));
+    createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
   afterEach(() => {

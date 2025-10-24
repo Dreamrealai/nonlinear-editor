@@ -33,43 +33,69 @@ export interface MockSupabaseChain {
 
 /**
  * Creates a mock Supabase client with chainable methods
+ *
+ * IMPORTANT: The client is NOT thenable, but query builders ARE.
+ * This prevents Promise.resolve() from trying to await the client itself.
  */
 export function createMockSupabaseClient(): jest.Mocked<SupabaseClient> & MockSupabaseChain {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockClient: any = {};
 
-  // Default promise value for when mockClient is awaited
-  let promiseValue: { data: unknown; error: unknown } = { data: null, error: null };
+  // Create a separate query builder that IS thenable
+  // This is what from() returns and what can be chained and awaited
+  function createQueryBuilder() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const queryBuilder: any = {};
+    let promiseValue: { data: unknown; error: unknown } = { data: null, error: null };
 
-  // Make mockClient thenable so it can be awaited like Supabase's real query builder
-  // This allows: await from().select() OR from().select().eq().single()
-  mockClient.then = function (onFulfilled: (value: unknown) => unknown) {
-    return Promise.resolve(promiseValue).then(onFulfilled);
-  };
+    // Make query builder thenable so it can be awaited
+    queryBuilder.then = function (onFulfilled: (value: unknown) => unknown) {
+      return Promise.resolve(promiseValue).then(onFulfilled);
+    };
 
-  // Helper to set the value returned when mockClient is awaited
-  mockClient.mockResolvedValue = (value: { data: unknown; error: unknown }) => {
-    promiseValue = value;
-    return mockClient;
-  };
+    // Helper to set the value returned when query builder is awaited
+    queryBuilder.mockResolvedValue = (value: { data: unknown; error: unknown }) => {
+      promiseValue = value;
+      return queryBuilder;
+    };
 
-  // Create chainable methods that return mockClient for proper chaining
-  // This allows: supabase.from('table').select('*').eq('field', value).single()
-  mockClient.from = jest.fn(() => mockClient);
-  mockClient.select = jest.fn(() => mockClient);
-  mockClient.insert = jest.fn(() => mockClient);
-  mockClient.update = jest.fn(() => mockClient);
-  mockClient.delete = jest.fn(() => mockClient);
-  mockClient.eq = jest.fn(() => mockClient);
-  mockClient.neq = jest.fn(() => mockClient);
-  mockClient.order = jest.fn(() => mockClient);
-  mockClient.limit = jest.fn(() => mockClient);
-  mockClient.range = jest.fn(() => mockClient);
+    // Chainable methods
+    queryBuilder.select = jest.fn(() => queryBuilder);
+    queryBuilder.insert = jest.fn(() => queryBuilder);
+    queryBuilder.update = jest.fn(() => queryBuilder);
+    queryBuilder.delete = jest.fn(() => queryBuilder);
+    queryBuilder.eq = jest.fn(() => queryBuilder);
+    queryBuilder.neq = jest.fn(() => queryBuilder);
+    queryBuilder.order = jest.fn(() => queryBuilder);
+    queryBuilder.limit = jest.fn(() => queryBuilder);
+    queryBuilder.range = jest.fn(() => queryBuilder);
 
-  // Terminal methods that return promises
-  // These should be configured with mockResolvedValue in tests
-  mockClient.single = jest.fn();
-  mockClient.maybeSingle = jest.fn();
+    // Terminal methods
+    queryBuilder.single = jest.fn();
+    queryBuilder.maybeSingle = jest.fn();
+
+    return queryBuilder;
+  }
+
+  // Create a single query builder instance that will be reused
+  const queryBuilder = createQueryBuilder();
+
+  // Client methods - from() returns the query builder
+  mockClient.from = jest.fn(() => queryBuilder);
+
+  // Direct access to query builder methods for test setup
+  mockClient.select = queryBuilder.select;
+  mockClient.insert = queryBuilder.insert;
+  mockClient.update = queryBuilder.update;
+  mockClient.delete = queryBuilder.delete;
+  mockClient.eq = queryBuilder.eq;
+  mockClient.neq = queryBuilder.neq;
+  mockClient.order = queryBuilder.order;
+  mockClient.limit = queryBuilder.limit;
+  mockClient.range = queryBuilder.range;
+  mockClient.single = queryBuilder.single;
+  mockClient.maybeSingle = queryBuilder.maybeSingle;
+  mockClient.mockResolvedValue = queryBuilder.mockResolvedValue;
 
   // Other methods
   mockClient.channel = jest.fn();

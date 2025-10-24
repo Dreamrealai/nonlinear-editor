@@ -40,9 +40,7 @@ describe('POST /api/auth/signout', () => {
 
     // Create and configure mock Supabase client
     mockSupabase = createMockSupabaseClient();
-    (createServerSupabaseClient as jest.Mock).mockImplementation(() =>
-      Promise.resolve(mockSupabase)
-    );
+    (createServerSupabaseClient as jest.Mock).mockResolvedValue(mockSupabase);
     (isSupabaseConfigured as jest.Mock).mockReturnValue(true);
 
     // Create mock request with valid origin
