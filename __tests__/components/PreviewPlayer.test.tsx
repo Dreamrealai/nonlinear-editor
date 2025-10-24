@@ -110,17 +110,31 @@ describe('PreviewPlayer', () => {
     (window as unknown as { performance: Performance }).performance = performanceMock;
     performanceNowSpy = jest.spyOn(performanceMock, 'now');
 
+    let rafId = 0;
+    const rafCallbacks = new Map<number, FrameRequestCallback>();
     globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
-      cb(0);
-      return 1;
+      rafId += 1;
+      rafCallbacks.set(rafId, cb);
+      return rafId;
     }) as typeof globalThis.requestAnimationFrame;
-    globalThis.cancelAnimationFrame = jest.fn();
+    globalThis.cancelAnimationFrame = ((id: number) => {
+      rafCallbacks.delete(id);
+    }) as typeof globalThis.cancelAnimationFrame;
   });
 
   afterEach(() => {
     performanceNowSpy?.mockRestore();
     globalThis.requestAnimationFrame = originalRequestAnimationFrame;
     globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
+    if (originalPerformance) {
+      globalThis.performance = originalPerformance;
+      (global as unknown as { performance?: Performance }).performance = originalPerformance;
+      (window as unknown as { performance?: Performance }).performance = originalPerformance;
+    } else {
+      delete (global as unknown as { performance?: Performance }).performance;
+      delete (window as unknown as { performance?: Performance }).performance;
+      delete (globalThis as unknown as { performance?: Performance }).performance;
+    }
   });
 
   afterAll(() => {

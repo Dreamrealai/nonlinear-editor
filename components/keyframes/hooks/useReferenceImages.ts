@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { browserLogger } from '@/lib/browserLogger';
 import toast from 'react-hot-toast';
 
-interface RefImage {
+export interface RefImage {
   id: string;
   file: File;
   previewUrl: string;

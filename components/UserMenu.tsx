@@ -16,7 +16,7 @@ import toast from 'react-hot-toast';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { browserLogger } from '@/lib/browserLogger';
 
-export default function UserMenu() {
+export function UserMenu() {
   const router = useRouter();
   const { supabaseClient } = useSupabase();
   const menuRef = useRef<HTMLDivElement>(null);

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 
-interface SceneFrameRow {
+export interface SceneFrameRow {
   id: string;
   scene_id: string;
   kind: 'first' | 'middle' | 'last' | 'custom';
@@ -10,21 +10,21 @@ interface SceneFrameRow {
   height: number | null;
 }
 
-type Mode = 'global' | 'crop';
+export type Mode = 'global' | 'crop';
 
-interface CropState {
+export interface CropState {
   x: number;
   y: number;
   size: number;
 }
 
-interface UseKeyframeSelectionProps {
+export interface UseKeyframeSelectionProps {
   frames: SceneFrameRow[];
   frameUrls: Record<string, string>;
   signStoragePath: (storagePath: string, expiresIn?: number) => Promise<string | null>;
 }
 
-interface UseKeyframeSelectionReturn {
+export interface UseKeyframeSelectionReturn {
   selectedFrameId: string | null;
   selectedFrameUrl: string | null;
   selectedFrame: SceneFrameRow | null;
@@ -61,21 +61,18 @@ export function useKeyframeSelection({
     [frames, selectedFrameId]
   );
 
-  const clampCrop = useCallback(
-    (next: CropState, frame: SceneFrameRow | null) => {
-      if (!frame) return next;
-      const maxSize = Math.min(frame.width ?? next.size, frame.height ?? next.size);
-      const size = Math.min(next.size, maxSize);
-      const maxX = Math.max(0, (frame.width ?? size) - size);
-      const maxY = Math.max(0, (frame.height ?? size) - size);
-      return {
-        size,
-        x: Math.max(0, Math.min(next.x, maxX)),
-        y: Math.max(0, Math.min(next.y, maxY)),
-      };
-    },
-    []
-  );
+  const clampCrop = useCallback((next: CropState, frame: SceneFrameRow | null) => {
+    if (!frame) return next;
+    const maxSize = Math.min(frame.width ?? next.size, frame.height ?? next.size);
+    const size = Math.min(next.size, maxSize);
+    const maxX = Math.max(0, (frame.width ?? size) - size);
+    const maxY = Math.max(0, (frame.height ?? size) - size);
+    return {
+      size,
+      x: Math.max(0, Math.min(next.x, maxX)),
+      y: Math.max(0, Math.min(next.y, maxY)),
+    };
+  }, []);
 
   const handleFrameSelect = useCallback(
     async (frame: SceneFrameRow) => {
@@ -126,7 +123,9 @@ export function useKeyframeSelection({
         setSelectedFrameId(preferredFrame.id);
         const url = frameUrls[preferredFrame.id] ?? null;
         setSelectedFrameUrl(url);
-        setCrop(clampCrop(defaultCrop(preferredFrame.width, preferredFrame.height), preferredFrame));
+        setCrop(
+          clampCrop(defaultCrop(preferredFrame.width, preferredFrame.height), preferredFrame)
+        );
       }
     }
   }, [frames, frameUrls, selectedFrameId, clampCrop]);

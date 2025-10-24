@@ -260,8 +260,9 @@ export interface UpscaleStatusResponse {
 // EXPORT TYPES
 // ============================================================================
 
+import { TransitionType } from './timeline';
+
 export type ExportFormat = 'mp4' | 'webm';
-export type TransitionType = 'crossfade' | 'fade-in' | 'fade-out';
 
 export interface TimelineClip {
   id: string;
@@ -473,6 +474,24 @@ export interface RateLimitError extends APIError {
   limit: number;
   remaining: number;
   resetAt: number;
+}
+
+// ============================================================================
+// ============================================================================
+// CHAT TYPES
+// ============================================================================
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  created_at: string;
+  model?: string;
+  attachments?: Array<{
+    name: string;
+    type: string;
+    url: string;
+  }>;
 }
 
 // ============================================================================

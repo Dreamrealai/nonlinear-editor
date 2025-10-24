@@ -26,14 +26,14 @@ interface FrameEditRow {
   prompt: string;
 }
 
-interface UseKeyframeDataProps {
+export interface UseKeyframeDataProps {
   supabase: SupabaseClient;
   selectedAssetId: string | null;
   refreshToken: number;
   signStoragePath: (storagePath: string, expiresIn?: number) => Promise<string | null>;
 }
 
-interface UseKeyframeDataReturn {
+export interface UseKeyframeDataReturn {
   scenes: SceneRow[];
   frames: SceneFrameRow[];
   frameUrls: Record<string, string>;
@@ -136,14 +136,14 @@ export function useKeyframeData({
   };
 }
 
-interface UseFrameEditsProps {
+export interface UseFrameEditsProps {
   supabase: SupabaseClient;
   selectedFrameId: string | null;
   refreshToken: number;
   signStoragePath: (storagePath: string, expiresIn?: number) => Promise<string | null>;
 }
 
-interface UseFrameEditsReturn {
+export interface UseFrameEditsReturn {
   edits: Array<FrameEditRow & { url: string | null }>;
   loadFrameEdits: (frameId: string | null) => Promise<void>;
 }

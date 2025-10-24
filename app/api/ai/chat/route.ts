@@ -1,35 +1,22 @@
 import { NextRequest } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { chat } from '@/lib/gemini';
 import { serverLogger } from '@/lib/serverLogger';
 import {
-  withErrorHandling,
   errorResponse,
-  unauthorizedResponse,
   badRequestResponse,
   successResponse,
   serviceUnavailableResponse,
 } from '@/lib/api/response';
+import { withAuth, type AuthContext } from '@/lib/api/withAuth';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
-export const POST = withErrorHandling(async (request: NextRequest) => {
-  const supabase = await createServerSupabaseClient();
-
-  if (!supabase) {
-    return errorResponse('Supabase not configured', 503);
-  }
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return unauthorizedResponse();
-  }
+async function handleChatPost(request: NextRequest, context: AuthContext) {
+  const { user } = context;
 
   const formData = await request.formData();
   const message = formData.get('message');
@@ -138,4 +125,10 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     // Other errors
     throw chatError;
   }
+}
+
+// Export with authentication middleware and rate limiting
+export const POST = withAuth(handleChatPost, {
+  route: '/api/ai/chat',
+  rateLimit: RATE_LIMITS.tier2_resource_creation, // 10 requests per minute for AI operations
 });

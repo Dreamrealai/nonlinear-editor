@@ -1,6 +1,6 @@
 'use client';
 
-import UserMenu from '@/components/UserMenu';
+import { UserMenu } from '@/components/UserMenu';
 import { CreateProjectButton } from '@/components/CreateProjectButton';
 
 export default function HomeHeader() {

@@ -33,7 +33,13 @@ export default function AudioGenPage() {
     };
   }, []);
 
-  const handleGenerateSuno = async (formData: { prompt: string; style?: string; title?: string; customMode?: boolean; instrumental?: boolean }) => {
+  const handleGenerateSuno = async (formData: {
+    prompt: string;
+    style?: string;
+    title?: string;
+    customMode?: boolean;
+    instrumental?: boolean;
+  }) => {
     if (!projectId) {
       toast.error('No project selected');
       return;
@@ -44,7 +50,9 @@ export default function AudioGenPage() {
 
     try {
       const supabase = createBrowserSupabaseClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       const res = await fetch('/api/audio/suno/generate', {
@@ -120,7 +128,7 @@ export default function AudioGenPage() {
               type: 'audio',
               source: 'genai',
               mime_type: 'audio/mpeg',
-              duration_sec: task.duration ?? null,
+              duration_seconds: task.duration ?? null,
               metadata: {
                 filename: fileName,
                 provider: 'suno',
@@ -152,12 +160,18 @@ export default function AudioGenPage() {
       pollingTimeoutRef.current = setTimeout(poll, pollInterval);
     } catch (error) {
       browserLogger.error({ error, projectId, formData }, 'Suno audio generation failed');
-      toast.error(error instanceof Error ? error.message : 'Audio generation failed', { id: 'generate-suno' });
+      toast.error(error instanceof Error ? error.message : 'Audio generation failed', {
+        id: 'generate-suno',
+      });
       setAudioGenPending(false);
     }
   };
 
-  const handleGenerateElevenLabs = async (formData: { text: string; voiceId?: string; modelId?: string }) => {
+  const handleGenerateElevenLabs = async (formData: {
+    text: string;
+    voiceId?: string;
+    modelId?: string;
+  }) => {
     if (!projectId) {
       toast.error('No project selected');
       return;
@@ -168,7 +182,9 @@ export default function AudioGenPage() {
 
     try {
       const supabase = createBrowserSupabaseClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       const res = await fetch('/api/audio/elevenlabs/generate', {
@@ -192,7 +208,9 @@ export default function AudioGenPage() {
       router.push(`/editor/${projectId}`);
     } catch (error) {
       browserLogger.error({ error, projectId, formData }, 'ElevenLabs audio generation failed');
-      toast.error(error instanceof Error ? error.message : 'Audio generation failed', { id: 'generate-elevenlabs' });
+      toast.error(error instanceof Error ? error.message : 'Audio generation failed', {
+        id: 'generate-elevenlabs',
+      });
       setAudioGenPending(false);
     }
   };
@@ -239,7 +257,9 @@ export default function AudioGenPage() {
                   className="w-full rounded-lg border-2 border-neutral-200 bg-white p-6 text-left transition hover:border-neutral-300 hover:bg-neutral-50"
                 >
                   <h3 className="text-lg font-semibold text-neutral-900">ElevenLabs</h3>
-                  <p className="mt-2 text-sm text-neutral-600">Generate speech from text with realistic voices</p>
+                  <p className="mt-2 text-sm text-neutral-600">
+                    Generate speech from text with realistic voices
+                  </p>
                 </button>
               </div>
 
@@ -261,9 +281,7 @@ export default function AudioGenPage() {
                   ← Back to providers
                 </button>
                 <h2 className="text-lg font-semibold text-neutral-900">Suno V5</h2>
-                <p className="mt-2 text-sm text-neutral-600">
-                  Generate music and songs with AI
-                </p>
+                <p className="mt-2 text-sm text-neutral-600">Generate music and songs with AI</p>
               </div>
 
               <form
@@ -281,7 +299,10 @@ export default function AudioGenPage() {
                 className="space-y-6"
               >
                 <div>
-                  <label htmlFor="prompt" className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label
+                    htmlFor="prompt"
+                    className="block text-sm font-medium text-neutral-700 mb-2"
+                  >
                     Prompt *
                   </label>
                   <textarea
@@ -296,7 +317,10 @@ export default function AudioGenPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="style" className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label
+                    htmlFor="style"
+                    className="block text-sm font-medium text-neutral-700 mb-2"
+                  >
                     Style/Genre
                   </label>
                   <input
@@ -310,7 +334,10 @@ export default function AudioGenPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label
+                    htmlFor="title"
+                    className="block text-sm font-medium text-neutral-700 mb-2"
+                  >
                     Title
                   </label>
                   <input
@@ -325,11 +352,21 @@ export default function AudioGenPage() {
 
                 <div className="flex gap-6">
                   <label className="flex items-center gap-2">
-                    <input type="checkbox" name="customMode" className="rounded" disabled={audioGenPending} />
+                    <input
+                      type="checkbox"
+                      name="customMode"
+                      className="rounded"
+                      disabled={audioGenPending}
+                    />
                     <span className="text-sm text-neutral-700">Custom Mode</span>
                   </label>
                   <label className="flex items-center gap-2">
-                    <input type="checkbox" name="instrumental" className="rounded" disabled={audioGenPending} />
+                    <input
+                      type="checkbox"
+                      name="instrumental"
+                      className="rounded"
+                      disabled={audioGenPending}
+                    />
                     <span className="text-sm text-neutral-700">Instrumental</span>
                   </label>
                 </div>
@@ -366,8 +403,8 @@ export default function AudioGenPage() {
                   const formData = new FormData(e.currentTarget);
                   void handleGenerateElevenLabs({
                     text: formData.get('text') as string,
-                    voiceId: formData.get('voiceId') as string || undefined,
-                    modelId: formData.get('modelId') as string || undefined,
+                    voiceId: (formData.get('voiceId') as string) || undefined,
+                    modelId: (formData.get('modelId') as string) || undefined,
                   });
                 }}
                 className="space-y-6"
@@ -388,7 +425,10 @@ export default function AudioGenPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="voiceId" className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label
+                    htmlFor="voiceId"
+                    className="block text-sm font-medium text-neutral-700 mb-2"
+                  >
                     Voice
                   </label>
                   <select
@@ -405,7 +445,10 @@ export default function AudioGenPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="modelId" className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label
+                    htmlFor="modelId"
+                    className="block text-sm font-medium text-neutral-700 mb-2"
+                  >
                     Model
                   </label>
                   <select

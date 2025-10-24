@@ -12,7 +12,6 @@ import React, { useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { browserLogger } from '@/lib/browserLogger';
 import { ICON_SIZES } from '@/lib/constants/ui';
 
@@ -85,10 +84,15 @@ export const ProjectList = React.memo<ProjectListProps>(function ProjectList({ p
       if (!confirmDelete) return;
 
       try {
-        const supabase = createBrowserSupabaseClient();
-        const { error } = await supabase.from('projects').delete().eq('id', project.id);
+        // Use API endpoint instead of direct database access
+        const response = await fetch(`/api/projects/${project.id}`, {
+          method: 'DELETE',
+        });
 
-        if (error) throw error;
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to delete project');
+        }
 
         toast.success('Project deleted successfully');
         router.refresh();

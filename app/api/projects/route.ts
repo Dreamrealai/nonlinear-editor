@@ -1,16 +1,10 @@
 import { NextRequest } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { serverLogger } from '@/lib/serverLogger';
-import {
-  unauthorizedResponse,
-  errorResponse,
-  withErrorHandling,
-  rateLimitResponse,
-  successResponse,
-} from '@/lib/api/response';
+import { errorResponse, successResponse } from '@/lib/api/response';
 import { validateString, validateAll } from '@/lib/api/validation';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 import { invalidateUserProjects } from '@/lib/cacheInvalidation';
+import { withAuth, type AuthContext } from '@/lib/api/withAuth';
 
 /**
  * Create a new video editing project.
@@ -55,53 +49,17 @@ import { invalidateUserProjects } from '@/lib/cacheInvalidation';
  *   "updated_at": "2025-10-23T12:00:00.000Z"
  * }
  */
-export const POST = withErrorHandling(async (request: NextRequest) => {
+async function handleProjectCreate(request: NextRequest, context: AuthContext) {
+  const { user, supabase } = context;
   const startTime = Date.now();
 
   serverLogger.info(
     {
       event: 'projects.create.request_started',
+      userId: user.id,
     },
     'Project creation request received'
   );
-
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    serverLogger.warn(
-      {
-        event: 'projects.create.unauthorized',
-      },
-      'Unauthorized project creation attempt'
-    );
-    return unauthorizedResponse();
-  }
-
-  // TIER 2 RATE LIMITING: Resource creation - project creation (10/min)
-  const rateLimitResult = await checkRateLimit(
-    `projects-create:${user.id}`,
-    RATE_LIMITS.tier2_resource_creation
-  );
-
-  if (!rateLimitResult.success) {
-    serverLogger.warn(
-      {
-        event: 'projects.create.rate_limited',
-        userId: user.id,
-        limit: rateLimitResult.limit,
-      },
-      'Project creation rate limit exceeded'
-    );
-
-    return rateLimitResponse(
-      rateLimitResult.limit,
-      rateLimitResult.remaining,
-      rateLimitResult.resetAt
-    );
-  }
 
   const body = await request.json();
   const title = body.title || 'Untitled Project';
@@ -165,4 +123,10 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   await invalidateUserProjects(user.id);
 
   return successResponse(project);
+}
+
+// Export with authentication middleware and rate limiting
+export const POST = withAuth(handleProjectCreate, {
+  route: '/api/projects',
+  rateLimit: RATE_LIMITS.tier2_resource_creation, // 10 requests per minute
 });

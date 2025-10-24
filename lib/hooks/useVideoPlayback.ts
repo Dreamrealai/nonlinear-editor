@@ -34,6 +34,21 @@ export interface UseVideoPlaybackReturn {
   syncClipsAtTime: (time: number, play: boolean) => void;
 }
 
+const getPerformance = (): Pick<Performance, 'now'> => {
+  const perfCandidate =
+    (typeof window !== 'undefined' && window.performance) ||
+    (typeof globalThis !== 'undefined' &&
+      (globalThis as unknown as { performance?: Performance }).performance);
+
+  if (perfCandidate && typeof perfCandidate.now === 'function') {
+    return perfCandidate;
+  }
+
+  return {
+    now: () => Date.now(),
+  };
+};
+
 /**
  * Custom hook for managing video playback state with RAF synchronization.
  *
@@ -108,7 +123,7 @@ export function useVideoPlayback({
   const syncClipsAtTime = useCallback(
     (time: number, play: boolean) => {
       // Throttle sync during playback based on adaptive frame rate
-      const now = performance.now();
+      const now = getPerformance().now();
       const threshold = frameTimeThresholdRef.current;
 
       if (play && now - lastSyncTimeRef.current < threshold) {
@@ -278,7 +293,7 @@ export function useVideoPlayback({
       playingRef.current = true;
       setIsPlaying(true);
       startTimeRef.current = start;
-      playStartRef.current = performance.now();
+      playStartRef.current = getPerformance().now();
       globalTimeRef.current = start;
 
       const loop = () => {
@@ -286,7 +301,7 @@ export function useVideoPlayback({
           return;
         }
 
-        const elapsedSeconds = (performance.now() - playStartRef.current) / 1000;
+        const elapsedSeconds = (getPerformance().now() - playStartRef.current) / 1000;
         const timelineTime = startTimeRef.current + elapsedSeconds;
         globalTimeRef.current = timelineTime;
 

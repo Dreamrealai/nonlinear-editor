@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
-import UserMenu from '@/components/UserMenu';
+import { UserMenu } from '@/components/UserMenu';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 
@@ -39,7 +39,7 @@ export default function EditorHeader({ projectId, currentTab, onExport }: Editor
 
       if (data) {
         setProjects(data);
-        const current = data.find(p => p.id === projectId);
+        const current = data.find((p) => p.id === projectId);
         setCurrentProject(current || null);
       }
     };
@@ -74,7 +74,9 @@ export default function EditorHeader({ projectId, currentTab, onExport }: Editor
       if (error) throw error;
 
       setCurrentProject({ id: projectId, title: renameValue.trim() });
-      setProjects(projects.map(p => p.id === projectId ? { ...p, title: renameValue.trim() } : p));
+      setProjects(
+        projects.map((p) => (p.id === projectId ? { ...p, title: renameValue.trim() } : p))
+      );
       toast.success('Project renamed successfully');
       setIsRenaming(false);
     } catch (error) {
@@ -86,14 +88,13 @@ export default function EditorHeader({ projectId, currentTab, onExport }: Editor
   const handleDeleteProject = async () => {
     if (!supabaseClient) return;
 
-    const confirmDelete = confirm(`Delete "${currentProject?.title}"? This will permanently delete the project and all its assets.`);
+    const confirmDelete = confirm(
+      `Delete "${currentProject?.title}"? This will permanently delete the project and all its assets.`
+    );
     if (!confirmDelete) return;
 
     try {
-      const { error } = await supabaseClient
-        .from('projects')
-        .delete()
-        .eq('id', projectId);
+      const { error } = await supabaseClient.from('projects').delete().eq('id', projectId);
 
       if (error) throw error;
 
@@ -142,22 +143,39 @@ export default function EditorHeader({ projectId, currentTab, onExport }: Editor
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 transition-colors"
               >
-                <svg className="h-4 w-4 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                <svg
+                  className="h-4 w-4 text-neutral-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                  />
                 </svg>
                 {currentProject?.title || 'Select Project'}
-                <svg className={`h-4 w-4 text-neutral-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg
+                  className={`h-4 w-4 text-neutral-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </button>
             )}
 
             {isDropdownOpen && (
               <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setIsDropdownOpen(false)}
-                />
+                <div className="fixed inset-0 z-10" onClick={() => setIsDropdownOpen(false)} />
                 <div className="absolute left-0 top-full z-20 mt-2 w-64 rounded-lg border border-neutral-200 bg-white shadow-lg">
                   <div className="max-h-64 overflow-y-auto py-1">
                     {projects.length === 0 ? (
@@ -167,11 +185,17 @@ export default function EditorHeader({ projectId, currentTab, onExport }: Editor
                         <div
                           key={project.id}
                           className={`w-full px-4 py-2 text-left text-sm hover:bg-neutral-50 transition-colors flex items-center justify-between group ${
-                            project.id === projectId ? 'bg-blue-50 text-blue-700 font-medium' : 'text-neutral-900'
+                            project.id === projectId
+                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              : 'text-neutral-900'
                           }`}
                         >
                           <button
-                            onClick={() => project.id === projectId ? handleRenameClick() : handleProjectChange(project.id)}
+                            onClick={() =>
+                              project.id === projectId
+                                ? handleRenameClick()
+                                : handleProjectChange(project.id)
+                            }
                             className="flex-1 text-left"
                           >
                             <span>{project.title}</span>
@@ -183,8 +207,18 @@ export default function EditorHeader({ projectId, currentTab, onExport }: Editor
                                 className="p-1 rounded hover:bg-blue-100 transition-colors"
                                 title="Rename project"
                               >
-                                <svg className="h-3.5 w-3.5 text-blue-500 opacity-60 group-hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                <svg
+                                  className="h-3.5 w-3.5 text-blue-500 opacity-60 group-hover:opacity-100"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                                  />
                                 </svg>
                               </button>
                               <button
@@ -195,8 +229,18 @@ export default function EditorHeader({ projectId, currentTab, onExport }: Editor
                                 className="p-1 rounded hover:bg-red-100 transition-colors"
                                 title="Delete project"
                               >
-                                <svg className="h-3.5 w-3.5 text-red-500 opacity-60 group-hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                <svg
+                                  className="h-3.5 w-3.5 text-red-500 opacity-60 group-hover:opacity-100"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
                                 </svg>
                               </button>
                             </div>
@@ -209,7 +253,6 @@ export default function EditorHeader({ projectId, currentTab, onExport }: Editor
               </>
             )}
           </div>
-
         </div>
 
         {/* Navigation Tabs */}
@@ -265,7 +308,12 @@ export default function EditorHeader({ projectId, currentTab, onExport }: Editor
               title="Export/Render video"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
               </svg>
               Export Video
             </button>

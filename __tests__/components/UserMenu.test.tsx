@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import UserMenu from '@/components/UserMenu';
+import { UserMenu } from '@/components/UserMenu';
 import { useRouter } from 'next/navigation';
 
 // Mock Next.js router
@@ -379,7 +379,7 @@ describe('UserMenu', () => {
         data: { user: { email: 'test@example.com' } },
       });
       mockSupabaseClient.auth.signOut.mockResolvedValue({
-        error: new Error('Sign out failed')
+        error: new Error('Sign out failed'),
       });
 
       const user = userEvent.setup();

@@ -1,7 +1,12 @@
 import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { serverLogger } from '@/lib/serverLogger';
-import { withErrorHandling } from '@/lib/api/response';
+import {
+  withErrorHandling,
+  forbiddenResponse,
+  errorResponse,
+  successResponse,
+} from '@/lib/api/response';
 
 // SECURITY: Use POST method to prevent CSRF attacks
 export const POST = withErrorHandling(async (request: NextRequest) => {
@@ -31,7 +36,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       },
       'CSRF protection: Invalid origin for sign out'
     );
-    return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
+    return forbiddenResponse('Invalid origin');
   }
 
   // Handle case where Supabase is not configured
@@ -42,7 +47,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       },
       'Supabase not configured for sign out'
     );
-    return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+    return errorResponse('Supabase not configured', 500);
   }
 
   const supabase = await createServerSupabaseClient();
@@ -64,7 +69,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       },
       'Failed to sign out user'
     );
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return errorResponse(error.message, 500);
   }
 
   const duration = Date.now() - startTime;
@@ -77,5 +82,5 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     `User signed out successfully in ${duration}ms`
   );
 
-  return NextResponse.json({ success: true });
+  return successResponse({ success: true });
 });

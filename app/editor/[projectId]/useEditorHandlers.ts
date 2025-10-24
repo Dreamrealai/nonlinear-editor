@@ -399,7 +399,7 @@ export function useEditorHandlers({
                 type: 'audio',
                 source: 'genai',
                 mime_type: 'audio/mpeg',
-                duration_sec: task.duration ?? null,
+                duration_seconds: task.duration ?? null,
                 metadata: {
                   filename: fileName,
                   provider: 'suno',

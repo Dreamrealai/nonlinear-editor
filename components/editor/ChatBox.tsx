@@ -6,19 +6,10 @@ import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { browserLogger } from '@/lib/browserLogger';
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
+import { ChatMessage } from '@/types/api';
 
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  created_at: string;
-  model?: string;
-  attachments?: Array<{
-    name: string;
-    type: string;
-    url: string;
-  }>;
-}
+// Use shared type from centralized location
+type Message = ChatMessage;
 
 interface ChatBoxProps {
   projectId: string;
@@ -61,32 +52,26 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
     };
   }, []);
 
-  // Load chat messages
+  // Load chat messages via API endpoint
   const loadMessages = useCallback(async () => {
-    if (!supabase || !projectId) return;
+    if (!projectId) return;
 
     setLoadingMessages(true);
     try {
-      const { data, error } = await supabase
-        .from('chat_messages')
-        .select('*')
-        .eq('project_id', projectId)
-        .order('created_at', { ascending: true });
+      const response = await fetch(`/api/projects/${projectId}/chat`);
 
-      if (error) {
-        browserLogger.error({ error, projectId }, 'Failed to load chat messages');
-        return;
+      if (!response.ok) {
+        throw new Error('Failed to load chat messages');
       }
 
-      if (data) {
-        setMessages(data as Message[]);
-      }
+      const data = await response.json();
+      setMessages(data.messages || []);
     } catch (error) {
       browserLogger.error({ error, projectId }, 'Error loading chat messages');
     } finally {
       setLoadingMessages(false);
     }
-  }, [supabase, projectId]);
+  }, [projectId]);
 
   useEffect(() => {
     loadMessages();
@@ -143,22 +128,26 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
       };
     });
 
-    // Save user message
-    const { error: userError } = await supabase
-      .from('chat_messages')
-      .insert({
-        project_id: projectId,
-        role: 'user',
-        content: userMessageContent,
-        model: selectedModel,
-        attachments: userAttachments.length > 0 ? userAttachments : null,
-      })
-      .select()
-      .single();
+    // Save user message via API endpoint
+    try {
+      const saveResponse = await fetch(`/api/projects/${projectId}/chat/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          role: 'user',
+          content: userMessageContent,
+          model: selectedModel,
+          attachments: userAttachments.length > 0 ? userAttachments : null,
+        }),
+      });
 
-    if (userError) {
-      browserLogger.error({ error: userError, projectId }, 'Failed to save user message');
+      if (!saveResponse.ok) {
+        throw new Error('Failed to save user message');
+      }
+    } catch (error) {
+      browserLogger.error({ error, projectId }, 'Failed to save user message');
       attachmentUrls.forEach((url) => URL.revokeObjectURL(url));
+      toast.error('Failed to save message');
       return;
     }
 
@@ -190,21 +179,28 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
         throw new Error(`API request failed: ${errorMsg}${errorDetails}${errorHelp}`);
       }
 
-      // Save assistant response
-      await supabase.from('chat_messages').insert({
-        project_id: projectId,
-        role: 'assistant',
-        content: data.response || 'No response from AI',
-        model: selectedModel,
+      // Save assistant response via API endpoint
+      await fetch(`/api/projects/${projectId}/chat/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          role: 'assistant',
+          content: data.response || 'No response from AI',
+          model: selectedModel,
+        }),
       });
     } catch (error) {
       browserLogger.error({ error, projectId, model: selectedModel }, 'Chat error');
 
-      await supabase.from('chat_messages').insert({
-        project_id: projectId,
-        role: 'assistant',
-        content: 'Sorry, I encountered an error processing your request.',
-        model: selectedModel,
+      // Save error message via API endpoint
+      await fetch(`/api/projects/${projectId}/chat/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          role: 'assistant',
+          content: 'Sorry, I encountered an error processing your request.',
+          model: selectedModel,
+        }),
       });
     } finally {
       setIsLoading(false);
@@ -247,18 +243,18 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
       return;
     }
 
-    if (!supabase) return;
-
     try {
-      const { error } = await supabase.from('chat_messages').delete().eq('project_id', projectId);
+      // Use API endpoint instead of direct database access
+      const response = await fetch(`/api/projects/${projectId}/chat`, {
+        method: 'DELETE',
+      });
 
-      if (error) {
-        browserLogger.error({ error, projectId }, 'Failed to clear chat');
-        toast.error('Failed to clear chat history');
-      } else {
-        setMessages([]);
-        toast.success('Chat history cleared');
+      if (!response.ok) {
+        throw new Error('Failed to clear chat');
       }
+
+      setMessages([]);
+      toast.success('Chat history cleared');
     } catch (error) {
       browserLogger.error({ error, projectId }, 'Error clearing chat');
       toast.error('Failed to clear chat history');

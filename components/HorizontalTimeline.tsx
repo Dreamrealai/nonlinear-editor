@@ -228,8 +228,8 @@ export default function HorizontalTimeline({
     if (!containerRef.current) return;
 
     const rect = containerRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const time = Math.max(0, x / zoom);
+    const clickX = e.clientX - rect.left;
+    const time = Math.max(0, clickX / zoom);
     setCurrentTime(time);
     clearSelection();
     setSelectedTextOverlayId(null);

@@ -3,15 +3,15 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { browserLogger } from '@/lib/browserLogger';
 import toast from 'react-hot-toast';
 
-type Mode = 'global' | 'crop';
+export type Mode = 'global' | 'crop';
 
-interface CropState {
+export interface CropState {
   x: number;
   y: number;
   size: number;
 }
 
-interface RefImage {
+export interface RefImage {
   id: string;
   file: File;
   previewUrl: string;
@@ -19,7 +19,7 @@ interface RefImage {
   uploadedUrl?: string;
 }
 
-interface UseKeyframeEditingProps {
+export interface UseKeyframeEditingProps {
   supabase: SupabaseClient;
   selectedFrameId: string | null;
   selectedAssetId: string | null;
@@ -30,7 +30,7 @@ interface UseKeyframeEditingProps {
   onRefreshNeeded: () => void;
 }
 
-interface UseKeyframeEditingReturn {
+export interface UseKeyframeEditingReturn {
   prompt: string;
   setPrompt: (prompt: string) => void;
   isSubmitting: boolean;

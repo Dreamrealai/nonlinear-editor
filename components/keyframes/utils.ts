@@ -1,11 +1,9 @@
-export interface AssetRow {
-  id: string;
-  title?: string | null;
-  storage_url: string;
-  metadata: Record<string, unknown> | null;
-}
+import type { BaseAssetRow } from '@/types/assets';
 
-export const getAssetLabel = (asset: AssetRow) => {
+// Re-export for backward compatibility
+export type { BaseAssetRow as AssetRow } from '@/types/assets';
+
+export const getAssetLabel = (asset: BaseAssetRow) => {
   const meta = asset.metadata as { filename?: string } | null;
   return meta?.filename ?? asset.title ?? asset.id;
 };

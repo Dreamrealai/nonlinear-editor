@@ -2,15 +2,14 @@ import { useCallback, useEffect, useState, useRef } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { browserLogger } from '@/lib/browserLogger';
 import toast from 'react-hot-toast';
+import {
+  extractAndSaveVideoFrame,
+  uploadAndSaveImageFrame,
+  createAssetMap,
+  type AssetRow,
+} from '@/lib/utils/frameUtils';
 
-interface AssetRow {
-  id: string;
-  title?: string | null;
-  storage_url: string;
-  metadata: Record<string, unknown> | null;
-}
-
-interface UseImageUploadProps {
+export interface UseImageUploadProps {
   supabase: SupabaseClient;
   selectedAssetId: string | null;
   assets: AssetRow[];
@@ -18,7 +17,7 @@ interface UseImageUploadProps {
   onRefreshNeeded: () => void;
 }
 
-interface UseImageUploadReturn {
+export interface UseImageUploadReturn {
   assetVideoUrl: string | null;
   showVideoPlayer: boolean;
   setShowVideoPlayer: (show: boolean) => void;
@@ -56,8 +55,7 @@ export function useImageUpload({
       setAssetVideoUrl(null);
       return;
     }
-    // O(1) lookup using Map instead of O(n) find
-    const assetMap = new Map(assets.map((a) => [a.id, a]));
+    const assetMap = createAssetMap(assets);
     const asset = assetMap.get(selectedAssetId);
     if (asset) {
       void signStoragePath(asset.storage_url).then(setAssetVideoUrl);
@@ -91,45 +89,13 @@ export function useImageUpload({
 
     setIsExtractingFrame(true);
     try {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
-      if (!context) throw new Error('Could not get canvas context');
-
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const blob = await new Promise<Blob | null>((resolve) => {
-        canvas.toBlob(resolve, 'image/png');
-      });
-      if (!blob) throw new Error('Failed to create image blob');
-
-      const currentTimeMs = Math.round(video.currentTime * 1000);
-      const fileName = `${selectedAssetId}/custom/${Date.now()}-${currentTimeMs}ms.png`;
-      const { error: uploadError } = await supabase.storage.from('frames').upload(fileName, blob, {
-        contentType: 'image/png',
-        upsert: false,
-      });
-
-      if (uploadError) throw uploadError;
-
-      const storagePath = `supabase://frames/${fileName}`;
-      // O(1) lookup using Map instead of O(n) find
-      const assetMap = new Map(assets.map((a) => [a.id, a]));
-      const currentAsset = assetMap.get(selectedAssetId);
-      const { error: insertError } = await supabase.from('scene_frames').insert({
-        project_id: currentAsset?.metadata?.project_id,
-        asset_id: selectedAssetId,
-        scene_id: null,
-        kind: 'custom',
-        t_ms: currentTimeMs,
-        storage_path: storagePath,
-        width: canvas.width,
-        height: canvas.height,
-      });
-
-      if (insertError) throw insertError;
+      await extractAndSaveVideoFrame(
+        supabase,
+        videoRef.current,
+        canvasRef.current,
+        selectedAssetId,
+        assets
+      );
 
       onRefreshNeeded();
       setShowVideoPlayer(false);
@@ -153,41 +119,7 @@ export function useImageUpload({
 
       setIsUploadingImage(true);
       try {
-        const img = new Image();
-        const imageUrl = URL.createObjectURL(file);
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-          img.src = imageUrl;
-        });
-        URL.revokeObjectURL(imageUrl);
-
-        const fileName = `${selectedAssetId}/custom/${Date.now()}-${file.name}`;
-        const { error: uploadError } = await supabase.storage
-          .from('frames')
-          .upload(fileName, file, {
-            contentType: file.type,
-            upsert: false,
-          });
-
-        if (uploadError) throw uploadError;
-
-        const storagePath = `supabase://frames/${fileName}`;
-        // O(1) lookup using Map instead of O(n) find
-        const assetMap = new Map(assets.map((a) => [a.id, a]));
-        const currentAsset = assetMap.get(selectedAssetId);
-        const { error: insertError } = await supabase.from('scene_frames').insert({
-          project_id: currentAsset?.metadata?.project_id,
-          asset_id: selectedAssetId,
-          scene_id: null,
-          kind: 'custom',
-          t_ms: 0,
-          storage_path: storagePath,
-          width: img.width,
-          height: img.height,
-        });
-
-        if (insertError) throw insertError;
+        await uploadAndSaveImageFrame(supabase, file, selectedAssetId, assets, 0);
 
         onRefreshNeeded();
 
@@ -228,42 +160,7 @@ export function useImageUpload({
 
         setIsUploadingImage(true);
         try {
-          const img = new Image();
-          const imageUrl = URL.createObjectURL(file);
-          await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = imageUrl;
-          });
-          URL.revokeObjectURL(imageUrl);
-
-          const fileName = `${selectedAssetId}/custom/${Date.now()}-pasted.png`;
-          const { error: uploadError } = await supabase.storage
-            .from('frames')
-            .upload(fileName, file, {
-              contentType: file.type,
-              upsert: false,
-            });
-
-          if (uploadError) throw uploadError;
-
-          const storagePath = `supabase://frames/${fileName}`;
-          // O(1) lookup using Map instead of O(n) find
-          const assetMap = new Map(assets.map((a) => [a.id, a]));
-          const currentAsset = assetMap.get(selectedAssetId);
-          const { error: insertError } = await supabase.from('scene_frames').insert({
-            project_id: currentAsset?.metadata?.project_id,
-            asset_id: selectedAssetId,
-            scene_id: null,
-            kind: 'custom',
-            t_ms: 0,
-            storage_path: storagePath,
-            width: img.width,
-            height: img.height,
-          });
-
-          if (insertError) throw insertError;
-
+          await uploadAndSaveImageFrame(supabase, file, selectedAssetId, assets, 0);
           onRefreshNeeded();
         } catch (error) {
           browserLogger.error({ error, selectedAssetId }, 'Failed to upload pasted image');
