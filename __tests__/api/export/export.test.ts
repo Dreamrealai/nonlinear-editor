@@ -68,7 +68,7 @@ describe('POST /api/export', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
       expect(response.status).toBe(401);
     });
   });
@@ -87,7 +87,7 @@ describe('POST /api/export', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
       expect(response.status).toBe(503);
     });
   });
@@ -121,7 +121,7 @@ describe('POST /api/export', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
       expect(response.status).toBe(202);
       const data = await response.json();
       expect(data.jobId).toBe('job-123');
@@ -157,7 +157,7 @@ describe('GET /api/export', () => {
       });
 
       const mockRequest = new NextRequest('http://localhost/api/export?jobId=job-123-valid-uuid');
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
     });

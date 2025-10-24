@@ -93,7 +93,7 @@ describe('POST /api/assets/upload', () => {
         body: formData as unknown as BodyInit,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -113,7 +113,7 @@ describe('POST /api/assets/upload', () => {
         body: formData as unknown as BodyInit,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -131,7 +131,7 @@ describe('POST /api/assets/upload', () => {
         body: formData as unknown as BodyInit,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -160,7 +160,7 @@ describe('POST /api/assets/upload', () => {
         body: formData as unknown as BodyInit,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -182,7 +182,7 @@ describe('POST /api/assets/upload', () => {
         body: formData as unknown as BodyInit,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -214,7 +214,7 @@ describe('POST /api/assets/upload', () => {
           body: formData as any,
         });
 
-        const response = await POST(mockRequest);
+        const response = await POST(mockRequest, { params: Promise.resolve({}) });
         expect(response.status).toBe(200);
       }
     });
@@ -245,7 +245,7 @@ describe('POST /api/assets/upload', () => {
           body: formData as any,
         });
 
-        const response = await POST(mockRequest);
+        const response = await POST(mockRequest, { params: Promise.resolve({}) });
         expect(response.status).toBe(200);
       }
     });
@@ -279,7 +279,7 @@ describe('POST /api/assets/upload', () => {
         body: formData as unknown as BodyInit,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -316,7 +316,7 @@ describe('POST /api/assets/upload', () => {
         body: formData as unknown as BodyInit,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(404);
     });
@@ -343,7 +343,7 @@ describe('POST /api/assets/upload', () => {
         body: formData as unknown as BodyInit,
       });
 
-      await POST(mockRequest);
+      await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(mockSupabase.eq).toHaveBeenCalledWith('id', '123e4567-e89b-12d3-a456-426614174000');
       expect(mockSupabase.eq).toHaveBeenCalledWith('user_id', mockUser.id);
@@ -373,7 +373,7 @@ describe('POST /api/assets/upload', () => {
         body: formData as unknown as BodyInit,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.storage.upload).toHaveBeenCalled();
@@ -410,7 +410,7 @@ describe('POST /api/assets/upload', () => {
         body: formData as unknown as BodyInit,
       });
 
-      await POST(mockRequest);
+      await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(mockSupabase.storage.upload).toHaveBeenCalledWith(
         expect.stringMatching(/mock-uuid-123\./),
@@ -442,7 +442,7 @@ describe('POST /api/assets/upload', () => {
         body: formData as unknown as BodyInit,
       });
 
-      await POST(mockRequest);
+      await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(mockSupabase.storage.upload).toHaveBeenCalledWith(
         expect.stringContaining(`${mockUser.id}/test-project-id/image/`),
@@ -473,7 +473,7 @@ describe('POST /api/assets/upload', () => {
         body: formData as unknown as BodyInit,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(data).toHaveProperty('assetId');
@@ -504,7 +504,7 @@ describe('POST /api/assets/upload', () => {
         body: formData as unknown as BodyInit,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -539,7 +539,7 @@ describe('POST /api/assets/upload', () => {
         body: formData as unknown as BodyInit,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
       expect(mockSupabase.storage.remove).toHaveBeenCalled();
@@ -566,7 +566,7 @@ describe('POST /api/assets/upload', () => {
         body: formData as unknown as BodyInit,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -597,7 +597,7 @@ describe('POST /api/assets/upload', () => {
         body: formData as unknown as BodyInit,
       });
 
-      await POST(mockRequest);
+      await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(mockSupabase.insert).toHaveBeenCalledWith(
         expect.objectContaining({

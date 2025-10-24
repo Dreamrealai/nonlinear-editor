@@ -55,7 +55,7 @@ describe('GET /api/assets/sign', () => {
         'http://localhost/api/assets/sign?storageUrl=supabase://assets/test.jpg'
       );
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -68,7 +68,7 @@ describe('GET /api/assets/sign', () => {
       mockAuthenticatedUser(mockSupabase);
       mockRequest = new NextRequest('http://localhost/api/assets/sign');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -79,7 +79,7 @@ describe('GET /api/assets/sign', () => {
       mockAuthenticatedUser(mockSupabase);
       mockRequest = new NextRequest('http://localhost/api/assets/sign?storageUrl=invalid-url');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -92,7 +92,7 @@ describe('GET /api/assets/sign', () => {
         `http://localhost/api/assets/sign?storageUrl=supabase://assets/${mockUser.id}/test.jpg`
       );
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
     });
@@ -114,7 +114,7 @@ describe('GET /api/assets/sign', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=asset-123');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.select).toHaveBeenCalledWith('storage_url, user_id');
@@ -130,7 +130,7 @@ describe('GET /api/assets/sign', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=nonexistent');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -151,7 +151,7 @@ describe('GET /api/assets/sign', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=asset-123');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(403);
       const data = await response.json();
@@ -166,7 +166,7 @@ describe('GET /api/assets/sign', () => {
         `http://localhost/api/assets/sign?storageUrl=supabase://assets/${mockUser.id}/project/test.jpg`
       );
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
     });
@@ -177,7 +177,7 @@ describe('GET /api/assets/sign', () => {
         'http://localhost/api/assets/sign?storageUrl=supabase://assets/other-user-id/project/test.jpg'
       );
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(403);
       const data = await response.json();
@@ -199,7 +199,7 @@ describe('GET /api/assets/sign', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=asset-123');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
     });
@@ -212,7 +212,7 @@ describe('GET /api/assets/sign', () => {
         `http://localhost/api/assets/sign?storageUrl=supabase://assets/${mockUser.id}/test.jpg`
       );
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.storage.createSignedUrl).toHaveBeenCalledWith(
@@ -227,7 +227,7 @@ describe('GET /api/assets/sign', () => {
         `http://localhost/api/assets/sign?storageUrl=supabase://assets/${mockUser.id}/test.jpg&ttl=7200`
       );
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.storage.createSignedUrl).toHaveBeenCalledWith(expect.any(String), 7200);
@@ -239,7 +239,7 @@ describe('GET /api/assets/sign', () => {
         `http://localhost/api/assets/sign?storageUrl=supabase://assets/${mockUser.id}/project-id/image/test.jpg`
       );
 
-      await GET(mockRequest);
+      await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(mockSupabase.storage.from).toHaveBeenCalledWith('assets');
       expect(mockSupabase.storage.createSignedUrl).toHaveBeenCalledWith(
@@ -259,7 +259,7 @@ describe('GET /api/assets/sign', () => {
         `http://localhost/api/assets/sign?storageUrl=supabase://assets/${mockUser.id}/test.jpg&ttl=1800`
       );
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(data).toHaveProperty('signedUrl', 'https://example.com/signed-url-12345');
@@ -282,7 +282,7 @@ describe('GET /api/assets/sign', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=asset-123');
 
-      await GET(mockRequest);
+      await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(mockSupabase.storage.from).toHaveBeenCalledWith('custom-bucket');
     });
@@ -293,7 +293,7 @@ describe('GET /api/assets/sign', () => {
         `http://localhost/api/assets/sign?storageUrl=supabase://assets/${mockUser.id}/a/b/c/test.jpg`
       );
 
-      await GET(mockRequest);
+      await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(mockSupabase.storage.createSignedUrl).toHaveBeenCalledWith(
         `${mockUser.id}/a/b/c/test.jpg`,
@@ -314,7 +314,7 @@ describe('GET /api/assets/sign', () => {
         `http://localhost/api/assets/sign?storageUrl=supabase://assets/${mockUser.id}/test.jpg`
       );
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -330,7 +330,7 @@ describe('GET /api/assets/sign', () => {
 
       mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=asset-123');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(404);
     });
@@ -345,7 +345,7 @@ describe('GET /api/assets/sign', () => {
         'http://localhost/api/assets/sign?storageUrl=supabase://assets/user-id/test.jpg'
       );
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -360,7 +360,7 @@ describe('GET /api/assets/sign', () => {
         `http://localhost/api/assets/sign?storageUrl=supabase://assets/${mockUser.id}/test.jpg`
       );
 
-      await GET(mockRequest);
+      await GET(mockRequest, { params: Promise.resolve({}) });
 
       // Verify protocol was stripped
       expect(mockSupabase.storage.from).toHaveBeenCalledWith('assets');
@@ -376,7 +376,7 @@ describe('GET /api/assets/sign', () => {
         `http://localhost/api/assets/sign?storageUrl=supabase://assets/${mockUser.id}/my%20file.jpg`
       );
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
     });
@@ -387,7 +387,7 @@ describe('GET /api/assets/sign', () => {
         'http://localhost/api/assets/sign?storageUrl=supabase:///path/file.jpg'
       );
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -400,7 +400,7 @@ describe('GET /api/assets/sign', () => {
         'http://localhost/api/assets/sign?storageUrl=supabase://bucket'
       );
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
       const data = await response.json();

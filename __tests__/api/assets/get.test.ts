@@ -59,7 +59,7 @@ describe('GET /api/assets', () => {
       mockUnauthenticatedUser(mockSupabase);
       const mockRequest = new NextRequest('http://localhost/api/assets');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(401);
     });
@@ -85,7 +85,7 @@ describe('GET /api/assets', () => {
 
       const mockRequest = new NextRequest('http://localhost/api/assets');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -105,7 +105,7 @@ describe('GET /api/assets', () => {
 
       const mockRequest = new NextRequest('http://localhost/api/assets?projectId=project-1-valid-uuid');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.eq).toHaveBeenCalledWith('project_id', 'project-1-valid-uuid');
@@ -123,7 +123,7 @@ describe('GET /api/assets', () => {
 
       const mockRequest = new NextRequest('http://localhost/api/assets?type=video');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.eq).toHaveBeenCalledWith('type', 'video');
@@ -139,7 +139,7 @@ describe('GET /api/assets', () => {
 
       const mockRequest = new NextRequest('http://localhost/api/assets?page=2&pageSize=25');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.range).toHaveBeenCalledWith(50, 74);
@@ -151,7 +151,7 @@ describe('GET /api/assets', () => {
       mockAuthenticatedUser(mockSupabase);
       const mockRequest = new NextRequest('http://localhost/api/assets?projectId=invalid');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
     });
@@ -160,7 +160,7 @@ describe('GET /api/assets', () => {
       mockAuthenticatedUser(mockSupabase);
       const mockRequest = new NextRequest('http://localhost/api/assets?type=invalid');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
     });
@@ -169,7 +169,7 @@ describe('GET /api/assets', () => {
       mockAuthenticatedUser(mockSupabase);
       const mockRequest = new NextRequest('http://localhost/api/assets?page=-1');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
     });
@@ -178,7 +178,7 @@ describe('GET /api/assets', () => {
       mockAuthenticatedUser(mockSupabase);
       const mockRequest = new NextRequest('http://localhost/api/assets?pageSize=101');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
     });
@@ -195,7 +195,7 @@ describe('GET /api/assets', () => {
 
       const mockRequest = new NextRequest('http://localhost/api/assets');
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
     });

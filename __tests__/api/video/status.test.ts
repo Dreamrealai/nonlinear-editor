@@ -92,7 +92,7 @@ describe('GET /api/video/status', () => {
         '/api/video/status?operationName=test&projectId=123'
       ) as unknown as NextRequest;
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(401);
     });
@@ -110,7 +110,7 @@ describe('GET /api/video/status', () => {
         '/api/video/status?operationName=test&projectId=123'
       ) as unknown as NextRequest;
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(429);
       const body = await response.json();
@@ -123,7 +123,7 @@ describe('GET /api/video/status', () => {
       mockAuthenticatedUser(mockSupabase);
       mockRequest = createRequest('/api/video/status?projectId=123') as unknown as NextRequest;
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -134,7 +134,7 @@ describe('GET /api/video/status', () => {
       mockAuthenticatedUser(mockSupabase);
       mockRequest = createRequest('/api/video/status?operationName=test') as unknown as NextRequest;
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -155,7 +155,7 @@ describe('GET /api/video/status', () => {
         '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
       ) as unknown as NextRequest;
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(checkFalVideoStatus).toHaveBeenCalledWith('request-123', 'seedance-1.0-pro');
@@ -199,7 +199,7 @@ describe('GET /api/video/status', () => {
         '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
       ) as unknown as NextRequest;
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -221,7 +221,7 @@ describe('GET /api/video/status', () => {
         '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
       ) as unknown as NextRequest;
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -236,7 +236,7 @@ describe('GET /api/video/status', () => {
         '/api/video/status?operationName=fal:invalid&projectId=test-project-id'
       ) as unknown as NextRequest;
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
     });
@@ -255,7 +255,7 @@ describe('GET /api/video/status', () => {
         '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
       ) as unknown as NextRequest;
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(checkOperationStatus).toHaveBeenCalledWith('operations/veo-123');
@@ -296,7 +296,7 @@ describe('GET /api/video/status', () => {
         '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
       ) as unknown as NextRequest;
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -352,7 +352,7 @@ describe('GET /api/video/status', () => {
         '/api/video/status?operationName=operations/veo-456&projectId=test-project-id'
       ) as unknown as NextRequest;
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -375,7 +375,7 @@ describe('GET /api/video/status', () => {
         '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
       ) as unknown as NextRequest;
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -413,7 +413,7 @@ describe('GET /api/video/status', () => {
         '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
       ) as unknown as NextRequest;
 
-      await GET(mockRequest);
+      await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(mockSupabase.storage.upload).toHaveBeenCalledWith(
         expect.stringContaining('test-user-id/test-project-id'),
@@ -466,7 +466,7 @@ describe('GET /api/video/status', () => {
         '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
       ) as unknown as NextRequest;
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
       expect(mockSupabase.storage.remove).toHaveBeenCalled();
@@ -500,7 +500,7 @@ describe('GET /api/video/status', () => {
         '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
       ) as unknown as NextRequest;
 
-      await GET(mockRequest);
+      await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(mockSupabase.insert).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -522,7 +522,7 @@ describe('GET /api/video/status', () => {
         '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
       ) as unknown as NextRequest;
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -554,7 +554,7 @@ describe('GET /api/video/status', () => {
         '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
       ) as unknown as NextRequest;
 
-      const response = await GET(mockRequest);
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
     });

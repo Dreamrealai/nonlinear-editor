@@ -129,9 +129,15 @@ const nextConfig: NextConfig = {
       'clsx',
       'lucide-react',
       'react-hot-toast',
-      '@stripe/stripe-js',
       'web-vitals',
     ],
+  },
+
+  // Modularize imports for better tree-shaking
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
   },
 
   // Production-only optimizations
@@ -146,6 +152,9 @@ const nextConfig: NextConfig = {
 
   // Disable source maps in production for smaller bundle size
   productionBrowserSourceMaps: false,
+
+  // Standalone output for smaller production builds
+  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
 };
 
 export default withBundleAnalyzer(nextConfig);

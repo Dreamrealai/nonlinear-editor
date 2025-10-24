@@ -68,7 +68,7 @@ describe('POST /api/admin/change-tier', () => {
         body: JSON.stringify({ tier: 'premium' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
       expect(response.status).toBe(400);
     });
 
@@ -78,7 +78,7 @@ describe('POST /api/admin/change-tier', () => {
         body: JSON.stringify({ userId: 'user-123-valid-uuid', tier: 'invalid' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
       expect(response.status).toBe(400);
     });
   });
@@ -90,7 +90,7 @@ describe('POST /api/admin/change-tier', () => {
         body: JSON.stringify({ userId: ADMIN_ID, tier: 'premium' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
       if (response.status !== 403) {
         const error = await response.json();
         console.log('Expected 403, got:', response.status, error);
@@ -106,7 +106,7 @@ describe('POST /api/admin/change-tier', () => {
         body: JSON.stringify({ userId: OTHER_USER_ID, tier: 'premium' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
       if (response.status !== 200) {
         const error = await response.json();
         console.log('Expected 200, got:', response.status, error);

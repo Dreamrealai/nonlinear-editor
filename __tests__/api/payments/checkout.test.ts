@@ -66,7 +66,7 @@ describe('POST /api/stripe/checkout', () => {
         body: JSON.stringify({}),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -83,7 +83,7 @@ describe('POST /api/stripe/checkout', () => {
         body: JSON.stringify({}),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(401);
     });
@@ -99,7 +99,7 @@ describe('POST /api/stripe/checkout', () => {
         body: JSON.stringify({}),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -120,7 +120,7 @@ describe('POST /api/stripe/checkout', () => {
         body: JSON.stringify({}),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -145,7 +145,7 @@ describe('POST /api/stripe/checkout', () => {
         body: JSON.stringify({}),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
     });
@@ -168,7 +168,7 @@ describe('POST /api/stripe/checkout', () => {
         body: JSON.stringify({}),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
     });
@@ -198,7 +198,7 @@ describe('POST /api/stripe/checkout', () => {
         body: JSON.stringify({}),
       });
 
-      await POST(mockRequest);
+      await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(getOrCreateStripeCustomer).toHaveBeenCalledWith({
         userId: mockUser.id,
@@ -229,7 +229,7 @@ describe('POST /api/stripe/checkout', () => {
         body: JSON.stringify({}),
       });
 
-      await POST(mockRequest);
+      await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(getOrCreateStripeCustomer).toHaveBeenCalledWith({
         userId: mockUser.id,
@@ -259,7 +259,7 @@ describe('POST /api/stripe/checkout', () => {
         body: JSON.stringify({}),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(createCheckoutSession).toHaveBeenCalledWith({
         customerId: 'cus_test_123',
@@ -292,7 +292,7 @@ describe('POST /api/stripe/checkout', () => {
         body: JSON.stringify({ priceId: 'price_custom_123' }),
       });
 
-      await POST(mockRequest);
+      await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(createCheckoutSession).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -319,7 +319,7 @@ describe('POST /api/stripe/checkout', () => {
         body: JSON.stringify({}),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -345,7 +345,7 @@ describe('POST /api/stripe/checkout', () => {
         body: JSON.stringify({}),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -362,7 +362,7 @@ describe('POST /api/stripe/checkout', () => {
         body: 'invalid json',
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
     });
@@ -390,7 +390,7 @@ describe('POST /api/stripe/checkout', () => {
         body: JSON.stringify({}),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(data).toHaveProperty('sessionId', 'cs_test_456');
@@ -418,7 +418,7 @@ describe('POST /api/stripe/checkout', () => {
         body: JSON.stringify({}),
       });
 
-      await POST(mockRequest);
+      await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(createCheckoutSession).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -447,7 +447,7 @@ describe('POST /api/stripe/checkout', () => {
         body: JSON.stringify({}),
       });
 
-      await POST(mockRequest);
+      await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(createCheckoutSession).toHaveBeenCalledWith(
         expect.objectContaining({

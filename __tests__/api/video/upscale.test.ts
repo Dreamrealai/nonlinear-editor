@@ -95,7 +95,7 @@ describe('POST /api/video/upscale', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(401);
     });
@@ -112,7 +112,7 @@ describe('POST /api/video/upscale', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
     });
@@ -127,7 +127,7 @@ describe('POST /api/video/upscale', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
     });
@@ -152,7 +152,7 @@ describe('POST /api/video/upscale', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(429);
     });
@@ -176,7 +176,7 @@ describe('POST /api/video/upscale', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -198,7 +198,7 @@ describe('POST /api/video/upscale', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
     });
@@ -220,7 +220,7 @@ describe('POST /api/video/upscale', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
     });
@@ -238,7 +238,7 @@ describe('POST /api/video/upscale', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(504);
     });

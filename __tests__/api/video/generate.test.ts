@@ -120,7 +120,7 @@ describe('POST /api/video/generate', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(401);
     });
@@ -145,7 +145,7 @@ describe('POST /api/video/generate', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(429);
     });
@@ -168,7 +168,7 @@ describe('POST /api/video/generate', () => {
         }),
       });
 
-      await POST(mockRequest);
+      await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(checkRateLimit).toHaveBeenCalledWith(
         `video-gen:${mockUser.id}`,
@@ -194,7 +194,7 @@ describe('POST /api/video/generate', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
     });
@@ -219,7 +219,7 @@ describe('POST /api/video/generate', () => {
         }),
       });
 
-      await POST(mockRequest);
+      await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(validateAll).toHaveBeenCalled();
     });
@@ -243,7 +243,7 @@ describe('POST /api/video/generate', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(404);
     });
@@ -265,7 +265,7 @@ describe('POST /api/video/generate', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(403);
     });
@@ -291,7 +291,7 @@ describe('POST /api/video/generate', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -334,7 +334,7 @@ describe('POST /api/video/generate', () => {
         }),
       });
 
-      await POST(mockRequest);
+      await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(generateVideo).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -373,7 +373,7 @@ describe('POST /api/video/generate', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -401,7 +401,7 @@ describe('POST /api/video/generate', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -446,7 +446,7 @@ describe('POST /api/video/generate', () => {
         }),
       });
 
-      await POST(mockRequest);
+      await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(verifyAssetOwnership).toHaveBeenCalledWith(
         mockSupabase,
@@ -482,7 +482,7 @@ describe('POST /api/video/generate', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(404);
     });
@@ -506,7 +506,7 @@ describe('POST /api/video/generate', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -521,7 +521,7 @@ describe('POST /api/video/generate', () => {
         body: 'invalid json',
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
     });
@@ -545,7 +545,7 @@ describe('POST /api/video/generate', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(data).toHaveProperty('operationName');

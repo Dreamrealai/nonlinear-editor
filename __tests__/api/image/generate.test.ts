@@ -98,7 +98,7 @@ describe('POST /api/image/generate', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
       expect(response.status).toBe(401);
     });
   });
@@ -122,7 +122,7 @@ describe('POST /api/image/generate', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
       expect(response.status).toBe(429);
     });
   });
@@ -148,7 +148,7 @@ describe('POST /api/image/generate', () => {
         }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.assets).toHaveLength(1);

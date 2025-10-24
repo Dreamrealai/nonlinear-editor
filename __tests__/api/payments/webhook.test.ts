@@ -77,20 +77,15 @@ describe('POST /api/stripe/webhook', () => {
     const { createServiceSupabaseClient } = require('@/lib/supabase');
     mockSupabase = createServiceSupabaseClient();
 
-    // Clear all mocks but keep the implementations
-    jest.clearAllMocks();
-
-    // Restore default chainable mock behavior
-    mockSupabase.from.mockReturnThis();
-    mockSupabase.select.mockReturnThis();
-    mockSupabase.insert.mockReturnThis();
-    mockSupabase.update.mockReturnThis();
-    mockSupabase.delete.mockReturnThis();
-    mockSupabase.eq.mockReturnThis();
-    mockSupabase.neq.mockReturnThis();
-    mockSupabase.order.mockReturnThis();
-    mockSupabase.limit.mockReturnThis();
-    mockSupabase.storage.from.mockReturnThis();
+    // Clear only individual mock call counts, not implementations
+    mockConstructEvent.mockClear();
+    mockRetrieveSubscription.mockClear();
+    if (mockSupabase.from) mockSupabase.from.mockClear();
+    if (mockSupabase.select) mockSupabase.select.mockClear();
+    if (mockSupabase.insert) mockSupabase.insert.mockClear();
+    if (mockSupabase.update) mockSupabase.update.mockClear();
+    if (mockSupabase.eq) mockSupabase.eq.mockClear();
+    if (mockSupabase.single) mockSupabase.single.mockClear();
   });
 
   describe('Webhook Verification', () => {
@@ -100,7 +95,7 @@ describe('POST /api/stripe/webhook', () => {
         body: JSON.stringify({ type: 'test' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -118,7 +113,7 @@ describe('POST /api/stripe/webhook', () => {
         body: JSON.stringify({ type: 'test' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(503);
       const data = await response.json();
@@ -138,7 +133,7 @@ describe('POST /api/stripe/webhook', () => {
         body: JSON.stringify({ type: 'test' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -174,7 +169,14 @@ describe('POST /api/stripe/webhook', () => {
         body,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
+
+      // Debug: log response body if not 200
+      if (response.status !== 200) {
+        const responseBody = await response.clone().json();
+        console.log('Response status:', response.status);
+        console.log('Response body:', responseBody);
+      }
 
       expect(mockConstructEvent).toHaveBeenCalledWith(body, 'valid-signature', 'whsec_test_secret');
       expect(response.status).toBe(200);
@@ -219,7 +221,7 @@ describe('POST /api/stripe/webhook', () => {
         body,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.update).toHaveBeenCalledWith(
@@ -265,7 +267,7 @@ describe('POST /api/stripe/webhook', () => {
         body,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.update).toHaveBeenCalledWith(
@@ -291,7 +293,7 @@ describe('POST /api/stripe/webhook', () => {
         body,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
     });
@@ -317,7 +319,7 @@ describe('POST /api/stripe/webhook', () => {
         body,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
     });
@@ -351,7 +353,7 @@ describe('POST /api/stripe/webhook', () => {
         body,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
     });
@@ -390,7 +392,7 @@ describe('POST /api/stripe/webhook', () => {
         body,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.update).toHaveBeenCalledWith(
@@ -433,7 +435,7 @@ describe('POST /api/stripe/webhook', () => {
         body,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.update).toHaveBeenCalledWith(
@@ -475,7 +477,7 @@ describe('POST /api/stripe/webhook', () => {
         body,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(mockSupabase.update).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -517,7 +519,7 @@ describe('POST /api/stripe/webhook', () => {
         body,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.update).toHaveBeenCalledWith(
@@ -561,7 +563,7 @@ describe('POST /api/stripe/webhook', () => {
         body,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(mockSupabase.update).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -585,7 +587,7 @@ describe('POST /api/stripe/webhook', () => {
         body,
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -607,7 +609,7 @@ describe('POST /api/stripe/webhook', () => {
         body: JSON.stringify({ type: 'test' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       // Any error in constructEvent returns 400 for security reasons
       expect(response.status).toBe(400);
