@@ -42,37 +42,14 @@ jest.mock('@/lib/rateLimit', () => ({
   },
 }));
 
-jest.mock('@/lib/api/response', () => ({
-  errorResponse: jest.fn(
-    (msg, status) =>
-      new Response(JSON.stringify({ error: msg }), {
-        status,
-        headers: { 'Content-Type': 'application/json' },
-      })
-  ),
-  unauthorizedResponse: jest.fn(
-    () =>
-      new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      })
-  ),
-  validationError: jest.fn(
-    (msg) =>
-      new Response(JSON.stringify({ error: msg }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
-  ),
-  internalServerError: jest.fn(
-    (msg) =>
-      new Response(JSON.stringify({ error: msg }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      })
-  ),
-  withErrorHandling: jest.fn((handler) => handler),
-}));
+// Mock API response helpers - use actual implementation, only mock wrapper
+jest.mock('@/lib/api/response', () => {
+  const actual = jest.requireActual('@/lib/api/response');
+  return {
+    ...actual,
+    withErrorHandling: jest.fn((handler) => handler),
+  };
+});
 
 jest.mock('@/lib/api/project-verification', () => ({
   verifyAssetOwnership: jest.fn(),
@@ -88,8 +65,10 @@ describe('POST /api/video/upscale', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    const { __getMockClient } = require('@/lib/supabase');
+    // IMPORTANT: Re-setup Supabase mock after clearAllMocks
+    const { __getMockClient, createServerSupabaseClient } = require('@/lib/supabase');
     mockSupabase = __getMockClient();
+    createServerSupabaseClient.mockResolvedValue(mockSupabase);
 
     // Setup default auth mock (needs to be reset after clearAllMocks)
     mockSupabase.auth.getUser.mockResolvedValue({

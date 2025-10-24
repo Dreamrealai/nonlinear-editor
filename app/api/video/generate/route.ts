@@ -279,9 +279,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   ]);
 
   const validation = validationResult ?? { valid: true, errors: [] };
-  if (process.env.NODE_ENV === 'test') {
-    console.log('validation result', validation);
-  }
+  console.log('validation result', validation);
 
   if (!validation.valid) {
     const firstError = validation.errors[0];
@@ -384,7 +382,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       aspectRatio,
       duration,
       hasImageUrl: !!imageUrl,
-      promptLength: prompt.length,
+      promptLength: typeof prompt === 'string' ? prompt.length : 0,
     },
     `Starting video generation with ${provider}`
   );

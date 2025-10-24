@@ -36,14 +36,14 @@ jest.mock('@/lib/api/withAuth', () => ({
   logAdminAction: jest.fn(),
 }));
 
-jest.mock('@/lib/api/response', () => ({
-  validationError: jest.fn((msg) => new Response(JSON.stringify({ error: msg }), { status: 400 })),
-  forbiddenResponse: jest.fn(
-    (msg) => new Response(JSON.stringify({ error: msg }), { status: 403 })
-  ),
-  errorResponse: jest.fn((msg, status) => new Response(JSON.stringify({ error: msg }), { status })),
-  successResponse: jest.fn(() => new Response(JSON.stringify({ success: true }), { status: 200 })),
-}));
+// Mock API response helpers - use actual implementation, only mock wrapper
+jest.mock('@/lib/api/response', () => {
+  const actual = jest.requireActual('@/lib/api/response');
+  return {
+    ...actual,
+    withErrorHandling: jest.fn((handler) => handler),
+  };
+});
 
 jest.mock('@/lib/services/userService', () => ({
   UserService: jest.fn().mockImplementation(() => ({

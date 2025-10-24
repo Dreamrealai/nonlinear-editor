@@ -49,20 +49,40 @@ export const LazyClipPropertiesPanel = dynamic(
 );
 
 /**
+ * Props for HorizontalTimeline component
+ */
+type HorizontalTimelineProps = {
+  onDetectScenes?: () => Promise<void>;
+  sceneDetectPending?: boolean;
+  onAddText?: () => void;
+  onAddTransition?: () => void;
+  onGenerateAudioFromClip?: (clipId: string) => Promise<void>;
+  onUpscaleVideo?: () => Promise<void>;
+  upscaleVideoPending?: boolean;
+  onSplitAudioFromClip?: (clipId: string) => Promise<void>;
+  onSplitScenesFromClip?: (clipId: string) => Promise<void>;
+  splitAudioPending?: boolean;
+  splitScenesPending?: boolean;
+};
+
+/**
  * Lazy-loaded HorizontalTimeline component
  * Only loaded when editor is fully initialized
  */
-export const LazyHorizontalTimeline = dynamic(() => import('@/components/HorizontalTimeline'), {
-  loading: () => (
-    <div className="flex h-full w-full items-center justify-center bg-neutral-50">
-      <div className="flex flex-col items-center gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-900"></div>
-        <span className="text-sm text-neutral-600">Loading timeline...</span>
+export const LazyHorizontalTimeline = dynamic<HorizontalTimelineProps>(
+  () => import('@/components/HorizontalTimeline'),
+  {
+    loading: () => (
+      <div className="flex h-full w-full items-center justify-center bg-neutral-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-900"></div>
+          <span className="text-sm text-neutral-600">Loading timeline...</span>
+        </div>
       </div>
-    </div>
-  ),
-  ssr: false,
-});
+    ),
+    ssr: false,
+  }
+);
 
 /**
  * Lazy-loaded PreviewPlayer component

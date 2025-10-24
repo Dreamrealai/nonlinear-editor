@@ -63,5 +63,14 @@ afterEach(() => {
   // cleanup();
 });
 
+// Mock File.prototype.arrayBuffer for file upload tests in Node.js environment
+if (typeof File !== 'undefined' && !File.prototype.arrayBuffer) {
+  File.prototype.arrayBuffer = async function() {
+    const text = await this.text();
+    const encoder = new TextEncoder();
+    return encoder.encode(text).buffer;
+  };
+}
+
 // Set default timeout for all tests
 jest.setTimeout(10000);

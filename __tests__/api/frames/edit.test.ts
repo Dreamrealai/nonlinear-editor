@@ -110,8 +110,10 @@ describe('POST /api/frames/[frameId]/edit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    const { __getMockClient } = require('@/lib/supabase');
+    // IMPORTANT: Re-setup Supabase mock after clearAllMocks
+    const { __getMockClient, createServerSupabaseClient } = require('@/lib/supabase');
     mockSupabase = __getMockClient();
+    createServerSupabaseClient.mockResolvedValue(mockSupabase);
 
     // Setup default auth mock
     mockSupabase.auth.getUser.mockResolvedValue({

@@ -114,10 +114,14 @@ describe('SubscriptionManager', () => {
   };
 
   describe('Loading State', () => {
-    it('should show loading spinner initially', () => {
+    it('should show loading spinner initially', async () => {
       setupMocks(mockFreeProfile);
       render(<SubscriptionManager />);
       expect(screen.getByText('Loading subscription...')).toBeInTheDocument();
+      // Wait for async state updates to complete
+      await waitFor(() => {
+        expect(screen.queryByText('Loading subscription...')).not.toBeInTheDocument();
+      });
     });
 
     it('should hide loading after data loads', async () => {

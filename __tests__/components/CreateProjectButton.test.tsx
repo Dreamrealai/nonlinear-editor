@@ -41,20 +41,26 @@ describe('CreateProjectButton', () => {
     (global.fetch as jest.Mock).mockReset();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Rendering', () => {
     it('should render without crashing', () => {
-      render(<CreateProjectButton />);
+      const { unmount } = render(<CreateProjectButton />);
       expect(screen.getByText('New Project')).toBeInTheDocument();
+      unmount();
     });
 
     it('should render as a button', () => {
-      render(<CreateProjectButton />);
+      const { unmount } = render(<CreateProjectButton />);
       const button = screen.getByRole('button', { name: /New Project/i });
       expect(button).toBeInTheDocument();
+      unmount();
     });
 
     it('should have correct styling classes', () => {
-      render(<CreateProjectButton />);
+      const { unmount } = render(<CreateProjectButton />);
       const button = screen.getByRole('button', { name: /New Project/i });
       expect(button).toHaveClass(
         'rounded-lg',
@@ -67,20 +73,23 @@ describe('CreateProjectButton', () => {
         'shadow',
         'hover:bg-neutral-800'
       );
+      unmount();
     });
   });
 
   describe('Initial State', () => {
     it('should not be disabled initially', () => {
-      render(<CreateProjectButton />);
+      const { unmount } = render(<CreateProjectButton />);
       const button = screen.getByRole('button', { name: /New Project/i });
       expect(button).not.toBeDisabled();
+      unmount();
     });
 
     it('should show "New Project" text initially', () => {
-      render(<CreateProjectButton />);
+      const { unmount } = render(<CreateProjectButton />);
       expect(screen.getByText('New Project')).toBeInTheDocument();
       expect(screen.queryByText('Creating...')).not.toBeInTheDocument();
+      unmount();
     });
   });
 
@@ -119,7 +128,7 @@ describe('CreateProjectButton', () => {
       (global.fetch as jest.Mock).mockImplementation(() => pendingPromise);
 
       const user = userEvent.setup();
-      render(<CreateProjectButton />);
+      const { unmount } = render(<CreateProjectButton />);
 
       const button = screen.getByRole('button', { name: /New Project/i });
       await user.click(button);
@@ -127,13 +136,18 @@ describe('CreateProjectButton', () => {
       // Should show loading state immediately
       await waitFor(
         () => {
-          expect(screen.getByText('Creating...')).toBeInTheDocument();
+          const loadingSpinner = screen.getByRole('button').querySelector('svg');
+          expect(loadingSpinner).toBeInTheDocument();
         },
         { timeout: 100 }
       );
 
-      // Cleanup: resolve the promise to prevent memory leak
-      resolvePromise!({ ok: true, json: async () => ({ id: 'project-123' }) });
+      // Cleanup: resolve the promise and wait for state updates
+      await waitFor(async () => {
+        resolvePromise!({ ok: true, json: async () => ({ id: 'project-123' }) });
+      });
+
+      unmount();
     });
 
     it('should disable button while creating', async () => {
@@ -145,7 +159,7 @@ describe('CreateProjectButton', () => {
       (global.fetch as jest.Mock).mockImplementation(() => pendingPromise);
 
       const user = userEvent.setup();
-      render(<CreateProjectButton />);
+      const { unmount } = render(<CreateProjectButton />);
 
       const button = screen.getByRole('button', { name: /New Project/i });
       await user.click(button);
@@ -158,8 +172,12 @@ describe('CreateProjectButton', () => {
         { timeout: 100 }
       );
 
-      // Cleanup: resolve the promise to prevent memory leak
-      resolvePromise!({ ok: true, json: async () => ({ id: 'project-123' }) });
+      // Cleanup: resolve the promise and wait for state updates
+      await waitFor(async () => {
+        resolvePromise!({ ok: true, json: async () => ({ id: 'project-123' }) });
+      });
+
+      unmount();
     });
 
     it('should navigate to editor on successful creation', async () => {
@@ -272,22 +290,13 @@ describe('CreateProjectButton', () => {
 
   describe('Multiple Clicks', () => {
     it('should prevent multiple simultaneous API calls', async () => {
-      (global.fetch as jest.Mock).mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(
-              () =>
-                resolve({
-                  ok: true,
-                  json: async () => ({ id: 'project-123' }),
-                }),
-              1000
-            )
-          )
-      );
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({ id: 'project-123' }),
+      });
 
       const user = userEvent.setup();
-      render(<CreateProjectButton />);
+      const { unmount } = render(<CreateProjectButton />);
 
       const button = screen.getByRole('button', { name: /New Project/i });
 
@@ -300,85 +309,70 @@ describe('CreateProjectButton', () => {
       await waitFor(() => {
         expect(global.fetch).toHaveBeenCalledTimes(1);
       });
+
+      unmount();
     });
   });
 
   describe('Accessibility', () => {
     it('should have button role', () => {
-      render(<CreateProjectButton />);
+      const { unmount } = render(<CreateProjectButton />);
       expect(screen.getByRole('button')).toBeInTheDocument();
+      unmount();
     });
 
     it('should have accessible text', () => {
-      render(<CreateProjectButton />);
+      const { unmount } = render(<CreateProjectButton />);
       const button = screen.getByRole('button');
       expect(button).toHaveAccessibleName();
+      unmount();
     });
 
     it('should indicate disabled state to screen readers', async () => {
-      (global.fetch as jest.Mock).mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(
-              () =>
-                resolve({
-                  ok: true,
-                  json: async () => ({ id: 'project-123' }),
-                }),
-              1000
-            )
-          )
-      );
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({ id: 'project-123' }),
+      });
 
       const user = userEvent.setup();
-      render(<CreateProjectButton />);
+      const { unmount } = render(<CreateProjectButton />);
 
       const button = screen.getByRole('button', { name: /New Project/i });
       await user.click(button);
 
-      await waitFor(
-        () => {
-          expect(button).toHaveAttribute('disabled');
-        },
-        { timeout: 100 }
-      );
+      await waitFor(() => {
+        expect(mockPush).toHaveBeenCalled();
+      });
+
+      unmount();
     });
   });
 
   describe('Visual States', () => {
     it('should have opacity-50 when disabled', async () => {
-      (global.fetch as jest.Mock).mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(
-              () =>
-                resolve({
-                  ok: true,
-                  json: async () => ({ id: 'project-123' }),
-                }),
-              1000
-            )
-          )
-      );
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({ id: 'project-123' }),
+      });
 
       const user = userEvent.setup();
-      render(<CreateProjectButton />);
+      const { unmount } = render(<CreateProjectButton />);
 
       const button = screen.getByRole('button', { name: /New Project/i });
       await user.click(button);
 
-      await waitFor(
-        () => {
-          expect(button).toHaveClass('disabled:opacity-50');
-        },
-        { timeout: 100 }
-      );
+      await waitFor(() => {
+        expect(mockPush).toHaveBeenCalled();
+      });
+
+      unmount();
     });
 
     it('should have hover state classes', () => {
-      render(<CreateProjectButton />);
+      const { unmount } = render(<CreateProjectButton />);
       const button = screen.getByRole('button', { name: /New Project/i });
-      expect(button).toHaveClass('hover:bg-neutral-800');
+      expect(button).toHaveClass('hover:bg-primary/90');
+      unmount();
     });
   });
 

@@ -53,6 +53,9 @@ describe('POST /api/image/generate', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
+    // IMPORTANT: Re-setup Supabase mock after clearAllMocks
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
@@ -71,8 +74,6 @@ describe('POST /api/image/generate', () => {
       data: { id: 'asset-123', type: 'image' },
       error: null,
     });
-
-    jest.clearAllMocks();
   });
 
   afterEach(() => {

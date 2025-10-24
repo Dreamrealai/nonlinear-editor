@@ -3,6 +3,7 @@ import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase
 import { ProjectService } from '@/lib/services/projectService';
 import { getCachedUserProjects } from '@/lib/cachedData';
 import { invalidateUserProjects } from '@/lib/cacheInvalidation';
+import { serverLogger } from '@/lib/serverLogger';
 
 /**
  * CACHING STRATEGY:
@@ -64,7 +65,7 @@ export default async function HomePage() {
       // Invalidate projects cache after creation
       await invalidateUserProjects(user.id);
     } catch (error) {
-      console.error('Failed to create default project:', error);
+      serverLogger.error({ error, userId: user.id }, 'Failed to create default project');
       // Redirect to a error page or show message
       redirect('/error?message=Failed to create project');
     }

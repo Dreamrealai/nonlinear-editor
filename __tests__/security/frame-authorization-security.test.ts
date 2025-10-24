@@ -112,6 +112,10 @@ describe('Frame Authorization Security Tests (NEW-MED-003)', () => {
     mockSupabase = createMockSupabaseClient();
     mockSupabaseForAuth = mockSupabase;
 
+    // IMPORTANT: Re-setup Supabase mock after clearAllMocks
+    const { createServerSupabaseClient } = require('@/lib/supabase');
+    createServerSupabaseClient.mockResolvedValue(mockSupabase);
+
     // Get mocked functions
     const auditModule = require('@/lib/auditLog');
     mockAuditLog = auditModule.auditLog;

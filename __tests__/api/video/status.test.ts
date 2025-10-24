@@ -52,7 +52,14 @@ jest.mock('@/lib/serverLogger', () => ({
 }));
 
 // Mock API response helpers
-jest.mock('@/lib/api/response');
+// Mock API response helpers - use actual implementation, only mock wrapper
+jest.mock('@/lib/api/response', () => {
+  const actual = jest.requireActual('@/lib/api/response');
+  return {
+    ...actual,
+    withErrorHandling: jest.fn((handler) => handler),
+  };
+});
 
 jest.mock('uuid', () => ({
   v4: jest.fn(() => 'mock-uuid'),
@@ -72,8 +79,10 @@ describe('GET /api/video/status', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    const { __getMockClient } = require('@/lib/supabase');
+    // IMPORTANT: Re-setup Supabase mock after clearAllMocks
+    const { __getMockClient, createServerSupabaseClient } = require('@/lib/supabase');
     mockSupabase = __getMockClient();
+    createServerSupabaseClient.mockResolvedValue(mockSupabase);
 
     // Setup default auth mock (needs to be reset after clearAllMocks)
     mockSupabase.auth.getUser.mockResolvedValue({

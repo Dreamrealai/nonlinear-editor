@@ -82,7 +82,7 @@ jest.mock('@/lib/api/response', () => {
     withErrorHandling: jest.fn((handler) => handler),
   };
 });
-
+\n
 // Mock server logger
 jest.mock('@/lib/serverLogger', () => ({
   serverLogger: {
@@ -293,7 +293,7 @@ describe('POST /api/ai/chat', () => {
       expect(data.field).toBe('chatHistory');
     });
 
-    it.skip('should return 400 for file exceeding max size', async () => {
+    it('should return 400 for file exceeding max size', async () => {
       mockAuthenticatedUser(mockSupabase);
       const formData = new FormData();
       formData.append('message', 'Check this image');
@@ -316,7 +316,7 @@ describe('POST /api/ai/chat', () => {
       expect(data.error).toContain('exceeds maximum size');
     });
 
-    it.skip('should return 400 for invalid file type', async () => {
+    it('should return 400 for invalid file type', async () => {
       mockAuthenticatedUser(mockSupabase);
       const formData = new FormData();
       formData.append('message', 'Check this file');
@@ -338,7 +338,7 @@ describe('POST /api/ai/chat', () => {
       expect(data.error).toContain('Invalid file type');
     });
 
-    it.skip('should return 400 for exceeding max file count', async () => {
+    it('should return 400 for exceeding max file count', async () => {
       mockAuthenticatedUser(mockSupabase);
       const formData = new FormData();
       formData.append('message', 'Check these files');
@@ -431,7 +431,7 @@ describe('POST /api/ai/chat', () => {
       });
     });
 
-    it.skip('should handle file attachments', async () => {
+    it('should handle file attachments', async () => {
       mockAuthenticatedUser(mockSupabase);
       const { chat } = require('@/lib/gemini');
       chat.mockResolvedValue('Image analyzed');
@@ -535,7 +535,7 @@ describe('POST /api/ai/chat', () => {
       expect(response.status).toBe(503);
     });
 
-    it('should return 500 for other Gemini errors', async () => {
+    it('should throw for other Gemini errors', async () => {
       mockAuthenticatedUser(mockSupabase);
       const { chat } = require('@/lib/gemini');
       chat.mockRejectedValue(new Error('Some other error'));
@@ -550,15 +550,13 @@ describe('POST /api/ai/chat', () => {
         body: formData,
       });
 
-      const response = await POST(mockRequest, { params: Promise.resolve({}) });
-
-      expect(response.status).toBe(500);
-      const data = await response.json();
-      expect(data.error).toBe('Internal server error');
+      await expect(POST(mockRequest, { params: Promise.resolve({}) })).rejects.toThrow(
+        'Some other error'
+      );
     });
   });
 
-  describe.skip('File Processing', () => {
+  describe('File Processing', () => {
     it('should accept valid image formats', async () => {
       mockAuthenticatedUser(mockSupabase);
       const { chat } = require('@/lib/gemini');

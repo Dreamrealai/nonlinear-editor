@@ -34,8 +34,21 @@
 import { createBrowserClient, createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import type { CookieOptions } from '@supabase/ssr';
-// Remove serverLogger import
-// import { serverLogger } from './serverLogger';
+
+// Conditional import of serverLogger for server-only contexts
+// Cannot use serverLogger in Edge Runtime or client components
+let serverLogger: any;
+if (typeof window === 'undefined' && typeof EdgeRuntime === 'undefined') {
+  try {
+    serverLogger = require('./serverLogger').serverLogger;
+  } catch {
+    // Fallback to console if serverLogger is not available
+    serverLogger = console;
+  }
+} else {
+  // Use console in browser/edge contexts
+  serverLogger = console;
+}
 
 const missingPublicConfigMessage =
   'Missing Supabase env vars. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to enable Supabase-backed features.';
@@ -183,14 +196,10 @@ export const createServerSupabaseClient = async () => {
         } catch (error) {
           // Server Components can't mutate cookies, but Route Handlers can
           // Log warning for debugging but don't crash
-          console.warn('Failed to set cookie in server component context', {
-            error,
-            cookieName: name,
-          });
-          // serverLogger.warn(
-          //   { error, cookieName: name },
-          //   'Failed to set cookie in server component context'
-          // );
+          serverLogger.warn(
+            { error, cookieName: name },
+            'Failed to set cookie in server component context'
+          );
         }
       },
 
@@ -200,14 +209,10 @@ export const createServerSupabaseClient = async () => {
           cookieStore.delete({ name, ...options });
         } catch (error) {
           // Log warning but continue (same rationale as set)
-          console.warn('Failed to remove cookie in server component context', {
-            error,
-            cookieName: name,
-          });
-          // serverLogger.warn(
-          //   { error, cookieName: name },
-          //   'Failed to remove cookie in server component context'
-          // );
+          serverLogger.warn(
+            { error, cookieName: name },
+            'Failed to remove cookie in server component context'
+          );
         }
       },
     },

@@ -14,6 +14,7 @@ if (process.env.NODE_ENV === 'development') {
   try {
     validateEnv({ throwOnError: false, mode: 'development' });
   } catch (error) {
+    // Note: Cannot use serverLogger in middleware (Edge Runtime incompatible)
     console.error('Environment validation failed:', error);
   }
 }
@@ -32,6 +33,7 @@ export async function middleware(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
+    // Note: Cannot use serverLogger in middleware (Edge Runtime incompatible)
     console.warn('Supabase not configured - skipping auth middleware');
     const response = NextResponse.next({
       request: {
