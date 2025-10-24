@@ -58,7 +58,12 @@ const ROLE_ICONS: Record<CollaboratorRole, React.ReactNode> = {
   viewer: <Eye className="h-4 w-4" />,
 };
 
-export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: ShareProjectDialogProps): React.ReactElement {
+export function ShareProjectDialog({
+  projectId,
+  projectName,
+  isOpen,
+  onClose,
+}: ShareProjectDialogProps): React.ReactElement {
   const [activeTab, setActiveTab] = useState<TabType>('invite');
   const [loading, setLoading] = useState(false);
 
@@ -326,7 +331,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
                   <option value="editor">Editor</option>
                 </select>
                 <Button onClick={sendInvite} disabled={loading || !inviteEmail}>
-                  {loading ? <LoadingSpinner size="sm" /> : 'Send Invite'}
+                  {loading ? <LoadingSpinner size={16} /> : 'Send Invite'}
                 </Button>
               </div>
 
@@ -334,25 +339,32 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
                 <LoadingSpinner />
               ) : invites.length > 0 ? (
                 <div className="space-y-2">
-                  {invites.map((invite): React.ReactElement => (
-                    <div
-                      key={invite.id}
-                      className="flex items-center justify-between p-3 border border-border rounded-md"
-                    >
-                      <div className="flex-1">
-                        <div className="font-medium">{invite.email}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {ROLE_LABELS[invite.role]} • {invite.status}
-                          {invite.expires_at && ` • Expires ${new Date(invite.expires_at).toLocaleDateString()}`}
+                  {invites.map(
+                    (invite): React.ReactElement => (
+                      <div
+                        key={invite.id}
+                        className="flex items-center justify-between p-3 border border-border rounded-md"
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium">{invite.email}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {ROLE_LABELS[invite.role]} • {invite.status}
+                            {invite.expires_at &&
+                              ` • Expires ${new Date(invite.expires_at).toLocaleDateString()}`}
+                          </div>
                         </div>
+                        {invite.status === 'pending' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(): Promise<void> => revokeInvite(invite.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
-                      {invite.status === 'pending' && (
-                        <Button variant="ghost" size="sm" onClick={(): Promise<void> => revokeInvite(invite.id)}>
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
+                    )
+                  )}
                 </div>
               ) : (
                 <div className="text-center text-muted-foreground py-8">No invites yet</div>
@@ -383,7 +395,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
                   <option value={0}>Never</option>
                 </select>
                 <Button onClick={createShareLink} disabled={loading}>
-                  {loading ? <LoadingSpinner size="sm" /> : 'Create Link'}
+                  {loading ? <LoadingSpinner size={16} /> : 'Create Link'}
                 </Button>
               </div>
 
@@ -391,46 +403,54 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
                 <LoadingSpinner />
               ) : shareLinks.length > 0 ? (
                 <div className="space-y-2">
-                  {shareLinks.map((link): React.ReactElement => (
-                    <div key={link.id} className="flex items-center gap-2 p-3 border border-border rounded-md">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          {ROLE_ICONS[link.role as CollaboratorRole]}
-                          <span className="font-medium">{ROLE_LABELS[link.role as CollaboratorRole]} Link</span>
+                  {shareLinks.map(
+                    (link): React.ReactElement => (
+                      <div
+                        key={link.id}
+                        className="flex items-center gap-2 p-3 border border-border rounded-md"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            {ROLE_ICONS[link.role as CollaboratorRole]}
+                            <span className="font-medium">
+                              {ROLE_LABELS[link.role as CollaboratorRole]} Link
+                            </span>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            Used {link.current_uses} times
+                            {link.expires_at && (
+                              <> • Expires {new Date(link.expires_at).toLocaleDateString()}</>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          Used {link.current_uses} times
-                          {link.expires_at && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(): Promise<void> => copyShareLink(link)}
+                          className="flex items-center gap-2"
+                        >
+                          {copiedLinkId === link.id ? (
                             <>
-                              {' '}
-                              • Expires {new Date(link.expires_at).toLocaleDateString()}
+                              <Check className="h-4 w-4" />
+                              Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="h-4 w-4" />
+                              Copy
                             </>
                           )}
-                        </div>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(): Promise<void> => deleteShareLink(link.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(): Promise<void> => copyShareLink(link)}
-                        className="flex items-center gap-2"
-                      >
-                        {copiedLinkId === link.id ? (
-                          <>
-                            <Check className="h-4 w-4" />
-                            Copied
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="h-4 w-4" />
-                            Copy
-                          </>
-                        )}
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={(): Promise<void> => deleteShareLink(link.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                    )
+                  )}
                 </div>
               ) : (
                 <div className="text-center text-muted-foreground py-8">No share links yet</div>
@@ -444,38 +464,44 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
               {loading ? (
                 <LoadingSpinner />
               ) : collaborators.length > 0 ? (
-                collaborators.map((collaborator): React.ReactElement => (
-                  <div
-                    key={collaborator.id}
-                    className="flex items-center justify-between p-3 border border-border rounded-md"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
-                        <span className="font-semibold text-purple-600 dark:text-purple-400">
-                          {collaborator.user_email?.[0]?.toUpperCase() || '?'}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="font-medium">{collaborator.user_email}</div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          {ROLE_ICONS[collaborator.role]}
-                          <span>{ROLE_LABELS[collaborator.role]}</span>
-                          {collaborator.is_online && (
-                            <>
-                              <span>•</span>
-                              <span className="text-green-500">Online</span>
-                            </>
-                          )}
+                collaborators.map(
+                  (collaborator): React.ReactElement => (
+                    <div
+                      key={collaborator.id}
+                      className="flex items-center justify-between p-3 border border-border rounded-md"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                          <span className="font-semibold text-purple-600 dark:text-purple-400">
+                            {collaborator.user_email?.[0]?.toUpperCase() || '?'}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="font-medium">{collaborator.user_email}</div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            {ROLE_ICONS[collaborator.role]}
+                            <span>{ROLE_LABELS[collaborator.role]}</span>
+                            {collaborator.is_online && (
+                              <>
+                                <span>•</span>
+                                <span className="text-green-500">Online</span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
+                      {collaborator.role !== 'owner' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(): Promise<void> => removeCollaborator(collaborator.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
-                    {collaborator.role !== 'owner' && (
-                      <Button variant="ghost" size="sm" onClick={(): Promise<void> => removeCollaborator(collaborator.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))
+                  )
+                )
               ) : (
                 <div className="text-center text-muted-foreground py-8">No collaborators yet</div>
               )}
@@ -488,17 +514,22 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
               {loading ? (
                 <LoadingSpinner />
               ) : activities.length > 0 ? (
-                activities.map((activity): React.ReactElement => (
-                  <div key={activity.id} className="flex items-start gap-3 p-3 border border-border rounded-md">
-                    <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div className="flex-1">
-                      <div className="font-medium">{activity.action.replace(/_/g, ' ')}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {new Date(activity.created_at).toLocaleString()}
+                activities.map(
+                  (activity): React.ReactElement => (
+                    <div
+                      key={activity.id}
+                      className="flex items-start gap-3 p-3 border border-border rounded-md"
+                    >
+                      <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                      <div className="flex-1">
+                        <div className="font-medium">{activity.action.replace(/_/g, ' ')}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(activity.created_at).toLocaleString()}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  )
+                )
               ) : (
                 <div className="text-center text-muted-foreground py-8">No activity yet</div>
               )}
