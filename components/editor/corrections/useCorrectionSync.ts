@@ -11,6 +11,7 @@ export function useCorrectionSync(selectedClip: Clip | null) {
   const [localContrast, setLocalContrast] = useState(100);
   const [localSaturation, setLocalSaturation] = useState(100);
   const [localHue, setLocalHue] = useState(0);
+  const [localBlur, setLocalBlur] = useState(0);
   const [localRotation, setLocalRotation] = useState(0);
   const [localScale, setLocalScale] = useState(1.0);
   const [localVolume, setLocalVolume] = useState(0);
@@ -26,6 +27,7 @@ export function useCorrectionSync(selectedClip: Clip | null) {
   const debouncedContrast = useDebounce(localContrast, 100);
   const debouncedSaturation = useDebounce(localSaturation, 100);
   const debouncedHue = useDebounce(localHue, 100);
+  const debouncedBlur = useDebounce(localBlur, 100);
   const debouncedRotation = useDebounce(localRotation, 100);
   const debouncedScale = useDebounce(localScale, 100);
   const debouncedVolume = useDebounce(localVolume, 100);
@@ -44,6 +46,7 @@ export function useCorrectionSync(selectedClip: Clip | null) {
         contrast: 100,
         saturation: 100,
         hue: 0,
+        blur: 0,
       };
       const transform = selectedClip.transform || {
         rotation: 0,
@@ -67,6 +70,7 @@ export function useCorrectionSync(selectedClip: Clip | null) {
       setLocalContrast(colorCorrection.contrast);
       setLocalSaturation(colorCorrection.saturation);
       setLocalHue(colorCorrection.hue);
+      setLocalBlur((colorCorrection as { blur?: number }).blur ?? 0);
       setLocalRotation(transform.rotation);
       setLocalScale(transform.scale);
       setLocalVolume(audioEffects.volume);
@@ -86,6 +90,7 @@ export function useCorrectionSync(selectedClip: Clip | null) {
       contrast: localContrast,
       saturation: localSaturation,
       hue: localHue,
+      blur: localBlur,
       rotation: localRotation,
       scale: localScale,
       volume: localVolume,
@@ -102,6 +107,7 @@ export function useCorrectionSync(selectedClip: Clip | null) {
       setContrast: setLocalContrast,
       setSaturation: setLocalSaturation,
       setHue: setLocalHue,
+      setBlur: setLocalBlur,
       setRotation: setLocalRotation,
       setScale: setLocalScale,
       setVolume: setLocalVolume,
@@ -118,6 +124,7 @@ export function useCorrectionSync(selectedClip: Clip | null) {
       contrast: debouncedContrast,
       saturation: debouncedSaturation,
       hue: debouncedHue,
+      blur: debouncedBlur,
       rotation: debouncedRotation,
       scale: debouncedScale,
       volume: debouncedVolume,

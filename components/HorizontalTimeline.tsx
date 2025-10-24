@@ -134,6 +134,9 @@ function HorizontalTimeline({
     updateTextOverlay,
     toggleClipLock,
     toggleAutoScroll,
+    groupSelectedClips,
+    ungroupClips,
+    getClipGroupId,
   } = useEditorStore(selectActions);
 
   // Playback state for auto-scroll
@@ -182,6 +185,24 @@ function HorizontalTimeline({
       updateClip,
     });
 
+  // Group/Ungroup callbacks
+  const handleGroupClips = useCallback(() => {
+    if (selectedClipIds.size >= 2) {
+      groupSelectedClips();
+    }
+  }, [selectedClipIds, groupSelectedClips]);
+
+  const handleUngroupClips = useCallback(() => {
+    // Get first selected clip's group ID
+    const firstSelectedId = Array.from(selectedClipIds)[0];
+    if (firstSelectedId) {
+      const groupId = getClipGroupId(firstSelectedId);
+      if (groupId) {
+        ungroupClips(groupId);
+      }
+    }
+  }, [selectedClipIds, getClipGroupId, ungroupClips]);
+
   // Keyboard shortcuts
   useTimelineKeyboardShortcuts({
     timeline,
@@ -196,6 +217,8 @@ function HorizontalTimeline({
     splitClipAtTime,
     toggleClipLock,
     onAddTransition,
+    onGroupClips: handleGroupClips,
+    onUngroupClips: handleUngroupClips,
   });
 
   // Zoom controls - memoized to prevent re-creation on every render

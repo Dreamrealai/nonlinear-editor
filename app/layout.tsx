@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { SupabaseProvider } from '@/components/providers/SupabaseProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
+import { PostHogProvider } from '@/components/providers/PostHogProvider';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { WebVitals } from '@/components/WebVitals';
 import { CSP_NONCE_HEADER } from '@/lib/security/csp';
@@ -138,10 +139,12 @@ export default async function RootLayout({
           Skip to main content
         </a>
         <ThemeProvider>
-          <WebVitals />
-          <ErrorBoundary name="RootLayout" context={{ page: 'root' }}>
-            <SupabaseProvider>{children}</SupabaseProvider>
-          </ErrorBoundary>
+          <PostHogProvider>
+            <WebVitals />
+            <ErrorBoundary name="RootLayout" context={{ page: 'root' }}>
+              <SupabaseProvider>{children}</SupabaseProvider>
+            </ErrorBoundary>
+          </PostHogProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -558,7 +558,7 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClo
           <PropertyRow label="Asset ID" value={clip.assetId} />
           <PropertyRow label="File Type" value={clip.mime} />
 
-          <div className="my-3 h-px bg-neutral-200" />
+          <div className="my-3 h-px bg-neutral-200 dark:bg-neutral-700" />
 
           <PropertyRow label="Duration" value={formatTimeMMSSCS(duration)} />
           <PropertyRow label="Timeline Position" value={formatTimeMMSSCS(clip.timelinePosition)} />
@@ -573,7 +573,7 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClo
             </>
           )}
 
-          <div className="my-3 h-px bg-neutral-200" />
+          <div className="my-3 h-px bg-neutral-200 dark:bg-neutral-700" />
 
           {clip.hasAudio !== undefined && (
             <PropertyRow label="Has Audio" value={clip.hasAudio ? 'Yes' : 'No'} />
@@ -593,8 +593,8 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClo
 
           {clip.colorCorrection && (
             <>
-              <div className="my-3 h-px bg-neutral-200" />
-              <div className="font-medium text-neutral-700">Color Correction</div>
+              <div className="my-3 h-px bg-neutral-200 dark:bg-neutral-700" />
+              <div className="font-medium text-neutral-700 dark:text-neutral-300">Color Correction</div>
               <PropertyRow label="Brightness" value={`${clip.colorCorrection.brightness}%`} />
               <PropertyRow label="Contrast" value={`${clip.colorCorrection.contrast}%`} />
               <PropertyRow label="Saturation" value={`${clip.colorCorrection.saturation}%`} />
@@ -604,8 +604,8 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClo
 
           {clip.transform && (
             <>
-              <div className="my-3 h-px bg-neutral-200" />
-              <div className="font-medium text-neutral-700">Transform</div>
+              <div className="my-3 h-px bg-neutral-200 dark:bg-neutral-700" />
+              <div className="font-medium text-neutral-700 dark:text-neutral-300">Transform</div>
               <PropertyRow label="Rotation" value={`${clip.transform.rotation}°`} />
               <PropertyRow label="Scale" value={`${Math.round(clip.transform.scale * 100)}%`} />
               {clip.transform.flipHorizontal && <PropertyRow label="Flip" value="Horizontal" />}
@@ -615,8 +615,8 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClo
 
           {clip.transitionToNext && clip.transitionToNext.type !== 'none' && (
             <>
-              <div className="my-3 h-px bg-neutral-200" />
-              <div className="font-medium text-neutral-700">Transition</div>
+              <div className="my-3 h-px bg-neutral-200 dark:bg-neutral-700" />
+              <div className="font-medium text-neutral-700 dark:text-neutral-300">Transition</div>
               <PropertyRow label="Type" value={clip.transitionToNext.type} />
               <PropertyRow label="Duration" value={`${clip.transitionToNext.duration.toFixed(2)}s`} />
             </>
@@ -626,7 +626,7 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClo
         <div className="mt-6 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-neutral-900 text-white rounded-md hover:bg-neutral-800 transition-colors text-sm font-medium"
+            className="px-4 py-2 bg-neutral-900 dark:bg-neutral-700 text-white rounded-md hover:bg-neutral-800 dark:hover:bg-neutral-600 transition-colors text-sm font-medium"
           >
             Close
           </button>
@@ -646,8 +646,8 @@ type PropertyRowProps = {
 
 const PropertyRow: React.FC<PropertyRowProps> = ({ label, value }) => (
   <div className="flex justify-between">
-    <span className="text-neutral-500">{label}:</span>
-    <span className="text-neutral-900 font-medium">{value}</span>
+    <span className="text-neutral-500 dark:text-neutral-400">{label}:</span>
+    <span className="text-neutral-900 dark:text-neutral-100 font-medium">{value}</span>
   </div>
 );
 

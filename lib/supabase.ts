@@ -283,6 +283,14 @@ export const createServiceSupabaseClient = () => {
       detectSessionInUrl: false, // No URL-based session detection (server-only)
       persistSession: false, // No session persistence (each operation is independent)
     },
+    db: {
+      schema: 'public',
+    },
+    global: {
+      headers: {
+        'x-application-name': 'genai-video-production',
+      },
+    },
   });
 };
 

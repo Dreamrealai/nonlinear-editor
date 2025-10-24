@@ -54,7 +54,7 @@ self.onmessage = async (e: MessageEvent<WaveformMessage>) => {
       data: filteredData,
     };
 
-    self.postMessage(response, [filteredData.buffer]);
+    self.postMessage(response, { transfer: [filteredData.buffer] });
   } catch (error) {
     // Send error back to main thread
     const response: WaveformResponse = {

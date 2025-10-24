@@ -510,6 +510,50 @@ export const useEditorStore = create<EditorStore>()(
           Object.assign(marker, patch);
         }
       }),
+
+    // ===== Guide Actions =====
+    addGuide: (guide) =>
+      set((state) => {
+        if (!state.timeline) return;
+        if (!state.timeline.guides) {
+          state.timeline.guides = [];
+        }
+        state.timeline.guides.push(guide);
+      }),
+    removeGuide: (id) =>
+      set((state) => {
+        if (!state.timeline?.guides) return;
+        state.timeline.guides = state.timeline.guides.filter((g) => g.id !== id);
+      }),
+    updateGuide: (id, patch) =>
+      set((state) => {
+        const guide = state.timeline?.guides?.find((g) => g.id === id);
+        if (guide) {
+          Object.assign(guide, patch);
+        }
+      }),
+    toggleGuideVisibility: (id) =>
+      set((state) => {
+        const guide = state.timeline?.guides?.find((g) => g.id === id);
+        if (guide) {
+          guide.visible = !guide.visible;
+        }
+      }),
+    toggleAllGuidesVisibility: () =>
+      set((state) => {
+        if (!state.timeline?.guides) return;
+        // If any guide is visible, hide all; otherwise show all
+        const anyVisible = state.timeline.guides.some((g) => g.visible !== false);
+        state.timeline.guides.forEach((guide) => {
+          guide.visible = !anyVisible;
+        });
+      }),
+    clearAllGuides: () =>
+      set((state) => {
+        if (!state.timeline) return;
+        state.timeline.guides = [];
+      }),
+
     updateTrack: (trackIndex, patch) =>
       set((state) => {
         if (!state.timeline) return;

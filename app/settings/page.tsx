@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { SubscriptionManager } from '@/components/SubscriptionManager';
 import { ActivityHistory } from '@/components/ActivityHistory';
+import { KeyboardShortcutsPanel } from '@/components/settings/KeyboardShortcutsPanel';
 import toast, { Toaster } from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 
@@ -348,8 +349,13 @@ export default function SettingsPage() {
           <ActivityHistory />
         </div>
 
+        {/* Keyboard Shortcuts - Full width */}
+        <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200 dark:border-neutral-700 dark:bg-neutral-800">
+          <KeyboardShortcutsPanel />
+        </div>
+
         {/* Danger Zone - Enhanced warning design */}
-        <div className="mt-8 rounded-2xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-red-50/50 p-6 shadow-sm">
+        <div className="mt-8 rounded-2xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-red-50/50 p-6 shadow-sm dark:border-red-800 dark:bg-gradient-to-br dark:from-red-900/20 dark:to-red-900/10">
           <div className="flex items-start gap-4">
             <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-red-100">
               <svg

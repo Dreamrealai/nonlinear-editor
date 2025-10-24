@@ -89,18 +89,24 @@ export function ExportModal({ isOpen, onClose, projectId, timeline }: ExportModa
     }
   };
 
-  const handleExport = async () => {
+  const handleExport = async (): Promise<void> => {
     if (!timeline) {
       setFeedback({ type: 'error', message: 'No timeline to export' });
       toast.error('No timeline to export');
       return;
     }
 
-    setIsLoading(true);
+    if (!selectedPresetId) {
+      setFeedback({ type: 'error', message: 'Please select an export preset' });
+      toast.error('Please select an export preset');
+      return;
+    }
+
+    setIsExporting(true);
     setFeedback(null);
 
     try {
-      const preset = EXPORT_PRESETS[selectedPreset];
+      const preset = presets.find((p) => p.id === selectedPresetId);
       if (!preset) {
         throw new Error('Invalid export preset selected');
       }
@@ -115,14 +121,7 @@ export function ExportModal({ isOpen, onClose, projectId, timeline }: ExportModa
           timeline: {
             clips: timeline.clips,
           },
-          outputSpec: {
-            width: preset.width,
-            height: preset.height,
-            fps: preset.fps,
-            vBitrateK: preset.vBitrateK,
-            aBitrateK: preset.aBitrateK,
-            format: preset.format,
-          },
+          outputSpec: preset.settings,
         }),
       });
 
@@ -146,9 +145,50 @@ export function ExportModal({ isOpen, onClose, projectId, timeline }: ExportModa
       toast.error(errorMessage);
       browserLogger.error({ error: err, projectId }, 'Failed to start export');
     } finally {
-      setIsLoading(false);
+      setIsExporting(false);
     }
   };
+
+  const handleDeletePreset = async (presetId: string): Promise<void> => {
+    const preset = presets.find((p) => p.id === presetId);
+    if (!preset) return;
+
+    if (!preset.is_custom) {
+      toast.error('Platform presets cannot be deleted');
+      return;
+    }
+
+    if (!window.confirm(`Delete preset "${preset.name}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/export-presets/${presetId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete preset');
+      }
+
+      toast.success('Preset deleted successfully');
+      await fetchPresets();
+
+      // Clear selection if deleted preset was selected
+      if (selectedPresetId === presetId) {
+        setSelectedPresetId(presets.length > 0 ? presets[0].id : null);
+      }
+    } catch (err) {
+      browserLogger.error({ error: err, presetId }, 'Failed to delete preset');
+      toast.error('Failed to delete preset');
+    }
+  };
+
+  const selectedPreset = presets.find((p) => p.id === selectedPresetId);
+
+  // Group presets by platform vs custom
+  const platformPresets = presets.filter((p) => p.is_platform);
+  const customPresets = presets.filter((p) => p.is_custom);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -236,7 +276,14 @@ export function ExportModal({ isOpen, onClose, projectId, timeline }: ExportModa
             Cancel
           </Button>
           <Button onClick={handleExport} disabled={isLoading || !timeline}>
-            {isLoading ? <LoadingSpinner size={20} /> : 'Start Export'}
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <LoadingSpinner size={16} />
+                <span>Starting export...</span>
+              </div>
+            ) : (
+              'Start Export'
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
