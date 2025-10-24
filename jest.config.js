@@ -15,6 +15,8 @@ const customJestConfig = {
   moduleNameMapper: {
     // Handle module aliases
     '^@/(.*)$': '<rootDir>/$1',
+    // Mock lucide-react to avoid ESM issues
+    '^lucide-react$': '<rootDir>/test-utils/mocks/lucide-react.js',
   },
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',
@@ -26,11 +28,60 @@ const customJestConfig = {
     '!**/.next/**',
     '!**/coverage/**',
     '!**/jest.config.js',
+    '!**/jest.setup*.js',
+    '!**/__tests__/**',
+    '!**/test-utils/**',
+    '!**/types/**',
+    '!app/**/layout.tsx',
+    '!app/**/loading.tsx',
+    '!app/**/error.tsx',
+    '!app/**/not-found.tsx',
+    '!lib/supabase/client.ts',
+    '!lib/supabase/server.ts',
   ],
+  coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70,
+    },
+  },
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
   testPathIgnorePatterns: ['/node_modules/', '/.next/', '/e2e/', '/k6/', '/__tests__/helpers/'],
-  transformIgnorePatterns: ['/node_modules/', '^.+\\.module\\.(css|sass|scss)$'],
+  // Transform ESM packages - critical for lucide-react and other ESM-only packages
+  transformIgnorePatterns: [
+    'node_modules/(?!(' +
+      'lucide-react|' +
+      '@radix-ui|' +
+      '@scalar|' +
+      'uuid|' +
+      'nanoid|' +
+      'bailiff|' +
+      'decode-uri-component|' +
+      'filter-obj|' +
+      'query-string|' +
+      'split-on-first|' +
+      '@google-cloud' +
+      ')/)',
+  ],
   modulePathIgnorePatterns: ['<rootDir>/.next/standalone'],
+  // Memory and performance optimizations
+  maxWorkers: 3,
+  workerIdleMemoryLimit: '1024MB',
+  // Reduce memory by clearing caches
+  clearMocks: true,
+  resetMocks: false,
+  restoreMocks: false,
+  // Faster test execution
+  maxConcurrency: 5,
+  // Detect memory leaks
+  detectLeaks: false,
+  detectOpenHandles: false,
+  // Force exit to prevent hanging
+  forceExit: true,
+  // Timeout for tests
+  testTimeout: 10000,
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
