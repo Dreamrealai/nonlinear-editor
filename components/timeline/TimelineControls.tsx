@@ -1,7 +1,7 @@
 'use client';
 
-import type React from 'react';
 import { formatTime } from '@/lib/utils/timelineUtils';
+import React from 'react';
 
 type TimelineControlsProps = {
   zoom: number;

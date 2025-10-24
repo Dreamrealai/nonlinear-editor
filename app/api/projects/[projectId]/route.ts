@@ -25,8 +25,8 @@ export async function DELETE(
     try {
       validateUUID(projectId, 'Project ID');
     } catch (error) {
-      if (error instanceof ValidationError) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+      if (error instanceof ValidationError || (error as Error).name === 'ValidationError') {
+        return NextResponse.json({ error: (error as Error).message }, { status: 400 });
       }
       throw error;
     }

@@ -1,4 +1,3 @@
-import type React from 'react';
 import type { Transform } from '@/types/timeline';
 
 interface TransformSectionProps {

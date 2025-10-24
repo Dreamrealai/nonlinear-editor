@@ -11,6 +11,11 @@ const withBundleAnalyzer =
     : (config: NextConfig) => config;
 
 const nextConfig: NextConfig = {
+  // Skip type checking during bundle analysis
+  typescript: {
+    ignoreBuildErrors: process.env.ANALYZE === 'true',
+  },
+
   // Production optimizations
   compiler: {
     // Remove console.log in production but keep warnings and errors

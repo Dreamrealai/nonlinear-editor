@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import { useCorrectionSync } from './corrections/useCorrectionSync';
 import { useCorrectionHandlers } from './corrections/useCorrectionHandlers';

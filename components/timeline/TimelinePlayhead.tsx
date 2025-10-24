@@ -1,6 +1,6 @@
 'use client';
 
-import type React from 'react';
+import React from 'react';
 
 type TimelinePlayheadProps = {
   currentTime: number;

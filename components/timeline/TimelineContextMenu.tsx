@@ -1,6 +1,5 @@
 'use client';
 
-import type React from 'react';
 
 type TimelineContextMenuProps = {
   clipId: string;

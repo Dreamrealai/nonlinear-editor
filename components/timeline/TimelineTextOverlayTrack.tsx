@@ -1,8 +1,8 @@
 'use client';
+import React from 'react';
 
-import type React from 'react';
-import type { TextOverlay } from '@/types/timeline';
 import { TimelineTextOverlayRenderer } from './TimelineTextOverlayRenderer';
+import type { TextOverlay } from '@/types/timeline';
 
 type TimelineTextOverlayTrackProps = {
   textOverlays: TextOverlay[];

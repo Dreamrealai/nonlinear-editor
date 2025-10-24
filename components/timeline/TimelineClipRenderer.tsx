@@ -1,8 +1,8 @@
 'use client';
+import React from 'react';
 
-import type React from 'react';
 import Image from 'next/image';
-import type { Clip } from '@/types/timeline';
+import { Clip } from '@/types/timeline';
 import { AudioWaveform } from '../AudioWaveform';
 import { getClipFileName } from '@/lib/utils/timelineUtils';
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';

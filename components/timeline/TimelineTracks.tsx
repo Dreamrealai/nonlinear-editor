@@ -1,8 +1,8 @@
 'use client';
+import React from 'react';
 
-import type React from 'react';
-import type { Clip } from '@/types/timeline';
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
+import type { Clip } from '@/types/timeline';
 
 const { TRACK_HEIGHT, MIN_TRACKS, MAX_TRACKS } = TIMELINE_CONSTANTS;
 

@@ -18,7 +18,7 @@
  */
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import TextOverlayRenderer from './TextOverlayRenderer';
 import TextOverlayEditor from './TextOverlayEditor';
