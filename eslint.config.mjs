@@ -31,7 +31,11 @@ export default [
       'react/prop-types': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
-        { argsIgnorePattern: '^_', ignoreRestSiblings: true, varsIgnorePattern: '^React$' },
+        {
+          argsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+          varsIgnorePattern: '^React$|^__filename$|^__dirname$',
+        },
       ],
       // Disable accessibility rules that require significant refactoring
       // These can be re-enabled incrementally as components are updated
