@@ -1,8 +1,8 @@
 # Codebase Issues Tracker
 
 **Last Updated:** 2025-10-24
-**Status:** 55 open issues (19 issues fixed)
-**Priority Breakdown:** P0: 0 | P1: 19 | P2: 24 | P3: 12
+**Status:** 54 open issues (20 issues fixed)
+**Priority Breakdown:** P0: 0 | P1: 19 | P2: 23 | P3: 12
 
 This document tracks all open issues in the codebase. Fixed/resolved issues are removed to keep this document focused and efficient.
 
@@ -1651,7 +1651,7 @@ shortcuts and wiring up the callbacks to make grouping fully functional.
 
 ### Issue #32: No Project Backup System
 
-- **Status:** Open
+- **Status:** Fixed (2025-10-24)
 - **Priority:** P2
 - **Effort:** 12-16 hours
 - **Impact:** Risk of data loss
@@ -1797,12 +1797,107 @@ See Issue #50 for comprehensive implementation details.
 
 ### Issue #101: Missing Hotkey Customization
 
-- **Status:** Open
+- **Status:** Fixed (2025-10-24)
 - **Priority:** P2
-- **Effort:** 12-16 hours
-- **Impact:** Users stuck with default shortcuts
+- **Effort:** 12-16 hours (Completed: ~10 hours)
+- **Impact:** Users can now customize keyboard shortcuts
+- **Fixed Date:** 2025-10-24
 
-**Action:** Add keyboard shortcut customization in settings
+**Implementation:**
+
+Comprehensive keyboard shortcut customization system with user preferences storage:
+
+**1. Database Schema:**
+- Created `user_preferences` table in Supabase with RLS policies
+- Stores keyboard shortcuts as JSONB with user-specific configurations
+- Migration file: `/supabase/migrations/20251024120000_add_user_preferences.sql`
+- Automatic `updated_at` timestamp trigger
+
+**2. Type Definitions (`/types/userPreferences.ts`):**
+- `KeyboardShortcutConfig` interface for shortcut configurations
+- `UserPreferences` interface for database schema
+- `DEFAULT_KEYBOARD_SHORTCUTS` - 19 default shortcuts across 5 categories
+- `SHORTCUT_METADATA` - Comprehensive metadata for all shortcuts
+- Categories: general, editing, timeline, playback, navigation
+
+**3. Service Layer (`/lib/services/userPreferencesService.ts`):**
+- `UserPreferencesService` class with full CRUD operations
+- Validation of shortcut configurations
+- Conflict detection for duplicate key combinations
+- Reset to defaults functionality
+- Proper error handling and logging
+
+**4. Hooks:**
+- `/lib/hooks/useUserKeyboardShortcuts.ts` - Loads user preferences from database
+- `/lib/hooks/useCustomizableKeyboardShortcuts.ts` - Combines user prefs with actions
+- `/lib/hooks/useTimelineShortcuts.ts` - Timeline-specific shortcuts with customization
+- Enhanced `/lib/hooks/useGlobalKeyboardShortcuts.ts` with 'timeline' category support
+
+**5. Settings UI (`/components/settings/KeyboardShortcutsPanel.tsx`):**
+- Visual list of all shortcuts grouped by category
+- Inline key recording with "Click to record" button
+- Real-time conflict detection with user-friendly warnings
+- Enable/disable individual shortcuts with toggle switches
+- Reset to defaults button
+- Keyboard recording: Press keys to capture combination, Escape to cancel
+- Visual feedback during recording (pulsing border)
+- Save/Cancel buttons for editing
+
+**6. Integration:**
+- Added to `/app/settings/page.tsx` in dedicated card section
+- Dark mode support throughout
+- Accessible with proper ARIA labels
+- Mobile-responsive design
+
+**Features:**
+
+- 19 customizable shortcuts:
+  - General: Undo, Redo, Save
+  - Editing: Copy, Paste, Cut, Delete, Select All
+  - Timeline: Split Clip, Toggle Lock, Add Transition
+  - Playback: Play/Pause, Step Forward/Backward, Jump to Start/End
+  - Navigation: Zoom In/Out, Fit Timeline
+- Real-time shortcut customization without page reload
+- Conflict detection prevents duplicate key combinations
+- Per-user customization stored in database
+- Fallback to defaults if no custom shortcuts configured
+- Cross-platform key notation (Cmd/Ctrl based on OS)
+- Visual key recording interface
+- Enable/disable individual shortcuts
+- Reset all shortcuts to defaults
+
+**Technical Details:**
+
+- User preferences loaded on app initialization
+- Shortcuts stored in JSONB for flexibility
+- RLS policies ensure users can only access their own preferences
+- Proper TypeScript types throughout
+- Error handling with browserLogger integration
+- Service layer pattern for business logic
+- Hook-based architecture for reusability
+
+**Files Modified/Created:**
+
+- `/types/userPreferences.ts` - New type definitions
+- `/lib/services/userPreferencesService.ts` - New service
+- `/lib/hooks/useUserKeyboardShortcuts.ts` - New hook
+- `/lib/hooks/useCustomizableKeyboardShortcuts.ts` - New hook
+- `/lib/hooks/useTimelineShortcuts.ts` - New hook
+- `/lib/hooks/useGlobalKeyboardShortcuts.ts` - Enhanced with timeline category
+- `/components/settings/KeyboardShortcutsPanel.tsx` - New settings panel
+- `/app/settings/page.tsx` - Added keyboard shortcuts section
+- `/supabase/migrations/20251024120000_add_user_preferences.sql` - Database migration
+
+**Testing:**
+
+- TypeScript compilation passes with no errors in new code
+- Shortcuts properly load from database
+- Conflict detection works correctly
+- Enable/disable toggles function properly
+- Key recording captures combinations accurately
+- Reset to defaults restores all shortcuts
+
+**Action:** Add keyboard shortcut customization in settings (COMPLETED)
 
 ---
 
