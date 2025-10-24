@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import type React from 'react';
 import type { Clip } from '@/types/timeline';
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
 

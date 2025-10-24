@@ -34,7 +34,8 @@
 import { createBrowserClient, createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import type { CookieOptions } from '@supabase/ssr';
-import { serverLogger } from './serverLogger';
+// Remove serverLogger import
+// import { serverLogger } from './serverLogger';
 
 const missingPublicConfigMessage =
   'Missing Supabase env vars. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to enable Supabase-backed features.';
@@ -182,10 +183,14 @@ export const createServerSupabaseClient = async () => {
         } catch (error) {
           // Server Components can't mutate cookies, but Route Handlers can
           // Log warning for debugging but don't crash
-          serverLogger.warn(
-            { error, cookieName: name },
-            'Failed to set cookie in server component context'
-          );
+          console.warn('Failed to set cookie in server component context', {
+            error,
+            cookieName: name,
+          });
+          // serverLogger.warn(
+          //   { error, cookieName: name },
+          //   'Failed to set cookie in server component context'
+          // );
         }
       },
 
@@ -195,10 +200,14 @@ export const createServerSupabaseClient = async () => {
           cookieStore.delete({ name, ...options });
         } catch (error) {
           // Log warning but continue (same rationale as set)
-          serverLogger.warn(
-            { error, cookieName: name },
-            'Failed to remove cookie in server component context'
-          );
+          console.warn('Failed to remove cookie in server component context', {
+            error,
+            cookieName: name,
+          });
+          // serverLogger.warn(
+          //   { error, cookieName: name },
+          //   'Failed to remove cookie in server component context'
+          // );
         }
       },
     },
@@ -263,7 +272,6 @@ export const createServiceSupabaseClient = () => {
     },
   });
 };
-
 
 /**
  * Ensures a URL has the https:// protocol

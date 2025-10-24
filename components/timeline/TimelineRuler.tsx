@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import type React from 'react';
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
 
 const { RULER_HEIGHT } = TIMELINE_CONSTANTS;

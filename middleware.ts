@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { validateEnv } from './lib/validateEnv';
-import { serverLogger } from './lib/serverLogger';
 
 // Validate environment variables on startup (development only)
 // This runs once when the middleware module is first loaded
@@ -9,7 +8,7 @@ if (process.env.NODE_ENV === 'development') {
   try {
     validateEnv({ throwOnError: false, mode: 'development' });
   } catch (error) {
-    serverLogger.error({ error }, 'Environment validation failed');
+    console.error('Environment validation failed:', error);
   }
 }
 
@@ -20,7 +19,7 @@ export async function middleware(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    serverLogger.warn('Supabase not configured - skipping auth middleware');
+    console.warn('Supabase not configured - skipping auth middleware');
     return NextResponse.next({
       request: {
         headers: request.headers,

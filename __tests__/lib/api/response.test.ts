@@ -19,28 +19,24 @@ import {
 import { HttpStatusCode } from '@/lib/errors/errorCodes';
 
 // Mock NextResponse for Jest environment
-jest.mock('next/server', () => {
-  const originalModule = jest.requireActual('next/server');
-  return {
-    ...originalModule,
-    NextResponse: {
-      json: (body: unknown, init?: { status?: number; headers?: Record<string, string> }) => {
-        const response = new Response(JSON.stringify(body), {
-          status: init?.status || 200,
-          headers: {
-            'Content-Type': 'application/json',
-            ...init?.headers,
-          },
-        }) as Response & { json: () => Promise<unknown> };
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: (body: unknown, init?: { status?: number; headers?: Record<string, string> }) => {
+      const response = new Response(JSON.stringify(body), {
+        status: init?.status || 200,
+        headers: {
+          'Content-Type': 'application/json',
+          ...init?.headers,
+        },
+      }) as Response & { json: () => Promise<unknown> };
 
-        // Add custom json() method for testing
-        response.json = () => Promise.resolve(body);
+      // Add custom json() method for testing
+      response.json = () => Promise.resolve(body);
 
-        return response;
-      },
+      return response;
     },
-  };
-});
+  },
+}));
 
 describe('API Response Utilities', () => {
   describe('errorResponse', () => {
