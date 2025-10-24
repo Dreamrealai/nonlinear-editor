@@ -298,7 +298,8 @@ export function AssetPanel({
               {asset.metadata?.thumbnail ? (
                 <Image
                   src={asset.metadata.thumbnail}
-                  alt=""
+                  alt={asset.metadata?.filename ?? `${asset.type} asset`}
+                  title={asset.metadata?.filename}
                   width={112}
                   height={64}
                   className="h-16 w-28 rounded-md object-cover"

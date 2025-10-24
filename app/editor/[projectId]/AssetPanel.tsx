@@ -271,7 +271,12 @@ export function AssetPanel({
               {asset.metadata?.thumbnail ? (
                 <NextImage
                   src={asset.metadata.thumbnail}
-                  alt=""
+                  alt={
+                    asset.metadata?.filename ??
+                    extractFileName(asset.storage_url) ??
+                    `${asset.type} asset`
+                  }
+                  title={asset.metadata?.filename ?? extractFileName(asset.storage_url)}
                   width={112}
                   height={64}
                   className="h-16 w-28 rounded-md object-cover"
