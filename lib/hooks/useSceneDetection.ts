@@ -53,31 +53,43 @@ export function useSceneDetection(
       if (!res.ok) {
         const errorMsg = json.details
           ? `${json.error || 'Scene detection failed'}: ${json.details}`
-          : (json.error || 'Scene detection failed');
+          : json.error || 'Scene detection failed';
         throw new Error(errorMsg);
       }
 
-      browserLogger.info({ projectId, assetId: latestVideo.id, sceneCount: json.scenes?.length }, 'Scenes detected successfully');
+      browserLogger.info(
+        { projectId, assetId: latestVideo.id, sceneCount: json.scenes?.length },
+        'Scenes detected successfully'
+      );
       toast.success(`Detected ${json.scenes?.length ?? 0} scenes`, { id: 'detect-scenes' });
 
       // Add scenes as clips to timeline
       if (json.scenes && Array.isArray(json.scenes) && timeline) {
-        const newClips: Clip[] = json.scenes.map((scene: { startTime: number; endTime: number }, index: number) => ({
-          id: uuid(),
-          assetId: latestVideo.id,
-          filePath: latestVideo.storage_url,
-          mime: latestVideo.metadata?.mimeType ?? 'video/mp4',
-          start: scene.startTime,
-          end: scene.endTime,
-          sourceDuration: latestVideo.duration_seconds,
-          timelinePosition: index > 0 ? json.scenes.slice(0, index).reduce((acc: number, s: { startTime: number; endTime: number }) => acc + (s.endTime - s.startTime), 0) : 0,
-          trackIndex: 0,
-          crop: null,
-          transitionToNext: { type: 'none', duration: 0.5 },
-          previewUrl: latestVideo.metadata?.sourceUrl ?? null,
-          thumbnailUrl: latestVideo.metadata?.thumbnail ?? null,
-          hasAudio: latestVideo.type !== 'image',
-        }));
+        // O(n) instead of O(n²) - compute cumulative durations once
+        let cumulativeDuration = 0;
+        const newClips: Clip[] = json.scenes.map(
+          (scene: { startTime: number; endTime: number }) => {
+            const timelinePosition = cumulativeDuration;
+            cumulativeDuration += scene.endTime - scene.startTime;
+
+            return {
+              id: uuid(),
+              assetId: latestVideo.id,
+              filePath: latestVideo.storage_url,
+              mime: latestVideo.metadata?.mimeType ?? 'video/mp4',
+              start: scene.startTime,
+              end: scene.endTime,
+              sourceDuration: latestVideo.duration_seconds,
+              timelinePosition,
+              trackIndex: 0,
+              crop: null,
+              transitionToNext: { type: 'none', duration: 0.5 },
+              previewUrl: latestVideo.metadata?.sourceUrl ?? null,
+              thumbnailUrl: latestVideo.metadata?.thumbnail ?? null,
+              hasAudio: latestVideo.type !== 'image',
+            };
+          }
+        );
 
         setTimeline({
           ...timeline,
@@ -87,7 +99,9 @@ export function useSceneDetection(
       }
     } catch (error) {
       browserLogger.error({ error, projectId }, 'Scene detection failed');
-      toast.error(error instanceof Error ? error.message : 'Scene detection failed', { id: 'detect-scenes' });
+      toast.error(error instanceof Error ? error.message : 'Scene detection failed', {
+        id: 'detect-scenes',
+      });
     } finally {
       setSceneDetectPending(false);
     }

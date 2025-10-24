@@ -244,32 +244,30 @@ export function useEditorHandlers({
 
       // Optionally: add scenes as clips to timeline
       if (json.scenes && Array.isArray(json.scenes) && timeline) {
+        // O(n) instead of O(n²) - compute cumulative durations once
+        let cumulativeDuration = 0;
         const newClips: Clip[] = json.scenes.map(
-          (scene: { startTime: number; endTime: number }, index: number) => ({
-            id: uuid(),
-            assetId: latestVideo.id,
-            filePath: latestVideo.storage_url,
-            mime: latestVideo.metadata?.mimeType ?? 'video/mp4',
-            start: scene.startTime,
-            end: scene.endTime,
-            sourceDuration: latestVideo.duration_seconds,
-            timelinePosition:
-              index > 0
-                ? json.scenes
-                    .slice(0, index)
-                    .reduce(
-                      (acc: number, s: { startTime: number; endTime: number }) =>
-                        acc + (s.endTime - s.startTime),
-                      0
-                    )
-                : 0,
-            trackIndex: 0,
-            crop: null,
-            transitionToNext: { type: 'none', duration: 0.5 },
-            previewUrl: latestVideo.metadata?.sourceUrl ?? null,
-            thumbnailUrl: latestVideo.metadata?.thumbnail ?? null,
-            hasAudio: latestVideo.type !== 'image',
-          })
+          (scene: { startTime: number; endTime: number }) => {
+            const timelinePosition = cumulativeDuration;
+            cumulativeDuration += scene.endTime - scene.startTime;
+
+            return {
+              id: uuid(),
+              assetId: latestVideo.id,
+              filePath: latestVideo.storage_url,
+              mime: latestVideo.metadata?.mimeType ?? 'video/mp4',
+              start: scene.startTime,
+              end: scene.endTime,
+              sourceDuration: latestVideo.duration_seconds,
+              timelinePosition,
+              trackIndex: 0,
+              crop: null,
+              transitionToNext: { type: 'none', duration: 0.5 },
+              previewUrl: latestVideo.metadata?.sourceUrl ?? null,
+              thumbnailUrl: latestVideo.metadata?.thumbnail ?? null,
+              hasAudio: latestVideo.type !== 'image',
+            };
+          }
         );
 
         setTimeline({
@@ -821,7 +819,9 @@ export function useEditorHandlers({
       const clip = timeline.clips.find((c) => c.id === clipId);
       if (!clip) return;
 
-      const asset = assets.find((a) => a.id === clip.assetId);
+      // O(1) lookup using Map instead of O(n) find
+      const assetMap = new Map(assets.map((a) => [a.id, a]));
+      const asset = assetMap.get(clip.assetId);
       if (!asset) {
         toast.error('Asset not found for clip');
         return;
@@ -907,7 +907,9 @@ export function useEditorHandlers({
       const clip = timeline.clips.find((c) => c.id === clipId);
       if (!clip) return;
 
-      const asset = assets.find((a) => a.id === clip.assetId);
+      // O(1) lookup using Map instead of O(n) find
+      const assetMap = new Map(assets.map((a) => [a.id, a]));
+      const asset = assetMap.get(clip.assetId);
       if (!asset) {
         toast.error('Asset not found for clip');
         return;
@@ -929,7 +931,9 @@ export function useEditorHandlers({
       const clip = timeline.clips.find((c) => c.id === clipId);
       if (!clip) return;
 
-      const asset = assets.find((a) => a.id === clip.assetId);
+      // O(1) lookup using Map instead of O(n) find
+      const assetMap = new Map(assets.map((a) => [a.id, a]));
+      const asset = assetMap.get(clip.assetId);
       if (!asset) {
         toast.error('Asset not found for clip');
         return;
@@ -961,7 +965,9 @@ export function useEditorHandlers({
     const clip = timeline.clips.find((c) => c.id === selectedClipId);
     if (!clip) return;
 
-    const asset = assets.find((a) => a.id === clip.assetId);
+    // O(1) lookup using Map instead of O(n) find
+    const assetMap = new Map(assets.map((a) => [a.id, a]));
+    const asset = assetMap.get(clip.assetId);
     if (!asset) {
       toast.error('Asset not found for clip');
       return;

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { browserLogger } from '@/lib/browserLogger';
+import toast from 'react-hot-toast';
 
 interface AssetRow {
   id: string;
@@ -30,7 +31,9 @@ export function useVideoExtraction(
       setAssetVideoUrl(null);
       return;
     }
-    const asset = assets.find((a) => a.id === selectedAssetId);
+    // O(1) lookup using Map instead of O(n) find
+    const assetMap = new Map(assets.map((a) => [a.id, a]));
+    const asset = assetMap.get(selectedAssetId);
     if (asset) {
       void signStoragePath(asset.storage_url).then(setAssetVideoUrl);
     }
@@ -78,28 +81,27 @@ export function useVideoExtraction(
 
       const currentTimeMs = Math.round(video.currentTime * 1000);
       const fileName = `${selectedAssetId}/custom/${Date.now()}-${currentTimeMs}ms.png`;
-      const { error: uploadError } = await supabase.storage
-        .from('frames')
-        .upload(fileName, blob, {
-          contentType: 'image/png',
-          upsert: false,
-        });
+      const { error: uploadError } = await supabase.storage.from('frames').upload(fileName, blob, {
+        contentType: 'image/png',
+        upsert: false,
+      });
 
       if (uploadError) throw uploadError;
 
       const storagePath = `supabase://frames/${fileName}`;
-      const { error: insertError } = await supabase
-        .from('scene_frames')
-        .insert({
-          project_id: assets.find((a) => a.id === selectedAssetId)?.metadata?.project_id,
-          asset_id: selectedAssetId,
-          scene_id: null,
-          kind: 'custom',
-          t_ms: currentTimeMs,
-          storage_path: storagePath,
-          width: canvas.width,
-          height: canvas.height,
-        });
+      // O(1) lookup using Map instead of O(n) find
+      const assetMap = new Map(assets.map((a) => [a.id, a]));
+      const currentAsset = assetMap.get(selectedAssetId);
+      const { error: insertError } = await supabase.from('scene_frames').insert({
+        project_id: currentAsset?.metadata?.project_id,
+        asset_id: selectedAssetId,
+        scene_id: null,
+        kind: 'custom',
+        t_ms: currentTimeMs,
+        storage_path: storagePath,
+        width: canvas.width,
+        height: canvas.height,
+      });
 
       if (insertError) throw insertError;
 
@@ -107,7 +109,7 @@ export function useVideoExtraction(
       setShowVideoPlayer(false);
     } catch (error) {
       browserLogger.error({ error, selectedAssetId }, 'Failed to extract frame');
-      alert('Failed to extract frame. Please try again.');
+      toast.error('Failed to extract frame. Please try again.');
     } finally {
       setIsExtractingFrame(false);
     }
@@ -118,7 +120,7 @@ export function useVideoExtraction(
     if (!file || !selectedAssetId) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      toast.error('Please select an image file');
       return;
     }
 
@@ -134,28 +136,27 @@ export function useVideoExtraction(
       URL.revokeObjectURL(imageUrl);
 
       const fileName = `${selectedAssetId}/custom/${Date.now()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('frames')
-        .upload(fileName, file, {
-          contentType: file.type,
-          upsert: false,
-        });
+      const { error: uploadError } = await supabase.storage.from('frames').upload(fileName, file, {
+        contentType: file.type,
+        upsert: false,
+      });
 
       if (uploadError) throw uploadError;
 
       const storagePath = `supabase://frames/${fileName}`;
-      const { error: insertError } = await supabase
-        .from('scene_frames')
-        .insert({
-          project_id: assets.find((a) => a.id === selectedAssetId)?.metadata?.project_id,
-          asset_id: selectedAssetId,
-          scene_id: null,
-          kind: 'custom',
-          t_ms: 0,
-          storage_path: storagePath,
-          width: img.width,
-          height: img.height,
-        });
+      // O(1) lookup using Map instead of O(n) find
+      const assetMap = new Map(assets.map((a) => [a.id, a]));
+      const currentAsset = assetMap.get(selectedAssetId);
+      const { error: insertError } = await supabase.from('scene_frames').insert({
+        project_id: currentAsset?.metadata?.project_id,
+        asset_id: selectedAssetId,
+        scene_id: null,
+        kind: 'custom',
+        t_ms: 0,
+        storage_path: storagePath,
+        width: img.width,
+        height: img.height,
+      });
 
       if (insertError) throw insertError;
 
@@ -165,42 +166,47 @@ export function useVideoExtraction(
         fileInputRef.current.value = '';
       }
     } catch (error) {
-      browserLogger.error({ error, fileName: file.name, selectedAssetId }, 'Failed to upload image');
-      alert('Failed to upload image. Please try again.');
+      browserLogger.error(
+        { error, fileName: file.name, selectedAssetId },
+        'Failed to upload image'
+      );
+      toast.error('Failed to upload image. Please try again.');
     } finally {
       setIsUploadingImage(false);
     }
   };
 
-  const uploadPastedImage = useCallback(async (file: File) => {
-    if (!selectedAssetId) return;
+  const uploadPastedImage = useCallback(
+    async (file: File) => {
+      if (!selectedAssetId) return;
 
-    setIsUploadingImage(true);
-    try {
-      const img = new Image();
-      const imageUrl = URL.createObjectURL(file);
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = imageUrl;
-      });
-      URL.revokeObjectURL(imageUrl);
-
-      const fileName = `${selectedAssetId}/custom/${Date.now()}-pasted.png`;
-      const { error: uploadError } = await supabase.storage
-        .from('frames')
-        .upload(fileName, file, {
-          contentType: file.type,
-          upsert: false,
+      setIsUploadingImage(true);
+      try {
+        const img = new Image();
+        const imageUrl = URL.createObjectURL(file);
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = imageUrl;
         });
+        URL.revokeObjectURL(imageUrl);
 
-      if (uploadError) throw uploadError;
+        const fileName = `${selectedAssetId}/custom/${Date.now()}-pasted.png`;
+        const { error: uploadError } = await supabase.storage
+          .from('frames')
+          .upload(fileName, file, {
+            contentType: file.type,
+            upsert: false,
+          });
 
-      const storagePath = `supabase://frames/${fileName}`;
-      const { error: insertError } = await supabase
-        .from('scene_frames')
-        .insert({
-          project_id: assets.find((a) => a.id === selectedAssetId)?.metadata?.project_id,
+        if (uploadError) throw uploadError;
+
+        const storagePath = `supabase://frames/${fileName}`;
+        // O(1) lookup using Map instead of O(n) find
+        const assetMap = new Map(assets.map((a) => [a.id, a]));
+        const currentAsset = assetMap.get(selectedAssetId);
+        const { error: insertError } = await supabase.from('scene_frames').insert({
+          project_id: currentAsset?.metadata?.project_id,
           asset_id: selectedAssetId,
           scene_id: null,
           kind: 'custom',
@@ -210,16 +216,18 @@ export function useVideoExtraction(
           height: img.height,
         });
 
-      if (insertError) throw insertError;
+        if (insertError) throw insertError;
 
-      onFrameExtracted();
-    } catch (error) {
-      browserLogger.error({ error, selectedAssetId }, 'Failed to upload pasted image');
-      alert('Failed to upload pasted image. Please try again.');
-    } finally {
-      setIsUploadingImage(false);
-    }
-  }, [selectedAssetId, assets, supabase, onFrameExtracted]);
+        onFrameExtracted();
+      } catch (error) {
+        browserLogger.error({ error, selectedAssetId }, 'Failed to upload pasted image');
+        toast.error('Failed to upload pasted image. Please try again.');
+      } finally {
+        setIsUploadingImage(false);
+      }
+    },
+    [selectedAssetId, assets, supabase, onFrameExtracted]
+  );
 
   return {
     assetVideoUrl,

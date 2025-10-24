@@ -78,7 +78,7 @@ export function useImageInput(): UseImageInputReturn {
 
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        if (item.type.indexOf('image') !== -1) {
+        if (item.type.includes('image')) {
           const file = item.getAsFile();
           if (file) {
             handleImageFile(file);

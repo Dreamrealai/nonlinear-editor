@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { browserLogger } from '@/lib/browserLogger';
+import toast from 'react-hot-toast';
 
 interface AssetRow {
   id: string;
@@ -55,7 +56,9 @@ export function useImageUpload({
       setAssetVideoUrl(null);
       return;
     }
-    const asset = assets.find((a) => a.id === selectedAssetId);
+    // O(1) lookup using Map instead of O(n) find
+    const assetMap = new Map(assets.map((a) => [a.id, a]));
+    const asset = assetMap.get(selectedAssetId);
     if (asset) {
       void signStoragePath(asset.storage_url).then(setAssetVideoUrl);
     }
@@ -112,8 +115,11 @@ export function useImageUpload({
       if (uploadError) throw uploadError;
 
       const storagePath = `supabase://frames/${fileName}`;
+      // O(1) lookup using Map instead of O(n) find
+      const assetMap = new Map(assets.map((a) => [a.id, a]));
+      const currentAsset = assetMap.get(selectedAssetId);
       const { error: insertError } = await supabase.from('scene_frames').insert({
-        project_id: assets.find((a) => a.id === selectedAssetId)?.metadata?.project_id,
+        project_id: currentAsset?.metadata?.project_id,
         asset_id: selectedAssetId,
         scene_id: null,
         kind: 'custom',
@@ -129,7 +135,7 @@ export function useImageUpload({
       setShowVideoPlayer(false);
     } catch (error) {
       browserLogger.error({ error, selectedAssetId }, 'Failed to extract frame');
-      alert('Failed to extract frame. Please try again.');
+      toast.error('Failed to extract frame. Please try again.');
     } finally {
       setIsExtractingFrame(false);
     }
@@ -141,7 +147,7 @@ export function useImageUpload({
       if (!file || !selectedAssetId) return;
 
       if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
+        toast.error('Please select an image file');
         return;
       }
 
@@ -167,8 +173,11 @@ export function useImageUpload({
         if (uploadError) throw uploadError;
 
         const storagePath = `supabase://frames/${fileName}`;
+        // O(1) lookup using Map instead of O(n) find
+        const assetMap = new Map(assets.map((a) => [a.id, a]));
+        const currentAsset = assetMap.get(selectedAssetId);
         const { error: insertError } = await supabase.from('scene_frames').insert({
-          project_id: assets.find((a) => a.id === selectedAssetId)?.metadata?.project_id,
+          project_id: currentAsset?.metadata?.project_id,
           asset_id: selectedAssetId,
           scene_id: null,
           kind: 'custom',
@@ -187,7 +196,7 @@ export function useImageUpload({
         }
       } catch (error) {
         browserLogger.error({ error, selectedAssetId }, 'Failed to upload image');
-        alert('Failed to upload image. Please try again.');
+        toast.error('Failed to upload image. Please try again.');
       } finally {
         setIsUploadingImage(false);
       }
@@ -239,8 +248,11 @@ export function useImageUpload({
           if (uploadError) throw uploadError;
 
           const storagePath = `supabase://frames/${fileName}`;
+          // O(1) lookup using Map instead of O(n) find
+          const assetMap = new Map(assets.map((a) => [a.id, a]));
+          const currentAsset = assetMap.get(selectedAssetId);
           const { error: insertError } = await supabase.from('scene_frames').insert({
-            project_id: assets.find((a) => a.id === selectedAssetId)?.metadata?.project_id,
+            project_id: currentAsset?.metadata?.project_id,
             asset_id: selectedAssetId,
             scene_id: null,
             kind: 'custom',
@@ -255,7 +267,7 @@ export function useImageUpload({
           onRefreshNeeded();
         } catch (error) {
           browserLogger.error({ error, selectedAssetId }, 'Failed to upload pasted image');
-          alert('Failed to upload pasted image. Please try again.');
+          toast.error('Failed to upload pasted image. Please try again.');
         } finally {
           setIsUploadingImage(false);
         }

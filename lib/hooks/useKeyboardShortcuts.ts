@@ -29,7 +29,7 @@ type KeyboardShortcutOptions = {
 /**
  * Detects if the user is on a Mac
  */
-const isMac = typeof window !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+const isMac = typeof window !== 'undefined' && navigator.platform.toUpperCase().includes('MAC');
 
 /**
  * Checks if an element should block keyboard shortcuts (e.g., input fields)
@@ -94,9 +94,12 @@ export function useKeyboardShortcuts(options: KeyboardShortcutOptions = {}) {
         if (selectedClipIds.size > 0) {
           event.preventDefault();
           copyClips();
-          toast.success(`Copied ${selectedClipIds.size} clip${selectedClipIds.size > 1 ? 's' : ''}`, {
-            duration: 1500,
-          });
+          toast.success(
+            `Copied ${selectedClipIds.size} clip${selectedClipIds.size > 1 ? 's' : ''}`,
+            {
+              duration: 1500,
+            }
+          );
         }
         return;
       }
@@ -114,9 +117,12 @@ export function useKeyboardShortcuts(options: KeyboardShortcutOptions = {}) {
           event.preventDefault();
           clearSelection();
           timeline.clips.forEach((clip) => selectClip(clip.id, true));
-          toast.success(`Selected ${timeline.clips.length} clip${timeline.clips.length > 1 ? 's' : ''}`, {
-            duration: 1500,
-          });
+          toast.success(
+            `Selected ${timeline.clips.length} clip${timeline.clips.length > 1 ? 's' : ''}`,
+            {
+              duration: 1500,
+            }
+          );
         }
         return;
       }
