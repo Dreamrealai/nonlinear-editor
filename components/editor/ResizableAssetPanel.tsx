@@ -115,11 +115,8 @@ export function ResizableAssetPanel({
       <AssetPanel {...assetPanelProps} />
 
       {/* Resize Handle */}
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
       <div
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Resize asset panel"
-        tabIndex={0}
         className={`
           absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize transition-all
           ${isResizing ? 'bg-blue-500 w-2' : isHovering ? 'bg-neutral-400 hover:bg-blue-400' : 'bg-neutral-300'}
@@ -131,6 +128,7 @@ export function ResizableAssetPanel({
           // Add a larger invisible hit area for easier grabbing
           boxShadow: isHovering || isResizing ? '0 0 0 2px rgba(59, 130, 246, 0.1)' : 'none',
         }}
+        aria-label="Resize asset panel"
       >
         {/* Grip pattern for visual feedback */}
         <div
