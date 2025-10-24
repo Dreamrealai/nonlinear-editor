@@ -21,14 +21,15 @@ export default function ClipPropertiesPanel() {
   const updateClipStore = useEditorStore((state) => state.updateClip);
 
   // Stable reference for updateClip
-  const updateClip = useCallback((id: string, updates: Record<string, string | number | boolean | object>) => {
-    updateClipStore(id, updates);
-  }, [updateClipStore]);
+  const updateClip = useCallback(
+    (id: string, updates: Record<string, string | number | boolean | object>) => {
+      updateClipStore(id, updates);
+    },
+    [updateClipStore]
+  );
 
   // Get first selected clip
-  const selectedClip = selectedClips.size > 0
-    ? clips.find((c) => selectedClips.has(c.id))
-    : null;
+  const selectedClip = selectedClips.size > 0 ? clips.find((c) => selectedClips.has(c.id)) : null;
 
   // Local state for slider values (immediate feedback)
   const [localBrightness, setLocalBrightness] = useState(100);
@@ -58,27 +59,48 @@ export default function ClipPropertiesPanel() {
   // Dependencies: Only re-run when selectedClip identity changes (via ID) or properties change
   useEffect(() => {
     if (selectedClip) {
-      const cc = selectedClip.colorCorrection || { brightness: 100, contrast: 100, saturation: 100, hue: 0 };
-      const t = selectedClip.transform || { rotation: 0, flipHorizontal: false, flipVertical: false, scale: 1.0 };
-      const ae = selectedClip.audioEffects || { bassGain: 0, midGain: 0, trebleGain: 0, compression: 0, normalize: false };
+      const colorCorrection = selectedClip.colorCorrection || {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        hue: 0,
+      };
+      const transform = selectedClip.transform || {
+        rotation: 0,
+        flipHorizontal: false,
+        flipVertical: false,
+        scale: 1.0,
+      };
+      const audioEffects = selectedClip.audioEffects || {
+        bassGain: 0,
+        midGain: 0,
+        trebleGain: 0,
+        compression: 0,
+        normalize: false,
+      };
 
-      setLocalBrightness(cc.brightness);
-      setLocalContrast(cc.contrast);
-      setLocalSaturation(cc.saturation);
-      setLocalHue(cc.hue);
-      setLocalRotation(t.rotation);
-      setLocalScale(t.scale);
-      setLocalBassGain(ae.bassGain);
-      setLocalMidGain(ae.midGain);
-      setLocalTrebleGain(ae.trebleGain);
-      setLocalCompression(ae.compression);
+      setLocalBrightness(colorCorrection.brightness);
+      setLocalContrast(colorCorrection.contrast);
+      setLocalSaturation(colorCorrection.saturation);
+      setLocalHue(colorCorrection.hue);
+      setLocalRotation(transform.rotation);
+      setLocalScale(transform.scale);
+      setLocalBassGain(audioEffects.bassGain);
+      setLocalMidGain(audioEffects.midGain);
+      setLocalTrebleGain(audioEffects.trebleGain);
+      setLocalCompression(audioEffects.compression);
     }
   }, [selectedClip]);
 
   // Apply debounced color correction updates
   useEffect(() => {
     if (selectedClip) {
-      const current = selectedClip.colorCorrection || { brightness: 100, contrast: 100, saturation: 100, hue: 0 };
+      const current = selectedClip.colorCorrection || {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        hue: 0,
+      };
       if (
         current.brightness !== debouncedBrightness ||
         current.contrast !== debouncedContrast ||
@@ -95,12 +117,24 @@ export default function ClipPropertiesPanel() {
         });
       }
     }
-  }, [debouncedBrightness, debouncedContrast, debouncedSaturation, debouncedHue, selectedClip, updateClip]);
+  }, [
+    debouncedBrightness,
+    debouncedContrast,
+    debouncedSaturation,
+    debouncedHue,
+    selectedClip,
+    updateClip,
+  ]);
 
   // Apply debounced transform updates
   useEffect(() => {
     if (selectedClip) {
-      const current = selectedClip.transform || { rotation: 0, flipHorizontal: false, flipVertical: false, scale: 1.0 };
+      const current = selectedClip.transform || {
+        rotation: 0,
+        flipHorizontal: false,
+        flipVertical: false,
+        scale: 1.0,
+      };
       if (current.rotation !== debouncedRotation || current.scale !== debouncedScale) {
         updateClip(selectedClip.id, {
           transform: {
@@ -116,7 +150,13 @@ export default function ClipPropertiesPanel() {
   // Apply debounced audio effects updates
   useEffect(() => {
     if (selectedClip && selectedClip.hasAudio) {
-      const current = selectedClip.audioEffects || { bassGain: 0, midGain: 0, trebleGain: 0, compression: 0, normalize: false };
+      const current = selectedClip.audioEffects || {
+        bassGain: 0,
+        midGain: 0,
+        trebleGain: 0,
+        compression: 0,
+        normalize: false,
+      };
       if (
         current.bassGain !== debouncedBassGain ||
         current.midGain !== debouncedMidGain ||
@@ -134,7 +174,14 @@ export default function ClipPropertiesPanel() {
         });
       }
     }
-  }, [debouncedBassGain, debouncedMidGain, debouncedTrebleGain, debouncedCompression, selectedClip, updateClip]);
+  }, [
+    debouncedBassGain,
+    debouncedMidGain,
+    debouncedTrebleGain,
+    debouncedCompression,
+    selectedClip,
+    updateClip,
+  ]);
 
   if (!selectedClip) {
     return (
@@ -156,13 +203,24 @@ export default function ClipPropertiesPanel() {
       {/* Info about advanced corrections */}
       <div className="mb-4 rounded-lg border border-blue-700 bg-blue-900/30 p-3">
         <div className="flex items-start gap-2">
-          <svg className="h-4 w-4 text-blue-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="h-4 w-4 text-blue-400 flex-shrink-0 mt-0.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <div>
             <h3 className="text-xs font-semibold text-blue-300 mb-1">Advanced Corrections</h3>
             <p className="text-[10px] text-gray-400 leading-relaxed">
-              Use the collapsible menu below the timeline to access color correction, transform, and audio effects controls.
+              Use the collapsible menu below the timeline to access color correction, transform, and
+              audio effects controls.
             </p>
           </div>
         </div>
@@ -174,11 +232,15 @@ export default function ClipPropertiesPanel() {
         <div className="space-y-2 text-xs">
           <div className="flex justify-between items-center py-1 border-b border-gray-700">
             <span className="text-gray-400">Duration:</span>
-            <span className="text-white font-medium">{(selectedClip.end - selectedClip.start).toFixed(2)}s</span>
+            <span className="text-white font-medium">
+              {(selectedClip.end - selectedClip.start).toFixed(2)}s
+            </span>
           </div>
           <div className="flex justify-between items-center py-1 border-b border-gray-700">
             <span className="text-gray-400">Position:</span>
-            <span className="text-white font-medium">{selectedClip.timelinePosition.toFixed(2)}s</span>
+            <span className="text-white font-medium">
+              {selectedClip.timelinePosition.toFixed(2)}s
+            </span>
           </div>
           <div className="flex justify-between items-center py-1 border-b border-gray-700">
             <span className="text-gray-400">Track:</span>
@@ -195,7 +257,11 @@ export default function ClipPropertiesPanel() {
               <span className="text-gray-400">Audio:</span>
               <span className="flex items-center gap-1 text-green-400 font-medium">
                 <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
                 </svg>
                 Yes
               </span>

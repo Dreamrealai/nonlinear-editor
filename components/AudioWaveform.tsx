@@ -50,7 +50,8 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
         const arrayBuffer = await response.arrayBuffer();
 
         // Create audio context
-        const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+        const audioContext = new (window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
         if (isCancelled) {
@@ -132,10 +133,10 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
     for (let i = 0; i < waveformData.length; i++) {
       const amplitude = waveformData[i];
       const barHeight = amplitude * height * 0.8; // Scale to 80% of height
-      const x = i * barWidth;
-      const y = middleY - barHeight / 2;
+      const barX = i * barWidth;
+      const barY = middleY - barHeight / 2;
 
-      ctx.fillRect(x, y, Math.max(1, barWidth - 0.5), barHeight);
+      ctx.fillRect(barX, barY, Math.max(1, barWidth - 0.5), barHeight);
     }
   }, [waveformData, width, height]);
 
@@ -150,11 +151,7 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
           <div className="text-xs text-gray-400">Loading waveform...</div>
         </div>
       )}
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0"
-        style={{ width, height }}
-      />
+      <canvas ref={canvasRef} className="absolute inset-0" style={{ width, height }} />
     </div>
   );
 });

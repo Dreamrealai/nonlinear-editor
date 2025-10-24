@@ -24,14 +24,15 @@ export default function TimelineCorrectionsMenu() {
   const updateClipStore = useEditorStore((state) => state.updateClip);
 
   // Stable reference for updateClip
-  const updateClip = useCallback((id: string, updates: Record<string, string | number | boolean | object>) => {
-    updateClipStore(id, updates);
-  }, [updateClipStore]);
+  const updateClip = useCallback(
+    (id: string, updates: Record<string, string | number | boolean | object>) => {
+      updateClipStore(id, updates);
+    },
+    [updateClipStore]
+  );
 
   // Get first selected clip
-  const selectedClip = selectedClips.size > 0
-    ? clips.find((c) => selectedClips.has(c.id))
-    : null;
+  const selectedClip = selectedClips.size > 0 ? clips.find((c) => selectedClips.has(c.id)) : null;
 
   // Local state for slider values (immediate feedback)
   const [localBrightness, setLocalBrightness] = useState(100);
@@ -60,27 +61,48 @@ export default function TimelineCorrectionsMenu() {
   // Sync local state with selected clip
   useEffect(() => {
     if (selectedClip) {
-      const cc = selectedClip.colorCorrection || { brightness: 100, contrast: 100, saturation: 100, hue: 0 };
-      const t = selectedClip.transform || { rotation: 0, flipHorizontal: false, flipVertical: false, scale: 1.0 };
-      const ae = selectedClip.audioEffects || { bassGain: 0, midGain: 0, trebleGain: 0, compression: 0, normalize: false };
+      const colorCorrection = selectedClip.colorCorrection || {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        hue: 0,
+      };
+      const transform = selectedClip.transform || {
+        rotation: 0,
+        flipHorizontal: false,
+        flipVertical: false,
+        scale: 1.0,
+      };
+      const audioEffects = selectedClip.audioEffects || {
+        bassGain: 0,
+        midGain: 0,
+        trebleGain: 0,
+        compression: 0,
+        normalize: false,
+      };
 
-      setLocalBrightness(cc.brightness);
-      setLocalContrast(cc.contrast);
-      setLocalSaturation(cc.saturation);
-      setLocalHue(cc.hue);
-      setLocalRotation(t.rotation);
-      setLocalScale(t.scale);
-      setLocalBassGain(ae.bassGain);
-      setLocalMidGain(ae.midGain);
-      setLocalTrebleGain(ae.trebleGain);
-      setLocalCompression(ae.compression);
+      setLocalBrightness(colorCorrection.brightness);
+      setLocalContrast(colorCorrection.contrast);
+      setLocalSaturation(colorCorrection.saturation);
+      setLocalHue(colorCorrection.hue);
+      setLocalRotation(transform.rotation);
+      setLocalScale(transform.scale);
+      setLocalBassGain(audioEffects.bassGain);
+      setLocalMidGain(audioEffects.midGain);
+      setLocalTrebleGain(audioEffects.trebleGain);
+      setLocalCompression(audioEffects.compression);
     }
   }, [selectedClip]);
 
   // Apply debounced color correction updates
   useEffect(() => {
     if (selectedClip) {
-      const current = selectedClip.colorCorrection || { brightness: 100, contrast: 100, saturation: 100, hue: 0 };
+      const current = selectedClip.colorCorrection || {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        hue: 0,
+      };
       if (
         current.brightness !== debouncedBrightness ||
         current.contrast !== debouncedContrast ||
@@ -97,12 +119,24 @@ export default function TimelineCorrectionsMenu() {
         });
       }
     }
-  }, [debouncedBrightness, debouncedContrast, debouncedSaturation, debouncedHue, selectedClip, updateClip]);
+  }, [
+    debouncedBrightness,
+    debouncedContrast,
+    debouncedSaturation,
+    debouncedHue,
+    selectedClip,
+    updateClip,
+  ]);
 
   // Apply debounced transform updates
   useEffect(() => {
     if (selectedClip) {
-      const current = selectedClip.transform || { rotation: 0, flipHorizontal: false, flipVertical: false, scale: 1.0 };
+      const current = selectedClip.transform || {
+        rotation: 0,
+        flipHorizontal: false,
+        flipVertical: false,
+        scale: 1.0,
+      };
       if (current.rotation !== debouncedRotation || current.scale !== debouncedScale) {
         updateClip(selectedClip.id, {
           transform: {
@@ -118,7 +152,13 @@ export default function TimelineCorrectionsMenu() {
   // Apply debounced audio effects updates
   useEffect(() => {
     if (selectedClip && selectedClip.hasAudio) {
-      const current = selectedClip.audioEffects || { bassGain: 0, midGain: 0, trebleGain: 0, compression: 0, normalize: false };
+      const current = selectedClip.audioEffects || {
+        bassGain: 0,
+        midGain: 0,
+        trebleGain: 0,
+        compression: 0,
+        normalize: false,
+      };
       if (
         current.bassGain !== debouncedBassGain ||
         current.midGain !== debouncedMidGain ||
@@ -136,14 +176,32 @@ export default function TimelineCorrectionsMenu() {
         });
       }
     }
-  }, [debouncedBassGain, debouncedMidGain, debouncedTrebleGain, debouncedCompression, selectedClip, updateClip]);
+  }, [
+    debouncedBassGain,
+    debouncedMidGain,
+    debouncedTrebleGain,
+    debouncedCompression,
+    selectedClip,
+    updateClip,
+  ]);
 
   if (!selectedClip) {
     return null; // Don't show menu when no clip is selected
   }
 
-  const transform = selectedClip.transform || { rotation: 0, flipHorizontal: false, flipVertical: false, scale: 1.0 };
-  const audioEffects = selectedClip.audioEffects || { bassGain: 0, midGain: 0, trebleGain: 0, compression: 0, normalize: false };
+  const transform = selectedClip.transform || {
+    rotation: 0,
+    flipHorizontal: false,
+    flipVertical: false,
+    scale: 1.0,
+  };
+  const audioEffects = selectedClip.audioEffects || {
+    bassGain: 0,
+    midGain: 0,
+    trebleGain: 0,
+    compression: 0,
+    normalize: false,
+  };
 
   const updateTransform = (updates: Partial<Transform>) => {
     updateClip(selectedClip.id, {
@@ -207,9 +265,7 @@ export default function TimelineCorrectionsMenu() {
             {selectedClip.filePath.split('/').pop()?.slice(0, 20)}...
           </span>
         </div>
-        <span className="text-xs text-neutral-500">
-          {isExpanded ? 'Collapse' : 'Expand'}
-        </span>
+        <span className="text-xs text-neutral-500">{isExpanded ? 'Collapse' : 'Expand'}</span>
       </button>
 
       {/* Expanded Content */}
@@ -262,12 +318,24 @@ export default function TimelineCorrectionsMenu() {
                 <div className="group">
                   <label className="mb-2 flex items-center justify-between text-xs font-medium text-neutral-700">
                     <span className="flex items-center gap-2">
-                      <svg className="h-4 w-4 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                      <svg
+                        className="h-4 w-4 text-yellow-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                        />
                       </svg>
                       Brightness
                     </span>
-                    <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">{localBrightness}%</span>
+                    <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">
+                      {localBrightness}%
+                    </span>
                   </label>
                   <input
                     type="range"
@@ -286,12 +354,24 @@ export default function TimelineCorrectionsMenu() {
                 <div className="group">
                   <label className="mb-2 flex items-center justify-between text-xs font-medium text-neutral-700">
                     <span className="flex items-center gap-2">
-                      <svg className="h-4 w-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                      <svg
+                        className="h-4 w-4 text-purple-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
+                        />
                       </svg>
                       Contrast
                     </span>
-                    <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">{localContrast}%</span>
+                    <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">
+                      {localContrast}%
+                    </span>
                   </label>
                   <input
                     type="range"
@@ -312,12 +392,24 @@ export default function TimelineCorrectionsMenu() {
                 <div className="group">
                   <label className="mb-2 flex items-center justify-between text-xs font-medium text-neutral-700">
                     <span className="flex items-center gap-2">
-                      <svg className="h-4 w-4 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                      <svg
+                        className="h-4 w-4 text-pink-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
+                        />
                       </svg>
                       Saturation
                     </span>
-                    <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">{localSaturation}%</span>
+                    <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">
+                      {localSaturation}%
+                    </span>
                   </label>
                   <input
                     type="range"
@@ -336,12 +428,24 @@ export default function TimelineCorrectionsMenu() {
                 <div className="group">
                   <label className="mb-2 flex items-center justify-between text-xs font-medium text-neutral-700">
                     <span className="flex items-center gap-2">
-                      <svg className="h-4 w-4 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      <svg
+                        className="h-4 w-4 text-cyan-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
                       </svg>
                       Hue
                     </span>
-                    <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">{localHue}°</span>
+                    <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">
+                      {localHue}°
+                    </span>
                   </label>
                   <input
                     type="range"
@@ -351,7 +455,8 @@ export default function TimelineCorrectionsMenu() {
                     onChange={(e) => setLocalHue(parseInt(e.target.value))}
                     className="h-2 w-full cursor-pointer appearance-none rounded-lg"
                     style={{
-                      background: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)',
+                      background:
+                        'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)',
                       accentColor: '#3b82f6',
                     }}
                   />
@@ -379,12 +484,24 @@ export default function TimelineCorrectionsMenu() {
                 <div className="group">
                   <label className="mb-2 flex items-center justify-between text-xs font-medium text-neutral-700">
                     <span className="flex items-center gap-2">
-                      <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      <svg
+                        className="h-4 w-4 text-green-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
                       </svg>
                       Rotation
                     </span>
-                    <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">{localRotation}°</span>
+                    <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">
+                      {localRotation}°
+                    </span>
                   </label>
                   <input
                     type="range"
@@ -403,12 +520,24 @@ export default function TimelineCorrectionsMenu() {
                 <div className="group">
                   <label className="mb-2 flex items-center justify-between text-xs font-medium text-neutral-700">
                     <span className="flex items-center gap-2">
-                      <svg className="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                      <svg
+                        className="h-4 w-4 text-indigo-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                        />
                       </svg>
                       Scale
                     </span>
-                    <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">{localScale.toFixed(2)}x</span>
+                    <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">
+                      {localScale.toFixed(2)}x
+                    </span>
                   </label>
                   <input
                     type="range"
@@ -441,7 +570,9 @@ export default function TimelineCorrectionsMenu() {
                         <div className="h-5 w-9 rounded-full bg-neutral-300 peer-checked:bg-blue-600 transition"></div>
                         <div className="absolute left-1 top-1 h-3 w-3 rounded-full bg-white transition peer-checked:translate-x-4"></div>
                       </div>
-                      <span className="text-xs font-medium text-neutral-700 group-hover:text-neutral-900">Horizontal</span>
+                      <span className="text-xs font-medium text-neutral-700 group-hover:text-neutral-900">
+                        Horizontal
+                      </span>
                     </label>
 
                     <label className="flex items-center gap-3 cursor-pointer group">
@@ -455,7 +586,9 @@ export default function TimelineCorrectionsMenu() {
                         <div className="h-5 w-9 rounded-full bg-neutral-300 peer-checked:bg-blue-600 transition"></div>
                         <div className="absolute left-1 top-1 h-3 w-3 rounded-full bg-white transition peer-checked:translate-x-4"></div>
                       </div>
-                      <span className="text-xs font-medium text-neutral-700 group-hover:text-neutral-900">Vertical</span>
+                      <span className="text-xs font-medium text-neutral-700 group-hover:text-neutral-900">
+                        Vertical
+                      </span>
                     </label>
                   </div>
                 </div>
@@ -480,8 +613,18 @@ export default function TimelineCorrectionsMenu() {
               {/* Equalizer */}
               <div className="rounded-lg border border-neutral-200 bg-gradient-to-br from-purple-50 to-pink-50 p-4">
                 <h4 className="mb-4 flex items-center gap-2 text-sm font-semibold text-neutral-900">
-                  <svg className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                  <svg
+                    className="h-5 w-5 text-purple-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                    />
                   </svg>
                   3-Band Equalizer
                 </h4>
@@ -509,7 +652,8 @@ export default function TimelineCorrectionsMenu() {
                       <p className="text-xs font-semibold text-neutral-900">Bass</p>
                       <p className="text-[10px] text-neutral-600">100-400 Hz</p>
                       <p className="mt-1 rounded bg-purple-600 px-2 py-0.5 text-xs font-bold text-white">
-                        {localBassGain > 0 ? '+' : ''}{localBassGain} dB
+                        {localBassGain > 0 ? '+' : ''}
+                        {localBassGain} dB
                       </p>
                     </div>
                   </div>
@@ -536,7 +680,8 @@ export default function TimelineCorrectionsMenu() {
                       <p className="text-xs font-semibold text-neutral-900">Mid</p>
                       <p className="text-[10px] text-neutral-600">400-4000 Hz</p>
                       <p className="mt-1 rounded bg-pink-600 px-2 py-0.5 text-xs font-bold text-white">
-                        {localMidGain > 0 ? '+' : ''}{localMidGain} dB
+                        {localMidGain > 0 ? '+' : ''}
+                        {localMidGain} dB
                       </p>
                     </div>
                   </div>
@@ -563,7 +708,8 @@ export default function TimelineCorrectionsMenu() {
                       <p className="text-xs font-semibold text-neutral-900">Treble</p>
                       <p className="text-[10px] text-neutral-600">4000+ Hz</p>
                       <p className="mt-1 rounded bg-cyan-600 px-2 py-0.5 text-xs font-bold text-white">
-                        {localTrebleGain > 0 ? '+' : ''}{localTrebleGain} dB
+                        {localTrebleGain > 0 ? '+' : ''}
+                        {localTrebleGain} dB
                       </p>
                     </div>
                   </div>
@@ -576,12 +722,24 @@ export default function TimelineCorrectionsMenu() {
                 <div className="rounded-lg border border-neutral-200 bg-white p-4">
                   <label className="mb-3 flex items-center justify-between text-xs font-medium text-neutral-700">
                     <span className="flex items-center gap-2">
-                      <svg className="h-4 w-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      <svg
+                        className="h-4 w-4 text-orange-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
                       </svg>
                       Compression
                     </span>
-                    <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">{localCompression}%</span>
+                    <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">
+                      {localCompression}%
+                    </span>
                   </label>
                   <input
                     type="range"
@@ -594,7 +752,9 @@ export default function TimelineCorrectionsMenu() {
                       accentColor: '#3b82f6',
                     }}
                   />
-                  <p className="mt-2 text-[10px] text-neutral-600">Reduces dynamic range for consistent volume</p>
+                  <p className="mt-2 text-[10px] text-neutral-600">
+                    Reduces dynamic range for consistent volume
+                  </p>
                 </div>
 
                 {/* Normalize */}
@@ -612,7 +772,9 @@ export default function TimelineCorrectionsMenu() {
                       <div className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition peer-checked:translate-x-5"></div>
                     </div>
                     <div>
-                      <span className="text-xs font-medium text-neutral-700 group-hover:text-neutral-900">Auto-Normalize</span>
+                      <span className="text-xs font-medium text-neutral-700 group-hover:text-neutral-900">
+                        Auto-Normalize
+                      </span>
                       <p className="text-[10px] text-neutral-600">Adjust peak volume to -3dB</p>
                     </div>
                   </label>

@@ -246,9 +246,9 @@ export default function HorizontalTimeline({
         if (!event || !containerRef.current || !timeline) return;
 
         const rect = containerRef.current.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const time = Math.max(0, x / zoom);
-        const y = event.clientY - rect.top;
+        const mouseX = event.clientX - rect.left;
+        const time = Math.max(0, mouseX / zoom);
+        const mouseY = event.clientY - rect.top;
 
         if (isDraggingPlayhead) {
           setCurrentTime(time);
@@ -316,7 +316,7 @@ export default function HorizontalTimeline({
         } else if (draggingClip) {
           const desiredPosition = Math.max(0, time - draggingClip.offsetX);
           const proposedTrack = Math.min(
-            Math.max(0, Math.floor((y - draggingClip.offsetY) / TRACK_HEIGHT)),
+            Math.max(0, Math.floor((mouseY - draggingClip.offsetY) / TRACK_HEIGHT)),
             numTracks - 1
           );
           const safePosition = computeSafePosition(draggingClip.id, desiredPosition, proposedTrack);
@@ -545,8 +545,8 @@ export default function HorizontalTimeline({
     // Null check for containerRef before accessing
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const time = Math.max(0, x / zoom);
+    const clickX = e.clientX - rect.left;
+    const time = Math.max(0, clickX / zoom);
     setCurrentTime(time);
     clearSelection();
     setSelectedTextOverlayId(null);

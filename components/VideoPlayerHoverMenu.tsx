@@ -26,9 +26,9 @@ export default function VideoPlayerHoverMenu({
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setMousePosition({ x, y });
+    const positionX = ((e.clientX - rect.left) / rect.width) * 100;
+    const positionY = ((e.clientY - rect.top) / rect.height) * 100;
+    setMousePosition({ x: positionX, y: positionY });
   };
 
   const handleAddText = () => {

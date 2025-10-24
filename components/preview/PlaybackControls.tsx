@@ -69,8 +69,8 @@ export default function PlaybackControls({
       if (!progressBarRef.current) return 0;
 
       const rect = progressBarRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const percentage = clamp(x / rect.width, 0, 1);
+      const mouseX = e.clientX - rect.left;
+      const percentage = clamp(mouseX / rect.width, 0, 1);
       return percentage * totalDuration;
     },
     [totalDuration]
