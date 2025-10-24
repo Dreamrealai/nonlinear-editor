@@ -7,7 +7,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateBoolean, validateUUID, ValidationError } from '@/lib/validation';
 import { validationError } from '@/lib/api/response';
@@ -16,12 +15,10 @@ import { validationError } from '@/lib/api/response';
  * PATCH - Update a share link (deactivate, change settings)
  */
 export const PATCH = withAuth<{ projectId: string; linkId: string }>(
-  async (req: NextRequest, { params }: { params: Promise<{ projectId: string; linkId: string }> }): Promise<NextResponse<{ error: string; }> | NextResponse<{ link: any; }>> => {
-    const { projectId, linkId } = await params;
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  async (req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ link: any; }>> => {
+    const params = await routeContext?.params;
+    const projectId = params?.projectId;
+    const linkId = params?.linkId;
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -84,19 +81,17 @@ export const PATCH = withAuth<{ projectId: string; linkId: string }>(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  RATE_LIMITS.tier2_ai_video_upload
+  RATE_LIMITS.tier2_resource_creation
 );
 
 /**
  * DELETE - Delete a share link
  */
 export const DELETE = withAuth<{ projectId: string; linkId: string }>(
-  async (req: NextRequest, { params }: { params: Promise<{ projectId: string; linkId: string }> }): Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; }>> => {
-    const { projectId, linkId } = await params;
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  async (_req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; }>> => {
+    const params = await routeContext?.params;
+    const projectId = params?.projectId;
+    const linkId = params?.linkId;
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -151,5 +146,5 @@ export const DELETE = withAuth<{ projectId: string; linkId: string }>(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  RATE_LIMITS.tier2_ai_video_upload
+  RATE_LIMITS.tier2_resource_creation
 );

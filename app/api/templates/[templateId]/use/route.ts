@@ -15,7 +15,7 @@ import { validateUUID, ValidationError } from '@/lib/validation';
  *
  * Increment template usage count
  */
-export const POST = withAuth<{ templateId: string }>(async (req, { user, supabase }, routeContext) => {
+export const POST = withAuth<{ templateId: string }>(async (_req, { user, supabase }, routeContext) => {
   try {
     const params = await routeContext?.params;
     const templateId = params?.templateId;
@@ -64,5 +64,5 @@ export const POST = withAuth<{ templateId: string }>(async (req, { user, supabas
   }
 }, {
   route: '/api/templates/[templateId]/use',
-  rateLimit: RATE_LIMITS.tier2_write,
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
 });

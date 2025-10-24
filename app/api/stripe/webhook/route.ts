@@ -9,6 +9,7 @@ import Stripe from 'stripe';
 import { serverLogger } from '@/lib/serverLogger';
 import { invalidateOnStripeWebhook } from '@/lib/cacheInvalidation';
 import { errorResponse, serviceUnavailableResponse, successResponse } from '@/lib/api/response';
+import type { UserProfile, UserTier } from '@/lib/types/subscription';
 
 // Disable body parser to handle raw body for webhook signature verification
 export const runtime = 'nodejs';
@@ -125,8 +126,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
     );
 
     // CRITICAL: Preserve admin tier - don't downgrade admin to premium
-    const currentTier = existingProfile.tier;
-    const newTier = currentTier === 'admin' ? 'admin' : 'premium';
+    const currentTier = existingProfile.tier as UserTier;
+    const newTier: UserTier = currentTier === 'admin' ? 'admin' : 'premium';
 
     // Update user profile
     const { data, error } = await supabaseAdmin
@@ -262,8 +263,8 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Pro
     };
 
     // CRITICAL: Preserve admin tier - determine tier based on subscription status
-    const oldTier = profile.tier;
-    let tier: 'free' | 'premium' | 'admin' = 'free';
+    const oldTier = profile.tier as UserTier;
+    let tier: UserTier = 'free';
 
     // Don't downgrade admin users
     if (oldTier === 'admin') {
@@ -411,10 +412,10 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Pro
       return;
     }
 
-    const oldTier = profile.tier;
+    const oldTier = profile.tier as UserTier;
 
     // CRITICAL: Preserve admin tier - don't downgrade admin users on subscription cancel
-    const newTier = oldTier === 'admin' ? 'admin' : 'free';
+    const newTier: UserTier = oldTier === 'admin' ? 'admin' : 'free';
 
     // Downgrade user to free tier (unless admin)
     const { data, error } = await supabaseAdmin
@@ -484,7 +485,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Pro
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
 
   try {

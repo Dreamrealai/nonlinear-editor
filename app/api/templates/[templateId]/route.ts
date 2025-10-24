@@ -19,7 +19,7 @@ import { RATE_LIMITS } from '@/lib/rateLimit';
  *
  * Get a single template
  */
-export const GET = withAuth<{ templateId: string }>(async (req, { user, supabase }, routeContext) => {
+export const GET = withAuth<{ templateId: string }>(async (_req, { user, supabase }, routeContext) => {
   try {
     const params = await routeContext?.params;
     const templateId = params?.templateId;
@@ -51,7 +51,7 @@ export const GET = withAuth<{ templateId: string }>(async (req, { user, supabase
   }
 }, {
   route: '/api/templates/[templateId]',
-  rateLimit: RATE_LIMITS.tier2_read,
+  rateLimit: RATE_LIMITS.tier3_status_read,
 });
 
 /**
@@ -149,7 +149,7 @@ export const PATCH = withAuth<{ templateId: string }>(async (req, { user, supaba
   }
 }, {
   route: '/api/templates/[templateId]',
-  rateLimit: RATE_LIMITS.tier2_write,
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
 });
 
 /**
@@ -157,7 +157,7 @@ export const PATCH = withAuth<{ templateId: string }>(async (req, { user, supaba
  *
  * Delete a template (only owner can delete)
  */
-export const DELETE = withAuth<{ templateId: string }>(async (req, { user, supabase }, routeContext) => {
+export const DELETE = withAuth<{ templateId: string }>(async (_req, { user, supabase }, routeContext) => {
   try {
     const params = await routeContext?.params;
     const templateId = params?.templateId;
@@ -202,5 +202,5 @@ export const DELETE = withAuth<{ templateId: string }>(async (req, { user, supab
   }
 }, {
   route: '/api/templates/[templateId]',
-  rateLimit: RATE_LIMITS.tier2_write,
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
 });

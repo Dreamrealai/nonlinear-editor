@@ -7,19 +7,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { serverLogger } from '@/lib/serverLogger';
 
 /**
  * GET - List all collaborators for a project
  */
 export const GET = withAuth<{ projectId: string }>(
-  async (req: NextRequest, { params }: { params: Promise<{ projectId: string }> }): Promise<NextResponse<{ error: string; }> | NextResponse<{ collaborators: any[]; }>> => {
-    const { projectId } = await params;
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  async (_req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ collaborators: any[]; }>> => {
+    const params = await routeContext?.params;
+    const projectId = params?.projectId;
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -70,5 +66,8 @@ export const GET = withAuth<{ projectId: string }>(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  RATE_LIMITS.tier3_read
+  {
+    route: '/api/projects/[projectId]/collaborators',
+    rateLimit: RATE_LIMITS.tier3_status_read,
+  }
 );
