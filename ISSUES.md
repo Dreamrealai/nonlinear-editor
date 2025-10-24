@@ -1,8 +1,8 @@
 # Codebase Issues Tracker
 
 **Last Updated:** 2025-10-24
-**Status:** 64 open issues (10 issues fixed in Batch 1 validation)
-**Priority Breakdown:** P0: 0 | P1: 21 | P2: 31 | P3: 12
+**Status:** 63 open issues (11 issues fixed)
+**Priority Breakdown:** P0: 0 | P1: 21 | P2: 30 | P3: 12
 
 This document tracks all open issues in the codebase. Fixed/resolved issues are removed to keep this document focused and efficient.
 
@@ -475,6 +475,7 @@ Standardized error handling across 6 critical hooks following a consistent patte
 5. **useStorageUrls** - Added signError state instead of silent null returns
 
 **Pattern Applied:**
+
 - State: Add `[operation]Error` state variable
 - Tracking: Set error state in catch blocks
 - Exposure: Return error state in hook return value
@@ -483,6 +484,7 @@ Standardized error handling across 6 critical hooks following a consistent patte
 - Fallbacks: Provide sensible fallback values
 
 **Impact:**
+
 - Components can now display error messages to users
 - Errors are properly tracked and monitored
 - Consistent error handling reduces debugging time
@@ -840,18 +842,27 @@ Created comprehensive server-side thumbnail generation system with FFmpeg integr
 
 ### Issue #25: Timeline Scrolling Needs Improvement
 
-- **Status:** Open
+- **Status:** Fixed (2025-10-24)
 - **Priority:** P2
-- **Location:** `/components/timeline/`
-- **Effort:** 6-8 hours
-- **Impact:** Awkward navigation of long timelines
+- **Location:** `/components/timeline/`, `/lib/hooks/useTimelineScrolling.ts`
+- **Effort:** 6-8 hours (completed)
+- **Impact:** Improved navigation of long timelines
 
-**Needed:**
+**Implementation:**
 
-- Horizontal scrollbar
-- Mouse wheel zoom
-- Pan with space+drag
-- Auto-scroll during playback
+All timeline scrolling features successfully implemented:
+
+1. ✅ **Horizontal scrollbar** - Timeline container with `overflow-auto`
+2. ✅ **Mouse wheel zoom** - Ctrl/Cmd + wheel, centers on cursor, respects zoom limits
+3. ✅ **Space + drag panning** - Space bar enables panning mode with visual cursor feedback
+4. ✅ **Auto-scroll during playback** - Follows playhead with toggle button in controls
+
+**Files Modified:**
+
+- `/lib/hooks/useTimelineScrolling.ts` - Enhanced scrolling hook
+- `/state/useEditorStore.ts` - Added autoScrollEnabled state
+- `/components/HorizontalTimeline.tsx` - Integrated scrolling features
+- `/components/timeline/TimelineControls.tsx` - Added auto-scroll toggle button
 
 ---
 
@@ -1193,16 +1204,19 @@ Comprehensive analysis performed on 108 React component files (TSX/JSX):
 Created comprehensive branded loading system with purple gradient design:
 
 **Components Created:**
+
 - `/components/ui/LoadingSpinner.tsx` - Enhanced with branded variant and accessibility
 - `/components/LoadingSpinner.tsx` - Updated with branded purple gradient and reduced motion support
 - `/components/ui/Skeleton.tsx` - New skeleton loader components (Skeleton, SkeletonText, SkeletonCard, SkeletonListItem, SkeletonTable, SkeletonTimeline)
 - `/docs/LOADING_COMPONENTS.md` - Comprehensive documentation with usage examples
 
 **Loading Pages Updated:**
+
 - `/app/loading.tsx` - Branded purple gradient spinner with dark mode
 - `/app/editor/loading.tsx` - Dark-themed branded spinner
 
 **Generic Spinners Replaced:**
+
 - `/app/editor/[projectId]/keyframe/KeyframePageClient.tsx` - Branded purple spinner
 - `/components/SubscriptionManager.tsx` - Branded purple spinner
 - `/components/ActivityHistory.tsx` - Branded purple spinner
@@ -1210,6 +1224,7 @@ Created comprehensive branded loading system with purple gradient design:
 - `/app/settings/page.tsx` - Branded purple spinner
 
 **Features Implemented:**
+
 - Purple gradient branding (purple-600 to purple-400) matching app identity
 - Full dark mode support for all loading states
 - Accessibility: `prefers-reduced-motion` support with fallback to static indicators
@@ -1219,6 +1234,7 @@ Created comprehensive branded loading system with purple gradient design:
 - All animations are CSS-based for performance
 
 **Design Consistency:**
+
 - Light mode: `border-purple-200` base, `border-t-purple-600` spinner
 - Dark mode: `border-purple-800` base, `border-t-purple-400` spinner
 - Reduced motion: Thicker border instead of animation
