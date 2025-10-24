@@ -37,7 +37,8 @@ export default function TimelineCorrectionsMenu() {
   );
 
   // Get first selected clip
-  const selectedClip = selectedClips.size > 0 ? clips.find((c) => selectedClips.has(c.id)) : null;
+  const selectedClip =
+    selectedClips.size > 0 ? (clips.find((c) => selectedClips.has(c.id)) ?? null) : null;
 
   // Use custom hooks for state management
   const { local, setters, debounced } = useCorrectionSync(selectedClip);
@@ -103,7 +104,7 @@ export default function TimelineCorrectionsMenu() {
           {/* Section Tabs */}
           <SectionTabs
             activeSection={activeSection}
-            hasAudio={selectedClip.hasAudio}
+            hasAudio={selectedClip.hasAudio ?? false}
             onSectionChange={setActiveSection}
           />
 

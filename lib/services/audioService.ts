@@ -34,12 +34,25 @@ export interface TTSGenerationOptions {
   similarity?: number;
 }
 
+export interface TTSAssetMetadata {
+  filename: string;
+  mimeType: string;
+  duration?: number;
+  provider: string;
+  voiceId?: string;
+  modelId?: string;
+  text?: string;
+  [key: string]: unknown;
+}
+
 export interface TTSGenerationResult {
   success: boolean;
   asset: {
     id: string;
     storage_url: string;
-    metadata: Record<string, unknown>;
+    metadata: TTSAssetMetadata;
+    type: 'audio';
+    created_at: string;
     [key: string]: unknown;
   };
   message: string;

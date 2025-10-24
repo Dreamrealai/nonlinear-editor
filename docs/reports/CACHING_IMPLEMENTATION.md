@@ -107,13 +107,13 @@ A comprehensive caching layer has been implemented to optimize database access a
 
 ### TTL Strategy
 
-| Data Type | TTL | Rationale |
-|-----------|-----|-----------|
-| User Profile | 5 minutes | Changes infrequently, tier updates need quick refresh |
-| User Subscription | 1 minute | Payment events need near real-time visibility |
-| Project Metadata | 2 minutes | Balance between freshness and performance |
-| User Projects List | 2 minutes | Projects created/deleted need timely updates |
-| User Settings | 10 minutes | Settings rarely change, can be stale longer |
+| Data Type          | TTL        | Rationale                                             |
+| ------------------ | ---------- | ----------------------------------------------------- |
+| User Profile       | 5 minutes  | Changes infrequently, tier updates need quick refresh |
+| User Subscription  | 1 minute   | Payment events need near real-time visibility         |
+| Project Metadata   | 2 minutes  | Balance between freshness and performance             |
+| User Projects List | 2 minutes  | Projects created/deleted need timely updates          |
+| User Settings      | 10 minutes | Settings rarely change, can be stale longer           |
 
 ### Cache Key Patterns
 
@@ -137,6 +137,7 @@ user:{userId}:project:{projectId}:assets
 ### 1. User Authentication & Profile Access
 
 **Before:**
+
 ```typescript
 const { data: profile } = await supabase
   .from('user_profiles')
@@ -147,6 +148,7 @@ const { data: profile } = await supabase
 ```
 
 **After:**
+
 ```typescript
 const profile = await getCachedUserProfile(supabase, userId);
 // Cache hit: ~1-2ms
@@ -156,6 +158,7 @@ const profile = await getCachedUserProfile(supabase, userId);
 ### 2. Stripe Webhook Processing
 
 **Integration:**
+
 ```typescript
 // After successful subscription update
 await invalidateOnStripeWebhook(userId, 'customer.subscription.updated');
@@ -165,6 +168,7 @@ await invalidateOnStripeWebhook(userId, 'customer.subscription.updated');
 ### 3. Admin Tier Changes
 
 **Integration:**
+
 ```typescript
 // After tier change
 await invalidateUserProfile(userId);
@@ -174,6 +178,7 @@ await invalidateUserProfile(userId);
 ### 4. Project Creation
 
 **Integration:**
+
 ```typescript
 // After creating project
 await invalidateUserProjects(userId);
@@ -184,12 +189,12 @@ await invalidateUserProjects(userId);
 
 ### Estimated Impact
 
-| Operation | Before (uncached) | After (cached) | Improvement |
-|-----------|-------------------|----------------|-------------|
-| User Profile Lookup | 50-100ms | 1-2ms | **95-98% faster** |
-| Subscription Check | 50-100ms | 1-2ms | **95-98% faster** |
-| Project Metadata | 50-100ms | 1-2ms | **95-98% faster** |
-| Projects List (10 items) | 100-150ms | 1-2ms | **98-99% faster** |
+| Operation                | Before (uncached) | After (cached) | Improvement       |
+| ------------------------ | ----------------- | -------------- | ----------------- |
+| User Profile Lookup      | 50-100ms          | 1-2ms          | **95-98% faster** |
+| Subscription Check       | 50-100ms          | 1-2ms          | **95-98% faster** |
+| Project Metadata         | 50-100ms          | 1-2ms          | **95-98% faster** |
+| Projects List (10 items) | 100-150ms         | 1-2ms          | **98-99% faster** |
 
 ### Cache Hit Rate Projections
 
@@ -243,24 +248,33 @@ All cache operations are logged via the server logger:
 
 ```typescript
 // Cache hits
-serverLogger.debug({
-  event: 'cache.hit',
-  key: 'user:profile:123',
-  duration: 1
-}, 'Cache hit: user profile 123 (1ms)');
+serverLogger.debug(
+  {
+    event: 'cache.hit',
+    key: 'user:profile:123',
+    duration: 1,
+  },
+  'Cache hit: user profile 123 (1ms)'
+);
 
 // Cache misses
-serverLogger.debug({
-  event: 'cache.miss',
-  key: 'user:profile:123'
-}, 'Cache miss: fetching user profile 123 from database');
+serverLogger.debug(
+  {
+    event: 'cache.miss',
+    key: 'user:profile:123',
+  },
+  'Cache miss: fetching user profile 123 from database'
+);
 
 // Cache invalidation
-serverLogger.info({
-  event: 'cache.invalidate_user',
-  userId: '123',
-  duration: 2
-}, 'Invalidated cache for user 123 (2ms)');
+serverLogger.info(
+  {
+    event: 'cache.invalidate_user',
+    userId: '123',
+    duration: 2,
+  },
+  'Invalidated cache for user 123 (2ms)'
+);
 ```
 
 ## Future Enhancements
@@ -300,7 +314,9 @@ serverLogger.info({
 // Before
 export async function GET(request: NextRequest) {
   const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const { data: profile } = await supabase
     .from('user_profiles')
@@ -316,7 +332,9 @@ import { getCachedUserProfile } from '@/lib/cachedData';
 
 export async function GET(request: NextRequest) {
   const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const profile = await getCachedUserProfile(supabase, user.id);
 
@@ -331,13 +349,12 @@ import { invalidateUserProfile } from '@/lib/cacheInvalidation';
 
 export async function PUT(request: NextRequest) {
   const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Update user profile
-  await supabase
-    .from('user_profiles')
-    .update({ bio: 'New bio' })
-    .eq('id', user.id);
+  await supabase.from('user_profiles').update({ bio: 'New bio' }).eq('id', user.id);
 
   // Invalidate cache so next read gets fresh data
   await invalidateUserProfile(user.id);
@@ -354,12 +371,12 @@ import { warmUserCache } from '@/lib/cachedData';
 // On user login, preload their commonly accessed data
 export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Warm cache in background
-  warmUserCache(supabase, user.id).catch(err =>
-    console.error('Cache warming failed:', err)
-  );
+  warmUserCache(supabase, user.id).catch((err) => console.error('Cache warming failed:', err));
 
   return NextResponse.json({ success: true });
 }
@@ -380,11 +397,11 @@ Edit `/Users/davidchen/Projects/non-linear-editor/lib/cache.ts`:
 
 ```typescript
 export const CacheTTL = {
-  userProfile: 5 * 60,      // 5 minutes
-  userSettings: 10 * 60,    // 10 minutes
+  userProfile: 5 * 60, // 5 minutes
+  userSettings: 10 * 60, // 10 minutes
   userSubscription: 1 * 60, // 1 minute
-  projectMetadata: 2 * 60,  // 2 minutes
-  userProjects: 2 * 60,     // 2 minutes
+  projectMetadata: 2 * 60, // 2 minutes
+  userProjects: 2 * 60, // 2 minutes
   // Adjust as needed based on your requirements
 };
 ```
@@ -434,6 +451,7 @@ expect(value).toBeNull(); // Should be expired
 **Symptoms:** All requests still hitting database
 
 **Solutions:**
+
 1. Check if cache is initialized: `cache.getStats()`
 2. Verify TTL values are not too short
 3. Check server logs for cache errors
@@ -443,6 +461,7 @@ expect(value).toBeNull(); // Should be expired
 **Symptoms:** Users seeing outdated information
 
 **Solutions:**
+
 1. Verify cache invalidation is called after mutations
 2. Reduce TTL for affected data type
 3. Force cache clear: `DELETE /api/admin/cache`
@@ -452,6 +471,7 @@ expect(value).toBeNull(); // Should be expired
 **Symptoms:** Application memory growing over time
 
 **Solutions:**
+
 1. Reduce `CACHE_MAX_SIZE` environment variable
 2. Reduce TTL values to expire entries faster
 3. Check for cache key leaks (incorrect patterns)

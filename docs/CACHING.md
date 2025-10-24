@@ -101,10 +101,7 @@ await clearAllCaches();
 
 ```typescript
 // Update user profile
-await supabase
-  .from('user_profiles')
-  .update({ bio: newBio })
-  .eq('id', userId);
+await supabase.from('user_profiles').update({ bio: newBio }).eq('id', userId);
 
 // MUST invalidate
 await invalidateUserProfile(userId);
@@ -114,10 +111,7 @@ await invalidateUserProfile(userId);
 
 ```typescript
 // Stripe webhook updates subscription
-await supabase
-  .from('user_subscriptions')
-  .update({ status: 'active' })
-  .eq('user_id', userId);
+await supabase.from('user_subscriptions').update({ status: 'active' }).eq('user_id', userId);
 
 // MUST invalidate
 await invalidateUserSubscription(userId);
@@ -127,9 +121,7 @@ await invalidateUserSubscription(userId);
 
 ```typescript
 // Create new project
-await supabase
-  .from('projects')
-  .insert({ title, user_id: userId });
+await supabase.from('projects').insert({ title, user_id: userId });
 
 // MUST invalidate user's projects list
 await invalidateUserProjects(userId);
@@ -139,10 +131,7 @@ await invalidateUserProjects(userId);
 
 ```typescript
 // Update project title
-await supabase
-  .from('projects')
-  .update({ title: newTitle })
-  .eq('id', projectId);
+await supabase.from('projects').update({ title: newTitle }).eq('id', projectId);
 
 // MUST invalidate project cache
 await invalidateProjectCache(projectId, userId);
@@ -153,6 +142,7 @@ await invalidateProjectCache(projectId, userId);
 ### ✅ DO
 
 1. **Always use cached functions for reads**
+
    ```typescript
    // Good
    const profile = await getCachedUserProfile(supabase, userId);
@@ -166,6 +156,7 @@ await invalidateProjectCache(projectId, userId);
    ```
 
 2. **Always invalidate after writes**
+
    ```typescript
    // Good
    await updateUserProfile(userId, data);
@@ -177,6 +168,7 @@ await invalidateProjectCache(projectId, userId);
    ```
 
 3. **Use specific invalidation functions**
+
    ```typescript
    // Good - only invalidates what changed
    await invalidateUserProfile(userId);
@@ -194,6 +186,7 @@ await invalidateProjectCache(projectId, userId);
 ### ❌ DON'T
 
 1. **Don't forget to invalidate**
+
    ```typescript
    // Bad - stale cache!
    await supabase.from('user_profiles').update({ tier: 'premium' });
@@ -201,12 +194,14 @@ await invalidateProjectCache(projectId, userId);
    ```
 
 2. **Don't over-invalidate**
+
    ```typescript
    // Bad - clears too much
    await clearAllCaches(); // Only for admin emergencies
    ```
 
 3. **Don't cache unstable data**
+
    ```typescript
    // Bad - this data changes too frequently
    const onlineStatus = await getCachedUserOnlineStatus(userId);
@@ -214,10 +209,13 @@ await invalidateProjectCache(projectId, userId);
    ```
 
 4. **Don't use cache for critical security checks**
+
    ```typescript
    // Bad - security checks should always be fresh
    const profile = await getCachedUserProfile(supabase, userId);
-   if (profile.tier === 'admin') { /* grant access */ }
+   if (profile.tier === 'admin') {
+     /* grant access */
+   }
 
    // Good - always verify permissions live
    const { data: profile } = await supabase
@@ -225,7 +223,9 @@ await invalidateProjectCache(projectId, userId);
      .select('tier')
      .eq('id', userId)
      .single();
-   if (profile.tier === 'admin') { /* grant access */ }
+   if (profile.tier === 'admin') {
+     /* grant access */
+   }
    ```
 
 ## Monitoring Cache Performance
@@ -256,17 +256,17 @@ curl -X DELETE https://your-app.com/api/admin/cache \
 
 ```typescript
 // Cache hits (good - fast!)
-event: 'cache.hit'
-key: 'user:profile:123'
-duration: 1
+event: 'cache.hit';
+key: 'user:profile:123';
+duration: 1;
 
 // Cache misses (expected occasionally)
-event: 'cache.miss'
-key: 'user:profile:123'
+event: 'cache.miss';
+key: 'user:profile:123';
 
 // Cache invalidations (after data changes)
-event: 'cache.invalidate_user'
-userId: '123'
+event: 'cache.invalidate_user';
+userId: '123';
 ```
 
 ## Troubleshooting
@@ -276,6 +276,7 @@ userId: '123'
 **Cause:** Forgot to invalidate cache after mutation
 
 **Solution:**
+
 ```typescript
 // Add invalidation after update
 await supabase.from('user_profiles').update({ ... });
@@ -287,6 +288,7 @@ await invalidateUserProfile(userId); // ← Add this
 **Cause:** Not using cached functions
 
 **Solution:**
+
 ```typescript
 // Replace direct queries with cached versions
 // Before:
@@ -299,11 +301,13 @@ const profile = await getCachedUserProfile(supabase, userId);
 ### Problem: Cache Hit Rate Too Low
 
 **Possible Causes:**
+
 1. TTL too short - increase TTL values in `/lib/cache.ts`
 2. Too much invalidation - review invalidation logic
 3. Low traffic - cache needs time to warm up
 
 **Solution:**
+
 ```typescript
 // Warm cache on user login
 await warmUserCache(supabase, userId);
@@ -344,25 +348,27 @@ export async function getCachedMyData(
     const cached = await cache.get<MyData>(cacheKey);
     if (cached) {
       const duration = Date.now() - startTime;
-      serverLogger.debug({
-        event: 'cache.hit',
-        key: cacheKey,
-        duration,
-      }, `Cache hit: my data ${id} (${duration}ms)`);
+      serverLogger.debug(
+        {
+          event: 'cache.hit',
+          key: cacheKey,
+          duration,
+        },
+        `Cache hit: my data ${id} (${duration}ms)`
+      );
       return cached;
     }
 
     // Cache miss - fetch from database
-    serverLogger.debug({
-      event: 'cache.miss',
-      key: cacheKey,
-    }, `Cache miss: fetching my data ${id} from database`);
+    serverLogger.debug(
+      {
+        event: 'cache.miss',
+        key: cacheKey,
+      },
+      `Cache miss: fetching my data ${id} from database`
+    );
 
-    const { data, error } = await supabase
-      .from('my_table')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('my_table').select('*').eq('id', id).single();
 
     if (error || !data) {
       return null;
@@ -372,19 +378,25 @@ export async function getCachedMyData(
     await cache.set(cacheKey, data, CacheTTL.myNewData);
 
     const duration = Date.now() - startTime;
-    serverLogger.debug({
-      event: 'cachedData.my_data.fetched',
-      id,
-      duration,
-    }, `My data fetched and cached (${duration}ms)`);
+    serverLogger.debug(
+      {
+        event: 'cachedData.my_data.fetched',
+        id,
+        duration,
+      },
+      `My data fetched and cached (${duration}ms)`
+    );
 
     return data as MyData;
   } catch (error) {
-    serverLogger.error({
-      event: 'cachedData.my_data.error',
-      id,
-      error,
-    }, 'Error fetching my data');
+    serverLogger.error(
+      {
+        event: 'cachedData.my_data.error',
+        id,
+        error,
+      },
+      'Error fetching my data'
+    );
     return null;
   }
 }
@@ -399,16 +411,22 @@ export async function invalidateMyData(id: string): Promise<void> {
   try {
     await cache.del(CacheKeys.myNewData(id));
 
-    serverLogger.debug({
-      event: 'cache.invalidate_my_data',
-      id,
-    }, `Invalidated my data cache for ${id}`);
+    serverLogger.debug(
+      {
+        event: 'cache.invalidate_my_data',
+        id,
+      },
+      `Invalidated my data cache for ${id}`
+    );
   } catch (error) {
-    serverLogger.error({
-      event: 'cache.invalidate_my_data_error',
-      id,
-      error,
-    }, 'Error invalidating my data cache');
+    serverLogger.error(
+      {
+        event: 'cache.invalidate_my_data_error',
+        id,
+        error,
+      },
+      'Error invalidating my data cache'
+    );
   }
 }
 ```
@@ -448,7 +466,7 @@ Edit `/lib/cache.ts`:
 
 ```typescript
 export const CacheTTL = {
-  userProfile: 5 * 60,      // 5 minutes
+  userProfile: 5 * 60, // 5 minutes
   userSubscription: 1 * 60, // 1 minute
   // ... adjust as needed
 };

@@ -25,6 +25,51 @@ import { safeArrayFirst } from '@/lib/utils/arrayUtils';
 import { trackError, ErrorCategory, ErrorSeverity } from '../errorTracking';
 import { validateUUID } from '../validation';
 
+/**
+ * Base asset metadata that can be extended
+ */
+export interface BaseAssetMetadata {
+  filename: string;
+  mimeType: string;
+  sourceUrl?: string;
+  thumbnail?: string;
+  width?: number;
+  height?: number;
+  duration?: number;
+  durationSeconds?: number;
+  fileSize?: number;
+  [key: string]: unknown;
+}
+
+export interface ImageAssetMetadata extends BaseAssetMetadata {
+  provider?: string;
+  model?: string;
+  prompt?: string;
+  negativePrompt?: string;
+  aspectRatio?: string;
+  seed?: number;
+}
+
+export interface VideoAssetMetadata extends BaseAssetMetadata {
+  fps?: number;
+  bitrate?: number;
+  codec?: string;
+  provider?: string;
+  model?: string;
+  prompt?: string;
+}
+
+export interface AudioAssetMetadata extends BaseAssetMetadata {
+  bitrate?: number;
+  sampleRate?: number;
+  channels?: number;
+  provider?: string;
+  model?: string;
+  voiceId?: string;
+}
+
+export type AssetMetadata = ImageAssetMetadata | VideoAssetMetadata | AudioAssetMetadata;
+
 export interface Asset {
   id: string;
   user_id: string;
@@ -32,21 +77,8 @@ export interface Asset {
   type: 'image' | 'video' | 'audio';
   source: 'upload' | 'genai';
   storage_url: string;
-  metadata: Record<string, unknown>;
+  metadata: AssetMetadata;
   created_at: string;
-}
-
-export interface ImageAssetMetadata {
-  filename: string;
-  mimeType: string;
-  sourceUrl: string;
-  thumbnail?: string;
-  provider?: string;
-  model?: string;
-  prompt?: string;
-  negativePrompt?: string;
-  aspectRatio?: string;
-  seed?: number;
 }
 
 export interface CreateImageAssetOptions {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
@@ -47,19 +47,25 @@ export default function EditorHeader({ projectId, currentTab, onExport }: Editor
     loadProjects();
   }, [supabaseClient, projectId]);
 
-  const handleProjectChange = (newProjectId: string) => {
-    setIsDropdownOpen(false);
-    router.push(`/editor/${newProjectId}`);
-  };
+  const handleProjectChange = useCallback(
+    (newProjectId: string) => {
+      setIsDropdownOpen(false);
+      router.push(`/editor/${newProjectId}`);
+    },
+    [router]
+  );
 
-  const handleRenameClick = (e?: React.MouseEvent) => {
-    e?.stopPropagation(); // Prevent dropdown from toggling
-    setRenameValue(currentProject?.title || '');
-    setIsRenaming(true);
-    setIsDropdownOpen(false);
-  };
+  const handleRenameClick = useCallback(
+    (e?: React.MouseEvent) => {
+      e?.stopPropagation(); // Prevent dropdown from toggling
+      setRenameValue(currentProject?.title || '');
+      setIsRenaming(true);
+      setIsDropdownOpen(false);
+    },
+    [currentProject?.title]
+  );
 
-  const handleRenameSubmit = async () => {
+  const handleRenameSubmit = useCallback(async () => {
     if (!supabaseClient || !renameValue.trim()) {
       toast.error('Please enter a project name');
       return;
@@ -83,9 +89,9 @@ export default function EditorHeader({ projectId, currentTab, onExport }: Editor
       browserLogger.error({ error, projectId }, 'Failed to rename project');
       toast.error('Failed to rename project');
     }
-  };
+  }, [supabaseClient, renameValue, projectId, projects]);
 
-  const handleDeleteProject = async () => {
+  const handleDeleteProject = useCallback(async () => {
     if (!supabaseClient) return;
 
     const confirmDelete = confirm(
@@ -104,7 +110,7 @@ export default function EditorHeader({ projectId, currentTab, onExport }: Editor
       browserLogger.error({ error, projectId }, 'Failed to delete project');
       toast.error('Failed to delete project');
     }
-  };
+  }, [supabaseClient, projectId, currentProject?.title, router]);
 
   return (
     <header className="border-b border-neutral-200 bg-white px-6 py-3 shadow-sm">

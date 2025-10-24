@@ -111,6 +111,32 @@ export const POLLING_CONFIG = {
 } as const;
 
 /**
+ * Numeric Limits Configuration
+ */
+export const NUMERIC_LIMITS = {
+  // Random Seed
+  SEED_MIN: 0,
+  SEED_MAX: 4294967295, // 2^32 - 1
+
+  // Sample Count
+  SAMPLE_COUNT_MIN: 1,
+  SAMPLE_COUNT_MAX_VIDEO: 4,
+  SAMPLE_COUNT_MAX_IMAGE: 8,
+  SAMPLE_COUNT_MAX_AUDIO: 1,
+
+  // Voice Settings (0-1 range)
+  VOICE_STABILITY_MIN: 0,
+  VOICE_STABILITY_MAX: 1,
+  VOICE_SIMILARITY_MIN: 0,
+  VOICE_SIMILARITY_MAX: 1,
+
+  // Queue Limits
+  VIDEO_QUEUE_MAX: 8,
+  AUDIO_QUEUE_MAX: 8,
+  IMAGE_QUEUE_MAX: 8,
+} as const;
+
+/**
  * Export all configuration as a single object for easy access
  */
 export const CONFIG = {
@@ -118,4 +144,5 @@ export const CONFIG = {
   STORAGE: STORAGE_CONFIG,
   DEFAULT_SETTINGS: DEFAULT_GENERATION_SETTINGS,
   POLLING: POLLING_CONFIG,
+  NUMERIC_LIMITS,
 } as const;
