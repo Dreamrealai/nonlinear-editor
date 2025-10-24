@@ -106,6 +106,7 @@ describe('PreviewPlayer', () => {
     } as unknown as Performance;
 
     globalThis.performance = performanceMock;
+    (window as unknown as { performance: Performance }).performance = performanceMock;
     performanceNowSpy = jest.spyOn(globalThis.performance, 'now');
 
     globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
