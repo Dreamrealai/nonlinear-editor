@@ -26,8 +26,6 @@ import { TimelineContextMenu } from './timeline/TimelineContextMenu';
 import { TimelinePlayhead } from './timeline/TimelinePlayhead';
 import { TimelineTextOverlayTrack } from './timeline/TimelineTextOverlayTrack';
 import { TimelineSnapGuides } from './timeline/TimelineSnapGuides';
-import { TimelineTrimOverlay } from './timeline/TimelineTrimOverlay';
-import { TimelineGuides } from './timeline/TimelineGuides';
 
 // Extracted hooks
 import { useTimelineDraggingWithSnap } from '@/lib/hooks/useTimelineDraggingWithSnap';
@@ -59,7 +57,6 @@ const selectTimelineData = (state: ReturnType<typeof useEditorStore.getState>) =
   clips: state.timeline?.clips ?? [],
   textOverlays: state.timeline?.textOverlays ?? [],
   groups: state.timeline?.groups ?? [],
-  guides: state.timeline?.guides ?? [],
 });
 
 // Separate selector for frequently changing values to minimize re-renders
@@ -91,12 +88,6 @@ const selectActions = (state: ReturnType<typeof useEditorStore.getState>) => ({
   updateTextOverlay: state.updateTextOverlay,
   toggleClipLock: state.toggleClipLock,
   toggleAutoScroll: state.toggleAutoScroll,
-  groupSelectedClips: state.groupSelectedClips,
-  ungroupClips: state.ungroupClips,
-  getClipGroupId: state.getClipGroupId,
-  updateGuide: state.updateGuide,
-  removeGuide: state.removeGuide,
-  addGuide: state.addGuide,
 });
 
 // Selector for undo/redo state
@@ -119,7 +110,7 @@ function HorizontalTimeline({
   splitScenesPending = false,
 }: HorizontalTimelineProps = {}): React.JSX.Element {
   // Optimized store subscriptions - separate selectors to minimize re-renders
-  const { timeline, clips, textOverlays, guides } = useEditorStore(selectTimelineData);
+  const { timeline, clips, textOverlays } = useEditorStore(selectTimelineData);
   const { currentTime, zoom, autoScrollEnabled } = useEditorStore(selectPlaybackState);
   const { selectedClipIds } = useEditorStore(selectSelectionState);
   const { canUndo, canRedo } = useEditorStore(selectHistoryState);
@@ -139,12 +130,6 @@ function HorizontalTimeline({
     updateTextOverlay,
     toggleClipLock,
     toggleAutoScroll,
-    groupSelectedClips,
-    ungroupClips,
-    getClipGroupId,
-    updateGuide,
-    removeGuide,
-    addGuide,
   } = useEditorStore(selectActions);
 
   // Playback state for auto-scroll
@@ -183,7 +168,7 @@ function HorizontalTimeline({
   });
 
   // Dragging state (clip, playhead, trim) and snap info
-  const { snapInfo, setDraggingClip, setIsDraggingPlayhead, setTrimmingClip, trimPreviewInfo } =
+  const { snapInfo, setDraggingClip, setIsDraggingPlayhead, setTrimmingClip } =
     useTimelineDraggingWithSnap({
       containerRef,
       timeline,
@@ -192,36 +177,6 @@ function HorizontalTimeline({
       setCurrentTime,
       updateClip,
     });
-
-  // Group/Ungroup callbacks
-  const handleGroupClips = useCallback(() => {
-    if (selectedClipIds.size >= 2) {
-      groupSelectedClips();
-    }
-  }, [selectedClipIds, groupSelectedClips]);
-
-  const handleUngroupClips = useCallback(() => {
-    // Get first selected clip's group ID
-    const firstSelectedId = Array.from(selectedClipIds)[0];
-    if (firstSelectedId) {
-      const groupId = getClipGroupId(firstSelectedId);
-      if (groupId) {
-        ungroupClips(groupId);
-      }
-    }
-  }, [selectedClipIds, getClipGroupId, ungroupClips]);
-
-  // Add guide at playhead callback
-  const handleAddGuide = useCallback(() => {
-    const guide = {
-      id: `guide-${Date.now()}`,
-      position: currentTime,
-      orientation: 'vertical' as const,
-      color: '#3b82f6',
-      visible: true,
-    };
-    addGuide(guide);
-  }, [currentTime, addGuide]);
 
   // Keyboard shortcuts
   useTimelineKeyboardShortcuts({
@@ -237,9 +192,6 @@ function HorizontalTimeline({
     splitClipAtTime,
     toggleClipLock,
     onAddTransition,
-    onGroupClips: handleGroupClips,
-    onUngroupClips: handleUngroupClips,
-    onAddGuide: handleAddGuide,
   });
 
   // Zoom controls - memoized to prevent re-creation on every render
@@ -485,26 +437,12 @@ function HorizontalTimeline({
               onMouseDown={handlePlayheadMouseDown}
             />
 
-            {/* Timeline Guides - Draggable alignment guides */}
-            <TimelineGuides
-              guides={guides}
-              zoom={zoom}
-              timelineDuration={timelineDuration}
-              numTracks={numTracks}
-              onGuideUpdate={(guideId, patch) => updateGuide(guideId, patch)}
-              onGuideDelete={(guideId) => removeGuide(guideId)}
-              containerRef={containerRef}
-            />
-
             {/* Snap Guides - Visual feedback during dragging */}
             <TimelineSnapGuides
               snapInfo={snapInfo}
               zoom={zoom}
               timelineHeight={numTracks * TRACK_HEIGHT}
             />
-
-            {/* Trim Overlay - Visual feedback during trimming */}
-            <TimelineTrimOverlay trimInfo={trimPreviewInfo} />
           </div>
         </div>
       </div>

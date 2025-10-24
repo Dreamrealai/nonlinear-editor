@@ -1,8 +1,8 @@
 # Codebase Issues Tracker
 
 **Last Updated:** 2025-10-24
-**Status:** 53 open issues (21 issues fixed)
-**Priority Breakdown:** P0: 0 | P1: 19 | P2: 22 | P3: 12
+**Status:** 52 open issues (22 issues fixed)
+**Priority Breakdown:** P0: 0 | P1: 19 | P2: 21 | P3: 12
 
 This document tracks all open issues in the codebase. Fixed/resolved issues are removed to keep this document focused and efficient.
 
@@ -1931,12 +1931,46 @@ See Issue #50 for comprehensive implementation details.
 
 ### Issue #100: No Timeline Guides/Rulers
 
-- **Status:** Open
+- **Status:** Fixed (2025-10-24)
 - **Priority:** P2
-- **Effort:** 8-12 hours
-- **Impact:** Hard to align elements precisely
+- **Effort:** 8-12 hours (Completed: ~8 hours)
+- **Impact:** Users can now align elements precisely with draggable guides
+- **Fixed Date:** 2025-10-24
 
-**Action:** Add draggable guide lines and ruler measurements
+**Implementation:**
+
+Comprehensive timeline guides and rulers system for precise alignment:
+
+**Features Implemented:**
+- Draggable vertical guides (time-based) with time labels
+- Draggable horizontal guides (track-based) with track labels
+- Visual feedback with color customization
+- Right-click context menu to delete guides
+- Keyboard shortcut (Shift+R) to add guide at playhead position
+- Guide visibility toggle support
+- Guide persistence in project state
+
+**Technical Details:**
+- Extended Timeline type with guides array in `/types/timeline.ts`
+- Created Guide type with position, orientation, color, visible, and label properties
+- Added guide management actions to useEditorStore (add, remove, update, toggle)
+- Updated TimelineGuides component to support both vertical and horizontal guides
+- Integrated TimelineGuides into HorizontalTimeline component
+- Added keyboard shortcut hook integration for guide operations
+
+**UI/UX:**
+- Guides show time/track labels on hover and during drag
+- Visual handle at top (vertical) or left (horizontal) for easy dragging
+- Smooth transitions and opacity changes for better feedback
+- Context menu for quick guide deletion
+- Guides rendered with proper z-index for layering
+
+**Files Modified:**
+- `/types/timeline.ts` - Added Guide type and guides array to Timeline
+- `/state/useEditorStore.ts` - Added guide management actions
+- `/components/timeline/TimelineGuides.tsx` - Updated for vertical/horizontal guides
+- `/components/HorizontalTimeline.tsx` - Integrated guides component
+- `/lib/hooks/useTimelineKeyboardShortcuts.ts` - Added Shift+R shortcut
 
 ---
 
