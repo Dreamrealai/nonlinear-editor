@@ -31,6 +31,15 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
+// Mock withErrorHandling to pass through without catching errors in tests
+jest.mock('@/lib/api/response', () => {
+  const actual = jest.requireActual('@/lib/api/response');
+  return {
+    ...actual,
+    withErrorHandling: (handler: any) => handler,
+  };
+});
+
 jest.mock('crypto', () => ({
   randomUUID: jest.fn(() => 'mock-uuid-123'),
 }));

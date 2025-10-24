@@ -82,8 +82,16 @@ describe('POST /api/video/upscale', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
     const { __getMockClient } = require('@/lib/supabase');
     mockSupabase = __getMockClient();
+
+    // Setup default auth mock (needs to be reset after clearAllMocks)
+    mockSupabase.auth.getUser.mockResolvedValue({
+      data: { user: { id: 'test-user-id', email: 'test@example.com' } },
+      error: null,
+    });
 
     checkRateLimit.mockResolvedValue({ success: true, remaining: 9 });
 
@@ -95,7 +103,6 @@ describe('POST /api/video/upscale', () => {
     });
 
     process.env['FAL_API_KEY'] = 'test-fal-key';
-    jest.clearAllMocks();
   });
 
   afterEach(() => {
