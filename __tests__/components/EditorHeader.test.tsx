@@ -15,11 +15,11 @@ jest.mock('@/components/providers/SupabaseProvider', () => ({
   useSupabase: jest.fn(),
 }));
 
-jest.mock('@/components/UserMenu', () => {
-  return function MockUserMenu() {
+jest.mock('@/components/UserMenu', () => ({
+  UserMenu: function MockUserMenu() {
     return <div data-testid="user-menu">User Menu</div>;
-  };
-});
+  },
+}));
 
 jest.mock('react-hot-toast', () => ({
   success: jest.fn(),

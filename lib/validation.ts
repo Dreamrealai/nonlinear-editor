@@ -181,6 +181,78 @@ export const IMAGE_GENERATION_VALIDATORS = {
 };
 
 /**
+ * Validate URL format
+ */
+export const URL_REGEX =
+  /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
+
+export function validateUrl(
+  value: unknown,
+  fieldName: string = 'URL',
+  options: {
+    httpsOnly?: boolean;
+    maxLength?: number;
+  } = {}
+): asserts value is string {
+  const { httpsOnly = false, maxLength = 2048 } = options;
+
+  if (typeof value !== 'string') {
+    throw new ValidationError(`${fieldName} must be a string`, fieldName, 'INVALID_TYPE');
+  }
+
+  if (value.length > maxLength) {
+    throw new ValidationError(
+      `${fieldName} must not exceed ${maxLength} characters`,
+      fieldName,
+      'TOO_LONG'
+    );
+  }
+
+  if (!URL_REGEX.test(value)) {
+    throw new ValidationError(`Invalid ${fieldName} format`, fieldName, 'INVALID_URL');
+  }
+
+  if (httpsOnly && !value.startsWith('https://')) {
+    throw new ValidationError(`${fieldName} must use HTTPS protocol`, fieldName, 'HTTPS_REQUIRED');
+  }
+}
+
+/**
+ * Validate number (not necessarily integer)
+ */
+export function validateNumber(
+  value: unknown,
+  fieldName: string,
+  min?: number,
+  max?: number
+): asserts value is number {
+  if (typeof value !== 'number') {
+    throw new ValidationError(`${fieldName} must be a number`, fieldName, 'INVALID_TYPE');
+  }
+
+  if (isNaN(value)) {
+    throw new ValidationError(`${fieldName} must be a valid number`, fieldName, 'INVALID_NUMBER');
+  }
+
+  if (min !== undefined && value < min) {
+    throw new ValidationError(`${fieldName} must be at least ${min}`, fieldName, 'OUT_OF_RANGE');
+  }
+
+  if (max !== undefined && value > max) {
+    throw new ValidationError(`${fieldName} must not exceed ${max}`, fieldName, 'OUT_OF_RANGE');
+  }
+}
+
+/**
+ * Validate boolean
+ */
+export function validateBoolean(value: unknown, fieldName: string): asserts value is boolean {
+  if (typeof value !== 'boolean') {
+    throw new ValidationError(`${fieldName} must be a boolean`, fieldName, 'INVALID_TYPE');
+  }
+}
+
+/**
  * Validate image generation request
  */
 export interface ImageGenerationRequest {

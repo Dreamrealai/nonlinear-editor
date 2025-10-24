@@ -8,6 +8,7 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
 import type { Clip } from '@/types/timeline';
 import { browserLogger } from '@/lib/browserLogger';
+import { PERFORMANCE_CONSTANTS } from '@/lib/constants';
 import {
   clamp,
   computeOpacity,
@@ -77,7 +78,7 @@ export function useVideoPlayback({
 
   // Track last sync time to throttle updates during RAF loop
   const lastSyncTimeRef = useRef<number>(0);
-  const frameTimeThresholdRef = useRef<number>(16); // Adaptive: 16ms = 60fps, 33ms = 30fps
+  const frameTimeThresholdRef = useRef<number>(PERFORMANCE_CONSTANTS.FRAME_TIME_60FPS); // Adaptive frame rate
   const droppedFramesRef = useRef<number>(0);
   const performanceCheckCountRef = useRef<number>(0);
 
@@ -85,8 +86,10 @@ export function useVideoPlayback({
   useEffect(() => {
     // Check CPU cores and memory as indicators of device capability
     const hardwareConcurrency = navigator.hardwareConcurrency || 4;
-    // @ts-expect-error - deviceMemory is not in TypeScript definitions yet
-    const deviceMemory = navigator.deviceMemory || 4; // In GB
+    // Device Memory API - experimental but supported in Chromium
+    // https://developer.mozilla.org/en-US/docs/Web/API/Device_Memory_API
+    const navigatorWithMemory = navigator as typeof navigator & { deviceMemory?: number };
+    const deviceMemory = navigatorWithMemory.deviceMemory || 4; // In GB
 
     // Lower-end devices: 2 cores or less, or 2GB RAM or less
     const isLowerEndDevice = hardwareConcurrency <= 2 || deviceMemory <= 2;

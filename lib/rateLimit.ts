@@ -74,10 +74,16 @@ if (typeof process !== 'undefined' && process.on) {
   process.on('SIGINT', cleanupRateLimit);
 
   // Clean up on HMR (Hot Module Replacement) during development
-  // @ts-expect-error - module.hot is available in development but not typed
-  if (process.env.NODE_ENV === 'development' && typeof module !== 'undefined' && module.hot) {
-    // @ts-expect-error - module.hot.dispose is available in development but not typed
-    module.hot.dispose(cleanupRateLimit);
+  // Type assertion for module.hot which is injected by webpack/vite in development
+  if (process.env.NODE_ENV === 'development' && typeof module !== 'undefined') {
+    const hotModule = module as typeof module & {
+      hot?: {
+        dispose: (callback: () => void) => void;
+      };
+    };
+    if (hotModule.hot) {
+      hotModule.hot.dispose(cleanupRateLimit);
+    }
   }
 }
 
@@ -324,4 +330,4 @@ export const RATE_LIMITS = {
   expensive: { max: 10, windowMs: 60 * 1000 },
   moderate: { max: 30, windowMs: 60 * 1000 },
   relaxed: { max: 60, windowMs: 60 * 1000 },
-};
+} as const satisfies Record<string, RateLimitConfig>;

@@ -9,9 +9,6 @@ export * from './models';
 // API Configuration
 export * from './api';
 
-// Validation Configuration
-export * from './validation';
-
 // Rate Limit Configuration
 export * from './rateLimit';
 
@@ -55,8 +52,7 @@ export const STORAGE_CONFIG = {
     USER_ASSET: (userId: string, projectId: string, type: string, filename: string) =>
       `${userId}/${projectId}/${type}/${filename}`,
 
-    PROJECT_DATA: (userId: string, projectId: string) =>
-      `${userId}/${projectId}/data`,
+    PROJECT_DATA: (userId: string, projectId: string) => `${userId}/${projectId}/data`,
   },
 
   // URL Prefixes

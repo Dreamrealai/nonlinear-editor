@@ -6,16 +6,22 @@
  */
 
 /**
- * Asset metadata structure
+ * Asset metadata structure with specific known fields
  */
 export interface AssetMetadata {
   filename?: string;
   mimeType?: string;
   thumbnail?: string;
   duration?: number;
+  durationSeconds?: number;
   width?: number;
   height?: number;
-  [key: string]: unknown;
+  originalName?: string;
+  fileSize?: number;
+  generatedBy?: string;
+  prompt?: string;
+  model?: string;
+  [key: string]: unknown; // Allow additional fields for extensibility
 }
 
 /**
@@ -26,7 +32,7 @@ export interface BaseAssetRow {
   id: string;
   title?: string | null;
   storage_url: string;
-  metadata: Record<string, unknown> | null;
+  metadata: AssetMetadata | null;
 }
 
 /**
@@ -38,7 +44,7 @@ export interface AssetRow {
   storage_url: string;
   duration_seconds: number | null;
   metadata: AssetMetadata | null;
-  rawMetadata: Record<string, unknown> | null;
+  rawMetadata: AssetMetadata | null;
   created_at: string | null;
   type: 'video' | 'audio' | 'image';
   title?: string | null;

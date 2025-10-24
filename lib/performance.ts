@@ -6,6 +6,7 @@
  */
 
 import { browserLogger } from './browserLogger';
+import { PERFORMANCE_CONSTANTS } from './constants';
 
 /**
  * Performance metric categories
@@ -39,7 +40,7 @@ const MAX_METRICS = 100;
  * Slow operation thresholds (milliseconds)
  */
 const SLOW_THRESHOLDS: Record<PerformanceCategory, number> = {
-  [PerformanceCategory.COMPONENT_RENDER]: 16, // 60fps = 16ms per frame
+  [PerformanceCategory.COMPONENT_RENDER]: PERFORMANCE_CONSTANTS.FRAME_TIME_60FPS,
   [PerformanceCategory.DATABASE_QUERY]: 100,
   [PerformanceCategory.API_REQUEST]: 500,
   [PerformanceCategory.ASSET_PROCESSING]: 1000,

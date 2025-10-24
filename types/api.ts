@@ -15,11 +15,36 @@ export interface CreateProjectRequest {
   title?: string;
 }
 
+/**
+ * Timeline state stored in project database
+ */
+export interface ProjectTimelineState {
+  projectId: string;
+  clips: Array<{
+    id: string;
+    assetId: string;
+    start: number;
+    end: number;
+    timelinePosition: number;
+    trackIndex: number;
+    [key: string]: unknown; // Allow additional clip properties
+  }>;
+  output?: {
+    width: number;
+    height: number;
+    fps: number;
+    vBitrateK: number;
+    aBitrateK: number;
+    format: 'mp4' | 'webm';
+  };
+  [key: string]: unknown; // Allow additional state properties
+}
+
 export interface CreateProjectResponse {
   id: string;
   title: string;
   user_id: string;
-  timeline_state_jsonb: Record<string, unknown>;
+  timeline_state_jsonb: ProjectTimelineState;
   created_at: string;
   updated_at: string;
 }
@@ -54,6 +79,21 @@ export interface SignedUrlResponse {
   expiresIn: number;
 }
 
+/**
+ * Asset metadata structure
+ */
+export interface AssetMetadataDetails {
+  filename?: string;
+  mimeType?: string;
+  thumbnail?: string;
+  durationSeconds?: number;
+  width?: number;
+  height?: number;
+  originalName?: string;
+  fileSize?: number;
+  [key: string]: unknown; // Allow additional metadata fields
+}
+
 export interface Asset {
   id: string;
   project_id: string;
@@ -65,7 +105,7 @@ export interface Asset {
   width?: number | null;
   height?: number | null;
   duration?: number | null;
-  metadata?: Record<string, unknown>;
+  metadata?: AssetMetadataDetails;
   created_at: string;
   updated_at: string;
 }
@@ -174,12 +214,20 @@ export interface GenerateElevenLabsSFXResponse {
   message: string;
 }
 
+export interface VoiceLabels {
+  accent?: string;
+  age?: string;
+  gender?: string;
+  useCase?: string;
+  [key: string]: string | undefined;
+}
+
 export interface ListVoicesResponse {
   voices: Array<{
     voice_id: string;
     name: string;
     category?: string;
-    labels?: Record<string, string>;
+    labels?: VoiceLabels;
   }>;
 }
 
@@ -355,11 +403,25 @@ export interface EditFrameResponse {
 
 export type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 
+/**
+ * Log metadata structure
+ */
+export interface LogMetadata {
+  userId?: string;
+  projectId?: string;
+  assetId?: string;
+  operationName?: string;
+  duration?: number;
+  statusCode?: number;
+  errorCode?: string;
+  [key: string]: unknown; // Allow additional metadata fields
+}
+
 export interface LogEntry {
   level: LogLevel;
   message: string;
   timestamp: string;
-  metadata?: Record<string, unknown>;
+  metadata?: LogMetadata;
 }
 
 export interface SubmitLogsRequest {
@@ -401,6 +463,22 @@ export interface DeleteUserResponse {
 // HISTORY TYPES
 // ============================================================================
 
+/**
+ * Activity metadata structure
+ */
+export interface ActivityMetadata {
+  prompt?: string;
+  duration?: number;
+  resolution?: string;
+  aspectRatio?: string;
+  parameters?: {
+    model?: string;
+    seed?: number;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown; // Allow additional metadata fields
+}
+
 export interface ActivityHistoryItem {
   id: string;
   user_id: string;
@@ -410,7 +488,7 @@ export interface ActivityHistoryItem {
   description?: string;
   model?: string;
   asset_id?: string;
-  metadata?: Record<string, unknown>;
+  metadata?: ActivityMetadata;
   created_at: string;
 }
 
@@ -455,26 +533,91 @@ export interface SignOutResponse {
 }
 
 // ============================================================================
-// ERROR TYPES
+// ERROR TYPES - Using Discriminated Unions
 // ============================================================================
 
-export interface APIError {
+/**
+ * Base error structure
+ */
+interface BaseAPIError {
   error: string;
   message?: string;
-  field?: string;
-  code?: string;
   status?: number;
 }
 
-export interface ValidationError extends APIError {
+/**
+ * Validation error with field information
+ */
+export interface ValidationError extends BaseAPIError {
+  type: 'validation';
   field: string;
+  code?: string;
 }
 
-export interface RateLimitError extends APIError {
+/**
+ * Rate limit error with limit information
+ */
+export interface RateLimitError extends BaseAPIError {
+  type: 'rate_limit';
   limit: number;
   remaining: number;
   resetAt: number;
 }
+
+/**
+ * Authentication error
+ */
+export interface AuthenticationError extends BaseAPIError {
+  type: 'authentication';
+  code?: 'invalid_token' | 'expired_token' | 'missing_token';
+}
+
+/**
+ * Authorization error (insufficient permissions)
+ */
+export interface AuthorizationError extends BaseAPIError {
+  type: 'authorization';
+  requiredPermission?: string;
+}
+
+/**
+ * Not found error
+ */
+export interface NotFoundError extends BaseAPIError {
+  type: 'not_found';
+  resource?: string;
+  resourceId?: string;
+}
+
+/**
+ * Server error
+ */
+export interface ServerError extends BaseAPIError {
+  type: 'server';
+  code?: string;
+}
+
+/**
+ * Generic API error (backward compatibility)
+ */
+export interface GenericAPIError extends BaseAPIError {
+  type: 'generic';
+  field?: string;
+  code?: string;
+}
+
+/**
+ * Discriminated union of all error types
+ * Allows type-safe error handling with exhaustiveness checking
+ */
+export type APIError =
+  | ValidationError
+  | RateLimitError
+  | AuthenticationError
+  | AuthorizationError
+  | NotFoundError
+  | ServerError
+  | GenericAPIError;
 
 // ============================================================================
 // ============================================================================
@@ -495,10 +638,46 @@ export interface ChatMessage {
 }
 
 // ============================================================================
-// COMMON RESPONSE WRAPPER
+// COMMON RESPONSE WRAPPER - Using Discriminated Unions
 // ============================================================================
 
-export type APIResponse<T> = T | APIError;
+/**
+ * Success response wrapper
+ */
+export interface SuccessResponse<T> {
+  success: true;
+  data: T;
+}
+
+/**
+ * Error response wrapper
+ */
+export interface ErrorResponse {
+  success: false;
+  error: APIError;
+}
+
+/**
+ * Discriminated union for API responses
+ * Allows type narrowing based on success field
+ *
+ * @example
+ * ```ts
+ * const response: APIResponse<User> = await fetchUser();
+ * if (response.success) {
+ *   console.log(response.data.name); // Type-safe access to data
+ * } else {
+ *   console.error(response.error.error); // Type-safe access to error
+ * }
+ * ```
+ */
+export type APIResponse<T> = SuccessResponse<T> | ErrorResponse;
+
+/**
+ * Legacy type for backward compatibility
+ * @deprecated Use APIResponse<T> instead
+ */
+export type LegacyAPIResponse<T> = T | APIError;
 
 export interface PaginatedResponse<T> {
   data: T[];

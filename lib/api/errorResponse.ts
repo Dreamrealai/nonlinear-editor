@@ -15,6 +15,20 @@ import { NextResponse } from 'next/server';
 import { serverLogger } from '@/lib/serverLogger';
 
 /**
+ * Error context for logging
+ */
+export interface ErrorContext {
+  userId?: string;
+  projectId?: string;
+  assetId?: string;
+  operationName?: string;
+  requestId?: string;
+  endpoint?: string;
+  method?: string;
+  [key: string]: unknown;
+}
+
+/**
  * Standard error response format
  */
 export interface ErrorResponse {
@@ -37,7 +51,7 @@ export interface ErrorResponse {
 export function errorResponse(
   message: string,
   status: number = 500,
-  context?: Record<string, unknown>
+  context?: ErrorContext
 ): NextResponse<ErrorResponse> {
   // Log error with context
   const logLevel = status >= 500 ? 'error' : 'warn';
@@ -55,58 +69,60 @@ export function errorResponse(
 
 /**
  * Common error response creators for frequent use cases
+ * Using const assertion for better type inference
  */
 export const ErrorResponses = {
   /**
    * 400 Bad Request - Invalid input
    */
-  badRequest: (message: string = 'Invalid request', context?: Record<string, unknown>) =>
+  badRequest: (message: string = 'Invalid request', context?: ErrorContext) =>
     errorResponse(message, 400, context),
 
   /**
    * 401 Unauthorized - Authentication required
    */
-  unauthorized: (message: string = 'Unauthorized', context?: Record<string, unknown>) =>
+  unauthorized: (message: string = 'Unauthorized', context?: ErrorContext) =>
     errorResponse(message, 401, context),
 
   /**
    * 403 Forbidden - Insufficient permissions
    */
-  forbidden: (message: string = 'Forbidden', context?: Record<string, unknown>) =>
+  forbidden: (message: string = 'Forbidden', context?: ErrorContext) =>
     errorResponse(message, 403, context),
 
   /**
    * 404 Not Found - Resource not found
    */
-  notFound: (message: string = 'Not found', context?: Record<string, unknown>) =>
+  notFound: (message: string = 'Not found', context?: ErrorContext) =>
     errorResponse(message, 404, context),
 
   /**
    * 409 Conflict - Resource conflict
    */
-  conflict: (message: string = 'Conflict', context?: Record<string, unknown>) =>
+  conflict: (message: string = 'Conflict', context?: ErrorContext) =>
     errorResponse(message, 409, context),
 
   /**
    * 429 Too Many Requests - Rate limit exceeded
    */
-  tooManyRequests: (message: string = 'Too many requests', context?: Record<string, unknown>) =>
+  tooManyRequests: (message: string = 'Too many requests', context?: ErrorContext) =>
     errorResponse(message, 429, context),
 
   /**
    * 500 Internal Server Error - Unexpected error
    */
-  internal: (message: string = 'Internal server error', context?: Record<string, unknown>) =>
+  internal: (message: string = 'Internal server error', context?: ErrorContext) =>
     errorResponse(message, 500, context),
 
   /**
    * 503 Service Unavailable - Service temporarily unavailable
    */
-  serviceUnavailable: (
-    message: string = 'Service unavailable',
-    context?: Record<string, unknown>
-  ) => errorResponse(message, 503, context),
-};
+  serviceUnavailable: (message: string = 'Service unavailable', context?: ErrorContext) =>
+    errorResponse(message, 503, context),
+} as const satisfies Record<
+  string,
+  (message?: string, context?: ErrorContext) => NextResponse<ErrorResponse>
+>;
 
 /**
  * Helper to extract error message from unknown error type

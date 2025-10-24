@@ -212,20 +212,26 @@ npm run dev
 
 ## Documentation
 
-### API Documentation
+All project documentation has been organized into the `/docs/` directory. See the [Documentation Index](docs/README.md) for a complete listing.
 
-- [API Documentation](API_DOCUMENTATION.md) - Comprehensive API reference with all 31 endpoints
-- [Quick Reference](API_QUICK_REFERENCE.md) - Quick reference guide for developers
-- [OpenAPI Specification](openapi.yaml) - Machine-readable API spec for tools like Swagger/Postman
+### Quick Links
 
-### Setup & Architecture
+- **[Complete Documentation Index](docs/README.md)** - All documentation organized by category
+- **[API Reference](docs/api/API_QUICK_REFERENCE.md)** - Quick API reference guide
+- **[Setup Guides](docs/setup/)** - Configuration and setup instructions
+- **[Security](docs/security/SECURITY.md)** - Security features and best practices
+- **[Architecture](docs/architecture/ARCHITECTURE_STANDARDS.md)** - Architecture standards and patterns
+- **[Issue Tracking](docs/issues/ISSUETRACKING.md)** - Current issues and resolutions
+- **[Reports](docs/reports/)** - Audit reports, analysis, and evaluations
 
-- [Supabase Setup](docs/SUPABASE_SETUP.md) - Step-by-step database setup guide
-- [Architecture](docs/ARCHITECTURE.md) - System architecture and design
-- [Security](docs/SECURITY.md) - Security features and best practices
-- [Testing](docs/TESTING.md) - Testing strategy and manual test guides
-- [Performance](docs/PERFORMANCE.md) - Optimization guidelines
-- [Logging](docs/LOGGING.md) - Logging and monitoring setup
+### Documentation Categories
+
+- **`/docs/api/`** - API documentation for all services and endpoints
+- **`/docs/architecture/`** - Architecture standards and React patterns
+- **`/docs/security/`** - Security policies, audits, and CORS implementation
+- **`/docs/setup/`** - Setup guides for Supabase, Stripe, Vercel, email, and environment variables
+- **`/docs/issues/`** - Issue tracking and resolution reports
+- **`/docs/reports/`** - Comprehensive reports, audits, and codebase analysis
 
 ## Environment Variables
 
@@ -252,7 +258,7 @@ npm run dev
 | `AXIOM_DATASET`          | Axiom dataset name                | Axiom Dashboard                                                                   |
 | `NEXT_PUBLIC_APP_URL`    | Application URL                   | Auto-detected (optional)                                                          |
 
-See [API Documentation](docs/API.md#environment-variables) for detailed descriptions.
+See [Environment Variables Documentation](docs/setup/ENVIRONMENT_VARIABLES.md) for detailed descriptions.
 
 ## Quick Start
 
@@ -485,7 +491,7 @@ npm run build
 - Close other browser tabs
 - Increase browser memory limit
 - Consider breaking into multiple projects
-- See [Performance Guide](docs/PERFORMANCE.md)
+- See [Performance Guide](docs/PERFORMANCE.md) for optimization tips
 
 ### Debug Mode
 

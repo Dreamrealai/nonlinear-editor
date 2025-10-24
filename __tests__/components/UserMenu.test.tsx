@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { UserMenu } from '@/components/UserMenu';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
@@ -35,14 +36,12 @@ jest.mock('@/components/providers/SupabaseProvider', () => ({
 }));
 
 // Mock react-hot-toast
-const mockToast = {
-  success: jest.fn(),
-  error: jest.fn(),
-};
-
 jest.mock('react-hot-toast', () => ({
   __esModule: true,
-  default: mockToast,
+  default: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
 }));
 
 // Mock browserLogger
@@ -368,7 +367,7 @@ describe('UserMenu', () => {
       await user.click(signOutButton);
 
       await waitFor(() => {
-        expect(mockToast.success).toHaveBeenCalledWith('Signed out successfully');
+        expect(toast.success).toHaveBeenCalledWith('Signed out successfully');
         expect(mockPush).toHaveBeenCalledWith('/signin');
         expect(mockRefresh).toHaveBeenCalled();
       });

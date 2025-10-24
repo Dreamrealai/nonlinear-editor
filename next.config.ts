@@ -78,9 +78,12 @@ const nextConfig: NextConfig = {
               "default-src 'self'",
               // Strict script policy - removed unsafe-eval and unsafe-inline
               // Next.js bundles all scripts, so 'self' is sufficient
-              // Added wasm-unsafe-eval for WebAssembly support (safer than unsafe-eval)
+              // wasm-unsafe-eval required for Next.js SWC (Rust/WASM compiler) and dependencies
+              // (@napi-rs/wasm-runtime, @tybys/wasm-util used by Next.js build toolchain)
+              // Note: wasm-unsafe-eval is MUCH safer than unsafe-eval as it only allows
+              // WebAssembly compilation, not arbitrary JavaScript eval()
               "script-src 'self' 'wasm-unsafe-eval'",
-              // Style sources - keep unsafe-inline only for Tailwind
+              // Style sources - keep unsafe-inline only for Tailwind v4 CSS-in-JS
               // Google Fonts stylesheets allowed for next/font/google
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               // Image sources - Supabase storage, data URIs, and blob for canvas/video
@@ -101,6 +104,11 @@ const nextConfig: NextConfig = {
               "frame-ancestors 'none'",
               // Force HTTPS for all resources
               'upgrade-insecure-requests',
+              // Block all plugins (Flash, Java, Silverlight, etc.)
+              "plugin-types 'none'",
+              // Require SRI for scripts and styles (when using external CDNs)
+              // Disabled for now as Next.js handles bundling
+              // "require-sri-for script style",
             ].join('; '),
           },
         ],
