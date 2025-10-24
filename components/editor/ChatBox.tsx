@@ -68,10 +68,26 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
       setMessages(data.messages || []);
     } catch (error) {
       browserLogger.error({ error, projectId }, 'Error loading chat messages');
+
+      if (supabase) {
+        try {
+          const { data: fallbackMessages, error: fallbackError } = await supabase
+            .from('chat_messages')
+            .select('*')
+            .eq('project_id', projectId)
+            .order('created_at', { ascending: true });
+
+          if (!fallbackError && fallbackMessages) {
+            setMessages(fallbackMessages as Message[]);
+          }
+        } catch (fallbackError) {
+          browserLogger.error({ error: fallbackError, projectId }, 'Fallback Supabase load failed');
+        }
+      }
     } finally {
       setLoadingMessages(false);
     }
-  }, [projectId]);
+  }, [projectId, supabase]);
 
   useEffect(() => {
     loadMessages();

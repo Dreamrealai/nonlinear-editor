@@ -170,12 +170,17 @@ export const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
   // Process crossfades: adjust effectiveStart for overlapping clips
   clipsByTrack.forEach((indices) => {
     // Sort clips by timeline position within each track
-    indices.sort((a, b) => clips[a].timelinePosition - clips[b].timelinePosition);
+    indices.sort((a, b) => (clips[a]?.timelinePosition || 0) - (clips[b]?.timelinePosition || 0));
 
     // Check adjacent clips for crossfade transitions
     for (let i = 1; i < indices.length; i += 1) {
-      const prev = base[indices[i - 1]];
-      const next = base[indices[i]];
+      const prevIndex = indices[i - 1];
+      const nextIndex = indices[i];
+      if (prevIndex === undefined || nextIndex === undefined) {
+        continue;
+      }
+      const prev = base[prevIndex];
+      const next = base[nextIndex];
       if (!prev || !next) {
         continue;
       }
@@ -191,7 +196,9 @@ export const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
   // Build final metadata map combining fades and crossfades
   const metaMap = new Map<string, ClipMeta>();
   base.forEach((meta, index) => {
-    metaMap.set(clips[index].id, {
+    const clip = clips[index];
+    if (!clip || !meta) return;
+    metaMap.set(clip.id, {
       length: meta.length,
       timelineStart: meta.timelineStart,
       effectiveStart: Math.max(0, meta.effectiveStart),

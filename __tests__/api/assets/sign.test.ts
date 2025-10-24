@@ -27,12 +27,11 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
-// Mock withErrorHandling to pass through without catching errors in tests
 jest.mock('@/lib/api/response', () => {
   const actual = jest.requireActual('@/lib/api/response');
   return {
     ...actual,
-    withErrorHandling: (handler: any) => handler,
+    withErrorHandling: actual.withErrorHandling,
   };
 });
 
@@ -139,7 +138,9 @@ describe('GET /api/assets/sign', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=nonexistent');
+      mockRequest = new NextRequest(
+        'http://localhost/api/assets/sign?assetId=b5f5c5d4-7a3a-4cde-9f10-1234567890ab'
+      );
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
@@ -160,15 +161,13 @@ describe('GET /api/assets/sign', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest(
-        `http://localhost/api/assets/sign?assetId=${VALID_ASSET_ID}`
-      );
+      mockRequest = new NextRequest(`http://localhost/api/assets/sign?assetId=${VALID_ASSET_ID}`);
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(403);
       const data = await response.json();
-      expect(data.error).toContain('asset does not belong to user');
+      expect(data.error).toBe('Asset does not belong to user');
     });
   });
 
@@ -200,7 +199,7 @@ describe('GET /api/assets/sign', () => {
     it('should skip folder check when assetId was used for lookup', async () => {
       const mockUser = mockAuthenticatedUser(mockSupabase);
       const mockAsset = createMockAsset({
-        id: 'asset-123',
+        id: VALID_ASSET_ID,
         user_id: mockUser.id,
         storage_url: 'supabase://assets/any-folder/test.jpg',
       });
@@ -210,7 +209,7 @@ describe('GET /api/assets/sign', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=asset-123');
+      mockRequest = new NextRequest(`http://localhost/api/assets/sign?assetId=${VALID_ASSET_ID}`);
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
@@ -293,7 +292,7 @@ describe('GET /api/assets/sign', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=asset-123');
+      mockRequest = new NextRequest(`http://localhost/api/assets/sign?assetId=${VALID_ASSET_ID}`);
 
       await GET(mockRequest, { params: Promise.resolve({}) });
 
@@ -341,7 +340,7 @@ describe('GET /api/assets/sign', () => {
         error: { message: 'Database error' },
       });
 
-      mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=asset-123');
+      mockRequest = new NextRequest(`http://localhost/api/assets/sign?assetId=${VALID_ASSET_ID}`);
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
@@ -349,20 +348,20 @@ describe('GET /api/assets/sign', () => {
     });
 
     it('should handle unexpected errors gracefully', async () => {
-      mockAuthenticatedUser(mockSupabase);
+      const mockUser = mockAuthenticatedUser(mockSupabase);
       mockSupabase.storage.from.mockImplementation(() => {
         throw new Error('Unexpected error');
       });
 
       mockRequest = new NextRequest(
-        'http://localhost/api/assets/sign?storageUrl=supabase://assets/user-id/test.jpg'
+        `http://localhost/api/assets/sign?storageUrl=supabase://assets/${mockUser.id}/test.jpg`
       );
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
-      expect(data.error).toBe('Internal server error');
+      expect(data.error).toBe('Unexpected error');
     });
   });
 

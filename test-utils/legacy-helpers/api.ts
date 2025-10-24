@@ -20,7 +20,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { createMockAuthUser, createMockSession } from './supabase';
+import { createMockSession } from './supabase';
 
 /**
  * Creates a mock NextRequest with authentication headers.
@@ -88,7 +88,7 @@ export { createMockSession };
  * expect(data.success).toBe(true);
  * ```
  */
-export function createMockResponse<T = any>(
+export function createMockResponse<T = unknown>(
   data: T,
   status: number = 200,
   headers?: Record<string, string>
@@ -118,7 +118,7 @@ export function createMockResponse<T = any>(
  * });
  * ```
  */
-export async function expectSuccessResponse<T = any>(
+export async function expectSuccessResponse<T = unknown>(
   response: Response,
   expectedData?: Partial<T> | jest.Matchers<Partial<T>>
 ): Promise<T> {
@@ -152,7 +152,7 @@ export async function expectErrorResponse(
   response: Response,
   expectedStatus: number,
   expectedError?: string | RegExp
-): Promise<any> {
+): Promise<unknown> {
   expect(response.status).toBe(expectedStatus);
 
   const data = await response.json();
@@ -184,7 +184,7 @@ export async function expectErrorResponse(
  * );
  * ```
  */
-export function createMockFetchResponse<T = any>(
+export function createMockFetchResponse<T = unknown>(
   data: T,
   ok: boolean = true,
   status: number = 200
@@ -288,7 +288,7 @@ export async function expectInternalServerError(
  * ```
  */
 export function mockFetchResponses(
-  responses: Array<{ data: any; ok?: boolean; status?: number }>
+  responses: Array<{ data: unknown; ok?: boolean; status?: number }>
 ): void {
   const mockResponses = responses.map((r) =>
     createMockFetchResponse(r.data, r.ok ?? true, r.status ?? 200)
@@ -298,7 +298,7 @@ export function mockFetchResponses(
     (global.fetch as jest.Mock) = jest.fn().mockResolvedValue(mockResponses[0]);
   } else {
     (global.fetch as jest.Mock) = jest.fn();
-    mockResponses.forEach((response, index) => {
+    mockResponses.forEach((response, _index) => {
       (global.fetch as jest.Mock).mockResolvedValueOnce(response);
     });
   }
@@ -321,7 +321,7 @@ export function mockFetchResponses(
  * );
  * ```
  */
-export function createJSONRequest(url: string, method: string, body?: any): NextRequest {
+export function createJSONRequest(url: string, method: string, body?: unknown): NextRequest {
   return new NextRequest(url, {
     method,
     headers: {
@@ -367,10 +367,10 @@ export function createFormDataRequest(url: string, formData: FormData): NextRequ
  * expect(data.id).toBeDefined();
  * ```
  */
-export async function parseResponse<T = any>(response: Response): Promise<T> {
+export async function parseResponse<T = unknown>(response: Response): Promise<T> {
   try {
     return await response.json();
-  } catch (error) {
+  } catch {
     throw new Error(`Failed to parse response: ${response.status} ${response.statusText}`);
   }
 }

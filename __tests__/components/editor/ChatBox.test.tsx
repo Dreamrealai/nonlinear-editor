@@ -129,8 +129,29 @@ describe('ChatBox', () => {
     // Mock Supabase realtime channel
     mockChannel.subscribe.mockImplementation(() => ({ data: null }));
 
-    // Reset fetch mock
+    // Reset fetch mock with sensible defaults for initial load/save operations
     (global.fetch as jest.Mock).mockReset();
+    (global.fetch as jest.Mock).mockImplementation(
+      (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = typeof input === 'string' ? input : input.toString();
+        const method = init?.method?.toUpperCase() ?? 'GET';
+
+        if (url.includes('/chat/messages')) {
+          return Promise.resolve({ ok: true, json: async () => ({}) });
+        }
+
+        if (url.endsWith('/chat') && method === 'GET') {
+          return Promise.resolve({ ok: true, json: async () => ({ messages: mockMessages }) });
+        }
+
+        if (url === '/api/ai/chat' && method === 'POST') {
+          return Promise.resolve({ ok: true, json: async () => ({ response: 'AI response' }) });
+        }
+
+        // Fallback response
+        return Promise.resolve({ ok: true, json: async () => ({}) });
+      }
+    );
   });
 
   afterEach(() => {
@@ -313,11 +334,6 @@ describe('ChatBox', () => {
     });
 
     it('should send message on button click', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ response: 'AI response' }),
-      });
-
       const user = userEvent.setup();
       render(<ChatBox {...defaultProps} />);
 
@@ -413,11 +429,6 @@ describe('ChatBox', () => {
     });
 
     it('should revoke blob URLs after sending message', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ response: 'AI response' }),
-      });
-
       const user = userEvent.setup();
       const { container } = render(<ChatBox {...defaultProps} />);
 
