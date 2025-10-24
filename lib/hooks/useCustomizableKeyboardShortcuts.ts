@@ -14,7 +14,7 @@ interface ShortcutAction {
   id: string;
   action: () => void;
   description: string;
-  category: 'general' | 'playback' | 'editing' | 'navigation' | 'other';
+  category: 'general' | 'playback' | 'editing' | 'navigation' | 'timeline' | 'other';
   priority?: number;
 }
 

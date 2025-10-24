@@ -1,8 +1,8 @@
 # Codebase Issues Tracker
 
 **Last Updated:** 2025-10-24
-**Status:** 57 open issues (17 issues fixed)
-**Priority Breakdown:** P0: 0 | P1: 20 | P2: 25 | P3: 12
+**Status:** 56 open issues (18 issues fixed)
+**Priority Breakdown:** P0: 0 | P1: 20 | P2: 24 | P3: 12
 
 This document tracks all open issues in the codebase. Fixed/resolved issues are removed to keep this document focused and efficient.
 
@@ -351,18 +351,31 @@ Comprehensive performance optimization suite for timeline rendering with 100+ cl
 
 ### Issue #93: No Audio Waveform Visualization
 
-- **Status:** Open
+- **Status:** Fixed (2025-10-24)
 - **Priority:** P1
-- **Effort:** 16-20 hours
-- **Impact:** Cannot see audio peaks for editing
+- **Effort:** 16-20 hours (completed)
+- **Impact:** Users can now see audio peaks for editing
+- **Fixed Date:** 2025-10-24
+- **Commits:** 0278aa2, 4798f71
 
-**Needed:**
+**Implementation:**
 
-- Waveform generation on upload
-- Waveform rendering in timeline
-- Zoom-aware detail levels
-- Efficient canvas rendering
+Comprehensive audio waveform visualization system:
 
+- **AudioWaveform Component**: Web Worker processing, global caching, worker pool (4 workers), zoom-aware LOD (3 levels: 100/500/2000 samples), canvas rendering with device pixel ratio
+- **Waveform Generator**: Multi-resolution generation with RMS-based downsampling, automatic LOD selection based on zoom
+- **Web Worker**: Offloads audio processing, uses OfflineAudioContext, transferable objects
+- **Timeline Integration**: Renders in bottom 30% of audio clips, blue gradient with 80% opacity
+
+**Features Implemented:**
+✅ Waveform generation with Web Audio API
+✅ Timeline rendering with zoom-aware detail levels
+✅ Efficient canvas rendering
+✅ Performance optimization (Web Workers, caching, worker pool)
+
+**Bug Fixes:**
+- Fixed undefined clipWidth variable (commit 4798f71)
+- Fixed TypeScript postMessage error (commit 4798f71)
 ---
 
 ### Issue #94: Missing Export Presets
@@ -1547,12 +1560,68 @@ Pagination was already fully implemented across the stack:
 
 ### Issue #30: No Clip Grouping Feature
 
-- **Status:** Open
+- **Status:** Fixed
 - **Priority:** P2
-- **Effort:** 12-16 hours
-- **Impact:** Hard to manage related clips
+- **Effort:** 12-16 hours (Completed: 2 hours)
+- **Impact:** Users can now group clips to move/edit together
+- **Fixed:** 2025-10-24
+- **Commits:** 242fdd1, 123dd56
 
-**Action:** Allow grouping clips to move/edit together
+**Implementation:**
+
+Comprehensive clip grouping functionality with the following features:
+
+**Keyboard Shortcuts:**
+- G key: Group selected clips (requires 2+ clips selected)
+- Shift+G key: Ungroup clips
+
+**Group Movement:**
+- Grouped clips move together when dragged
+- Maintains relative positions and track offsets between grouped clips
+- All clips in a group update simultaneously during drag operations
+- Collision detection works with grouped clips
+
+**Visual Indicators:**
+- Group badge with Users icon on grouped clips
+- Purple border color distinguishes grouped clips from individual clips
+- Group name shown in clip tooltip
+- Group color customization support (stored in ClipGroup.color)
+
+**Context Menu:**
+- "Group Selected Clips" option appears when 2+ clips are selected
+- "Ungroup" option appears for clips that are part of a group
+- Both options accessible via right-click context menu
+
+**State Management:**
+- Groups stored in Timeline.groups array (ClipGroup type)
+- Each group has: id, name, clipIds, color, locked, created_at
+- Clip.groupId property links clips to their group
+- Group movement logic implemented in useTimelineDragging hook
+- Group/ungroup actions in useEditorStore with history support
+
+**Data Model:**
+- ClipGroup type with id, name, clipIds, color, locked, created_at
+- Clip type extended with optional groupId property
+- Timeline type includes optional groups array
+
+**Technical Details:**
+- Group movement calculates delta position and delta track
+- Applies movement to all clips in group maintaining relative positions
+- Supports undo/redo for group/ungroup operations
+- Groups persist in timeline state and database
+
+**Files Modified:**
+- lib/hooks/useTimelineKeyboardShortcuts.ts: Added G and Shift+G shortcuts
+- components/HorizontalTimeline.tsx: Added group/ungroup callbacks
+- components/timeline/TimelineContextMenu.tsx: Group/ungroup menu options (already present)
+- components/timeline/TimelineClipRenderer.tsx: Visual group indicators (already present)
+- lib/hooks/useTimelineDragging.ts: Group movement logic (already present)
+- state/useEditorStore.ts: Group management actions (already present)
+- types/timeline.ts: ClipGroup type and Clip.groupId (already present)
+
+**Note:** Most grouping infrastructure (data model, UI, movement logic) was already
+implemented in the codebase. This fix completed the feature by adding keyboard
+shortcuts and wiring up the callbacks to make grouping fully functional.
 
 ---
 

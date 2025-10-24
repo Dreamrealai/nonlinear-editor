@@ -164,6 +164,7 @@ export function KeyboardShortcutsPanel() {
       window.addEventListener('keydown', handleKeyPress);
       return () => window.removeEventListener('keydown', handleKeyPress);
     }
+    return undefined;
   }, [isRecording, handleKeyPress]);
 
   // Save edited shortcut

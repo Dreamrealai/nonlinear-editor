@@ -19,7 +19,7 @@ export interface KeyboardShortcut {
   /** Description of what the shortcut does */
   description: string;
   /** Category for grouping in help modal */
-  category: 'general' | 'playback' | 'editing' | 'navigation' | 'other';
+  category: 'general' | 'playback' | 'editing' | 'navigation' | 'timeline' | 'other';
   /** Action to execute when shortcut is triggered */
   action: () => void;
   /** Priority for execution (higher = earlier, default = 0) */
