@@ -30,6 +30,8 @@ import { TimelineSnapGuides } from './timeline/TimelineSnapGuides';
 import { TimelineTrimOverlay } from './timeline/TimelineTrimOverlay';
 import { KeyboardShortcutsPanel } from './timeline/KeyboardShortcutsPanel';
 import { EditModeFeedback } from './timeline/EditModeFeedback';
+import { TimelineSelectionRectangle } from './timeline/TimelineSelectionRectangle';
+import { TimelineMinimap } from './timeline/TimelineMinimap';
 
 // Extracted hooks
 import { useTimelineDraggingWithSnap } from '@/lib/hooks/useTimelineDraggingWithSnap';
@@ -37,6 +39,7 @@ import { useTimelineKeyboardShortcuts } from '@/lib/hooks/useTimelineKeyboardSho
 import { useTimelineCalculations } from '@/lib/hooks/useTimelineCalculations';
 import { useTimelineScrolling } from '@/lib/hooks/useTimelineScrolling';
 import { usePlaybackStore } from '@/state/usePlaybackStore';
+import { useRubberBandSelection } from '@/lib/hooks/useRubberBandSelection';
 
 const { TRACK_HEIGHT, MIN_TRACKS, SNAP_INTERVAL_SECONDS: SNAP_INTERVAL } = TIMELINE_CONSTANTS;
 
@@ -95,6 +98,9 @@ const selectActions = (state: ReturnType<typeof useEditorStore.getState>) => ({
   toggleAutoScroll: state.toggleAutoScroll,
   toggleSnap: state.toggleSnap,
   addMarker: state.addMarker,
+  selectClipsInRange: state.selectClipsInRange,
+  selectAllClips: state.selectAllClips,
+  selectAllClipsInTrack: state.selectAllClipsInTrack,
 });
 
 // Selector for undo/redo state
@@ -139,6 +145,9 @@ function HorizontalTimeline({
     toggleAutoScroll,
     toggleSnap,
     addMarker,
+    selectClipsInRange,
+    selectAllClips,
+    selectAllClipsInTrack,
   } = useEditorStore(selectActions);
 
   // Playback state for auto-scroll
@@ -187,6 +196,8 @@ function HorizontalTimeline({
     currentEditMode,
     editModeModifiers,
     trimFeedback,
+    draggingClip,
+    trimmingClip,
   } = useTimelineDraggingWithSnap({
     containerRef,
     timeline,
@@ -194,6 +205,15 @@ function HorizontalTimeline({
     numTracks,
     setCurrentTime,
     updateClip,
+  });
+
+  // Rubber band selection (drag to select multiple clips)
+  const { selectionRect } = useRubberBandSelection({
+    containerRef: containerRef as React.RefObject<HTMLDivElement>,
+    enabled: !draggingClip && !trimmingClip, // Only enable when not dragging clips or trimming
+    zoom,
+    trackHeight: TRACK_HEIGHT,
+    onSelectClipsInRange: selectClipsInRange,
   });
 
   // Add marker at playhead position
@@ -223,6 +243,7 @@ function HorizontalTimeline({
     onAddTransition,
     onAddMarker: handleAddMarker,
     onToggleSnap: toggleSnap,
+    onSelectAll: selectAllClips,
   });
 
   // Zoom controls - memoized to prevent re-creation on every render
@@ -286,11 +307,39 @@ function HorizontalTimeline({
     });
   };
 
-  // Click to select clip
+  // Click to select clip with enhanced shift+click for range selection
   const handleClipClick = (e: React.MouseEvent, clip: Clip): void => {
     e.stopPropagation();
-    const isMulti = e.metaKey || e.ctrlKey || e.shiftKey;
-    selectClip(clip.id, isMulti);
+
+    // Shift+click extends selection to include range
+    if (e.shiftKey && selectedClipIds.size > 0) {
+      // Get the first selected clip
+      const firstSelectedId = Array.from(selectedClipIds)[0];
+      const firstClip = clips.find((c) => c.id === firstSelectedId);
+
+      if (firstClip) {
+        // Select all clips between first selected and clicked clip
+        const startPos = Math.min(firstClip.timelinePosition, clip.timelinePosition);
+        const endPos = Math.max(
+          firstClip.timelinePosition + (firstClip.end - firstClip.start),
+          clip.timelinePosition + (clip.end - clip.start)
+        );
+
+        clips.forEach((c) => {
+          const clipStart = c.timelinePosition;
+          const clipEnd = clipStart + (c.end - c.start);
+          // Select clips that overlap with the range
+          if (clipEnd >= startPos && clipStart <= endPos) {
+            selectClip(c.id, true);
+          }
+        });
+      }
+    } else {
+      // Normal multi-select behavior (Cmd/Ctrl toggles selection)
+      const isMulti = e.metaKey || e.ctrlKey;
+      selectClip(clip.id, isMulti);
+    }
+
     setSelectedTextOverlayId(null);
   };
 
@@ -393,6 +442,21 @@ function HorizontalTimeline({
 
   const timelineWidth = timelineDuration * zoom;
 
+  // Handler for minimap pan
+  const handleMinimapPan = useCallback((newScrollLeft: number) => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollLeft = newScrollLeft;
+    }
+  }, []);
+
+  // Handler for minimap seek
+  const handleMinimapSeek = useCallback(
+    (time: number) => {
+      setCurrentTime(time);
+    },
+    [setCurrentTime]
+  );
+
   return (
     <div className="flex flex-col gap-2">
       {/* Controls */}
@@ -417,6 +481,20 @@ function HorizontalTimeline({
         onUpscaleVideo={onUpscaleVideo}
         onToggleAutoScroll={toggleAutoScroll}
       />
+
+      {/* Minimap for timeline navigation */}
+      {clips.length > 0 && (
+        <TimelineMinimap
+          clips={clips}
+          timelineDuration={timelineDuration}
+          scrollLeft={scrollLeft}
+          viewportWidth={viewportWidth}
+          zoom={zoom}
+          numTracks={numTracks}
+          onSeek={handleMinimapSeek}
+          onPan={handleMinimapPan}
+        />
+      )}
 
       {/* Timeline Container */}
       <div
@@ -497,6 +575,9 @@ function HorizontalTimeline({
               timelineHeight={numTracks * TRACK_HEIGHT}
             />
 
+            {/* Rubber Band Selection Rectangle */}
+            <TimelineSelectionRectangle selectionRect={selectionRect} />
+
             {/* Trim Preview Overlay - Visual feedback during trimming */}
             <TimelineTrimOverlay trimInfo={trimPreviewInfo} />
           </div>
@@ -517,6 +598,7 @@ function HorizontalTimeline({
           onSplitScenes={onSplitScenesFromClip}
           onGenerateAudio={onGenerateAudioFromClip}
           onAddTransition={onAddTransition ? () => onAddTransition() : undefined}
+          onSelectAllInTrack={(trackIndex) => selectAllClipsInTrack(trackIndex, true)}
           onClose={() => setContextMenu(null)}
         />
       )}

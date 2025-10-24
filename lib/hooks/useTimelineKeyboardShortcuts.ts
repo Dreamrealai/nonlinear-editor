@@ -6,7 +6,7 @@
  * - Copy/Paste (Cmd+C / Cmd+V)
  * - Delete/Backspace
  * - Split clip (S key)
- * - Toggle snap (Shift+S key)
+ * - Toggle snap (Cmd+Shift+S / Ctrl+Shift+S)
  * - Lock/Unlock selected clips (L key)
  * - Add transition (T key)
  * - Add marker (M key)
@@ -43,6 +43,7 @@ type UseTimelineKeyboardShortcutsOptions = {
   onZoomIn?: () => void;
   onZoomOut?: () => void;
   onZoomReset?: () => void;
+  onSelectAll?: () => void;
 };
 
 export function useTimelineKeyboardShortcuts({
@@ -63,10 +64,16 @@ export function useTimelineKeyboardShortcuts({
   onUngroupClips,
   onAddGuide,
   onToggleSnap,
-  onZoomIn,
-  onZoomOut,
-  onZoomReset,
+  onZoomIn, // Reserved for future use
+  onZoomOut, // Reserved for future use
+  onZoomReset, // Reserved for future use
+  onSelectAll,
 }: UseTimelineKeyboardShortcutsOptions) {
+  // Suppress unused variable warnings for zoom handlers (reserved for future use)
+  void onZoomIn;
+  void onZoomOut;
+  void onZoomReset;
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Null check for event target
@@ -111,6 +118,13 @@ export function useTimelineKeyboardShortcuts({
         return;
       }
 
+      // Cmd/Ctrl+A: Select All
+      if (cmdOrCtrl && e.key === 'a') {
+        e.preventDefault();
+        if (onSelectAll) onSelectAll();
+        return;
+      }
+
       // Delete/Backspace: Remove selected clips
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
@@ -120,8 +134,17 @@ export function useTimelineKeyboardShortcuts({
         }
       }
 
-      // S: Split clip at playhead (without Shift)
-      if ((e.key === 's' || e.key === 'S') && !e.shiftKey) {
+      // Cmd/Ctrl+Shift+S: Toggle snap
+      if (cmdOrCtrl && (e.key === 's' || e.key === 'S') && e.shiftKey) {
+        e.preventDefault();
+        if (onToggleSnap) {
+          onToggleSnap();
+        }
+        return;
+      }
+
+      // S: Split clip at playhead (without modifiers)
+      if ((e.key === 's' || e.key === 'S') && !e.shiftKey && !cmdOrCtrl) {
         e.preventDefault();
         if (!timeline || !timeline.clips || !splitClipAtTime) return;
         const clipAtPlayhead = timeline.clips.find((clip) => {
@@ -131,14 +154,6 @@ export function useTimelineKeyboardShortcuts({
         });
         if (clipAtPlayhead) {
           splitClipAtTime(clipAtPlayhead.id, currentTime);
-        }
-      }
-
-      // Shift+S: Toggle snap
-      if ((e.key === 's' || e.key === 'S') && e.shiftKey) {
-        e.preventDefault();
-        if (onToggleSnap) {
-          onToggleSnap();
         }
       }
 
@@ -214,5 +229,6 @@ export function useTimelineKeyboardShortcuts({
     onUngroupClips,
     onAddGuide,
     onToggleSnap,
+    onSelectAll,
   ]);
 }

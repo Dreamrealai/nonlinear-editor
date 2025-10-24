@@ -60,7 +60,7 @@ export function useTimelineScrolling({
   const panStartRef = useRef({ x: 0, scrollLeft: 0 });
   const lastAutoScrollTimeRef = useRef(0);
 
-  // Mouse wheel zoom handler
+  // Mouse wheel zoom handler (zooms to cursor position)
   const handleWheel = useCallback(
     (e: WheelEvent) => {
       // Only zoom if Ctrl/Cmd is pressed
@@ -71,10 +71,13 @@ export function useTimelineScrolling({
       const container = containerRef.current;
       if (!container) return;
 
-      // Calculate zoom center relative to playhead position (not mouse)
-      const viewportWidth = container.clientWidth;
-      const playheadX = currentTime * zoom;
-      const playheadViewportPosition = playheadX - container.scrollLeft;
+      // Calculate zoom center relative to mouse cursor position
+      const rect = container.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left; // Mouse position relative to container
+      const scrollLeft = container.scrollLeft;
+
+      // Calculate the time position under the cursor before zoom
+      const timeUnderCursor = (scrollLeft + mouseX) / zoom;
 
       // Calculate new zoom level
       const delta = -e.deltaY;
@@ -84,17 +87,21 @@ export function useTimelineScrolling({
       // Update zoom
       setZoom(newZoom);
 
-      // Adjust scroll position to keep playhead at same viewport position
+      // Adjust scroll position to keep the time under cursor at the same screen position
       // Schedule scroll adjustment after zoom state updates
       requestAnimationFrame(() => {
         const container = containerRef.current;
         if (!container) return;
-        const newPlayheadX = currentTime * newZoom;
-        const newScrollLeft = newPlayheadX - playheadViewportPosition;
+
+        // Calculate new pixel position of the time that was under cursor
+        const newPixelPosition = timeUnderCursor * newZoom;
+
+        // Calculate new scroll position to keep cursor over the same time
+        const newScrollLeft = newPixelPosition - mouseX;
         container.scrollLeft = Math.max(0, newScrollLeft);
       });
     },
-    [containerRef, zoom, setZoom, currentTime, minZoom, maxZoom, zoomSensitivity]
+    [containerRef, zoom, setZoom, minZoom, maxZoom, zoomSensitivity]
   );
 
   // Space key press/release handlers

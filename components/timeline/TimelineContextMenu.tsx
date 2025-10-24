@@ -22,7 +22,7 @@ import {
   FastForward,
   FlipHorizontal,
   FlipVertical,
-  Maximize2
+  Maximize2,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
@@ -43,6 +43,7 @@ type TimelineContextMenuProps = {
   onSplitScenes?: (clipId: string) => void;
   onGenerateAudio?: (clipId: string) => void;
   onAddTransition?: (clipId: string) => void;
+  onSelectAllInTrack?: (trackIndex: number) => void;
   onClose: () => void;
 };
 
@@ -65,6 +66,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
   onSplitScenes,
   onGenerateAudio,
   onAddTransition,
+  onSelectAllInTrack,
   onClose,
 }) => {
   const [showProperties, setShowProperties] = useState(false);
@@ -332,6 +334,10 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
               onClick={() => {
                 updateClip(clipId, {
                   audioEffects: {
+                    volume: 1.0,
+                    mute: false,
+                    fadeIn: 0,
+                    fadeOut: 0,
                     bassGain: 0,
                     midGain: 0,
                     trebleGain: 0,
@@ -422,6 +428,21 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
           />
         )}
 
+        {/* Selection */}
+        {onSelectAllInTrack && clip && (
+          <>
+            <MenuDivider />
+            <MenuButton
+              icon={<Users className="h-4 w-4" />}
+              label={`Select All in Track ${clip.trackIndex + 1}`}
+              onClick={() => {
+                onSelectAllInTrack(clip.trackIndex);
+                onClose();
+              }}
+            />
+          </>
+        )}
+
         {/* Properties */}
         <MenuDivider />
         <MenuButton
@@ -492,7 +513,9 @@ const MenuButton: React.FC<MenuButtonProps> = ({
 /**
  * Menu divider component
  */
-const MenuDivider: React.FC = () => <div className="my-1 h-px bg-neutral-200 dark:bg-neutral-700" />;
+const MenuDivider: React.FC = () => (
+  <div className="my-1 h-px bg-neutral-200 dark:bg-neutral-700" />
+);
 
 /**
  * Menu section header component
@@ -595,7 +618,9 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClo
           {clip.colorCorrection && (
             <>
               <div className="my-3 h-px bg-neutral-200 dark:bg-neutral-700" />
-              <div className="font-medium text-neutral-700 dark:text-neutral-300">Color Correction</div>
+              <div className="font-medium text-neutral-700 dark:text-neutral-300">
+                Color Correction
+              </div>
               <PropertyRow label="Brightness" value={`${clip.colorCorrection.brightness}%`} />
               <PropertyRow label="Contrast" value={`${clip.colorCorrection.contrast}%`} />
               <PropertyRow label="Saturation" value={`${clip.colorCorrection.saturation}%`} />
@@ -619,7 +644,10 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClo
               <div className="my-3 h-px bg-neutral-200 dark:bg-neutral-700" />
               <div className="font-medium text-neutral-700 dark:text-neutral-300">Transition</div>
               <PropertyRow label="Type" value={clip.transitionToNext.type} />
-              <PropertyRow label="Duration" value={`${clip.transitionToNext.duration.toFixed(2)}s`} />
+              <PropertyRow
+                label="Duration"
+                value={`${clip.transitionToNext.duration.toFixed(2)}s`}
+              />
             </>
           )}
         </div>
