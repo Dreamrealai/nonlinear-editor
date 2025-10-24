@@ -5,7 +5,7 @@
  * Extracted from PreviewPlayer to promote code reuse and reduce duplication.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Clip, Timeline } from '@/types/timeline';
 import { browserLogger } from '@/lib/browserLogger';
 import { signedUrlCache } from '@/lib/signedUrlCache';
@@ -27,6 +27,10 @@ export interface UseVideoManagerReturn {
   videoMapRef: React.MutableRefObject<Map<string, HTMLVideoElement>>;
   ensureClipElement: (clip: Clip) => Promise<HTMLVideoElement>;
   cleanupVideo: (clipId: string, video: HTMLVideoElement) => void;
+  /** Error message if video operations failed */
+  videoError: string | null;
+  /** Clear video error state */
+  clearVideoError: () => void;
 }
 
 /**
@@ -51,6 +55,11 @@ export function useVideoManager({
   const videoPromisesRef = useRef<Map<string, Promise<HTMLVideoElement>>>(new Map());
   const videoErrorHandlersRef = useRef<Map<string, (e: Event) => void>>(new Map());
   const videoPoolRef = useRef<HTMLVideoElement[]>([]);
+  const [videoError, setVideoError] = useState<string | null>(null);
+
+  const clearVideoError = useCallback(() => {
+    setVideoError(null);
+  }, []);
 
   /**
    * Properly cleanup a video element before pooling or destroying.

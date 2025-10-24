@@ -30,23 +30,26 @@ describe('TimelineRuler', () => {
       expect(ruler).toBeInTheDocument();
     });
 
-    it('should render time markers for each second', () => {
-      const { container } = render(<TimelineRuler {...defaultProps} timelineDuration={10} />);
+    it('should render adaptive time markers based on zoom level', () => {
+      const { container } = render(<TimelineRuler {...defaultProps} timelineDuration={10} zoom={100} />);
 
-      // Should have markers for 0s, 1s, 2s, ..., 10s (11 markers total)
-      const markers = container.querySelectorAll('span');
-      expect(markers.length).toBeGreaterThanOrEqual(11);
+      // With zoom=100, MIN_LABEL_SPACING_PX=80, minInterval = 80/100 = 0.8s
+      // Should use 1s intervals (next nice interval)
+      // Expect markers at 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 (11 major markers)
+      // Plus minor markers (5 between each major = 50 total markers)
+      const markers = container.querySelectorAll('[class*="border-l"]');
+      expect(markers.length).toBeGreaterThan(10);
     });
 
-    it('should display correct time labels on markers', () => {
-      render(<TimelineRuler {...defaultProps} timelineDuration={5} />);
+    it('should display adaptive time labels with appropriate format', () => {
+      // At zoom=100, minInterval = 80/100 = 0.8s, next nice interval = 1s
+      // 1s interval uses decimal seconds format
+      render(<TimelineRuler {...defaultProps} timelineDuration={5} zoom={100} />);
 
-      expect(screen.getByText('0s')).toBeInTheDocument();
-      expect(screen.getByText('1s')).toBeInTheDocument();
-      expect(screen.getByText('2s')).toBeInTheDocument();
-      expect(screen.getByText('3s')).toBeInTheDocument();
-      expect(screen.getByText('4s')).toBeInTheDocument();
-      expect(screen.getByText('5s')).toBeInTheDocument();
+      // Should show decimal seconds format
+      expect(screen.getByText('0.0s')).toBeInTheDocument();
+      expect(screen.getByText('1.0s')).toBeInTheDocument();
+      expect(screen.getByText('2.0s')).toBeInTheDocument();
     });
 
     it('should render playhead at correct position', () => {
@@ -112,18 +115,31 @@ describe('TimelineRuler', () => {
   });
 
   describe('Zoom Behavior', () => {
-    it('should adjust marker spacing when zoom changes', () => {
+    it('should use larger intervals at low zoom levels to prevent overlap', () => {
+      // At zoom=10 (MIN_ZOOM), MIN_LABEL_SPACING_PX=80, minInterval = 80/10 = 8s
+      // Should use 10s intervals (next nice interval)
       const { container } = render(
-        <TimelineRuler {...defaultProps} zoom={100} timelineDuration={5} />
+        <TimelineRuler {...defaultProps} zoom={10} timelineDuration={60} />
       );
 
-      // At zoom 100, markers should be 100px apart
-      const markers = container.querySelectorAll('[style*="left"]');
-      const firstMarker = markers[0] as HTMLElement;
-      const secondMarker = markers[1] as HTMLElement;
+      // Should have fewer markers (every 10 seconds)
+      // 0, 10, 20, 30, 40, 50, 60 = 7 major markers + minor ticks
+      const markers = container.querySelectorAll('[class*="border-l"]');
+      // With 10s major intervals and 2s minor intervals (10/5), we get many markers
+      expect(markers.length).toBeGreaterThan(7);
+    });
 
-      expect(firstMarker.style.left).toBe('0px');
-      expect(secondMarker.style.left).toBe('100px');
+    it('should use smaller intervals at high zoom levels for precision', () => {
+      // At zoom=200 (MAX_ZOOM), MIN_LABEL_SPACING_PX=80, minInterval = 80/200 = 0.4s
+      // Should use 0.5s intervals (next nice interval)
+      const { container } = render(
+        <TimelineRuler {...defaultProps} zoom={200} timelineDuration={5} />
+      );
+
+      // Should have many markers (every 0.5 seconds)
+      // 0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0 = 11 major markers
+      const markers = container.querySelectorAll('[class*="border-l"]');
+      expect(markers.length).toBeGreaterThan(10);
     });
 
     it('should adjust timeline width when zoom changes', () => {
@@ -152,6 +168,37 @@ describe('TimelineRuler', () => {
 
       playhead = container.querySelector('[style*="left: 1000px"]');
       expect(playhead).toBeInTheDocument();
+    });
+  });
+
+  describe('Adaptive Label Format', () => {
+    it('should use decimal seconds format at very high zoom', () => {
+      // At zoom=200, interval=0.5s, should show "0.0s", "0.5s", "1.0s" format
+      render(<TimelineRuler {...defaultProps} zoom={200} timelineDuration={2} />);
+
+      // Expect decimal second labels
+      expect(screen.getByText('0.0s')).toBeInTheDocument();
+      expect(screen.getByText('0.5s')).toBeInTheDocument();
+      expect(screen.getByText('1.0s')).toBeInTheDocument();
+    });
+
+    it('should use timecode format at medium zoom', () => {
+      // At zoom=50, interval=2s, should show "0:00.00", "0:02.00" format
+      render(<TimelineRuler {...defaultProps} zoom={50} timelineDuration={10} />);
+
+      // Expect timecode labels
+      expect(screen.getByText('0:00.00')).toBeInTheDocument();
+      expect(screen.getByText('0:02.00')).toBeInTheDocument();
+    });
+
+    it('should use timecode with minutes at low zoom', () => {
+      // At zoom=10, interval=10s, should show "0:00.00", "0:10.00", "0:20.00" format
+      render(<TimelineRuler {...defaultProps} zoom={10} timelineDuration={60} />);
+
+      // Expect timecode labels with minutes
+      expect(screen.getByText('0:00.00')).toBeInTheDocument();
+      expect(screen.getByText('0:10.00')).toBeInTheDocument();
+      expect(screen.getByText('0:20.00')).toBeInTheDocument();
     });
   });
 

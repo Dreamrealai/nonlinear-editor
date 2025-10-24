@@ -5,7 +5,7 @@
  */
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { browserLogger } from '@/lib/browserLogger';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { safeArrayFirst } from '@/lib/utils/arrayUtils';
@@ -129,6 +129,10 @@ export const createVideoThumbnail = (blob: Blob): Promise<string | null> =>
 export interface UseAssetThumbnailsReturn {
   /** Ref to track processed thumbnail IDs to prevent duplicate processing */
   processedThumbnailIdsRef: React.MutableRefObject<Set<string>>;
+  /** Error message if thumbnail generation failed */
+  thumbnailError: string | null;
+  /** Number of assets currently being processed */
+  processingCount: number;
 }
 
 /**
@@ -144,6 +148,8 @@ export function useAssetThumbnails(
 ): UseAssetThumbnailsReturn {
   const supabase = createBrowserSupabaseClient();
   const processedThumbnailIdsRef = useRef<Set<string>>(new Set());
+  const [thumbnailError, setThumbnailError] = useState<string | null>(null);
+  const [processingCount, setProcessingCount] = useState(0);
 
   useEffect(() => {
     if (!assetsLoaded) {
@@ -162,10 +168,15 @@ export function useAssetThumbnails(
       return;
     }
 
+    // Clear previous errors
+    setThumbnailError(null);
+    setProcessingCount(missingThumbnails.length);
+
     // CRITICAL FIX: Track blob URLs for cleanup to prevent memory leaks
     const blobUrls: string[] = [];
 
     void (async () => {
+      let errorCount = 0;
       for (const asset of missingThumbnails) {
         try {
           // Safely extract bucket from storage URL
@@ -227,8 +238,16 @@ export function useAssetThumbnails(
 
           onAssetUpdate(asset.id, thumbnail);
         } catch (error) {
+          errorCount++;
           browserLogger.error({ error, assetId: asset.id }, 'Failed to generate thumbnail');
+        } finally {
+          setProcessingCount((prev) => Math.max(0, prev - 1));
         }
+      }
+
+      // Set error state if any thumbnails failed
+      if (errorCount > 0) {
+        setThumbnailError(`Failed to generate ${errorCount} thumbnail(s)`);
       }
 
       // CRITICAL FIX: Clean up any remaining blob URLs
@@ -243,5 +262,7 @@ export function useAssetThumbnails(
 
   return {
     processedThumbnailIdsRef,
+    thumbnailError,
+    processingCount,
   };
 }

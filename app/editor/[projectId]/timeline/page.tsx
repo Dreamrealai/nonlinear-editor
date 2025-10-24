@@ -99,6 +99,8 @@ export default async function TimelineEditorPage({
 
   return (
     <ErrorBoundary
+      name="TimelineEditorPage"
+      context={{ projectId, page: 'timeline' }}
       fallback={
         <div className="flex h-full flex-col items-center justify-center bg-neutral-50 p-8">
           <div className="max-w-md rounded-lg border border-red-200 bg-white p-6 shadow-lg text-center">

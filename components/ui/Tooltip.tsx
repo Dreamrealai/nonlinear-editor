@@ -1,14 +1,56 @@
+/**
+ * Tooltip Component
+ *
+ * A hoverable tooltip component built on Radix UI Tooltip.
+ * Provides contextual information on hover or focus.
+ *
+ * @example
+ * ```tsx
+ * <TooltipProvider>
+ *   <Tooltip>
+ *     <TooltipTrigger asChild>
+ *       <Button variant="outline">Hover me</Button>
+ *     </TooltipTrigger>
+ *     <TooltipContent>
+ *       <p>Helpful information here</p>
+ *     </TooltipContent>
+ *   </Tooltip>
+ * </TooltipProvider>
+ * ```
+ */
 'use client';
 
 import * as React from 'react';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 
+/**
+ * Provider for tooltip context. Wrap your app or tooltip group with this.
+ */
 const TooltipProvider = TooltipPrimitive.Provider;
 
+/**
+ * Root tooltip component. Controls open/close state.
+ */
 const Tooltip = TooltipPrimitive.Root;
 
+/**
+ * Trigger element that shows the tooltip on hover/focus.
+ */
 const TooltipTrigger = TooltipPrimitive.Trigger;
 
+/**
+ * Tooltip content that appears on hover.
+ *
+ * Features:
+ * - Automatic positioning with collision detection
+ * - Smooth fade and slide animations
+ * - Configurable offset from trigger
+ * - Proper z-index layering
+ *
+ * @param sideOffset - Distance from trigger in pixels (default: 4)
+ * @param className - Additional CSS classes to apply
+ * @returns A styled tooltip content container with animations
+ */
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>

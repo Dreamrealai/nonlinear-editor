@@ -6,37 +6,67 @@ import { browserLogger } from '@/lib/browserLogger';
 interface ErrorBoundaryProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
+  /** Optional name for this error boundary (helps identify which component failed) */
+  name?: string;
+  /** Optional callback when error occurs */
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+  /** Optional additional context to log with errors */
+  context?: Record<string, unknown>;
 }
 
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
+  errorInfo: React.ErrorInfo | null;
 }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorInfo: null };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
+    return { hasError: true, error, errorInfo: null };
   }
 
   override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Update state with error info for display
+    this.setState({ errorInfo });
+
+    // Build context for logging
+    const logContext = {
+      error: {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      },
+      componentStack: errorInfo.componentStack,
+      boundaryName: this.props.name || 'Unknown',
+      type: 'react_error_boundary',
+      url: typeof window !== 'undefined' ? window.location.href : undefined,
+      timestamp: new Date().toISOString(),
+      ...(this.props.context || {}),
+    };
+
     // Log to Axiom via browserLogger
     browserLogger.error(
-      {
-        error: {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-        },
-        componentStack: errorInfo.componentStack,
-        type: 'react_error_boundary',
-      },
-      `React Error Boundary caught error: ${error.message}`
+      logContext,
+      `React Error Boundary [${this.props.name || 'Unknown'}] caught error: ${error.message}`
     );
+
+    // Call optional error callback
+    if (this.props.onError) {
+      try {
+        this.props.onError(error, errorInfo);
+      } catch (callbackError) {
+        // Prevent callback errors from causing infinite loops
+        browserLogger.error(
+          { error: callbackError, boundaryName: this.props.name },
+          'Error in ErrorBoundary onError callback'
+        );
+      }
+    }
   }
 
   override render() {
@@ -74,9 +104,28 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
                 <summary className="cursor-pointer text-sm font-medium text-neutral-700">
                   Error details
                 </summary>
-                <pre className="mt-2 overflow-auto text-xs text-neutral-600">
-                  {this.state.error.message}
-                </pre>
+                <div className="mt-2 space-y-2">
+                  <div>
+                    <div className="text-xs font-semibold text-neutral-700">Error Message:</div>
+                    <pre className="mt-1 overflow-auto text-xs text-neutral-600">
+                      {this.state.error.message}
+                    </pre>
+                  </div>
+                  {this.state.errorInfo?.componentStack && (
+                    <div>
+                      <div className="text-xs font-semibold text-neutral-700">Component Stack:</div>
+                      <pre className="mt-1 overflow-auto text-xs text-neutral-600 max-h-32">
+                        {this.state.errorInfo.componentStack}
+                      </pre>
+                    </div>
+                  )}
+                  {this.props.name && (
+                    <div>
+                      <div className="text-xs font-semibold text-neutral-700">Boundary:</div>
+                      <div className="mt-1 text-xs text-neutral-600">{this.props.name}</div>
+                    </div>
+                  )}
+                </div>
               </details>
             )}
 

@@ -11,7 +11,7 @@
 
 import { NextRequest } from 'next/server';
 import { serverLogger } from '@/lib/serverLogger';
-import { validateUUID, validateAll } from '@/lib/api/validation';
+import { validateUUID, ValidationError } from '@/lib/validation';
 import { errorResponse, successResponse, validationError } from '@/lib/api/response';
 import { withAuth, type AuthContext } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
@@ -40,20 +40,22 @@ async function handleProjectDelete(
   );
 
   // Validate UUID format
-  const validation = validateAll([validateUUID(projectId, 'projectId')]);
-
-  if (!validation.valid) {
-    const firstError = validation.errors[0];
-    serverLogger.warn(
-      {
-        event: 'projects.delete.validation_error',
-        userId: user.id,
-        projectId,
-        error: firstError?.message,
-      },
-      'Invalid project ID format'
-    );
-    return validationError(firstError?.message ?? 'Invalid project ID', firstError?.field);
+  try {
+    validateUUID(projectId, 'projectId');
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      serverLogger.warn(
+        {
+          event: 'projects.delete.validation_error',
+          userId: user.id,
+          projectId,
+          error: error.message,
+        },
+        'Invalid project ID format'
+      );
+      return validationError(error.message, error.field);
+    }
+    throw error;
   }
 
   // Delete project (RLS ensures user owns this project)

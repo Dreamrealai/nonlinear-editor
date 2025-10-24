@@ -11,8 +11,8 @@ import {
   validateSampleCount,
   validateSafetyFilterLevel,
   validatePersonGeneration,
-  validateAll,
-} from '@/lib/api/validation';
+  ValidationError,
+} from '@/lib/validation';
 import { validationError, errorResponse, successResponse } from '@/lib/api/response';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
 import { HttpStatusCode } from '@/lib/errors/errorCodes';

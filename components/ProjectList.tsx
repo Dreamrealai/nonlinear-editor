@@ -8,7 +8,7 @@
  */
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
@@ -30,12 +30,13 @@ export interface ProjectListProps {
 interface ProjectItemProps {
   project: Project;
   onDelete: (project: Project, e: React.MouseEvent) => Promise<void>;
+  isDeleting: boolean;
 }
 
 /**
  * Memoized project item to prevent re-renders when other projects change
  */
-const ProjectItem = React.memo<ProjectItemProps>(function ProjectItem({ project, onDelete }) {
+const ProjectItem = React.memo<ProjectItemProps>(function ProjectItem({ project, onDelete, isDeleting }) {
   return (
     <div key={project.id} className="group relative">
       <Link
@@ -51,10 +52,15 @@ const ProjectItem = React.memo<ProjectItemProps>(function ProjectItem({ project,
       </Link>
       <button
         onClick={(e) => void onDelete(project, e)}
-        className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50 transition-all shadow-sm"
-        title="Delete project"
+        disabled={isDeleting}
+        className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        title={isDeleting ? 'Deleting...' : 'Delete project'}
       >
-        <Trash2 className={`h-${ICON_SIZES.ICON_SIZE_SM} w-${ICON_SIZES.ICON_SIZE_SM}`} />
+        {isDeleting ? (
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent"></div>
+        ) : (
+          <Trash2 className={`h-${ICON_SIZES.ICON_SIZE_SM} w-${ICON_SIZES.ICON_SIZE_SM}`} />
+        )}
       </button>
     </div>
   );
@@ -62,6 +68,7 @@ const ProjectItem = React.memo<ProjectItemProps>(function ProjectItem({ project,
 
 export const ProjectList = React.memo<ProjectListProps>(function ProjectList({ projects }) {
   const router = useRouter();
+  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
 
   const handleDeleteProject = useCallback(
     async (project: Project, e: React.MouseEvent) => {
@@ -72,6 +79,8 @@ export const ProjectList = React.memo<ProjectListProps>(function ProjectList({ p
         `Delete "${project.title || 'Untitled Project'}"? This will permanently delete the project and all its assets.`
       );
       if (!confirmDelete) return;
+
+      setDeletingProjectId(project.id);
 
       try {
         // Use API endpoint instead of direct database access
@@ -89,6 +98,8 @@ export const ProjectList = React.memo<ProjectListProps>(function ProjectList({ p
       } catch (error) {
         browserLogger.error({ error, projectId: project.id }, 'Failed to delete project');
         toast.error('Failed to delete project');
+      } finally {
+        setDeletingProjectId(null);
       }
     },
     [router]
@@ -111,7 +122,7 @@ export const ProjectList = React.memo<ProjectListProps>(function ProjectList({ p
   return (
     <div className="space-y-4">
       {projects.map((project) => (
-        <ProjectItem key={project.id} project={project} onDelete={handleDeleteProject} />
+        <ProjectItem key={project.id} project={project} onDelete={handleDeleteProject} isDeleting={deletingProjectId === project.id} />
       ))}
     </div>
   );

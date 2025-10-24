@@ -1,8 +1,40 @@
+/**
+ * Input Component
+ *
+ * A styled text input component with focus states and accessibility features.
+ * Supports all standard HTML input types and attributes.
+ *
+ * @example
+ * ```tsx
+ * <Input type="text" placeholder="Enter name" />
+ * <Input type="email" required />
+ * <Input type="password" disabled />
+ * <Input type="file" />
+ * ```
+ */
 import React from 'react';
 import { cn } from '@/lib/utils';
 
+/**
+ * Props for the Input component.
+ * Extends all standard HTML input attributes.
+ */
 export type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
+/**
+ * A styled input field with consistent styling across the application.
+ *
+ * Features:
+ * - Focus ring with offset for accessibility
+ * - Disabled state styling
+ * - File input support with custom file button styling
+ * - Placeholder text styling
+ *
+ * @param type - HTML input type (text, email, password, file, etc.)
+ * @param className - Additional CSS classes to apply
+ * @param ref - Forwarded ref to access the underlying input element
+ * @returns A styled input element
+ */
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
     return (

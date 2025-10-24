@@ -25,6 +25,8 @@ export interface UseImageInputReturn {
   fileInputRef: React.RefObject<HTMLInputElement>;
   /** Whether an image is currently being uploaded */
   uploadingImage: boolean;
+  /** Error message if upload failed */
+  uploadError: string | null;
   /** Handle file input change */
   handleFileInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   /** Handle asset selection from library */
@@ -45,6 +47,7 @@ export function useImageInput(): UseImageInputReturn {
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [imageAssetId, setImageAssetId] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null) as React.RefObject<HTMLInputElement>;
 
   // Clear selected image and preview
@@ -115,23 +118,30 @@ export function useImageInput(): UseImageInputReturn {
   // Upload image to Supabase storage
   const uploadImageToStorage = useCallback(
     async (file: File, projectId: string): Promise<string> => {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('projectId', projectId);
-      formData.append('type', 'image');
+      setUploadError(null);
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('projectId', projectId);
+        formData.append('type', 'image');
 
-      const uploadRes = await fetch('/api/assets/upload', {
-        method: 'POST',
-        body: formData,
-      });
+        const uploadRes = await fetch('/api/assets/upload', {
+          method: 'POST',
+          body: formData,
+        });
 
-      if (!uploadRes.ok) {
-        const errorData = await uploadRes.json();
-        throw new Error(errorData.error || 'Failed to upload image');
+        if (!uploadRes.ok) {
+          const errorData = await uploadRes.json();
+          throw new Error(errorData.error || 'Failed to upload image');
+        }
+
+        const { assetId } = await uploadRes.json();
+        return assetId;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to upload image';
+        setUploadError(errorMessage);
+        throw error;
       }
-
-      const { assetId } = await uploadRes.json();
-      return assetId;
     },
     []
   );
@@ -142,6 +152,7 @@ export function useImageInput(): UseImageInputReturn {
     imageAssetId,
     fileInputRef,
     uploadingImage,
+    uploadError,
     handleFileInputChange,
     handleAssetSelect,
     clearImage,

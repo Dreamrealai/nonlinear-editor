@@ -31,6 +31,8 @@ import { TimelineSnapGuides } from './timeline/TimelineSnapGuides';
 import { useTimelineDraggingWithSnap } from '@/lib/hooks/useTimelineDraggingWithSnap';
 import { useTimelineKeyboardShortcuts } from '@/lib/hooks/useTimelineKeyboardShortcuts';
 import { useTimelineCalculations } from '@/lib/hooks/useTimelineCalculations';
+import { useTimelineScrolling } from '@/lib/hooks/useTimelineScrolling';
+import { usePlaybackStore } from '@/state/usePlaybackStore';
 
 const { TRACK_HEIGHT, MIN_TRACKS, SNAP_INTERVAL_SECONDS: SNAP_INTERVAL } = TIMELINE_CONSTANTS;
 
@@ -56,6 +58,7 @@ const selectTimelineState = (
   currentTime: number;
   zoom: number;
   selectedClipIds: Set<string>;
+  autoScrollEnabled: boolean;
   setCurrentTime: (time: number) => void;
   setZoom: (zoom: number) => void;
   updateClip: (clipId: string, updates: Partial<Clip>) => void;
@@ -72,11 +75,13 @@ const selectTimelineState = (
   removeTextOverlay: (overlayId: string) => void;
   updateTextOverlay: (id: string, patch: Partial<TextOverlay>) => void;
   toggleClipLock: (clipId: string) => void;
+  toggleAutoScroll: () => void;
 } => ({
   timeline: state.timeline,
   currentTime: state.currentTime,
   zoom: state.zoom,
   selectedClipIds: state.selectedClipIds,
+  autoScrollEnabled: state.autoScrollEnabled,
   setCurrentTime: state.setCurrentTime,
   setZoom: state.setZoom,
   updateClip: state.updateClip,
@@ -93,6 +98,7 @@ const selectTimelineState = (
   removeTextOverlay: state.removeTextOverlay,
   updateTextOverlay: state.updateTextOverlay,
   toggleClipLock: state.toggleClipLock,
+  toggleAutoScroll: state.toggleAutoScroll,
 });
 
 function HorizontalTimeline({
@@ -114,6 +120,7 @@ function HorizontalTimeline({
     currentTime,
     zoom,
     selectedClipIds,
+    autoScrollEnabled,
     setCurrentTime,
     setZoom,
     updateClip,
@@ -130,7 +137,11 @@ function HorizontalTimeline({
     removeTextOverlay,
     updateTextOverlay,
     toggleClipLock,
+    toggleAutoScroll,
   } = useEditorStore(selectTimelineState);
+
+  // Playback state for auto-scroll
+  const isPlaying = usePlaybackStore((state) => state.isPlaying);
 
   // Local state
   const [forcedTrackCount, setForcedTrackCount] = useState<number | null>(null);
@@ -140,9 +151,20 @@ function HorizontalTimeline({
   const [selectedTextOverlayId, setSelectedTextOverlayId] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Track scroll position for virtualized rendering
-  const { scrollLeft, viewportWidth } = useTimelineScroll(containerRef);
+  const { scrollLeft, viewportWidth } = useTimelineScroll(scrollContainerRef);
+
+  // Enhanced scrolling interactions (wheel zoom, space+drag, auto-scroll)
+  useTimelineScrolling({
+    containerRef: scrollContainerRef,
+    zoom,
+    setZoom,
+    currentTime,
+    isPlaying,
+    autoScrollEnabled,
+  });
 
   // Timeline calculations (duration, tracks, visible clips)
   const { timelineDuration, numTracks, visibleClips } = useTimelineCalculations({
@@ -342,7 +364,10 @@ function HorizontalTimeline({
       />
 
       {/* Timeline Container */}
-      <div className="rounded-xl border-2 border-neutral-200 bg-white shadow-sm overflow-auto">
+      <div
+        ref={scrollContainerRef}
+        className="rounded-xl border-2 border-neutral-200 bg-white shadow-sm overflow-auto"
+      >
         <div className="relative">
           {/* Time Ruler */}
           <TimelineRuler

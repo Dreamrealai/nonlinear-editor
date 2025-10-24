@@ -144,10 +144,10 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-neutral-50 via-neutral-50 to-neutral-100">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-neutral-50 via-neutral-50 to-neutral-100 dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-800">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-900"></div>
-          <div className="text-sm font-medium text-neutral-600">Loading your settings...</div>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 motion-reduce:animate-none motion-reduce:border-t-8 dark:border-purple-800 dark:border-t-purple-400" role="status" aria-label="Loading settings"></div>
+          <div className="text-sm font-medium text-neutral-600 dark:text-neutral-400">Loading your settings...</div>
         </div>
       </div>
     );

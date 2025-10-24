@@ -72,6 +72,8 @@ type EditorStore = {
   historyIndex: number;
   /** Timecode display mode (duration or timecode) */
   timecodeDisplayMode: 'duration' | 'timecode';
+  /** Auto-scroll timeline during playback to follow playhead */
+  autoScrollEnabled: boolean;
 
   // ===== Timeline Actions =====
   /** Replace entire timeline (initializes history) */
@@ -94,6 +96,8 @@ type EditorStore = {
   setZoom: (zoom: number) => void;
   /** Toggle timecode display mode */
   toggleTimecodeDisplayMode: () => void;
+  /** Toggle auto-scroll during playback */
+  toggleAutoScroll: () => void;
   /** Calculate zoom to fit entire timeline in viewport */
   calculateFitToTimelineZoom: (viewportWidth: number) => number;
   /** Calculate zoom to fit selected clips in viewport */
@@ -221,6 +225,7 @@ export const useEditorStore = create<EditorStore>()(
     history: [],
     historyIndex: -1,
     timecodeDisplayMode: 'duration',
+    autoScrollEnabled: true,
 
     setTimeline: (timeline) =>
       set((state) => {
@@ -421,6 +426,10 @@ export const useEditorStore = create<EditorStore>()(
       set((state) => {
         state.timecodeDisplayMode =
           state.timecodeDisplayMode === 'duration' ? 'timecode' : 'duration';
+      }),
+    toggleAutoScroll: () =>
+      set((state) => {
+        state.autoScrollEnabled = !state.autoScrollEnabled;
       }),
     addMarker: (marker) =>
       set((state) => {

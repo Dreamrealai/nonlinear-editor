@@ -122,7 +122,7 @@ export default async function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <WebVitals />
-        <ErrorBoundary>
+        <ErrorBoundary name="RootLayout" context={{ page: 'root' }}>
           <SupabaseProvider>{children}</SupabaseProvider>
         </ErrorBoundary>
       </body>

@@ -10,6 +10,13 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
   return <div>No error</div>;
 };
 
+// Mock browserLogger
+jest.mock('@/lib/browserLogger', () => ({
+  browserLogger: {
+    error: jest.fn(),
+  },
+}));
+
 describe('ErrorBoundary', () => {
   // Suppress console.error for these tests
   const originalError = console.error;
@@ -168,5 +175,51 @@ describe('ErrorBoundary', () => {
     );
 
     expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+  });
+
+  it('should display boundary name when provided', () => {
+    render(
+      <ErrorBoundary name="TestBoundary">
+        <ThrowError shouldThrow={true} />
+      </ErrorBoundary>
+    );
+
+    // Error should be shown
+    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+  });
+
+  it('should call onError callback when error occurs', () => {
+    const onError = jest.fn();
+
+    render(
+      <ErrorBoundary onError={onError}>
+        <ThrowError shouldThrow={true} />
+      </ErrorBoundary>
+    );
+
+    expect(onError).toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Test error message' }),
+      expect.objectContaining({ componentStack: expect.any(String) })
+    );
+  });
+
+  it('should log error with context when provided', () => {
+    const { browserLogger } = require('@/lib/browserLogger');
+
+    render(
+      <ErrorBoundary name="TestBoundary" context={{ projectId: '123', page: 'test' }}>
+        <ThrowError shouldThrow={true} />
+      </ErrorBoundary>
+    );
+
+    expect(browserLogger.error).toHaveBeenCalledWith(
+      expect.objectContaining({
+        boundaryName: 'TestBoundary',
+        projectId: '123',
+        page: 'test',
+      }),
+      expect.stringContaining('TestBoundary')
+    );
   });
 });

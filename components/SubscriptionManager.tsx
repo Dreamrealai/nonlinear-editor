@@ -99,10 +99,10 @@ export function SubscriptionManager() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div className="flex items-center justify-center gap-3 py-8">
-          <div className="h-6 w-6 animate-spin rounded-full border-3 border-neutral-200 border-t-neutral-900"></div>
-          <div className="text-sm font-medium text-neutral-600">Loading subscription...</div>
+          <div className="h-6 w-6 animate-spin rounded-full border-3 border-purple-200 border-t-purple-600 motion-reduce:animate-none motion-reduce:border-t-6 dark:border-purple-800 dark:border-t-purple-400" role="status" aria-label="Loading subscription"></div>
+          <div className="text-sm font-medium text-neutral-600 dark:text-neutral-400">Loading subscription...</div>
         </div>
       </div>
     );

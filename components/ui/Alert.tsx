@@ -1,3 +1,28 @@
+/**
+ * Alert Component
+ *
+ * A notification or message component with different severity variants.
+ * Supports optional icon positioning and composable title/description sections.
+ *
+ * @example
+ * ```tsx
+ * <Alert variant="default">
+ *   <AlertTitle>Info</AlertTitle>
+ *   <AlertDescription>Your changes have been saved.</AlertDescription>
+ * </Alert>
+ *
+ * <Alert variant="destructive">
+ *   <AlertTitle>Error</AlertTitle>
+ *   <AlertDescription>Something went wrong.</AlertDescription>
+ * </Alert>
+ *
+ * <Alert variant="success">
+ *   <Info className="h-4 w-4" />
+ *   <AlertTitle>Success</AlertTitle>
+ *   <AlertDescription>Operation completed.</AlertDescription>
+ * </Alert>
+ * ```
+ */
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
@@ -19,6 +44,13 @@ const alertVariants = cva(
   }
 );
 
+/**
+ * Main alert container with automatic icon positioning support.
+ *
+ * @param variant - Alert severity variant (default, destructive, success)
+ * @param className - Additional CSS classes to apply
+ * @returns A styled alert container with role="alert" for accessibility
+ */
 const Alert = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
@@ -27,6 +59,12 @@ const Alert = React.forwardRef<
 ));
 Alert.displayName = 'Alert';
 
+/**
+ * Alert title heading (h5 element).
+ *
+ * @param className - Additional CSS classes to apply
+ * @returns A styled heading for the alert title
+ */
 const AlertTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
     // eslint-disable-next-line jsx-a11y/heading-has-content
@@ -39,6 +77,12 @@ const AlertTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<H
 );
 AlertTitle.displayName = 'AlertTitle';
 
+/**
+ * Alert description text with relaxed line height for readability.
+ *
+ * @param className - Additional CSS classes to apply
+ * @returns A div container for alert description content
+ */
 const AlertDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>

@@ -214,9 +214,11 @@ export const ActivityHistory = React.memo(function ActivityHistory() {
       {loading ? (
         <div className="py-8 text-center">
           <div
-            className={`inline-block h-${SPINNER_CONSTANTS.SPINNER_SIZE_MD} w-${SPINNER_CONSTANTS.SPINNER_SIZE_MD} animate-spin rounded-full border-${SPINNER_CONSTANTS.SPINNER_BORDER_WIDTH} border-neutral-300 border-t-neutral-900`}
+            className={`inline-block h-${SPINNER_CONSTANTS.SPINNER_SIZE_MD} w-${SPINNER_CONSTANTS.SPINNER_SIZE_MD} animate-spin rounded-full border-${SPINNER_CONSTANTS.SPINNER_BORDER_WIDTH} border-purple-200 border-t-purple-600 motion-reduce:animate-none dark:border-purple-800 dark:border-t-purple-400`}
+            role="status"
+            aria-label="Loading history"
           ></div>
-          <p className="mt-2 text-sm text-neutral-600">Loading history...</p>
+          <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">Loading history...</p>
         </div>
       ) : history.length === 0 ? (
         <div className="py-12 text-center">

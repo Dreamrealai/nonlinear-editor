@@ -45,6 +45,8 @@ export default async function EditorPage({ params }: { params: Promise<{ project
 
   return (
     <ErrorBoundary
+      name="VideoGenerationPage"
+      context={{ projectId, page: 'generate-video' }}
       fallback={
         <div className="flex h-full flex-col items-center justify-center bg-neutral-50 p-8">
           <div className="max-w-md rounded-lg border border-red-200 bg-white p-6 shadow-lg text-center">

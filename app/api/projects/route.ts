@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { serverLogger } from '@/lib/serverLogger';
-import { errorResponse, successResponse } from '@/lib/api/response';
-import { validateString, validateAll } from '@/lib/api/validation';
+import { errorResponse, successResponse, validationError } from '@/lib/api/response';
+import { validateString, ValidationError } from '@/lib/validation';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { invalidateUserProjects } from '@/lib/cacheInvalidation';
 import { withAuth, type AuthContext } from '@/lib/api/withAuth';
@@ -66,15 +66,13 @@ async function handleProjectCreate(request: NextRequest, context: AuthContext) {
 
   // Validate title if provided
   if (body.title) {
-    const validation = validateAll([
-      validateString(body.title, 'title', { minLength: 1, maxLength: 200 }),
-    ]);
-    if (!validation.valid) {
-      return errorResponse(
-        validation.errors[0]?.message ?? 'Invalid input',
-        400,
-        validation.errors[0]?.field
-      );
+    try {
+      validateString(body.title, 'title', { minLength: 1, maxLength: 200 });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return validationError(error.message, error.field);
+      }
+      throw error;
     }
   }
 

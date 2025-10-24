@@ -52,8 +52,8 @@ export default function KeyframePageClient({ projectId }: KeyframePageClientProp
         <EditorHeader projectId={projectId} currentTab="image-editor" />
         <div className="flex h-full items-center justify-center">
           <div className="text-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-900 mx-auto" />
-            <p className="mt-4 text-sm text-neutral-600">Loading assets...</p>
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 mx-auto motion-reduce:animate-none motion-reduce:border-t-8 dark:border-purple-800 dark:border-t-purple-400" role="status" aria-label="Loading assets" />
+            <p className="mt-4 text-sm text-neutral-600 dark:text-neutral-400">Loading assets...</p>
           </div>
         </div>
       </div>

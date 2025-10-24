@@ -39,48 +39,14 @@ import { ResizableAssetPanel } from '@/components/editor/ResizableAssetPanel';
 import { AudioGenerationModal } from './AudioGenerationModal';
 import { VideoGenerationModal } from './VideoGenerationModal';
 import { useEditorHandlers } from './useEditorHandlers';
+import { useAssetList } from '@/lib/hooks/useAssetList';
 import type { AssetRow } from '@/types/assets';
 import {
   enrichTimelineWithSourceDurations,
   createEmptyTimeline,
-  parseAssetMetadata,
-  isAssetType,
   createImageThumbnail,
   createVideoThumbnail,
 } from './editorUtils';
-
-/**
- * Maps a database row to an AssetRow object
- */
-const mapAssetRow = (row: Record<string, unknown>): AssetRow | null => {
-  const id = typeof row.id === 'string' ? row.id : null;
-  const storageUrl = typeof row.storage_url === 'string' ? row.storage_url : null;
-  const duration =
-    typeof row.duration_seconds === 'number' && Number.isFinite(row.duration_seconds)
-      ? row.duration_seconds
-      : null;
-  const createdAt = typeof row.created_at === 'string' ? row.created_at : null;
-  const type = isAssetType(row.type) ? row.type : null;
-
-  if (!id || !storageUrl || !type) {
-    return null;
-  }
-
-  const parsedMetadata = parseAssetMetadata(
-    (row.metadata ?? null) as Record<string, unknown> | null
-  );
-  const rawMetadata = (row.rawMetadata ?? null) as Record<string, unknown> | null;
-  const metadataDuration = parsedMetadata?.durationSeconds ?? null;
-  return {
-    id,
-    storage_url: storageUrl,
-    duration_seconds: duration ?? metadataDuration,
-    metadata: parsedMetadata,
-    rawMetadata,
-    created_at: createdAt,
-    type,
-  };
-};
 
 type BrowserEditorClientProps = {
   projectId: string;
@@ -88,10 +54,23 @@ type BrowserEditorClientProps = {
 
 export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): React.JSX.Element {
   const supabase = createBrowserSupabaseClient();
-  const [assets, setAssets] = useState<AssetRow[]>([]);
-  const [loadingAssets, setLoadingAssets] = useState(false);
-  const [assetError, setAssetError] = useState<string | null>(null);
-  const [assetsLoaded, setAssetsLoaded] = useState(false);
+
+  // Use the asset list hook with pagination
+  const {
+    assets,
+    loadingAssets,
+    assetError,
+    assetsLoaded,
+    reloadAssets,
+    currentPage,
+    totalPages,
+    totalCount,
+    hasNextPage,
+    hasPreviousPage,
+    loadNextPage,
+    loadPreviousPage,
+  } = useAssetList(projectId);
+
   const [timelineBootstrapped, setTimelineBootstrapped] = useState(false);
   const processedThumbnailIdsRef = useRef<Set<string>>(new Set());
   const [uploadPending, setUploadPending] = useState(false);
@@ -330,12 +309,21 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
     disableInInputs: true,
   });
 
+  // Create a wrapper that calls reloadAssets after state updates
+  const setAssetsWithReload = useCallback(
+    (updater: React.SetStateAction<AssetRow[]>) => {
+      // After any asset state change, reload assets to maintain pagination
+      void reloadAssets();
+    },
+    [reloadAssets]
+  );
+
   // Use the extracted handlers hook
   const handlers = useEditorHandlers({
     projectId,
     timeline,
     assets,
-    setAssets,
+    setAssets: setAssetsWithReload,
     setTimeline,
     addClip,
     setUploadPending,
@@ -481,49 +469,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
     };
   }, [projectId, assets, assetsLoaded, timelineBootstrapped, setTimeline]);
 
-  // Load assets from database
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadAssets = async (): Promise<void> => {
-      setLoadingAssets(true);
-      setAssetError(null);
-      try {
-        const { data, error } = await supabase
-          .from('assets')
-          .select('*')
-          .eq('project_id', projectId)
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          throw error;
-        }
-
-        if (cancelled) return;
-
-        const mapped = (data ?? [])
-          .map((row) => mapAssetRow(row as Record<string, unknown>))
-          .filter((asset): asset is AssetRow => Boolean(asset));
-
-        setAssets(mapped);
-      } catch (error) {
-        browserLogger.error({ error, projectId }, 'Failed to load assets');
-        if (cancelled) return;
-        setAssetError('Failed to load assets. Please try again later.');
-      } finally {
-        if (!cancelled) {
-          setLoadingAssets(false);
-          setAssetsLoaded(true);
-        }
-      }
-    };
-
-    void loadAssets();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [projectId, supabase]);
+  // Asset loading is now handled by the useAssetList hook
 
   // Generate thumbnails for assets that don't have them
   useEffect(() => {
@@ -648,6 +594,13 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
           onAssetAdd={handlers.handleClipAdd}
           onAssetDelete={handlers.handleAssetDelete}
           onFileSelect={handlers.handleFileSelect}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          hasNextPage={hasNextPage}
+          hasPreviousPage={hasPreviousPage}
+          onNextPage={loadNextPage}
+          onPreviousPage={loadPreviousPage}
           initialWidth={280}
           minWidth={200}
           maxWidth={500}

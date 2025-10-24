@@ -1,7 +1,29 @@
+/**
+ * ProgressBar Component
+ *
+ * A flexible progress bar with multiple variants, sizes, and time tracking.
+ * Supports determinate and indeterminate progress states.
+ *
+ * @example
+ * ```tsx
+ * <ProgressBar progress={75} label="Uploading..." showPercentage />
+ * <ProgressBar
+ *   progress={50}
+ *   variant="success"
+ *   size="lg"
+ *   timeElapsed={30}
+ *   timeRemaining={30}
+ * />
+ * <IndeterminateProgressBar label="Processing..." variant="info" />
+ * ```
+ */
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { formatDuration } from '@/lib/utils/timeFormatting';
 
+/**
+ * Props for the ProgressBar component
+ */
 interface ProgressBarProps {
   /** Progress value from 0 to 100 */
   progress: number;
@@ -45,8 +67,28 @@ const sizeClasses = {
   lg: 'h-3',
 };
 
-// formatDuration is now imported from @/lib/utils/timeFormatting
-
+/**
+ * A determinate progress bar showing completion percentage.
+ *
+ * Features:
+ * - Smooth animated transitions
+ * - Multiple color variants
+ * - Size options (sm, md, lg)
+ * - Optional label and percentage display
+ * - Time elapsed and remaining tracking
+ * - Automatic progress clamping (0-100)
+ *
+ * @param progress - Current progress value (0-100)
+ * @param label - Text label to display above the bar
+ * @param showPercentage - Whether to show percentage value (default: true)
+ * @param size - Bar height variant (sm, md, lg)
+ * @param variant - Color scheme variant
+ * @param className - Additional CSS classes
+ * @param animated - Enable pulse animation
+ * @param timeElapsed - Time elapsed in seconds
+ * @param timeRemaining - Estimated time remaining in seconds
+ * @returns A styled progress bar with optional metadata
+ */
 export function ProgressBar({
   progress,
   label,
@@ -107,7 +149,24 @@ export function ProgressBar({
 }
 
 /**
- * Indeterminate progress bar for unknown progress
+ * An indeterminate progress bar for operations with unknown completion time.
+ *
+ * Features:
+ * - Continuous sliding animation
+ * - Same variant and size options as ProgressBar
+ * - No percentage display
+ * - ARIA attributes for accessibility
+ *
+ * @param label - Text label to display above the bar
+ * @param size - Bar height variant (sm, md, lg)
+ * @param variant - Color scheme variant
+ * @param className - Additional CSS classes
+ * @returns An animated indeterminate progress bar
+ *
+ * @example
+ * ```tsx
+ * <IndeterminateProgressBar label="Loading..." variant="primary" />
+ * ```
  */
 export function IndeterminateProgressBar({
   label,

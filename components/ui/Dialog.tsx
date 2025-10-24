@@ -1,3 +1,30 @@
+/**
+ * Dialog Component
+ *
+ * A modal dialog component built on Radix UI Dialog.
+ * Provides accessible modal windows with overlay, animations, and auto-close button.
+ *
+ * @example
+ * ```tsx
+ * <Dialog>
+ *   <DialogTrigger asChild>
+ *     <Button>Open Dialog</Button>
+ *   </DialogTrigger>
+ *   <DialogContent>
+ *     <DialogHeader>
+ *       <DialogTitle>Edit Profile</DialogTitle>
+ *       <DialogDescription>
+ *         Make changes to your profile here.
+ *       </DialogDescription>
+ *     </DialogHeader>
+ *     <div>Form content goes here</div>
+ *     <DialogFooter>
+ *       <Button type="submit">Save changes</Button>
+ *     </DialogFooter>
+ *   </DialogContent>
+ * </Dialog>
+ * ```
+ */
 'use client';
 
 import * as React from 'react';
@@ -6,14 +33,32 @@ import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
+/**
+ * Root dialog component. Controls open/close state.
+ */
 const Dialog = DialogPrimitive.Root;
 
+/**
+ * Trigger element that opens the dialog when clicked.
+ */
 const DialogTrigger = DialogPrimitive.Trigger;
 
+/**
+ * Portal for rendering dialog in a different part of the DOM.
+ */
 const DialogPortal = DialogPrimitive.Portal;
 
+/**
+ * Close button or element for dismissing the dialog.
+ */
 const DialogClose = DialogPrimitive.Close;
 
+/**
+ * Dark overlay backdrop for the dialog.
+ *
+ * @param className - Additional CSS classes to apply
+ * @returns A semi-transparent overlay with fade animations
+ */
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
@@ -29,6 +74,20 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
+/**
+ * Main dialog content container with overlay and close button.
+ *
+ * Features:
+ * - Centered positioning
+ * - Smooth animations (fade, zoom, slide)
+ * - Automatic close button in top-right
+ * - Focus trap for accessibility
+ * - Escape key to close
+ *
+ * @param className - Additional CSS classes to apply
+ * @param children - Dialog content
+ * @returns A centered modal dialog with animations and close button
+ */
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
@@ -53,11 +112,23 @@ const DialogContent = React.forwardRef<
 ));
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
+/**
+ * Header section for dialog title and description.
+ *
+ * @param className - Additional CSS classes to apply
+ * @returns A flex container for dialog header content
+ */
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div className={cn('flex flex-col space-y-1.5 text-center sm:text-left', className)} {...props} />
 );
 DialogHeader.displayName = 'DialogHeader';
 
+/**
+ * Footer section for dialog actions (typically buttons).
+ *
+ * @param className - Additional CSS classes to apply
+ * @returns A flex container for dialog footer content
+ */
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2', className)}
@@ -66,6 +137,12 @@ const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
 );
 DialogFooter.displayName = 'DialogFooter';
 
+/**
+ * Dialog title heading.
+ *
+ * @param className - Additional CSS classes to apply
+ * @returns A styled heading for the dialog title
+ */
 const DialogTitle = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
@@ -78,6 +155,12 @@ const DialogTitle = React.forwardRef<
 ));
 DialogTitle.displayName = DialogPrimitive.Title.displayName;
 
+/**
+ * Dialog description text for additional context.
+ *
+ * @param className - Additional CSS classes to apply
+ * @returns A styled paragraph for dialog description
+ */
 const DialogDescription = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>

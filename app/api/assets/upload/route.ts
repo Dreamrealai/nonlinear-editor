@@ -270,6 +270,56 @@ const handleAssetUpload: AuthenticatedHandler = async (request, { user, supabase
   // uses a UUID-based name for security, but we sanitize the display name in metadata.
   const sanitizedOriginalName = sanitize(originalName || fileName);
 
+  // Generate thumbnail server-side for video assets
+  let thumbnailDataURL: string | undefined;
+  if (type === 'video') {
+    try {
+      const { ThumbnailService } = await import('@/lib/services/thumbnailService');
+      const thumbnailService = new ThumbnailService();
+
+      serverLogger.debug(
+        {
+          event: 'assets.upload.generating_thumbnail',
+          userId: user.id,
+          projectId,
+          assetId,
+          fileSize: file.size,
+        },
+        'Generating video thumbnail during upload'
+      );
+
+      // Generate thumbnail at 1 second mark with 320px width
+      thumbnailDataURL = await thumbnailService.generateVideoThumbnailDataURL(buffer, {
+        timestamp: 1.0,
+        width: 320,
+        quality: 80,
+      });
+
+      serverLogger.info(
+        {
+          event: 'assets.upload.thumbnail_generated',
+          userId: user.id,
+          projectId,
+          assetId,
+          thumbnailSize: thumbnailDataURL.length,
+        },
+        'Video thumbnail generated successfully during upload'
+      );
+    } catch (thumbnailError) {
+      serverLogger.warn(
+        {
+          event: 'assets.upload.thumbnail_failed',
+          userId: user.id,
+          projectId,
+          assetId,
+          error: thumbnailError instanceof Error ? thumbnailError.message : 'Unknown error',
+        },
+        'Failed to generate thumbnail during upload (non-fatal)'
+      );
+      // Don't fail the upload if thumbnail generation fails
+    }
+  }
+
   const { error: dbError } = await supabase.from('assets').insert({
     id: assetId,
     project_id: projectId,
@@ -285,6 +335,7 @@ const handleAssetUpload: AuthenticatedHandler = async (request, { user, supabase
       mimeType: file.type,
       sourceUrl: publicUrl,
       size: file.size,
+      ...(thumbnailDataURL && { thumbnail: thumbnailDataURL }),
     },
   });
 

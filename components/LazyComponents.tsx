@@ -15,8 +15,8 @@ import { ComponentType, ReactElement } from 'react';
 const LoadingFallback = () => (
   <div className="flex h-full w-full items-center justify-center">
     <div className="flex flex-col items-center gap-3">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-900"></div>
-      <span className="text-sm text-neutral-600">Loading...</span>
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 motion-reduce:animate-none motion-reduce:border-t-8 dark:border-purple-800 dark:border-t-purple-400" role="status" aria-label="Loading"></div>
+      <span className="text-sm text-neutral-600 dark:text-neutral-400">Loading...</span>
     </div>
   </div>
 );
@@ -73,10 +73,10 @@ export const LazyHorizontalTimeline = dynamic<HorizontalTimelineProps>(
   () => import('@/components/HorizontalTimeline'),
   {
     loading: () => (
-      <div className="flex h-full w-full items-center justify-center bg-neutral-50">
+      <div className="flex h-full w-full items-center justify-center bg-neutral-50 dark:bg-neutral-900">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-900"></div>
-          <span className="text-sm text-neutral-600">Loading timeline...</span>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 motion-reduce:animate-none motion-reduce:border-t-8 dark:border-purple-800 dark:border-t-purple-400" role="status" aria-label="Loading timeline"></div>
+          <span className="text-sm text-neutral-600 dark:text-neutral-400">Loading timeline...</span>
         </div>
       </div>
     ),

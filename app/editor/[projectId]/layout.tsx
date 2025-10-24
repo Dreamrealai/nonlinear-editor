@@ -19,6 +19,8 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
       {projectId && (
         <div className={sidebarCollapsed ? 'w-0' : 'w-96'} style={{ transition: 'width 0.3s' }}>
           <ErrorBoundary
+            name="AIAssistant"
+            context={{ projectId, component: 'ChatBox' }}
             fallback={
               <div className="flex h-full items-center justify-center bg-white border-l border-neutral-200 p-4">
                 <div className="max-w-sm rounded-lg border border-orange-200 bg-orange-50 p-6 text-center">

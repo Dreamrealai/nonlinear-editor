@@ -13,6 +13,7 @@ import {
   Wand2,
   Sparkles,
   Clock,
+  MousePointerClick,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -27,6 +28,7 @@ type TimelineControlsProps = {
   sceneDetectPending?: boolean;
   upscaleVideoPending?: boolean;
   timecodeDisplayMode?: 'duration' | 'timecode';
+  autoScrollEnabled?: boolean;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onUndo: () => void;
@@ -37,6 +39,7 @@ type TimelineControlsProps = {
   onAddTransition?: () => void;
   onUpscaleVideo?: () => void;
   onToggleTimecodeDisplay?: () => void;
+  onToggleAutoScroll?: () => void;
 };
 
 /**
@@ -53,6 +56,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
   sceneDetectPending = false,
   upscaleVideoPending = false,
   timecodeDisplayMode = 'duration',
+  autoScrollEnabled = true,
   onZoomIn,
   onZoomOut,
   onUndo,
@@ -63,6 +67,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
   onAddTransition,
   onUpscaleVideo,
   onToggleTimecodeDisplay,
+  onToggleAutoScroll,
 }) {
   return (
     <div className="flex items-center justify-between rounded-lg bg-neutral-100 px-4 py-2">
