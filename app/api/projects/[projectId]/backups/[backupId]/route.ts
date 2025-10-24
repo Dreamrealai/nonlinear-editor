@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, type AuthContext } from '@/lib/api/withAuth';
 import { BackupService } from '@/lib/services/backupService';
 import { errorResponse } from '@/lib/api/response';
-import { validateUUID, ValidationError } from '@/lib/validation';
+import { ValidationError } from '@/lib/validation';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 
 /**
@@ -72,7 +72,7 @@ async function handleGetBackup(
     }
 }
 
-export const GET = withAuth(handleGetBackup, { rateLimit: RATE_LIMITS.STANDARD });
+export const GET = withAuth<{ projectId: string; backupId: string }>(handleGetBackup, { rateLimit: RATE_LIMITS.STANDARD });
 
 /**
  * DELETE /api/projects/[projectId]/backups/[backupId]
@@ -128,4 +128,4 @@ async function handleDeleteBackup(
     }
 }
 
-export const DELETE = withAuth(handleDeleteBackup, { rateLimit: RATE_LIMITS.STANDARD });
+export const DELETE = withAuth<{ projectId: string; backupId: string }>(handleDeleteBackup, { rateLimit: RATE_LIMITS.STANDARD });

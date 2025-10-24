@@ -31,15 +31,15 @@ export const TimelineSnapGuides = React.memo<TimelineSnapGuidesProps>(function T
   snapInfo,
   zoom,
   timelineHeight,
-}) {
+}): JSX.Element | null {
   const [showFlash, setShowFlash] = useState(false);
 
   // Trigger flash animation when snap occurs
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (snapInfo?.justSnapped) {
       setShowFlash(true);
-      const timer = setTimeout(() => setShowFlash(false), 300);
-      return () => clearTimeout(timer);
+      const timer = setTimeout((): void => setShowFlash(false), 300);
+      return (): void => clearTimeout(timer);
     }
     return undefined;
   }, [snapInfo?.justSnapped]);
@@ -52,7 +52,7 @@ export const TimelineSnapGuides = React.memo<TimelineSnapGuidesProps>(function T
 
   // Filter snap candidates to show only nearby ones (within 3 snap thresholds)
   const visibleCandidates = snapCandidates.filter(
-    (candidate) => Math.abs(candidate - snapPosition) <= SNAP_THRESHOLD * 3
+    (candidate): boolean => Math.abs(candidate - snapPosition) <= SNAP_THRESHOLD * 3
   );
 
   // Determine cursor style based on proximity to snap
@@ -74,7 +74,7 @@ export const TimelineSnapGuides = React.memo<TimelineSnapGuidesProps>(function T
         )}
 
         {/* Render snap candidate guidelines */}
-        {visibleCandidates.map((candidate) => {
+        {visibleCandidates.map((candidate): JSX.Element => {
           const x = candidate * zoom;
           const isActiveSnap = isSnapping && Math.abs(candidate - snapPosition) < 0.001;
 

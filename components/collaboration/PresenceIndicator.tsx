@@ -20,7 +20,7 @@ export interface PresenceIndicatorProps {
 /**
  * Component to display active users in a project
  */
-export function PresenceIndicator({ projectId, className }: PresenceIndicatorProps) {
+export function PresenceIndicator({ projectId, className }: PresenceIndicatorProps): JSX.Element {
   const { activeUsers, isLoading } = useProjectPresence({
     projectId,
     enabled: true,
@@ -62,7 +62,7 @@ export function PresenceIndicator({ projectId, className }: PresenceIndicatorPro
 
       {/* User Avatars */}
       <div className="flex -space-x-2">
-        {activeUsers.slice(0, 3).map((user, index) => (
+        {activeUsers.slice(0, 3).map((user, index): JSX.Element => (
           <div
             key={user.user_id}
             className="relative inline-block h-6 w-6 rounded-full border-2 border-background bg-muted flex items-center justify-center"

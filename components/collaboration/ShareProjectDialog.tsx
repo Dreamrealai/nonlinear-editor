@@ -58,7 +58,7 @@ const ROLE_ICONS: Record<CollaboratorRole, React.ReactNode> = {
   viewer: <Eye className="h-4 w-4" />,
 };
 
-export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: ShareProjectDialogProps) {
+export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: ShareProjectDialogProps): JSX.Element {
   const [activeTab, setActiveTab] = useState<TabType>('invite');
   const [loading, setLoading] = useState(false);
 
@@ -79,13 +79,13 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
   // Activity state
   const [activities, setActivities] = useState<CollaborationActivity[]>([]);
 
-  useEffect(() => {
+  useEffect((): void => {
     if (isOpen) {
       loadData();
     }
   }, [isOpen, activeTab]);
 
-  const loadData = async () => {
+  const loadData = async (): Promise<void> => {
     setLoading(true);
     try {
       if (activeTab === 'invite') {
@@ -104,7 +104,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
     }
   };
 
-  const loadInvites = async () => {
+  const loadInvites = async (): Promise<void> => {
     const res = await fetch(`/api/projects/${projectId}/invites`);
     if (res.ok) {
       const data = await res.json();
@@ -112,7 +112,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
     }
   };
 
-  const loadShareLinks = async () => {
+  const loadShareLinks = async (): Promise<void> => {
     const res = await fetch(`/api/projects/${projectId}/share-links`);
     if (res.ok) {
       const data = await res.json();
@@ -120,7 +120,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
     }
   };
 
-  const loadCollaborators = async () => {
+  const loadCollaborators = async (): Promise<void> => {
     const res = await fetch(`/api/projects/${projectId}/collaborators`);
     if (res.ok) {
       const data = await res.json();
@@ -128,7 +128,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
     }
   };
 
-  const loadActivity = async () => {
+  const loadActivity = async (): Promise<void> => {
     const res = await fetch(`/api/projects/${projectId}/activity?limit=20`);
     if (res.ok) {
       const data = await res.json();
@@ -136,7 +136,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
     }
   };
 
-  const sendInvite = async () => {
+  const sendInvite = async (): Promise<void> => {
     if (!inviteEmail || !inviteEmail.includes('@')) {
       return;
     }
@@ -166,7 +166,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
     }
   };
 
-  const createShareLink = async () => {
+  const createShareLink = async (): Promise<void> => {
     setLoading(true);
     try {
       const res = await fetch(`/api/projects/${projectId}/share-links`, {
@@ -191,20 +191,20 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
     }
   };
 
-  const copyShareLink = async (link: ShareLink) => {
+  const copyShareLink = async (link: ShareLink): Promise<void> => {
     const baseUrl = window.location.origin;
     const url = `${baseUrl}/join/${link.token}`;
 
     try {
       await navigator.clipboard.writeText(url);
       setCopiedLinkId(link.id);
-      setTimeout(() => setCopiedLinkId(null), 2000);
+      setTimeout((): void => setCopiedLinkId(null), 2000);
     } catch (error) {
       browserLogger.error({ error }, 'Failed to copy link');
     }
   };
 
-  const deleteShareLink = async (linkId: string) => {
+  const deleteShareLink = async (linkId: string): Promise<void> => {
     if (!confirm('Are you sure you want to delete this share link?')) return;
 
     setLoading(true);
@@ -223,7 +223,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
     }
   };
 
-  const revokeInvite = async (inviteId: string) => {
+  const revokeInvite = async (inviteId: string): Promise<void> => {
     if (!confirm('Are you sure you want to revoke this invite?')) return;
 
     setLoading(true);
@@ -242,7 +242,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
     }
   };
 
-  const removeCollaborator = async (collaboratorId: string) => {
+  const removeCollaborator = async (collaboratorId: string): Promise<void> => {
     if (!confirm('Are you sure you want to remove this collaborator?')) return;
 
     setLoading(true);
@@ -273,7 +273,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
           <Button
             variant={activeTab === 'invite' ? 'default' : 'ghost'}
             size="sm"
-            onClick={() => setActiveTab('invite')}
+            onClick={(): void => setActiveTab('invite')}
           >
             <Mail className="h-4 w-4 mr-2" />
             Invite
@@ -281,7 +281,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
           <Button
             variant={activeTab === 'links' ? 'default' : 'ghost'}
             size="sm"
-            onClick={() => setActiveTab('links')}
+            onClick={(): void => setActiveTab('links')}
           >
             <LinkIcon className="h-4 w-4 mr-2" />
             Share Links
@@ -289,7 +289,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
           <Button
             variant={activeTab === 'collaborators' ? 'default' : 'ghost'}
             size="sm"
-            onClick={() => setActiveTab('collaborators')}
+            onClick={(): void => setActiveTab('collaborators')}
           >
             <Users className="h-4 w-4 mr-2" />
             Collaborators
@@ -297,7 +297,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
           <Button
             variant={activeTab === 'activity' ? 'default' : 'ghost'}
             size="sm"
-            onClick={() => setActiveTab('activity')}
+            onClick={(): void => setActiveTab('activity')}
           >
             <Activity className="h-4 w-4 mr-2" />
             Activity
@@ -314,12 +314,12 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
                   type="email"
                   placeholder="Email address"
                   value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
+                  onChange={(e): void => setInviteEmail(e.target.value)}
                   className="flex-1"
                 />
                 <select
                   value={inviteRole}
-                  onChange={(e) => setInviteRole(e.target.value as CollaboratorRole)}
+                  onChange={(e): void => setInviteRole(e.target.value as CollaboratorRole)}
                   className="px-3 py-2 border border-border rounded-md bg-background"
                 >
                   <option value="viewer">Viewer</option>
@@ -334,7 +334,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
                 <LoadingSpinner />
               ) : invites.length > 0 ? (
                 <div className="space-y-2">
-                  {invites.map((invite) => (
+                  {invites.map((invite): JSX.Element => (
                     <div
                       key={invite.id}
                       className="flex items-center justify-between p-3 border border-border rounded-md"
@@ -347,7 +347,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
                         </div>
                       </div>
                       {invite.status === 'pending' && (
-                        <Button variant="ghost" size="sm" onClick={() => revokeInvite(invite.id)}>
+                        <Button variant="ghost" size="sm" onClick={(): Promise<void> => revokeInvite(invite.id)}>
                           <X className="h-4 w-4" />
                         </Button>
                       )}
@@ -366,7 +366,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
               <div className="flex gap-2">
                 <select
                   value={linkRole}
-                  onChange={(e) => setLinkRole(e.target.value as CollaboratorRole)}
+                  onChange={(e): void => setLinkRole(e.target.value as CollaboratorRole)}
                   className="px-3 py-2 border border-border rounded-md bg-background"
                 >
                   <option value="viewer">Viewer</option>
@@ -374,7 +374,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
                 </select>
                 <select
                   value={linkExpireHours}
-                  onChange={(e) => setLinkExpireHours(Number(e.target.value))}
+                  onChange={(e): void => setLinkExpireHours(Number(e.target.value))}
                   className="px-3 py-2 border border-border rounded-md bg-background"
                 >
                   <option value={24}>24 hours</option>
@@ -391,7 +391,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
                 <LoadingSpinner />
               ) : shareLinks.length > 0 ? (
                 <div className="space-y-2">
-                  {shareLinks.map((link) => (
+                  {shareLinks.map((link): JSX.Element => (
                     <div key={link.id} className="flex items-center gap-2 p-3 border border-border rounded-md">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
@@ -411,7 +411,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => copyShareLink(link)}
+                        onClick={(): Promise<void> => copyShareLink(link)}
                         className="flex items-center gap-2"
                       >
                         {copiedLinkId === link.id ? (
@@ -426,7 +426,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
                           </>
                         )}
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => deleteShareLink(link.id)}>
+                      <Button variant="ghost" size="sm" onClick={(): Promise<void> => deleteShareLink(link.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -444,7 +444,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
               {loading ? (
                 <LoadingSpinner />
               ) : collaborators.length > 0 ? (
-                collaborators.map((collaborator) => (
+                collaborators.map((collaborator): JSX.Element => (
                   <div
                     key={collaborator.id}
                     className="flex items-center justify-between p-3 border border-border rounded-md"
@@ -470,7 +470,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
                       </div>
                     </div>
                     {collaborator.role !== 'owner' && (
-                      <Button variant="ghost" size="sm" onClick={() => removeCollaborator(collaborator.id)}>
+                      <Button variant="ghost" size="sm" onClick={(): Promise<void> => removeCollaborator(collaborator.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
@@ -488,7 +488,7 @@ export function ShareProjectDialog({ projectId, projectName, isOpen, onClose }: 
               {loading ? (
                 <LoadingSpinner />
               ) : activities.length > 0 ? (
-                activities.map((activity) => (
+                activities.map((activity): JSX.Element => (
                   <div key={activity.id} className="flex items-start gap-3 p-3 border border-border rounded-md">
                     <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div className="flex-1">

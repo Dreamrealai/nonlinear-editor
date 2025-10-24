@@ -59,7 +59,7 @@ type HorizontalTimelineProps = {
 
 // Optimized shallow selector - only re-render when clips/textOverlays array changes
 // This prevents re-renders when clip properties change (handled by React.memo in TimelineClipRenderer)
-const selectTimelineData = (state: ReturnType<typeof useEditorStore.getState>) => ({
+const selectTimelineData = (state: ReturnType<typeof useEditorStore.getState>): { timeline: Timeline | null; clips: Clip[]; textOverlays: TextOverlay[]; groups: ClipGroup[]; markers: Marker[]; } => ({
   timeline: state.timeline,
   clips: state.timeline?.clips ?? [],
   textOverlays: state.timeline?.textOverlays ?? [],
@@ -68,14 +68,14 @@ const selectTimelineData = (state: ReturnType<typeof useEditorStore.getState>) =
 });
 
 // Separate selector for frequently changing values to minimize re-renders
-const selectPlaybackState = (state: ReturnType<typeof useEditorStore.getState>) => ({
+const selectPlaybackState = (state: ReturnType<typeof useEditorStore.getState>): { currentTime: number; zoom: number; autoScrollEnabled: boolean; } => ({
   currentTime: state.currentTime,
   zoom: state.zoom,
   autoScrollEnabled: state.autoScrollEnabled,
 });
 
 // Selector for selection state
-const selectSelectionState = (state: ReturnType<typeof useEditorStore.getState>) => ({
+const selectSelectionState = (state: ReturnType<typeof useEditorStore.getState>): { selectedClipIds: Set<string>; } => ({
   selectedClipIds: state.selectedClipIds,
 });
 
@@ -104,7 +104,7 @@ const selectActions = (state: ReturnType<typeof useEditorStore.getState>) => ({
 });
 
 // Selector for undo/redo state
-const selectHistoryState = (state: ReturnType<typeof useEditorStore.getState>) => ({
+const selectHistoryState = (state: ReturnType<typeof useEditorStore.getState>): { canUndo: boolean; canRedo: boolean; } => ({
   canUndo: state.canUndo(),
   canRedo: state.canRedo(),
 });
@@ -151,7 +151,7 @@ function HorizontalTimeline({
   } = useEditorStore(selectActions);
 
   // Playback state for auto-scroll
-  const isPlaying = usePlaybackStore((state) => state.isPlaying);
+  const isPlaying = usePlaybackStore((state): boolean => state.isPlaying);
 
   // Local state
   const [forcedTrackCount, setForcedTrackCount] = useState<number | null>(null);
@@ -315,7 +315,7 @@ function HorizontalTimeline({
     if (e.shiftKey && selectedClipIds.size > 0) {
       // Get the first selected clip
       const firstSelectedId = Array.from(selectedClipIds)[0];
-      const firstClip = clips.find((c) => c.id === firstSelectedId);
+      const firstClip = clips.find((c): boolean => c.id === firstSelectedId);
 
       if (firstClip) {
         // Select all clips between first selected and clicked clip
@@ -325,7 +325,7 @@ function HorizontalTimeline({
           clip.timelinePosition + (clip.end - clip.start)
         );
 
-        clips.forEach((c) => {
+        clips.forEach((c): void => {
           const clipStart = c.timelinePosition;
           const clipEnd = clipStart + (c.end - c.start);
           // Select clips that overlap with the range
@@ -353,7 +353,7 @@ function HorizontalTimeline({
   // Split clip at playhead - memoized
   const handleSplitAtPlayhead = useCallback((): void => {
     if (!timeline || !timeline.clips || !splitClipAtTime) return;
-    const clipAtPlayhead = timeline.clips.find((clip) => {
+    const clipAtPlayhead = timeline.clips.find((clip): boolean => {
       const clipStart = clip.timelinePosition;
       const clipEnd = clipStart + (clip.end - clip.start);
       return currentTime > clipStart && currentTime < clipEnd;
@@ -377,15 +377,15 @@ function HorizontalTimeline({
 
   // Check if playhead is over any clip (for split button) - memoized with optimized check
   // Only re-calculate when currentTime or clips array changes
-  const clipAtPlayhead = React.useMemo(() => {
+  const clipAtPlayhead = React.useMemo((): Clip | undefined => {
     if (!clips.length) return undefined;
 
     // Binary search optimization for large clip arrays
     // Sort clips by timeline position for efficient lookup
-    const sortedClips = [...clips].sort((a, b) => a.timelinePosition - b.timelinePosition);
+    const sortedClips = [...clips].sort((a, b): number => a.timelinePosition - b.timelinePosition);
 
     // Find clip using linear search (binary search not worth it for typical clip counts)
-    return sortedClips.find((clip) => {
+    return sortedClips.find((clip): boolean => {
       const clipStart = clip.timelinePosition;
       const clipEnd = clipStart + (clip.end - clip.start);
       return currentTime >= clipStart && currentTime <= clipEnd;
@@ -393,24 +393,24 @@ function HorizontalTimeline({
   }, [clips, currentTime]);
 
   // Close context menu when clicking elsewhere
-  useEffect(() => {
-    const handleClick = () => setContextMenu(null);
+  useEffect((): (() => void) | undefined => {
+    const handleClick = (): void => setContextMenu(null);
     if (contextMenu && typeof window !== 'undefined') {
       window.addEventListener('click', handleClick);
-      return () => window.removeEventListener('click', handleClick);
+      return (): void => window.removeEventListener('click', handleClick);
     }
     return undefined;
   }, [contextMenu]);
 
-  const handleClipContextMenu = useCallback((e: React.MouseEvent, clip: Clip) => {
+  const handleClipContextMenu = useCallback((e: React.MouseEvent, clip: Clip): void => {
     e.preventDefault();
     e.stopPropagation();
     setContextMenu({ clipId: clip.id, x: e.clientX, y: e.clientY });
   }, []);
 
   // Keyboard shortcut for opening help panel ("?" key)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+  useEffect((): (() => void) | undefined => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
       // Ignore if typing in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
@@ -425,7 +425,7 @@ function HorizontalTimeline({
 
     if (typeof window !== 'undefined') {
       window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
+      return (): void => window.removeEventListener('keydown', handleKeyDown);
     }
     return undefined;
   }, []);
@@ -443,7 +443,7 @@ function HorizontalTimeline({
   const timelineWidth = timelineDuration * zoom;
 
   // Handler for minimap pan
-  const handleMinimapPan = useCallback((newScrollLeft: number) => {
+  const handleMinimapPan = useCallback((newScrollLeft: number): void => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollLeft = newScrollLeft;
     }
@@ -451,7 +451,7 @@ function HorizontalTimeline({
 
   // Handler for minimap seek
   const handleMinimapSeek = useCallback(
-    (time: number) => {
+    (time: number): void => {
       setCurrentTime(time);
     },
     [setCurrentTime]
@@ -528,7 +528,7 @@ function HorizontalTimeline({
             className="relative"
             style={{ minWidth: timelineWidth, height: numTracks * TRACK_HEIGHT }}
             onClick={handleTimelineClick}
-            onKeyDown={(e) => {
+            onKeyDown={(e): void => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 handleTimelineClick(e as unknown as React.MouseEvent<HTMLDivElement>);
@@ -542,12 +542,12 @@ function HorizontalTimeline({
             <TimelineTracks
               numTracks={numTracks}
               clips={clips}
-              onAddTrack={() => setForcedTrackCount(numTracks + 1)}
-              onRemoveTrack={() => setForcedTrackCount(Math.max(MIN_TRACKS, numTracks - 1))}
+              onAddTrack={(): void => setForcedTrackCount(numTracks + 1)}
+              onRemoveTrack={(): void => setForcedTrackCount(Math.max(MIN_TRACKS, numTracks - 1))}
             />
 
             {/* Clips - Virtualized rendering */}
-            {visibleClips.map((clip) => (
+            {visibleClips.map((clip): JSX.Element => (
               <TimelineClipRenderer
                 key={clip.id}
                 clip={clip}
@@ -597,9 +597,9 @@ function HorizontalTimeline({
           onSplitAudio={onSplitAudioFromClip}
           onSplitScenes={onSplitScenesFromClip}
           onGenerateAudio={onGenerateAudioFromClip}
-          onAddTransition={onAddTransition ? () => onAddTransition() : undefined}
-          onSelectAllInTrack={(trackIndex) => selectAllClipsInTrack(trackIndex, true)}
-          onClose={() => setContextMenu(null)}
+          onAddTransition={onAddTransition ? (): void => onAddTransition() : undefined}
+          onSelectAllInTrack={(trackIndex): void => selectAllClipsInTrack(trackIndex, true)}
+          onClose={(): void => setContextMenu(null)}
         />
       )}
 

@@ -38,7 +38,7 @@ export function useAssetDeletion(
       asset: AssetRow,
       timeline: { clips: Array<{ assetId: string }> } | null,
       setTimeline: (timeline: { clips: Array<{ assetId: string }> }) => void
-    ) => {
+    ): Promise<void> => {
       if (!confirm(`Delete "${asset.metadata?.filename ?? asset.id}"?`)) {
         return;
       }
@@ -59,7 +59,7 @@ export function useAssetDeletion(
         onDeleteSuccess(asset.id);
 
         if (timeline) {
-          const updatedClips = timeline.clips.filter((clip) => clip.assetId !== asset.id);
+          const updatedClips = timeline.clips.filter((clip): boolean => clip.assetId !== asset.id);
           if (updatedClips.length !== timeline.clips.length) {
             setTimeline({ ...timeline, clips: updatedClips });
             toast.success('Asset deleted from library and timeline');

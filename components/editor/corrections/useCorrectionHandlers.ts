@@ -46,9 +46,9 @@ export function useCorrectionHandlers({
   updateClip,
   debounced,
   setters,
-}: CorrectionHandlersProps) {
+}: CorrectionHandlersProps): { updateTransform: (updates: Partial<Transform>) => void; updateAudioEffects: (updates: Partial<AudioEffects>) => void; resetColorCorrection: () => void; applyVideoEffectsPreset: (effects: VideoEffects) => void; resetTransform: () => void; resetAudioEffects: () => void; } {
   // Apply debounced video effects updates
-  useEffect(() => {
+  useEffect((): void => {
     if (selectedClip) {
       const current = selectedClip.colorCorrection || {
         brightness: 100,
@@ -87,7 +87,7 @@ export function useCorrectionHandlers({
   ]);
 
   // Apply debounced transform updates
-  useEffect(() => {
+  useEffect((): void => {
     if (selectedClip) {
       const current = selectedClip.transform || {
         rotation: 0,
@@ -108,7 +108,7 @@ export function useCorrectionHandlers({
   }, [debounced.rotation, debounced.scale, selectedClip, updateClip]);
 
   // Apply debounced audio effects updates
-  useEffect(() => {
+  useEffect((): void => {
     if (selectedClip && selectedClip.hasAudio) {
       const current = selectedClip.audioEffects || {
         volume: 0,
@@ -158,7 +158,7 @@ export function useCorrectionHandlers({
 
   // Handler functions
   const updateTransform = useCallback(
-    (updates: Partial<Transform>) => {
+    (updates: Partial<Transform>): void => {
       if (!selectedClip) return;
       const transform = selectedClip.transform || {
         rotation: 0,
@@ -174,7 +174,7 @@ export function useCorrectionHandlers({
   );
 
   const updateAudioEffects = useCallback(
-    (updates: Partial<AudioEffects>) => {
+    (updates: Partial<AudioEffects>): void => {
       if (!selectedClip) return;
       const audioEffects = selectedClip.audioEffects || {
         volume: 0,
@@ -194,7 +194,7 @@ export function useCorrectionHandlers({
     [selectedClip, updateClip]
   );
 
-  const resetColorCorrection = useCallback(() => {
+  const resetColorCorrection = useCallback((): void => {
     if (!selectedClip) return;
     setters.setBrightness(100);
     setters.setContrast(100);
@@ -207,7 +207,7 @@ export function useCorrectionHandlers({
   }, [selectedClip, updateClip, setters]);
 
   const applyVideoEffectsPreset = useCallback(
-    (effects: VideoEffects) => {
+    (effects: VideoEffects): void => {
       if (!selectedClip) return;
       setters.setBrightness(effects.brightness);
       setters.setContrast(effects.contrast);
@@ -221,7 +221,7 @@ export function useCorrectionHandlers({
     [selectedClip, updateClip, setters]
   );
 
-  const resetTransform = useCallback(() => {
+  const resetTransform = useCallback((): void => {
     if (!selectedClip) return;
     setters.setRotation(0);
     setters.setScale(1.0);
@@ -230,7 +230,7 @@ export function useCorrectionHandlers({
     });
   }, [selectedClip, updateClip, setters]);
 
-  const resetAudioEffects = useCallback(() => {
+  const resetAudioEffects = useCallback((): void => {
     if (!selectedClip) return;
     setters.setVolume(0);
     setters.setFadeIn(0);

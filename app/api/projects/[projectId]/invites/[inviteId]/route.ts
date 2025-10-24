@@ -7,7 +7,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { serverLogger } from '@/lib/serverLogger';
 
 /**
@@ -65,5 +64,8 @@ export const DELETE = withAuth<{ projectId: string; inviteId: string }>(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  RATE_LIMITS.tier2_ai_video_upload
+  {
+    route: '/api/projects/[projectId]/invites/[inviteId]',
+    rateLimit: RATE_LIMITS.tier2_ai_video_upload,
+  }
 );

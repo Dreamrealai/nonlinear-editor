@@ -613,13 +613,24 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClo
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       onClick={onClose}
+      onKeyDown={(e): void => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="clip-properties-title"
+      tabIndex={-1}
     >
       <div
         className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
         onClick={(e): void => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-neutral-900">Clip Properties</h2>
+          <h2 id="clip-properties-title" className="text-lg font-semibold text-neutral-900">
+            Clip Properties
+          </h2>
           <button
             onClick={onClose}
             className="text-neutral-400 hover:text-neutral-600 transition-colors"

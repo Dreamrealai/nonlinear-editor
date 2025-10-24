@@ -1,3 +1,58 @@
+/**
+ * MusicGenerationForm - AI music generation form (Suno integration)
+ *
+ * Comprehensive form for generating custom music tracks using AI. Features
+ * two modes (Simple and Custom), style/genre selection, instrumental option,
+ * and advanced settings. Supports long-running async generation with task tracking.
+ *
+ * Features:
+ * - Description-based music generation
+ * - Optional track title
+ * - Simple Mode: Auto-generated lyrics
+ * - Custom Mode: User-provided lyrics and style
+ * - Instrumental toggle (no vocals)
+ * - Collapsible advanced settings
+ * - Generation task tracking (1-2 minutes)
+ * - Form validation by mode
+ * - Loading states and progress messages
+ *
+ * Modes:
+ * - Simple: Describe music, AI generates everything
+ * - Custom: Provide lyrics/description and style/genre
+ *
+ * @param prompt - Music description or lyrics
+ * @param setPrompt - Callback to update prompt
+ * @param style - Music style or genre (for Custom mode)
+ * @param setStyle - Callback to update style
+ * @param title - Optional track title
+ * @param setTitle - Callback to update title
+ * @param customMode - Whether Custom mode is enabled
+ * @param setCustomMode - Callback to toggle Custom mode
+ * @param instrumental - Whether to generate instrumental only
+ * @param setInstrumental - Callback to toggle instrumental
+ * @param generating - Whether music is currently being generated
+ * @param taskId - Generation task ID for tracking
+ * @param onSubmit - Form submission handler
+ *
+ * @example
+ * ```tsx
+ * <MusicGenerationForm
+ *   prompt="An upbeat electronic track"
+ *   setPrompt={setPrompt}
+ *   style="electronic, synth-pop"
+ *   setStyle={setStyle}
+ *   title="My Track"
+ *   setTitle={setTitle}
+ *   customMode={false}
+ *   setCustomMode={setMode}
+ *   instrumental={false}
+ *   setInstrumental={setInstrumental}
+ *   generating={isGenerating}
+ *   taskId={taskId}
+ *   onSubmit={handleGenerate}
+ * />
+ * ```
+ */
 import { useState } from 'react';
 
 interface MusicGenerationFormProps {
@@ -30,7 +85,7 @@ export function MusicGenerationForm({
   generating,
   taskId,
   onSubmit,
-}: MusicGenerationFormProps) {
+}: MusicGenerationFormProps): JSX.Element {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   return (
@@ -43,7 +98,7 @@ export function MusicGenerationForm({
         <textarea
           id="prompt"
           value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
+          onChange={(e): void => setPrompt(e.target.value)}
           placeholder={
             customMode
               ? 'Enter your lyrics or description here...'
@@ -66,7 +121,7 @@ export function MusicGenerationForm({
           type="text"
           id="title"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e): void => setTitle(e.target.value)}
           placeholder="My Awesome Track"
           disabled={generating}
           className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
@@ -77,7 +132,7 @@ export function MusicGenerationForm({
       <div className="rounded-lg border border-neutral-200 bg-white shadow-sm">
         <button
           type="button"
-          onClick={() => setShowAdvanced(!showAdvanced)}
+          onClick={(): void => setShowAdvanced(!showAdvanced)}
           className="w-full flex items-center justify-between p-4 text-left hover:bg-neutral-50 transition-colors"
         >
           <div className="flex items-center gap-2">
@@ -107,7 +162,7 @@ export function MusicGenerationForm({
                     id="music-mode-standard"
                     type="radio"
                     checked={!customMode}
-                    onChange={() => setCustomMode(false)}
+                    onChange={(): void => setCustomMode(false)}
                     disabled={generating}
                     className="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500/20"
                   />
@@ -118,7 +173,7 @@ export function MusicGenerationForm({
                     id="music-mode-custom"
                     type="radio"
                     checked={customMode}
-                    onChange={() => setCustomMode(true)}
+                    onChange={(): void => setCustomMode(true)}
                     disabled={generating}
                     className="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500/20"
                   />
@@ -140,7 +195,7 @@ export function MusicGenerationForm({
                   type="text"
                   id="style"
                   value={style}
-                  onChange={(e) => setStyle(e.target.value)}
+                  onChange={(e): void => setStyle(e.target.value)}
                   placeholder="electronic, synth-pop, upbeat"
                   disabled={generating}
                   className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
@@ -158,7 +213,7 @@ export function MusicGenerationForm({
                 type="checkbox"
                 id="instrumental"
                 checked={instrumental}
-                onChange={(e) => setInstrumental(e.target.checked)}
+                onChange={(e): void => setInstrumental(e.target.checked)}
                 disabled={generating}
                 className="h-4 w-4 rounded border-neutral-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20"
               />

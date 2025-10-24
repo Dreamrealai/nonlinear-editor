@@ -31,6 +31,23 @@ type UseAdvancedTrimmingOptions = {
   updateClip: (clipId: string, updates: Partial<Clip>) => void;
 };
 
+export interface UseAdvancedTrimmingReturn {
+  modifiers: EditModeModifiers;
+  currentEditMode: EditMode;
+  currentOperation: TrimOperation | null;
+  feedback: TrimFeedback | null;
+  calculateTrimOperation: (
+    clip: Clip,
+    handle: 'left' | 'right',
+    newStart: number,
+    newEnd: number,
+    newPosition: number
+  ) => TrimOperation | null;
+  executeTrimOperation: (operation: TrimOperation) => void;
+  setCurrentOperation: React.Dispatch<React.SetStateAction<TrimOperation | null>>;
+  clearFeedback: () => void;
+}
+
 /**
  * Get the current edit mode based on keyboard modifiers
  */
@@ -60,7 +77,7 @@ function getEditModeDescription(mode: EditMode, handle: 'left' | 'right'): strin
   }
 }
 
-export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmingOptions) {
+export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmingOptions): UseAdvancedTrimmingReturn {
   const [modifiers, setModifiers] = useState<EditModeModifiers>({
     shift: false,
     alt: false,
@@ -72,8 +89,8 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
   const [feedback, setFeedback] = useState<TrimFeedback | null>(null);
 
   // Track keyboard modifiers
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+  useEffect((): () => void => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
       setModifiers({
         shift: e.shiftKey,
         alt: e.altKey,
@@ -82,7 +99,7 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
       });
     };
 
-    const handleKeyUp = (e: KeyboardEvent) => {
+    const handleKeyUp = (e: KeyboardEvent): void => {
       setModifiers({
         shift: e.shiftKey,
         alt: e.altKey,
@@ -94,7 +111,7 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 
-    return () => {
+    return (): void => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
@@ -108,8 +125,8 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
       if (!timeline) return null;
 
       const trackClips = timeline.clips
-        .filter((c) => c.trackIndex === clip.trackIndex && c.id !== clip.id)
-        .sort((a, b) => a.timelinePosition - b.timelinePosition);
+        .filter((c): boolean => c.trackIndex === clip.trackIndex && c.id !== clip.id)
+        .sort((a, b): number => a.timelinePosition - b.timelinePosition);
 
       const clipEnd = clip.timelinePosition + (clip.end - clip.start);
 
@@ -117,7 +134,7 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
         // Find clip that ends at or near this clip's start
         return (
           trackClips
-            .filter((c) => {
+            .filter((c): boolean => {
               const cEnd = c.timelinePosition + (c.end - c.start);
               return Math.abs(cEnd - clip.timelinePosition) < SNAP_INTERVAL;
             })
@@ -126,7 +143,7 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
       } else {
         // Find clip that starts at or near this clip's end
         return (
-          trackClips.find((c) => Math.abs(c.timelinePosition - clipEnd) < SNAP_INTERVAL) || null
+          trackClips.find((c): boolean => Math.abs(c.timelinePosition - clipEnd) < SNAP_INTERVAL) || null
         );
       }
     },
@@ -142,8 +159,8 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
 
       const clipEnd = clip.timelinePosition + (clip.end - clip.start);
       return timeline.clips
-        .filter((c) => c.trackIndex === clip.trackIndex && c.timelinePosition >= clipEnd)
-        .sort((a, b) => a.timelinePosition - b.timelinePosition);
+        .filter((c): boolean => c.trackIndex === clip.trackIndex && c.timelinePosition >= clipEnd)
+        .sort((a, b): number => a.timelinePosition - b.timelinePosition);
     },
     [timeline]
   );
@@ -191,7 +208,7 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
       const deltaTime = newDuration - originalDuration;
 
       const followingClips = getFollowingClips(clip);
-      const affectedClips = followingClips.map((c) => ({
+      const affectedClips = followingClips.map((c): { clipId: string; originalPosition: number; newPosition: number; } => ({
         clipId: c.id,
         originalPosition: c.timelinePosition,
         newPosition: c.timelinePosition + deltaTime,
@@ -335,7 +352,7 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
    * Execute trim operation and update clips
    */
   const executeTrimOperation = useCallback(
-    (operation: TrimOperation) => {
+    (operation: TrimOperation): void => {
       // Update primary clip
       const updates: Partial<Clip> = {
         start: operation.newStart,
@@ -347,7 +364,7 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
 
       // Update affected clips (for ripple/roll/slide modes)
       if (operation.affectedClips) {
-        operation.affectedClips.forEach((affected) => {
+        operation.affectedClips.forEach((affected): void => {
           const affectedUpdates: Partial<Clip> = {
             timelinePosition: affected.newPosition,
           };
@@ -362,7 +379,7 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
       }
 
       // Generate feedback
-      const primaryClip = timeline?.clips.find((c) => c.id === operation.clipId);
+      const primaryClip = timeline?.clips.find((c): boolean => c.id === operation.clipId);
       if (primaryClip) {
         const originalDuration = operation.originalEnd - operation.originalStart;
         const newDuration = operation.newEnd - operation.newStart;
@@ -429,10 +446,10 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
   /**
    * Clear feedback after delay
    */
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (feedback) {
-      const timer = setTimeout(() => setFeedback(null), 2000);
-      return () => clearTimeout(timer);
+      const timer = setTimeout((): void => setFeedback(null), 2000);
+      return (): void => clearTimeout(timer);
     }
     return undefined;
   }, [feedback]);
@@ -445,6 +462,6 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
     calculateTrimOperation,
     executeTrimOperation,
     setCurrentOperation,
-    clearFeedback: () => setFeedback(null),
+    clearFeedback: (): void => setFeedback(null),
   };
 }

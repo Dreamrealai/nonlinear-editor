@@ -25,7 +25,7 @@ export function useVideoExtraction(
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
+  useEffect((): void => {
     if (!selectedAssetId) {
       setAssetVideoUrl(null);
       return;
@@ -37,14 +37,14 @@ export function useVideoExtraction(
     }
   }, [selectedAssetId, assets, signStoragePath]);
 
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     const video = videoRef.current;
     if (!video || !showVideoPlayer) {
       setIsVideoReady(false);
       return;
     }
 
-    const handleLoadedMetadata = () => {
+    const handleLoadedMetadata = (): void => {
       setIsVideoReady(true);
     };
 
@@ -53,12 +53,12 @@ export function useVideoExtraction(
     }
 
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
-    return () => {
+    return (): void => {
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
     };
   }, [showVideoPlayer, assetVideoUrl]);
 
-  const handleExtractFrame = async () => {
+  const handleExtractFrame = async (): Promise<void> => {
     if (!videoRef.current || !canvasRef.current || !selectedAssetId) return;
 
     setIsExtractingFrame(true);
@@ -81,7 +81,7 @@ export function useVideoExtraction(
     }
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = event.target.files?.[0];
     if (!file || !selectedAssetId) return;
 
@@ -111,7 +111,7 @@ export function useVideoExtraction(
   };
 
   const uploadPastedImage = useCallback(
-    async (file: File) => {
+    async (file: File): Promise<void> => {
       if (!selectedAssetId) return;
 
       setIsUploadingImage(true);

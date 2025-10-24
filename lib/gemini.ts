@@ -161,7 +161,7 @@ export async function chat(params: {
   history?: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }>;
   /** File attachments (base64 data with MIME type) */
   files?: Array<{ data: string; mimeType: string }>;
-}) {
+}): Promise<string> {
   const aiClient = await makeAIClient();
 
   // Send message with retry logic (timeout handled by underlying SDK)
@@ -194,9 +194,9 @@ export async function chat(params: {
         }
 
         // Convert history to Vertex AI format
-        const vertexHistory: Content[] = (params.history || []).map((msg) => ({
+        const vertexHistory: Content[] = (params.history || []).map((msg): { role: "user" | "model"; parts: { text: string; }[]; } => ({
           role: msg.role,
-          parts: msg.parts.map((p) => ({ text: p.text })),
+          parts: msg.parts.map((p): { text: string; } => ({ text: p.text })),
         }));
 
         // Start chat session with history and generation config

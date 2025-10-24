@@ -57,11 +57,11 @@ interface AssetVersionHistoryProps {
 
 export function AssetVersionHistory({
   assetId,
-  assetType,
+  assetType: _assetType,
   isOpen,
   onClose,
   onReverted,
-}: AssetVersionHistoryProps) {
+}: AssetVersionHistoryProps): JSX.Element {
   const [versions, setVersions] = useState<AssetVersion[]>([]);
   const [currentVersion, setCurrentVersion] = useState<number>(1);
   const [loading, setLoading] = useState(false);
@@ -69,7 +69,7 @@ export function AssetVersionHistory({
   const [reverting, setReverting] = useState<string | null>(null);
 
   // Load version history when dialog opens
-  useEffect(() => {
+  useEffect((): void => {
     if (isOpen) {
       loadVersionHistory();
     }
@@ -238,7 +238,7 @@ export function AssetVersionHistory({
           {/* Version list */}
           {!loading && versions.length > 0 && (
             <div className="space-y-3">
-              {versions.map((version) => (
+              {versions.map((version): JSX.Element => (
                 <div
                   key={version.id}
                   className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
@@ -291,7 +291,7 @@ export function AssetVersionHistory({
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleRevert(version.id, version.version_number)}
+                        onClick={(): Promise<void> => handleRevert(version.id, version.version_number)}
                         disabled={reverting !== null}
                       >
                         {reverting === version.id ? (

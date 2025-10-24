@@ -67,7 +67,7 @@ class LRUCache {
    */
   private startCleanup(): void {
     // Clean up expired entries every 60 seconds
-    this.cleanupInterval = setInterval(() => {
+    this.cleanupInterval = setInterval((): void => {
       this.cleanupExpired();
     }, 60 * 1000);
   }

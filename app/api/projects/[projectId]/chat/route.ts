@@ -18,7 +18,7 @@ import { validateUUID, ValidationError } from '@/lib/validation';
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ projectId: string }> }
-) {
+): Promise<NextResponse<{ error: string; }> | NextResponse<{ messages: any[]; }>> {
   try {
     const { projectId } = await params;
 
@@ -80,7 +80,7 @@ export async function GET(
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ projectId: string }> }
-) {
+): Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; }>> {
   try {
     const { projectId } = await params;
 

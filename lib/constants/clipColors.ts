@@ -29,5 +29,5 @@ export const getColorName = (hex: string): string => {
  * Check if a color is a predefined clip color
  */
 export const isPresetColor = (hex: string): boolean => {
-  return Object.values(CLIP_COLORS).includes(hex as any);
+  return (Object.values(CLIP_COLORS) as string[]).includes(hex);
 };

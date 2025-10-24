@@ -5,12 +5,12 @@
  * POST /api/templates - Create a new template
  */
 
-import { NextRequest } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
-import { createServiceSupabaseClient } from '@/lib/supabase';
-import { errorResponse, successResponse } from '@/lib/api/response';
+import { errorResponse, successResponse, validationError } from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
-import type { ProjectTemplate, CreateTemplateInput, TemplateSearchFilters } from '@/types/template';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { validateString, ValidationError } from '@/lib/validation';
+import type { ProjectTemplate, CreateTemplateInput } from '@/types/template';
 
 /**
  * GET /api/templates
@@ -116,15 +116,26 @@ export const POST = withAuth(async (req, context) => {
     const body: CreateTemplateInput = await req.json();
 
     // Validate input
-    if (!body.name || !body.category || !body.timeline_data) {
-      return errorResponse('Missing required fields: name, category, timeline_data', 400);
+    validateString(body.name, 'name', { minLength: 1, maxLength: 100 });
+    validateString(body.category, 'category', { minLength: 1, maxLength: 50 });
+
+    if (!body.timeline_data || typeof body.timeline_data !== 'object') {
+      throw new ValidationError('timeline_data is required and must be an object', 'timeline_data', 'INVALID_TYPE');
+    }
+
+    if (body.description !== undefined && body.description !== null) {
+      validateString(body.description, 'description', { required: false, maxLength: 1000 });
+    }
+
+    if (body.thumbnail_url !== undefined && body.thumbnail_url !== null) {
+      validateString(body.thumbnail_url, 'thumbnail_url', { required: false, maxLength: 2048 });
     }
 
     // Calculate duration from timeline data if not provided
     let durationSeconds = 0;
     if (body.timeline_data.clips && body.timeline_data.clips.length > 0) {
       // Find the maximum end time across all clips
-      durationSeconds = body.timeline_data.clips.reduce((max, clip) => {
+      durationSeconds = body.timeline_data.clips.reduce((max, clip): number => {
         const clipEnd = clip.timelinePosition + (clip.end - clip.start);
         return Math.max(max, clipEnd);
       }, 0);
@@ -158,6 +169,9 @@ export const POST = withAuth(async (req, context) => {
     serverLogger.info({ userId, templateId: template.id }, 'Template created');
     return successResponse({ template: template as ProjectTemplate }, 201);
   } catch (error) {
+    if (error instanceof ValidationError) {
+      return validationError(error.message);
+    }
     serverLogger.error({ error }, 'Unexpected error creating template');
     return errorResponse('Internal server error', 500);
   }

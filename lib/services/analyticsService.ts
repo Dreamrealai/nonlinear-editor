@@ -119,7 +119,7 @@ class AnalyticsService {
       capture_pageleave: true, // Track when users leave
 
       // Performance
-      loaded: (ph) => {
+      loaded: (ph): void => {
         // PostHog loaded successfully
         if (process.env.NODE_ENV === 'development') {
           console.log('PostHog initialized');
@@ -375,4 +375,23 @@ export const AnalyticsEvents = {
   PAGE_LOAD: 'page_load',
   PAGE_ERROR: 'page_error',
   API_ERROR: 'api_error',
+
+  // Onboarding events
+  ONBOARDING_STARTED: 'onboarding_started',
+  ONBOARDING_STEP_VIEWED: 'onboarding_step_viewed',
+  ONBOARDING_STEP_COMPLETED: 'onboarding_step_completed',
+  ONBOARDING_COMPLETED: 'onboarding_completed',
+  ONBOARDING_SKIPPED: 'onboarding_skipped',
+  ONBOARDING_ABANDONED: 'onboarding_abandoned',
+  ONBOARDING_FEEDBACK_SUBMITTED: 'onboarding_feedback_submitted',
+  ONBOARDING_TUTORIAL_REPLAYED: 'onboarding_tutorial_replayed',
+  ONBOARDING_HELP_ACCESSED: 'onboarding_help_accessed',
+
+  // Easter egg events
+  EASTER_EGG_DISCOVERED: 'easter_egg_discovered',
+  EASTER_EGG_ACTIVATED: 'easter_egg_activated',
+  EASTER_EGG_DEACTIVATED: 'easter_egg_deactivated',
+  EASTER_EGG_SHARED: 'easter_egg_shared',
+  EASTER_EGG_ACHIEVEMENT_UNLOCKED: 'easter_egg_achievement_unlocked',
+  EASTER_EGG_FEEDBACK_SUBMITTED: 'easter_egg_feedback_submitted',
 } as const;

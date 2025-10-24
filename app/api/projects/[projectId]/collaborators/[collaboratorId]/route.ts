@@ -9,16 +9,18 @@ import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { serverLogger } from '@/lib/serverLogger';
+import { validateEnum, validateUUID, ValidationError } from '@/lib/validation';
+import { validationError } from '@/lib/api/response';
 import type { UpdateCollaboratorRequest } from '@/types/collaboration';
 
 /**
  * PATCH - Update a collaborator's role
  */
-export const PATCH = withAuth(
+export const PATCH = withAuth<{ projectId: string; collaboratorId: string }>(
   async (
     req: NextRequest,
     { params }: { params: Promise<{ projectId: string; collaboratorId: string }> }
-  ) => {
+  ): Promise<NextResponse<{ error: string; }> | NextResponse<{ collaborator: any; }>> => {
     const { projectId, collaboratorId } = await params;
     const supabase = await createServerSupabaseClient();
     const {
@@ -30,12 +32,15 @@ export const PATCH = withAuth(
     }
 
     try {
+      // Validate path parameters
+      validateUUID(projectId, 'projectId');
+      validateUUID(collaboratorId, 'collaboratorId');
+
+      // Validate request body
       const body: UpdateCollaboratorRequest = await req.json();
       const { role } = body;
 
-      if (!role || !['viewer', 'editor', 'admin'].includes(role)) {
-        return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
-      }
+      validateEnum(role, 'role', ['viewer', 'editor', 'admin'] as const);
 
       // Verify user owns the project
       const { data: project, error: projectError } = await supabase
@@ -79,6 +84,9 @@ export const PATCH = withAuth(
 
       return NextResponse.json({ collaborator });
     } catch (error) {
+      if (error instanceof ValidationError) {
+        return validationError(error.message);
+      }
       serverLogger.error({ error, collaboratorId, projectId }, 'Error updating collaborator');
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
@@ -89,11 +97,11 @@ export const PATCH = withAuth(
 /**
  * DELETE - Remove a collaborator
  */
-export const DELETE = withAuth(
+export const DELETE = withAuth<{ projectId: string; collaboratorId: string }>(
   async (
     req: NextRequest,
     { params }: { params: Promise<{ projectId: string; collaboratorId: string }> }
-  ) => {
+  ): Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; }>> => {
     const { projectId, collaboratorId } = await params;
     const supabase = await createServerSupabaseClient();
     const {
@@ -105,6 +113,10 @@ export const DELETE = withAuth(
     }
 
     try {
+      // Validate path parameters
+      validateUUID(projectId, 'projectId');
+      validateUUID(collaboratorId, 'collaboratorId');
+
       // Verify user owns the project
       const { data: project, error: projectError } = await supabase
         .from('projects')
@@ -156,6 +168,9 @@ export const DELETE = withAuth(
 
       return NextResponse.json({ success: true });
     } catch (error) {
+      if (error instanceof ValidationError) {
+        return validationError(error.message);
+      }
       serverLogger.error({ error, collaboratorId, projectId }, 'Error removing collaborator');
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }

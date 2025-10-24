@@ -29,19 +29,19 @@ export function useTimelineCalculations({
   scrollLeft,
   viewportWidth,
   zoom,
-}: UseTimelineCalculationsOptions) {
+}: UseTimelineCalculationsOptions): { timelineDuration: number; numTracks: number; visibleClips: Clip[]; calculationError: string | null; } {
   const [calculationError, setCalculationError] = useState<string | null>(null);
 
   // Calculate timeline duration
-  const timelineDuration = useMemo(() => {
+  const timelineDuration = useMemo((): number => {
     try {
       setCalculationError(null);
       const textOverlays = timeline?.textOverlays ?? [];
       const clipEndTimes = timeline?.clips.length
-        ? timeline.clips.map((c) => c.timelinePosition + (c.end - c.start))
+        ? timeline.clips.map((c): number => c.timelinePosition + (c.end - c.start))
         : [];
       const overlayEndTimes = textOverlays.length
-        ? textOverlays.map((o) => o.timelinePosition + o.duration)
+        ? textOverlays.map((o): number => o.timelinePosition + o.duration)
         : [];
       const allEndTimes = [...clipEndTimes, ...overlayEndTimes];
       return allEndTimes.length ? Math.max(...allEndTimes, 30) : 30;
@@ -53,10 +53,10 @@ export function useTimelineCalculations({
   }, [timeline]);
 
   // Calculate number of tracks
-  const numTracks = useMemo(() => {
+  const numTracks = useMemo((): number => {
     try {
       const maxTrack = timeline?.clips.length
-        ? Math.max(...timeline.clips.map((c) => c.trackIndex), MIN_TRACKS - 1)
+        ? Math.max(...timeline.clips.map((c): number => c.trackIndex), MIN_TRACKS - 1)
         : MIN_TRACKS - 1;
       return Math.max(maxTrack + 1, MIN_TRACKS, forcedTrackCount ?? 0);
     } catch (error) {
@@ -68,7 +68,7 @@ export function useTimelineCalculations({
 
   // Virtualized clip rendering (only visible clips + overscan)
   // Enhanced with binary search for better performance with large clip arrays
-  const visibleClips = useMemo<Clip[]>(() => {
+  const visibleClips = useMemo<Clip[]>((): Clip[] => {
     try {
       if (!timeline?.clips.length) return [];
 
@@ -79,7 +79,7 @@ export function useTimelineCalculations({
       // For large clip arrays (50+), use sorted + binary search for better performance
       if (timeline.clips.length > 50) {
         // Sort clips by timeline position (cached via sortedClips reference)
-        const sortedClips = [...timeline.clips].sort((a, b) => a.timelinePosition - b.timelinePosition);
+        const sortedClips = [...timeline.clips].sort((a, b): number => a.timelinePosition - b.timelinePosition);
 
         // Binary search to find first visible clip
         let left = 0;
@@ -122,7 +122,7 @@ export function useTimelineCalculations({
       }
 
       // For smaller arrays, use simple filter (faster for small N)
-      return timeline.clips.filter((clip) => {
+      return timeline.clips.filter((clip): boolean => {
         const clipStart = clip.timelinePosition;
         const clipEnd = clipStart + (clip.end - clip.start);
         return clipEnd >= viewportStartTime && clipStart <= viewportEndTime;
@@ -135,7 +135,7 @@ export function useTimelineCalculations({
   }, [timeline?.clips, scrollLeft, viewportWidth, zoom]);
 
   // Clear errors when timeline changes
-  useEffect(() => {
+  useEffect((): void => {
     setCalculationError(null);
   }, [timeline]);
 

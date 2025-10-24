@@ -60,7 +60,7 @@ export function VideoGenerationSettings({
   onNegativePromptChange,
   onEnhancePromptChange,
   onGenerateAudioChange,
-}: VideoGenerationSettingsProps) {
+}: VideoGenerationSettingsProps): JSX.Element {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   return (
@@ -68,7 +68,7 @@ export function VideoGenerationSettings({
       {/* Toggle Button */}
       <button
         type="button"
-        onClick={() => setShowAdvanced(!showAdvanced)}
+        onClick={(): void => setShowAdvanced(!showAdvanced)}
         className="w-full flex items-center justify-between p-4 text-left hover:bg-neutral-50 transition-colors"
       >
         <div className="flex items-center gap-2">
@@ -103,7 +103,7 @@ export function VideoGenerationSettings({
                   <select
                     id="resolution"
                     value={resolution}
-                    onChange={(e) => onResolutionChange(e.target.value as '720p' | '1080p')}
+                    onChange={(e): void => onResolutionChange(e.target.value as '720p' | '1080p')}
                     disabled={disabled}
                     className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                   >
@@ -125,13 +125,13 @@ export function VideoGenerationSettings({
                   <select
                     id="sampleCount"
                     value={sampleCount}
-                    onChange={(e) => onSampleCountChange(parseInt(e.target.value) as 1 | 2 | 3 | 4)}
+                    onChange={(e): void => onSampleCountChange(parseInt(e.target.value) as 1 | 2 | 3 | 4)}
                     disabled={disabled}
                     className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {[1, 2, 3, 4]
-                      .filter((n) => n <= modelConfig.maxSampleCount)
-                      .map((n) => (
+                      .filter((n): boolean => n <= modelConfig.maxSampleCount)
+                      .map((n): JSX.Element => (
                         <option key={n} value={n}>
                           {n} video{n > 1 ? 's' : ''}
                         </option>
@@ -152,7 +152,7 @@ export function VideoGenerationSettings({
                   <select
                     id="personGeneration"
                     value={personGeneration}
-                    onChange={(e) =>
+                    onChange={(e): void =>
                       onPersonGenerationChange(e.target.value as 'allow_adult' | 'dont_allow')
                     }
                     disabled={disabled}
@@ -173,7 +173,7 @@ export function VideoGenerationSettings({
                   type="number"
                   id="seed"
                   value={seed}
-                  onChange={(e) => onSeedChange(e.target.value)}
+                  onChange={(e): void => onSeedChange(e.target.value)}
                   placeholder="Random"
                   min="0"
                   max="4294967295"
@@ -198,7 +198,7 @@ export function VideoGenerationSettings({
                   <textarea
                     id="negativePrompt"
                     value={negativePrompt}
-                    onChange={(e) => onNegativePromptChange(e.target.value)}
+                    onChange={(e): void => onNegativePromptChange(e.target.value)}
                     placeholder="What to avoid (e.g., blur, distortion)"
                     rows={4}
                     disabled={disabled}
@@ -216,7 +216,7 @@ export function VideoGenerationSettings({
                       type="checkbox"
                       id="enhancePrompt"
                       checked={enhancePrompt}
-                      onChange={(e) => onEnhancePromptChange(e.target.checked)}
+                      onChange={(e): void => onEnhancePromptChange(e.target.checked)}
                       disabled={disabled}
                       className="h-4 w-4 rounded border-neutral-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20"
                     />
@@ -233,7 +233,7 @@ export function VideoGenerationSettings({
                       type="checkbox"
                       id="generateAudio"
                       checked={generateAudio}
-                      onChange={(e) => onGenerateAudioChange(e.target.checked)}
+                      onChange={(e): void => onGenerateAudioChange(e.target.checked)}
                       disabled={disabled}
                       className="h-4 w-4 rounded border-neutral-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20"
                     />

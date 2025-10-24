@@ -68,14 +68,14 @@ export function useTimelineKeyboardShortcuts({
   onZoomOut, // Reserved for future use
   onZoomReset, // Reserved for future use
   onSelectAll,
-}: UseTimelineKeyboardShortcutsOptions) {
+}: UseTimelineKeyboardShortcutsOptions): void {
   // Suppress unused variable warnings for zoom handlers (reserved for future use)
   void onZoomIn;
   void onZoomOut;
   void onZoomReset;
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+  useEffect((): (() => void) | undefined => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
       // Null check for event target
       if (!e.target) return;
 
@@ -129,7 +129,7 @@ export function useTimelineKeyboardShortcuts({
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
         if (selectedClipIds && removeClip && clearSelection) {
-          selectedClipIds.forEach((id) => removeClip(id));
+          selectedClipIds.forEach((id): void => removeClip(id));
           clearSelection();
         }
       }
@@ -147,7 +147,7 @@ export function useTimelineKeyboardShortcuts({
       if ((e.key === 's' || e.key === 'S') && !e.shiftKey && !cmdOrCtrl) {
         e.preventDefault();
         if (!timeline || !timeline.clips || !splitClipAtTime) return;
-        const clipAtPlayhead = timeline.clips.find((clip) => {
+        const clipAtPlayhead = timeline.clips.find((clip): boolean => {
           const clipStart = clip.timelinePosition;
           const clipEnd = clipStart + (clip.end - clip.start);
           return currentTime > clipStart && currentTime < clipEnd;
@@ -161,7 +161,7 @@ export function useTimelineKeyboardShortcuts({
       if (e.key === 'l' || e.key === 'L') {
         e.preventDefault();
         if (toggleClipLock && selectedClipIds.size > 0) {
-          selectedClipIds.forEach((clipId) => toggleClipLock(clipId));
+          selectedClipIds.forEach((clipId): void => toggleClipLock(clipId));
         }
       }
 
@@ -208,7 +208,7 @@ export function useTimelineKeyboardShortcuts({
 
     if (typeof window !== 'undefined') {
       window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
+      return (): void => window.removeEventListener('keydown', handleKeyDown);
     }
     return undefined;
   }, [

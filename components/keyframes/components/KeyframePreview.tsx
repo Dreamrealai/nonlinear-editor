@@ -1,3 +1,42 @@
+/**
+ * KeyframePreview - Keyframe preview with crop overlay
+ *
+ * Large preview display for the currently selected keyframe. Shows the
+ * full frame image with an optional crop overlay when in crop editing mode.
+ * Supports click-to-position crop functionality.
+ *
+ * Features:
+ * - Full-size frame preview
+ * - Interactive crop overlay (in crop mode)
+ * - Click-to-position crop region
+ * - Frame metadata display (scene number, frame type)
+ * - Responsive image sizing
+ * - Empty state when no frame selected
+ *
+ * Crop Overlay:
+ * - Semi-transparent positioning indicator
+ * - Responsive to click events for repositioning
+ * - CSS-based styling from parent crop state
+ *
+ * @param selectedFrame - Currently selected frame data
+ * @param selectedFrameUrl - Signed URL for frame image
+ * @param scenes - Array of video scenes for metadata
+ * @param mode - Current editing mode ('global' | 'crop')
+ * @param cropOverlayStyle - CSS styles for crop overlay
+ * @param onImageClick - Callback when image is clicked (for crop positioning)
+ *
+ * @example
+ * ```tsx
+ * <KeyframePreview
+ *   selectedFrame={frame}
+ *   selectedFrameUrl={signedUrl}
+ *   scenes={videoScenes}
+ *   mode="crop"
+ *   cropOverlayStyle={overlayStyles}
+ *   onImageClick={handleCropClick}
+ * />
+ * ```
+ */
 'use client';
 
 import Image from 'next/image';
@@ -35,7 +74,7 @@ export function KeyframePreview({
   mode,
   cropOverlayStyle,
   onImageClick,
-}: KeyframePreviewProps) {
+}: KeyframePreviewProps): JSX.Element {
   return (
     <div className="border-b border-neutral-200 bg-white p-6">
       <div className="mb-3 flex items-center justify-between">
@@ -46,7 +85,7 @@ export function KeyframePreview({
           <span className="text-[10px] text-neutral-400">
             {selectedFrame.kind === 'custom'
               ? 'Custom'
-              : `Scene ${scenes.findIndex((s) => s.id === selectedFrame.scene_id) + 1} · ${selectedFrame.kind}`}
+              : `Scene ${scenes.findIndex((s): boolean => s.id === selectedFrame.scene_id) + 1} · ${selectedFrame.kind}`}
           </span>
         )}
       </div>

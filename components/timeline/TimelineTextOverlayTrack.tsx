@@ -37,7 +37,7 @@ type TrimmingState = {
  */
 export const TimelineTextOverlayTrack = React.memo(function TimelineTextOverlayTrack(
   props: TimelineTextOverlayTrackProps
-) {
+): JSX.Element {
   const {
     textOverlays,
     selectedTextOverlayId,
@@ -55,7 +55,7 @@ export const TimelineTextOverlayTrack = React.memo(function TimelineTextOverlayT
 
   // Handle dragging text overlay position
   const handleOverlayMouseDown = useCallback(
-    (e: React.MouseEvent, overlay: TextOverlay) => {
+    (e: React.MouseEvent, overlay: TextOverlay): void => {
       if (!containerRef.current) return;
       e.stopPropagation();
 
@@ -76,7 +76,7 @@ export const TimelineTextOverlayTrack = React.memo(function TimelineTextOverlayT
 
   // Handle trimming text overlay duration
   const handleTrimMouseDown = useCallback(
-    (e: React.MouseEvent, overlay: TextOverlay, handle: 'left' | 'right') => {
+    (e: React.MouseEvent, overlay: TextOverlay, handle: 'left' | 'right'): void => {
       if (!containerRef.current) return;
       e.stopPropagation();
       e.preventDefault();
@@ -99,10 +99,10 @@ export const TimelineTextOverlayTrack = React.memo(function TimelineTextOverlayT
   );
 
   // Mouse move handler for dragging and trimming
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!dragging && !trimming) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent): void => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       const currentX = e.clientX - rect.left;
@@ -141,7 +141,7 @@ export const TimelineTextOverlayTrack = React.memo(function TimelineTextOverlayT
       }
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (): void => {
       setDragging(null);
       setTrimming(null);
     };
@@ -149,7 +149,7 @@ export const TimelineTextOverlayTrack = React.memo(function TimelineTextOverlayT
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
 
-    return () => {
+    return (): void => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
@@ -168,7 +168,7 @@ export const TimelineTextOverlayTrack = React.memo(function TimelineTextOverlayT
       </div>
 
       {/* Render text overlay clips */}
-      {textOverlays.map((overlay) => (
+      {textOverlays.map((overlay): JSX.Element => (
         <TimelineTextOverlayRenderer
           key={overlay.id}
           overlay={overlay}

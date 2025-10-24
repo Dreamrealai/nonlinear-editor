@@ -17,20 +17,20 @@ interface TourLauncherProps {
   className?: string;
 }
 
-export function TourLauncher({ className }: TourLauncherProps) {
+export function TourLauncher({ className }: TourLauncherProps): JSX.Element {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTour, setActiveTour] = useState<OnboardingTourType | null>(null);
 
-  const handleStartTour = (tour: OnboardingTourType) => {
+  const handleStartTour = (tour: OnboardingTourType): void => {
     setActiveTour(tour);
     setIsMenuOpen(false);
   };
 
-  const handleCompleteTour = () => {
+  const handleCompleteTour = (): void => {
     setActiveTour(null);
   };
 
-  const handleSkipTour = () => {
+  const handleSkipTour = (): void => {
     setActiveTour(null);
   };
 
@@ -39,7 +39,7 @@ export function TourLauncher({ className }: TourLauncherProps) {
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => setIsMenuOpen(true)}
+        onClick={(): void => setIsMenuOpen(true)}
         className={className}
         title="Get Started"
       >
@@ -59,7 +59,7 @@ export function TourLauncher({ className }: TourLauncherProps) {
               Learn how to use the video editor with interactive guided tours.
             </p>
 
-            {ALL_TOURS.map((tour) => (
+            {ALL_TOURS.map((tour): JSX.Element => (
               <div
                 key={tour.id}
                 className="flex items-start gap-3 p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors"
@@ -71,7 +71,7 @@ export function TourLauncher({ className }: TourLauncherProps) {
                     {tour.steps.length} steps • ~{Math.ceil(tour.steps.length * 0.5)} min
                   </p>
                 </div>
-                <Button size="sm" onClick={() => handleStartTour(tour)}>
+                <Button size="sm" onClick={(): void => handleStartTour(tour)}>
                   <Play className="h-4 w-4 mr-1" />
                   Start
                 </Button>
@@ -94,12 +94,12 @@ export function TourLauncher({ className }: TourLauncherProps) {
  *
  * Auto-starts the editor tour for first-time users
  */
-export function EditorTourLauncher() {
+export function EditorTourLauncher(): JSX.Element | null {
   const [tourCompleted, setTourCompleted] = useState(false);
 
   if (tourCompleted) {
     return null;
   }
 
-  return <OnboardingTour tour={EDITOR_TOUR} onComplete={() => setTourCompleted(true)} onSkip={() => setTourCompleted(true)} />;
+  return <OnboardingTour tour={EDITOR_TOUR} onComplete={(): void => setTourCompleted(true)} onSkip={(): void => setTourCompleted(true)} />;
 }

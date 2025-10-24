@@ -1,3 +1,40 @@
+/**
+ * ColorCorrectionSection - Basic color correction controls
+ *
+ * Provides essential color correction tools for adjusting brightness,
+ * contrast, saturation, and hue. Features a two-column layout with
+ * intuitive gradient sliders for visual feedback.
+ *
+ * Features:
+ * - Brightness adjustment (0-200%)
+ * - Contrast adjustment (0-200%)
+ * - Saturation adjustment (0-200%)
+ * - Hue rotation (0-360 degrees)
+ * - Visual gradient sliders
+ * - Reset all corrections
+ *
+ * @param brightness - Brightness level (0-200%)
+ * @param contrast - Contrast level (0-200%)
+ * @param saturation - Color saturation (0-200%)
+ * @param hue - Hue rotation in degrees (0-360)
+ * @param onBrightnessChange - Callback when brightness changes
+ * @param onContrastChange - Callback when contrast changes
+ * @param onSaturationChange - Callback when saturation changes
+ * @param onHueChange - Callback when hue rotation changes
+ * @param onReset - Callback to reset all corrections
+ *
+ * @example
+ * ```tsx
+ * <ColorCorrectionSection
+ *   brightness={100}
+ *   contrast={100}
+ *   saturation={100}
+ *   hue={0}
+ *   onBrightnessChange={(b) => setBrightness(b)}
+ *   onReset={() => resetColors()}
+ * />
+ * ```
+ */
 
 interface ColorCorrectionSectionProps {
   brightness: number;
@@ -21,7 +58,7 @@ export function ColorCorrectionSection({
   onSaturationChange,
   onHueChange,
   onReset,
-}: ColorCorrectionSectionProps) {
+}: ColorCorrectionSectionProps): JSX.Element {
   return (
     <div className="grid grid-cols-2 gap-6">
       <div className="space-y-4">
@@ -53,7 +90,7 @@ export function ColorCorrectionSection({
             min="0"
             max="200"
             value={brightness}
-            onChange={(e) => onBrightnessChange(parseInt(e.target.value))}
+            onChange={(e): void => onBrightnessChange(parseInt(e.target.value))}
             className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-black via-neutral-500 to-white"
             style={{ accentColor: '#3b82f6' }}
           />
@@ -87,7 +124,7 @@ export function ColorCorrectionSection({
             min="0"
             max="200"
             value={contrast}
-            onChange={(e) => onContrastChange(parseInt(e.target.value))}
+            onChange={(e): void => onContrastChange(parseInt(e.target.value))}
             className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-neutral-400 via-neutral-600 to-neutral-900"
             style={{ accentColor: '#3b82f6' }}
           />
@@ -123,7 +160,7 @@ export function ColorCorrectionSection({
             min="0"
             max="200"
             value={saturation}
-            onChange={(e) => onSaturationChange(parseInt(e.target.value))}
+            onChange={(e): void => onSaturationChange(parseInt(e.target.value))}
             className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-neutral-400 via-pink-400 to-pink-600"
             style={{ accentColor: '#3b82f6' }}
           />
@@ -157,7 +194,7 @@ export function ColorCorrectionSection({
             min="0"
             max="360"
             value={hue}
-            onChange={(e) => onHueChange(parseInt(e.target.value))}
+            onChange={(e): void => onHueChange(parseInt(e.target.value))}
             className="h-2 w-full cursor-pointer appearance-none rounded-lg"
             style={{
               background:

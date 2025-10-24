@@ -20,7 +20,7 @@ interface TagsUpdateBody {
  * PUT /api/assets/[assetId]/tags
  */
 export const PUT = withAuth<{ assetId: string }>(
-  async (request, { user, supabase }, routeContext) => {
+  async (request, { user, supabase }, routeContext): Promise<NextResponse<ErrorResponse> | NextResponse<{ success: boolean; tags: string[]; }>> => {
     try {
       const params = await routeContext!.params;
       const { assetId } = params;
@@ -55,8 +55,8 @@ export const PUT = withAuth<{ assetId: string }>(
 
       // Sanitize tags (trim whitespace, lowercase)
       const sanitizedTags = body.tags
-        .map((tag) => tag.trim().toLowerCase())
-        .filter((tag) => tag.length > 0);
+        .map((tag): string => tag.trim().toLowerCase())
+        .filter((tag): boolean => tag.length > 0);
 
       // Verify asset exists and user owns it
       const { data: asset, error: fetchError } = await supabase
@@ -112,7 +112,7 @@ export const PUT = withAuth<{ assetId: string }>(
  * POST /api/assets/[assetId]/favorite
  */
 export const POST = withAuth<{ assetId: string }>(
-  async (request, { user, supabase }, routeContext) => {
+  async (request, { user, supabase }, routeContext): Promise<NextResponse<ErrorResponse> | NextResponse<{ success: boolean; is_favorite: boolean; }>> => {
     try {
       const params = await routeContext!.params;
       const { assetId } = params;

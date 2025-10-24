@@ -119,7 +119,7 @@ interface VeoOperationResult {
  * @returns GoogleAuth client instance
  * @throws Error if GOOGLE_SERVICE_ACCOUNT env var is missing
  */
-function getAuthClient() {
+function getAuthClient(): GoogleAuth<AuthClient> {
   const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT;
 
   if (!serviceAccountJson) {
@@ -229,7 +229,7 @@ export async function generateVideo(params: VeoGenerateParams): Promise<VeoGener
 
   // Add timeout handling for long-running video generation
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+  const timeout = setTimeout((): void => controller.abort(), 60000); // 60 second timeout
 
   try {
     const response = await fetch(endpoint, {
@@ -303,7 +303,7 @@ export async function checkOperationStatus(operationName: string, model?: string
 
   // Add timeout handling
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+  const timeout = setTimeout((): void => controller.abort(), 60000); // 60 second timeout
 
   try {
     const response = await fetch(endpoint, {
@@ -359,7 +359,7 @@ export async function cancelOperation(operationName: string): Promise<void> {
 
   // Add timeout handling
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+  const timeout = setTimeout((): void => controller.abort(), 60000); // 60 second timeout
 
   try {
     const response = await fetch(endpoint, {

@@ -291,8 +291,8 @@ export function usePolling<T>(options: PollingOptions<T>): UsePollingReturn {
   }, [cleanup, enableLogging, logContext]);
 
   // Cleanup on unmount
-  useEffect(() => {
-    return () => {
+  useEffect((): () => void => {
+    return (): void => {
       cleanup();
     };
   }, [cleanup]);
@@ -333,7 +333,7 @@ export function useSimplePolling<T>(
 ): UsePollingReturn {
   return usePolling({
     pollFn,
-    shouldContinue: (result) => !isDone(result),
+    shouldContinue: (result): boolean => !isDone(result),
     onComplete,
     onError,
     interval: 10000,

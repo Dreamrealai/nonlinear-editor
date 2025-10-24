@@ -6,28 +6,27 @@
  * DELETE /api/export-presets/[presetId] - Delete a custom preset
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
-import { createServerSupabaseClient } from '@/lib/supabase';
-import { errorResponse, successResponse } from '@/lib/api/response';
+import { errorResponse, successResponse, validationError } from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
+import { validateUUID, validateString, validateInteger, ValidationError } from '@/lib/validation';
 import type { ExportPreset, UpdateExportPresetInput } from '@/types/export';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
 /**
  * GET /api/export-presets/[presetId]
  *
  * Get a single export preset
  */
-export const GET = withAuth(async (req, context) => {
+export const GET = withAuth<{ presetId: string }>(async (req, { user, supabase }, routeContext): Promise<NextResponse<ErrorResponse> | NextResponse<{ preset: ExportPreset; } | SuccessResponse<{ preset: ExportPreset; }>>> => {
   try {
-    const { userId, params } = context;
-    const presetId = (await params).presetId;
+    const params = await routeContext?.params;
+    const presetId = params?.presetId;
 
     if (!presetId) {
       return errorResponse('Preset ID is required', 400);
     }
-
-    const supabase = await createServerSupabaseClient();
 
     const { data: preset, error } = await supabase
       .from('export_presets')
@@ -36,12 +35,12 @@ export const GET = withAuth(async (req, context) => {
       .single();
 
     if (error || !preset) {
-      serverLogger.warn({ error, userId, presetId }, 'Export preset not found');
+      serverLogger.warn({ error, userId: user.id, presetId }, 'Export preset not found');
       return errorResponse('Export preset not found', 404);
     }
 
     // Check access: must be platform preset or user's own preset
-    if (!preset.is_platform && preset.user_id !== userId) {
+    if (!preset.is_platform && preset.user_id !== user.id) {
       return errorResponse('Access denied', 403);
     }
 
@@ -50,6 +49,9 @@ export const GET = withAuth(async (req, context) => {
     serverLogger.error({ error }, 'Unexpected error fetching export preset');
     return errorResponse('Internal server error', 500);
   }
+}, {
+  route: '/api/export-presets/[presetId]',
+  rateLimit: RATE_LIMITS.tier2_read,
 });
 
 /**
@@ -57,17 +59,40 @@ export const GET = withAuth(async (req, context) => {
  *
  * Update a custom export preset (platform presets cannot be updated)
  */
-export const PATCH = withAuth(async (req, context) => {
+export const PATCH = withAuth<{ presetId: string }>(async (req, { user, supabase }, routeContext): Promise<NextResponse<ErrorResponse> | NextResponse<{ preset: ExportPreset; } | SuccessResponse<{ preset: ExportPreset; }>>> => {
   try {
-    const { userId, params } = context;
-    const presetId = (await params).presetId;
+    const params = await routeContext?.params;
+    const presetId = params?.presetId;
+
+    // Validate preset ID
+    validateUUID(presetId, 'presetId');
+
     const body: UpdateExportPresetInput = await req.json();
 
-    if (!presetId) {
-      return errorResponse('Preset ID is required', 400);
+    // Validate optional fields
+    if (body.name !== undefined) {
+      validateString(body.name, 'name', { minLength: 1, maxLength: 100 });
     }
 
-    const supabase = await createServerSupabaseClient();
+    if (body.description !== undefined && body.description !== null) {
+      validateString(body.description, 'description', { required: false, maxLength: 500 });
+    }
+
+    if (body.settings !== undefined) {
+      if (!body.settings || typeof body.settings !== 'object') {
+        throw new ValidationError('settings must be an object', 'settings', 'INVALID_TYPE');
+      }
+
+      if (body.settings.width !== undefined) {
+        validateInteger(body.settings.width, 'settings.width', { min: 1, max: 7680 });
+      }
+      if (body.settings.height !== undefined) {
+        validateInteger(body.settings.height, 'settings.height', { min: 1, max: 4320 });
+      }
+      if (body.settings.fps !== undefined) {
+        validateInteger(body.settings.fps, 'settings.fps', { min: 1, max: 120 });
+      }
+    }
 
     // Verify preset exists and is owned by user
     const { data: existingPreset, error: fetchError } = await supabase
@@ -80,7 +105,7 @@ export const PATCH = withAuth(async (req, context) => {
       return errorResponse('Export preset not found', 404);
     }
 
-    if (existingPreset.user_id !== userId) {
+    if (existingPreset.user_id !== user.id) {
       return errorResponse('Access denied', 403);
     }
 
@@ -106,16 +131,22 @@ export const PATCH = withAuth(async (req, context) => {
       .single();
 
     if (updateError) {
-      serverLogger.error({ error: updateError, userId, presetId }, 'Failed to update export preset');
+      serverLogger.error({ error: updateError, userId: user.id, presetId }, 'Failed to update export preset');
       return errorResponse('Failed to update export preset', 500);
     }
 
-    serverLogger.info({ userId, presetId }, 'Export preset updated');
+    serverLogger.info({ userId: user.id, presetId }, 'Export preset updated');
     return successResponse({ preset: updatedPreset as ExportPreset });
   } catch (error) {
+    if (error instanceof ValidationError) {
+      return validationError(error.message);
+    }
     serverLogger.error({ error }, 'Unexpected error updating export preset');
     return errorResponse('Internal server error', 500);
   }
+}, {
+  route: '/api/export-presets/[presetId]',
+  rateLimit: RATE_LIMITS.tier2_write,
 });
 
 /**
@@ -123,16 +154,13 @@ export const PATCH = withAuth(async (req, context) => {
  *
  * Delete a custom export preset (platform presets cannot be deleted)
  */
-export const DELETE = withAuth(async (req, context) => {
+export const DELETE = withAuth<{ presetId: string }>(async (req, { user, supabase }, routeContext): Promise<NextResponse<ErrorResponse> | NextResponse<{ message: string; } | SuccessResponse<{ message: string; }>>> => {
   try {
-    const { userId, params } = context;
-    const presetId = (await params).presetId;
+    const params = await routeContext?.params;
+    const presetId = params?.presetId;
 
-    if (!presetId) {
-      return errorResponse('Preset ID is required', 400);
-    }
-
-    const supabase = await createServerSupabaseClient();
+    // Validate preset ID
+    validateUUID(presetId, 'presetId');
 
     // Verify preset exists and is owned by user
     const { data: existingPreset, error: fetchError } = await supabase
@@ -145,7 +173,7 @@ export const DELETE = withAuth(async (req, context) => {
       return errorResponse('Export preset not found', 404);
     }
 
-    if (existingPreset.user_id !== userId) {
+    if (existingPreset.user_id !== user.id) {
       return errorResponse('Access denied', 403);
     }
 
@@ -164,14 +192,20 @@ export const DELETE = withAuth(async (req, context) => {
       .eq('id', presetId);
 
     if (deleteError) {
-      serverLogger.error({ error: deleteError, userId, presetId }, 'Failed to delete export preset');
+      serverLogger.error({ error: deleteError, userId: user.id, presetId }, 'Failed to delete export preset');
       return errorResponse('Failed to delete export preset', 500);
     }
 
-    serverLogger.info({ userId, presetId }, 'Export preset deleted');
+    serverLogger.info({ userId: user.id, presetId }, 'Export preset deleted');
     return successResponse({ message: 'Export preset deleted successfully' });
   } catch (error) {
+    if (error instanceof ValidationError) {
+      return validationError(error.message);
+    }
     serverLogger.error({ error }, 'Unexpected error deleting export preset');
     return errorResponse('Internal server error', 500);
   }
+}, {
+  route: '/api/export-presets/[presetId]',
+  rateLimit: RATE_LIMITS.tier2_write,
 });

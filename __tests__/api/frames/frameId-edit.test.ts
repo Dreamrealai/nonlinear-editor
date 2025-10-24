@@ -13,6 +13,7 @@ import {
 
 jest.mock('@/lib/supabase', () => ({
   createServerSupabaseClient: jest.fn(),
+  isSupabaseServiceConfigured: jest.fn(() => true),
 }));
 
 jest.mock('@/lib/serverLogger', () => ({

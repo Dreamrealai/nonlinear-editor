@@ -77,7 +77,7 @@ function normalizeKey(key: string): string {
  */
 export function formatShortcut(keys: string[]): string {
   return keys
-    .map((key) => {
+    .map((key): string => {
       const normalized = normalizeKey(key);
       if (normalized === 'meta') {
         return isMac ? 'Cmd' : 'Ctrl';
@@ -123,7 +123,7 @@ function matchesShortcut(event: KeyboardEvent, shortcutKeys: string[]): boolean 
     return false;
   }
 
-  return normalizedShortcut.every((key) => pressedKeys.has(key));
+  return normalizedShortcut.every((key): boolean => pressedKeys.has(key));
 }
 
 /**
@@ -139,7 +139,7 @@ export function useGlobalKeyboardShortcuts({
   shortcutsRef.current = shortcuts;
 
   const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
+    (event: KeyboardEvent): void => {
       // Check if shortcuts are enabled
       if (!enabled) return;
 
@@ -150,8 +150,8 @@ export function useGlobalKeyboardShortcuts({
 
       // Sort shortcuts by priority (higher priority first)
       const sortedShortcuts = [...shortcutsRef.current]
-        .filter((s) => s.enabled !== false)
-        .sort((a, b) => (b.priority || 0) - (a.priority || 0));
+        .filter((s): boolean => s.enabled !== false)
+        .sort((a, b): number => (b.priority || 0) - (a.priority || 0));
 
       // Find and execute the first matching shortcut
       for (const shortcut of sortedShortcuts) {
@@ -166,9 +166,9 @@ export function useGlobalKeyboardShortcuts({
     [enabled, disableInInputs]
   );
 
-  useEffect(() => {
+  useEffect((): () => void => {
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return (): void => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 }
 
@@ -186,7 +186,7 @@ export function getShortcutsByCategory(
     other: [],
   };
 
-  shortcuts.forEach((shortcut) => {
+  shortcuts.forEach((shortcut): void => {
     if (shortcut.enabled !== false) {
       if (!grouped[shortcut.category]) {
         grouped[shortcut.category] = [];

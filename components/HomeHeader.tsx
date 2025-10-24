@@ -1,9 +1,26 @@
+/**
+ * HomeHeader - Main header for the projects homepage
+ *
+ * Displays the page title and primary actions for the projects page.
+ * Provides quick access to creating new projects and user account settings.
+ *
+ * Features:
+ * - "My Projects" page title
+ * - Create new project button
+ * - User menu with account options
+ * - Responsive layout with flexbox alignment
+ *
+ * @example
+ * ```tsx
+ * <HomeHeader />
+ * ```
+ */
 'use client';
 
 import { UserMenu } from '@/components/UserMenu';
 import { CreateProjectButton } from '@/components/CreateProjectButton';
 
-export function HomeHeader() {
+export function HomeHeader(): JSX.Element {
   return (
     <div className="mb-8 flex items-center justify-between">
       <h1 className="text-3xl font-bold text-neutral-900">My Projects</h1>

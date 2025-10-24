@@ -74,7 +74,7 @@ async function executeSunoGeneration(options: {
 
   // Call Comet API with timeout
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+  const timeout = setTimeout((): void => controller.abort(), 60000); // 60 second timeout
 
   let response;
   try {
@@ -141,7 +141,7 @@ async function executeSunoGeneration(options: {
 export const POST = createGenerationRoute<SunoGenerateRequest, SunoGenerateResponse>({
   routeId: 'audio.music',
   rateLimitPrefix: 'audio-music',
-  validateRequest: (body: Record<string, unknown>) => {
+  validateRequest: (body: Record<string, unknown>): void => {
     validateUUID(body.projectId as string, 'Project ID');
     validateBoolean(body.customMode as boolean, 'Custom mode', { required: false });
     validateBoolean(body.instrumental as boolean, 'Instrumental', { required: false });
@@ -166,5 +166,5 @@ export const POST = createGenerationRoute<SunoGenerateRequest, SunoGenerateRespo
     }
   },
   execute: executeSunoGeneration,
-  formatResponse: (result) => successResponse(result),
+  formatResponse: (result): NextResponse<SunoGenerateResponse | SuccessResponse<SunoGenerateResponse>> => successResponse(result),
 });

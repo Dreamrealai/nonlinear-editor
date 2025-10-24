@@ -214,7 +214,7 @@ export function corsMiddleware(
 export function withCORS(
   handler: (request: NextRequest) => Promise<NextResponse> | NextResponse,
   options: CORSOptions = {}
-) {
+): (request: NextRequest) => Promise<NextResponse> {
   return async (request: NextRequest): Promise<NextResponse> => {
     const config = { ...DEFAULT_CORS_OPTIONS, ...options };
 
@@ -229,7 +229,7 @@ export function withCORS(
 
     // Add CORS headers to response
     const corsHeaders = createCORSHeaders(request, config);
-    corsHeaders.forEach((value, key) => {
+    corsHeaders.forEach((value, key): void => {
       response.headers.set(key, value);
     });
 

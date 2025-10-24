@@ -46,7 +46,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'NODE_ENV',
     required: false,
     description: 'Node environment (development, production, test)',
-    validator: (val) => ['development', 'production', 'test'].includes(val),
+    validator: (val): boolean => ['development', 'production', 'test'].includes(val),
     validationError: 'NODE_ENV must be one of: development, production, test',
     example: 'development',
   },
@@ -54,7 +54,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'NEXT_PUBLIC_BASE_URL',
     required: false,
     description: 'Base URL of the application (used for redirects and webhooks)',
-    validator: (val) => /^https?:\/\/.+/.test(val),
+    validator: (val): boolean => /^https?:\/\/.+/.test(val),
     validationError: 'NEXT_PUBLIC_BASE_URL must be a valid URL starting with http:// or https://',
     example: 'https://app.dreamreal.ai',
   },
@@ -62,7 +62,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'NEXT_PUBLIC_APP_URL',
     required: false,
     description: 'Application URL (alternative to BASE_URL)',
-    validator: (val) => /^https?:\/\/.+/.test(val),
+    validator: (val): boolean => /^https?:\/\/.+/.test(val),
     validationError: 'NEXT_PUBLIC_APP_URL must be a valid URL',
     example: 'https://app.dreamreal.ai',
   },
@@ -72,7 +72,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'NEXT_PUBLIC_SUPABASE_URL',
     required: true,
     description: 'Supabase project URL',
-    validator: (val) => /^https:\/\/[a-z0-9]+\.supabase\.co$/.test(val),
+    validator: (val): boolean => /^https:\/\/[a-z0-9]+\.supabase\.co$/.test(val),
     validationError:
       'NEXT_PUBLIC_SUPABASE_URL must be a valid Supabase URL (https://*.supabase.co)',
     example: 'https://xxxxxxxxxxxxx.supabase.co',
@@ -81,7 +81,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     required: true,
     description: 'Supabase anonymous/public key',
-    validator: (val) => val.length > 100 && val.startsWith('eyJ'),
+    validator: (val): boolean => val.length > 100 && val.startsWith('eyJ'),
     validationError: 'NEXT_PUBLIC_SUPABASE_ANON_KEY must be a valid JWT token',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
   },
@@ -89,7 +89,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'SUPABASE_SERVICE_ROLE_KEY',
     required: true,
     description: 'Supabase service role key (admin privileges - NEVER expose to client)',
-    validator: (val) => val.length > 100 && val.startsWith('eyJ'),
+    validator: (val): boolean => val.length > 100 && val.startsWith('eyJ'),
     validationError: 'SUPABASE_SERVICE_ROLE_KEY must be a valid JWT token',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
   },
@@ -104,7 +104,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'STRIPE_SECRET_KEY',
     required: true,
     description: 'Stripe secret key for API access',
-    validator: (val) => val.startsWith('sk_'),
+    validator: (val): boolean => val.startsWith('sk_'),
     validationError: 'STRIPE_SECRET_KEY must start with sk_ (secret key)',
     example: 'sk_test_...',
   },
@@ -112,7 +112,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'STRIPE_WEBHOOK_SECRET',
     required: false, // Optional in development, required in production (checked in checkCommonIssues)
     description: 'Stripe webhook signing secret for webhook verification',
-    validator: (val) => val.startsWith('whsec_'),
+    validator: (val): boolean => val.startsWith('whsec_'),
     validationError: 'STRIPE_WEBHOOK_SECRET must start with whsec_',
     example: 'whsec_...',
   },
@@ -120,7 +120,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'STRIPE_PREMIUM_PRICE_ID',
     required: false, // Optional - can be created via setup script
     description: 'Stripe price ID for Premium subscription',
-    validator: (val) => val.startsWith('price_'),
+    validator: (val): boolean => val.startsWith('price_'),
     validationError: 'STRIPE_PREMIUM_PRICE_ID must be a valid Stripe price ID (starts with price_)',
     example: 'price_...',
   },
@@ -128,7 +128,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
     required: false,
     description: 'Stripe publishable key for client-side Stripe.js',
-    validator: (val) => val.startsWith('pk_'),
+    validator: (val): boolean => val.startsWith('pk_'),
     validationError: 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY must start with pk_',
     example: 'pk_test_...',
   },
@@ -154,7 +154,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'AISTUDIO_API_KEY',
     required: false,
     description: 'Google AI Studio API key for Gemini (preferred over GEMINI_API_KEY)',
-    validator: (val) => val.length > 20,
+    validator: (val): boolean => val.length > 20,
     validationError: 'AISTUDIO_API_KEY must be a valid API key',
     example: 'AIza...',
   },
@@ -162,7 +162,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'GEMINI_API_KEY',
     required: false,
     description: 'Google Gemini API key (alternative to AISTUDIO_API_KEY)',
-    validator: (val) => val.length > 20,
+    validator: (val): boolean => val.length > 20,
     validationError: 'GEMINI_API_KEY must be a valid API key',
     example: 'AIza...',
   },
@@ -171,7 +171,7 @@ const ENV_VARS: EnvVarConfig[] = [
     required: false, // Optional but strongly recommended if using Video Intelligence API
     description:
       'Google Cloud Storage bucket name for video processing (MUST be created via Terraform - no auto-creation)',
-    validator: (val) => /^[a-z0-9][a-z0-9_-]{1,61}[a-z0-9]$/.test(val),
+    validator: (val): boolean => /^[a-z0-9][a-z0-9_-]{1,61}[a-z0-9]$/.test(val),
     validationError:
       'GCS_BUCKET_NAME must be a valid GCS bucket name (lowercase, alphanumeric, hyphens, 3-63 chars)',
     example: 'my-project-video-processing',
@@ -182,7 +182,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'FAL_API_KEY',
     required: false,
     description: 'Fal.ai API key for video upscaling and audio generation',
-    validator: (val) => val.length > 20,
+    validator: (val): boolean => val.length > 20,
     validationError: 'FAL_API_KEY must be a valid API key',
     example: '...',
   },
@@ -192,7 +192,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'ELEVENLABS_API_KEY',
     required: false,
     description: 'ElevenLabs API key for text-to-speech and sound effects',
-    validator: (val) => val.length > 20,
+    validator: (val): boolean => val.length > 20,
     validationError: 'ELEVENLABS_API_KEY must be a valid API key',
     example: '...',
   },
@@ -200,7 +200,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'COMET_API_KEY',
     required: false,
     description: 'Comet API key for Suno music generation',
-    validator: (val) => val.length > 20,
+    validator: (val): boolean => val.length > 20,
     validationError: 'COMET_API_KEY must be a valid API key',
     example: '...',
   },
@@ -208,7 +208,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'WAVESPEED_API_KEY',
     required: false,
     description: 'Wavespeed API key for audio processing',
-    validator: (val) => val.length > 10,
+    validator: (val): boolean => val.length > 10,
     validationError: 'WAVESPEED_API_KEY must be a valid API key',
     example: '...',
   },
@@ -218,7 +218,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'AXIOM_TOKEN',
     required: false,
     description: 'Axiom API token for logging and monitoring',
-    validator: (val) => val.length > 20,
+    validator: (val): boolean => val.length > 20,
     validationError: 'AXIOM_TOKEN must be a valid API token',
     example: 'xaat-...',
   },
@@ -226,7 +226,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'AXIOM_DATASET',
     required: false,
     description: 'Axiom dataset name for logs',
-    validator: (val) => val.length > 0,
+    validator: (val): boolean => val.length > 0,
     validationError: 'AXIOM_DATASET must not be empty',
     example: 'genai-video-production',
   },
@@ -236,7 +236,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'OPENAI_API_KEY',
     required: false,
     description: 'OpenAI API key (if using OpenAI services)',
-    validator: (val) => val.startsWith('sk-'),
+    validator: (val): boolean => val.startsWith('sk-'),
     validationError: 'OPENAI_API_KEY must start with sk-',
     example: 'sk-...',
   },
@@ -244,7 +244,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'ANTHROPIC_API_KEY',
     required: false,
     description: 'Anthropic API key (if using Claude services)',
-    validator: (val) => val.startsWith('sk-ant-'),
+    validator: (val): boolean => val.startsWith('sk-ant-'),
     validationError: 'ANTHROPIC_API_KEY must start with sk-ant-',
     example: 'sk-ant-...',
   },
@@ -254,7 +254,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'VERCEL_TOKEN',
     required: false,
     description: 'Vercel API token for deployment automation',
-    validator: (val) => val.length > 20,
+    validator: (val): boolean => val.length > 20,
     validationError: 'VERCEL_TOKEN must be a valid token',
     example: '...',
   },
@@ -262,7 +262,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'CI',
     required: false,
     description: 'CI environment indicator (set by CI systems)',
-    validator: (val) => ['true', 'false', '1', '0'].includes(val),
+    validator: (val): boolean => ['true', 'false', '1', '0'].includes(val),
     validationError: 'CI must be true, false, 1, or 0',
     example: 'true',
   },
@@ -270,7 +270,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'BASE_URL',
     required: false,
     description: 'Base URL for Playwright tests',
-    validator: (val) => /^https?:\/\/.+/.test(val),
+    validator: (val): boolean => /^https?:\/\/.+/.test(val),
     validationError: 'BASE_URL must be a valid URL',
     example: 'http://localhost:3000',
   },
@@ -280,7 +280,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'RESEND_API_KEY',
     required: false,
     description: 'Resend API key for transactional emails',
-    validator: (val) => val.startsWith('re_'),
+    validator: (val): boolean => val.startsWith('re_'),
     validationError: 'RESEND_API_KEY must start with re_',
     example: 're_...',
   },
@@ -355,7 +355,7 @@ export function validateEnvSafe(): ValidationResult {
 /**
  * Checks for common configuration issues
  */
-function checkCommonIssues(errors: string[], warnings: string[]) {
+function checkCommonIssues(errors: string[], warnings: string[]): void {
   const env = process.env;
 
   // Check if at least one AI service is configured
@@ -437,7 +437,7 @@ export function validateEnv(
     throwOnError?: boolean;
     mode?: 'development' | 'production' | 'all';
   } = {}
-) {
+): void {
   const { throwOnError = true, mode = 'development' } = options;
 
   // Skip validation in production unless mode is 'all' or 'production'
@@ -455,7 +455,7 @@ export function validateEnv(
   // Print warnings
   if (result.warnings.length > 0) {
     console.warn('\n⚠️  Environment Variable Warnings:\n');
-    result.warnings.forEach((warning, i) => {
+    result.warnings.forEach((warning, i): void => {
       console.warn(`${i + 1}. ${warning}\n`);
     });
   }
@@ -463,7 +463,7 @@ export function validateEnv(
   // Handle errors
   if (result.errors.length > 0) {
     console.error('\n❌ Environment Variable Validation Failed:\n');
-    result.errors.forEach((error, i) => {
+    result.errors.forEach((error, i): void => {
       console.error(`${i + 1}. ${error}\n`);
     });
 
@@ -481,8 +481,8 @@ export function validateEnv(
 /**
  * Gets a list of all environment variables and their status
  */
-export function getEnvStatus() {
-  return ENV_VARS.map((config) => ({
+export function getEnvStatus(): { name: string; required: boolean; configured: boolean; description: string; }[] {
+  return ENV_VARS.map((config): { name: string; required: boolean; configured: boolean; description: string; } => ({
     name: config.name,
     required: config.required,
     configured: !!process.env[config.name]?.trim(),
@@ -493,22 +493,22 @@ export function getEnvStatus() {
 /**
  * Prints environment status to console
  */
-export function printEnvStatus() {
+export function printEnvStatus(): void {
   const status = getEnvStatus();
 
   console.log('\n📋 Environment Variables Status:\n');
 
-  const required = status.filter((s) => s.required);
-  const optional = status.filter((s) => !s.required);
+  const required = status.filter((s): boolean => s.required);
+  const optional = status.filter((s): boolean => !s.required);
 
   console.log('Required Variables:');
-  required.forEach((s) => {
+  required.forEach((s): void => {
     const icon = s.configured ? '✅' : '❌';
     console.log(`  ${icon} ${s.name} - ${s.description}`);
   });
 
   console.log('\nOptional Variables:');
-  optional.forEach((s) => {
+  optional.forEach((s): void => {
     const icon = s.configured ? '✅' : '⚪';
     console.log(`  ${icon} ${s.name} - ${s.description}`);
   });

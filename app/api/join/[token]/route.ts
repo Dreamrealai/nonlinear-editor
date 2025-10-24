@@ -4,25 +4,30 @@
  * Handles accepting share links and invites
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { serverLogger } from '@/lib/serverLogger';
+import { validateString, ValidationError } from '@/lib/validation';
+import { validationError } from '@/lib/api/response';
 
 /**
  * POST - Accept a share link or invite
  */
-export const POST = withAuth(
-  async (req: NextRequest, { params }: { params: Promise<{ token: string }> }) => {
-    const { token } = await params;
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+export const POST = withAuth<{ token: string }>(
+  async (req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; project_id: any; role: any; type: string; message: any; }> | NextResponse<{ success: boolean; error: any; }>> => {
+    const params = await routeContext?.params;
+    const token = params?.token;
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Validate token
+    try {
+      validateString(token, 'token', { minLength: 1 });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return validationError(error.message, error.field);
+      }
+      throw error;
     }
 
     try {
@@ -83,16 +88,29 @@ export const POST = withAuth(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  RATE_LIMITS.tier2_ai_video_upload
+  {
+    route: '/api/join/[token]',
+    rateLimit: RATE_LIMITS.tier2_ai_video_upload,
+  }
 );
 
 /**
  * GET - Get info about a share link or invite (without accepting)
  */
-export const GET = withAuth(
-  async (req: NextRequest, { params }: { params: Promise<{ token: string }> }) => {
-    const { token } = await params;
-    const supabase = await createServerSupabaseClient();
+export const GET = withAuth<{ token: string }>(
+  async (req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ type: string; project_name: any; role: any; expires_at: any; is_valid: boolean; }>> => {
+    const params = await routeContext?.params;
+    const token = params?.token;
+
+    // Validate token
+    try {
+      validateString(token, 'token', { minLength: 1 });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return validationError(error.message, error.field);
+      }
+      throw error;
+    }
 
     try {
       // Check if it's a share link
@@ -155,5 +173,8 @@ export const GET = withAuth(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  RATE_LIMITS.tier3_read
+  {
+    route: '/api/join/[token]',
+    rateLimit: RATE_LIMITS.tier3_read,
+  }
 );

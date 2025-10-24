@@ -23,26 +23,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { serverLogger } from '@/lib/serverLogger';
-import { z } from 'zod';
+import {
+  ValidationError,
+  validateEnum,
+  validateString,
+  validateInteger,
+} from '@/lib/validation';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * Feedback request schema
+ * Feedback request type
  */
-const FeedbackSchema = z.object({
-  type: z.enum(['feature', 'bug', 'experience', 'other']),
-  feature: z.string().optional(),
-  rating: z.number().min(1).max(5).optional(),
-  message: z.string().min(1).max(5000),
-  sentiment: z.enum(['positive', 'neutral', 'negative']).optional(),
-  url: z.string().optional(),
-  userAgent: z.string().optional(),
-  metadata: z.record(z.unknown()).optional(),
-});
-
-type FeedbackRequest = z.infer<typeof FeedbackSchema>;
+interface FeedbackRequest {
+  type: 'feature' | 'bug' | 'experience' | 'other';
+  feature?: string;
+  rating?: number;
+  message: string;
+  sentiment?: 'positive' | 'neutral' | 'negative';
+  url?: string;
+  userAgent?: string;
+  metadata?: Record<string, unknown>;
+}
 
 /**
  * Send feedback notification to Slack (for critical feedback)
@@ -193,7 +196,45 @@ export async function POST(
   try {
     // Parse and validate request body
     const body = await request.json();
-    const validatedData = FeedbackSchema.parse(body);
+
+    // Validate required fields
+    try {
+      const FEEDBACK_TYPES = ['feature', 'bug', 'experience', 'other'] as const;
+      const SENTIMENT_VALUES = ['positive', 'neutral', 'negative'] as const;
+
+      validateEnum(body.type, 'type', FEEDBACK_TYPES);
+      validateString(body.message, 'message', { minLength: 1, maxLength: 5000 });
+
+      // Optional fields
+      if (body.feature !== undefined) {
+        validateString(body.feature, 'feature', { required: false });
+      }
+      if (body.rating !== undefined) {
+        validateInteger(body.rating, 'rating', { min: 1, max: 5 });
+      }
+      if (body.sentiment !== undefined) {
+        validateEnum(body.sentiment, 'sentiment', SENTIMENT_VALUES);
+      }
+      if (body.url !== undefined) {
+        validateString(body.url, 'url', { required: false });
+      }
+      if (body.userAgent !== undefined) {
+        validateString(body.userAgent, 'userAgent', { required: false });
+      }
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: error.message,
+          },
+          { status: 400 }
+        );
+      }
+      throw error;
+    }
+
+    const validatedData = body as FeedbackRequest;
 
     // Get user ID from session if available (optional - can be anonymous)
     let userId: string | undefined;
@@ -282,17 +323,6 @@ export async function POST(
       { status: 201 }
     );
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid feedback data',
-          details: error.errors,
-        },
-        { status: 400 }
-      );
-    }
-
     serverLogger.error({ error }, 'Failed to process feedback');
 
     return NextResponse.json(

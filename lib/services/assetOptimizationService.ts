@@ -259,21 +259,21 @@ export class AssetOptimizationService {
         // Generate amplitude samples
         const sampleCmd = `ffmpeg -i "${inputPath}" -filter_complex "aresample=8000,asetnsamples=n=${samples}:p=0,astats=metadata=1:reset=1" -f null - 2>&1 | grep "lavfi.astats.Overall.RMS_level" | sed 's/.*=//' | head -${samples}`;
 
-        const { stdout: amplitudeOutput } = await execAsync(sampleCmd).catch(() => ({
+        const { stdout: amplitudeOutput } = await execAsync(sampleCmd).catch((): { stdout: string; } => ({
           stdout: '',
         }));
 
         const amplitudes = amplitudeOutput
           .split('\n')
-          .filter((line) => line.trim())
-          .map((line) => parseFloat(line) || 0)
+          .filter((line): string => line.trim())
+          .map((line): number => parseFloat(line) || 0)
           .slice(0, samples);
 
         // If we couldn't get amplitude data, generate dummy data
         const waveform =
           amplitudes.length > 0
             ? amplitudes
-            : Array.from({ length: samples }, () => Math.random() * 0.5);
+            : Array.from({ length: samples }, (): number => Math.random() * 0.5);
 
         // Calculate peaks (max values in windows)
         const peakWindow = Math.floor(samples / 100);
@@ -296,8 +296,8 @@ export class AssetOptimizationService {
         return { waveform, peaks, duration };
       } finally {
         // Clean up temp files
-        await fs.unlink(inputPath).catch(() => {});
-        await fs.unlink(outputPath).catch(() => {});
+        await fs.unlink(inputPath).catch((): void => {});
+        await fs.unlink(outputPath).catch((): void => {});
       }
     } catch (error) {
       serverLogger.error(
@@ -309,7 +309,7 @@ export class AssetOptimizationService {
       );
 
       // Return dummy data if generation fails
-      const dummyWaveform = Array.from({ length: samples }, () => Math.random() * 0.5);
+      const dummyWaveform = Array.from({ length: samples }, (): number => Math.random() * 0.5);
       return { waveform: dummyWaveform, peaks: [], duration: 0 };
     }
   }

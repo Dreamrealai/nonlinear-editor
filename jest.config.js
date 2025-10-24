@@ -1,3 +1,7 @@
+// CRITICAL: Set NODE_ENV before any module imports to ensure error messages are visible
+// This must be the FIRST thing in the file before any requires
+process.env.NODE_ENV = 'development';
+
 const nextJest = require('next/jest');
 
 const createJestConfig = nextJest({

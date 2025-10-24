@@ -146,7 +146,7 @@ export async function deliverWebhook(
           },
           `Waiting ${delay}ms before retry attempt ${attempt + 1}`
         );
-        await new Promise((resolve) => setTimeout(resolve, delay));
+        await new Promise((resolve): NodeJS.Timeout => setTimeout(resolve, delay));
       }
 
       serverLogger.info(
@@ -161,7 +161,7 @@ export async function deliverWebhook(
       );
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      const timeoutId = setTimeout((): void => controller.abort(), timeout);
 
       const response = await fetch(url, {
         method: 'POST',
@@ -206,7 +206,7 @@ export async function deliverWebhook(
         response.status !== 408 &&
         response.status !== 429
       ) {
-        const errorText = await response.text().catch(() => 'Unknown error');
+        const errorText = await response.text().catch((): string => 'Unknown error');
         lastError = `HTTP ${response.status}: ${errorText}`;
 
         serverLogger.warn(
@@ -229,7 +229,7 @@ export async function deliverWebhook(
       }
 
       // Server error (5xx) or retriable client errors (408, 429): Retry
-      const errorText = await response.text().catch(() => 'Unknown error');
+      const errorText = await response.text().catch((): string => 'Unknown error');
       lastError = `HTTP ${response.status}: ${errorText}`;
 
       serverLogger.warn(

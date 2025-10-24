@@ -41,14 +41,14 @@ export function PlaybackControls({
   onPlayPause,
   onSeek,
   onToggleFullscreen,
-}: PlaybackControlsProps) {
+}: PlaybackControlsProps): JSX.Element {
   const [showControls, setShowControls] = useState(true);
   const [isDraggingSlider, setIsDraggingSlider] = useState(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const hideControlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Auto-hide controls after inactivity
-  const resetHideControlsTimeout = useCallback(() => {
+  const resetHideControlsTimeout = useCallback((): void => {
     if (hideControlsTimeoutRef.current) {
       clearTimeout(hideControlsTimeoutRef.current);
     }
@@ -57,7 +57,7 @@ export function PlaybackControls({
 
     // Only auto-hide if playing
     if (isPlaying) {
-      hideControlsTimeoutRef.current = setTimeout(() => {
+      hideControlsTimeoutRef.current = setTimeout((): void => {
         setShowControls(false);
       }, 3000); // Hide after 3 seconds of inactivity
     }
@@ -65,7 +65,7 @@ export function PlaybackControls({
 
   // Calculate time from mouse position on progress bar
   const getTimeFromMouseEvent = useCallback(
-    (e: React.MouseEvent | MouseEvent) => {
+    (e: React.MouseEvent | MouseEvent): number => {
       if (!progressBarRef.current) return 0;
 
       const rect = progressBarRef.current.getBoundingClientRect();
@@ -78,7 +78,7 @@ export function PlaybackControls({
 
   // Handle seeking by clicking or dragging the progress bar
   const handleProgressBarMouseDown = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.MouseEvent): void => {
       e.preventDefault();
       setIsDraggingSlider(true);
 
@@ -89,30 +89,30 @@ export function PlaybackControls({
   );
 
   // Handle mouse move and mouse up for slider dragging
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!isDraggingSlider) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent): void => {
       const newTime = getTimeFromMouseEvent(e);
       onSeek(newTime);
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (): void => {
       setIsDraggingSlider(false);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
 
-    return () => {
+    return (): void => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDraggingSlider, getTimeFromMouseEvent, onSeek]);
 
   // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
+  useEffect((): () => void => {
+    return (): void => {
       if (hideControlsTimeoutRef.current) {
         clearTimeout(hideControlsTimeoutRef.current);
       }
@@ -120,7 +120,7 @@ export function PlaybackControls({
   }, []);
 
   // Reset timeout when playing state changes
-  useEffect(() => {
+  useEffect((): void => {
     resetHideControlsTimeout();
   }, [isPlaying, resetHideControlsTimeout]);
 
@@ -235,7 +235,7 @@ export function PlaybackControls({
       {!showControls && (
         <button
           type="button"
-          onClick={() => setShowControls(true)}
+          onClick={(): void => setShowControls(true)}
           aria-label="Show video controls"
           className="absolute bottom-4 right-4 rounded-full bg-black/50 hover:bg-black/70 p-3 text-white transition-all backdrop-blur-sm opacity-0 hover:opacity-100 focus:opacity-100 pointer-events-auto focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black"
           title="Show controls"

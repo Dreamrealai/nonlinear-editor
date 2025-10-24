@@ -68,7 +68,7 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
   height,
   zoom = 50, // Default zoom level
   className = '',
-}) {
+}): JSX.Element | null {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [waveformData, setWaveformData] = useState<Float32Array | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,12 +76,12 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
   // Memoize cache key to prevent recalculation
   // Include zoom to support different LOD levels in future
   const cacheKey = useMemo(
-    () => `${clip.id}_${clip.previewUrl}_${width}_${Math.floor(zoom / 50)}`,
+    (): string => `${clip.id}_${clip.previewUrl}_${width}_${Math.floor(zoom / 50)}`,
     [clip.id, clip.previewUrl, width, zoom]
   );
 
   // Extract audio waveform data with caching and Web Worker
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!clip.hasAudio || !clip.previewUrl) {
       setWaveformData(null);
       return;
@@ -97,7 +97,7 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
     let isCancelled = false;
     setIsLoading(true);
 
-    const extractWaveform = async () => {
+    const extractWaveform = async (): Promise<void> => {
       try {
         // Fetch audio file
         const response = await fetch(clip.previewUrl!);
@@ -114,8 +114,8 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
         const worker = getNextWorker();
         if (worker) {
           // Process in Web Worker (offloads from main thread)
-          await new Promise<void>((resolve, reject) => {
-            const handleMessage = (e: MessageEvent) => {
+          await new Promise<void>((resolve, reject): void => {
+            const handleMessage = (e: MessageEvent): void => {
               if (e.data.type === 'result') {
                 if (!isCancelled) {
                   const filteredData = e.data.data as Float32Array;
@@ -190,13 +190,13 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
 
     extractWaveform();
 
-    return () => {
+    return (): void => {
       isCancelled = true;
     };
   }, [cacheKey, clip.id, clip.previewUrl, clip.hasAudio, width]);
 
   // Render waveform on canvas
-  useEffect(() => {
+  useEffect((): void => {
     if (!waveformData || !canvasRef.current) {
       return;
     }

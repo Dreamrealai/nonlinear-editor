@@ -250,7 +250,7 @@ export class AuthService {
         .list(userId);
 
       if (!listError && files && files.length > 0) {
-        const filePaths = files.map((file) => `${userId}/${file.name}`);
+        const filePaths = files.map((file): string => `${userId}/${file.name}`);
         const { error: storageError } = await this.supabase.storage
           .from('assets')
           .remove(filePaths);

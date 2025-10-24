@@ -49,7 +49,7 @@ export function useProgressTracking(): UseProgressTrackingReturn {
   const [progressState, setProgressState] = useState<ProgressState>(INITIAL_STATE);
   const cancelCallbackRef = useRef<(() => void) | null>(null);
 
-  const startOperation = useCallback((type: OperationType, cancellable = false) => {
+  const startOperation = useCallback((type: OperationType, cancellable = false): void => {
     setProgressState({
       type,
       isActive: true,
@@ -63,8 +63,8 @@ export function useProgressTracking(): UseProgressTrackingReturn {
     });
   }, []);
 
-  const updateProgress = useCallback((progress: number, currentStep?: string) => {
-    setProgressState((prev) => {
+  const updateProgress = useCallback((progress: number, currentStep?: string): void => {
+    setProgressState((prev): ProgressState => {
       if (!prev.isActive) return prev;
       return {
         ...prev,
@@ -74,8 +74,8 @@ export function useProgressTracking(): UseProgressTrackingReturn {
     });
   }, []);
 
-  const completeOperation = useCallback(() => {
-    setProgressState((prev) => ({
+  const completeOperation = useCallback((): void => {
+    setProgressState((prev): { isActive: false; progress: number; completed: true; error: undefined; type: OperationType; currentStep?: string; startTime?: number; estimatedTimeRemaining?: number; cancellable?: boolean; } => ({
       ...prev,
       isActive: false,
       progress: 100,
@@ -84,8 +84,8 @@ export function useProgressTracking(): UseProgressTrackingReturn {
     }));
   }, []);
 
-  const failOperation = useCallback((error: string) => {
-    setProgressState((prev) => ({
+  const failOperation = useCallback((error: string): void => {
+    setProgressState((prev): { isActive: false; completed: false; error: string; type: OperationType; progress?: number; currentStep?: string; startTime?: number; estimatedTimeRemaining?: number; cancellable?: boolean; } => ({
       ...prev,
       isActive: false,
       completed: false,
@@ -93,16 +93,16 @@ export function useProgressTracking(): UseProgressTrackingReturn {
     }));
   }, []);
 
-  const resetProgress = useCallback(() => {
+  const resetProgress = useCallback((): void => {
     setProgressState(INITIAL_STATE);
     cancelCallbackRef.current = null;
   }, []);
 
-  const cancelOperation = useCallback(() => {
+  const cancelOperation = useCallback((): void => {
     if (cancelCallbackRef.current) {
       cancelCallbackRef.current();
     }
-    setProgressState((prev) => ({
+    setProgressState((prev): { isActive: false; completed: false; error: string; type: OperationType; progress?: number; currentStep?: string; startTime?: number; estimatedTimeRemaining?: number; cancellable?: boolean; } => ({
       ...prev,
       isActive: false,
       completed: false,
@@ -110,7 +110,7 @@ export function useProgressTracking(): UseProgressTrackingReturn {
     }));
   }, []);
 
-  const getCancelCallbackRef = useCallback(() => {
+  const getCancelCallbackRef = useCallback((): RefObject<(() => void) | null> => {
     return cancelCallbackRef;
   }, []);
 

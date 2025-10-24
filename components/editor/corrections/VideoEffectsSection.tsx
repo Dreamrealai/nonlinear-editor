@@ -1,3 +1,48 @@
+/**
+ * VideoEffectsSection - Comprehensive video effects and color grading controls
+ *
+ * Provides a complete suite of video effects including preset filters and
+ * manual adjustments. Features 10 professionally designed presets and
+ * granular control over brightness, contrast, saturation, hue, and blur.
+ *
+ * Features:
+ * - 10 effect presets (Normal, Vivid, Vintage, B&W, Cool, Warm, Faded, Dramatic, Soft Focus, Dream)
+ * - Brightness control (0-200%)
+ * - Contrast control (0-200%)
+ * - Saturation control (0-200%)
+ * - Hue rotation (0-360 degrees)
+ * - Blur effect (0-20px)
+ * - Dark mode support
+ * - Visual feedback with gradient sliders
+ * - Reset all effects to defaults
+ *
+ * @param brightness - Brightness level (0-200%)
+ * @param contrast - Contrast level (0-200%)
+ * @param saturation - Color saturation (0-200%)
+ * @param hue - Hue rotation in degrees (0-360)
+ * @param blur - Blur intensity in pixels (0-20)
+ * @param onBrightnessChange - Callback when brightness changes
+ * @param onContrastChange - Callback when contrast changes
+ * @param onSaturationChange - Callback when saturation changes
+ * @param onHueChange - Callback when hue rotation changes
+ * @param onBlurChange - Callback when blur intensity changes
+ * @param onPresetApply - Callback when a preset is applied
+ * @param onReset - Callback to reset all effects to defaults
+ *
+ * @example
+ * ```tsx
+ * <VideoEffectsSection
+ *   brightness={100}
+ *   contrast={100}
+ *   saturation={100}
+ *   hue={0}
+ *   blur={0}
+ *   onBrightnessChange={(b) => setBrightness(b)}
+ *   onPresetApply={(preset) => applyPreset(preset)}
+ *   onReset={() => resetEffects()}
+ * />
+ * ```
+ */
 import type { VideoEffects } from '@/types/timeline';
 
 interface VideoEffectsSectionProps {
@@ -159,7 +204,7 @@ export function VideoEffectsSection({
   onBlurChange,
   onPresetApply,
   onReset,
-}: VideoEffectsSectionProps) {
+}: VideoEffectsSectionProps): JSX.Element {
   return (
     <div className="space-y-6">
       {/* Effect Presets */}
@@ -182,11 +227,11 @@ export function VideoEffectsSection({
         </h4>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-          {VIDEO_EFFECT_PRESETS.map((preset) => (
+          {VIDEO_EFFECT_PRESETS.map((preset): JSX.Element => (
             <button
               key={preset.name}
               type="button"
-              onClick={() => onPresetApply(preset)}
+              onClick={(): void => onPresetApply(preset)}
               className="group relative flex flex-col items-center gap-1.5 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 p-3 text-center transition hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:shadow-md"
               title={preset.description}
             >
@@ -250,7 +295,7 @@ export function VideoEffectsSection({
                 min="0"
                 max="200"
                 value={brightness}
-                onChange={(e) => onBrightnessChange(parseInt(e.target.value))}
+                onChange={(e): void => onBrightnessChange(parseInt(e.target.value))}
                 className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-black via-neutral-500 to-white"
                 style={{ accentColor: '#3b82f6' }}
               />
@@ -284,7 +329,7 @@ export function VideoEffectsSection({
                 min="0"
                 max="200"
                 value={contrast}
-                onChange={(e) => onContrastChange(parseInt(e.target.value))}
+                onChange={(e): void => onContrastChange(parseInt(e.target.value))}
                 className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-neutral-400 via-neutral-600 to-neutral-900"
                 style={{ accentColor: '#3b82f6' }}
               />
@@ -318,7 +363,7 @@ export function VideoEffectsSection({
                 min="0"
                 max="200"
                 value={saturation}
-                onChange={(e) => onSaturationChange(parseInt(e.target.value))}
+                onChange={(e): void => onSaturationChange(parseInt(e.target.value))}
                 className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-neutral-400 via-pink-400 to-pink-600"
                 style={{ accentColor: '#3b82f6' }}
               />
@@ -354,7 +399,7 @@ export function VideoEffectsSection({
                 min="0"
                 max="360"
                 value={hue}
-                onChange={(e) => onHueChange(parseInt(e.target.value))}
+                onChange={(e): void => onHueChange(parseInt(e.target.value))}
                 className="h-2 w-full cursor-pointer appearance-none rounded-lg"
                 style={{
                   background:
@@ -399,7 +444,7 @@ export function VideoEffectsSection({
                 max="20"
                 step="0.5"
                 value={blur}
-                onChange={(e) => onBlurChange(parseFloat(e.target.value))}
+                onChange={(e): void => onBlurChange(parseFloat(e.target.value))}
                 className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-blue-200 to-blue-600"
                 style={{ accentColor: '#3b82f6' }}
               />

@@ -9,6 +9,9 @@ import {
   errorResponse,
   successResponse,
 } from '@/lib/api/response';
+import { validateUUID, validateEnum, validateString, ValidationError } from '@/lib/validation';
+
+const VALID_MODELS = ['minimax', 'mureka-1.5', 'kling-turbo-2.5'] as const;
 
 /**
  * POST /api/video/generate-audio
@@ -25,15 +28,28 @@ const handleGenerateAudio: AuthenticatedHandler = async (request, { user, supaba
   const body = await request.json();
   const { assetId, projectId, model = 'minimax', prompt } = body;
 
-  if (!assetId || !projectId) {
-    return validationError('assetId and projectId are required');
-  }
+  // Validate inputs using assertion functions
+  try {
+    if (!assetId) {
+      throw new ValidationError('assetId is required', 'assetId', 'REQUIRED');
+    }
+    validateUUID(assetId, 'assetId');
 
-  if (!['minimax', 'mureka-1.5', 'kling-turbo-2.5'].includes(model)) {
-    return validationError(
-      'Invalid model. Must be minimax, mureka-1.5, or kling-turbo-2.5',
-      'model'
-    );
+    if (!projectId) {
+      throw new ValidationError('projectId is required', 'projectId', 'REQUIRED');
+    }
+    validateUUID(projectId, 'projectId');
+
+    validateEnum(model, 'model', VALID_MODELS);
+
+    if (prompt !== undefined) {
+      validateString(prompt, 'prompt', { required: false, minLength: 1, maxLength: 1000 });
+    }
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return validationError(error.message, error.field);
+    }
+    throw error;
   }
 
   // Get the asset from database
@@ -96,7 +112,7 @@ const handleGenerateAudio: AuthenticatedHandler = async (request, { user, supaba
 
   // Submit video-to-audio request to fal.ai with timeout
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+  const timeout = setTimeout((): void => controller.abort(), 60000); // 60 second timeout
 
   let falResponse: Response;
   try {

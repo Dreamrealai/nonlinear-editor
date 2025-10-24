@@ -10,7 +10,9 @@ import {
   errorResponse,
   badRequestResponse,
   successResponse,
+  validationError,
 } from '@/lib/api/response';
+import { validateString, ValidationError } from '@/lib/validation';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 
@@ -135,7 +137,21 @@ const handleStripeCheckout: AuthenticatedHandler = async (request, { user, supab
     }
 
     // Get price ID from request or env
-    const { priceId } = await request.json();
+    const body = await request.json();
+    const { priceId } = body;
+
+    // Validate priceId if provided
+    if (priceId !== undefined) {
+      try {
+        validateString(priceId, 'priceId', { minLength: 1, maxLength: 255 });
+      } catch (error) {
+        if (error instanceof ValidationError) {
+          return validationError(error.message, error.field);
+        }
+        throw error;
+      }
+    }
+
     const finalPriceId = priceId || process.env['STRIPE_PREMIUM_PRICE_ID'];
 
     serverLogger.debug(

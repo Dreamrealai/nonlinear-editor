@@ -23,10 +23,10 @@ export const TimelineTracks = React.memo<TimelineTracksProps>(function TimelineT
   clips,
   onAddTrack,
   onRemoveTrack,
-}) {
+}): JSX.Element {
   return (
     <>
-      {Array.from({ length: numTracks }).map((_, trackIndex) => (
+      {Array.from({ length: numTracks }).map((_, trackIndex): JSX.Element => (
         <div
           key={trackIndex}
           className="absolute w-full border-b border-neutral-200 timeline-track-background"
@@ -51,7 +51,7 @@ export const TimelineTracks = React.memo<TimelineTracksProps>(function TimelineT
             )}
             {trackIndex === numTracks - 1 &&
               numTracks > MIN_TRACKS &&
-              clips.filter((c) => c.trackIndex === trackIndex).length === 0 && (
+              clips.filter((c): boolean => c.trackIndex === trackIndex).length === 0 && (
                 <Button
                   onClick={onRemoveTrack}
                   variant="destructive"

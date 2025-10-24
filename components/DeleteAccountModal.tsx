@@ -34,13 +34,13 @@ export function DeleteAccountModal({
   onOpenChange,
   onConfirm,
   loading,
-}: DeleteAccountModalProps) {
+}: DeleteAccountModalProps): JSX.Element {
   const [confirmText, setConfirmText] = useState('');
   const [step, setStep] = useState<'warning' | 'confirm'>('warning');
 
   const isConfirmValid = confirmText === 'DELETE';
 
-  const handleClose = () => {
+  const handleClose = (): void => {
     if (!loading) {
       setConfirmText('');
       setStep('warning');
@@ -48,11 +48,11 @@ export function DeleteAccountModal({
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = (): void => {
     setStep('confirm');
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (): Promise<void> => {
     if (!isConfirmValid || loading) {
       return;
     }
@@ -283,7 +283,7 @@ export function DeleteAccountModal({
                   <input
                     type="text"
                     value={confirmText}
-                    onChange={(e) => setConfirmText(e.target.value)}
+                    onChange={(e): void => setConfirmText(e.target.value)}
                     placeholder="Type DELETE to confirm"
                     disabled={loading}
                     className="w-full rounded-lg border-2 border-neutral-300 bg-white px-4 py-3 text-sm font-mono font-semibold text-neutral-900 placeholder-neutral-400 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-100 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
@@ -344,7 +344,7 @@ export function DeleteAccountModal({
               </button>
               <button
                 type="button"
-                onClick={() => void handleConfirm()}
+                onClick={(): undefined => void handleConfirm()}
                 disabled={!isConfirmValid || loading}
                 className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
               >

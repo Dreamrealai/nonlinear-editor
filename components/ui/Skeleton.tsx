@@ -23,7 +23,7 @@ export interface SkeletonProps {
 /**
  * Base Skeleton component
  */
-export function Skeleton({ className, variant = 'default', animate = true }: SkeletonProps) {
+export function Skeleton({ className, variant = 'default', animate = true }: SkeletonProps): JSX.Element {
   const baseClasses = 'rounded-md bg-neutral-200 dark:bg-neutral-800';
 
   const animationClasses = animate
@@ -60,10 +60,10 @@ export function SkeletonText({
   lineClassName,
   variant = 'default',
   animate = true,
-}: SkeletonTextProps) {
+}: SkeletonTextProps): JSX.Element {
   return (
     <div className={cn('space-y-2', className)} role="status" aria-label="Loading text">
-      {Array.from({ length: lines }).map((_, i) => (
+      {Array.from({ length: lines }).map((_, i): JSX.Element => (
         <Skeleton
           key={i}
           variant={variant}
@@ -100,7 +100,7 @@ export function SkeletonCard({
   showImage = true,
   showTitle = true,
   descriptionLines = 2,
-}: SkeletonCardProps) {
+}: SkeletonCardProps): JSX.Element {
   return (
     <div className={cn('rounded-lg border border-neutral-200 p-4 dark:border-neutral-800', className)} role="status" aria-label="Loading card">
       {showImage && (
@@ -141,7 +141,7 @@ export function SkeletonListItem({
   variant = 'default',
   animate = true,
   showAvatar = true,
-}: SkeletonListItemProps) {
+}: SkeletonListItemProps): JSX.Element {
   return (
     <div className={cn('flex items-center gap-4', className)} role="status" aria-label="Loading list item">
       {showAvatar && (
@@ -185,12 +185,12 @@ export function SkeletonTable({
   animate = true,
   rows = 5,
   columns = 4,
-}: SkeletonTableProps) {
+}: SkeletonTableProps): JSX.Element {
   return (
     <div className={cn('space-y-3', className)} role="status" aria-label="Loading table">
       {/* Header */}
       <div className="flex gap-4">
-        {Array.from({ length: columns }).map((_, i) => (
+        {Array.from({ length: columns }).map((_, i): JSX.Element => (
           <Skeleton
             key={`header-${i}`}
             variant={variant}
@@ -200,9 +200,9 @@ export function SkeletonTable({
         ))}
       </div>
       {/* Rows */}
-      {Array.from({ length: rows }).map((_, rowIndex) => (
+      {Array.from({ length: rows }).map((_, rowIndex): JSX.Element => (
         <div key={`row-${rowIndex}`} className="flex gap-4">
-          {Array.from({ length: columns }).map((_, colIndex) => (
+          {Array.from({ length: columns }).map((_, colIndex): JSX.Element => (
             <Skeleton
               key={`cell-${rowIndex}-${colIndex}`}
               variant={variant}
@@ -231,7 +231,7 @@ export function SkeletonTimeline({
   variant = 'branded',
   animate = true,
   clips = 3,
-}: SkeletonTimelineProps) {
+}: SkeletonTimelineProps): JSX.Element {
   return (
     <div className={cn('space-y-4', className)} role="status" aria-label="Loading timeline">
       {/* Timeline header */}
@@ -242,7 +242,7 @@ export function SkeletonTimeline({
 
       {/* Timeline tracks */}
       <div className="space-y-2">
-        {Array.from({ length: clips }).map((_, i) => (
+        {Array.from({ length: clips }).map((_, i): JSX.Element => (
           <div key={i} className="flex gap-2">
             <Skeleton
               variant={variant}

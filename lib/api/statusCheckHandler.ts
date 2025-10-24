@@ -260,7 +260,7 @@ export function createFalFetchOptions(
   cleanup: () => void;
 } {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const timeout = setTimeout((): void => controller.abort(), timeoutMs);
 
   return {
     headers: {
@@ -316,7 +316,7 @@ export async function fetchWithFalTimeout(
  */
 export async function downloadWithTimeout(url: string, timeoutMs = 60000): Promise<ArrayBuffer> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const timeout = setTimeout((): void => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(url, { signal: controller.signal });

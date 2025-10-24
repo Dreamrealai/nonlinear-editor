@@ -70,6 +70,19 @@ type UseTimelineDraggingOptions = {
   updateClip: (clipId: string, updates: Partial<Clip>) => void;
 };
 
+export interface UseTimelineDraggingReturn {
+  draggingClip: DraggingClip | null;
+  isDraggingPlayhead: boolean;
+  trimmingClip: TrimmingClip | null;
+  trimPreviewInfo: TrimPreviewInfo | null;
+  setDraggingClip: React.Dispatch<React.SetStateAction<DraggingClip | null>>;
+  setIsDraggingPlayhead: React.Dispatch<React.SetStateAction<boolean>>;
+  setTrimmingClip: React.Dispatch<React.SetStateAction<TrimmingClip | null>>;
+  currentEditMode: import('@/types/editModes').EditMode;
+  editModeModifiers: import('@/types/editModes').EditModeModifiers;
+  trimFeedback: import('@/types/editModes').TrimFeedback | null;
+}
+
 export function useTimelineDragging({
   containerRef,
   timeline,
@@ -77,14 +90,11 @@ export function useTimelineDragging({
   numTracks,
   setCurrentTime,
   updateClip,
-}: UseTimelineDraggingOptions) {
+}: UseTimelineDraggingOptions): UseTimelineDraggingReturn {
   const [draggingClip, setDraggingClip] = useState<DraggingClip | null>(null);
   const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false);
   const [trimmingClip, setTrimmingClip] = useState<TrimmingClip | null>(null);
   const [trimPreviewInfo, setTrimPreviewInfo] = useState<TrimPreviewInfo | null>(null);
-  // @ts-expect-error - snapInfo is exposed in the API but not currently used internally
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [snapInfo, setSnapInfo] = useState<SnapInfo | null>(null);
 
   // Advanced trimming with edit modes support
   const advancedTrimming = useAdvancedTrimming({
@@ -98,19 +108,19 @@ export function useTimelineDragging({
 
   // Snap to grid helper
   const snapToGrid = useCallback(
-    (value: number) => Math.round(value / SNAP_INTERVAL) * SNAP_INTERVAL,
+    (value: number): number => Math.round(value / SNAP_INTERVAL) * SNAP_INTERVAL,
     []
   );
 
   // Compute safe position with collision detection
   const computeSafePosition = useCallback(
-    (clipId: string, desiredPosition: number, targetTrackIndex?: number) => {
+    (clipId: string, desiredPosition: number, targetTrackIndex?: number): number => {
       const basePosition = Math.max(0, desiredPosition);
       if (!timeline) {
         return Math.max(0, snapToGrid(basePosition));
       }
 
-      const movingClip = timeline.clips.find((clip) => clip.id === clipId);
+      const movingClip = timeline.clips.find((clip): boolean => clip.id === clipId);
       if (!movingClip) {
         return Math.max(0, snapToGrid(basePosition));
       }
@@ -121,11 +131,11 @@ export function useTimelineDragging({
       const trackIndex =
         typeof targetTrackIndex === 'number' ? targetTrackIndex : movingClip.trackIndex;
       const trackClips = timeline.clips
-        .filter((clip) => clip.trackIndex === trackIndex && clip.id !== clipId)
-        .sort((a, b) => a.timelinePosition - b.timelinePosition);
+        .filter((clip): boolean => clip.trackIndex === trackIndex && clip.id !== clipId)
+        .sort((a, b): number => a.timelinePosition - b.timelinePosition);
 
-      const previous = trackClips.filter((clip) => clip.timelinePosition <= position).pop();
-      const next = trackClips.find((clip) => clip.timelinePosition >= position);
+      const previous = trackClips.filter((clip): boolean => clip.timelinePosition <= position).pop();
+      const next = trackClips.find((clip): boolean => clip.timelinePosition >= position);
 
       let minStart = 0;
       if (previous) {
@@ -155,7 +165,7 @@ export function useTimelineDragging({
       if (maxStart !== Number.POSITIVE_INFINITY) {
         snapCandidates.push(maxStart);
       }
-      trackClips.forEach((clip) => {
+      trackClips.forEach((clip): void => {
         snapCandidates.push(clip.timelinePosition);
         snapCandidates.push(clip.timelinePosition + Math.max(SNAP_INTERVAL, clip.end - clip.start));
       });
@@ -175,14 +185,14 @@ export function useTimelineDragging({
 
   // RAF-throttled mouse move handler
   const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
+    (e: MouseEvent): void => {
       latestMouseEventRef.current = e;
 
       if (rafIdRef.current !== null) {
         return;
       }
 
-      rafIdRef.current = requestAnimationFrame(() => {
+      rafIdRef.current = requestAnimationFrame((): void => {
         rafIdRef.current = null;
         const event = latestMouseEventRef.current;
         if (!event || !containerRef.current || !timeline) return;
@@ -195,7 +205,7 @@ export function useTimelineDragging({
         if (isDraggingPlayhead) {
           setCurrentTime(time);
         } else if (trimmingClip) {
-          const clip = timeline.clips.find((c) => c.id === trimmingClip.id);
+          const clip = timeline.clips.find((c): boolean => c.id === trimmingClip.id);
           if (!clip) return;
 
           if (trimmingClip.handle === 'left') {
@@ -309,7 +319,7 @@ export function useTimelineDragging({
             numTracks - 1
           );
           const safePosition = computeSafePosition(draggingClip.id, desiredPosition, proposedTrack);
-          const clip = timeline.clips.find((item) => item.id === draggingClip.id);
+          const clip = timeline.clips.find((item): boolean => item.id === draggingClip.id);
           if (
             !clip ||
             clip.timelinePosition !== safePosition ||
@@ -317,7 +327,7 @@ export function useTimelineDragging({
           ) {
             // Check if clip is part of a group
             const groupId = clip?.groupId;
-            const group = timeline.groups?.find((g) => g.id === groupId);
+            const group = timeline.groups?.find((g): boolean => g.id === groupId);
 
             if (groupId && group) {
               // Move all clips in group together, maintaining relative positions
@@ -327,8 +337,8 @@ export function useTimelineDragging({
               const deltaTrack = proposedTrack - originalTrack;
 
               // Update all clips in the group
-              group.clipIds.forEach((clipId) => {
-                const groupClip = timeline.clips.find((c) => c.id === clipId);
+              group.clipIds.forEach((clipId): void => {
+                const groupClip = timeline.clips.find((c): boolean => c.id === clipId);
                 if (groupClip) {
                   updateClip(clipId, {
                     timelinePosition: groupClip.timelinePosition + deltaPosition,
@@ -366,7 +376,7 @@ export function useTimelineDragging({
   );
 
   // Mouse up handler
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = useCallback((): void => {
     if (rafIdRef.current !== null) {
       cancelAnimationFrame(rafIdRef.current);
       rafIdRef.current = null;
@@ -374,7 +384,7 @@ export function useTimelineDragging({
     latestMouseEventRef.current = null;
 
     if (draggingClip && timeline) {
-      const clip = timeline.clips.find((item) => item.id === draggingClip.id);
+      const clip = timeline.clips.find((item): boolean => item.id === draggingClip.id);
       if (clip) {
         const safePosition = computeSafePosition(clip.id, clip.timelinePosition, clip.trackIndex);
         if (clip.timelinePosition !== safePosition) {
@@ -389,11 +399,11 @@ export function useTimelineDragging({
   }, [draggingClip, timeline, computeSafePosition, updateClip]);
 
   // Attach/detach mouse event listeners
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (isDraggingPlayhead || draggingClip || trimmingClip) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
-      return () => {
+      return (): void => {
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
         if (rafIdRef.current !== null) {

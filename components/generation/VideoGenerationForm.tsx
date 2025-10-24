@@ -70,7 +70,7 @@ export function VideoGenerationForm({
   onAssetSelect,
   onShowAssetLibrary,
   projectId,
-}: VideoGenerationFormProps) {
+}: VideoGenerationFormProps): JSX.Element {
   const canSubmit = !disabled && prompt.trim() && queueLength < NUMERIC_LIMITS.VIDEO_QUEUE_MAX;
 
   return (
@@ -86,7 +86,7 @@ export function VideoGenerationForm({
             <select
               id="model"
               value={model}
-              onChange={(e) => onModelChange(e.target.value)}
+              onChange={(e): void => onModelChange(e.target.value)}
               disabled={disabled}
               className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -109,11 +109,11 @@ export function VideoGenerationForm({
             <select
               id="aspectRatio"
               value={aspectRatio}
-              onChange={(e) => onAspectRatioChange(e.target.value as '16:9' | '9:16' | '1:1')}
+              onChange={(e): void => onAspectRatioChange(e.target.value as '16:9' | '9:16' | '1:1')}
               disabled={disabled}
               className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {modelConfig.supportedAspectRatios.map((ratio) => (
+              {modelConfig.supportedAspectRatios.map((ratio): JSX.Element => (
                 <option key={ratio} value={ratio}>
                   {ratio}{' '}
                   {ratio === '16:9'
@@ -136,11 +136,11 @@ export function VideoGenerationForm({
             <select
               id="duration"
               value={duration}
-              onChange={(e) => onDurationChange(parseInt(e.target.value) as 4 | 5 | 6 | 8 | 10)}
+              onChange={(e): void => onDurationChange(parseInt(e.target.value) as 4 | 5 | 6 | 8 | 10)}
               disabled={disabled}
               className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {modelConfig.supportedDurations.map((dur) => (
+              {modelConfig.supportedDurations.map((dur): JSX.Element => (
                 <option key={dur} value={dur}>
                   {dur} seconds
                 </option>
@@ -188,7 +188,7 @@ export function VideoGenerationForm({
               <div className="space-y-3">
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={(): void | undefined => fileInputRef.current?.click()}
                   disabled={disabled}
                   className="w-full flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-8 hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
@@ -211,7 +211,7 @@ export function VideoGenerationForm({
                       <button
                         type="button"
                         className="text-blue-600 hover:text-blue-700 cursor-pointer underline"
-                        onClick={(e) => {
+                        onClick={(e): void => {
                           e.stopPropagation();
                           onShowAssetLibrary(true);
                         }}
@@ -246,7 +246,7 @@ export function VideoGenerationForm({
           <textarea
             id="prompt"
             value={prompt}
-            onChange={(e) => onPromptChange(e.target.value)}
+            onChange={(e): void => onPromptChange(e.target.value)}
             placeholder="A fast-tracking shot through a bustling dystopian sprawl with bright neon signs, flying cars and mist, night, lens flare, volumetric lighting"
             rows={4}
             disabled={disabled}
@@ -298,11 +298,11 @@ export function VideoGenerationForm({
       {showAssetLibrary && (
         <AssetLibraryModal
           projectId={projectId}
-          onSelect={(asset) => {
+          onSelect={(asset): void => {
             onAssetSelect(asset);
             onShowAssetLibrary(false);
           }}
-          onClose={() => onShowAssetLibrary(false)}
+          onClose={(): void => onShowAssetLibrary(false)}
         />
       )}
     </>

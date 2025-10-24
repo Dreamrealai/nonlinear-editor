@@ -43,7 +43,7 @@ const isDevelopment = process.env.NODE_ENV === 'development';
  * This stream parses the JSON log entries and forwards them to Axiom and Sentry.
  */
 class AxiomStream extends Writable {
-  override _write(chunk: Buffer, _encoding: string, callback: () => void) {
+  override _write(chunk: Buffer, _encoding: string, callback: () => void): void {
     // Parse and send to Axiom (async, non-blocking)
     if (process.env.AXIOM_TOKEN && process.env.AXIOM_DATASET) {
       try {
@@ -111,7 +111,7 @@ const baseLogger = pino(
     },
 
     // Timestamp configuration
-    timestamp: () => `,"time":${Date.now()}`,
+    timestamp: (): string => `,"time":${Date.now()}`,
   },
   // Use multistream for both dev and production
   pino.multistream([

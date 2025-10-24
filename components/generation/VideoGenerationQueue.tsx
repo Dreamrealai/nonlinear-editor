@@ -28,7 +28,7 @@ export function VideoGenerationQueue({
   videoQueue,
   onRemove,
   onClearCompleted,
-}: VideoGenerationQueueProps) {
+}: VideoGenerationQueueProps): JSX.Element {
   const showClearButton = hasCompletedItems(videoQueue);
 
   return (
@@ -72,7 +72,7 @@ export function VideoGenerationQueue({
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
-            {videoQueue.map((video) => (
+            {videoQueue.map((video): JSX.Element => (
               <VideoQueueItem key={video.id} {...video} onRemove={onRemove} />
             ))}
           </div>

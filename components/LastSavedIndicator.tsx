@@ -25,7 +25,7 @@ export function LastSavedIndicator({
 }: LastSavedIndicatorProps): React.JSX.Element {
   const [relativeTime, setRelativeTime] = useState<string>('');
 
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!lastSaved) {
       setRelativeTime('Not saved');
       return;

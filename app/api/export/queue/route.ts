@@ -40,7 +40,7 @@ const handleGetQueue: AuthenticatedHandler = async (request, { user, supabase })
     }
 
     // Map database jobs to API response format
-    const mappedJobs = jobs.map((job) => ({
+    const mappedJobs = jobs.map((job): { id: any; projectId: any; status: any; progress: any; priority: any; config: any; metadata: any; errorMessage: any; createdAt: any; startedAt: any; completedAt: any; } => ({
       id: job.id,
       projectId: job.project_id,
       status: job.status,

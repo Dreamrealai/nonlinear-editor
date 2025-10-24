@@ -191,7 +191,7 @@ export function withErrorTracking<T extends (...args: unknown[]) => Promise<unkn
   fn: T,
   errorContext: ErrorContext
 ): T {
-  return (async (...args: unknown[]) => {
+  return (async (...args: unknown[]): Promise<unknown> => {
     try {
       return await fn(...args);
     } catch (error) {

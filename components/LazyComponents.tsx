@@ -12,7 +12,7 @@ import { ComponentType, ReactElement } from 'react';
 /**
  * Loading component shown while lazy components are loading
  */
-const LoadingFallback = () => (
+const LoadingFallback = (): JSX.Element => (
   <div className="flex h-full w-full items-center justify-center">
     <div className="flex flex-col items-center gap-3">
       <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 motion-reduce:animate-none motion-reduce:border-t-8 dark:border-purple-800 dark:border-t-purple-400" role="status" aria-label="Loading"></div>
@@ -37,7 +37,7 @@ export const LazyExportModal = dynamic(() => import('@/components/ExportModal'),
 export const LazyClipPropertiesPanel = dynamic(
   () => import('@/components/editor/ClipPropertiesPanel'),
   {
-    loading: () => (
+    loading: (): JSX.Element => (
       <div className="h-full w-80 border-l border-gray-700 bg-gray-900 p-4">
         <div className="flex h-full items-center justify-center text-sm text-gray-500">
           Loading properties...
@@ -72,7 +72,7 @@ type HorizontalTimelineProps = {
 export const LazyHorizontalTimeline = dynamic<HorizontalTimelineProps>(
   () => import('@/components/HorizontalTimeline'),
   {
-    loading: () => (
+    loading: (): JSX.Element => (
       <div className="flex h-full w-full items-center justify-center bg-neutral-50 dark:bg-neutral-900">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 motion-reduce:animate-none motion-reduce:border-t-8 dark:border-purple-800 dark:border-t-purple-400" role="status" aria-label="Loading timeline"></div>
@@ -89,7 +89,7 @@ export const LazyHorizontalTimeline = dynamic<HorizontalTimelineProps>(
  * Only loaded when needed for video playback
  */
 export const LazyPreviewPlayer = dynamic(() => import('@/components/PreviewPlayer'), {
-  loading: () => (
+  loading: (): JSX.Element => (
     <div className="flex h-full w-full items-center justify-center bg-black">
       <div className="flex flex-col items-center gap-3">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-700 border-t-neutral-400"></div>
@@ -105,9 +105,9 @@ export const LazyPreviewPlayer = dynamic(() => import('@/components/PreviewPlaye
  * Only loaded when audio visualization is needed
  */
 export const LazyAudioWaveform = dynamic(
-  () => import('@/components/AudioWaveform').then((mod) => ({ default: mod.AudioWaveform })),
+  (): Promise<{ default: NamedExoticComponent<{ clip: Clip; width: number; height: number; zoom?: number; className?: string; }>; }> => import('@/components/AudioWaveform').then((mod): { default: NamedExoticComponent<{ clip: Clip; width: number; height: number; zoom?: number; className?: string; }>; } => ({ default: mod.AudioWaveform })),
   {
-    loading: () => <div className="h-full w-full bg-neutral-100 animate-pulse"></div>,
+    loading: (): JSX.Element => <div className="h-full w-full bg-neutral-100 animate-pulse"></div>,
     ssr: false,
   }
 );
@@ -147,7 +147,7 @@ export const LazyChatBox = dynamic(() => import('@/components/editor/ChatBox'), 
  * Only loaded on home/project listing page
  */
 export const LazyProjectList = dynamic(
-  () => import('@/components/ProjectList').then((mod) => ({ default: mod.ProjectList })),
+  (): Promise<{ default: NamedExoticComponent<ProjectListProps>; }> => import('@/components/ProjectList').then((mod): { default: NamedExoticComponent<ProjectListProps>; } => ({ default: mod.ProjectList })),
   {
     loading: LoadingFallback,
     ssr: false,
@@ -159,7 +159,7 @@ export const LazyProjectList = dynamic(
  * Only loaded when viewing activity/history
  */
 export const LazyActivityHistory = dynamic(
-  () => import('@/components/ActivityHistory').then((mod) => ({ default: mod.ActivityHistory })),
+  (): Promise<{ default: NamedExoticComponent<object>; }> => import('@/components/ActivityHistory').then((mod): { default: NamedExoticComponent<object>; } => ({ default: mod.ActivityHistory })),
   {
     loading: LoadingFallback,
     ssr: false,

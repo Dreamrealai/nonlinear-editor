@@ -91,13 +91,13 @@ export function ProgressModal({
   const [estimatedRemaining, setEstimatedRemaining] = useState<number | undefined>(undefined);
 
   // Update elapsed time every second
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!progressState.isActive || !progressState.startTime) {
       setElapsedTime(0);
       return;
     }
 
-    const interval = setInterval(() => {
+    const interval = setInterval((): void => {
       const elapsed = (Date.now() - progressState.startTime!) / 1000;
       setElapsedTime(elapsed);
 
@@ -111,7 +111,7 @@ export function ProgressModal({
       }
     }, 1000);
 
-    return () => clearInterval(interval);
+    return (): void => clearInterval(interval);
   }, [progressState.isActive, progressState.startTime, progressState.progress]);
 
   // Use provided estimate if available, otherwise use calculated one
@@ -124,14 +124,14 @@ export function ProgressModal({
   const isOpen = progressState.isActive || !!progressState.error || !!progressState.completed;
 
   // Handle close - only allow closing if operation is completed or errored
-  const handleClose = () => {
+  const handleClose = (): void => {
     if (progressState.completed || progressState.error) {
       onClose?.();
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+    <Dialog open={isOpen} onOpenChange={(open): false | void => !open && handleClose()}>
       <DialogContent
         className={cn(
           'sm:max-w-md',

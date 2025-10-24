@@ -10,6 +10,7 @@
 
 import { useEffect, useCallback, useState, useRef } from 'react';
 import toast from 'react-hot-toast';
+import { achievementService, EasterEggIds } from '@/lib/services/achievementService';
 
 // Konami Code sequence: ↑ ↑ ↓ ↓ ← → ← → B A
 const KONAMI_CODE = [
@@ -57,9 +58,12 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
   const lastKeyTime = useRef<number>(0);
 
   // Konami Code effect
-  const activateKonamiCode = useCallback(() => {
+  const activateKonamiCode = useCallback(async (): Promise<void> => {
     // Add triggered easter egg
-    setEasterEggsTriggered((prev) => [...prev, 'konami']);
+    setEasterEggsTriggered((prev): string[] => [...prev, 'konami']);
+
+    // Record activation with achievement service
+    await achievementService.recordActivation(EasterEggIds.KONAMI);
 
     // Show success message
     toast.success('Konami Code activated! You found a secret!', {
@@ -77,14 +81,19 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
     playSecretSound();
 
     // Remove effect after 5 seconds
-    setTimeout(() => {
+    setTimeout((): void => {
       document.body.classList.remove('konami-active');
+      achievementService.recordDeactivation(EasterEggIds.KONAMI);
     }, 5000);
   }, []);
 
   // Secret developer mode
-  const activateDeveloperMode = useCallback(() => {
-    setEasterEggsTriggered((prev) => [...prev, 'devmode']);
+  const activateDeveloperMode = useCallback(async (): Promise<void> => {
+    setEasterEggsTriggered((prev): string[] => [...prev, 'devmode']);
+
+    // Record activation with achievement service
+    await achievementService.recordActivation(EasterEggIds.DEVMODE);
+
     toast('Developer mode activated! Advanced features unlocked.', {
       duration: 4000,
       icon: '👨‍💻',
@@ -116,8 +125,12 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
   }, []);
 
   // Secret matrix mode
-  const activateMatrixMode = useCallback(() => {
-    setEasterEggsTriggered((prev) => [...prev, 'matrix']);
+  const activateMatrixMode = useCallback(async (): Promise<void> => {
+    setEasterEggsTriggered((prev): string[] => [...prev, 'matrix']);
+
+    // Record activation with achievement service
+    await achievementService.recordActivation(EasterEggIds.MATRIX);
+
     toast('The Matrix has you...', {
       duration: 3000,
       icon: '🕶️',
@@ -127,17 +140,22 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
     createMatrixRain();
 
     // Stop after 10 seconds
-    setTimeout(() => {
+    setTimeout((): void => {
       const canvas = document.getElementById('matrix-canvas');
       if (canvas) {
         canvas.remove();
       }
+      achievementService.recordDeactivation(EasterEggIds.MATRIX);
     }, 10000);
   }, []);
 
   // Secret disco mode (flashing colors)
-  const activateDiscoMode = useCallback(() => {
-    setEasterEggsTriggered((prev) => [...prev, 'disco']);
+  const activateDiscoMode = useCallback(async (): Promise<void> => {
+    setEasterEggsTriggered((prev): string[] => [...prev, 'disco']);
+
+    // Record activation with achievement service
+    await achievementService.recordActivation(EasterEggIds.DISCO);
+
     toast('Disco time!', {
       duration: 3000,
       icon: '🕺',
@@ -147,21 +165,26 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
     const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#ffd93d', '#6bcf7f', '#a77bca'];
     let colorIndex = 0;
 
-    interval = setInterval(() => {
+    interval = setInterval((): void => {
       document.body.style.background = colors[colorIndex % colors.length];
       colorIndex++;
     }, 200);
 
     // Stop after 5 seconds and restore
-    setTimeout(() => {
+    setTimeout((): void => {
       clearInterval(interval);
       document.body.style.background = '';
+      achievementService.recordDeactivation(EasterEggIds.DISCO);
     }, 5000);
   }, []);
 
   // Secret gravity mode (elements fall)
-  const activateGravityMode = useCallback(() => {
-    setEasterEggsTriggered((prev) => [...prev, 'gravity']);
+  const activateGravityMode = useCallback(async (): Promise<void> => {
+    setEasterEggsTriggered((prev): string[] => [...prev, 'gravity']);
+
+    // Record activation with achievement service
+    await achievementService.recordActivation(EasterEggIds.GRAVITY);
+
     toast('Gravity reversed!', {
       duration: 3000,
       icon: '🌍',
@@ -169,17 +192,22 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
 
     // Apply gravity animation to random elements
     const elements = document.querySelectorAll('button, .card, img');
-    elements.forEach((el, i) => {
+    elements.forEach((el, i): void => {
       if (Math.random() > 0.7 && el instanceof HTMLElement) {
         el.style.transition = 'transform 1s ease-in';
         el.style.transform = `translateY(${window.innerHeight}px) rotate(${Math.random() * 360}deg)`;
 
-        setTimeout(() => {
+        setTimeout((): void => {
           el.style.transition = 'transform 1s ease-out';
           el.style.transform = '';
         }, 2000);
       }
     });
+
+    // Record deactivation after animation
+    setTimeout((): void => {
+      achievementService.recordDeactivation(EasterEggIds.GRAVITY);
+    }, 3000);
   }, []);
 
   // Easter eggs configuration
@@ -218,7 +246,7 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
 
   // Handle keyboard events
   const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
+    (event: KeyboardEvent): void => {
       if (!enabled) return;
 
       // Ignore if typing in input
@@ -253,7 +281,7 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
       keyPressTracker.current[key]++;
 
       // Check each easter egg
-      easterEggs.forEach((egg) => {
+      easterEggs.forEach((egg): void => {
         if (egg.enabled === false) return;
 
         // Already triggered
@@ -262,7 +290,7 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
         // Check sequence-based easter eggs
         if (egg.keys) {
           const sequenceMatches = egg.keys.every(
-            (k, i) => konamiSequence.current[konamiSequence.current.length - egg.keys!.length + i] === k
+            (k, i): boolean => konamiSequence.current[konamiSequence.current.length - egg.keys!.length + i] === k
           );
 
           if (sequenceMatches) {
@@ -290,7 +318,7 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
   );
 
   // Reset easter eggs
-  const resetEasterEggs = useCallback(() => {
+  const resetEasterEggs = useCallback((): void => {
     setEasterEggsTriggered([]);
     konamiSequence.current = [];
     keyPressTracker.current = {};
@@ -303,14 +331,19 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
     }
   }, []);
 
+  // Initialize achievement service
+  useEffect((): void => {
+    achievementService.init();
+  }, []);
+
   // Register event listener
-  useEffect(() => {
+  useEffect((): () => void => {
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return (): void => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
   // Inject CSS for konami effect
-  useEffect(() => {
+  useEffect((): () => void => {
     const style = document.createElement('style');
     style.id = 'easter-egg-styles';
     style.textContent = `
@@ -358,7 +391,7 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
     `;
     document.head.appendChild(style);
 
-    return () => {
+    return (): void => {
       const existingStyle = document.getElementById('easter-egg-styles');
       if (existingStyle) {
         existingStyle.remove();
@@ -377,7 +410,7 @@ function createConfetti(): void {
   const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#ffd93d', '#6bcf7f', '#a77bca'];
 
   for (let i = 0; i < 50; i++) {
-    setTimeout(() => {
+    setTimeout((): void => {
       const confetti = document.createElement('div');
       confetti.className = 'confetti';
       confetti.style.left = `${Math.random() * 100}%`;
@@ -386,7 +419,7 @@ function createConfetti(): void {
       confetti.style.animationDelay = `${Math.random() * 0.5}s`;
       document.body.appendChild(confetti);
 
-      setTimeout(() => confetti.remove(), 3000);
+      setTimeout((): void => confetti.remove(), 3000);
     }, i * 30);
   }
 }
@@ -444,7 +477,7 @@ function createMatrixRain(): void {
   const interval = setInterval(draw, 33);
 
   // Clean up after 10 seconds
-  setTimeout(() => {
+  setTimeout((): void => {
     clearInterval(interval);
     canvas.remove();
   }, 10000);

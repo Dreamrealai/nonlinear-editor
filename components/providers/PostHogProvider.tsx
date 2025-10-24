@@ -33,17 +33,17 @@ interface PostHogProviderProps {
   children: React.ReactNode;
 }
 
-export function PostHogProvider({ children }: PostHogProviderProps) {
+export function PostHogProvider({ children }: PostHogProviderProps): JSX.Element {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   // Initialize PostHog on mount
-  useEffect(() => {
+  useEffect((): void => {
     analyticsService.init();
   }, []);
 
   // Track page views on route change
-  useEffect(() => {
+  useEffect((): void => {
     if (pathname) {
       const url = searchParams?.toString()
         ? `${pathname}?${searchParams.toString()}`

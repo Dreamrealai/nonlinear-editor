@@ -70,7 +70,7 @@ export function ResizableAssetPanel({
   const startWidthRef = useRef<number>(initialWidth);
 
   const handleMouseDown = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.MouseEvent): void => {
       e.preventDefault();
       setIsResizing(true);
       startXRef.current = e.clientX;
@@ -80,7 +80,7 @@ export function ResizableAssetPanel({
   );
 
   const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
+    (e: MouseEvent): void => {
       if (!isResizing) return;
 
       const deltaX = e.clientX - startXRef.current;
@@ -90,7 +90,7 @@ export function ResizableAssetPanel({
     [isResizing, minWidth, maxWidth]
   );
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = useCallback((): void => {
     setIsResizing(false);
   }, []);
 
@@ -124,8 +124,8 @@ export function ResizableAssetPanel({
           ${isResizing ? 'bg-blue-500 w-2' : isHovering ? 'bg-neutral-400 hover:bg-blue-400' : 'bg-neutral-300'}
         `}
         onMouseDown={handleMouseDown}
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
+        onMouseEnter={(): void => setIsHovering(true)}
+        onMouseLeave={(): void => setIsHovering(false)}
         style={{
           // Add a larger invisible hit area for easier grabbing
           boxShadow: isHovering || isResizing ? '0 0 0 2px rgba(59, 130, 246, 0.1)' : 'none',
@@ -153,8 +153,8 @@ export function ResizableAssetPanel({
         aria-hidden="true"
         className="absolute -right-2 top-0 bottom-0 w-4 cursor-ew-resize"
         onMouseDown={handleMouseDown}
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
+        onMouseEnter={(): void => setIsHovering(true)}
+        onMouseLeave={(): void => setIsHovering(false)}
       />
     </div>
   );

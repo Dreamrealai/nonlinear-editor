@@ -33,7 +33,7 @@ export interface FrameInsertParams {
  * @returns Map of asset ID to asset object
  */
 export function createAssetMap(assets: BaseAssetRow[]): Map<string, BaseAssetRow> {
-  return new Map(assets.map((a) => [a.id, a]));
+  return new Map(assets.map((a): [string, BaseAssetRow] => [a.id, a]));
 }
 
 /**
@@ -115,7 +115,7 @@ export async function extractVideoFrame(
   canvas.height = video.videoHeight;
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  const blob = await new Promise<Blob | null>((resolve) => {
+  const blob = await new Promise<Blob | null>((resolve): void => {
     canvas.toBlob(resolve, 'image/png');
   });
 
@@ -144,9 +144,9 @@ export async function loadImageFromFile(
   const imageUrl = URL.createObjectURL(file);
 
   try {
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = () => reject(new Error('Failed to load image'));
+    await new Promise<void>((resolve, reject): void => {
+      img.onload = (): void => resolve();
+      img.onerror = (): void => reject(new Error('Failed to load image'));
       img.src = imageUrl;
     });
 

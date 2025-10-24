@@ -19,7 +19,7 @@ export function useAutoBackup(projectId: ProjectId | string): void {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastBackupRef = useRef<number>(0);
 
-  useEffect(() => {
+  useEffect((): () => void => {
     // Clear any existing interval
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -56,12 +56,12 @@ export function useAutoBackup(projectId: ProjectId | string): void {
     };
 
     // Create initial backup after 30 seconds (give time for project to load)
-    const initialTimeout = setTimeout(() => {
+    const initialTimeout = setTimeout((): void => {
       void createAutoBackup();
     }, 30000);
 
     // Set up interval for periodic backups
-    intervalRef.current = setInterval(() => {
+    intervalRef.current = setInterval((): void => {
       void createAutoBackup();
     }, AUTO_BACKUP_INTERVAL);
 

@@ -58,7 +58,7 @@ export function announce(message: string, priority: 'polite' | 'assertive' = 'po
   announcerEl.textContent = '';
 
   // Set new message after a brief delay to ensure screen readers detect the change
-  setTimeout(() => {
+  setTimeout((): void => {
     announcerEl.textContent = message;
   }, 100);
 }
@@ -84,34 +84,34 @@ export function cleanupAnnouncer(): void {
 
 // Timeline-specific announcement helpers
 export const timelineAnnouncements = {
-  clipAdded: (filename: string, track: number) =>
+  clipAdded: (filename: string, track: number): void =>
     announce(`Clip ${filename} added to track ${track + 1}`),
 
-  clipRemoved: (filename: string) => announce(`Clip ${filename} removed from timeline`),
+  clipRemoved: (filename: string): void => announce(`Clip ${filename} removed from timeline`),
 
-  clipMoved: (filename: string, track: number, time: string) =>
+  clipMoved: (filename: string, track: number, time: string): void =>
     announce(`Clip ${filename} moved to track ${track + 1} at ${time}`),
 
-  clipLocked: (filename: string) => announce(`Clip ${filename} locked`),
+  clipLocked: (filename: string): void => announce(`Clip ${filename} locked`),
 
-  clipUnlocked: (filename: string) => announce(`Clip ${filename} unlocked`),
+  clipUnlocked: (filename: string): void => announce(`Clip ${filename} unlocked`),
 
-  clipSplit: (filename: string) => announce(`Clip ${filename} split at playhead`),
+  clipSplit: (filename: string): void => announce(`Clip ${filename} split at playhead`),
 
-  clipSelected: (count: number) =>
+  clipSelected: (count: number): void =>
     announce(count === 1 ? '1 clip selected' : `${count} clips selected`),
 
-  playbackStarted: () => announce('Playback started'),
+  playbackStarted: (): void => announce('Playback started'),
 
-  playbackPaused: () => announce('Playback paused'),
+  playbackPaused: (): void => announce('Playback paused'),
 
-  playheadMoved: (time: string) => announce(`Playhead at ${time}`),
+  playheadMoved: (time: string): void => announce(`Playhead at ${time}`),
 
-  zoomChanged: (zoomLevel: string) => announce(`Zoom level: ${zoomLevel}`),
+  zoomChanged: (zoomLevel: string): void => announce(`Zoom level: ${zoomLevel}`),
 
-  undoAction: (action: string) => announce(`Undone: ${action}`),
+  undoAction: (action: string): void => announce(`Undone: ${action}`),
 
-  redoAction: (action: string) => announce(`Redone: ${action}`),
+  redoAction: (action: string): void => announce(`Redone: ${action}`),
 
-  error: (message: string) => announceAssertive(`Error: ${message}`),
+  error: (message: string): void => announceAssertive(`Error: ${message}`),
 };

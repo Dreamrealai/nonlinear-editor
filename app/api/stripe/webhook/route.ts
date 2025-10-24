@@ -13,7 +13,7 @@ import { errorResponse, serviceUnavailableResponse, successResponse } from '@/li
 // Disable body parser to handle raw body for webhook signature verification
 export const runtime = 'nodejs';
 
-async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session): Promise<void> {
   const userId = session.metadata?.userId;
   const customerId = session.customer as string;
   const subscriptionId = session.subscription as string;
@@ -211,7 +211,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   }
 }
 
-async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
   const customerId = subscription.customer as string;
 
   serverLogger.info(
@@ -376,7 +376,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   }
 }
 
-async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
   const customerId = subscription.customer as string;
 
   serverLogger.info(

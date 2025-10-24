@@ -51,7 +51,7 @@ export function useKeyframeData({
   const [frames, setFrames] = useState<SceneFrameRow[]>([]);
   const [frameUrls, setFrameUrls] = useState<Record<string, string>>({});
 
-  const groupedFrames = useMemo(() => {
+  const groupedFrames = useMemo((): Map<string, SceneFrameRow[]> => {
     const byScene = new Map<string, SceneFrameRow[]>();
     for (const frame of frames) {
       const existing = byScene.get(frame.scene_id) ?? [];
@@ -59,7 +59,7 @@ export function useKeyframeData({
       byScene.set(frame.scene_id, existing);
     }
     for (const frameList of byScene.values()) {
-      frameList.sort((a, b) => {
+      frameList.sort((a, b): number => {
         const order: Record<SceneFrameRow['kind'], number> = {
           first: 0,
           middle: 1,
@@ -73,7 +73,7 @@ export function useKeyframeData({
   }, [frames]);
 
   const loadScenesAndFrames = useCallback(
-    async (assetId: string | null) => {
+    async (assetId: string | null): Promise<void> => {
       if (!assetId) {
         setScenes([]);
         setFrames([]);
@@ -109,7 +109,7 @@ export function useKeyframeData({
       if (frameRows?.length) {
         const urls = Object.fromEntries(
           await Promise.all(
-            frameRows.map(async (frame) => {
+            frameRows.map(async (frame): Promise<readonly [any, string]> => {
               const url = await signStoragePath(frame.storage_path);
               return [frame.id, url ?? ''] as const;
             })
@@ -123,7 +123,7 @@ export function useKeyframeData({
     [signStoragePath, supabase]
   );
 
-  useEffect(() => {
+  useEffect((): void => {
     void loadScenesAndFrames(selectedAssetId);
   }, [loadScenesAndFrames, selectedAssetId, refreshToken]);
 
@@ -157,7 +157,7 @@ export function useFrameEdits({
   const [edits, setEdits] = useState<Array<FrameEditRow & { url: string | null }>>([]);
 
   const loadFrameEdits = useCallback(
-    async (frameId: string | null) => {
+    async (frameId: string | null): Promise<void> => {
       if (!frameId) {
         setEdits([]);
         return;
@@ -174,7 +174,7 @@ export function useFrameEdits({
         return;
       }
       const editsWithUrls = await Promise.all(
-        (data ?? []).map(async (row) => ({
+        (data ?? []).map(async (row): Promise<{ url: string | null; id: any; frame_id: any; version: any; output_storage_path: any; created_at: any; prompt: any; }> => ({
           ...row,
           url: await signStoragePath(row.output_storage_path),
         }))
@@ -184,7 +184,7 @@ export function useFrameEdits({
     [signStoragePath, supabase]
   );
 
-  useEffect(() => {
+  useEffect((): void => {
     void loadFrameEdits(selectedFrameId);
   }, [loadFrameEdits, selectedFrameId, refreshToken]);
 

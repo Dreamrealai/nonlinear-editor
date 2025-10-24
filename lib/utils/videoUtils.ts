@@ -41,7 +41,7 @@ export type ClipMeta = {
  * @param max - Maximum bound (default 1)
  * @returns Clamped value
  */
-export const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+export const clamp = (value: number, min = 0, max = 1): number => Math.min(max, Math.max(min, value));
 
 /**
  * Generates CSS filter string from color correction settings.
@@ -137,7 +137,7 @@ export const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
   type InternalMeta = ClipMeta & { crossfadeOut: number; crossfadeIn: number };
 
   // Initialize metadata for each clip
-  const base: InternalMeta[] = clips.map((clip) => {
+  const base: InternalMeta[] = clips.map((clip): { length: number; timelineStart: number; effectiveStart: number; fadeIn: number; fadeOut: number; crossfadeOut: number; crossfadeIn: number; transitionType: TransitionType; transitionDuration: number; } => {
     const length = Math.max(0, clip.end - clip.start);
     const timelineStart = Math.max(0, clip.timelinePosition);
     const transition = clip.transitionToNext;
@@ -167,16 +167,16 @@ export const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
 
   // Group clips by track index for crossfade processing
   const clipsByTrack = new Map<number, number[]>();
-  clips.forEach((clip, index) => {
+  clips.forEach((clip, index): void => {
     const list = clipsByTrack.get(clip.trackIndex) ?? [];
     list.push(index);
     clipsByTrack.set(clip.trackIndex, list);
   });
 
   // Process crossfades: adjust effectiveStart for overlapping clips
-  clipsByTrack.forEach((indices) => {
+  clipsByTrack.forEach((indices): void => {
     // Sort clips by timeline position within each track
-    indices.sort((a, b) => (clips[a]?.timelinePosition || 0) - (clips[b]?.timelinePosition || 0));
+    indices.sort((a, b): number => (clips[a]?.timelinePosition || 0) - (clips[b]?.timelinePosition || 0));
 
     // Check adjacent clips for crossfade transitions
     for (let i = 1; i < indices.length; i += 1) {
@@ -201,7 +201,7 @@ export const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
 
   // Build final metadata map combining fades and crossfades
   const metaMap = new Map<string, ClipMeta>();
-  base.forEach((meta, index) => {
+  base.forEach((meta, index): void => {
     const clip = clips[index];
     if (!clip || !meta) return;
     metaMap.set(clip.id, {
@@ -232,7 +232,7 @@ export const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
  * @param progress - Playback progress within the clip (0 to meta.length)
  * @returns Opacity value between 0 and 1
  */
-export const computeOpacity = (meta: ClipMeta, progress: number) => {
+export const computeOpacity = (meta: ClipMeta, progress: number): number => {
   // Clip is not visible outside its duration
   if (progress < 0 || progress > meta.length) {
     return 0;
@@ -267,29 +267,29 @@ export async function ensureBuffered(video: HTMLVideoElement, timeout = 10000): 
     return;
   }
 
-  return new Promise<void>((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
+  return new Promise<void>((resolve, reject): void => {
+    const timeoutId = setTimeout((): void => {
       cleanup();
       reject(
         new Error(`Video buffering timeout after ${timeout}ms (readyState: ${video.readyState})`)
       );
     }, timeout);
 
-    const cleanup = () => {
+    const cleanup = (): void => {
       clearTimeout(timeoutId);
       video.removeEventListener('canplay', handler);
       video.removeEventListener('canplaythrough', handler);
       video.removeEventListener('error', errorHandler);
     };
 
-    const handler = () => {
+    const handler = (): void => {
       if (video.readyState >= 3) {
         cleanup();
         resolve();
       }
     };
 
-    const errorHandler = () => {
+    const errorHandler = (): void => {
       cleanup();
       reject(new Error(`Video loading error: ${video.error?.message || 'Unknown error'}`));
     };

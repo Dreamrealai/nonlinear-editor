@@ -18,12 +18,12 @@ const { THUMBNAIL_WIDTH, THUMBNAIL_QUALITY } = THUMBNAIL_CONSTANTS;
  * Creates a thumbnail from an image blob.
  */
 export const createImageThumbnail = (blob: Blob): Promise<string | null> =>
-  new Promise((resolve) => {
+  new Promise((resolve): void => {
     const url = URL.createObjectURL(blob);
     const img = new Image();
     img.crossOrigin = 'anonymous';
 
-    img.onload = () => {
+    img.onload = (): void => {
       try {
         const canvas = document.createElement('canvas');
         const scale = Math.min(1, THUMBNAIL_WIDTH / Math.max(1, img.width));
@@ -47,7 +47,7 @@ export const createImageThumbnail = (blob: Blob): Promise<string | null> =>
       }
     };
 
-    img.onerror = () => {
+    img.onerror = (): void => {
       URL.revokeObjectURL(url);
       resolve(null);
     };
@@ -59,12 +59,12 @@ export const createImageThumbnail = (blob: Blob): Promise<string | null> =>
  * Creates a thumbnail from a video blob.
  */
 export const createVideoThumbnail = (blob: Blob): Promise<string | null> =>
-  new Promise((resolve) => {
+  new Promise((resolve): void => {
     const url = URL.createObjectURL(blob);
     const video = document.createElement('video');
     let resolved = false;
 
-    const cleanup = (value: string | null) => {
+    const cleanup = (value: string | null): void => {
       if (resolved) return;
       resolved = true;
       video.pause();
@@ -74,7 +74,7 @@ export const createVideoThumbnail = (blob: Blob): Promise<string | null> =>
       resolve(value);
     };
 
-    const captureFrame = () => {
+    const captureFrame = (): void => {
       video.removeEventListener('seeked', captureFrame);
       try {
         if (video.videoWidth === 0 || video.videoHeight === 0) {
@@ -106,9 +106,9 @@ export const createVideoThumbnail = (blob: Blob): Promise<string | null> =>
     video.playsInline = true;
     video.crossOrigin = 'anonymous';
 
-    video.addEventListener('error', () => cleanup(null));
+    video.addEventListener('error', (): void => cleanup(null));
     video.addEventListener('seeked', captureFrame);
-    video.addEventListener('loadedmetadata', () => {
+    video.addEventListener('loadedmetadata', (): void => {
       try {
         const duration = Number.isFinite(video.duration) ? video.duration : 0;
         if (duration > 1) {
@@ -151,12 +151,12 @@ export function useAssetThumbnails(
   const [thumbnailError, setThumbnailError] = useState<string | null>(null);
   const [processingCount, setProcessingCount] = useState(0);
 
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!assetsLoaded) {
       return;
     }
 
-    const missingThumbnails = assets.filter((asset) => {
+    const missingThumbnails = assets.filter((asset): boolean => {
       if (processedThumbnailIdsRef.current.has(asset.id)) {
         return false;
       }
@@ -175,7 +175,7 @@ export function useAssetThumbnails(
     // CRITICAL FIX: Track blob URLs for cleanup to prevent memory leaks
     const blobUrls: string[] = [];
 
-    void (async () => {
+    void (async (): Promise<void> => {
       let errorCount = 0;
       for (const asset of missingThumbnails) {
         try {
@@ -241,7 +241,7 @@ export function useAssetThumbnails(
           errorCount++;
           browserLogger.error({ error, assetId: asset.id }, 'Failed to generate thumbnail');
         } finally {
-          setProcessingCount((prev) => Math.max(0, prev - 1));
+          setProcessingCount((prev): number => Math.max(0, prev - 1));
         }
       }
 
@@ -251,12 +251,12 @@ export function useAssetThumbnails(
       }
 
       // CRITICAL FIX: Clean up any remaining blob URLs
-      blobUrls.forEach((url) => URL.revokeObjectURL(url));
+      blobUrls.forEach((url): void => URL.revokeObjectURL(url));
     })();
 
     // CRITICAL FIX: Cleanup on unmount
-    return () => {
-      blobUrls.forEach((url) => URL.revokeObjectURL(url));
+    return (): void => {
+      blobUrls.forEach((url): void => URL.revokeObjectURL(url));
     };
   }, [assets, assetsLoaded, supabase, onAssetUpdate]);
 

@@ -57,11 +57,11 @@ export function useKeyframeSelection({
   const [feather, setFeather] = useState<number>(24);
 
   const selectedFrame = useMemo(
-    () => frames.find((frame) => frame.id === selectedFrameId) ?? null,
+    (): SceneFrameRow | null => frames.find((frame): boolean => frame.id === selectedFrameId) ?? null,
     [frames, selectedFrameId]
   );
 
-  const clampCrop = useCallback((next: CropState, frame: SceneFrameRow | null) => {
+  const clampCrop = useCallback((next: CropState, frame: SceneFrameRow | null): CropState => {
     if (!frame) return next;
     const maxSize = Math.min(frame.width ?? next.size, frame.height ?? next.size);
     const size = Math.min(next.size, maxSize);
@@ -75,7 +75,7 @@ export function useKeyframeSelection({
   }, []);
 
   const handleFrameSelect = useCallback(
-    async (frame: SceneFrameRow) => {
+    async (frame: SceneFrameRow): Promise<void> => {
       setSelectedFrameId(frame.id);
       const url = frameUrls[frame.id] ?? (await signStoragePath(frame.storage_path));
       setSelectedFrameUrl(url);
@@ -85,7 +85,7 @@ export function useKeyframeSelection({
   );
 
   const handleImageClick = useCallback(
-    (event: React.MouseEvent<HTMLImageElement>) => {
+    (event: React.MouseEvent<HTMLImageElement>): void => {
       if (mode !== 'crop' || !selectedFrame) return;
       const rect = event.currentTarget.getBoundingClientRect();
       const scaleX = (selectedFrame.width ?? rect.width) / rect.width;
@@ -103,7 +103,7 @@ export function useKeyframeSelection({
     [mode, selectedFrame, crop.size, clampCrop]
   );
 
-  const cropOverlayStyle = useMemo(() => {
+  const cropOverlayStyle = useMemo((): { left: string; top: string; width: string; height: string; } | undefined => {
     if (mode !== 'crop' || !selectedFrame || !selectedFrameUrl) return undefined;
     const displayWidth = selectedFrame.width ?? 1;
     const displayHeight = selectedFrame.height ?? 1;
@@ -116,9 +116,9 @@ export function useKeyframeSelection({
   }, [crop, mode, selectedFrame, selectedFrameUrl]);
 
   // Auto-select first middle frame when frames change
-  useEffect(() => {
+  useEffect((): void => {
     if (!selectedFrameId && frames.length > 0) {
-      const preferredFrame = frames.find((f) => f.kind === 'middle') ?? frames[0];
+      const preferredFrame = frames.find((f): boolean => f.kind === 'middle') ?? frames[0];
       if (preferredFrame) {
         setSelectedFrameId(preferredFrame.id);
         const url = frameUrls[preferredFrame.id] ?? null;
@@ -131,7 +131,7 @@ export function useKeyframeSelection({
   }, [frames, frameUrls, selectedFrameId, clampCrop]);
 
   // Reset mode when frame changes
-  useEffect(() => {
+  useEffect((): void => {
     setMode('global');
   }, [selectedFrameId]);
 

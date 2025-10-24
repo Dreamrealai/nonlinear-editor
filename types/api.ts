@@ -326,6 +326,7 @@ export interface TimelineClip {
   volume?: number;
   opacity?: number;
   speed?: number;
+  color?: string; // Optional color for visual organization
 }
 
 export interface OutputSpec {

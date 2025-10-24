@@ -60,9 +60,9 @@ export function useAssetUploadProgress(
   const [uploads, setUploads] = useState<UploadProgress[]>([]);
   const xhrRef = useRef<Map<string, XMLHttpRequest>>(new Map());
 
-  const updateUploadProgress = useCallback((id: string, update: Partial<UploadProgress>) => {
-    setUploads((prev) =>
-      prev.map((upload) => (upload.id === id ? { ...upload, ...update } : upload))
+  const updateUploadProgress = useCallback((id: string, update: Partial<UploadProgress>): void => {
+    setUploads((prev): UploadProgress[] =>
+      prev.map((upload): UploadProgress => (upload.id === id ? { ...upload, ...update } : upload))
     );
   }, []);
 
@@ -80,7 +80,7 @@ export function useAssetUploadProgress(
         status: 'Starting upload...',
       };
 
-      setUploads((prev) => [...prev, initialUpload]);
+      setUploads((prev): UploadProgress[] => [...prev, initialUpload]);
 
       try {
         // Phase 1: Upload file (0-80%)
@@ -91,12 +91,12 @@ export function useAssetUploadProgress(
 
         // Use XMLHttpRequest for accurate upload progress
         const uploadResult = await new Promise<{ assetId: string; success: boolean }>(
-          (resolve, reject) => {
+          (resolve, reject): void => {
             const xhr = new XMLHttpRequest();
             xhrRef.current.set(uploadId, xhr);
 
             // Track upload progress (0-80%)
-            xhr.upload.addEventListener('progress', (event) => {
+            xhr.upload.addEventListener('progress', (event): void => {
               if (event.lengthComputable) {
                 const percentComplete = Math.round((event.loaded / event.total) * 80); // 0-80%
                 updateUploadProgress(uploadId, {
@@ -108,7 +108,7 @@ export function useAssetUploadProgress(
             });
 
             // Upload complete - server processing starts
-            xhr.upload.addEventListener('load', () => {
+            xhr.upload.addEventListener('load', (): void => {
               updateUploadProgress(uploadId, {
                 progress: 80,
                 phase: 'processing',
@@ -116,7 +116,7 @@ export function useAssetUploadProgress(
               });
             });
 
-            xhr.addEventListener('load', () => {
+            xhr.addEventListener('load', (): void => {
               if (xhr.status >= 200 && xhr.status < 300) {
                 try {
                   const result = JSON.parse(xhr.responseText);
@@ -134,11 +134,11 @@ export function useAssetUploadProgress(
               }
             });
 
-            xhr.addEventListener('error', () => {
+            xhr.addEventListener('error', (): void => {
               reject(new Error('Upload failed - network error'));
             });
 
-            xhr.addEventListener('abort', () => {
+            xhr.addEventListener('abort', (): void => {
               reject(new Error('Upload cancelled'));
             });
 
@@ -177,8 +177,8 @@ export function useAssetUploadProgress(
         toast.success(`${file.name} uploaded successfully`);
 
         // Auto-clear after 3 seconds
-        setTimeout(() => {
-          setUploads((prev) => prev.filter((u) => u.id !== uploadId));
+        setTimeout((): void => {
+          setUploads((prev): UploadProgress[] => prev.filter((u): boolean => u.id !== uploadId));
         }, 3000);
       } catch (error) {
         browserLogger.error({ error, projectId, fileName: file.name }, 'Failed to upload asset');
@@ -197,7 +197,7 @@ export function useAssetUploadProgress(
     [projectId, onUploadSuccess, updateUploadProgress]
   );
 
-  const clearUpload = useCallback((id: string) => {
+  const clearUpload = useCallback((id: string): void => {
     // Cancel upload if still in progress
     const xhr = xhrRef.current.get(id);
     if (xhr) {
@@ -205,12 +205,12 @@ export function useAssetUploadProgress(
       xhrRef.current.delete(id);
     }
 
-    setUploads((prev) => prev.filter((u) => u.id !== id));
+    setUploads((prev): UploadProgress[] => prev.filter((u): boolean => u.id !== id));
   }, []);
 
-  const clearAllUploads = useCallback(() => {
+  const clearAllUploads = useCallback((): void => {
     // Cancel all in-progress uploads
-    xhrRef.current.forEach((xhr) => xhr.abort());
+    xhrRef.current.forEach((xhr): void => xhr.abort());
     xhrRef.current.clear();
 
     setUploads([]);

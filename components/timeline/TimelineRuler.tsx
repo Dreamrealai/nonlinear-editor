@@ -52,7 +52,7 @@ function calculateLabelInterval(zoom: number): {
   ];
 
   // Find the smallest nice interval that's >= minInterval
-  const majorInterval = niceIntervals.find((interval) => interval >= minInterval) || 1800;
+  const majorInterval = niceIntervals.find((interval): boolean => interval >= minInterval) || 1800;
 
   // Calculate minor interval (for tick marks between labels)
   const minorInterval = majorInterval / 5;
@@ -139,7 +139,7 @@ export const TimelineRuler = React.memo<TimelineRulerProps>(function TimelineRul
   currentTime,
   onPlayheadMouseDown,
   onRulerClick,
-}) {
+}): JSX.Element {
   const timelineWidth = timelineDuration * zoom;
   const rulerRef = useRef<HTMLDivElement>(null);
   const [hoverTime, setHoverTime] = useState<number | null>(null);
@@ -147,7 +147,7 @@ export const TimelineRuler = React.memo<TimelineRulerProps>(function TimelineRul
 
   // Memoize markers calculation to avoid recalculating on every render
   // Only recalculates when timelineDuration or zoom changes
-  const markers = useMemo(() => generateMarkers(timelineDuration, zoom), [timelineDuration, zoom]);
+  const markers = useMemo((): { time: number; type: "major" | "minor"; label?: string; }[] => generateMarkers(timelineDuration, zoom), [timelineDuration, zoom]);
 
   /**
    * Calculate time position from mouse X coordinate
@@ -167,7 +167,7 @@ export const TimelineRuler = React.memo<TimelineRulerProps>(function TimelineRul
    * Handle click on ruler to set playhead position
    */
   const handleRulerClick = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.MouseEvent): void => {
       const time = calculateTimeFromX(e.clientX);
       onRulerClick?.(time);
     },
@@ -178,7 +178,7 @@ export const TimelineRuler = React.memo<TimelineRulerProps>(function TimelineRul
    * Handle mouse move to show hover preview
    */
   const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.MouseEvent): void => {
       if (!rulerRef.current) return;
       const time = calculateTimeFromX(e.clientX);
       const rect = rulerRef.current.getBoundingClientRect();
@@ -192,7 +192,7 @@ export const TimelineRuler = React.memo<TimelineRulerProps>(function TimelineRul
   /**
    * Clear hover preview when mouse leaves
    */
-  const handleMouseLeave = useCallback(() => {
+  const handleMouseLeave = useCallback((): void => {
     setHoverTime(null);
   }, []);
 
@@ -213,7 +213,7 @@ export const TimelineRuler = React.memo<TimelineRulerProps>(function TimelineRul
       >
         <div className="relative h-full" style={{ width: timelineWidth }}>
           {/* Adaptive time markers with major (labeled) and minor (tick) marks */}
-          {markers.map((marker, index) => {
+          {markers.map((marker, index): JSX.Element => {
             const position = marker.time * zoom;
             const isMajor = marker.type === 'major';
 

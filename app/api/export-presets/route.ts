@@ -5,11 +5,12 @@
  * POST /api/export-presets - Create a custom preset
  */
 
-import { NextResponse } from 'next/server';
+import type { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { createServerSupabaseClient } from '@/lib/supabase';
-import { errorResponse, successResponse } from '@/lib/api/response';
+import { errorResponse, successResponse, validationError } from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
+import { validateString, validateInteger, ValidationError } from '@/lib/validation';
 import type { ExportPreset, CreateExportPresetInput } from '@/types/export';
 
 /**
@@ -17,7 +18,7 @@ import type { ExportPreset, CreateExportPresetInput } from '@/types/export';
  *
  * List all export presets (platform presets + user's custom presets)
  */
-export const GET = withAuth(async (req, context) => {
+export const GET = withAuth(async (req, context): Promise<NextResponse<ErrorResponse> | NextResponse<{ presets: ExportPreset[]; } | SuccessResponse<{ presets: ExportPreset[]; }>>> => {
   try {
     const { userId } = context;
     const supabase = await createServerSupabaseClient();
@@ -47,18 +48,24 @@ export const GET = withAuth(async (req, context) => {
  *
  * Create a new custom export preset
  */
-export const POST = withAuth(async (req, context) => {
+export const POST = withAuth(async (req, context): Promise<NextResponse<ErrorResponse> | NextResponse<{ preset: ExportPreset; } | SuccessResponse<{ preset: ExportPreset; }>>> => {
   try {
     const { userId } = context;
     const body: CreateExportPresetInput = await req.json();
 
     // Validate input
-    if (!body.name || !body.settings) {
-      return errorResponse('Missing required fields: name, settings', 400);
+    validateString(body.name, 'name', { minLength: 1, maxLength: 100 });
+
+    if (!body.settings || typeof body.settings !== 'object') {
+      throw new ValidationError('settings is required and must be an object', 'settings', 'INVALID_TYPE');
     }
 
-    if (!body.settings.width || !body.settings.height || !body.settings.fps) {
-      return errorResponse('Invalid settings: width, height, and fps are required', 400);
+    validateInteger(body.settings.width, 'settings.width', { required: true, min: 1, max: 7680 });
+    validateInteger(body.settings.height, 'settings.height', { required: true, min: 1, max: 4320 });
+    validateInteger(body.settings.fps, 'settings.fps', { required: true, min: 1, max: 120 });
+
+    if (body.description !== undefined && body.description !== null) {
+      validateString(body.description, 'description', { required: false, maxLength: 500 });
     }
 
     const supabase = await createServerSupabaseClient();
@@ -86,6 +93,9 @@ export const POST = withAuth(async (req, context) => {
     serverLogger.info({ userId, presetId: preset.id }, 'Export preset created');
     return successResponse({ preset: preset as ExportPreset }, 201);
   } catch (error) {
+    if (error instanceof ValidationError) {
+      return validationError(error.message);
+    }
     serverLogger.error({ error }, 'Unexpected error creating export preset');
     return errorResponse('Internal server error', 500);
   }

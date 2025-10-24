@@ -62,7 +62,7 @@ export function useTimelineScrolling({
 
   // Mouse wheel zoom handler (zooms to cursor position)
   const handleWheel = useCallback(
-    (e: WheelEvent) => {
+    (e: WheelEvent): void => {
       // Only zoom if Ctrl/Cmd is pressed
       if (!(e.ctrlKey || e.metaKey)) return;
 
@@ -89,7 +89,7 @@ export function useTimelineScrolling({
 
       // Adjust scroll position to keep the time under cursor at the same screen position
       // Schedule scroll adjustment after zoom state updates
-      requestAnimationFrame(() => {
+      requestAnimationFrame((): void => {
         const container = containerRef.current;
         if (!container) return;
 
@@ -105,7 +105,7 @@ export function useTimelineScrolling({
   );
 
   // Space key press/release handlers
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: KeyboardEvent): void => {
     // Only activate space panning if not typing in an input
     if (
       e.code === 'Space' &&
@@ -116,7 +116,7 @@ export function useTimelineScrolling({
     }
   }, []);
 
-  const handleKeyUp = useCallback((e: KeyboardEvent) => {
+  const handleKeyUp = useCallback((e: KeyboardEvent): void => {
     if (e.code === 'Space') {
       isSpacePressedRef.current = false;
       isPanningRef.current = false;
@@ -125,7 +125,7 @@ export function useTimelineScrolling({
 
   // Mouse down handler for space+drag panning
   const handleMouseDown = useCallback(
-    (e: MouseEvent) => {
+    (e: MouseEvent): void => {
       if (!isSpacePressedRef.current) return;
       const container = containerRef.current;
       if (!container) return;
@@ -145,7 +145,7 @@ export function useTimelineScrolling({
 
   // Mouse move handler for space+drag panning
   const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
+    (e: MouseEvent): void => {
       if (!isPanningRef.current) return;
       const container = containerRef.current;
       if (!container) return;
@@ -158,7 +158,7 @@ export function useTimelineScrolling({
   );
 
   // Mouse up handler to stop panning
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = useCallback((): void => {
     if (!isPanningRef.current) return;
     const container = containerRef.current;
     if (!container) return;
@@ -168,7 +168,7 @@ export function useTimelineScrolling({
   }, [containerRef]);
 
   // Auto-scroll during playback with requestAnimationFrame throttling
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!isPlaying || !autoScrollEnabled) return;
 
     const container = containerRef.current;
@@ -177,7 +177,7 @@ export function useTimelineScrolling({
     // Use requestAnimationFrame for smooth 60fps scrolling
     let rafId: number | null = null;
 
-    const performAutoScroll = () => {
+    const performAutoScroll = (): void => {
       const now = Date.now();
       // Throttle to ~60fps (16ms) minimum
       if (now - lastAutoScrollTimeRef.current < 16) {
@@ -209,7 +209,7 @@ export function useTimelineScrolling({
     // Start the auto-scroll loop
     rafId = requestAnimationFrame(performAutoScroll);
 
-    return () => {
+    return (): void => {
       if (rafId !== null) {
         cancelAnimationFrame(rafId);
       }
@@ -217,7 +217,7 @@ export function useTimelineScrolling({
   }, [containerRef, currentTime, zoom, isPlaying, autoScrollEnabled]);
 
   // Setup event listeners
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     const container = containerRef.current;
     if (!container) return;
 
@@ -233,7 +233,7 @@ export function useTimelineScrolling({
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
 
-    return () => {
+    return (): void => {
       container.removeEventListener('wheel', handleWheel);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
@@ -252,7 +252,7 @@ export function useTimelineScrolling({
   ]);
 
   // Update cursor when space key state changes
-  useEffect(() => {
+  useEffect((): void => {
     const container = containerRef.current;
     if (!container) return;
 

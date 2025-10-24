@@ -120,11 +120,11 @@ export function createPerformanceTimer(
   category: PerformanceCategory,
   name: string,
   metadata?: Record<string, unknown>
-) {
+): { end: () => number; } {
   const start = performance.now();
 
   return {
-    end: () => {
+    end: (): number => {
       const duration = performance.now() - start;
       recordPerformanceMetric(category, name, duration, metadata);
       return duration;
@@ -135,21 +135,21 @@ export function createPerformanceTimer(
 /**
  * Get performance statistics for a category
  */
-export function getPerformanceStats(category: PerformanceCategory) {
-  const categoryMetrics = performanceMetrics.filter((m) => m.category === category);
+export function getPerformanceStats(category: PerformanceCategory): { count: number; avg: number; min: number; max: number; p50: number | undefined; p90: number | undefined; p95: number | undefined; p99: number | undefined; threshold: number; slowOperations: number; } | null {
+  const categoryMetrics = performanceMetrics.filter((m): boolean => m.category === category);
 
   if (categoryMetrics.length === 0) {
     return null;
   }
 
-  const durations = categoryMetrics.map((m) => m.duration);
-  const sum = durations.reduce((a, b) => a + b, 0);
+  const durations = categoryMetrics.map((m): number => m.duration);
+  const sum = durations.reduce((a, b): number => a + b, 0);
   const avg = sum / durations.length;
   const min = Math.min(...durations);
   const max = Math.max(...durations);
 
   // Calculate percentiles
-  const sorted = durations.slice().sort((a, b) => a - b);
+  const sorted = durations.slice().sort((a, b): number => a - b);
   const p50 = sorted[Math.floor(sorted.length * 0.5)];
   const p90 = sorted[Math.floor(sorted.length * 0.9)];
   const p95 = sorted[Math.floor(sorted.length * 0.95)];
@@ -165,7 +165,7 @@ export function getPerformanceStats(category: PerformanceCategory) {
     p95,
     p99,
     threshold: SLOW_THRESHOLDS[category],
-    slowOperations: categoryMetrics.filter((m) => m.duration > SLOW_THRESHOLDS[category]).length,
+    slowOperations: categoryMetrics.filter((m): boolean => m.duration > SLOW_THRESHOLDS[category]).length,
   };
 }
 
@@ -191,7 +191,7 @@ export function exportPerformanceReport(): string {
     timestamp: new Date().toISOString(),
     metrics: performanceMetrics,
     stats: Object.values(PerformanceCategory).reduce(
-      (acc, category) => {
+      (acc, category): Record<string, { count: number; avg: number; min: number; max: number; p50: number | undefined; p90: number | undefined; p95: number | undefined; p99: number | undefined; threshold: number; slowOperations: number; } | null> => {
         const stats = getPerformanceStats(category);
         if (stats) {
           acc[category] = stats;
@@ -213,7 +213,7 @@ export function exportPerformanceReport(): string {
  * Note: This is a placeholder that should be implemented in a .tsx file
  * @deprecated Use measureComponentRender instead
  */
-export function useRenderPerformance() {
+export function useRenderPerformance(): void {
   // Placeholder - actual implementation requires React hooks in a .tsx file
   return;
 }
@@ -237,7 +237,7 @@ export const browserPerformance = {
   /**
    * Get navigation timing metrics
    */
-  getNavigationTiming: () => {
+  getNavigationTiming: (): { domContentLoaded: number; domInteractive: number; domComplete: number; loadComplete: number; dns: number; tcp: number; request: number; response: number; domProcessing: number; rendering: number; } | null => {
     if (typeof window === 'undefined' || !window.performance) {
       return null;
     }
@@ -265,12 +265,12 @@ export const browserPerformance = {
   /**
    * Get resource timing metrics
    */
-  getResourceTiming: () => {
+  getResourceTiming: (): { name: string; duration: number; size: number; type: string; }[] => {
     if (typeof window === 'undefined' || !window.performance) {
       return [];
     }
 
-    return window.performance.getEntriesByType('resource').map((entry) => ({
+    return window.performance.getEntriesByType('resource').map((entry): { name: string; duration: number; size: number; type: string; } => ({
       name: (entry as PerformanceResourceTiming).name,
       duration: entry.duration,
       size: (entry as PerformanceResourceTiming).transferSize,
@@ -281,7 +281,7 @@ export const browserPerformance = {
   /**
    * Get memory usage (Chrome only)
    */
-  getMemoryUsage: () => {
+  getMemoryUsage: (): { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number; usedPercentage: number; } | null => {
     if (typeof window === 'undefined') {
       return null;
     }

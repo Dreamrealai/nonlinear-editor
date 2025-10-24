@@ -342,7 +342,7 @@ export class VideoService {
     projectId: string,
     videoUrl: string,
     metadata: { mimeType: string; generator: string }
-  ) {
+  ): Promise<any> {
     const videoResponse = await fetch(videoUrl);
     if (!videoResponse.ok) {
       throw new Error(`Failed to download video: ${videoResponse.status}`);
@@ -360,7 +360,7 @@ export class VideoService {
     projectId: string,
     videoBinary: Buffer,
     metadata: { mimeType: string; generator: string }
-  ) {
+  ): Promise<any> {
     const fileName = `${uuidv4()}.mp4`;
     const storagePath = `${userId}/${projectId}/${fileName}`;
 

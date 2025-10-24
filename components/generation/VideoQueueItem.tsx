@@ -29,7 +29,7 @@ const VideoQueueItem = React.memo<VideoQueueItemProps>(function VideoQueueItem({
   thumbnailUrl,
   error,
   onRemove,
-}: VideoQueueItemProps) {
+}: VideoQueueItemProps): JSX.Element {
   const [videoLoading, setVideoLoading] = useState(true);
   const [videoError, setVideoError] = useState(false);
 
@@ -58,17 +58,17 @@ const VideoQueueItem = React.memo<VideoQueueItemProps>(function VideoQueueItem({
               playsInline
               className="h-full w-full object-contain bg-black"
               poster={thumbnailUrl}
-              onLoadStart={() => {
+              onLoadStart={(): void => {
                 setVideoLoading(true);
                 setVideoError(false);
               }}
-              onLoadedData={() => {
+              onLoadedData={(): void => {
                 setVideoLoading(false);
               }}
-              onCanPlay={() => {
+              onCanPlay={(): void => {
                 setVideoLoading(false);
               }}
-              onError={async (e) => {
+              onError={async (e): Promise<void> => {
                 const { browserLogger } = await import('@/lib/browserLogger');
                 browserLogger.error({ videoUrl, errorEvent: e.type }, 'Video load error');
                 setVideoLoading(false);
@@ -173,7 +173,7 @@ const VideoQueueItem = React.memo<VideoQueueItemProps>(function VideoQueueItem({
 
       {/* Remove Button */}
       <button
-        onClick={() => onRemove(id)}
+        onClick={(): void => onRemove(id)}
         className="absolute right-2 top-2 z-10 rounded-md bg-black/50 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100"
         title="Remove from queue"
       >

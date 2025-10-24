@@ -50,7 +50,7 @@ export function useImageUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load video URL when asset is selected
-  useEffect(() => {
+  useEffect((): void => {
     if (!selectedAssetId) {
       setAssetVideoUrl(null);
       return;
@@ -63,14 +63,14 @@ export function useImageUpload({
   }, [selectedAssetId, assets, signStoragePath]);
 
   // Track video readiness
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     const video = videoRef.current;
     if (!video || !showVideoPlayer) {
       setIsVideoReady(false);
       return;
     }
 
-    const handleLoadedMetadata = () => {
+    const handleLoadedMetadata = (): void => {
       setIsVideoReady(true);
     };
 
@@ -79,12 +79,12 @@ export function useImageUpload({
     }
 
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
-    return () => {
+    return (): void => {
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
     };
   }, [showVideoPlayer, assetVideoUrl]);
 
-  const handleExtractFrame = useCallback(async () => {
+  const handleExtractFrame = useCallback(async (): Promise<void> => {
     if (!videoRef.current || !canvasRef.current || !selectedAssetId) return;
 
     setIsExtractingFrame(true);
@@ -108,7 +108,7 @@ export function useImageUpload({
   }, [selectedAssetId, assets, supabase, onRefreshNeeded]);
 
   const handleImageUpload = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
+    async (event: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
       const file = event.target.files?.[0];
       if (!file || !selectedAssetId) return;
 
@@ -137,13 +137,13 @@ export function useImageUpload({
   );
 
   const handlePasteAsKeyframe = useCallback(
-    async (event: ClipboardEvent) => {
+    async (event: ClipboardEvent): Promise<void> => {
       if (!selectedAssetId) return;
 
       const items = event.clipboardData?.items;
       if (!items) return;
 
-      const imageItems = Array.from(items).filter((item) => item.type.startsWith('image/'));
+      const imageItems = Array.from(items).filter((item): boolean => item.type.startsWith('image/'));
       if (imageItems.length === 0) return;
 
       const target = event.target as HTMLElement;

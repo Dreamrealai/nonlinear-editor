@@ -37,11 +37,11 @@ type SelectionStore = {
 };
 
 export const useSelectionStore = create<SelectionStore>()(
-  immer((set, get) => ({
+  immer((set, get): { selectedClipIds: Set<string>; selectClip: (id: string, multi?: boolean | undefined) => void; deselectClip: (id: string) => void; clearSelection: () => void; isSelected: (id: string) => boolean; getSelectedCount: () => number; getSelectedIds: () => string[]; } => ({
     selectedClipIds: new Set<string>(),
 
-    selectClip: (id, multi = false) =>
-      set((state) => {
+    selectClip: (id, multi = false): void =>
+      set((state): void => {
         if (multi) {
           if (state.selectedClipIds.has(id)) {
             state.selectedClipIds.delete(id);
@@ -54,20 +54,20 @@ export const useSelectionStore = create<SelectionStore>()(
         }
       }),
 
-    deselectClip: (id) =>
-      set((state) => {
+    deselectClip: (id): void =>
+      set((state): void => {
         state.selectedClipIds.delete(id);
       }),
 
-    clearSelection: () =>
-      set((state) => {
+    clearSelection: (): void =>
+      set((state): void => {
         state.selectedClipIds.clear();
       }),
 
-    isSelected: (id) => get().selectedClipIds.has(id),
+    isSelected: (id): boolean => get().selectedClipIds.has(id),
 
-    getSelectedCount: () => get().selectedClipIds.size,
+    getSelectedCount: (): number => get().selectedClipIds.size,
 
-    getSelectedIds: () => Array.from(get().selectedClipIds),
+    getSelectedIds: (): string[] => Array.from(get().selectedClipIds),
   }))
 );

@@ -35,13 +35,24 @@ function dbToGain(db: number): number {
   return Math.pow(10, db / 20);
 }
 
+export interface UseAudioEffectsReturn {
+  connectAudio: (clipId: string, videoElement: HTMLVideoElement) => AudioNode | null;
+  applyEffects: (
+    clipId: string,
+    effects: AudioEffects | undefined,
+    clipProgress: number,
+    clipDuration: number
+  ) => void;
+  disconnectAudio: (clipId: string) => void;
+}
+
 /**
  * Custom hook for managing audio effects using Web Audio API.
  *
  * Creates and manages an audio processing chain for each video element.
  * The chain includes gain, EQ filters, and compression nodes.
  */
-export function useAudioEffects() {
+export function useAudioEffects(): UseAudioEffectsReturn {
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioNodesRef = useRef<Map<string, AudioNode>>(new Map());
 
@@ -255,16 +266,16 @@ export function useAudioEffects() {
   /**
    * Clean up all audio resources on unmount
    */
-  useEffect(() => {
-    return () => {
+  useEffect((): () => void => {
+    return (): void => {
       // Disconnect all audio nodes
-      audioNodesRef.current.forEach((_, clipId) => {
+      audioNodesRef.current.forEach((_, clipId): void => {
         disconnectAudio(clipId);
       });
 
       // Close audio context
       if (audioContextRef.current) {
-        audioContextRef.current.close().catch((error) => {
+        audioContextRef.current.close().catch((error): void => {
           browserLogger.error({ error }, 'Failed to close audio context');
         });
         audioContextRef.current = null;

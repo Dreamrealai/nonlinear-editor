@@ -40,7 +40,7 @@ export async function fetchWithTimeout(
   const { timeout = TIMEOUT.DEFAULT, ...fetchOptions } = options;
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  const timeoutId = setTimeout((): void => controller.abort(), timeout);
 
   try {
     const response = await fetch(url, {
@@ -89,7 +89,7 @@ export async function fetchWithRetry(
           : Math.pow(2, attempt) * RETRY.DEFAULT_BASE_DELAY;
 
         if (attempt < maxRetries - 1) {
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          await new Promise((resolve): NodeJS.Timeout => setTimeout(resolve, delay));
           continue;
         }
       }
@@ -97,7 +97,7 @@ export async function fetchWithRetry(
       // Handle server errors with retry
       if (shouldRetryOnStatus(response.status) && attempt < maxRetries - 1) {
         const delay = Math.pow(2, attempt) * RETRY.DEFAULT_BASE_DELAY;
-        await new Promise((resolve) => setTimeout(resolve, delay));
+        await new Promise((resolve): NodeJS.Timeout => setTimeout(resolve, delay));
         continue;
       }
 
@@ -106,7 +106,7 @@ export async function fetchWithRetry(
       if (attempt === maxRetries - 1) throw error;
 
       const delay = Math.pow(2, attempt) * RETRY.DEFAULT_BASE_DELAY;
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      await new Promise((resolve): NodeJS.Timeout => setTimeout(resolve, delay));
     }
   }
 

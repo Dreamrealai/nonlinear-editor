@@ -25,7 +25,7 @@ interface AssetLibraryModalProps {
   onClose: () => void;
 }
 
-export function AssetLibraryModal({ projectId, onSelect, onClose }: AssetLibraryModalProps) {
+export function AssetLibraryModal({ projectId, onSelect, onClose }: AssetLibraryModalProps): JSX.Element {
   const [assets, setAssets] = useState<ImageAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,8 +34,8 @@ export function AssetLibraryModal({ projectId, onSelect, onClose }: AssetLibrary
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 20;
 
-  useEffect(() => {
-    const fetchAssets = async () => {
+  useEffect((): void => {
+    const fetchAssets = async (): Promise<void> => {
       try {
         setLoading(true);
         const res = await fetch(
@@ -113,10 +113,10 @@ export function AssetLibraryModal({ projectId, onSelect, onClose }: AssetLibrary
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-4">
-              {assets.map((asset) => (
+              {assets.map((asset): JSX.Element => (
                 <button
                   key={asset.id}
-                  onClick={() => onSelect(asset)}
+                  onClick={(): void => onSelect(asset)}
                   className="group relative aspect-square overflow-hidden rounded-lg border-2 border-neutral-200 hover:border-blue-500 transition-colors"
                 >
                   <Image
@@ -151,14 +151,14 @@ export function AssetLibraryModal({ projectId, onSelect, onClose }: AssetLibrary
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
+                    onClick={(): void => setCurrentPage((prev): number => Math.max(0, prev - 1))}
                     disabled={currentPage === 0 || loading}
                     className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
                   >
                     Previous
                   </button>
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))}
+                    onClick={(): void => setCurrentPage((prev): number => Math.min(totalPages - 1, prev + 1))}
                     disabled={currentPage >= totalPages - 1 || loading}
                     className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
                   >

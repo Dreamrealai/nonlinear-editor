@@ -1,3 +1,39 @@
+/**
+ * EditorHeader - Main navigation and controls for the video editor
+ *
+ * Provides the top navigation bar for the editor with project switching,
+ * tab navigation, export controls, theme toggle, backup, and user menu.
+ * Supports both desktop and mobile layouts with responsive hamburger menu.
+ *
+ * Features:
+ * - Project switching dropdown with search
+ * - Project renaming and deletion
+ * - Tab navigation (Video Editor, Generate Video, Generate Audio, Image Editor)
+ * - Export button integration
+ * - Auto-save indicator with last saved timestamp
+ * - Theme toggle (light/dark/system)
+ * - Backup button
+ * - Generation dashboard access
+ * - User menu with account controls
+ * - Mobile-responsive hamburger menu
+ *
+ * @param projectId - The ID of the current project being edited
+ * @param currentTab - The currently active editor tab
+ * @param onExport - Optional callback function to trigger export
+ * @param lastSaved - Optional timestamp of last successful save
+ * @param isSaving - Optional boolean indicating if save is in progress
+ *
+ * @example
+ * ```tsx
+ * <EditorHeader
+ *   projectId="550e8400-e29b-41d4-a716-446655440000"
+ *   currentTab="video-editor"
+ *   onExport={() => setShowExportModal(true)}
+ *   lastSaved={new Date()}
+ *   isSaving={false}
+ * />
+ * ```
+ */
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -34,7 +70,7 @@ export function EditorHeader({
   onExport,
   lastSaved,
   isSaving,
-}: EditorHeaderProps) {
+}: EditorHeaderProps): JSX.Element {
   const router = useRouter();
   const { supabaseClient } = useSupabase();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -46,7 +82,7 @@ export function EditorHeader({
   const [isDeleting, setIsDeleting] = useState(false);
   const dashboard = useGenerationDashboardModal();
 
-  useEffect(() => {
+  useEffect((): void => {
     if (!supabaseClient) return;
 
     const loadProjects = async (): Promise<void> => {
@@ -57,7 +93,7 @@ export function EditorHeader({
 
       if (data) {
         setProjects(data);
-        const current = data.find((p) => p.id === projectId);
+        const current = data.find((p): boolean => p.id === projectId);
         setCurrentProject(current || null);
       }
     };
@@ -66,7 +102,7 @@ export function EditorHeader({
   }, [supabaseClient, projectId]);
 
   const handleProjectChange = useCallback(
-    (newProjectId: string) => {
+    (newProjectId: string): void => {
       setIsDropdownOpen(false);
       router.push(`/editor/${newProjectId}`);
     },
@@ -74,7 +110,7 @@ export function EditorHeader({
   );
 
   const handleRenameClick = useCallback(
-    (e?: React.MouseEvent) => {
+    (e?: React.MouseEvent): void => {
       e?.stopPropagation(); // Prevent dropdown from toggling
       setRenameValue(currentProject?.title || '');
       setIsRenaming(true);
@@ -83,7 +119,7 @@ export function EditorHeader({
     [currentProject?.title]
   );
 
-  const handleRenameSubmit = useCallback(async () => {
+  const handleRenameSubmit = useCallback(async (): Promise<void> => {
     if (!supabaseClient || !renameValue.trim()) {
       toast.error('Please enter a project name');
       return;
@@ -99,7 +135,7 @@ export function EditorHeader({
 
       setCurrentProject({ id: projectId, title: renameValue.trim() });
       setProjects(
-        projects.map((p) => (p.id === projectId ? { ...p, title: renameValue.trim() } : p))
+        projects.map((p): Project => (p.id === projectId ? { ...p, title: renameValue.trim() } : p))
       );
       toast.success('Project renamed successfully');
       setIsRenaming(false);
@@ -109,7 +145,7 @@ export function EditorHeader({
     }
   }, [supabaseClient, renameValue, projectId, projects]);
 
-  const handleDeleteProject = useCallback(async () => {
+  const handleDeleteProject = useCallback(async (): Promise<void> => {
     if (!supabaseClient) return;
 
     const confirmDelete = confirm(
@@ -139,7 +175,7 @@ export function EditorHeader({
       <div className="flex items-center justify-between">
         {/* Mobile Menu Button */}
         <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          onClick={(): void => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="lg:hidden rounded-lg border border-neutral-300 bg-white p-2 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
           aria-label="Toggle menu"
         >
@@ -170,8 +206,8 @@ export function EditorHeader({
                 <input
                   type="text"
                   value={renameValue}
-                  onChange={(e) => setRenameValue(e.target.value)}
-                  onKeyDown={(e) => {
+                  onChange={(e): void => setRenameValue(e.target.value)}
+                  onKeyDown={(e): void => {
                     if (e.key === 'Enter') void handleRenameSubmit();
                     if (e.key === 'Escape') setIsRenaming(false);
                   }}
@@ -179,13 +215,13 @@ export function EditorHeader({
                   aria-label="Rename project"
                 />
                 <button
-                  onClick={() => void handleRenameSubmit()}
+                  onClick={(): undefined => void handleRenameSubmit()}
                   className="rounded-lg bg-neutral-900 px-3 py-2 text-xs font-semibold text-white hover:bg-neutral-700"
                 >
                   Save
                 </button>
                 <button
-                  onClick={() => setIsRenaming(false)}
+                  onClick={(): void => setIsRenaming(false)}
                   className="rounded-lg border border-neutral-300 px-3 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50"
                 >
                   Cancel
@@ -193,7 +229,7 @@ export function EditorHeader({
               </div>
             ) : (
               <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                onClick={(): void => setIsDropdownOpen(!isDropdownOpen)}
                 className="flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 transition-colors"
               >
                 <svg
@@ -231,8 +267,8 @@ export function EditorHeader({
                 <button
                   type="button"
                   className="fixed inset-0 z-10"
-                  onClick={() => setIsDropdownOpen(false)}
-                  onKeyDown={(e) => {
+                  onClick={(): void => setIsDropdownOpen(false)}
+                  onKeyDown={(e): void => {
                     if (e.key === 'Escape') setIsDropdownOpen(false);
                   }}
                   aria-label="Close dropdown"
@@ -243,7 +279,7 @@ export function EditorHeader({
                     {projects.length === 0 ? (
                       <div className="px-4 py-2 text-sm text-neutral-500">No projects found</div>
                     ) : (
-                      projects.map((project) => (
+                      projects.map((project): JSX.Element => (
                         <div
                           key={project.id}
                           className={`w-full px-4 py-2 text-left text-sm hover:bg-neutral-50 transition-colors flex items-center justify-between group ${
@@ -253,7 +289,7 @@ export function EditorHeader({
                           }`}
                         >
                           <button
-                            onClick={() =>
+                            onClick={(): void =>
                               project.id === projectId
                                 ? handleRenameClick()
                                 : handleProjectChange(project.id)
@@ -284,7 +320,7 @@ export function EditorHeader({
                                 </svg>
                               </button>
                               <button
-                                onClick={(e) => {
+                                onClick={(e): void => {
                                   e.stopPropagation();
                                   void handleDeleteProject();
                                 }}
@@ -407,7 +443,7 @@ export function EditorHeader({
 
               {/* Keyboard Shortcuts Help Button */}
               <button
-                onClick={() => {
+                onClick={(): void => {
                   // Trigger keyboard shortcuts modal via custom event
                   window.dispatchEvent(new CustomEvent('show-shortcuts-help'));
                 }}
@@ -478,7 +514,7 @@ export function EditorHeader({
         <>
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-            onClick={() => setIsMobileMenuOpen(false)}
+            onClick={(): void => setIsMobileMenuOpen(false)}
           />
           <div className="fixed inset-y-0 left-0 w-80 bg-white shadow-xl z-50 lg:hidden overflow-y-auto dark:bg-neutral-900">
             <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
@@ -487,7 +523,7 @@ export function EditorHeader({
                   Menu
                 </h2>
                 <button
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={(): void => setIsMobileMenuOpen(false)}
                   className="p-2 rounded-lg hover:bg-neutral-100"
                 >
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -506,7 +542,7 @@ export function EditorHeader({
                 <div className="mb-4">
                   <p className="text-xs text-neutral-500 mb-1">Current Project</p>
                   <button
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    onClick={(): void => setIsDropdownOpen(!isDropdownOpen)}
                     className="w-full flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
                   >
                     <svg
@@ -541,10 +577,10 @@ export function EditorHeader({
                   {isDropdownOpen && (
                     <div className="mt-2 border border-neutral-200 rounded-lg bg-white">
                       <div className="max-h-48 overflow-y-auto">
-                        {projects.map((project) => (
+                        {projects.map((project): JSX.Element => (
                           <button
                             key={project.id}
-                            onClick={() => {
+                            onClick={(): void => {
                               handleProjectChange(project.id);
                               setIsMobileMenuOpen(false);
                             }}
@@ -566,28 +602,28 @@ export function EditorHeader({
               <div className="space-y-1">
                 <Link
                   href={`/editor/${projectId}/timeline`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={(): void => setIsMobileMenuOpen(false)}
                   className={`block px-3 py-2 rounded-lg text-sm font-medium ${currentTab === 'video-editor' ? 'bg-blue-50 text-blue-700' : 'text-neutral-700 hover:bg-neutral-50'}`}
                 >
                   Video Editor
                 </Link>
                 <Link
                   href={`/editor/${projectId}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={(): void => setIsMobileMenuOpen(false)}
                   className={`block px-3 py-2 rounded-lg text-sm font-medium ${currentTab === 'generate-video' ? 'bg-blue-50 text-blue-700' : 'text-neutral-700 hover:bg-neutral-50'}`}
                 >
                   Generate Video
                 </Link>
                 <Link
                   href={`/editor/${projectId}/generate-audio`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={(): void => setIsMobileMenuOpen(false)}
                   className={`block px-3 py-2 rounded-lg text-sm font-medium ${currentTab === 'generate-audio' ? 'bg-blue-50 text-blue-700' : 'text-neutral-700 hover:bg-neutral-50'}`}
                 >
                   Generate Audio
                 </Link>
                 <Link
                   href={`/editor/${projectId}/keyframe`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={(): void => setIsMobileMenuOpen(false)}
                   className={`block px-3 py-2 rounded-lg text-sm font-medium ${currentTab === 'image-editor' ? 'bg-blue-50 text-blue-700' : 'text-neutral-700 hover:bg-neutral-50'}`}
                 >
                   Image Editor
@@ -599,7 +635,7 @@ export function EditorHeader({
             <div className="p-4 border-t border-neutral-200 space-y-2">
               {/* Generation Dashboard - Always visible */}
               <button
-                onClick={() => {
+                onClick={(): void => {
                   dashboard.open();
                   setIsMobileMenuOpen(false);
                 }}
@@ -624,7 +660,7 @@ export function EditorHeader({
               {currentTab === 'video-editor' && (
                 <>
                   <button
-                    onClick={() => {
+                    onClick={(): void => {
                       window.dispatchEvent(new CustomEvent('show-shortcuts-help'));
                       setIsMobileMenuOpen(false);
                     }}
@@ -647,7 +683,7 @@ export function EditorHeader({
                   </button>
                   {onExport && (
                     <button
-                      onClick={() => {
+                      onClick={(): void => {
                         onExport();
                         setIsMobileMenuOpen(false);
                       }}

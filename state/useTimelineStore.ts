@@ -89,26 +89,26 @@ export const useTimelineStore = create<TimelineStore>()(
   immer((set, get) => ({
     timeline: null,
 
-    setTimeline: (timeline) =>
-      set((state) => {
+    setTimeline: (timeline): void =>
+      set((state): void => {
         state.timeline = timeline;
         if (state.timeline) {
           state.timeline.clips = dedupeClips(state.timeline.clips);
         }
       }),
 
-    getTimeline: () => get().timeline,
+    getTimeline: (): Timeline | null => get().timeline,
 
-    addClip: (clip) =>
-      set((state) => {
+    addClip: (clip): void =>
+      set((state): void => {
         if (!state.timeline) return;
         state.timeline.clips.push(clip);
         state.timeline.clips = dedupeClips(state.timeline.clips);
       }),
 
-    updateClip: (id, patch) =>
-      set((state) => {
-        const clip = state.timeline?.clips.find((existing) => existing.id === id);
+    updateClip: (id, patch): void =>
+      set((state): void => {
+        const clip = state.timeline?.clips.find((existing): boolean => existing.id === id);
         if (!clip) return;
 
         Object.assign(clip, patch);
@@ -151,27 +151,27 @@ export const useTimelineStore = create<TimelineStore>()(
         }
       }),
 
-    removeClip: (id) =>
-      set((state) => {
+    removeClip: (id): void =>
+      set((state): void => {
         if (!state.timeline) return;
-        state.timeline.clips = state.timeline.clips.filter((clip) => clip.id !== id);
+        state.timeline.clips = state.timeline.clips.filter((clip): boolean => clip.id !== id);
         state.timeline.clips = dedupeClips(state.timeline.clips);
       }),
 
-    reorderClips: (ids) =>
-      set((state) => {
+    reorderClips: (ids): void =>
+      set((state): void => {
         if (!state.timeline) return;
-        const clipMap = new Map(state.timeline.clips.map((clip) => [clip.id, clip]));
+        const clipMap = new Map(state.timeline.clips.map((clip): [string, WritableDraft<Clip>] => [clip.id, clip]));
         state.timeline.clips = ids
           .map((id) => clipMap.get(id))
           .filter((clip): clip is Clip => Boolean(clip));
         state.timeline.clips = dedupeClips(state.timeline.clips);
       }),
 
-    splitClipAtTime: (clipId, time) =>
-      set((state) => {
+    splitClipAtTime: (clipId, time): void =>
+      set((state): void => {
         if (!state.timeline) return;
-        const clipIndex = state.timeline.clips.findIndex((c) => c.id === clipId);
+        const clipIndex = state.timeline.clips.findIndex((c): boolean => c.id === clipId);
         if (clipIndex === -1) return;
 
         const originalClip = state.timeline.clips[clipIndex];
@@ -206,8 +206,8 @@ export const useTimelineStore = create<TimelineStore>()(
         state.timeline.clips = dedupeClips(state.timeline.clips);
       }),
 
-    addMarker: (marker) =>
-      set((state) => {
+    addMarker: (marker): void =>
+      set((state): void => {
         if (!state.timeline) return;
         if (!state.timeline.markers) {
           state.timeline.markers = [];
@@ -215,28 +215,28 @@ export const useTimelineStore = create<TimelineStore>()(
         state.timeline.markers.push(marker);
       }),
 
-    removeMarker: (id) =>
-      set((state) => {
+    removeMarker: (id): void =>
+      set((state): void => {
         if (!state.timeline?.markers) return;
-        state.timeline.markers = state.timeline.markers.filter((m) => m.id !== id);
+        state.timeline.markers = state.timeline.markers.filter((m): boolean => m.id !== id);
       }),
 
-    updateMarker: (id, patch) =>
-      set((state) => {
-        const marker = state.timeline?.markers?.find((m) => m.id === id);
+    updateMarker: (id, patch): void =>
+      set((state): void => {
+        const marker = state.timeline?.markers?.find((m): boolean => m.id === id);
         if (marker) {
           Object.assign(marker, patch);
         }
       }),
 
-    updateTrack: (trackIndex, patch) =>
-      set((state) => {
+    updateTrack: (trackIndex, patch): void =>
+      set((state): void => {
         if (!state.timeline) return;
         if (!state.timeline.tracks) {
           state.timeline.tracks = [];
         }
 
-        let track = state.timeline.tracks.find((t) => t.index === trackIndex);
+        let track = state.timeline.tracks.find((t): boolean => t.index === trackIndex);
         if (!track) {
           track = {
             id: `track-${trackIndex}`,
@@ -250,8 +250,8 @@ export const useTimelineStore = create<TimelineStore>()(
         Object.assign(track, patch);
       }),
 
-    addTextOverlay: (textOverlay) =>
-      set((state) => {
+    addTextOverlay: (textOverlay): void =>
+      set((state): void => {
         if (!state.timeline) return;
         if (!state.timeline.textOverlays) {
           state.timeline.textOverlays = [];
@@ -259,50 +259,50 @@ export const useTimelineStore = create<TimelineStore>()(
         state.timeline.textOverlays.push(textOverlay);
       }),
 
-    removeTextOverlay: (id) =>
-      set((state) => {
+    removeTextOverlay: (id): void =>
+      set((state): void => {
         if (!state.timeline?.textOverlays) return;
-        state.timeline.textOverlays = state.timeline.textOverlays.filter((t) => t.id !== id);
+        state.timeline.textOverlays = state.timeline.textOverlays.filter((t): boolean => t.id !== id);
       }),
 
-    updateTextOverlay: (id, patch) =>
-      set((state) => {
-        const textOverlay = state.timeline?.textOverlays?.find((t) => t.id === id);
+    updateTextOverlay: (id, patch): void =>
+      set((state): void => {
+        const textOverlay = state.timeline?.textOverlays?.find((t): boolean => t.id === id);
         if (textOverlay) {
           Object.assign(textOverlay, patch);
         }
       }),
 
-    addTransitionToClips: (clipIds, transitionType, duration) =>
-      set((state) => {
+    addTransitionToClips: (clipIds, transitionType, duration): void =>
+      set((state): void => {
         if (!state.timeline) return;
-        clipIds.forEach((clipId) => {
-          const clip = state.timeline!.clips.find((c) => c.id === clipId);
+        clipIds.forEach((clipId): void => {
+          const clip = state.timeline!.clips.find((c): boolean => c.id === clipId);
           if (clip) {
             clip.transitionToNext = { type: transitionType, duration };
           }
         });
       }),
 
-    lockClip: (id) =>
-      set((state) => {
-        const clip = state.timeline?.clips.find((c) => c.id === id);
+    lockClip: (id): void =>
+      set((state): void => {
+        const clip = state.timeline?.clips.find((c): boolean => c.id === id);
         if (clip) {
           clip.locked = true;
         }
       }),
 
-    unlockClip: (id) =>
-      set((state) => {
-        const clip = state.timeline?.clips.find((c) => c.id === id);
+    unlockClip: (id): void =>
+      set((state): void => {
+        const clip = state.timeline?.clips.find((c): boolean => c.id === id);
         if (clip) {
           clip.locked = false;
         }
       }),
 
-    toggleClipLock: (id) =>
-      set((state) => {
-        const clip = state.timeline?.clips.find((c) => c.id === id);
+    toggleClipLock: (id): void =>
+      set((state): void => {
+        const clip = state.timeline?.clips.find((c): boolean => c.id === id);
         if (clip) {
           clip.locked = !clip.locked;
         }

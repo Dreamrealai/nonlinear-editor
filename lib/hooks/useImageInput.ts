@@ -51,7 +51,7 @@ export function useImageInput(): UseImageInputReturn {
   const fileInputRef = useRef<HTMLInputElement>(null) as React.RefObject<HTMLInputElement>;
 
   // Clear selected image and preview
-  const clearImage = useCallback(() => {
+  const clearImage = useCallback((): void => {
     setSelectedImage(null);
     setImageAssetId(null);
     if (imagePreviewUrl) {
@@ -64,7 +64,7 @@ export function useImageInput(): UseImageInputReturn {
   }, [imagePreviewUrl]);
 
   // Handle image file (from paste or upload)
-  const handleImageFile = useCallback((file: File) => {
+  const handleImageFile = useCallback((file: File): void => {
     setSelectedImage(file);
     setImageAssetId(null); // Clear asset library selection
 
@@ -74,8 +74,8 @@ export function useImageInput(): UseImageInputReturn {
   }, []);
 
   // Handle paste events for images
-  useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
+  useEffect((): () => void => {
+    const handlePaste = (e: ClipboardEvent): void => {
       const items = e.clipboardData?.items;
       if (!items) return;
 
@@ -92,12 +92,12 @@ export function useImageInput(): UseImageInputReturn {
     };
 
     window.addEventListener('paste', handlePaste);
-    return () => window.removeEventListener('paste', handlePaste);
+    return (): void => window.removeEventListener('paste', handlePaste);
   }, [handleImageFile]);
 
   // Handle file input change
   const handleFileInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: React.ChangeEvent<HTMLInputElement>): void => {
       const file = e.target.files?.[0];
       if (file) {
         handleImageFile(file);
@@ -108,7 +108,7 @@ export function useImageInput(): UseImageInputReturn {
   );
 
   // Handle asset library image selection
-  const handleAssetSelect = useCallback((asset: ImageAsset) => {
+  const handleAssetSelect = useCallback((asset: ImageAsset): void => {
     setSelectedImage(null); // Clear file upload
     setImageAssetId(asset.id);
     setImagePreviewUrl(asset.metadata?.thumbnail || asset.storage_url);

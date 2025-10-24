@@ -30,13 +30,13 @@ class AxiomTransport {
 
     // Flush on process exit (important for serverless)
     if (typeof process !== 'undefined') {
-      process.on('beforeExit', () => {
+      process.on('beforeExit', (): void => {
         this.flush(true);
       });
     }
   }
 
-  write(log: LogEntry) {
+  write(log: LogEntry): void {
     if (!this.enabled) {
       return; // Skip if Axiom not configured
     }
@@ -52,14 +52,14 @@ class AxiomTransport {
     } else {
       // Schedule flush if not already scheduled
       if (!this.flushTimer) {
-        this.flushTimer = setTimeout(() => {
+        this.flushTimer = setTimeout((): void => {
           this.flush();
         }, BATCH_INTERVAL_MS);
       }
     }
   }
 
-  async flush(sync = false) {
+  async flush(sync = false): Promise<void> {
     if (this.flushTimer) {
       clearTimeout(this.flushTimer);
       this.flushTimer = null;
@@ -72,7 +72,7 @@ class AxiomTransport {
     const logsToSend = [...this.queue];
     this.queue = [];
 
-    const sendLogs = async () => {
+    const sendLogs = async (): Promise<void> => {
       try {
         const response = await fetch(`${AXIOM_API}/${this.dataset}/ingest`, {
           method: 'POST',
@@ -116,7 +116,7 @@ class AxiomTransport {
       await sendLogs();
     } else {
       // Fire and forget in serverless
-      sendLogs().catch(() => {
+      sendLogs().catch((): void => {
         // Ignore errors
       });
     }

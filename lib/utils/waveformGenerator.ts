@@ -75,7 +75,7 @@ function downsampleToLevel(
 
   // Normalize to 0-1 range
   const max = Math.max(...samples, 0.01); // Prevent division by zero
-  return samples.map((s) => s / max);
+  return samples.map((s): number => s / max);
 }
 
 /**
@@ -109,7 +109,7 @@ export async function generateWaveformData(audioUrl: string): Promise<WaveformDa
     const rawData = audioBuffer.getChannelData(0);
 
     // Generate multiple LOD levels
-    const levels = LOD_LEVELS.map((config) => ({
+    const levels = LOD_LEVELS.map((config): { sampleCount: number; samples: number[]; minZoom: number; maxZoom: number; } => ({
       sampleCount: config.sampleCount,
       samples: downsampleToLevel(rawData, config.sampleCount),
       minZoom: config.minZoom,

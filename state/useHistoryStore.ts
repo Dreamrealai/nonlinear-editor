@@ -37,12 +37,12 @@ const cloneTimeline = (timeline: Timeline | null): Timeline | null => {
  * Debounce helper to reduce excessive history saves
  */
 const historyDebounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
-const debouncedSaveHistory = (key: string, callback: () => void) => {
+const debouncedSaveHistory = (key: string, callback: () => void): void => {
   const existingTimer = historyDebounceTimers.get(key);
   if (existingTimer) {
     clearTimeout(existingTimer);
   }
-  const timer = setTimeout(() => {
+  const timer = setTimeout((): void => {
     historyDebounceTimers.delete(key);
     callback();
   }, HISTORY_DEBOUNCE_MS);
@@ -68,21 +68,21 @@ export const useHistoryStore = create<HistoryStore>()((set, get) => ({
   history: [],
   historyIndex: -1,
 
-  initializeHistory: (timeline) =>
-    set(() => ({
+  initializeHistory: (timeline): void =>
+    set((): { history: Timeline[]; historyIndex: number; } => ({
       history: timeline ? [cloneTimeline(timeline)].filter((t): t is Timeline => t !== null) : [],
       historyIndex: timeline ? 0 : -1,
     })),
 
-  saveToHistory: (timeline, debounceKey) => {
+  saveToHistory: (timeline, debounceKey): void => {
     if (!timeline) return;
 
-    const doSave = () => {
+    const doSave = (): void => {
       const state = get();
       const cloned = cloneTimeline(timeline);
       if (!cloned) return;
 
-      set(() => ({
+      set((): { history: Timeline[]; historyIndex: number; } => ({
         history: [...state.history.slice(0, state.historyIndex + 1), cloned].slice(-MAX_HISTORY),
         historyIndex: Math.min(state.historyIndex + 1, MAX_HISTORY - 1),
       }));
@@ -95,13 +95,13 @@ export const useHistoryStore = create<HistoryStore>()((set, get) => ({
     }
   },
 
-  undo: () => {
+  undo: (): Timeline | null => {
     const state = get();
     if (state.historyIndex > 0) {
       const newIndex = state.historyIndex - 1;
       const previousState = state.history[newIndex];
       if (previousState) {
-        set(() => ({ historyIndex: newIndex }));
+        set((): { historyIndex: number; } => ({ historyIndex: newIndex }));
         // OPTIMIZATION: No need to clone on restore - the timeline is immutable
         // Cloning only happens when saving to history (line 82)
         return previousState;
@@ -110,13 +110,13 @@ export const useHistoryStore = create<HistoryStore>()((set, get) => ({
     return null;
   },
 
-  redo: () => {
+  redo: (): Timeline | null => {
     const state = get();
     if (state.historyIndex < state.history.length - 1) {
       const newIndex = state.historyIndex + 1;
       const nextState = state.history[newIndex];
       if (nextState) {
-        set(() => ({ historyIndex: newIndex }));
+        set((): { historyIndex: number; } => ({ historyIndex: newIndex }));
         // OPTIMIZATION: No need to clone on restore - the timeline is immutable
         // Cloning only happens when saving to history (line 82)
         return nextState;
@@ -125,18 +125,18 @@ export const useHistoryStore = create<HistoryStore>()((set, get) => ({
     return null;
   },
 
-  canUndo: () => {
+  canUndo: (): boolean => {
     const state = get();
     return state.historyIndex > 0;
   },
 
-  canRedo: () => {
+  canRedo: (): boolean => {
     const state = get();
     return state.historyIndex < state.history.length - 1;
   },
 
-  clearHistory: () =>
-    set(() => ({
+  clearHistory: (): void =>
+    set((): { history: never[]; historyIndex: number; } => ({
       history: [],
       historyIndex: -1,
     })),

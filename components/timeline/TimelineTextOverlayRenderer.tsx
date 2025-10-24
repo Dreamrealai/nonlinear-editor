@@ -26,7 +26,7 @@ export const TimelineTextOverlayRenderer = React.memo<TimelineTextOverlayRendere
     onRemove,
     onMouseDown,
     onTrimMouseDown,
-  }) {
+  }): JSX.Element {
     const overlayWidth = overlay.duration * zoom;
     const overlayLeft = overlay.timelinePosition * zoom;
 
@@ -44,9 +44,9 @@ export const TimelineTextOverlayRenderer = React.memo<TimelineTextOverlayRendere
           height: 40,
           backgroundColor: 'rgba(147, 51, 234, 0.15)', // purple with transparency
         }}
-        onClick={(e) => onClick(e, overlay)}
-        onMouseDown={(e) => onMouseDown?.(e, overlay)}
-        onKeyDown={(e) => {
+        onClick={(e): void => onClick(e, overlay)}
+        onMouseDown={(e): void | undefined => onMouseDown?.(e, overlay)}
+        onKeyDown={(e): void => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             onClick(e as unknown as React.MouseEvent<HTMLDivElement>, overlay);
@@ -77,7 +77,7 @@ export const TimelineTextOverlayRenderer = React.memo<TimelineTextOverlayRendere
               <p className="truncate text-xs font-semibold">{overlay.text}</p>
             </div>
             <button
-              onClick={(e) => {
+              onClick={(e): void => {
                 e.stopPropagation();
                 e.preventDefault();
                 onRemove(overlay.id);
@@ -107,7 +107,7 @@ export const TimelineTextOverlayRenderer = React.memo<TimelineTextOverlayRendere
               {/* Left trim handle */}
               <div
                 className="absolute left-0 top-0 bottom-0 w-2 bg-purple-600 cursor-ew-resize hover:bg-purple-700 pointer-events-auto"
-                onMouseDown={(e) => {
+                onMouseDown={(e): void => {
                   e.stopPropagation();
                   onTrimMouseDown(e, overlay, 'left');
                 }}
@@ -116,7 +116,7 @@ export const TimelineTextOverlayRenderer = React.memo<TimelineTextOverlayRendere
               {/* Right trim handle */}
               <div
                 className="absolute right-0 top-0 bottom-0 w-2 bg-purple-600 cursor-ew-resize hover:bg-purple-700 pointer-events-auto"
-                onMouseDown={(e) => {
+                onMouseDown={(e): void => {
                   e.stopPropagation();
                   onTrimMouseDown(e, overlay, 'right');
                 }}

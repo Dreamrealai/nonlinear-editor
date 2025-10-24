@@ -68,7 +68,8 @@ export interface ClipsSliceState {
   selectedClipIds: Set<string>;
 }
 
-export const createClipsSlice = (set: any) => ({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const createClipsSlice = (set: any): ClipsSlice => ({
   addClip: (clip): void =>
     set((state): void => {
       if (!state.timeline) return;
@@ -137,25 +138,18 @@ export const createClipsSlice = (set: any) => ({
           state.timeline.clips = dedupeClips(state.timeline.clips);
         }
 
-        // Per-clip debounced save to history (prevents batching unrelated edits)
-        // Note: We use a dynamic import to avoid circular dependency
-        const { debouncedSaveHistory } = require('../useEditorStore');
-        debouncedSaveHistory(id, (): void => {
-          // Use get() to access current state at callback time
-          const currentStore = require('../useEditorStore').useEditorStore.getState();
-          const cloned = cloneTimeline(currentStore.timeline);
-          if (cloned) {
-            require('../useEditorStore').useEditorStore.setState((s: any): void => {
-              s.history = s.history.slice(0, s.historyIndex + 1);
-              s.history.push(cloned);
-              if (s.history.length > MAX_HISTORY) {
-                s.history.shift();
-              } else {
-                s.historyIndex++;
-              }
-            });
+        // Save to history immediately for simple clip updates
+        // Note: Debounced history saving is handled in useEditorStore for drag operations
+        const cloned = cloneTimeline(state.timeline);
+        if (cloned) {
+          state.history = state.history.slice(0, state.historyIndex + 1);
+          state.history.push(cloned);
+          if (state.history.length > MAX_HISTORY) {
+            state.history.shift();
+          } else {
+            state.historyIndex++;
           }
-        });
+        }
       }
     }),
 

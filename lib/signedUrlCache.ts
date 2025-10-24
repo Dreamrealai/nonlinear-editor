@@ -93,7 +93,7 @@ class SignedUrlCacheManager {
     let oldestKey: string | null = null;
     let oldestTime = Infinity;
 
-    this.cache.forEach((entry, key) => {
+    this.cache.forEach((entry, key): void => {
       if (entry.createdAt < oldestTime) {
         oldestTime = entry.createdAt;
         oldestKey = key;
@@ -254,7 +254,7 @@ class SignedUrlCacheManager {
    */
   invalidateMatching(pattern: RegExp): number {
     let count = 0;
-    this.cache.forEach((_, key) => {
+    this.cache.forEach((_, key): void => {
       if (pattern.test(key)) {
         this.cache.delete(key);
         count++;
@@ -296,7 +296,7 @@ class SignedUrlCacheManager {
     let count = 0;
     const now = Date.now();
 
-    this.cache.forEach((entry, key) => {
+    this.cache.forEach((entry, key): void => {
       if (entry.expiresAt <= now) {
         this.cache.delete(key);
         count++;
@@ -335,7 +335,7 @@ class SignedUrlCacheManager {
       timeToExpiry: number;
     }> = [];
 
-    this.cache.forEach((entry, key) => {
+    this.cache.forEach((entry, key): void => {
       entries.push({
         key,
         ttl: entry.ttl,
@@ -369,7 +369,7 @@ class SignedUrlCacheManager {
     }
 
     await Promise.allSettled(
-      assets.map(({ assetId, storageUrl }) =>
+      assets.map(({ assetId, storageUrl }): Promise<string> =>
         this.get(assetId, storageUrl, ttl)
       )
     );

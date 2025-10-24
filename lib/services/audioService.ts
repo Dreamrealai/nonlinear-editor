@@ -130,7 +130,7 @@ export class AudioService {
 
       // Call ElevenLabs API with timeout
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 60000);
+      const timeout = setTimeout((): void => controller.abort(), 60000);
 
       let response;
       try {
@@ -281,7 +281,7 @@ export class AudioService {
 
       // Call ElevenLabs SFX API
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 90000); // 90s timeout for SFX
+      const timeout = setTimeout((): void => controller.abort(), 90000); // 90s timeout for SFX
 
       let response;
       try {
@@ -360,7 +360,7 @@ export class AudioService {
       provider: string;
       [key: string]: unknown;
     }
-  ) {
+  ): Promise<any> {
     const filePath = `${userId}/${projectId}/audio/${metadata.filename}`;
 
     // Upload to storage

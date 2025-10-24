@@ -12,14 +12,14 @@ import { withAuth } from '@/lib/api/withAuth';
 import { BackupService } from '@/lib/services/backupService';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { errorResponse } from '@/lib/api/response';
-import { validateUUID, ValidationError } from '@/lib/validation';
+import { validateUUID } from '@/lib/validation';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 
 /**
  * POST /api/projects/[projectId]/backups/[backupId]/restore
  * Restore a project from a backup
  */
-export const POST = withAuth(
+export const POST = withAuth<{ projectId: string; backupId: string }>(
   async (
     _request: NextRequest,
     context: { params: Promise<{ projectId: string; backupId: string }> }

@@ -132,7 +132,7 @@ export async function generateFalVideo(params: FalVideoParams): Promise<{ reques
   try {
     // Submit the request to FAL queue API with timeout
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), TIMEOUTS.FAL_SUBMIT);
+    const timeout = setTimeout((): void => controller.abort(), TIMEOUTS.FAL_SUBMIT);
 
     let response;
     try {
@@ -193,7 +193,7 @@ export async function checkFalVideoStatus(
   try {
     // Check status via FAL status API with timeout
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), TIMEOUTS.FAL_STATUS);
+    const timeout = setTimeout((): void => controller.abort(), TIMEOUTS.FAL_STATUS);
 
     let response;
     try {
@@ -225,7 +225,7 @@ export async function checkFalVideoStatus(
     if (statusData.status === 'COMPLETED') {
       // Fetch the result with timeout
       const resultController = new AbortController();
-      const resultTimeout = setTimeout(() => resultController.abort(), TIMEOUTS.FAL_RESULT);
+      const resultTimeout = setTimeout((): void => resultController.abort(), TIMEOUTS.FAL_RESULT);
 
       let resultResponse;
       try {
@@ -293,7 +293,7 @@ export async function cancelFalVideo(requestId: string, endpoint: string): Promi
   try {
     // Cancel request with timeout
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), TIMEOUTS.FAL_STATUS);
+    const timeout = setTimeout((): void => controller.abort(), TIMEOUTS.FAL_STATUS);
 
     try {
       const response = await fetch(`${API_ENDPOINTS.FAL_QUEUE}/${endpoint}/requests/${requestId}/cancel`, {

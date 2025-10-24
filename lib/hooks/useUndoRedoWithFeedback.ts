@@ -21,8 +21,8 @@ type UndoRedoFeedbackOptions = {
  * @param options - Undo/redo functions and availability flags
  * @returns Enhanced undo/redo functions with toast feedback
  */
-export function useUndoRedoWithFeedback({ undo, redo, canUndo, canRedo }: UndoRedoFeedbackOptions) {
-  const handleUndo = useCallback(() => {
+export function useUndoRedoWithFeedback({ undo, redo, canUndo, canRedo }: UndoRedoFeedbackOptions): { handleUndo: () => void; handleRedo: () => void; } {
+  const handleUndo = useCallback((): void => {
     if (!canUndo) return;
 
     undo();
@@ -40,7 +40,7 @@ export function useUndoRedoWithFeedback({ undo, redo, canUndo, canRedo }: UndoRe
     });
   }, [undo, canUndo]);
 
-  const handleRedo = useCallback(() => {
+  const handleRedo = useCallback((): void => {
     if (!canRedo) return;
 
     redo();

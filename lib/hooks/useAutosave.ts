@@ -12,14 +12,14 @@ export function useAutosave(
   delay = 2000,
   saveFn?: SaveFn
 ): { saveError: string | null; lastSaved: Date | null; isSaving: boolean } {
-  const timeline = useEditorStore((state) => state.timeline);
+  const timeline = useEditorStore((state): Timeline | null => state.timeline);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!timeline) {
       return;
     }
@@ -28,17 +28,17 @@ export function useAutosave(
       clearTimeout(timeoutRef.current);
     }
 
-    timeoutRef.current = setTimeout(() => {
+    timeoutRef.current = setTimeout((): void => {
       const handler = saveFn ?? saveTimeline;
       setIsSaving(true);
       const result = handler(projectId, timeline);
       if (result instanceof Promise) {
         result
-          .then(() => {
+          .then((): void => {
             setLastSaved(new Date());
             setIsSaving(false);
           })
-          .catch(async (error) => {
+          .catch(async (error): Promise<void> => {
             const { browserLogger } = await import('@/lib/browserLogger');
             browserLogger.error({ error, projectId }, 'Autosave failed');
             setSaveError(error instanceof Error ? error.message : 'Failed to save timeline');
@@ -50,7 +50,7 @@ export function useAutosave(
             }
 
             // Clear error after 5 seconds with proper cleanup tracking
-            errorTimeoutRef.current = setTimeout(() => {
+            errorTimeoutRef.current = setTimeout((): void => {
               setSaveError(null);
               errorTimeoutRef.current = null;
             }, 5000);

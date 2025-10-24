@@ -1,3 +1,35 @@
+/**
+ * VoiceSelector - AI voice selection dropdown
+ *
+ * Dropdown selector for choosing AI voices for text-to-speech generation.
+ * Displays available voices with optional category labels, loading state,
+ * and a default fallback voice.
+ *
+ * Features:
+ * - Dynamic voice list from API
+ * - Loading state with spinner
+ * - Default voice fallback (Sarah)
+ * - Voice categories display
+ * - Disabled state support
+ * - Accessible select element
+ *
+ * @param voices - Array of available AI voices
+ * @param selectedVoice - Currently selected voice ID
+ * @param onVoiceChange - Callback when voice selection changes
+ * @param loadingVoices - Whether voices are being loaded from API
+ * @param disabled - Whether the selector should be disabled
+ *
+ * @example
+ * ```tsx
+ * <VoiceSelector
+ *   voices={voiceList}
+ *   selectedVoice="EXAVITQu4vr4xnSDxMaL"
+ *   onVoiceChange={(id) => setVoiceId(id)}
+ *   loadingVoices={false}
+ *   disabled={isGenerating}
+ * />
+ * ```
+ */
 interface Voice {
   voice_id: string;
   name: string;
@@ -18,7 +50,7 @@ export function VoiceSelector({
   onVoiceChange,
   loadingVoices,
   disabled = false,
-}: VoiceSelectorProps) {
+}: VoiceSelectorProps): JSX.Element {
   return (
     <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
       <label htmlFor="voice" className="block text-sm font-semibold text-neutral-900 mb-2">
@@ -33,14 +65,14 @@ export function VoiceSelector({
         <select
           id="voice"
           value={selectedVoice}
-          onChange={(e) => onVoiceChange(e.target.value)}
+          onChange={(e): void => onVoiceChange(e.target.value)}
           disabled={disabled}
           className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
         >
           {voices.length === 0 ? (
             <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Default)</option>
           ) : (
-            voices.map((voice) => (
+            voices.map((voice): JSX.Element => (
               <option key={voice.voice_id} value={voice.voice_id}>
                 {voice.name}
                 {voice.category ? ` - ${voice.category}` : ''}

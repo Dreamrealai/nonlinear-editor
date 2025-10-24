@@ -30,10 +30,10 @@ type TimelineGridSettingsProps = {
 };
 
 export function TimelineGridSettings({ className }: TimelineGridSettingsProps): React.JSX.Element {
-  const snapEnabled = useEditorStore((state) => state.snapEnabled);
-  const snapGridInterval = useEditorStore((state) => state.snapGridInterval);
-  const toggleSnap = useEditorStore((state) => state.toggleSnap);
-  const setSnapGridInterval = useEditorStore((state) => state.setSnapGridInterval);
+  const snapEnabled = useEditorStore((state): boolean => state.snapEnabled);
+  const snapGridInterval = useEditorStore((state): number => state.snapGridInterval);
+  const toggleSnap = useEditorStore((state): () => void => state.toggleSnap);
+  const setSnapGridInterval = useEditorStore((state): (interval: number) => void => state.setSnapGridInterval);
 
   const [isOpen, setIsOpen] = useState(false);
   const [customInterval, setCustomInterval] = useState('');
@@ -55,7 +55,7 @@ export function TimelineGridSettings({ className }: TimelineGridSettingsProps): 
   return (
     <div className={cn('relative', className)}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(): void => setIsOpen(!isOpen)}
         className={cn(
           'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
           snapEnabled
@@ -81,7 +81,7 @@ export function TimelineGridSettings({ className }: TimelineGridSettingsProps): 
           {/* Backdrop */}
           <div
             className="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
+            onClick={(): void => setIsOpen(false)}
             aria-hidden="true"
           />
 
@@ -116,10 +116,10 @@ export function TimelineGridSettings({ className }: TimelineGridSettingsProps): 
             <div className="p-4 space-y-2">
               <p className="text-xs font-semibold text-neutral-700 mb-2">Preset Intervals</p>
               <div className="space-y-1">
-                {PRESET_INTERVALS.map((preset) => (
+                {PRESET_INTERVALS.map((preset): JSX.Element => (
                   <button
                     key={preset.value}
-                    onClick={() => handlePresetClick(preset.value)}
+                    onClick={(): void => handlePresetClick(preset.value)}
                     className={cn(
                       'w-full flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors',
                       Math.abs(snapGridInterval - preset.value) < 0.001
@@ -146,8 +146,8 @@ export function TimelineGridSettings({ className }: TimelineGridSettingsProps): 
                   max="10"
                   step="0.01"
                   value={customInterval}
-                  onChange={(e) => setCustomInterval(e.target.value)}
-                  onKeyDown={(e) => {
+                  onChange={(e): void => setCustomInterval(e.target.value)}
+                  onKeyDown={(e): void => {
                     if (e.key === 'Enter') {
                       handleCustomIntervalSubmit();
                     }

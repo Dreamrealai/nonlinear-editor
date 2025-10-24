@@ -38,10 +38,10 @@ export function useCustomizableKeyboardShortcuts({
   const { shortcuts: userShortcuts, loading } = useUserKeyboardShortcuts();
 
   // Combine user shortcuts with action definitions
-  const shortcuts = useMemo<KeyboardShortcut[]>(() => {
-    return actions.map((actionDef) => {
+  const shortcuts = useMemo<KeyboardShortcut[]>((): { id: string; keys: string[]; description: string; category: "general" | "playback" | "editing" | "navigation" | "timeline" | "other"; action: () => void; priority: number | undefined; enabled: boolean; }[] => {
+    return actions.map((actionDef): { id: string; keys: string[]; description: string; category: "general" | "playback" | "editing" | "navigation" | "timeline" | "other"; action: () => void; priority: number | undefined; enabled: boolean; } => {
       // Find user's custom shortcut for this action
-      const userShortcut = userShortcuts.find((s) => s.id === actionDef.id);
+      const userShortcut = userShortcuts.find((s): boolean => s.id === actionDef.id);
 
       return {
         id: actionDef.id,

@@ -16,7 +16,7 @@ type TimelineSelectionInfoProps = {
 export const TimelineSelectionInfo: React.FC<TimelineSelectionInfoProps> = ({
   selectedCount,
   showModifierHints = false,
-}) => {
+}): JSX.Element | null => {
   if (selectedCount === 0 && !showModifierHints) return null;
 
   const isMac = typeof window !== 'undefined' && navigator.platform.toLowerCase().includes('mac');

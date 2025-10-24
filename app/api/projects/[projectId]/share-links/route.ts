@@ -9,13 +9,15 @@ import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { serverLogger } from '@/lib/serverLogger';
+import { validateEnum, validateUUID, validateInteger, ValidationError } from '@/lib/validation';
+import { validationError } from '@/lib/api/response';
 import type { CreateShareLinkRequest, CreateShareLinkResponse } from '@/types/collaboration';
 
 /**
  * GET - List all share links for a project
  */
-export const GET = withAuth(
-  async (req: NextRequest, { params }: { params: Promise<{ projectId: string }> }) => {
+export const GET = withAuth<{ projectId: string }>(
+  async (req: NextRequest, { params }: { params: Promise<{ projectId: string }> }): Promise<NextResponse<{ error: string; }> | NextResponse<{ links: any[]; }>> => {
     const { projectId } = await params;
     const supabase = await createServerSupabaseClient();
     const {
@@ -67,8 +69,8 @@ export const GET = withAuth(
 /**
  * POST - Create a new share link
  */
-export const POST = withAuth(
-  async (req: NextRequest, { params }: { params: Promise<{ projectId: string }> }) => {
+export const POST = withAuth<{ projectId: string }>(
+  async (req: NextRequest, { params }: { params: Promise<{ projectId: string }> }): Promise<NextResponse<{ error: string; }> | NextResponse<CreateShareLinkResponse>> => {
     const { projectId } = await params;
     const supabase = await createServerSupabaseClient();
     const {
@@ -80,12 +82,21 @@ export const POST = withAuth(
     }
 
     try {
+      // Validate path parameters
+      validateUUID(projectId, 'projectId');
+
+      // Validate request body
       const body: CreateShareLinkRequest = await req.json();
       const { role, expires_in_hours, max_uses } = body;
 
-      // Validate input
-      if (!role || !['viewer', 'editor'].includes(role)) {
-        return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
+      validateEnum(role, 'role', ['viewer', 'editor'] as const);
+
+      if (expires_in_hours !== undefined && expires_in_hours !== null) {
+        validateInteger(expires_in_hours, 'expires_in_hours', { min: 1, max: 8760 }); // max 1 year
+      }
+
+      if (max_uses !== undefined && max_uses !== null) {
+        validateInteger(max_uses, 'max_uses', { min: 1, max: 1000 });
       }
 
       // Verify user owns the project
@@ -150,6 +161,9 @@ export const POST = withAuth(
 
       return NextResponse.json(response, { status: 201 });
     } catch (error) {
+      if (error instanceof ValidationError) {
+        return validationError(error.message);
+      }
       serverLogger.error({ error, projectId, userId: user.id }, 'Error creating share link');
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }

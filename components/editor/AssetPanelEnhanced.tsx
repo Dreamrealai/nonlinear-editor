@@ -63,7 +63,7 @@ interface AssetPanelEnhancedProps {
 /**
  * Extracts the file name from a storage URL.
  */
-const extractFileName = (storageUrl: string) => {
+const extractFileName = (storageUrl: string): string => {
   const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
   const segments = normalized.split('/');
   return segments[segments.length - 1] ?? normalized;
@@ -104,7 +104,7 @@ export function AssetPanelEnhanced({
   hasPreviousPage = false,
   onNextPage,
   onPreviousPage,
-}: AssetPanelEnhancedProps) {
+}: AssetPanelEnhancedProps): JSX.Element {
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
   // Search and filter state
@@ -125,23 +125,23 @@ export function AssetPanelEnhanced({
   const [versionHistoryAsset, setVersionHistoryAsset] = useState<AssetRow | null>(null);
 
   // Extract all unique tags from assets
-  const allTags = useMemo(() => {
+  const allTags = useMemo((): string[] => {
     const tagSet = new Set<string>();
-    assets.forEach((asset) => {
-      asset.tags?.forEach((tag) => tagSet.add(tag));
+    assets.forEach((asset): void => {
+      asset.tags?.forEach((tag): Set<string> => tagSet.add(tag));
     });
     return Array.from(tagSet).sort();
   }, [assets]);
 
   // Toggle tag selection
-  const toggleTagFilter = useCallback((tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+  const toggleTagFilter = useCallback((tag: string): void => {
+    setSelectedTags((prev): string[] =>
+      prev.includes(tag) ? prev.filter((t): boolean => t !== tag) : [...prev, tag]
     );
   }, []);
 
   // Clear all filters
-  const clearFilters = useCallback(() => {
+  const clearFilters = useCallback((): void => {
     setSearchQuery('');
     setFilterPreset('all');
     setSelectedTags([]);
@@ -150,8 +150,8 @@ export function AssetPanelEnhanced({
   }, []);
 
   // Filter, search, and sort assets
-  const filteredAssets = useMemo(() => {
-    let filtered = assets.filter((a) =>
+  const filteredAssets = useMemo((): AssetRow[] => {
+    let filtered = assets.filter((a): boolean =>
       activeTab === 'video'
         ? a.type === 'video'
         : activeTab === 'image'
@@ -162,41 +162,41 @@ export function AssetPanelEnhanced({
     // Apply search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((asset) => {
+      filtered = filtered.filter((asset): boolean | undefined => {
         const filename = (asset.metadata?.filename || extractFileName(asset.storage_url)).toLowerCase();
         const type = asset.type.toLowerCase();
-        const tagsMatch = asset.tags?.some((tag) => tag.toLowerCase().includes(query));
+        const tagsMatch = asset.tags?.some((tag): boolean => tag.toLowerCase().includes(query));
         return filename.includes(query) || type.includes(query) || tagsMatch;
       });
     }
 
     // Apply filter preset
     if (filterPreset === 'favorites') {
-      filtered = filtered.filter((a) => a.is_favorite);
+      filtered = filtered.filter((a): boolean | undefined => a.is_favorite);
     } else if (filterPreset === 'unused') {
-      filtered = filtered.filter((a) => !a.usage_count || a.usage_count === 0);
+      filtered = filtered.filter((a): boolean => !a.usage_count || a.usage_count === 0);
     } else if (filterPreset === 'recent') {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      filtered = filtered.filter((a) => {
+      filtered = filtered.filter((a): boolean => {
         if (!a.last_used_at) return false;
         return new Date(a.last_used_at) >= sevenDaysAgo;
       });
     } else if (filterPreset === 'tagged') {
-      filtered = filtered.filter((a) => a.tags && a.tags.length > 0);
+      filtered = filtered.filter((a): boolean | undefined => a.tags && a.tags.length > 0);
     }
 
     // Apply tag filters
     if (selectedTags.length > 0) {
-      filtered = filtered.filter((a) =>
-        selectedTags.every((tag) => a.tags?.includes(tag))
+      filtered = filtered.filter((a): boolean =>
+        selectedTags.every((tag): boolean | undefined => a.tags?.includes(tag))
       );
     }
 
     // Apply date range filter
     if (dateFrom) {
       const fromDate = new Date(dateFrom);
-      filtered = filtered.filter((a) => {
+      filtered = filtered.filter((a): boolean => {
         if (!a.created_at) return false;
         return new Date(a.created_at) >= fromDate;
       });
@@ -204,14 +204,14 @@ export function AssetPanelEnhanced({
     if (dateTo) {
       const toDate = new Date(dateTo);
       toDate.setHours(23, 59, 59, 999); // End of day
-      filtered = filtered.filter((a) => {
+      filtered = filtered.filter((a): boolean => {
         if (!a.created_at) return false;
         return new Date(a.created_at) <= toDate;
       });
     }
 
     // Sort assets
-    filtered.sort((a, b) => {
+    filtered.sort((a, b): number => {
       let comparison = 0;
 
       switch (sortBy) {
@@ -258,10 +258,10 @@ export function AssetPanelEnhanced({
   }, [assets, activeTab, searchQuery, sortBy, sortDirection, filterPreset, selectedTags, dateFrom, dateTo]);
 
   // Handle adding tags to an asset
-  const handleAddTag = useCallback(async (assetId: string, tag: string) => {
+  const handleAddTag = useCallback(async (assetId: string, tag: string): Promise<void> => {
     if (!tag.trim() || !onAssetTagsUpdate) return;
 
-    const asset = assets.find((a) => a.id === assetId);
+    const asset = assets.find((a): boolean => a.id === assetId);
     if (!asset) return;
 
     const currentTags = asset.tags || [];
@@ -273,21 +273,21 @@ export function AssetPanelEnhanced({
   }, [assets, onAssetTagsUpdate]);
 
   // Handle removing a tag from an asset
-  const handleRemoveTag = useCallback(async (assetId: string, tagToRemove: string) => {
+  const handleRemoveTag = useCallback(async (assetId: string, tagToRemove: string): Promise<void> => {
     if (!onAssetTagsUpdate) return;
 
-    const asset = assets.find((a) => a.id === assetId);
+    const asset = assets.find((a): boolean => a.id === assetId);
     if (!asset) return;
 
-    const newTags = (asset.tags || []).filter((tag) => tag !== tagToRemove);
+    const newTags = (asset.tags || []).filter((tag): boolean => tag !== tagToRemove);
     await onAssetTagsUpdate(assetId, newTags);
   }, [assets, onAssetTagsUpdate]);
 
   // Handle favorite toggle
-  const handleFavoriteToggle = useCallback(async (assetId: string) => {
+  const handleFavoriteToggle = useCallback(async (assetId: string): Promise<void> => {
     if (!onAssetFavoriteToggle) return;
 
-    const asset = assets.find((a) => a.id === assetId);
+    const asset = assets.find((a): boolean => a.id === assetId);
     if (!asset) return;
 
     await onAssetFavoriteToggle(assetId, !asset.is_favorite);
@@ -297,12 +297,12 @@ export function AssetPanelEnhanced({
    * Handle files from drag-and-drop zone
    * Converts File[] to ChangeEvent to work with existing upload handler
    */
-  const handleDragDropFiles = async (files: File[]) => {
+  const handleDragDropFiles = async (files: File[]): Promise<void> => {
     if (files.length === 0) return;
 
     // Create a synthetic ChangeEvent to pass to existing handler
     const dataTransfer = new DataTransfer();
-    files.forEach((file) => dataTransfer.items.add(file));
+    files.forEach((file): DataTransferItem | null => dataTransfer.items.add(file));
 
     const event = {
       target: {
@@ -335,7 +335,7 @@ export function AssetPanelEnhanced({
     selectedTags.length,
     dateFrom ? 1 : 0,
     dateTo ? 1 : 0,
-  ].reduce((sum, count) => sum + count, 0);
+  ].reduce((sum, count): number => sum + count, 0);
 
   return (
     <aside className="flex flex-col gap-4 overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
@@ -357,7 +357,7 @@ export function AssetPanelEnhanced({
           />
           <button
             type="button"
-            onClick={() => setShowFilters(!showFilters)}
+            onClick={(): void => setShowFilters(!showFilters)}
             className="relative rounded-lg bg-neutral-100 dark:bg-neutral-800 px-3 py-1.5 text-xs font-semibold text-neutral-900 dark:text-neutral-100 shadow hover:bg-neutral-200 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             aria-label="Toggle filters"
           >
@@ -377,7 +377,7 @@ export function AssetPanelEnhanced({
           </button>
           <button
             type="button"
-            onClick={() => uploadInputRef.current?.click()}
+            onClick={(): void | undefined => uploadInputRef.current?.click()}
             disabled={uploadPending}
             aria-label={uploadPending ? 'Uploading files' : `Upload ${activeTab} files`}
             aria-busy={uploadPending}
@@ -396,7 +396,7 @@ export function AssetPanelEnhanced({
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e): void => setSearchQuery(e.target.value)}
               placeholder={`Search ${activeTab}s, tags...`}
               className="w-full rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-2 pl-9 text-sm text-neutral-900 dark:text-neutral-100 placeholder-neutral-500 dark:placeholder-neutral-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
@@ -415,7 +415,7 @@ export function AssetPanelEnhanced({
             </svg>
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery('')}
+                onClick={(): void => setSearchQuery('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
                 aria-label="Clear search"
               >
@@ -433,10 +433,10 @@ export function AssetPanelEnhanced({
 
           {/* Filter Presets */}
           <div className="flex flex-wrap gap-2">
-            {(['all', 'favorites', 'unused', 'recent', 'tagged'] as FilterPreset[]).map((preset) => (
+            {(['all', 'favorites', 'unused', 'recent', 'tagged'] as FilterPreset[]).map((preset): JSX.Element => (
               <button
                 key={preset}
-                onClick={() => setFilterPreset(preset)}
+                onClick={(): void => setFilterPreset(preset)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition ${
                   filterPreset === preset
                     ? 'bg-purple-600 text-white'
@@ -459,10 +459,10 @@ export function AssetPanelEnhanced({
                 Filter by Tags:
               </label>
               <div className="flex flex-wrap gap-2">
-                {allTags.map((tag) => (
+                {allTags.map((tag): JSX.Element => (
                   <button
                     key={tag}
-                    onClick={() => toggleTagFilter(tag)}
+                    onClick={(): void => toggleTagFilter(tag)}
                     className={`px-2 py-1 text-xs font-medium rounded-md transition ${
                       selectedTags.includes(tag)
                         ? 'bg-purple-500 text-white'
@@ -483,7 +483,7 @@ export function AssetPanelEnhanced({
               <input
                 type="date"
                 value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
+                onChange={(e): void => setDateFrom(e.target.value)}
                 className="w-full rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-2 py-1.5 text-xs text-neutral-900 dark:text-neutral-100 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
@@ -492,7 +492,7 @@ export function AssetPanelEnhanced({
               <input
                 type="date"
                 value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
+                onChange={(e): void => setDateTo(e.target.value)}
                 className="w-full rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-2 py-1.5 text-xs text-neutral-900 dark:text-neutral-100 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
@@ -502,7 +502,7 @@ export function AssetPanelEnhanced({
           <div className="flex gap-2">
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              onChange={(e): void => setSortBy(e.target.value as SortOption)}
               className="flex-1 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="date">Sort by Date</option>
@@ -514,7 +514,7 @@ export function AssetPanelEnhanced({
             </select>
             <button
               type="button"
-              onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+              onClick={(): void => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
               className="rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
               aria-label={`Sort ${sortDirection === 'asc' ? 'ascending' : 'descending'}`}
             >
@@ -558,7 +558,7 @@ export function AssetPanelEnhanced({
           role="tab"
           aria-selected={activeTab === 'video'}
           aria-controls="video-tabpanel"
-          onClick={() => onTabChange('video')}
+          onClick={(): void => onTabChange('video')}
           className={`px-3 py-2 text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-t ${
             activeTab === 'video'
               ? 'border-b-2 border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100'
@@ -572,7 +572,7 @@ export function AssetPanelEnhanced({
           role="tab"
           aria-selected={activeTab === 'image'}
           aria-controls="image-tabpanel"
-          onClick={() => onTabChange('image')}
+          onClick={(): void => onTabChange('image')}
           className={`px-3 py-2 text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-t ${
             activeTab === 'image'
               ? 'border-b-2 border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100'
@@ -586,7 +586,7 @@ export function AssetPanelEnhanced({
           role="tab"
           aria-selected={activeTab === 'audio'}
           aria-controls="audio-tabpanel"
-          onClick={() => onTabChange('audio')}
+          onClick={(): void => onTabChange('audio')}
           className={`px-3 py-2 text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-t ${
             activeTab === 'audio'
               ? 'border-b-2 border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100'
@@ -732,11 +732,11 @@ export function AssetPanelEnhanced({
                 : 'No audio assets yet. Upload or generate audio.'}
           </div>
         )}
-        {filteredAssets.map((asset) => (
+        {filteredAssets.map((asset): JSX.Element => (
           <div key={asset.id} className="group relative flex flex-col gap-2">
             <button
               type="button"
-              onClick={() => void onAssetAdd(asset)}
+              onClick={(): undefined => void onAssetAdd(asset)}
               aria-label={`Add ${asset.metadata?.filename ?? asset.type} to timeline`}
               className="flex w-full items-start gap-3 rounded-lg border border-transparent bg-neutral-50 dark:bg-neutral-800/50 px-3 py-2 text-left transition hover:border-neutral-200 dark:hover:border-neutral-700 hover:bg-white dark:hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -772,7 +772,7 @@ export function AssetPanelEnhanced({
                 {/* Tags Display */}
                 {asset.tags && asset.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {asset.tags.map((tag) => (
+                    {asset.tags.map((tag): JSX.Element => (
                       <span
                         key={tag}
                         className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs"
@@ -790,7 +790,7 @@ export function AssetPanelEnhanced({
               {/* Favorite button */}
               {onAssetFavoriteToggle && (
                 <button
-                  onClick={(e) => {
+                  onClick={(e): void => {
                     e.stopPropagation();
                     void handleFavoriteToggle(asset.id);
                   }}
@@ -816,7 +816,7 @@ export function AssetPanelEnhanced({
               {/* Tags button */}
               {onAssetTagsUpdate && (
                 <button
-                  onClick={(e) => {
+                  onClick={(e): void => {
                     e.stopPropagation();
                     setEditingTagsForAsset(editingTagsForAsset === asset.id ? null : asset.id);
                   }}
@@ -837,7 +837,7 @@ export function AssetPanelEnhanced({
 
               {/* Version history button */}
               <button
-                onClick={(e) => {
+                onClick={(e): void => {
                   e.stopPropagation();
                   setVersionHistoryAsset(asset);
                 }}
@@ -857,7 +857,7 @@ export function AssetPanelEnhanced({
 
               {/* Delete button */}
               <button
-                onClick={(e) => {
+                onClick={(e): void => {
                   e.stopPropagation();
                   void onAssetDelete(asset);
                 }}
@@ -880,15 +880,15 @@ export function AssetPanelEnhanced({
             {editingTagsForAsset === asset.id && onAssetTagsUpdate && (
               <div
                 className="absolute top-full left-0 right-0 z-20 mt-1 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-3 shadow-lg"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e): void => e.stopPropagation()}
               >
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      onKeyDown={(e) => {
+                      onChange={(e): void => setNewTag(e.target.value)}
+                      onKeyDown={(e): void => {
                         if (e.key === 'Enter') {
                           void handleAddTag(asset.id, newTag);
                         }
@@ -897,7 +897,7 @@ export function AssetPanelEnhanced({
                       className="flex-1 rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-2 py-1 text-xs text-neutral-900 dark:text-neutral-100 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
                     />
                     <button
-                      onClick={() => void handleAddTag(asset.id, newTag)}
+                      onClick={(): undefined => void handleAddTag(asset.id, newTag)}
                       className="rounded-md bg-purple-500 px-3 py-1 text-xs font-medium text-white hover:bg-purple-600"
                     >
                       Add
@@ -905,14 +905,14 @@ export function AssetPanelEnhanced({
                   </div>
                   {asset.tags && asset.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {asset.tags.map((tag) => (
+                      {asset.tags.map((tag): JSX.Element => (
                         <span
                           key={tag}
                           className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs"
                         >
                           {tag}
                           <button
-                            onClick={() => void handleRemoveTag(asset.id, tag)}
+                            onClick={(): undefined => void handleRemoveTag(asset.id, tag)}
                             className="hover:text-purple-900 dark:hover:text-purple-100"
                             aria-label={`Remove tag ${tag}`}
                           >
@@ -943,7 +943,7 @@ export function AssetPanelEnhanced({
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => onPreviousPage?.()}
+              onClick={(): Promise<void> | undefined => onPreviousPage?.()}
               disabled={!hasPreviousPage || loadingAssets}
               aria-label="Go to previous page"
               className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-1.5 font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
@@ -952,7 +952,7 @@ export function AssetPanelEnhanced({
             </button>
             <button
               type="button"
-              onClick={() => onNextPage?.()}
+              onClick={(): Promise<void> | undefined => onNextPage?.()}
               disabled={!hasNextPage || loadingAssets}
               aria-label="Go to next page"
               className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-1.5 font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
@@ -969,8 +969,8 @@ export function AssetPanelEnhanced({
           assetId={versionHistoryAsset.id}
           assetType={versionHistoryAsset.type}
           isOpen={!!versionHistoryAsset}
-          onClose={() => setVersionHistoryAsset(null)}
-          onReverted={() => {
+          onClose={(): void => setVersionHistoryAsset(null)}
+          onReverted={(): void => {
             setVersionHistoryAsset(null);
           }}
         />

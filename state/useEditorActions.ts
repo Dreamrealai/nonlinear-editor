@@ -33,33 +33,33 @@ import {
 export const useEditorActions = () => {
   // ===== Timeline Actions with History =====
 
-  const addClipWithHistory = (clip: Clip) => {
+  const addClipWithHistory = (clip: Clip): void => {
     useTimelineStore.getState().addClip(clip);
     const timeline = useTimelineStore.getState().timeline;
     useHistoryStore.getState().saveToHistory(timeline);
   };
 
-  const updateClipWithHistory = (id: string, patch: Partial<Clip>) => {
+  const updateClipWithHistory = (id: string, patch: Partial<Clip>): void => {
     useTimelineStore.getState().updateClip(id, patch);
     const timeline = useTimelineStore.getState().timeline;
     // Debounced by clip ID to prevent excessive history saves during dragging
     useHistoryStore.getState().saveToHistory(timeline, `update-${id}`);
   };
 
-  const removeClipWithHistory = (id: string) => {
+  const removeClipWithHistory = (id: string): void => {
     useTimelineStore.getState().removeClip(id);
     useSelectionStore.getState().deselectClip(id);
     const timeline = useTimelineStore.getState().timeline;
     useHistoryStore.getState().saveToHistory(timeline);
   };
 
-  const reorderClipsWithHistory = (ids: string[]) => {
+  const reorderClipsWithHistory = (ids: string[]): void => {
     useTimelineStore.getState().reorderClips(ids);
     const timeline = useTimelineStore.getState().timeline;
     useHistoryStore.getState().saveToHistory(timeline);
   };
 
-  const splitClipAtTimeWithHistory = (clipId: string, time: number) => {
+  const splitClipAtTimeWithHistory = (clipId: string, time: number): void => {
     useTimelineStore.getState().splitClipAtTime(clipId, time);
     const timeline = useTimelineStore.getState().timeline;
     useHistoryStore.getState().saveToHistory(timeline);
@@ -67,19 +67,19 @@ export const useEditorActions = () => {
 
   // ===== Marker Actions with History =====
 
-  const addMarkerWithHistory = (marker: Marker) => {
+  const addMarkerWithHistory = (marker: Marker): void => {
     useTimelineStore.getState().addMarker(marker);
     const timeline = useTimelineStore.getState().timeline;
     useHistoryStore.getState().saveToHistory(timeline);
   };
 
-  const removeMarkerWithHistory = (id: string) => {
+  const removeMarkerWithHistory = (id: string): void => {
     useTimelineStore.getState().removeMarker(id);
     const timeline = useTimelineStore.getState().timeline;
     useHistoryStore.getState().saveToHistory(timeline);
   };
 
-  const updateMarkerWithHistory = (id: string, patch: Partial<Marker>) => {
+  const updateMarkerWithHistory = (id: string, patch: Partial<Marker>): void => {
     useTimelineStore.getState().updateMarker(id, patch);
     const timeline = useTimelineStore.getState().timeline;
     useHistoryStore.getState().saveToHistory(timeline, `marker-${id}`);
@@ -87,19 +87,19 @@ export const useEditorActions = () => {
 
   // ===== Text Overlay Actions with History =====
 
-  const addTextOverlayWithHistory = (textOverlay: TextOverlay) => {
+  const addTextOverlayWithHistory = (textOverlay: TextOverlay): void => {
     useTimelineStore.getState().addTextOverlay(textOverlay);
     const timeline = useTimelineStore.getState().timeline;
     useHistoryStore.getState().saveToHistory(timeline);
   };
 
-  const removeTextOverlayWithHistory = (id: string) => {
+  const removeTextOverlayWithHistory = (id: string): void => {
     useTimelineStore.getState().removeTextOverlay(id);
     const timeline = useTimelineStore.getState().timeline;
     useHistoryStore.getState().saveToHistory(timeline);
   };
 
-  const updateTextOverlayWithHistory = (id: string, patch: Partial<TextOverlay>) => {
+  const updateTextOverlayWithHistory = (id: string, patch: Partial<TextOverlay>): void => {
     useTimelineStore.getState().updateTextOverlay(id, patch);
     const timeline = useTimelineStore.getState().timeline;
     useHistoryStore.getState().saveToHistory(timeline, `overlay-${id}`);
@@ -107,7 +107,7 @@ export const useEditorActions = () => {
 
   // ===== Transition Actions with History =====
 
-  const addTransitionToSelectedClips = (transitionType: TransitionType, duration: number) => {
+  const addTransitionToSelectedClips = (transitionType: TransitionType, duration: number): void => {
     const selectedIds = useSelectionStore.getState().getSelectedIds();
     useTimelineStore.getState().addTransitionToClips(selectedIds, transitionType, duration);
     const timeline = useTimelineStore.getState().timeline;
@@ -116,21 +116,21 @@ export const useEditorActions = () => {
 
   // ===== Copy/Paste Actions =====
 
-  const copySelectedClips = () => {
+  const copySelectedClips = (): void => {
     const timeline = useTimelineStore.getState().timeline;
     const selectedIds = useSelectionStore.getState().getSelectedIds();
-    const selectedClips = timeline?.clips.filter((c) => selectedIds.includes(c.id)) || [];
+    const selectedClips = timeline?.clips.filter((c): boolean => selectedIds.includes(c.id)) || [];
     useClipboardStore.getState().copyClips(selectedClips);
   };
 
-  const pasteClipsAtCurrentTime = () => {
+  const pasteClipsAtCurrentTime = (): void => {
     const currentTime = usePlaybackStore.getState().currentTime;
     const pastedClips = useClipboardStore.getState().pasteClips(currentTime);
 
     if (pastedClips.length === 0) return;
 
     // Add all pasted clips
-    pastedClips.forEach((clip) => {
+    pastedClips.forEach((clip): void => {
       useTimelineStore.getState().addClip(clip);
     });
 
@@ -140,21 +140,21 @@ export const useEditorActions = () => {
 
     // Select pasted clips
     useSelectionStore.getState().clearSelection();
-    pastedClips.forEach((clip) => {
+    pastedClips.forEach((clip): void => {
       useSelectionStore.getState().selectClip(clip.id, true);
     });
   };
 
   // ===== Undo/Redo Actions =====
 
-  const undo = () => {
+  const undo = (): void => {
     const previousTimeline = useHistoryStore.getState().undo();
     if (previousTimeline) {
       useTimelineStore.getState().setTimeline(previousTimeline);
     }
   };
 
-  const redo = () => {
+  const redo = (): void => {
     const nextTimeline = useHistoryStore.getState().redo();
     if (nextTimeline) {
       useTimelineStore.getState().setTimeline(nextTimeline);
@@ -163,7 +163,7 @@ export const useEditorActions = () => {
 
   // ===== Initialization =====
 
-  const initializeEditor = (timeline: Timeline | null) => {
+  const initializeEditor = (timeline: Timeline | null): void => {
     if (timeline) {
       useTimelineStore.getState().setTimeline(timeline);
       useHistoryStore.getState().initializeHistory(timeline);

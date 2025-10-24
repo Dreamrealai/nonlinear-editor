@@ -16,7 +16,7 @@ import toast from 'react-hot-toast';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { browserLogger } from '@/lib/browserLogger';
 
-export function UserMenu() {
+export function UserMenu(): JSX.Element {
   const router = useRouter();
   const { supabaseClient } = useSupabase();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -24,10 +24,10 @@ export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  useEffect(() => {
+  useEffect((): void => {
     if (!supabaseClient) return;
 
-    const loadUser = async () => {
+    const loadUser = async (): Promise<void> => {
       const {
         data: { user },
       } = await supabaseClient.auth.getUser();
@@ -39,8 +39,8 @@ export function UserMenu() {
     loadUser();
   }, [supabaseClient]);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+  useEffect((): () => void => {
+    const handleClickOutside = (event: MouseEvent): void => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
@@ -50,12 +50,12 @@ export function UserMenu() {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
-    return () => {
+    return (): void => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen]);
 
-  const handleSignOut = async () => {
+  const handleSignOut = async (): Promise<void> => {
     if (!supabaseClient) return;
 
     try {
@@ -75,7 +75,7 @@ export function UserMenu() {
   return (
     <div className="relative" ref={menuRef}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(): void => setIsOpen(!isOpen)}
         className="flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 hover:bg-neutral-50 transition-colors"
         title={userEmail || 'User menu'}
       >
@@ -116,7 +116,7 @@ export function UserMenu() {
           <div className="py-1">
             <Link
               href="/settings"
-              onClick={() => setIsOpen(false)}
+              onClick={(): void => setIsOpen(false)}
               className="flex items-center gap-2 px-4 py-2 text-sm text-neutral-900 hover:bg-neutral-50 transition-colors"
             >
               <svg
@@ -142,7 +142,7 @@ export function UserMenu() {
             </Link>
 
             <button
-              onClick={() => void handleSignOut()}
+              onClick={(): undefined => void handleSignOut()}
               className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

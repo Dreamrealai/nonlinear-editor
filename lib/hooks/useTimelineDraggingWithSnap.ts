@@ -36,7 +36,21 @@ type UseTimelineDraggingWithSnapOptions = {
   updateClip: (clipId: string, updates: Partial<import('@/types/timeline').Clip>) => void;
 };
 
-export function useTimelineDraggingWithSnap(options: UseTimelineDraggingWithSnapOptions) {
+export interface UseTimelineDraggingWithSnapReturn {
+  draggingClip: DraggingClip | null;
+  isDraggingPlayhead: boolean;
+  trimmingClip: import('./useTimelineDragging').TrimmingClip | null;
+  trimPreviewInfo: import('./useTimelineDragging').TrimPreviewInfo | null;
+  setDraggingClip: React.Dispatch<React.SetStateAction<DraggingClip | null>>;
+  setIsDraggingPlayhead: React.Dispatch<React.SetStateAction<boolean>>;
+  setTrimmingClip: React.Dispatch<React.SetStateAction<import('./useTimelineDragging').TrimmingClip | null>>;
+  currentEditMode: import('@/types/editModes').EditMode;
+  editModeModifiers: import('@/types/editModes').EditModeModifiers;
+  trimFeedback: import('@/types/editModes').TrimFeedback | null;
+  snapInfo: SnapInfo | null;
+}
+
+export function useTimelineDraggingWithSnap(options: UseTimelineDraggingWithSnapOptions): UseTimelineDraggingWithSnapReturn {
   const draggingState = useTimelineDragging(options);
   const [snapInfo, setSnapInfo] = useState<SnapInfo | null>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -44,12 +58,12 @@ export function useTimelineDraggingWithSnap(options: UseTimelineDraggingWithSnap
   const previousSnapStateRef = useRef<boolean>(false);
 
   // Track mouse position during dragging
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!draggingState.draggingClip) {
       return;
     }
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent): void => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       setMousePosition({
@@ -59,11 +73,11 @@ export function useTimelineDraggingWithSnap(options: UseTimelineDraggingWithSnap
     };
 
     window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    return (): void => window.removeEventListener('mousemove', handleMouseMove);
   }, [draggingState.draggingClip, containerRef]);
 
   // Calculate snap info whenever dragging state changes
-  useEffect(() => {
+  useEffect((): void => {
     if (!draggingState.draggingClip || !timeline) {
       setSnapInfo(null);
       previousSnapStateRef.current = false;
@@ -71,7 +85,7 @@ export function useTimelineDraggingWithSnap(options: UseTimelineDraggingWithSnap
     }
 
     const draggingClip: DraggingClip = draggingState.draggingClip;
-    const clip = timeline.clips.find((c) => c.id === draggingClip.id);
+    const clip = timeline.clips.find((c): boolean => c.id === draggingClip.id);
 
     if (!clip) {
       setSnapInfo(null);
@@ -84,11 +98,11 @@ export function useTimelineDraggingWithSnap(options: UseTimelineDraggingWithSnap
     // Build snap candidates
     const snapCandidates: number[] = [0];
     const trackClips = timeline.clips
-      .filter((c) => c.trackIndex === clip.trackIndex && c.id !== clip.id)
-      .sort((a, b) => a.timelinePosition - b.timelinePosition);
+      .filter((c): boolean => c.trackIndex === clip.trackIndex && c.id !== clip.id)
+      .sort((a, b): number => a.timelinePosition - b.timelinePosition);
 
     // Add clip edges as snap candidates
-    trackClips.forEach((c) => {
+    trackClips.forEach((c): void => {
       snapCandidates.push(c.timelinePosition);
       snapCandidates.push(c.timelinePosition + Math.max(SNAP_INTERVAL, c.end - c.start));
     });
@@ -131,7 +145,7 @@ export function useTimelineDraggingWithSnap(options: UseTimelineDraggingWithSnap
     setSnapInfo({
       snapPosition,
       isSnapping,
-      snapCandidates: snapCandidates.filter((c) => Number.isFinite(c) && c >= 0),
+      snapCandidates: snapCandidates.filter((c): boolean => Number.isFinite(c) && c >= 0),
       distanceToSnap,
       mouseX: mousePosition.x,
       mouseY: mousePosition.y,

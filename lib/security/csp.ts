@@ -97,7 +97,7 @@ export function buildCSPHeader(options: CSPOptions = {}): string {
  *
  * Additional security headers to complement CSP
  */
-export function getSecurityHeaders() {
+export function getSecurityHeaders(): { key: string; value: string; }[] {
   return [
     {
       key: 'X-Content-Type-Options',

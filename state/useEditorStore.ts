@@ -13,9 +13,10 @@
  * - Zoom level and playhead position
  *
  * Architecture:
+ * - Composed from multiple slices for better maintainability
  * - Immer enables mutation syntax while maintaining immutability
  * - enableMapSet() allows Immer to handle Set<string> for selectedClipIds
- * - Deep cloning via JSON for history snapshots
+ * - Deep cloning via structuredClone for history snapshots
  * - Automatic deduplication prevents duplicate clip IDs
  */
 'use client';
@@ -23,14 +24,35 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { enableMapSet } from 'immer';
-import type { Timeline, Clip, Marker, Track, TextOverlay, TransitionType, Guide } from '@/types/timeline';
-import { EDITOR_CONSTANTS, CLIP_CONSTANTS, ZOOM_CONSTANTS } from '@/lib/constants';
+import type { Timeline, Clip } from '@/types/timeline';
+import { EDITOR_CONSTANTS } from '@/lib/constants';
 import { timelineAnnouncements } from '@/lib/utils/screenReaderAnnouncer';
-import { getClipFileName } from '@/lib/utils/timelineUtils';
 
-const { MAX_HISTORY, HISTORY_DEBOUNCE_MS} = EDITOR_CONSTANTS;
-const { MIN_CLIP_DURATION } = CLIP_CONSTANTS;
-const { MIN_ZOOM, MAX_ZOOM, DEFAULT_ZOOM } = ZOOM_CONSTANTS;
+// Import slices
+import {
+  createClipsSlice,
+  createTracksSlice,
+  createMarkersSlice,
+  createGuidesSlice,
+  createZoomSlice,
+  createTextOverlaysSlice,
+  createTransitionsSlice,
+  createLockSlice,
+  createGroupsSlice,
+  createPlaybackSlice,
+  type ClipsSlice,
+  type TracksSlice,
+  type MarkersSlice,
+  type GuidesSlice,
+  type ZoomSlice,
+  type TextOverlaysSlice,
+  type TransitionsSlice,
+  type LockSlice,
+  type GroupsSlice,
+  type PlaybackSlice,
+} from './slices';
+
+const { MAX_HISTORY, HISTORY_DEBOUNCE_MS } = EDITOR_CONSTANTS;
 
 // Enable Immer to proxy Map/Set instances (required for selectedClipIds Set)
 enableMapSet();
@@ -40,12 +62,12 @@ enableMapSet();
  * Maps clip ID to timer to prevent batching unrelated edits
  */
 const historyDebounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
-const debouncedSaveHistory = (clipId: string, callback: () => void) => {
+export const debouncedSaveHistory = (clipId: string, callback: () => void): void => {
   const existingTimer = historyDebounceTimers.get(clipId);
   if (existingTimer) {
     clearTimeout(existingTimer);
   }
-  const timer = setTimeout(() => {
+  const timer = setTimeout((): void => {
     historyDebounceTimers.delete(clipId);
     callback();
   }, HISTORY_DEBOUNCE_MS);
@@ -53,17 +75,43 @@ const debouncedSaveHistory = (clipId: string, callback: () => void) => {
 };
 
 /**
- * EditorStore type definition.
- * Contains all state and actions for the video editor.
+ * Removes duplicate clips from an array.
+ * Keeps the last occurrence of each unique clip ID.
  */
-type EditorStore = {
+const dedupeClips = (clips: Clip[]): Clip[] => {
+  if (clips.length <= 1) return clips;
+
+  const seen = new Set<string>();
+  const deduped: Clip[] = [];
+
+  for (let i = clips.length - 1; i >= 0; i -= 1) {
+    const clip = clips[i];
+    if (!clip) continue;
+    if (!seen.has(clip.id)) {
+      seen.add(clip.id);
+      deduped.push(clip);
+    }
+  }
+
+  return deduped.reverse();
+};
+
+/**
+ * Deep clones a timeline for history snapshots.
+ */
+const cloneTimeline = (timeline: Timeline | null): Timeline | null => {
+  if (!timeline) return null;
+  return structuredClone(timeline);
+};
+
+/**
+ * Core EditorStore type definition.
+ * Contains timeline state, selection, history, and clipboard.
+ */
+type EditorStoreCore = {
   // ===== State =====
   /** Current timeline being edited (null when loading) */
   timeline: Timeline | null;
-  /** Playhead position in seconds */
-  currentTime: number;
-  /** Timeline zoom level in pixels per second */
-  zoom: number;
   /** IDs of currently selected clips (supports multi-select) */
   selectedClipIds: Set<string>;
   /** Clipboard for copy/paste operations */
@@ -72,94 +120,10 @@ type EditorStore = {
   history: Timeline[];
   /** Current position in history array */
   historyIndex: number;
-  /** Timecode display mode (duration or timecode) */
-  timecodeDisplayMode: 'duration' | 'timecode';
-  /** Auto-scroll timeline during playback to follow playhead */
-  autoScrollEnabled: boolean;
-  /** Timeline guides for precise alignment */
-  guides: Guide[];
-  /** Enable/disable snapping to grid and clip edges */
-  snapEnabled: boolean;
-  /** Snap grid interval in seconds */
-  snapGridInterval: number;
 
   // ===== Timeline Actions =====
   /** Replace entire timeline (initializes history) */
   setTimeline: (timeline: Timeline) => void;
-  /** Add a clip to the timeline */
-  addClip: (clip: Clip) => void;
-  /** Reorder clips by ID array */
-  reorderClips: (ids: string[]) => void;
-  /** Update clip properties (validates durations and positions) */
-  updateClip: (id: string, patch: Partial<Clip>) => void;
-  /** Remove a clip from timeline */
-  removeClip: (id: string) => void;
-  /** Duplicate a clip (places copy right after original) */
-  duplicateClip: (id: string) => void;
-  /** Split a clip at a specific timeline position */
-  splitClipAtTime: (clipId: string, time: number) => void;
-
-  // ===== Playback Actions =====
-  /** Set playhead position */
-  setCurrentTime: (time: number) => void;
-  /** Set zoom level (clamped to 10-200 px/s) */
-  setZoom: (zoom: number) => void;
-  /** Toggle timecode display mode */
-  toggleTimecodeDisplayMode: () => void;
-  /** Toggle auto-scroll during playback */
-  toggleAutoScroll: () => void;
-  /** Toggle snap to grid and clip edges */
-  toggleSnap: () => void;
-  /** Set snap grid interval in seconds */
-  setSnapGridInterval: (interval: number) => void;
-  /** Calculate zoom to fit entire timeline in viewport */
-  calculateFitToTimelineZoom: (viewportWidth: number) => number;
-  /** Calculate zoom to fit selected clips in viewport */
-  calculateFitToSelectionZoom: (viewportWidth: number) => number;
-  /** Apply zoom to fit entire timeline */
-  fitToTimeline: (viewportWidth: number) => void;
-  /** Apply zoom to fit selected clips */
-  fitToSelection: (viewportWidth: number) => void;
-  /** Set zoom to specific preset percentage */
-  setZoomPreset: (preset: 25 | 50 | 100 | 200 | 400) => void;
-
-  // ===== Marker Actions =====
-  /** Add a timeline marker */
-  addMarker: (marker: Marker) => void;
-  /** Remove a marker */
-  removeMarker: (id: string) => void;
-  /** Update marker properties */
-  updateMarker: (id: string, patch: Partial<Marker>) => void;
-
-  // ===== Guide Actions =====
-  /** Add a timeline guide */
-  addGuide: (guide: Guide) => void;
-  /** Remove a guide */
-  removeGuide: (id: string) => void;
-  /** Update guide properties */
-  updateGuide: (id: string, patch: Partial<Guide>) => void;
-  /** Toggle guide visibility */
-  toggleGuideVisibility: (id: string) => void;
-  /** Toggle all guides visibility */
-  toggleAllGuidesVisibility: () => void;
-  /** Clear all guides */
-  clearAllGuides: () => void;
-
-  // ===== Track Actions =====
-  /** Update or create a track (auto-creates if not exists) */
-  updateTrack: (trackIndex: number, patch: Partial<Track>) => void;
-
-  // ===== Text Overlay Actions =====
-  /** Add a text overlay to the timeline */
-  addTextOverlay: (textOverlay: TextOverlay) => void;
-  /** Remove a text overlay */
-  removeTextOverlay: (id: string) => void;
-  /** Update text overlay properties */
-  updateTextOverlay: (id: string, patch: Partial<TextOverlay>) => void;
-
-  // ===== Transition Actions =====
-  /** Add a transition to selected clips */
-  addTransitionToSelectedClips: (transitionType: TransitionType, duration: number) => void;
 
   // ===== Selection Actions =====
   /** Select/deselect clip (multi=true for multi-select) */
@@ -181,35 +145,11 @@ type EditorStore = {
   /** Select all clips in the timeline */
   selectAllClips: () => void;
 
-  // ===== Lock Actions =====
-  /** Lock a clip to prevent editing/moving */
-  lockClip: (id: string) => void;
-  /** Unlock a clip to allow editing/moving */
-  unlockClip: (id: string) => void;
-  /** Toggle lock state for a clip */
-  toggleClipLock: (id: string) => void;
-  /** Lock all selected clips */
-  lockSelectedClips: () => void;
-  /** Unlock all selected clips */
-  unlockSelectedClips: () => void;
-
   // ===== Clipboard Actions =====
   /** Copy selected clips to clipboard */
   copyClips: () => void;
   /** Paste clips from clipboard at playhead position */
   pasteClips: () => void;
-
-  // ===== Group Actions =====
-  /** Create a group from selected clips */
-  groupSelectedClips: (name?: string) => void;
-  /** Ungroup clips in a group */
-  ungroupClips: (groupId: string) => void;
-  /** Get all clip IDs in a group */
-  getGroupClipIds: (groupId: string) => string[];
-  /** Check if a clip is grouped */
-  isClipGrouped: (clipId: string) => boolean;
-  /** Get group ID for a clip */
-  getClipGroupId: (clipId: string) => string | null;
 
   // ===== History Actions =====
   /** Undo last action */
@@ -220,76 +160,35 @@ type EditorStore = {
   canUndo: () => boolean;
   /** Check if redo is available */
   canRedo: () => boolean;
-
-  // ===== Guide Actions =====
-  /** Add a timeline guide */
-  addGuide: (time: number) => void;
-  /** Update guide position */
-  updateGuide: (guideId: string, time: number) => void;
-  /** Delete a guide */
-  deleteGuide: (guideId: string) => void;
-  /** Jump playhead to marker */
-  jumpToMarker: (markerId: string) => void;
 };
 
 /**
- * Deep clones a timeline for history snapshots.
- * Uses structuredClone for better performance and type safety.
- *
- * @param timeline - Timeline to clone (may be an Immer draft)
- * @returns Deep copy of timeline
+ * Combined EditorStore type - merges core store with all slices
  */
-const cloneTimeline = (timeline: Timeline | null): Timeline | null => {
-  if (!timeline) return null;
-  // structuredClone is faster and more reliable than JSON.parse(JSON.stringify())
-  // It also preserves Date objects, RegExp, Map, Set, and other built-in types
-  return structuredClone(timeline);
-};
-
-/**
- * Removes duplicate clips from an array.
- * Keeps the last occurrence of each unique clip ID.
- *
- * @param clips - Array of clips (may contain duplicates)
- * @returns Deduplicated array of clips
- */
-const dedupeClips = (clips: Clip[]): Clip[] => {
-  if (clips.length <= 1) return clips; // Fast path for small arrays
-
-  const seen = new Set<string>();
-  const deduped: Clip[] = [];
-
-  // Iterate backwards to keep last occurrence
-  for (let i = clips.length - 1; i >= 0; i -= 1) {
-    const clip = clips[i];
-    if (!clip) continue; // Skip undefined entries
-    if (!seen.has(clip.id)) {
-      seen.add(clip.id);
-      deduped.push(clip); // Push to end (we'll reverse later)
-    }
-  }
-
-  // Reverse to restore original order (faster than unshift in loop)
-  return deduped.reverse();
-};
+export type EditorStore = EditorStoreCore &
+  ClipsSlice &
+  TracksSlice &
+  MarkersSlice &
+  GuidesSlice &
+  ZoomSlice &
+  TextOverlaysSlice &
+  TransitionsSlice &
+  LockSlice &
+  GroupsSlice &
+  PlaybackSlice;
 
 export const useEditorStore = create<EditorStore>()(
   immer((set, get) => ({
+    // ===== Core State =====
     timeline: null,
-    currentTime: 0,
-    zoom: DEFAULT_ZOOM,
     selectedClipIds: new Set<string>(),
     copiedClips: [],
     history: [],
     historyIndex: -1,
-    timecodeDisplayMode: 'duration',
-    autoScrollEnabled: true,
-    guides: [],
-    snapEnabled: true,
-    snapGridInterval: 0.1,
 
-    setTimeline: (timeline) =>
-      set((state) => {
+    // ===== Core Actions =====
+    setTimeline: (timeline): void =>
+      set((state): void => {
         state.timeline = timeline;
         if (state.timeline) {
           state.timeline.clips = dedupeClips(state.timeline.clips);
@@ -298,446 +197,10 @@ export const useEditorStore = create<EditorStore>()(
         state.history = [cloneTimeline(timeline)].filter((t): t is Timeline => t !== null);
         state.historyIndex = 0;
       }),
-    addClip: (clip) =>
-      set((state) => {
-        if (!state.timeline) return;
-        state.timeline.clips.push(clip);
-        state.timeline.clips = dedupeClips(state.timeline.clips);
 
-        // Announce to screen readers
-        if (typeof window !== 'undefined') {
-          timelineAnnouncements.clipAdded(getClipFileName(clip), clip.trackIndex);
-        }
-
-        // Save to history
-        const cloned = cloneTimeline(state.timeline);
-        if (cloned) {
-          state.history = state.history.slice(0, state.historyIndex + 1);
-          state.history.push(cloned);
-          if (state.history.length > MAX_HISTORY) {
-            state.history.shift();
-          } else {
-            state.historyIndex++;
-          }
-        }
-      }),
-    reorderClips: (ids) =>
-      set((state) => {
-        if (!state.timeline) return;
-        const clipMap = new Map(state.timeline.clips.map((clip) => [clip.id, clip]));
-        state.timeline.clips = ids
-          .map((id) => clipMap.get(id))
-          .filter((clip): clip is Clip => Boolean(clip));
-        state.timeline.clips = dedupeClips(state.timeline.clips);
-
-        // Save to history
-        const cloned = cloneTimeline(state.timeline);
-        if (cloned) {
-          state.history = state.history.slice(0, state.historyIndex + 1);
-          state.history.push(cloned);
-          if (state.history.length > MAX_HISTORY) {
-            state.history.shift();
-          } else {
-            state.historyIndex++;
-          }
-        }
-      }),
-    updateClip: (id, patch) =>
-      set((state) => {
-        const clip = state.timeline?.clips.find((existing) => existing.id === id);
-        if (clip) {
-          Object.assign(clip, patch);
-
-          // Ensure numeric validity
-          clip.timelinePosition = Number.isFinite(clip.timelinePosition)
-            ? Math.max(0, clip.timelinePosition)
-            : 0;
-          clip.start = Number.isFinite(clip.start) ? Math.max(0, clip.start) : 0;
-          clip.end = Number.isFinite(clip.end) ? clip.end : clip.start + MIN_CLIP_DURATION;
-
-          // Normalize sourceDuration
-          if (clip.sourceDuration !== undefined && clip.sourceDuration !== null) {
-            if (typeof clip.sourceDuration === 'number' && Number.isFinite(clip.sourceDuration)) {
-              clip.sourceDuration = Math.max(clip.sourceDuration, MIN_CLIP_DURATION);
-            } else {
-              clip.sourceDuration = null;
-            }
-          } else {
-            clip.sourceDuration = null;
-          }
-
-          // Validate start/end bounds with sourceDuration
-          if (typeof clip.sourceDuration === 'number') {
-            clip.start = Math.min(clip.start, Math.max(0, clip.sourceDuration - MIN_CLIP_DURATION));
-            clip.end = Math.min(clip.end, clip.sourceDuration);
-          }
-
-          // Ensure minimum duration
-          if (clip.end - clip.start < MIN_CLIP_DURATION) {
-            clip.end = clip.start + MIN_CLIP_DURATION;
-            // If we exceed sourceDuration, shift both start and end back
-            if (typeof clip.sourceDuration === 'number' && clip.end > clip.sourceDuration) {
-              clip.end = clip.sourceDuration;
-              clip.start = Math.max(0, clip.end - MIN_CLIP_DURATION);
-            }
-          }
-
-          if (state.timeline) {
-            state.timeline.clips = dedupeClips(state.timeline.clips);
-          }
-
-          // Per-clip debounced save to history (prevents batching unrelated edits)
-          debouncedSaveHistory(id, () => {
-            const currentState = useEditorStore.getState();
-            const cloned = cloneTimeline(currentState.timeline);
-            if (cloned) {
-              useEditorStore.setState((s) => {
-                s.history = s.history.slice(0, s.historyIndex + 1);
-                s.history.push(cloned);
-                if (s.history.length > MAX_HISTORY) {
-                  s.history.shift();
-                } else {
-                  s.historyIndex++;
-                }
-              });
-            }
-          });
-        }
-      }),
-    removeClip: (id) =>
-      set((state) => {
-        if (!state.timeline) return;
-
-        // Get clip info before removing for screen reader announcement
-        const clipToRemove = state.timeline.clips.find((clip) => clip.id === id);
-
-        state.timeline.clips = state.timeline.clips.filter((clip) => clip.id !== id);
-        state.timeline.clips = dedupeClips(state.timeline.clips);
-        state.selectedClipIds.delete(id);
-
-        // Announce to screen readers
-        if (typeof window !== 'undefined' && clipToRemove) {
-          timelineAnnouncements.clipRemoved(getClipFileName(clipToRemove));
-        }
-
-        // Save to history
-        const cloned = cloneTimeline(state.timeline);
-        if (cloned) {
-          state.history = state.history.slice(0, state.historyIndex + 1);
-          state.history.push(cloned);
-          if (state.history.length > MAX_HISTORY) {
-            state.history.shift();
-          } else {
-            state.historyIndex++;
-          }
-        }
-      }),
-    duplicateClip: (id) =>
-      set((state) => {
-        if (!state.timeline) return;
-
-        const clipIndex = state.timeline.clips.findIndex((clip) => clip.id === id);
-        if (clipIndex === -1) return;
-
-        const originalClip = state.timeline.clips[clipIndex];
-        if (!originalClip) return;
-
-        // Calculate duration and position for duplicate
-        const clipDuration = originalClip.end - originalClip.start;
-        const newPosition = originalClip.timelinePosition + clipDuration;
-
-        // Create duplicate clip with new ID and position
-        const duplicateClip: Clip = {
-          ...structuredClone(originalClip),
-          id: `${id}-duplicate-${Date.now()}`,
-          timelinePosition: newPosition,
-          // Clear transition since it's a new independent clip
-          transitionToNext: { type: 'none', duration: 0 },
-        };
-
-        // Insert duplicate after original
-        state.timeline.clips.splice(clipIndex + 1, 0, duplicateClip);
-        state.timeline.clips = dedupeClips(state.timeline.clips);
-
-        // Select the duplicate clip
-        state.selectedClipIds.clear();
-        state.selectedClipIds.add(duplicateClip.id);
-
-        // Announce to screen readers
-        if (typeof window !== 'undefined') {
-          timelineAnnouncements.clipAdded(
-            `Duplicate of ${getClipFileName(originalClip)}`,
-            duplicateClip.trackIndex
-          );
-        }
-
-        // Save to history
-        const cloned = cloneTimeline(state.timeline);
-        if (cloned) {
-          state.history = state.history.slice(0, state.historyIndex + 1);
-          state.history.push(cloned);
-          if (state.history.length > MAX_HISTORY) {
-            state.history.shift();
-          } else {
-            state.historyIndex++;
-          }
-        }
-      }),
-    splitClipAtTime: (clipId, time) =>
-      set((state) => {
-        if (!state.timeline) return;
-        const clipIndex = state.timeline.clips.findIndex((c) => c.id === clipId);
-        if (clipIndex === -1) return;
-
-        const originalClip = state.timeline.clips[clipIndex];
-        if (!originalClip) return;
-
-        // Calculate split position relative to clip's content
-        const clipStart = originalClip.timelinePosition;
-        const clipEnd = originalClip.timelinePosition + (originalClip.end - originalClip.start);
-
-        // Validate split is within clip bounds
-        if (time <= clipStart || time >= clipEnd) return;
-
-        const splitOffset = time - clipStart;
-        const newClipStart = originalClip.start + splitOffset;
-
-        // Validate both resulting clips meet minimum duration
-        const firstClipDuration = newClipStart - originalClip.start;
-        const secondClipDuration = originalClip.end - newClipStart;
-
-        if (firstClipDuration < MIN_CLIP_DURATION || secondClipDuration < MIN_CLIP_DURATION) {
-          // Split would create clips shorter than minimum duration - silently reject
-          // (This is expected behavior during normal interaction, not an error)
-          return;
-        }
-
-        // Create second half of clip
-        const secondClip: Clip = {
-          ...originalClip,
-          id: `${clipId}-split-${Date.now()}`,
-          start: newClipStart,
-          timelinePosition: time,
-        };
-
-        // Update first half
-        originalClip.end = newClipStart;
-        originalClip.transitionToNext = { type: 'none', duration: 0 };
-
-        // Insert second clip after first
-        state.timeline.clips.splice(clipIndex + 1, 0, secondClip);
-        state.timeline.clips = dedupeClips(state.timeline.clips);
-
-        // Save to history
-        const cloned = cloneTimeline(state.timeline);
-        if (cloned) {
-          state.history = state.history.slice(0, state.historyIndex + 1);
-          state.history.push(cloned);
-          if (state.history.length > MAX_HISTORY) {
-            state.history.shift();
-          } else {
-            state.historyIndex++;
-          }
-        }
-      }),
-    setCurrentTime: (time) =>
-      set((state) => {
-        state.currentTime = time;
-      }),
-    setZoom: (zoom) =>
-      set((state) => {
-        state.zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom));
-      }),
-    toggleTimecodeDisplayMode: () =>
-      set((state) => {
-        state.timecodeDisplayMode =
-          state.timecodeDisplayMode === 'duration' ? 'timecode' : 'duration';
-      }),
-    toggleAutoScroll: () =>
-      set((state) => {
-        state.autoScrollEnabled = !state.autoScrollEnabled;
-      }),
-    toggleSnap: () =>
-      set((state) => {
-        state.snapEnabled = !state.snapEnabled;
-      }),
-    setSnapGridInterval: (interval) =>
-      set((state) => {
-        // Clamp interval between 0.01s (10ms) and 10s
-        state.snapGridInterval = Math.max(0.01, Math.min(10, interval));
-      }),
-    addMarker: (marker) =>
-      set((state) => {
-        if (!state.timeline) return;
-        if (!state.timeline.markers) {
-          state.timeline.markers = [];
-        }
-        state.timeline.markers.push(marker);
-      }),
-    removeMarker: (id) =>
-      set((state) => {
-        if (!state.timeline?.markers) return;
-        state.timeline.markers = state.timeline.markers.filter((m) => m.id !== id);
-      }),
-    updateMarker: (id, patch) =>
-      set((state) => {
-        const marker = state.timeline?.markers?.find((m) => m.id === id);
-        if (marker) {
-          Object.assign(marker, patch);
-        }
-      }),
-
-    // ===== Guide Actions =====
-    addGuide: (guide) =>
-      set((state) => {
-        if (!state.timeline) return;
-        if (!state.timeline.guides) {
-          state.timeline.guides = [];
-        }
-        state.timeline.guides.push(guide);
-      }),
-    removeGuide: (id) =>
-      set((state) => {
-        if (!state.timeline?.guides) return;
-        state.timeline.guides = state.timeline.guides.filter((g) => g.id !== id);
-      }),
-    updateGuide: (id, patch) =>
-      set((state) => {
-        const guide = state.timeline?.guides?.find((g) => g.id === id);
-        if (guide) {
-          Object.assign(guide, patch);
-        }
-      }),
-    toggleGuideVisibility: (id) =>
-      set((state) => {
-        const guide = state.timeline?.guides?.find((g) => g.id === id);
-        if (guide) {
-          guide.visible = !guide.visible;
-        }
-      }),
-    toggleAllGuidesVisibility: () =>
-      set((state) => {
-        if (!state.timeline?.guides) return;
-        // If any guide is visible, hide all; otherwise show all
-        const anyVisible = state.timeline.guides.some((g) => g.visible !== false);
-        state.timeline.guides.forEach((guide) => {
-          guide.visible = !anyVisible;
-        });
-      }),
-    clearAllGuides: () =>
-      set((state) => {
-        if (!state.timeline) return;
-        state.timeline.guides = [];
-      }),
-
-    updateTrack: (trackIndex, patch) =>
-      set((state) => {
-        if (!state.timeline) return;
-        if (!state.timeline.tracks) {
-          state.timeline.tracks = [];
-        }
-
-        let track = state.timeline.tracks.find((t) => t.index === trackIndex);
-        if (!track) {
-          // Create track if it doesn't exist
-          track = {
-            id: `track-${trackIndex}`,
-            index: trackIndex,
-            name: `Track ${trackIndex + 1}`,
-            type: 'video',
-          };
-          state.timeline.tracks.push(track);
-        }
-
-        Object.assign(track, patch);
-      }),
-
-    // ===== Text Overlay Actions =====
-    addTextOverlay: (textOverlay) =>
-      set((state) => {
-        if (!state.timeline) return;
-        if (!state.timeline.textOverlays) {
-          state.timeline.textOverlays = [];
-        }
-        state.timeline.textOverlays.push(textOverlay);
-
-        // Save to history
-        const cloned = cloneTimeline(state.timeline);
-        if (cloned) {
-          state.history = state.history.slice(0, state.historyIndex + 1);
-          state.history.push(cloned);
-          if (state.history.length > MAX_HISTORY) {
-            state.history.shift();
-          } else {
-            state.historyIndex++;
-          }
-        }
-      }),
-    removeTextOverlay: (id) =>
-      set((state) => {
-        if (!state.timeline?.textOverlays) return;
-        state.timeline.textOverlays = state.timeline.textOverlays.filter((t) => t.id !== id);
-
-        // Save to history
-        const cloned = cloneTimeline(state.timeline);
-        if (cloned) {
-          state.history = state.history.slice(0, state.historyIndex + 1);
-          state.history.push(cloned);
-          if (state.history.length > MAX_HISTORY) {
-            state.history.shift();
-          } else {
-            state.historyIndex++;
-          }
-        }
-      }),
-    updateTextOverlay: (id, patch) =>
-      set((state) => {
-        const textOverlay = state.timeline?.textOverlays?.find((t) => t.id === id);
-        if (textOverlay) {
-          Object.assign(textOverlay, patch);
-
-          // Save to history
-          const cloned = cloneTimeline(state.timeline);
-          if (cloned) {
-            state.history = state.history.slice(0, state.historyIndex + 1);
-            state.history.push(cloned);
-            if (state.history.length > MAX_HISTORY) {
-              state.history.shift();
-            } else {
-              state.historyIndex++;
-            }
-          }
-        }
-      }),
-
-    // ===== Transition Actions =====
-    addTransitionToSelectedClips: (transitionType, duration) =>
-      set((state) => {
-        if (!state.timeline) return;
-
-        // Add transition to all selected clips
-        state.selectedClipIds.forEach((clipId) => {
-          const clip = state.timeline!.clips.find((c) => c.id === clipId);
-          if (clip) {
-            clip.transitionToNext = { type: transitionType, duration };
-          }
-        });
-
-        // Save to history
-        const cloned = cloneTimeline(state.timeline);
-        if (cloned) {
-          state.history = state.history.slice(0, state.historyIndex + 1);
-          state.history.push(cloned);
-          if (state.history.length > MAX_HISTORY) {
-            state.history.shift();
-          } else {
-            state.historyIndex++;
-          }
-        }
-      }),
-
-    selectClip: (id, multi = false) =>
-      set((state) => {
+    // ===== Selection Actions =====
+    selectClip: (id, multi = false): void =>
+      set((state): void => {
         if (multi) {
           if (state.selectedClipIds.has(id)) {
             state.selectedClipIds.delete(id);
@@ -749,33 +212,31 @@ export const useEditorStore = create<EditorStore>()(
           state.selectedClipIds.add(id);
         }
       }),
-    clearSelection: () =>
-      set((state) => {
+
+    clearSelection: (): void =>
+      set((state): void => {
         state.selectedClipIds.clear();
       }),
-    selectClipsInRange: (startX, startY, endX, endY, zoom, trackHeight, multi = false) =>
-      set((state) => {
+
+    selectClipsInRange: (startX, startY, endX, endY, zoom, trackHeight, multi = false): void =>
+      set((state): void => {
         if (!state.timeline) return;
 
-        // Calculate bounding box of selection rectangle
         const minX = Math.min(startX, endX);
         const maxX = Math.max(startX, endX);
         const minY = Math.min(startY, endY);
         const maxY = Math.max(startY, endY);
 
-        // Clear selection if not multi-select
         if (!multi) {
           state.selectedClipIds.clear();
         }
 
-        // Check each clip for intersection with selection rectangle
-        state.timeline.clips.forEach((clip) => {
+        state.timeline.clips.forEach((clip): void => {
           const clipLeft = clip.timelinePosition * zoom;
           const clipRight = clipLeft + (clip.end - clip.start) * zoom;
-          const clipTop = clip.trackIndex * trackHeight + 8; // +8 for top offset
-          const clipBottom = clipTop + (trackHeight - 16); // -16 for top/bottom padding
+          const clipTop = clip.trackIndex * trackHeight + 8;
+          const clipBottom = clipTop + (trackHeight - 16);
 
-          // Check if clip intersects with selection rectangle
           const intersects =
             clipRight >= minX && clipLeft <= maxX && clipBottom >= minY && clipTop <= maxY;
 
@@ -784,17 +245,16 @@ export const useEditorStore = create<EditorStore>()(
           }
         });
       }),
-    selectAllClipsInTrack: (trackIndex, multi = false) =>
-      set((state) => {
+
+    selectAllClipsInTrack: (trackIndex, multi = false): void =>
+      set((state): void => {
         if (!state.timeline) return;
 
-        // Clear selection if not multi-select
         if (!multi) {
           state.selectedClipIds.clear();
         }
 
-        // Select all clips in the specified track
-        state.timeline.clips.forEach((clip) => {
+        state.timeline.clips.forEach((clip): void => {
           if (clip.trackIndex === trackIndex) {
             state.selectedClipIds.add(clip.id);
           }
@@ -802,43 +262,41 @@ export const useEditorStore = create<EditorStore>()(
 
         // Announce selection for screen readers
         const count = Array.from(state.selectedClipIds).filter(
-          (id) => state.timeline?.clips.find((c) => c.id === id)?.trackIndex === trackIndex
+          (id): boolean => state.timeline?.clips.find((c): boolean => c.id === id)?.trackIndex === trackIndex
         ).length;
-        timelineAnnouncements.selectionChanged(count);
+        timelineAnnouncements.clipSelected(count);
       }),
-    selectAllClips: () =>
-      set((state) => {
+
+    selectAllClips: (): void =>
+      set((state): void => {
         if (!state.timeline) return;
 
-        // Select all clips in the timeline
-        state.timeline.clips.forEach((clip) => {
+        state.timeline.clips.forEach((clip): void => {
           state.selectedClipIds.add(clip.id);
         });
 
         // Announce selection for screen readers
-        timelineAnnouncements.selectionChanged(state.selectedClipIds.size);
+        timelineAnnouncements.clipSelected(state.selectedClipIds.size);
       }),
 
-    // Copy selected clips to clipboard
-    copyClips: () =>
-      set((state) => {
+    // ===== Clipboard Actions =====
+    copyClips: (): void =>
+      set((state): void => {
         if (!state.timeline) return;
-        const selected = state.timeline.clips.filter((clip) => state.selectedClipIds.has(clip.id));
+        const selected = state.timeline.clips.filter((clip): boolean => state.selectedClipIds.has(clip.id));
         state.copiedClips = structuredClone(selected);
       }),
 
-    // Paste clips from clipboard at current playhead position
-    pasteClips: () =>
-      set((state) => {
+    pasteClips: (): void =>
+      set((state): void => {
         if (!state.timeline || state.copiedClips.length === 0) return;
 
         const currentTime = state.currentTime;
         const pastedClips: Clip[] = [];
 
-        // Find the earliest timeline position among copied clips
-        const minPosition = Math.min(...state.copiedClips.map((c) => c.timelinePosition));
+        const minPosition = Math.min(...state.copiedClips.map((c): number => c.timelinePosition));
 
-        state.copiedClips.forEach((copiedClip) => {
+        state.copiedClips.forEach((copiedClip): void => {
           const offset = copiedClip.timelinePosition - minPosition;
           const newClip: Clip = {
             ...copiedClip,
@@ -849,9 +307,8 @@ export const useEditorStore = create<EditorStore>()(
           state.timeline!.clips.push(newClip);
         });
 
-        // Select pasted clips
         state.selectedClipIds.clear();
-        pastedClips.forEach((clip) => state.selectedClipIds.add(clip.id));
+        pastedClips.forEach((clip): Set<string> => state.selectedClipIds.add(clip.id));
 
         // Save to history
         const cloned = cloneTimeline(state.timeline);
@@ -866,9 +323,9 @@ export const useEditorStore = create<EditorStore>()(
         }
       }),
 
-    // Undo last action
-    undo: () =>
-      set((state) => {
+    // ===== History Actions =====
+    undo: (): void =>
+      set((state): void => {
         if (state.historyIndex > 0) {
           state.historyIndex--;
           const previousState = state.history[state.historyIndex];
@@ -878,9 +335,8 @@ export const useEditorStore = create<EditorStore>()(
         }
       }),
 
-    // Redo previously undone action
-    redo: () =>
-      set((state) => {
+    redo: (): void =>
+      set((state): void => {
         if (state.historyIndex < state.history.length - 1) {
           state.historyIndex++;
           const nextState = state.history[state.historyIndex];
@@ -890,314 +346,26 @@ export const useEditorStore = create<EditorStore>()(
         }
       }),
 
-    // Check if undo is available
-    canUndo: () => {
+    canUndo: (): boolean => {
       const state = get();
       return state.historyIndex > 0;
     },
 
-    // Check if redo is available
-    canRedo: () => {
+    canRedo: (): boolean => {
       const state = get();
       return state.historyIndex < state.history.length - 1;
     },
 
-    // ===== Lock Actions =====
-    lockClip: (id) =>
-      set((state) => {
-        const clip = state.timeline?.clips.find((c) => c.id === id);
-        if (clip) {
-          clip.locked = true;
-        }
-      }),
-
-    unlockClip: (id) =>
-      set((state) => {
-        const clip = state.timeline?.clips.find((c) => c.id === id);
-        if (clip) {
-          clip.locked = false;
-        }
-      }),
-
-    toggleClipLock: (id) =>
-      set((state) => {
-        const clip = state.timeline?.clips.find((c) => c.id === id);
-        if (clip) {
-          clip.locked = !clip.locked;
-
-          // Announce to screen readers
-          if (typeof window !== 'undefined') {
-            if (clip.locked) {
-              timelineAnnouncements.clipLocked(getClipFileName(clip));
-            } else {
-              timelineAnnouncements.clipUnlocked(getClipFileName(clip));
-            }
-          }
-        }
-      }),
-
-    lockSelectedClips: () =>
-      set((state) => {
-        if (!state.timeline) return;
-        state.selectedClipIds.forEach((clipId) => {
-          const clip = state.timeline!.clips.find((c) => c.id === clipId);
-          if (clip) {
-            clip.locked = true;
-          }
-        });
-      }),
-
-    unlockSelectedClips: () =>
-      set((state) => {
-        if (!state.timeline) return;
-        state.selectedClipIds.forEach((clipId) => {
-          const clip = state.timeline!.clips.find((c) => c.id === clipId);
-          if (clip) {
-            clip.locked = false;
-          }
-        });
-      }),
-
-    // ===== Group Actions =====
-    groupSelectedClips: (name) =>
-      set((state) => {
-        if (!state.timeline || state.selectedClipIds.size < 2) return;
-
-        // Initialize groups array if needed
-        if (!state.timeline.groups) {
-          state.timeline.groups = [];
-        }
-
-        // Generate group ID
-        const groupId = `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-        // Get selected clip IDs
-        const clipIds = Array.from(state.selectedClipIds);
-
-        // Create group
-        state.timeline.groups.push({
-          id: groupId,
-          name: name || `Group ${state.timeline.groups.length + 1}`,
-          clipIds,
-          created_at: Date.now(),
-        });
-
-        // Set groupId on all selected clips
-        state.timeline.clips.forEach((clip) => {
-          if (clipIds.includes(clip.id)) {
-            clip.groupId = groupId;
-          }
-        });
-
-        // Save to history
-        const cloned = cloneTimeline(state.timeline);
-        if (cloned) {
-          state.history = state.history.slice(0, state.historyIndex + 1);
-          state.history.push(cloned);
-          if (state.history.length > MAX_HISTORY) {
-            state.history.shift();
-          } else {
-            state.historyIndex++;
-          }
-        }
-      }),
-
-    ungroupClips: (groupId) =>
-      set((state) => {
-        if (!state.timeline || !state.timeline.groups) return;
-
-        // Remove group
-        state.timeline.groups = state.timeline.groups.filter((g) => g.id !== groupId);
-
-        // Clear groupId from clips
-        state.timeline.clips.forEach((clip) => {
-          if (clip.groupId === groupId) {
-            delete clip.groupId;
-          }
-        });
-
-        // Save to history
-        const cloned = cloneTimeline(state.timeline);
-        if (cloned) {
-          state.history = state.history.slice(0, state.historyIndex + 1);
-          state.history.push(cloned);
-          if (state.history.length > MAX_HISTORY) {
-            state.history.shift();
-          } else {
-            state.historyIndex++;
-          }
-        }
-      }),
-
-    getGroupClipIds: (groupId) => {
-      const state = get();
-      if (!state.timeline || !state.timeline.groups) return [];
-
-      const group = state.timeline.groups.find((g) => g.id === groupId);
-      return group ? [...group.clipIds] : [];
-    },
-
-    isClipGrouped: (clipId) => {
-      const state = get();
-      if (!state.timeline) return false;
-
-      const clip = state.timeline.clips.find((c) => c.id === clipId);
-      return Boolean(clip?.groupId);
-    },
-
-    getClipGroupId: (clipId) => {
-      const state = get();
-      if (!state.timeline) return null;
-
-      const clip = state.timeline.clips.find((c) => c.id === clipId);
-      return clip?.groupId || null;
-    },
-
-    // ===== Zoom Preset Actions =====
-    /**
-     * Calculate zoom to fit entire timeline in viewport
-     * @param viewportWidth - Width of the timeline viewport in pixels
-     * @returns Calculated zoom level (clamped to MIN_ZOOM-MAX_ZOOM)
-     */
-    calculateFitToTimelineZoom: (viewportWidth: number) => {
-      const state = get();
-      if (!state.timeline || state.timeline.clips.length === 0 || viewportWidth <= 0) {
-        return DEFAULT_ZOOM;
-      }
-
-      // Calculate total timeline duration
-      const timelineDuration = Math.max(
-        ...state.timeline.clips.map((clip) => clip.timelinePosition + (clip.end - clip.start))
-      );
-
-      // Add 10% padding on each side for better visual spacing
-      const padding = 0.1;
-      const effectiveWidth = viewportWidth * (1 - 2 * padding);
-
-      // Calculate zoom: pixels per second needed to fit duration in viewport
-      const calculatedZoom = effectiveWidth / timelineDuration;
-
-      // Clamp to valid zoom range
-      return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, calculatedZoom));
-    },
-
-    /**
-     * Calculate zoom to fit selected clips in viewport
-     * @param viewportWidth - Width of the timeline viewport in pixels
-     * @returns Calculated zoom level (clamped to MIN_ZOOM-MAX_ZOOM)
-     */
-    calculateFitToSelectionZoom: (viewportWidth: number) => {
-      const state = get();
-      if (!state.timeline || state.selectedClipIds.size === 0 || viewportWidth <= 0) {
-        return state.zoom; // Return current zoom if no selection
-      }
-
-      // Get bounds of selected clips
-      const selectedClips = state.timeline.clips.filter((clip) =>
-        state.selectedClipIds.has(clip.id)
-      );
-
-      if (selectedClips.length === 0) {
-        return state.zoom;
-      }
-
-      // Find min and max positions
-      const minPosition = Math.min(...selectedClips.map((clip) => clip.timelinePosition));
-      const maxPosition = Math.max(
-        ...selectedClips.map((clip) => clip.timelinePosition + (clip.end - clip.start))
-      );
-
-      const selectionDuration = maxPosition - minPosition;
-
-      // Add 10% padding on each side
-      const padding = 0.1;
-      const effectiveWidth = viewportWidth * (1 - 2 * padding);
-
-      // Calculate zoom: pixels per second needed to fit selection in viewport
-      const calculatedZoom = effectiveWidth / selectionDuration;
-
-      // Clamp to valid zoom range
-      return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, calculatedZoom));
-    },
-
-    /**
-     * Apply zoom to fit entire timeline
-     * @param viewportWidth - Width of the timeline viewport in pixels
-     */
-    fitToTimeline: (viewportWidth: number) => {
-      const state = get();
-      const newZoom = state.calculateFitToTimelineZoom(viewportWidth);
-      set((s) => {
-        s.zoom = newZoom;
-      });
-    },
-
-    /**
-     * Apply zoom to fit selected clips
-     * @param viewportWidth - Width of the timeline viewport in pixels
-     */
-    fitToSelection: (viewportWidth: number) => {
-      const state = get();
-      const newZoom = state.calculateFitToSelectionZoom(viewportWidth);
-      set((s) => {
-        s.zoom = newZoom;
-      });
-    },
-
-    /**
-     * Set zoom to specific preset percentage
-     * Presets are based on DEFAULT_ZOOM (50 px/s)
-     * - 25% = 12.5 px/s
-     * - 50% = 25 px/s
-     * - 100% = 50 px/s (default)
-     * - 200% = 100 px/s
-     * - 400% = 200 px/s (max)
-     * @param preset - Preset percentage (25, 50, 100, 200, 400)
-     */
-    setZoomPreset: (preset: 25 | 50 | 100 | 200 | 400) => {
-      const zoomMap = {
-        25: DEFAULT_ZOOM * 0.25,
-        50: DEFAULT_ZOOM * 0.5,
-        100: DEFAULT_ZOOM,
-        200: DEFAULT_ZOOM * 2,
-        400: DEFAULT_ZOOM * 4,
-      };
-      const newZoom = zoomMap[preset];
-      set((state) => {
-        state.zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newZoom));
-      });
-    },
-
-    // ===== Guide Actions =====
-    addGuide: (time) =>
-      set((state) => {
-        const guideId = `guide-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        state.guides.push({
-          id: guideId,
-          time,
-          color: '#a855f7', // Purple color
-        });
-      }),
-
-    updateGuide: (guideId, time) =>
-      set((state) => {
-        const guide = state.guides.find((g) => g.id === guideId);
-        if (guide) {
-          guide.time = time;
-        }
-      }),
-
-    deleteGuide: (guideId) =>
-      set((state) => {
-        state.guides = state.guides.filter((g) => g.id !== guideId);
-      }),
-
-    jumpToMarker: (markerId) =>
-      set((state) => {
-        const marker = state.timeline?.markers?.find((m) => m.id === markerId);
-        if (marker) {
-          state.currentTime = marker.time;
-        }
-      }),
+    // ===== Slices =====
+    ...createClipsSlice(set, get, {} as any),
+    ...createTracksSlice(set, get, {} as any),
+    ...createMarkersSlice(set, get, {} as any),
+    ...createGuidesSlice(set, get, {} as any),
+    ...createZoomSlice(set, get, {} as any),
+    ...createTextOverlaysSlice(set, get, {} as any),
+    ...createTransitionsSlice(set, get, {} as any),
+    ...createLockSlice(set, get, {} as any),
+    ...createGroupsSlice(set, get, {} as any),
+    ...createPlaybackSlice(set, get, {} as any),
   }))
 );

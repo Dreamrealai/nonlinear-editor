@@ -30,14 +30,14 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { formatDuration } from '@/lib/utils/timeFormatting';
+// import { formatDuration } from '@/lib/utils/timeFormatting'; // TODO: Use this when displaying duration
 import toast from 'react-hot-toast';
 
 export interface RenderQueuePanelProps {
   className?: string;
 }
 
-export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
+export function RenderQueuePanel({ className }: RenderQueuePanelProps): JSX.Element {
   const { jobs, activeJobs, completedJobs, isLoading, error, refetch, cancelJob, pauseJob, resumeJob, updatePriority } = useRenderQueue({
     autoRefresh: true,
     refreshInterval: 3000, // Refresh every 3 seconds
@@ -47,7 +47,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
   const [showCompleted, setShowCompleted] = useState(false);
   const [actioningJobId, setActioningJobId] = useState<string | null>(null);
 
-  const handleCancel = async (jobId: string) => {
+  const handleCancel = async (jobId: string): Promise<void> => {
     setActioningJobId(jobId);
     try {
       await cancelJob(jobId);
@@ -59,7 +59,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
     }
   };
 
-  const handlePause = async (jobId: string) => {
+  const handlePause = async (jobId: string): Promise<void> => {
     setActioningJobId(jobId);
     try {
       await pauseJob(jobId);
@@ -71,7 +71,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
     }
   };
 
-  const handleResume = async (jobId: string) => {
+  const handleResume = async (jobId: string): Promise<void> => {
     setActioningJobId(jobId);
     try {
       await resumeJob(jobId);
@@ -83,7 +83,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
     }
   };
 
-  const handleIncreasePriority = async (jobId: string, currentPriority: number) => {
+  const handleIncreasePriority = async (jobId: string, currentPriority: number): Promise<void> => {
     setActioningJobId(jobId);
     try {
       await updatePriority(jobId, currentPriority + 1);
@@ -95,7 +95,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
     }
   };
 
-  const handleDecreasePriority = async (jobId: string, currentPriority: number) => {
+  const handleDecreasePriority = async (jobId: string, currentPriority: number): Promise<void> => {
     setActioningJobId(jobId);
     try {
       await updatePriority(jobId, Math.max(0, currentPriority - 1));
@@ -107,7 +107,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string): JSX.Element | null => {
     switch (status) {
       case 'pending':
         return <Clock className="h-4 w-4 text-yellow-500" />;
@@ -124,7 +124,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
     }
   };
 
-  const getStatusLabel = (status: string) => {
+  const getStatusLabel = (status: string): string => {
     switch (status) {
       case 'pending':
         return 'Queued';
@@ -141,7 +141,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
     }
   };
 
-  const formatTimestamp = (timestamp: string) => {
+  const formatTimestamp = (timestamp: string): string => {
     const date = new Date(timestamp);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -178,7 +178,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
             {completedJobs.length > 0 && ` • ${completedJobs.length} completed`}
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => refetch()}>
+        <Button variant="outline" size="sm" onClick={(): Promise<void> => refetch()}>
           <RefreshCw className="mr-2 h-4 w-4" />
           Refresh
         </Button>
@@ -197,7 +197,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
       {activeJobs.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground">Active Exports</h3>
-          {activeJobs.map((job) => (
+          {activeJobs.map((job): JSX.Element => (
             <Card key={job.id}>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
@@ -221,7 +221,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleIncreasePriority(job.id, job.priority)}
+                          onClick={(): Promise<void> => handleIncreasePriority(job.id, job.priority)}
                           disabled={actioningJobId === job.id}
                           title="Increase priority"
                         >
@@ -230,7 +230,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDecreasePriority(job.id, job.priority)}
+                          onClick={(): Promise<void> => handleDecreasePriority(job.id, job.priority)}
                           disabled={actioningJobId === job.id || job.priority === 0}
                           title="Decrease priority"
                         >
@@ -243,7 +243,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handlePause(job.id)}
+                        onClick={(): Promise<void> => handlePause(job.id)}
                         disabled={actioningJobId === job.id}
                         title="Pause export"
                       >
@@ -254,7 +254,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleResume(job.id)}
+                        onClick={(): Promise<void> => handleResume(job.id)}
                         disabled={actioningJobId === job.id}
                         title="Resume export"
                       >
@@ -265,7 +265,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleCancel(job.id)}
+                      onClick={(): Promise<void> => handleCancel(job.id)}
                       disabled={actioningJobId === job.id}
                       title="Cancel export"
                     >
@@ -310,7 +310,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowCompleted(!showCompleted)}
+            onClick={(): void => setShowCompleted(!showCompleted)}
             className="text-muted-foreground"
           >
             {showCompleted ? 'Hide' : 'Show'} Completed ({completedJobs.length})
@@ -322,7 +322,7 @@ export function RenderQueuePanel({ className }: RenderQueuePanelProps) {
       {showCompleted && completedJobs.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground">Completed Exports</h3>
-          {completedJobs.map((job) => (
+          {completedJobs.map((job): JSX.Element => (
             <Card key={job.id} className="opacity-80">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">

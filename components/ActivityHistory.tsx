@@ -57,7 +57,7 @@ interface ActivityEntryProps {
   formatDate: (dateString: string) => string;
 }
 
-const ActivityEntry = React.memo<ActivityEntryProps>(function ActivityEntry({ entry, formatDate }) {
+const ActivityEntry = React.memo<ActivityEntryProps>(function ActivityEntry({ entry, formatDate }): JSX.Element {
   return (
     <div
       key={entry.id}
@@ -108,13 +108,13 @@ const ActivityEntry = React.memo<ActivityEntryProps>(function ActivityEntry({ en
   );
 });
 
-export const ActivityHistory = React.memo(function ActivityHistory() {
+export const ActivityHistory = React.memo(function ActivityHistory(): JSX.Element {
   const { supabaseClient } = useSupabase();
   const [history, setHistory] = useState<ActivityHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [clearLoading, setClearLoading] = useState(false);
 
-  const loadHistory = useCallback(async () => {
+  const loadHistory = useCallback(async (): Promise<void> => {
     if (!supabaseClient) return;
 
     try {
@@ -144,7 +144,7 @@ export const ActivityHistory = React.memo(function ActivityHistory() {
     }
   }, [supabaseClient]);
 
-  const handleClearHistory = useCallback(async () => {
+  const handleClearHistory = useCallback(async (): Promise<void> => {
     const confirmed = confirm(
       'Are you sure you want to clear your entire activity history? This action cannot be undone.'
     );
@@ -172,11 +172,11 @@ export const ActivityHistory = React.memo(function ActivityHistory() {
     }
   }, []);
 
-  useEffect(() => {
+  useEffect((): void => {
     void loadHistory();
   }, [loadHistory]);
 
-  const formatDate = useCallback((dateString: string) => {
+  const formatDate = useCallback((dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -231,7 +231,7 @@ export const ActivityHistory = React.memo(function ActivityHistory() {
       ) : (
         <div className="space-y-3">
           <div className="max-h-96 overflow-y-auto">
-            {history.map((entry) => (
+            {history.map((entry): JSX.Element => (
               <ActivityEntry key={entry.id} entry={entry} formatDate={formatDate} />
             ))}
           </div>

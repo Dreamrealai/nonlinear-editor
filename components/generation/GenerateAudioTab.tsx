@@ -20,7 +20,7 @@ interface GenerateAudioTabProps {
  * This component orchestrates the audio generation UI by delegating to specialized
  * sub-components for each audio type (music, voice, sound effects).
  */
-export function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
+export function GenerateAudioTab({ projectId }: GenerateAudioTabProps): JSX.Element {
   const audioGeneration = useAudioGeneration({ projectId });
 
   return (

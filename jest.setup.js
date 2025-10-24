@@ -1,5 +1,9 @@
 /* eslint-env node, jest */
 
+// CRITICAL: Set NODE_ENV to 'development' before any module loading
+// This ensures detailed error messages are visible in tests
+process.env.NODE_ENV = 'development';
+
 // Mock lucide-react before anything else
 jest.mock('lucide-react');
 

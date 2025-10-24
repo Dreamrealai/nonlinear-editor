@@ -422,7 +422,7 @@ export function sanitizeFilename(
  */
 export const SanitizationPresets = {
   /** Basic string sanitization (trim, remove dangerous chars) */
-  basic: (value: string) =>
+  basic: (value: string): string =>
     sanitizeString(value, {
       trim: true,
       removeNullBytes: true,
@@ -430,7 +430,7 @@ export const SanitizationPresets = {
     }),
 
   /** User-generated content (strip HTML, aggressive cleaning) */
-  userContent: (value: string) =>
+  userContent: (value: string): string =>
     sanitizeString(value, {
       stripHtml: true,
       trim: true,
@@ -440,10 +440,10 @@ export const SanitizationPresets = {
     }),
 
   /** Database input (remove SQL patterns, basic cleaning) */
-  database: (value: string) => removeSQLPatterns(SanitizationPresets.basic(value)),
+  database: (value: string): string => removeSQLPatterns(SanitizationPresets.basic(value)),
 
   /** Short text (titles, names) */
-  shortText: (value: string) =>
+  shortText: (value: string): string =>
     sanitizeString(value, {
       stripHtml: true,
       trim: true,
@@ -453,7 +453,7 @@ export const SanitizationPresets = {
     }),
 
   /** Long text (descriptions, prompts) */
-  longText: (value: string) =>
+  longText: (value: string): string =>
     sanitizeString(value, {
       stripHtml: false,
       trim: true,

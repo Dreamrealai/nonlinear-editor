@@ -18,7 +18,6 @@ import {
   ChevronDown,
   Bookmark,
   History,
-  HelpCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -88,9 +87,9 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
   onFitToSelection,
   onAddMarker,
   onShowHistory,
-  onShowKeyboardShortcuts,
+  onShowKeyboardShortcuts: _onShowKeyboardShortcuts,
   hasSelection = false,
-}) {
+}): JSX.Element {
   const [showZoomMenu, setShowZoomMenu] = useState(false);
   const zoomMenuRef = useRef<HTMLDivElement>(null);
 
@@ -100,8 +99,8 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
   const redoShortcut = isMac ? 'Cmd+Shift+Z' : 'Ctrl+Y';
 
   // Close zoom menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+  useEffect((): (() => void) | undefined => {
+    const handleClickOutside = (event: MouseEvent): void => {
       if (zoomMenuRef.current && !zoomMenuRef.current.contains(event.target as Node)) {
         setShowZoomMenu(false);
       }
@@ -109,7 +108,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
 
     if (showZoomMenu) {
       document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      return (): void => document.removeEventListener('mousedown', handleClickOutside);
     }
     return undefined;
   }, [showZoomMenu]);
@@ -177,7 +176,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
               min="10"
               max="200"
               value={zoom}
-              onChange={(e) => {
+              onChange={(e): void => {
                 const newZoom = parseFloat(e.target.value);
                 onZoomChange(newZoom);
               }}
@@ -201,7 +200,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
           {/* Zoom Presets Menu */}
           <div ref={zoomMenuRef} className="relative">
             <Button
-              onClick={() => setShowZoomMenu(!showZoomMenu)}
+              onClick={(): void => setShowZoomMenu(!showZoomMenu)}
               variant="outline"
               size="icon"
               title="Zoom presets"
@@ -215,7 +214,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
                 {onZoomPreset && (
                   <>
                     <button
-                      onClick={() => {
+                      onClick={(): void => {
                         onZoomPreset(25);
                         setShowZoomMenu(false);
                       }}
@@ -224,7 +223,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
                       25%
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={(): void => {
                         onZoomPreset(50);
                         setShowZoomMenu(false);
                       }}
@@ -233,7 +232,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
                       50%
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={(): void => {
                         onZoomPreset(100);
                         setShowZoomMenu(false);
                       }}
@@ -242,7 +241,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
                       100% (Default)
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={(): void => {
                         onZoomPreset(200);
                         setShowZoomMenu(false);
                       }}
@@ -251,7 +250,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
                       200%
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={(): void => {
                         onZoomPreset(400);
                         setShowZoomMenu(false);
                       }}
@@ -265,7 +264,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
                   <>
                     <div className="h-px bg-neutral-200 dark:bg-neutral-700 my-1" />
                     <button
-                      onClick={() => {
+                      onClick={(): void => {
                         onFitToTimeline();
                         setShowZoomMenu(false);
                       }}
@@ -278,7 +277,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
                 )}
                 {onFitToSelection && hasSelection && (
                   <button
-                    onClick={() => {
+                    onClick={(): void => {
                       onFitToSelection();
                       setShowZoomMenu(false);
                     }}

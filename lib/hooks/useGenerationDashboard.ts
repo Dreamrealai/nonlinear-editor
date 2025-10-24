@@ -104,15 +104,15 @@ export function useGenerationDashboard({
   const autoRemoveTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   // Add a new job to track
-  const addJob = useCallback((job: Omit<GenerationJob, 'startedAt'>) => {
+  const addJob = useCallback((job: Omit<GenerationJob, 'startedAt'>): void => {
     const newJob: GenerationJob = {
       ...job,
       startedAt: new Date(),
     };
 
-    setJobs((prev) => {
+    setJobs((prev): GenerationJob[] => {
       // Check if job already exists
-      const exists = prev.some((j) => j.id === newJob.id);
+      const exists = prev.some((j): boolean => j.id === newJob.id);
       if (exists) {
         return prev;
       }
@@ -121,8 +121,8 @@ export function useGenerationDashboard({
   }, []);
 
   // Remove a job
-  const removeJob = useCallback((jobId: string) => {
-    setJobs((prev) => prev.filter((j) => j.id !== jobId));
+  const removeJob = useCallback((jobId: string): void => {
+    setJobs((prev): GenerationJob[] => prev.filter((j): boolean => j.id !== jobId));
 
     // Clear auto-remove timer if exists
     const timer = autoRemoveTimers.current.get(jobId);
@@ -133,20 +133,20 @@ export function useGenerationDashboard({
   }, []);
 
   // Clear completed jobs
-  const clearCompleted = useCallback(() => {
-    setJobs((prev) => prev.filter((j) => j.status !== 'completed'));
+  const clearCompleted = useCallback((): void => {
+    setJobs((prev): GenerationJob[] => prev.filter((j): boolean => j.status !== 'completed'));
   }, []);
 
   // Clear failed jobs
-  const clearFailed = useCallback(() => {
-    setJobs((prev) => prev.filter((j) => j.status !== 'failed'));
+  const clearFailed = useCallback((): void => {
+    setJobs((prev): GenerationJob[] => prev.filter((j): boolean => j.status !== 'failed'));
   }, []);
 
   // Clear all jobs
-  const clearAll = useCallback(() => {
+  const clearAll = useCallback((): void => {
     setJobs([]);
     // Clear all timers
-    autoRemoveTimers.current.forEach((timer) => clearTimeout(timer));
+    autoRemoveTimers.current.forEach((timer): void => clearTimeout(timer));
     autoRemoveTimers.current.clear();
   }, []);
 
@@ -243,7 +243,7 @@ export function useGenerationDashboard({
   }, []);
 
   // Refresh all job statuses
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (): Promise<void> => {
     if (jobs.length === 0) return;
 
     setIsLoading(true);
@@ -252,17 +252,17 @@ export function useGenerationDashboard({
     try {
       const updates = await Promise.all(
         jobs
-          .filter((job) => job.status === 'processing' || job.status === 'queued')
-          .map(async (job) => {
+          .filter((job): boolean => job.status === 'processing' || job.status === 'queued')
+          .map(async (job): Promise<{ jobId: string; update: Partial<GenerationJob> | null; }> => {
             const update = await checkJobStatus(job);
             return { jobId: job.id, update };
           })
       );
 
       // Apply updates
-      setJobs((prev) =>
-        prev.map((job) => {
-          const updateEntry = updates.find((u) => u.jobId === job.id);
+      setJobs((prev): GenerationJob[] =>
+        prev.map((job): GenerationJob => {
+          const updateEntry = updates.find((u): boolean => u.jobId === job.id);
           if (updateEntry && updateEntry.update) {
             const updatedJob = { ...job, ...updateEntry.update };
 
@@ -272,7 +272,7 @@ export function useGenerationDashboard({
               (updatedJob.status === 'completed' || updatedJob.status === 'failed') &&
               !autoRemoveTimers.current.has(job.id)
             ) {
-              const timer = setTimeout(() => {
+              const timer = setTimeout((): void => {
                 removeJob(job.id);
               }, autoRemoveCompletedAfter);
               autoRemoveTimers.current.set(job.id, timer);
@@ -296,35 +296,35 @@ export function useGenerationDashboard({
   usePolling({
     callback: refresh,
     interval: pollingInterval,
-    enabled: enabled && jobs.some((j) => j.status === 'processing' || j.status === 'queued'),
+    enabled: enabled && jobs.some((j): boolean => j.status === 'processing' || j.status === 'queued'),
   });
 
   // Filter jobs by type
-  const videoJobs = jobs.filter((j) => j.type === 'video');
-  const audioJobs = jobs.filter((j) => j.type === 'audio');
-  const imageJobs = jobs.filter((j) => j.type === 'image');
+  const videoJobs = jobs.filter((j): boolean => j.type === 'video');
+  const audioJobs = jobs.filter((j): boolean => j.type === 'audio');
+  const imageJobs = jobs.filter((j): boolean => j.type === 'image');
 
   // Filter by status
-  const activeJobs = jobs.filter((j) => j.status === 'processing' || j.status === 'queued');
-  const completedJobs = jobs.filter((j) => j.status === 'completed');
-  const failedJobs = jobs.filter((j) => j.status === 'failed');
+  const activeJobs = jobs.filter((j): boolean => j.status === 'processing' || j.status === 'queued');
+  const completedJobs = jobs.filter((j): boolean => j.status === 'completed');
+  const failedJobs = jobs.filter((j): boolean => j.status === 'failed');
 
   // Cleanup timers on unmount
-  useEffect(() => {
-    return () => {
-      autoRemoveTimers.current.forEach((timer) => clearTimeout(timer));
+  useEffect((): () => void => {
+    return (): void => {
+      autoRemoveTimers.current.forEach((timer): void => clearTimeout(timer));
       autoRemoveTimers.current.clear();
     };
   }, []);
 
   return {
-    jobs: projectId ? jobs.filter((j) => j.projectId === projectId) : jobs,
-    videoJobs: projectId ? videoJobs.filter((j) => j.projectId === projectId) : videoJobs,
-    audioJobs: projectId ? audioJobs.filter((j) => j.projectId === projectId) : audioJobs,
-    imageJobs: projectId ? imageJobs.filter((j) => j.projectId === projectId) : imageJobs,
-    activeJobs: projectId ? activeJobs.filter((j) => j.projectId === projectId) : activeJobs,
-    completedJobs: projectId ? completedJobs.filter((j) => j.projectId === projectId) : completedJobs,
-    failedJobs: projectId ? failedJobs.filter((j) => j.projectId === projectId) : failedJobs,
+    jobs: projectId ? jobs.filter((j): boolean => j.projectId === projectId) : jobs,
+    videoJobs: projectId ? videoJobs.filter((j): boolean => j.projectId === projectId) : videoJobs,
+    audioJobs: projectId ? audioJobs.filter((j): boolean => j.projectId === projectId) : audioJobs,
+    imageJobs: projectId ? imageJobs.filter((j): boolean => j.projectId === projectId) : imageJobs,
+    activeJobs: projectId ? activeJobs.filter((j): boolean => j.projectId === projectId) : activeJobs,
+    completedJobs: projectId ? completedJobs.filter((j): boolean => j.projectId === projectId) : completedJobs,
+    failedJobs: projectId ? failedJobs.filter((j): boolean => j.projectId === projectId) : failedJobs,
     addJob,
     removeJob,
     clearCompleted,

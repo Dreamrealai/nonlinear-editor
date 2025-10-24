@@ -51,7 +51,7 @@ const PLATFORM_ICONS: Record<string, React.ComponentType<{ className?: string }>
   linkedin: Info,
 };
 
-export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue }: ExportModalProps) {
+export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue }: ExportModalProps): JSX.Element {
   const [presets, setPresets] = useState<ExportPreset[]>([]);
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const [isLoadingPresets, setIsLoadingPresets] = useState(true);
@@ -62,7 +62,7 @@ export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue 
   );
 
   // Fetch presets when modal opens
-  useEffect(() => {
+  useEffect((): void => {
     if (isOpen) {
       fetchPresets();
     }
@@ -108,7 +108,7 @@ export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue 
     setFeedback(null);
 
     try {
-      const preset = presets.find((p) => p.id === selectedPresetId);
+      const preset = presets.find((p): boolean => p.id === selectedPresetId);
       if (!preset) {
         throw new Error('Invalid export preset selected');
       }
@@ -155,11 +155,11 @@ export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue 
     }
   };
 
-  const selectedPreset = presets.find((p) => p.id === selectedPresetId);
+  const selectedPreset = presets.find((p): boolean => p.id === selectedPresetId);
 
   // Group presets by platform vs custom
-  const platformPresets = presets.filter((p) => p.is_platform);
-  const customPresets = presets.filter((p) => p.is_custom);
+  const platformPresets = presets.filter((p): boolean => p.is_platform);
+  const customPresets = presets.filter((p): boolean => p.is_custom);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -192,12 +192,12 @@ export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue 
                 <div>
                   <div className="mb-2 block text-sm font-medium">Platform Presets</div>
                   <div className="grid grid-cols-2 gap-3">
-                    {platformPresets.map((preset) => {
+                    {platformPresets.map((preset): JSX.Element => {
                       const Icon = preset.platform_type ? PLATFORM_ICONS[preset.platform_type] : Info;
                       return (
                         <button
                           key={preset.id}
-                          onClick={() => setSelectedPresetId(preset.id)}
+                          onClick={(): void => setSelectedPresetId(preset.id)}
                           className={cn(
                             'rounded-lg border p-4 text-left transition-all',
                             selectedPresetId === preset.id
@@ -229,10 +229,10 @@ export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue 
                 <div>
                   <div className="mb-2 block text-sm font-medium">Custom Presets</div>
                   <div className="grid grid-cols-2 gap-3">
-                    {customPresets.map((preset) => (
+                    {customPresets.map((preset): JSX.Element => (
                       <button
                         key={preset.id}
-                        onClick={() => setSelectedPresetId(preset.id)}
+                        onClick={(): void => setSelectedPresetId(preset.id)}
                         className={cn(
                           'rounded-lg border p-4 text-left transition-all',
                           selectedPresetId === preset.id
@@ -289,7 +289,7 @@ export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue 
                     min="0"
                     max="10"
                     value={priority}
-                    onChange={(e) => setPriority(Number(e.target.value))}
+                    onChange={(e): void => setPriority(Number(e.target.value))}
                     className="flex-1"
                   />
                   <span className="text-sm font-medium w-8">{priority}</span>

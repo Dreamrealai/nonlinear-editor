@@ -85,7 +85,7 @@ type ClipGroupStore = {
 
 export const useClipGroupStore = create<ClipGroupStore>()(
   immer((set, get) => ({
-    createGroup: (timeline, clipIds, name) => {
+    createGroup: (timeline, clipIds, name): Timeline | null => {
       if (!timeline || clipIds.length < 2) return timeline;
 
       // Create new timeline with group
@@ -108,7 +108,7 @@ export const useClipGroupStore = create<ClipGroupStore>()(
       newTimeline.groups.push(group);
 
       // Set groupId on all clips
-      newTimeline.clips.forEach((clip) => {
+      newTimeline.clips.forEach((clip): void => {
         if (clipIds.includes(clip.id)) {
           clip.groupId = groupId;
         }
@@ -117,16 +117,16 @@ export const useClipGroupStore = create<ClipGroupStore>()(
       return newTimeline;
     },
 
-    removeGroup: (timeline, groupId) => {
+    removeGroup: (timeline, groupId): Timeline | null => {
       if (!timeline || !timeline.groups) return timeline;
 
       const newTimeline = structuredClone(timeline);
 
       // Remove group
-      newTimeline.groups = newTimeline.groups.filter((g) => g.id !== groupId);
+      newTimeline.groups = newTimeline.groups.filter((g): boolean => g.id !== groupId);
 
       // Clear groupId from clips
-      newTimeline.clips.forEach((clip) => {
+      newTimeline.clips.forEach((clip): void => {
         if (clip.groupId === groupId) {
           delete clip.groupId;
         }
@@ -135,46 +135,46 @@ export const useClipGroupStore = create<ClipGroupStore>()(
       return newTimeline;
     },
 
-    getGroupClipIds: (timeline, groupId) => {
+    getGroupClipIds: (timeline, groupId): string[] => {
       if (!timeline || !timeline.groups) return [];
 
-      const group = timeline.groups.find((g) => g.id === groupId);
+      const group = timeline.groups.find((g): boolean => g.id === groupId);
       return group ? [...group.clipIds] : [];
     },
 
-    getGroup: (timeline, groupId) => {
+    getGroup: (timeline, groupId): ClipGroup | null => {
       if (!timeline || !timeline.groups) return null;
 
-      return timeline.groups.find((g) => g.id === groupId) || null;
+      return timeline.groups.find((g): boolean => g.id === groupId) || null;
     },
 
-    isClipGrouped: (timeline, clipId) => {
+    isClipGrouped: (timeline, clipId): boolean => {
       if (!timeline) return false;
 
-      const clip = timeline.clips.find((c) => c.id === clipId);
+      const clip = timeline.clips.find((c): boolean => c.id === clipId);
       return Boolean(clip?.groupId);
     },
 
-    getClipGroupId: (timeline, clipId) => {
+    getClipGroupId: (timeline, clipId): string | null => {
       if (!timeline) return null;
 
-      const clip = timeline.clips.find((c) => c.id === clipId);
+      const clip = timeline.clips.find((c): boolean => c.id === clipId);
       return clip?.groupId || null;
     },
 
-    lockGroup: (timeline, groupId) => {
+    lockGroup: (timeline, groupId): Timeline | null => {
       if (!timeline || !timeline.groups) return timeline;
 
       const newTimeline = structuredClone(timeline);
 
       // Lock group
-      const group = newTimeline.groups.find((g) => g.id === groupId);
+      const group = newTimeline.groups.find((g): boolean => g.id === groupId);
       if (group) {
         group.locked = true;
       }
 
       // Lock all clips in group
-      newTimeline.clips.forEach((clip) => {
+      newTimeline.clips.forEach((clip): void => {
         if (clip.groupId === groupId) {
           clip.locked = true;
         }
@@ -183,19 +183,19 @@ export const useClipGroupStore = create<ClipGroupStore>()(
       return newTimeline;
     },
 
-    unlockGroup: (timeline, groupId) => {
+    unlockGroup: (timeline, groupId): Timeline | null => {
       if (!timeline || !timeline.groups) return timeline;
 
       const newTimeline = structuredClone(timeline);
 
       // Unlock group
-      const group = newTimeline.groups.find((g) => g.id === groupId);
+      const group = newTimeline.groups.find((g): boolean => g.id === groupId);
       if (group) {
         group.locked = false;
       }
 
       // Unlock all clips in group
-      newTimeline.clips.forEach((clip) => {
+      newTimeline.clips.forEach((clip): void => {
         if (clip.groupId === groupId) {
           clip.locked = false;
         }
@@ -204,18 +204,18 @@ export const useClipGroupStore = create<ClipGroupStore>()(
       return newTimeline;
     },
 
-    getAllGroups: (timeline) => {
+    getAllGroups: (timeline): ClipGroup[] => {
       if (!timeline || !timeline.groups) return [];
 
       return [...timeline.groups];
     },
 
-    renameGroup: (timeline, groupId, name) => {
+    renameGroup: (timeline, groupId, name): Timeline | null => {
       if (!timeline || !timeline.groups) return timeline;
 
       const newTimeline = structuredClone(timeline);
 
-      const group = newTimeline.groups.find((g) => g.id === groupId);
+      const group = newTimeline.groups.find((g): boolean => g.id === groupId);
       if (group) {
         group.name = name;
       }
@@ -223,12 +223,12 @@ export const useClipGroupStore = create<ClipGroupStore>()(
       return newTimeline;
     },
 
-    setGroupColor: (timeline, groupId, color) => {
+    setGroupColor: (timeline, groupId, color): Timeline | null => {
       if (!timeline || !timeline.groups) return timeline;
 
       const newTimeline = structuredClone(timeline);
 
-      const group = newTimeline.groups.find((g) => g.id === groupId);
+      const group = newTimeline.groups.find((g): boolean => g.id === groupId);
       if (group) {
         group.color = color;
       }

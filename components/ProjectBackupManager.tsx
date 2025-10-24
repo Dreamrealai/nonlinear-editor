@@ -64,7 +64,7 @@ export function ProjectBackupManager({
     }
   }, [projectId]);
 
-  useEffect(() => {
+  useEffect((): void => {
     void loadBackups();
   }, [loadBackups]);
 
@@ -120,7 +120,7 @@ export function ProjectBackupManager({
       toast.success('Project restored successfully. Reloading page...');
 
       // Reload the page to show restored data
-      setTimeout(() => {
+      setTimeout((): void => {
         window.location.reload();
       }, 1500);
     } catch (error) {
@@ -207,7 +207,7 @@ export function ProjectBackupManager({
                 {projectTitle && `${projectTitle} - `}Version history and backup management
               </CardDescription>
             </div>
-            <Button onClick={() => void handleCreateBackup()} disabled={creating} size="sm">
+            <Button onClick={(): undefined => void handleCreateBackup()} disabled={creating} size="sm">
               {creating ? 'Creating...' : 'Create Backup'}
             </Button>
           </div>
@@ -239,7 +239,7 @@ export function ProjectBackupManager({
             </div>
           ) : (
             <div className="space-y-3">
-              {backups.map((backup) => (
+              {backups.map((backup): JSX.Element => (
                 <div
                   key={backup.id}
                   className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 p-4 hover:bg-neutral-100 transition-colors"
@@ -263,18 +263,18 @@ export function ProjectBackupManager({
                   </div>
                   <div className="flex items-center gap-2 ml-4">
                     <Button
-                      onClick={() => handleRestoreClick(backup)}
+                      onClick={(): void => handleRestoreClick(backup)}
                       variant="outline"
                       size="sm"
                       disabled={restoring}
                     >
                       Restore
                     </Button>
-                    <Button onClick={() => void handleDownload(backup)} variant="outline" size="sm">
+                    <Button onClick={(): undefined => void handleDownload(backup)} variant="outline" size="sm">
                       Download
                     </Button>
                     <Button
-                      onClick={() => void handleDelete(backup)}
+                      onClick={(): undefined => void handleDelete(backup)}
                       variant="outline"
                       size="sm"
                       disabled={deleting === backup.id}
@@ -331,12 +331,12 @@ export function ProjectBackupManager({
           <div className="flex justify-end gap-3 mt-4">
             <Button
               variant="outline"
-              onClick={() => setShowRestoreDialog(false)}
+              onClick={(): void => setShowRestoreDialog(false)}
               disabled={restoring}
             >
               Cancel
             </Button>
-            <Button onClick={() => void handleRestoreConfirm()} disabled={restoring}>
+            <Button onClick={(): undefined => void handleRestoreConfirm()} disabled={restoring}>
               {restoring ? 'Restoring...' : 'Restore Backup'}
             </Button>
           </div>

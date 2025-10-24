@@ -37,14 +37,14 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
     onContextMenu,
     onTrimHandleMouseDown,
     onRemove,
-  }) {
+  }): JSX.Element {
     const [isHovered, setIsHovered] = React.useState(false);
     const [hoverX, setHoverX] = React.useState<number | null>(null);
-    const toggleClipLock = useEditorStore((state) => state.toggleClipLock);
-    const timeline = useEditorStore((state) => state.timeline);
+    const toggleClipLock = useEditorStore((state): (id: string) => void => state.toggleClipLock);
+    const timeline = useEditorStore((state): Timeline | null => state.timeline);
 
     // Memoize expensive calculations to prevent recalculation on every render
-    const clipMetrics = React.useMemo(() => {
+    const clipMetrics = React.useMemo((): { duration: number; width: number; left: number; top: number; } => {
       const duration = clip.end - clip.start;
       return {
         duration,
@@ -58,15 +58,15 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
     const isLocked = clip.locked ?? false;
 
     // Check if clip is grouped (memoized)
-    const groupInfo = React.useMemo(() => {
+    const groupInfo = React.useMemo((): { isGrouped: boolean; group: any; groupColor: any; } => {
       const isGrouped = Boolean(clip.groupId);
-      const group = timeline?.groups?.find((g) => g.id === clip.groupId);
+      const group = timeline?.groups?.find((g): boolean => g.id === clip.groupId);
       const groupColor = group?.color || '#8b5cf6';
       return { isGrouped, group, groupColor };
     }, [clip.groupId, timeline?.groups]);
 
     // Calculate timecode values (memoized)
-    const timecodes = React.useMemo(() => ({
+    const timecodes = React.useMemo((): { in: string; out: string; start: string; end: string; } => ({
       in: formatTimecode(clip.start),
       out: formatTimecode(clip.end),
       start: formatTimecode(clip.timelinePosition),
@@ -74,7 +74,7 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
     }), [clip.start, clip.end, clip.timelinePosition, clipMetrics.duration]);
 
     // Calculate scrub position timecode based on hover position
-    const scrubTimecode = React.useMemo(() => {
+    const scrubTimecode = React.useMemo((): string | null => {
       if (hoverX === null) return null;
       const relativeX = hoverX / clipMetrics.width;
       const scrubTime = clip.start + (clipMetrics.duration * relativeX);
@@ -82,21 +82,21 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
     }, [hoverX, clipMetrics.width, clipMetrics.duration, clip.start]);
 
     // Memoize event handlers to prevent re-renders
-    const handleLockToggle = React.useCallback((e: React.MouseEvent) => {
+    const handleLockToggle = React.useCallback((e: React.MouseEvent): void => {
       e.stopPropagation();
       e.preventDefault();
       toggleClipLock(clip.id);
     }, [toggleClipLock, clip.id]);
 
     // Handle mouse move for scrubbing preview
-    const handleMouseMove = React.useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const handleMouseMove = React.useCallback((e: React.MouseEvent<HTMLDivElement>): void => {
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
       setHoverX(x);
     }, []);
 
     // Handle mouse leave
-    const handleMouseLeave = React.useCallback(() => {
+    const handleMouseLeave = React.useCallback((): void => {
       setIsHovered(false);
       setHoverX(null);
     }, []);
@@ -125,13 +125,13 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
             ? { borderColor: groupInfo.groupColor, boxShadow: `0 0 0 1px ${groupInfo.groupColor}80` }
             : {}),
         }}
-        onMouseDown={(e) => onMouseDown(e, clip)}
-        onClick={(e) => onClick(e, clip)}
-        onContextMenu={(e) => onContextMenu(e, clip)}
-        onMouseEnter={() => setIsHovered(true)}
+        onMouseDown={(e): void => onMouseDown(e, clip)}
+        onClick={(e): void => onClick(e, clip)}
+        onContextMenu={(e): void => onContextMenu(e, clip)}
+        onMouseEnter={(): void => setIsHovered(true)}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        onKeyDown={(e) => {
+        onKeyDown={(e): void => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             onClick(e as unknown as React.MouseEvent<HTMLDivElement>, clip);
@@ -162,7 +162,7 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
                 fill
                 className="pointer-events-none object-cover"
                 sizes="(max-width: 768px) 100vw, 200px"
-                onError={(event) => {
+                onError={(event): void => {
                   (event.currentTarget as HTMLImageElement).style.display = 'none';
                 }}
               />
@@ -193,7 +193,7 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
           <div
             className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize pointer-events-auto group"
             style={{ marginLeft: '-3px' }}
-            onMouseDown={(e) => onTrimHandleMouseDown(e, clip, 'left')}
+            onMouseDown={(e): void => onTrimHandleMouseDown(e, clip, 'left')}
             role="slider"
             tabIndex={0}
             aria-label="Trim clip start (Shift=Ripple, Alt=Roll, Cmd=Slip)"
@@ -215,7 +215,7 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
           <div
             className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize pointer-events-auto group"
             style={{ marginRight: '-3px' }}
-            onMouseDown={(e) => onTrimHandleMouseDown(e, clip, 'right')}
+            onMouseDown={(e): void => onTrimHandleMouseDown(e, clip, 'right')}
             role="slider"
             tabIndex={0}
             aria-label="Trim clip end (Shift=Ripple, Alt=Roll, Cmd=Slip)"
@@ -304,7 +304,7 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
                   )}
                 </button>
                 <button
-                  onMouseDown={(e) => {
+                  onMouseDown={(e): void => {
                     e.stopPropagation();
                     e.preventDefault();
                     onRemove(clip.id);

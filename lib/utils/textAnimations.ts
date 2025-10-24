@@ -14,26 +14,26 @@ import type { EasingFunction, TextAnimation, TextAnimationType } from '@/types/t
  * All functions accept a normalized time value (0-1) and return a progress value (0-1).
  */
 export const easingFunctions: Record<EasingFunction, (t: number) => number> = {
-  linear: (t: number) => t,
+  linear: (t: number): number => t,
 
   // Standard easing
-  'ease-in': (t: number) => t * t,
-  'ease-out': (t: number) => t * (2 - t),
-  'ease-in-out': (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
+  'ease-in': (t: number): number => t * t,
+  'ease-out': (t: number): number => t * (2 - t),
+  'ease-in-out': (t: number): number => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
 
   // Quadratic easing
-  'ease-in-quad': (t: number) => t * t,
-  'ease-out-quad': (t: number) => t * (2 - t),
-  'ease-in-out-quad': (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
+  'ease-in-quad': (t: number): number => t * t,
+  'ease-out-quad': (t: number): number => t * (2 - t),
+  'ease-in-out-quad': (t: number): number => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
 
   // Cubic easing
-  'ease-in-cubic': (t: number) => t * t * t,
-  'ease-out-cubic': (t: number) => (--t) * t * t + 1,
-  'ease-in-out-cubic': (t: number) =>
+  'ease-in-cubic': (t: number): number => t * t * t,
+  'ease-out-cubic': (t: number): number => (--t) * t * t + 1,
+  'ease-in-out-cubic': (t: number): number =>
     t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1,
 
   // Bounce easing
-  bounce: (t: number) => {
+  bounce: (t: number): number => {
     const n1 = 7.5625;
     const d1 = 2.75;
 

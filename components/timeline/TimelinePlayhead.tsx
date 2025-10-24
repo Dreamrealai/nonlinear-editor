@@ -26,7 +26,7 @@ export const TimelinePlayhead = React.memo<TimelinePlayheadProps>(function Timel
   currentTime,
   zoom,
   onMouseDown,
-}) {
+}): JSX.Element {
   const [isHovering, setIsHovering] = useState(false);
 
   return (
@@ -37,8 +37,8 @@ export const TimelinePlayhead = React.memo<TimelinePlayheadProps>(function Timel
       <div
         className="absolute -top-1 left-1/2 -translate-x-1/2 w-7 h-7 bg-red-500 rounded-full pointer-events-auto cursor-grab active:cursor-grabbing hover:w-8 hover:h-8 transition-all"
         onMouseDown={onMouseDown}
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
+        onMouseEnter={(): void => setIsHovering(true)}
+        onMouseLeave={(): void => setIsHovering(false)}
         role="slider"
         tabIndex={0}
         aria-label="Timeline playhead"

@@ -13,7 +13,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { X, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { useOnboarding } from '@/lib/hooks/useOnboarding';
-import type { OnboardingTour as OnboardingTourType, OnboardingStep } from '@/types/onboarding';
+import type { OnboardingTour as OnboardingTourType } from '@/types/onboarding';
 import { cn } from '@/lib/utils';
 
 interface OnboardingTourProps {
@@ -22,7 +22,7 @@ interface OnboardingTourProps {
   onSkip?: () => void;
 }
 
-export function OnboardingTour({ tour, onComplete, onSkip }: OnboardingTourProps) {
+export function OnboardingTour({ tour, onComplete, onSkip }: OnboardingTourProps): JSX.Element | null {
   const {
     state,
     isLoading,
@@ -45,7 +45,7 @@ export function OnboardingTour({ tour, onComplete, onSkip }: OnboardingTourProps
   const isLastStep = currentStepIndex === tour.steps.length - 1;
 
   // Check if tour should auto-start
-  useEffect(() => {
+  useEffect((): void => {
     if (!isLoading && state && tour.autoStart) {
       const completed = hasCompletedTour(tour.id);
       const skipped = hasSkippedTour(tour.id);
@@ -58,14 +58,14 @@ export function OnboardingTour({ tour, onComplete, onSkip }: OnboardingTourProps
   }, [isLoading, state, tour, hasCompletedTour, hasSkippedTour, startTour]);
 
   // Sync current step with state
-  useEffect(() => {
+  useEffect((): void => {
     if (state?.current_tour_id === tour.id) {
       setCurrentStepIndex(state.current_step_index);
     }
   }, [state, tour.id]);
 
   // Calculate positions for highlight and tooltip
-  const updatePositions = useCallback(() => {
+  const updatePositions = useCallback((): void => {
     if (!currentStep || !isActive) return;
 
     const targetElement = document.querySelector(currentStep.target);
@@ -117,42 +117,42 @@ export function OnboardingTour({ tour, onComplete, onSkip }: OnboardingTourProps
     setTooltipPosition({ top, left });
   }, [currentStep, isActive]);
 
-  useEffect(() => {
+  useEffect((): () => void => {
     updatePositions();
 
     // Update positions on resize and scroll
     window.addEventListener('resize', updatePositions);
     window.addEventListener('scroll', updatePositions);
 
-    return () => {
+    return (): void => {
       window.removeEventListener('resize', updatePositions);
       window.removeEventListener('scroll', updatePositions);
     };
   }, [updatePositions]);
 
-  const handleNext = async () => {
+  const handleNext = async (): Promise<void> => {
     if (isLastStep) {
       await handleComplete();
     } else {
       await nextStep();
-      setCurrentStepIndex((prev) => prev + 1);
+      setCurrentStepIndex((prev): number => prev + 1);
     }
   };
 
-  const handlePrevious = async () => {
+  const handlePrevious = async (): Promise<void> => {
     if (!isFirstStep) {
       await previousStep();
-      setCurrentStepIndex((prev) => prev - 1);
+      setCurrentStepIndex((prev): number => prev - 1);
     }
   };
 
-  const handleSkip = async () => {
+  const handleSkip = async (): Promise<void> => {
     await skipTour(tour.id);
     setIsActive(false);
     onSkip?.();
   };
 
-  const handleComplete = async () => {
+  const handleComplete = async (): Promise<void> => {
     await completeTour(tour.id);
     setIsActive(false);
     onComplete?.();

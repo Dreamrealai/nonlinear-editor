@@ -1,3 +1,43 @@
+/**
+ * ErrorBoundary - Catches and handles React errors with logging
+ *
+ * A React Error Boundary that catches JavaScript errors anywhere in the child
+ * component tree, logs error details to Axiom, and displays a fallback UI
+ * instead of crashing the entire application.
+ *
+ * Features:
+ * - Catches React rendering errors and lifecycle method errors
+ * - Logs errors to Axiom with full context and component stack
+ * - Displays customizable fallback UI
+ * - Supports error recovery with reset button
+ * - Optional custom error callbacks
+ * - Named boundaries for easier debugging
+ * - Additional context logging
+ *
+ * @param children - The component tree to wrap and protect
+ * @param fallback - Custom fallback UI to show when an error occurs
+ * @param name - Optional name to identify this boundary in logs
+ * @param onError - Optional callback function when error is caught
+ * @param context - Optional additional data to include in error logs
+ *
+ * @example
+ * ```tsx
+ * // Basic usage
+ * <ErrorBoundary name="TimelinePanel">
+ *   <TimelineComponent />
+ * </ErrorBoundary>
+ *
+ * // With custom fallback and error handling
+ * <ErrorBoundary
+ *   name="AssetPanel"
+ *   fallback={<CustomErrorUI />}
+ *   onError={(error) => console.error('Asset panel error:', error)}
+ *   context={{ userId: user.id }}
+ * >
+ *   <AssetPanelComponent />
+ * </ErrorBoundary>
+ * ```
+ */
 'use client';
 
 import React from 'react';
@@ -30,7 +70,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     return { hasError: true, error, errorInfo: null };
   }
 
-  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     // Update state with error info for display
     this.setState({ errorInfo });
 
@@ -131,13 +171,13 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
             <div className="flex gap-3">
               <button
-                onClick={() => window.location.reload()}
+                onClick={(): void => window.location.reload()}
                 className="flex-1 rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
               >
                 Reload Page
               </button>
               <button
-                onClick={() => this.setState({ hasError: false, error: null })}
+                onClick={(): void => this.setState({ hasError: false, error: null })}
                 className="flex-1 rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
               >
                 Try Again

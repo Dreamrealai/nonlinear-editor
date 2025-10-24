@@ -1,3 +1,31 @@
+/**
+ * SubscriptionManager - User subscription and usage tracking dashboard
+ *
+ * Comprehensive subscription management interface that displays current plan
+ * details, usage statistics, and subscription actions. Supports free, premium,
+ * and admin tiers with real-time usage tracking and Stripe integration.
+ *
+ * Features:
+ * - Current plan display with tier-specific styling
+ * - Real-time usage tracking (video minutes, AI requests, storage)
+ * - Visual progress bars with color-coded warnings
+ * - Subscription status and renewal date (for premium users)
+ * - Stripe Checkout integration for upgrades
+ * - Stripe Customer Portal for subscription management
+ * - Premium feature highlights for free users
+ * - Dark mode support
+ * - Responsive layout with gradient decorations
+ *
+ * Tiers:
+ * - Free: Basic limits with upgrade CTA
+ * - Premium: Enhanced limits with subscription management
+ * - Admin: Unlimited resources with special badge
+ *
+ * @example
+ * ```tsx
+ * <SubscriptionManager />
+ * ```
+ */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,16 +36,16 @@ import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 import { redirectToUrl } from '@/lib/navigation';
 
-export function SubscriptionManager() {
+export function SubscriptionManager(): JSX.Element | null {
   const { supabaseClient } = useSupabase();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
-  useEffect(() => {
+  useEffect((): void => {
     if (!supabaseClient) return;
 
-    const loadProfile = async () => {
+    const loadProfile = async (): Promise<void> => {
       const {
         data: { user },
       } = await supabaseClient.auth.getUser();
@@ -48,7 +76,7 @@ export function SubscriptionManager() {
     loadProfile();
   }, [supabaseClient]);
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = async (): Promise<void> => {
     setActionLoading(true);
     try {
       const response = await fetch('/api/stripe/checkout', {
@@ -75,7 +103,7 @@ export function SubscriptionManager() {
     }
   };
 
-  const handleManageSubscription = async () => {
+  const handleManageSubscription = async (): Promise<void> => {
     setActionLoading(true);
     try {
       const response = await fetch('/api/stripe/portal', {
@@ -204,7 +232,7 @@ export function SubscriptionManager() {
           </div>
 
           <div className="space-y-2.5">
-            {tierLimits.features.map((feature, index) => (
+            {tierLimits.features.map((feature, index): JSX.Element => (
               <div key={index} className="flex items-center gap-3 text-sm text-neutral-700">
                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100">
                   <svg
@@ -570,7 +598,7 @@ export function SubscriptionManager() {
             </div>
 
             <ul className="space-y-3 mb-5">
-              {TIER_LIMITS.premium.features.map((feature, index) => (
+              {TIER_LIMITS.premium.features.map((feature, index): JSX.Element => (
                 <li key={index} className="flex items-center gap-3 text-sm text-blue-900">
                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-200">
                     <svg

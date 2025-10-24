@@ -47,7 +47,7 @@ const getPerformance = (): Pick<Performance, 'now'> => {
   }
 
   return {
-    now: () => Date.now(),
+    now: (): number => Date.now(),
   };
 };
 
@@ -87,7 +87,7 @@ export function useVideoPlayback({
   const { connectAudio, applyEffects, disconnectAudio } = useAudioEffects();
 
   // Detect device capabilities and adjust frame rate adaptively
-  useEffect(() => {
+  useEffect((): void => {
     // Check CPU cores and memory as indicators of device capability
     const hardwareConcurrency = navigator.hardwareConcurrency || 4;
     // Device Memory API - experimental but supported in Chromium
@@ -128,7 +128,7 @@ export function useVideoPlayback({
    * Handles opacity, playback rate, video seeking, and play/pause.
    */
   const syncClipsAtTime = useCallback(
-    (time: number, play: boolean) => {
+    (time: number, play: boolean): void => {
       // Throttle sync during playback based on adaptive frame rate
       const now = getPerformance().now();
       const threshold = frameTimeThresholdRef.current;
@@ -169,7 +169,7 @@ export function useVideoPlayback({
 
       lastSyncTimeRef.current = now;
 
-      sortedClips.forEach((clip) => {
+      sortedClips.forEach((clip): void => {
         const meta = clipMetas.get(clip.id);
         const video = videoMapRef.current.get(clip.id);
         if (!meta || !video) {
@@ -234,7 +234,7 @@ export function useVideoPlayback({
         if (play) {
           if (video.paused && video.readyState >= 3) {
             // Only play if video has buffered enough data
-            video.play().catch((error) => {
+            video.play().catch((error): void => {
               browserLogger.warn(
                 {
                   clipId: clip.id,
@@ -258,7 +258,7 @@ export function useVideoPlayback({
    * Stops playback and pauses all videos.
    */
   const stopPlayback = useCallback(
-    (options?: { finalTime?: number }) => {
+    (options?: { finalTime?: number }): void => {
       if (playbackRafRef.current !== null) {
         cancelAnimationFrame(playbackRafRef.current);
         playbackRafRef.current = null;
@@ -267,7 +267,7 @@ export function useVideoPlayback({
       setIsPlaying(false);
 
       const finalTime = options?.finalTime ?? globalTimeRef.current;
-      sortedClips.forEach((clip) => {
+      sortedClips.forEach((clip): void => {
         const video = videoMapRef.current.get(clip.id);
         const meta = clipMetas.get(clip.id);
         if (!video || !meta) return;
@@ -299,15 +299,15 @@ export function useVideoPlayback({
   /**
    * Starts RAF-based playback for all clips.
    */
-  const playAll = useCallback(async () => {
+  const playAll = useCallback(async (): Promise<void> => {
     try {
       if (sortedClips.length === 0) {
         return;
       }
 
       await Promise.all(
-        sortedClips.map((clip) =>
-          ensureClipElement(clip).catch((error) => {
+        sortedClips.map((clip): Promise<void | HTMLVideoElement> =>
+          ensureClipElement(clip).catch((error): void => {
             browserLogger.error({ clipId: clip.id, error }, 'Failed to prepare clip for preview');
           })
         )
@@ -361,11 +361,11 @@ export function useVideoPlayback({
   /**
    * Toggles between play and pause.
    */
-  const togglePlayPause = useCallback(() => {
+  const togglePlayPause = useCallback((): void => {
     if (isPlaying) {
       stopPlayback({ finalTime: currentTime });
     } else {
-      playAll().catch((error) => {
+      playAll().catch((error): void => {
         browserLogger.error({ error }, 'Playback failed in togglePlayPause');
       });
     }
@@ -380,7 +380,7 @@ export function useVideoPlayback({
       }
       playingRef.current = false;
       // Clean up all audio effects connections
-      sortedClips.forEach((clip) => {
+      sortedClips.forEach((clip): void => {
         if (clip.hasAudio) {
           disconnectAudio(clip.id);
         }

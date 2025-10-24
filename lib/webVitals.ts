@@ -102,11 +102,11 @@ export async function initWebVitals(): Promise<void> {
     const { onCLS, onFCP, onLCP, onTTFB, onINP } = await import('web-vitals');
 
     // Track all Core Web Vitals
-    onCLS((metric) => reportMetric(metric as unknown as Metric));
-    onFCP((metric) => reportMetric(metric as unknown as Metric));
-    onLCP((metric) => reportMetric(metric as unknown as Metric));
-    onTTFB((metric) => reportMetric(metric as unknown as Metric));
-    onINP((metric) => reportMetric(metric as unknown as Metric));
+    onCLS((metric): void => reportMetric(metric as unknown as Metric));
+    onFCP((metric): void => reportMetric(metric as unknown as Metric));
+    onLCP((metric): void => reportMetric(metric as unknown as Metric));
+    onTTFB((metric): void => reportMetric(metric as unknown as Metric));
+    onINP((metric): void => reportMetric(metric as unknown as Metric));
 
     browserLogger.info('Web Vitals tracking initialized');
   } catch (error) {
@@ -122,7 +122,7 @@ export function getWebVitalsBudgetStatus(): {
   threshold: { good: number; poor: number };
   status: string;
 }[] {
-  return Object.entries(THRESHOLDS).map(([metric, threshold]) => ({
+  return Object.entries(THRESHOLDS).map(([metric, threshold]): { metric: WebVitalMetric; threshold: { good: number; poor: number; }; status: string; } => ({
     metric: metric as WebVitalMetric,
     threshold,
     status: `Good: ≤${threshold.good}ms, Poor: >${threshold.poor}ms`,
@@ -144,7 +144,7 @@ export class CustomMetricsObserver {
     }
 
     try {
-      const observer = new PerformanceObserver((list) => {
+      const observer = new PerformanceObserver((list): void => {
         callback(list.getEntries());
       });
       observer.observe({ entryTypes: ['longtask'] });
@@ -163,7 +163,7 @@ export class CustomMetricsObserver {
     }
 
     try {
-      const observer = new PerformanceObserver((list) => {
+      const observer = new PerformanceObserver((list): void => {
         callback(list.getEntries());
       });
       observer.observe({ entryTypes: ['layout-shift'] });
@@ -177,7 +177,7 @@ export class CustomMetricsObserver {
    * Disconnect all observers
    */
   disconnect(): void {
-    this.observers.forEach((observer) => observer.disconnect());
+    this.observers.forEach((observer): void => observer.disconnect());
     this.observers = [];
   }
 }

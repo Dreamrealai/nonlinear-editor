@@ -39,7 +39,7 @@ export function useCorrectionSync(selectedClip: Clip | null) {
   const debouncedCompression = useDebounce(localCompression, 100);
 
   // Sync local state with selected clip
-  useEffect(() => {
+  useEffect((): void => {
     if (selectedClip) {
       const colorCorrection = selectedClip.colorCorrection || {
         brightness: 100,

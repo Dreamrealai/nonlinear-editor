@@ -95,7 +95,7 @@ class SentryService {
       return;
     }
 
-    Sentry.withScope((scope) => {
+    Sentry.withScope((scope): void => {
       // Set user context if provided
       if (context?.userId) {
         scope.setUser({ id: context.userId });
@@ -103,7 +103,7 @@ class SentryService {
 
       // Set custom tags
       if (context?.tags) {
-        Object.entries(context.tags).forEach(([key, value]) => {
+        Object.entries(context.tags).forEach(([key, value]): void => {
           scope.setTag(key, value);
         });
       }
@@ -152,7 +152,7 @@ class SentryService {
       return;
     }
 
-    Sentry.withScope((scope) => {
+    Sentry.withScope((scope): void => {
       // Set level
       scope.setLevel(level);
 
@@ -163,7 +163,7 @@ class SentryService {
 
       // Set custom tags
       if (context?.tags) {
-        Object.entries(context.tags).forEach(([key, value]) => {
+        Object.entries(context.tags).forEach(([key, value]): void => {
           scope.setTag(key, value);
         });
       }

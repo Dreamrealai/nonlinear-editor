@@ -68,7 +68,7 @@ const CATEGORY_LABELS: Record<TemplateCategory, string> = {
   custom: 'Custom',
 };
 
-export function TemplateLibrary({ isOpen, onClose, onSelectTemplate }: TemplateLibraryProps) {
+export function TemplateLibrary({ isOpen, onClose, onSelectTemplate }: TemplateLibraryProps): JSX.Element {
   const [templates, setTemplates] = useState<ProjectTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -76,7 +76,7 @@ export function TemplateLibrary({ isOpen, onClose, onSelectTemplate }: TemplateL
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  useEffect(() => {
+  useEffect((): void => {
     if (isOpen) {
       fetchTemplates();
     }
@@ -166,7 +166,7 @@ export function TemplateLibrary({ isOpen, onClose, onSelectTemplate }: TemplateL
               type="text"
               placeholder="Search templates..."
               value={searchQuery}
-              onChange={(e) => {
+              onChange={(e): void => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(0); // Reset to first page on search
               }}
@@ -176,14 +176,14 @@ export function TemplateLibrary({ isOpen, onClose, onSelectTemplate }: TemplateL
 
           {/* Category Filter */}
           <div className="flex gap-2 overflow-x-auto pb-2">
-            {categories.map((category) => {
+            {categories.map((category): JSX.Element => {
               const Icon = category === 'all' ? Star : CATEGORY_ICONS[category];
               const label = category === 'all' ? 'All' : CATEGORY_LABELS[category];
 
               return (
                 <button
                   key={category}
-                  onClick={() => {
+                  onClick={(): void => {
                     setSelectedCategory(category);
                     setCurrentPage(0);
                   }}
@@ -220,13 +220,13 @@ export function TemplateLibrary({ isOpen, onClose, onSelectTemplate }: TemplateL
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-4 pb-4">
-              {templates.map((template) => {
+              {templates.map((template): JSX.Element => {
                 const Icon = CATEGORY_ICONS[template.category];
 
                 return (
                   <button
                     key={template.id}
-                    onClick={() => handleSelectTemplate(template)}
+                    onClick={(): Promise<void> => handleSelectTemplate(template)}
                     className="group relative rounded-lg border border-border overflow-hidden hover:border-blue-500 transition-all text-left"
                   >
                     {/* Thumbnail */}
@@ -286,7 +286,7 @@ export function TemplateLibrary({ isOpen, onClose, onSelectTemplate }: TemplateL
                       {/* Tags */}
                       {template.tags && template.tags.length > 0 && (
                         <div className="flex gap-1 mt-2 flex-wrap">
-                          {template.tags.slice(0, 3).map((tag) => (
+                          {template.tags.slice(0, 3).map((tag): JSX.Element => (
                             <span
                               key={tag}
                               className="px-2 py-0.5 bg-muted rounded text-xs text-muted-foreground"
@@ -314,7 +314,7 @@ export function TemplateLibrary({ isOpen, onClose, onSelectTemplate }: TemplateL
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+                onClick={(): void => setCurrentPage((p): number => Math.max(0, p - 1))}
                 disabled={currentPage === 0}
               >
                 Previous
@@ -322,7 +322,7 @@ export function TemplateLibrary({ isOpen, onClose, onSelectTemplate }: TemplateL
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))}
+                onClick={(): void => setCurrentPage((p): number => Math.min(totalPages - 1, p + 1))}
                 disabled={currentPage >= totalPages - 1}
               >
                 Next

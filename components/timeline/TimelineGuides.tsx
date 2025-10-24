@@ -43,7 +43,7 @@ export const TimelineGuides = React.memo<TimelineGuidesProps>(function TimelineG
   onGuideUpdate,
   onGuideDelete,
   containerRef,
-}) {
+}): JSX.Element {
   const [draggingGuideId, setDraggingGuideId] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ guideId: string; x: number; y: number } | null>(
     null
@@ -54,7 +54,7 @@ export const TimelineGuides = React.memo<TimelineGuidesProps>(function TimelineG
 
   // Start dragging guide
   const handleMouseDown = useCallback(
-    (e: React.MouseEvent, guide: Guide) => {
+    (e: React.MouseEvent, guide: Guide): void => {
       if (e.button !== 0) return; // Only left mouse button
       e.preventDefault();
       e.stopPropagation();
@@ -69,10 +69,10 @@ export const TimelineGuides = React.memo<TimelineGuidesProps>(function TimelineG
 
   // Handle guide drag
   const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
+    (e: MouseEvent): void => {
       if (!draggingGuideId || !containerRef.current) return;
 
-      const guide = guides.find((g) => g.id === draggingGuideId);
+      const guide = guides.find((g): boolean => g.id === draggingGuideId);
       if (!guide) return;
 
       if (guide.orientation === 'vertical') {
@@ -101,16 +101,16 @@ export const TimelineGuides = React.memo<TimelineGuidesProps>(function TimelineG
   );
 
   // Stop dragging
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = useCallback((): void => {
     setDraggingGuideId(null);
   }, []);
 
   // Set up drag event listeners
-  React.useEffect(() => {
+  React.useEffect((): (() => void) | undefined => {
     if (draggingGuideId) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      return () => {
+      return (): void => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
       };
@@ -119,29 +119,29 @@ export const TimelineGuides = React.memo<TimelineGuidesProps>(function TimelineG
   }, [draggingGuideId, handleMouseMove, handleMouseUp]);
 
   // Handle right-click context menu
-  const handleContextMenu = (e: React.MouseEvent, guideId: string) => {
+  const handleContextMenu = (e: React.MouseEvent, guideId: string): void => {
     e.preventDefault();
     e.stopPropagation();
     setContextMenu({ guideId, x: e.clientX, y: e.clientY });
   };
 
   // Close context menu when clicking outside
-  React.useEffect(() => {
-    const handleClickOutside = () => setContextMenu(null);
+  React.useEffect((): (() => void) | undefined => {
+    const handleClickOutside = (): void => setContextMenu(null);
     if (contextMenu) {
       document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
+      return (): void => document.removeEventListener('click', handleClickOutside);
     }
     return undefined;
   }, [contextMenu]);
 
   // Filter visible guides
-  const visibleGuides = guides.filter((g) => g.visible !== false);
+  const visibleGuides = guides.filter((g): boolean => g.visible !== false);
 
   return (
     <>
       {/* Guide lines */}
-      {visibleGuides.map((guide) => {
+      {visibleGuides.map((guide): JSX.Element => {
         const guideColor = guide.color || '#3b82f6'; // Default blue
         const isDragging = draggingGuideId === guide.id;
 
@@ -165,8 +165,8 @@ export const TimelineGuides = React.memo<TimelineGuidesProps>(function TimelineG
                     : 'opacity-40 hover:opacity-100 hover:w-1'
                 }`}
                 style={{ backgroundColor: guideColor }}
-                onMouseDown={(e) => handleMouseDown(e, guide)}
-                onContextMenu={(e) => handleContextMenu(e, guide.id)}
+                onMouseDown={(e): void => handleMouseDown(e, guide)}
+                onContextMenu={(e): void => handleContextMenu(e, guide.id)}
               />
 
               {/* Guide handle at top */}
@@ -177,8 +177,8 @@ export const TimelineGuides = React.memo<TimelineGuidesProps>(function TimelineG
                     : 'opacity-0 group-hover:opacity-100 group-hover:scale-100'
                 }`}
                 style={{ backgroundColor: guideColor }}
-                onMouseDown={(e) => handleMouseDown(e, guide)}
-                onContextMenu={(e) => handleContextMenu(e, guide.id)}
+                onMouseDown={(e): void => handleMouseDown(e, guide)}
+                onContextMenu={(e): void => handleContextMenu(e, guide.id)}
               />
 
               {/* Time label (shows on hover or drag) */}
@@ -212,8 +212,8 @@ export const TimelineGuides = React.memo<TimelineGuidesProps>(function TimelineG
                     : 'opacity-40 hover:opacity-100 hover:h-1'
                 }`}
                 style={{ backgroundColor: guideColor }}
-                onMouseDown={(e) => handleMouseDown(e, guide)}
-                onContextMenu={(e) => handleContextMenu(e, guide.id)}
+                onMouseDown={(e): void => handleMouseDown(e, guide)}
+                onContextMenu={(e): void => handleContextMenu(e, guide.id)}
               />
 
               {/* Guide handle at left */}
@@ -224,8 +224,8 @@ export const TimelineGuides = React.memo<TimelineGuidesProps>(function TimelineG
                     : 'opacity-0 group-hover:opacity-100 group-hover:scale-100'
                 }`}
                 style={{ backgroundColor: guideColor }}
-                onMouseDown={(e) => handleMouseDown(e, guide)}
-                onContextMenu={(e) => handleContextMenu(e, guide.id)}
+                onMouseDown={(e): void => handleMouseDown(e, guide)}
+                onContextMenu={(e): void => handleContextMenu(e, guide.id)}
               />
 
               {/* Track label (shows on hover or drag) */}
@@ -249,7 +249,7 @@ export const TimelineGuides = React.memo<TimelineGuidesProps>(function TimelineG
           style={{ left: `${contextMenu.x}px`, top: `${contextMenu.y}px` }}
         >
           <button
-            onClick={() => {
+            onClick={(): void => {
               onGuideDelete(contextMenu.guideId);
               setContextMenu(null);
             }}

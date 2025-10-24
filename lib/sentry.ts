@@ -309,7 +309,7 @@ export function startTransaction(options: {
       op: options.op,
       data: options.data,
     },
-    (span) => span
+    (span): Sentry.Span => span
   );
 }
 
@@ -333,7 +333,7 @@ export function withErrorTracking<T extends (...args: unknown[]) => unknown>(
   fn: T,
   options: ErrorCaptureOptions = {}
 ): T {
-  return (async (...args: unknown[]) => {
+  return (async (...args: unknown[]): Promise<unknown> => {
     try {
       return await fn(...args);
     } catch (error) {

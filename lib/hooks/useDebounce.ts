@@ -20,9 +20,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 export function useDebounce<T>(value: T, delay: number = 300): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
-  useEffect(() => {
+  useEffect((): () => void => {
     // Set debounced value after delay
-    const handler = setTimeout(() => {
+    const handler = setTimeout((): void => {
       setDebouncedValue(value);
     }, delay);
 
@@ -64,11 +64,11 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   }, []); // Only cleanup on unmount
 
   const debouncedCallback = useCallback(
-    ((...args: Parameters<T>) => {
+    ((...args: Parameters<T>): void => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-      timeoutRef.current = setTimeout(() => {
+      timeoutRef.current = setTimeout((): void => {
         callback(...args);
       }, delay);
     }) as T,

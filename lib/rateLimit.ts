@@ -40,7 +40,7 @@ function startCleanupIfNeeded(): void {
   // Only start interval if not already running
   if (!cleanupInterval) {
     cleanupInterval = setInterval(
-      () => {
+      (): void => {
         const now = Date.now();
         for (const [key, value] of fallbackStore.entries()) {
           if (value.resetAt < now) {
@@ -312,7 +312,7 @@ export async function checkRateLimit(
 /**
  * Rate limit middleware helper for API routes
  */
-export function createRateLimiter(config: RateLimitConfig) {
+export function createRateLimiter(config: RateLimitConfig): (identifier: string) => Promise<RateLimitResult> {
   return (identifier: string): Promise<RateLimitResult> => {
     return checkRateLimit(identifier, config);
   };

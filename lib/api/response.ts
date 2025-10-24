@@ -316,7 +316,7 @@ export function serviceUnavailableResponse(
 export function withErrorHandling<T extends unknown[]>(
   handler: (...args: T) => Promise<NextResponse>
 ): (...args: T) => Promise<NextResponse> {
-  return async (...args: T) => {
+  return async (...args: T): Promise<NextResponse<unknown>> => {
     try {
       return await handler(...args);
     } catch (error) {

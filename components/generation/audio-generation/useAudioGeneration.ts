@@ -42,7 +42,7 @@ export function useAudioGeneration({ projectId }: UseAudioGenerationProps) {
   const [sfxDuration, setSfxDuration] = useState(5.0);
 
   // Cleanup function to stop polling
-  const cleanupPolling = useCallback(() => {
+  const cleanupPolling = useCallback((): void => {
     if (pollingTimeoutRef.current) {
       clearTimeout(pollingTimeoutRef.current);
       pollingTimeoutRef.current = null;
@@ -55,15 +55,15 @@ export function useAudioGeneration({ projectId }: UseAudioGenerationProps) {
   }, []);
 
   // Cleanup on unmount
-  useEffect(() => {
-    return () => {
+  useEffect((): () => void => {
+    return (): void => {
       cleanupPolling();
     };
   }, [cleanupPolling]);
 
   // Fetch available voices when switching to voice tab
-  useEffect(() => {
-    const fetchVoices = async () => {
+  useEffect((): void => {
+    const fetchVoices = async (): Promise<void> => {
       if (audioType === 'voice' && voices.length === 0) {
         setLoadingVoices(true);
         try {
@@ -89,7 +89,7 @@ export function useAudioGeneration({ projectId }: UseAudioGenerationProps) {
   }, [audioType, voices.length]);
 
   const handleGenerateMusic = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent): Promise<void> => {
       e.preventDefault();
 
       if (!prompt.trim() && !customMode) {
@@ -136,7 +136,7 @@ export function useAudioGeneration({ projectId }: UseAudioGenerationProps) {
 
         // Poll for music generation status
         const pollInterval = 5000; // 5 seconds
-        const poll = async () => {
+        const poll = async (): Promise<void> => {
           // Check max retries
           if (retryCountRef.current >= MAX_RETRIES) {
             cleanupPolling();
@@ -208,7 +208,7 @@ export function useAudioGeneration({ projectId }: UseAudioGenerationProps) {
   );
 
   const handleGenerateVoice = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent): Promise<void> => {
       e.preventDefault();
 
       if (!voiceText.trim()) {
@@ -253,7 +253,7 @@ export function useAudioGeneration({ projectId }: UseAudioGenerationProps) {
   );
 
   const handleGenerateSFX = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent): Promise<void> => {
       e.preventDefault();
 
       if (!sfxPrompt.trim()) {

@@ -1,3 +1,31 @@
+/**
+ * VersionsGallery - AI-generated keyframe versions gallery
+ *
+ * Displays a grid gallery of all AI-generated versions for keyframes.
+ * Shows version number, generation prompt, and creation timestamp for
+ * each generated image.
+ *
+ * Features:
+ * - Responsive grid layout (2-4 columns)
+ * - Version thumbnails with lazy loading
+ * - Version number badges
+ * - Truncated prompt preview with full text on hover
+ * - Formatted creation timestamps
+ * - Empty state handling
+ * - Version count indicator
+ *
+ * Layout:
+ * - Mobile: 2 columns
+ * - Tablet: 3 columns
+ * - Desktop: 4 columns
+ *
+ * @param edits - Array of frame edit records with signed URLs
+ *
+ * @example
+ * ```tsx
+ * <VersionsGallery edits={generatedVersions} />
+ * ```
+ */
 'use client';
 
 import Image from 'next/image';
@@ -15,7 +43,7 @@ interface VersionsGalleryProps {
   edits: Array<FrameEditRow & { url: string | null }>;
 }
 
-export function VersionsGallery({ edits }: VersionsGalleryProps) {
+export function VersionsGallery({ edits }: VersionsGalleryProps): JSX.Element {
   return (
     <div className="bg-white p-6">
       <div className="mb-3 flex items-center justify-between">
@@ -26,7 +54,7 @@ export function VersionsGallery({ edits }: VersionsGalleryProps) {
       </div>
       {edits.length ? (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-          {edits.map((edit) => (
+          {edits.map((edit): JSX.Element => (
             <div key={edit.id} className="space-y-1.5">
               <div className="relative aspect-[4/3] overflow-hidden rounded border border-neutral-200 bg-neutral-50">
                 {edit.url ? (

@@ -70,7 +70,7 @@ export function updateQueueItemStatus(
   videoId: string,
   updates: Partial<VideoQueueItemData>
 ): VideoQueueItemData[] {
-  return queue.map((item) => (item.id === videoId ? { ...item, ...updates } : item));
+  return queue.map((item): VideoQueueItemData => (item.id === videoId ? { ...item, ...updates } : item));
 }
 
 /**
@@ -80,14 +80,14 @@ export function removeFromQueue(
   queue: VideoQueueItemData[],
   videoId: string
 ): VideoQueueItemData[] {
-  return queue.filter((item) => item.id !== videoId);
+  return queue.filter((item): boolean => item.id !== videoId);
 }
 
 /**
  * Filter completed and failed items from queue
  */
 export function filterCompletedItems(queue: VideoQueueItemData[]): VideoQueueItemData[] {
-  return queue.filter((item) => item.status !== 'completed' && item.status !== 'failed');
+  return queue.filter((item): boolean => item.status !== 'completed' && item.status !== 'failed');
 }
 
 /**
@@ -201,5 +201,5 @@ export function buildVideoGenerationRequest(
  * Check if queue has items that can be cleared
  */
 export function hasCompletedItems(queue: VideoQueueItemData[]): boolean {
-  return queue.some((item) => item.status === 'completed' || item.status === 'failed');
+  return queue.some((item): boolean => item.status === 'completed' || item.status === 'failed');
 }

@@ -112,13 +112,13 @@ class RequestDeduplicationManager {
     // Merge abort signals if one was provided
     if (options?.signal) {
       const originalSignal = options.signal;
-      originalSignal.addEventListener('abort', () => {
+      originalSignal.addEventListener('abort', (): void => {
         abortController.abort();
       });
     }
 
     // Create the request promise
-    const promise = (async () => {
+    const promise = (async (): Promise<T> => {
       try {
         if (enableLogging) {
           browserLogger.debug({
@@ -182,7 +182,7 @@ class RequestDeduplicationManager {
    */
   cancelMatching(pattern: RegExp): number {
     let cancelled = 0;
-    this.inFlightRequests.forEach((request, key) => {
+    this.inFlightRequests.forEach((request, key): void => {
       if (pattern.test(key)) {
         request.abortController.abort();
         this.inFlightRequests.delete(key);
@@ -198,7 +198,7 @@ class RequestDeduplicationManager {
    */
   cancelAll(): number {
     const count = this.inFlightRequests.size;
-    this.inFlightRequests.forEach((request) => {
+    this.inFlightRequests.forEach((request): void => {
       request.abortController.abort();
     });
     this.inFlightRequests.clear();
@@ -214,7 +214,7 @@ class RequestDeduplicationManager {
     totalDuplicatesAvoided: number;
   } {
     let totalDuplicates = 0;
-    this.requestCounts.forEach((count) => {
+    this.requestCounts.forEach((count): void => {
       totalDuplicates += count;
     });
 

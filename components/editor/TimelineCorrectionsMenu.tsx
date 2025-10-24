@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import { useCorrectionSync } from './corrections/useCorrectionSync';
 import { useCorrectionHandlers } from './corrections/useCorrectionHandlers';
-import { VideoEffectsSection, VIDEO_EFFECT_PRESETS } from './corrections/VideoEffectsSection';
+import { VideoEffectsSection } from './corrections/VideoEffectsSection';
 import { TransformSection } from './corrections/TransformSection';
 import { AudioEffectsSection } from './corrections/AudioEffectsSection';
 import { SectionTabs } from './corrections/SectionTabs';
@@ -20,17 +20,17 @@ import type { SectionType } from './corrections/types';
  *
  * Features modern, sleek design with smooth animations and debounced updates.
  */
-export function TimelineCorrectionsMenu() {
+export function TimelineCorrectionsMenu(): JSX.Element | null {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionType>('color');
 
-  const selectedClips = useEditorStore((state) => state.selectedClipIds);
-  const clips = useEditorStore((state) => state.timeline?.clips ?? []);
-  const updateClipStore = useEditorStore((state) => state.updateClip);
+  const selectedClips = useEditorStore((state): Set<string> => state.selectedClipIds);
+  const clips = useEditorStore((state): Clip[] => state.timeline?.clips ?? []);
+  const updateClipStore = useEditorStore((state): (id: string, patch: Partial<Clip>) => void => state.updateClip);
 
   // Stable reference for updateClip
   const updateClip = useCallback(
-    (id: string, updates: Record<string, string | number | boolean | object>) => {
+    (id: string, updates: Record<string, string | number | boolean | object>): void => {
       updateClipStore(id, updates);
     },
     [updateClipStore]
@@ -38,7 +38,7 @@ export function TimelineCorrectionsMenu() {
 
   // Get first selected clip
   const selectedClip =
-    selectedClips.size > 0 ? (clips.find((c) => selectedClips.has(c.id)) ?? null) : null;
+    selectedClips.size > 0 ? (clips.find((c): boolean => selectedClips.has(c.id)) ?? null) : null;
 
   // Use custom hooks for state management
   const { local, setters, debounced } = useCorrectionSync(selectedClip);
@@ -83,7 +83,7 @@ export function TimelineCorrectionsMenu() {
       {/* Header - Always visible */}
       <button
         type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={(): void => setIsExpanded(!isExpanded)}
         className="flex w-full items-center justify-between px-6 py-3 transition hover:bg-neutral-50"
       >
         <div className="flex items-center gap-3">
@@ -126,7 +126,7 @@ export function TimelineCorrectionsMenu() {
               onSaturationChange={setters.setSaturation}
               onHueChange={setters.setHue}
               onBlurChange={setters.setBlur}
-              onPresetApply={(preset) => applyVideoEffectsPreset(preset.effects)}
+              onPresetApply={(preset): void => applyVideoEffectsPreset(preset.effects)}
               onReset={resetColorCorrection}
             />
           )}

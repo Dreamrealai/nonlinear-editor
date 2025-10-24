@@ -43,14 +43,14 @@ export function useRubberBandSelection({
   zoom,
   trackHeight,
   onSelectClipsInRange,
-}: UseRubberBandSelectionProps) {
+}: UseRubberBandSelectionProps): { selectionRect: SelectionRect; isSelecting: boolean; } {
   const [selectionRect, setSelectionRect] = useState<SelectionRect>(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const [startPoint, setStartPoint] = useState<{ x: number; y: number } | null>(null);
 
   // Handle mouse down on timeline background (not on clips)
   const handleMouseDown = useCallback(
-    (e: MouseEvent) => {
+    (e: MouseEvent): void => {
       if (!enabled || !containerRef.current) return;
 
       // Only start selection if clicking on the timeline background
@@ -83,7 +83,7 @@ export function useRubberBandSelection({
 
   // Handle mouse move during selection
   const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
+    (e: MouseEvent): void => {
       if (!isSelecting || !startPoint || !containerRef.current) return;
 
       const rect = containerRef.current.getBoundingClientRect();
@@ -102,7 +102,7 @@ export function useRubberBandSelection({
 
   // Handle mouse up to complete selection
   const handleMouseUp = useCallback(
-    (e: MouseEvent) => {
+    (e: MouseEvent): void => {
       if (!isSelecting || !selectionRect) {
         setIsSelecting(false);
         setStartPoint(null);
@@ -134,7 +134,7 @@ export function useRubberBandSelection({
   );
 
   // Set up event listeners
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!enabled || !containerRef.current) return;
 
     const container = containerRef.current;
@@ -143,7 +143,7 @@ export function useRubberBandSelection({
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
 
-    return () => {
+    return (): void => {
       container.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);

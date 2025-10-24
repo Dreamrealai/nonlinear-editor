@@ -85,7 +85,7 @@ async function executeElevenLabsGeneration(options: {
 
   // Call ElevenLabs API with timeout
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+  const timeout = setTimeout((): void => controller.abort(), 60000); // 60 second timeout
 
   let response;
   try {
@@ -277,10 +277,10 @@ async function executeElevenLabsGeneration(options: {
 export const POST = createGenerationRoute<ElevenLabsGenerateRequest, ElevenLabsGenerateResponse>({
   routeId: 'audio.tts',
   rateLimitPrefix: 'audio-tts',
-  validateRequest: (body) => {
+  validateRequest: (body): void => {
     validateString(body.text, 'text', { minLength: 1, maxLength: 5000 });
     validateUUID(body.projectId, 'projectId');
   },
   execute: executeElevenLabsGeneration,
-  formatResponse: (result) => successResponse(result, 'Audio generated successfully'),
+  formatResponse: (result): NextResponse<ElevenLabsGenerateResponse | SuccessResponse<ElevenLabsGenerateResponse>> => successResponse(result, 'Audio generated successfully'),
 });

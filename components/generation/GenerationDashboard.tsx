@@ -116,7 +116,7 @@ function JobCard({ job, onRemove }: { job: GenerationJob; onRemove: (id: string)
         <div className="flex items-center gap-2">
           {getStatusIcon(job.status)}
           <button
-            onClick={() => onRemove(job.id)}
+            onClick={(): void => onRemove(job.id)}
             className="text-neutral-400 hover:text-neutral-600 transition-colors"
             aria-label="Remove job"
           >
@@ -201,7 +201,7 @@ export function GenerationDashboard({
   });
 
   // Filter jobs
-  const filteredJobs = jobs.filter((job) => {
+  const filteredJobs = jobs.filter((job): boolean => {
     // Type filter
     if (typeFilter !== 'all' && job.type !== typeFilter) {
       return false;
@@ -261,14 +261,14 @@ export function GenerationDashboard({
             <Button
               variant={typeFilter === 'all' ? 'primary' : 'secondary'}
               size="sm"
-              onClick={() => setTypeFilter('all')}
+              onClick={(): void => setTypeFilter('all')}
             >
               All ({jobs.length})
             </Button>
             <Button
               variant={typeFilter === 'video' ? 'primary' : 'secondary'}
               size="sm"
-              onClick={() => setTypeFilter('video')}
+              onClick={(): void => setTypeFilter('video')}
             >
               <Video className="w-3 h-3 mr-1" />
               Video ({videoJobs.length})
@@ -276,7 +276,7 @@ export function GenerationDashboard({
             <Button
               variant={typeFilter === 'audio' ? 'primary' : 'secondary'}
               size="sm"
-              onClick={() => setTypeFilter('audio')}
+              onClick={(): void => setTypeFilter('audio')}
             >
               <Music className="w-3 h-3 mr-1" />
               Audio ({audioJobs.length})
@@ -284,7 +284,7 @@ export function GenerationDashboard({
             <Button
               variant={typeFilter === 'image' ? 'primary' : 'secondary'}
               size="sm"
-              onClick={() => setTypeFilter('image')}
+              onClick={(): void => setTypeFilter('image')}
             >
               <ImageIcon className="w-3 h-3 mr-1" />
               Image ({imageJobs.length})
@@ -299,28 +299,28 @@ export function GenerationDashboard({
             <Button
               variant={statusFilter === 'all' ? 'primary' : 'secondary'}
               size="sm"
-              onClick={() => setStatusFilter('all')}
+              onClick={(): void => setStatusFilter('all')}
             >
               All
             </Button>
             <Button
               variant={statusFilter === 'active' ? 'primary' : 'secondary'}
               size="sm"
-              onClick={() => setStatusFilter('active')}
+              onClick={(): void => setStatusFilter('active')}
             >
               Active ({activeJobs.length})
             </Button>
             <Button
               variant={statusFilter === 'completed' ? 'primary' : 'secondary'}
               size="sm"
-              onClick={() => setStatusFilter('completed')}
+              onClick={(): void => setStatusFilter('completed')}
             >
               Completed ({completedJobs.length})
             </Button>
             <Button
               variant={statusFilter === 'failed' ? 'primary' : 'secondary'}
               size="sm"
-              onClick={() => setStatusFilter('failed')}
+              onClick={(): void => setStatusFilter('failed')}
             >
               Failed ({failedJobs.length})
             </Button>
@@ -378,7 +378,7 @@ export function GenerationDashboard({
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredJobs.map((job) => (
+            {filteredJobs.map((job): JSX.Element => (
               <JobCard key={job.id} job={job} onRemove={removeJob} />
             ))}
           </div>
@@ -396,7 +396,7 @@ export function GenerationDashboard({
       >
         <div
           className="relative w-full max-w-3xl max-h-[90vh] bg-white rounded-xl shadow-2xl overflow-hidden"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e): void => e.stopPropagation()}
         >
           {content}
         </div>
@@ -425,8 +425,8 @@ export function useGenerationDashboardModal(): {
 
   return {
     isOpen,
-    open: () => setIsOpen(true),
-    close: () => setIsOpen(false),
-    toggle: () => setIsOpen((prev) => !prev),
+    open: (): void => setIsOpen(true),
+    close: (): void => setIsOpen(false),
+    toggle: (): void => setIsOpen((prev): boolean => !prev),
   };
 }

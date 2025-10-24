@@ -166,7 +166,7 @@ export function withVersioning(
     requiredVersion?: string;
     allowDeprecated?: boolean;
   } = {}
-) {
+): (request: NextRequest) => Promise<NextResponse> {
   return async (request: NextRequest): Promise<NextResponse> => {
     const version = getAPIVersion(request);
     const config = validateAPIVersion(version);

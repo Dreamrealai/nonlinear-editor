@@ -23,9 +23,9 @@ interface ProjectExportImportProps {
  * Provides UI for exporting and importing projects as JSON
  * Allows users to backup projects locally or transfer between systems
  */
-export function ProjectExportImport({ projectId, projectName }: ProjectExportImportProps) {
-  const timeline = useEditorStore((state) => state.timeline);
-  const setTimeline = useEditorStore((state) => state.setTimeline);
+export function ProjectExportImport({ projectId, projectName }: ProjectExportImportProps): JSX.Element {
+  const timeline = useEditorStore((state): Timeline | null => state.timeline);
+  const setTimeline = useEditorStore((state): (timeline: Timeline) => void => state.setTimeline);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isImporting, setIsImporting] = useState(false);
@@ -33,7 +33,7 @@ export function ProjectExportImport({ projectId, projectName }: ProjectExportImp
   const [showImportModal, setShowImportModal] = useState(false);
 
   // Export current project
-  const handleExport = useCallback(() => {
+  const handleExport = useCallback((): void => {
     if (!timeline) {
       toast.error('No timeline to export');
       return;
@@ -50,12 +50,12 @@ export function ProjectExportImport({ projectId, projectName }: ProjectExportImp
   }, [timeline, projectId, projectName]);
 
   // Trigger file input
-  const handleImportClick = useCallback(() => {
+  const handleImportClick = useCallback((): void => {
     fileInputRef.current?.click();
   }, []);
 
   // Handle file selection
-  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -87,7 +87,7 @@ export function ProjectExportImport({ projectId, projectName }: ProjectExportImp
 
   // Confirm import (replace timeline)
   const handleConfirmImport = useCallback(
-    (mode: 'replace' | 'merge') => {
+    (mode: 'replace' | 'merge'): void => {
       if (!importPreview || !timeline) {
         toast.error('Invalid import state');
         return;
@@ -124,7 +124,7 @@ export function ProjectExportImport({ projectId, projectName }: ProjectExportImp
   );
 
   // Cancel import
-  const handleCancelImport = useCallback(() => {
+  const handleCancelImport = useCallback((): void => {
     setShowImportModal(false);
     setImportPreview(null);
   }, []);
@@ -269,14 +269,14 @@ export function ProjectExportImport({ projectId, projectName }: ProjectExportImp
               </button>
               <button
                 type="button"
-                onClick={() => handleConfirmImport('merge')}
+                onClick={(): void => handleConfirmImport('merge')}
                 className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
               >
                 Merge Clips
               </button>
               <button
                 type="button"
-                onClick={() => handleConfirmImport('replace')}
+                onClick={(): void => handleConfirmImport('replace')}
                 className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
               >
                 Replace Timeline

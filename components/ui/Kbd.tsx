@@ -50,7 +50,7 @@ export function getModifierKey(key: string): string {
  * @returns A styled kbd element
  */
 export const Kbd = React.forwardRef<HTMLElement, KbdProps>(
-  ({ keys, className, children, ...props }, ref) => {
+  ({ keys, className, children, ...props }, ref): JSX.Element | null => {
     if (children) {
       return (
         <kbd
@@ -72,7 +72,7 @@ export const Kbd = React.forwardRef<HTMLElement, KbdProps>(
 
     return (
       <span className={cn('inline-flex items-center gap-1', className)}>
-        {keys.map((key, index) => (
+        {keys.map((key, index): JSX.Element => (
           <React.Fragment key={index}>
             {index > 0 && <span className="text-xs text-neutral-500">+</span>}
             <kbd

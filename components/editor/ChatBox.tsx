@@ -21,7 +21,34 @@ const GEMINI_MODELS = [
   { id: 'gemini-2.5-pro', name: 'Gemini Pro', description: 'Advanced thinking & reasoning' },
 ] as const;
 
-export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
+/**
+ * ChatBox - AI-powered assistant for video editing projects
+ *
+ * Provides a chat interface for users to interact with Google Gemini AI models
+ * for assistance with their video editing projects. Supports text input, file
+ * attachments (images, PDFs, documents), model selection, and real-time message
+ * synchronization across devices.
+ *
+ * Features:
+ * - Real-time message synchronization via Supabase
+ * - Multiple Gemini model support (Flash and Pro)
+ * - File attachment support with preview
+ * - Auto-scrolling to latest messages
+ * - Chat history persistence
+ * - Memory leak prevention (blob URL cleanup)
+ * - Accessible keyboard controls (Enter to send, Shift+Enter for newline)
+ *
+ * @param projectId - The ID of the project for which to show chat messages
+ * @param collapsed - Whether the chat panel is collapsed (hidden)
+ *
+ * @example
+ * ```tsx
+ * <ChatBox projectId="550e8400-e29b-41d4-a716-446655440000" collapsed={false} />
+ * ```
+ *
+ * @returns The chat interface component, or null if collapsed
+ */
+export function ChatBox({ projectId, collapsed }: ChatBoxProps): JSX.Element | null {
   const { supabaseClient } = useSupabase();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -39,13 +66,13 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
   const supabase = supabaseClient;
 
   // Cleanup blob URLs on unmount
-  useEffect(() => {
+  useEffect((): () => void => {
     // Copy ref value to local variable for cleanup
     const blobUrlsMap = attachmentBlobUrlsRef.current;
 
-    return () => {
+    return (): void => {
       // Revoke all blob URLs to prevent memory leaks
-      blobUrlsMap.forEach((url) => {
+      blobUrlsMap.forEach((url): void => {
         URL.revokeObjectURL(url);
       });
       blobUrlsMap.clear();
@@ -53,7 +80,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
   }, []);
 
   // Load chat messages via API endpoint
-  const loadMessages = useCallback(async () => {
+  const loadMessages = useCallback(async (): Promise<void> => {
     if (!projectId) return;
 
     setLoadingMessages(true);
@@ -89,12 +116,12 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
     }
   }, [projectId, supabase]);
 
-  useEffect(() => {
+  useEffect((): void => {
     loadMessages();
   }, [loadMessages]);
 
   // Real-time subscriptions
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!supabase || !projectId) return;
 
     const channel = supabase
@@ -107,29 +134,29 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
           table: 'chat_messages',
           filter: `project_id=eq.${projectId}`,
         },
-        () => {
+        (): void => {
           loadMessages();
         }
       )
       .subscribe();
 
-    return () => {
+    return (): void => {
       supabase.removeChannel(channel);
     };
   }, [supabase, projectId, loadMessages]);
 
   // Auto-scroll
-  useEffect(() => {
+  useEffect((): void => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = async () => {
+  const handleSend = async (): Promise<void> => {
     if (!input.trim() && attachments.length === 0) return;
     if (!supabase) return;
 
     const userMessageContent = input;
     const attachmentUrls: string[] = [];
-    const userAttachments = attachments.map((file) => {
+    const userAttachments = attachments.map((file): { name: string; type: string; url: string; } => {
       // Reuse existing blob URL or create new one
       let url = attachmentBlobUrlsRef.current.get(file);
       if (!url) {
@@ -162,7 +189,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
       }
     } catch (error) {
       browserLogger.error({ error, projectId }, 'Failed to save user message');
-      attachmentUrls.forEach((url) => URL.revokeObjectURL(url));
+      attachmentUrls.forEach((url): void => URL.revokeObjectURL(url));
       toast.error('Failed to save message');
       return;
     }
@@ -177,7 +204,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
       formData.append('projectId', projectId);
       formData.append('chatHistory', JSON.stringify(messages));
 
-      attachments.forEach((file, index) => {
+      attachments.forEach((file, index): void => {
         formData.append(`file-${index}`, file);
       });
 
@@ -222,7 +249,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
       setIsLoading(false);
 
       // Revoke blob URLs for sent attachments to free memory
-      attachments.forEach((file) => {
+      attachments.forEach((file): void => {
         const url = attachmentBlobUrlsRef.current.get(file);
         if (url) {
           URL.revokeObjectURL(url);
@@ -234,13 +261,13 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
     }
   };
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const files = Array.from(event.target.files || []);
-    setAttachments((prev) => [...prev, ...files]);
+    setAttachments((prev): File[] => [...prev, ...files]);
   };
 
-  const removeAttachment = (index: number) => {
-    setAttachments((prev) => {
+  const removeAttachment = (index: number): void => {
+    setAttachments((prev): File[] => {
       // CRITICAL FIX: Revoke blob URL when attachment is removed
       const fileToRemove = prev[index];
       if (fileToRemove) {
@@ -250,11 +277,11 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
           attachmentBlobUrlsRef.current.delete(fileToRemove);
         }
       }
-      return prev.filter((_, i) => i !== index);
+      return prev.filter((_, i): boolean => i !== index);
     });
   };
 
-  const clearChat = async () => {
+  const clearChat = async (): Promise<void> => {
     if (!confirm('Are you sure you want to clear the entire chat history?')) {
       return;
     }
@@ -317,10 +344,10 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
         <div className="flex items-center gap-2">
           <select
             value={selectedModel}
-            onChange={(e) => setSelectedModel(e.target.value)}
+            onChange={(e): void => setSelectedModel(e.target.value)}
             className="flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           >
-            {GEMINI_MODELS.map((model) => (
+            {GEMINI_MODELS.map((model): JSX.Element => (
               <option key={model.id} value={model.id}>
                 {model.name}
               </option>
@@ -390,7 +417,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
             </p>
           </div>
         ) : (
-          messages.map((message) => (
+          messages.map((message): JSX.Element => (
             <div
               key={message.id}
               className={clsx(
@@ -409,7 +436,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
                 <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
                 {message.attachments && message.attachments.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {message.attachments.map((attachment, idx) => {
+                    {message.attachments.map((attachment, idx): JSX.Element => {
                       const isImage = attachment.type.startsWith('image/');
                       return (
                         <div
@@ -498,14 +525,14 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
       {attachments.length > 0 && (
         <div className="border-t border-neutral-200 p-3">
           <div className="flex flex-wrap gap-2">
-            {attachments.map((file, index) => (
+            {attachments.map((file, index): JSX.Element => (
               <div
                 key={index}
                 className="group relative flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1"
               >
                 <span className="text-xs text-neutral-700">{file.name}</span>
                 <button
-                  onClick={() => removeAttachment(index)}
+                  onClick={(): void => removeAttachment(index)}
                   className="text-neutral-400 hover:text-red-600"
                 >
                   <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -528,8 +555,8 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
         <div className="flex gap-2">
           <textarea
             value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
+            onChange={(e): void => setInput(e.target.value)}
+            onKeyDown={(e): void => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 handleSend();
@@ -557,7 +584,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
               </svg>
             </button>
             <button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={(): void | undefined => fileInputRef.current?.click()}
               className="rounded-lg border border-neutral-300 bg-white p-2 text-neutral-600 hover:bg-neutral-50"
               aria-label="Attach files"
               title="Attach files"

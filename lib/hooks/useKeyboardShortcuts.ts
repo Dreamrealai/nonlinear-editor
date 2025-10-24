@@ -41,25 +41,25 @@ const isTypingContext = (target: EventTarget | null): boolean => {
   return isContentEditable || tagName === 'input' || tagName === 'textarea' || tagName === 'select';
 };
 
-export function useKeyboardShortcuts(options: KeyboardShortcutOptions = {}) {
+export function useKeyboardShortcuts(options: KeyboardShortcutOptions = {}): void {
   const { enabled = true, onPlayPause } = options;
 
-  const timeline = useEditorStore((state) => state.timeline);
-  const selectedClipIds = useEditorStore((state) => state.selectedClipIds);
-  const undo = useEditorStore((state) => state.undo);
-  const redo = useEditorStore((state) => state.redo);
-  const canUndo = useEditorStore((state) => state.canUndo);
-  const canRedo = useEditorStore((state) => state.canRedo);
-  const removeClip = useEditorStore((state) => state.removeClip);
-  const copyClips = useEditorStore((state) => state.copyClips);
-  const pasteClips = useEditorStore((state) => state.pasteClips);
-  const selectClip = useEditorStore((state) => state.selectClip);
-  const clearSelection = useEditorStore((state) => state.clearSelection);
+  const timeline = useEditorStore((state): Timeline | null => state.timeline);
+  const selectedClipIds = useEditorStore((state): Set<string> => state.selectedClipIds);
+  const undo = useEditorStore((state): () => void => state.undo);
+  const redo = useEditorStore((state): () => void => state.redo);
+  const canUndo = useEditorStore((state): () => boolean => state.canUndo);
+  const canRedo = useEditorStore((state): () => boolean => state.canRedo);
+  const removeClip = useEditorStore((state): (id: string) => void => state.removeClip);
+  const copyClips = useEditorStore((state): () => void => state.copyClips);
+  const pasteClips = useEditorStore((state): () => void => state.pasteClips);
+  const selectClip = useEditorStore((state): (id: string, multi?: boolean) => void => state.selectClip);
+  const clearSelection = useEditorStore((state): () => void => state.clearSelection);
 
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!enabled) return;
 
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent): void => {
       // Don't trigger shortcuts when typing in inputs
       if (isTypingContext(event.target)) {
         return;
@@ -116,7 +116,7 @@ export function useKeyboardShortcuts(options: KeyboardShortcutOptions = {}) {
         if (timeline?.clips && timeline.clips.length > 0) {
           event.preventDefault();
           clearSelection();
-          timeline.clips.forEach((clip) => selectClip(clip.id, true));
+          timeline.clips.forEach((clip): void => selectClip(clip.id, true));
           toast.success(
             `Selected ${timeline.clips.length} clip${timeline.clips.length > 1 ? 's' : ''}`,
             {
@@ -132,7 +132,7 @@ export function useKeyboardShortcuts(options: KeyboardShortcutOptions = {}) {
         if (selectedClipIds.size > 0) {
           event.preventDefault();
           const count = selectedClipIds.size;
-          selectedClipIds.forEach((clipId) => removeClip(clipId));
+          selectedClipIds.forEach((clipId): void => removeClip(clipId));
           toast.success(`Deleted ${count} clip${count > 1 ? 's' : ''}`, { duration: 1500 });
         }
         return;
@@ -149,7 +149,7 @@ export function useKeyboardShortcuts(options: KeyboardShortcutOptions = {}) {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return (): void => window.removeEventListener('keydown', handleKeyDown);
   }, [
     enabled,
     timeline,

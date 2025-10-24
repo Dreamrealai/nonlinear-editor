@@ -307,7 +307,7 @@ export async function invalidateMultipleUsers(
     const startTime = Date.now();
 
     // Invalidate each user's cache in parallel
-    await Promise.all(userIds.map((userId) => invalidateUserCache(userId)));
+    await Promise.all(userIds.map((userId): Promise<void> => invalidateUserCache(userId)));
 
     const duration = Date.now() - startTime;
     serverLogger.info({
@@ -327,7 +327,7 @@ export async function invalidateMultipleUsers(
 /**
  * Get cache statistics
  */
-export function getCacheStats() {
+export function getCacheStats(): CacheStats {
   return cache.getStats();
 }
 

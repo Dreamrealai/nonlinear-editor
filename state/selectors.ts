@@ -17,41 +17,41 @@ import type { Clip } from '@/types/timeline';
  */
 
 // Get all clips (memoized by zustand)
-export const useClips = () => useTimelineStore((state) => state.timeline?.clips ?? []);
+export const useClips = (): Clip[] => useTimelineStore((state): Clip[] => state.timeline?.clips ?? []);
 
 // Get a specific clip by ID (more efficient than filtering in component)
-export const useClip = (clipId: string) =>
-  useTimelineStore((state) => state.timeline?.clips.find((c) => c.id === clipId) ?? null);
+export const useClip = (clipId: string): Clip | null =>
+  useTimelineStore((state): Clip | null => state.timeline?.clips.find((c): boolean => c.id === clipId) ?? null);
 
 // Get timeline duration (computed value)
-export const useTimelineDuration = () =>
-  useTimelineStore((state) => {
+export const useTimelineDuration = (): number =>
+  useTimelineStore((state): number => {
     if (!state.timeline?.clips.length) return 0;
-    return Math.max(...state.timeline.clips.map((c) => c.timelinePosition + (c.end - c.start)));
+    return Math.max(...state.timeline.clips.map((c): number => c.timelinePosition + (c.end - c.start)));
   });
 
 // Get markers
-export const useMarkers = () => useTimelineStore((state) => state.timeline?.markers ?? []);
+export const useMarkers = (): Marker[] => useTimelineStore((state): Marker[] => state.timeline?.markers ?? []);
 
 // Get text overlays
-export const useTextOverlays = () =>
-  useTimelineStore((state) => state.timeline?.textOverlays ?? []);
+export const useTextOverlays = (): TextOverlay[] =>
+  useTimelineStore((state): TextOverlay[] => state.timeline?.textOverlays ?? []);
 
 // Get tracks
-export const useTracks = () => useTimelineStore((state) => state.timeline?.tracks ?? []);
+export const useTracks = (): Track[] => useTimelineStore((state): Track[] => state.timeline?.tracks ?? []);
 
 // Get timeline reference (use sparingly, causes re-renders on any timeline change)
-export const useTimeline = () => useTimelineStore((state) => state.timeline);
+export const useTimeline = (): Timeline | null => useTimelineStore((state): Timeline | null => state.timeline);
 
 /**
  * Editor Selectors
  */
 
 // Get selected clip IDs only (doesn't re-render when other editor state changes)
-export const useSelectedClipIds = () => useEditorStore((state) => state.selectedClipIds);
+export const useSelectedClipIds = (): Set<string> => useEditorStore((state): Set<string> => state.selectedClipIds);
 
 // Get zoom level
-export const useZoomLevel = () => useEditorStore((state) => state.zoom);
+export const useZoomLevel = (): number => useEditorStore((state): number => state.zoom);
 
 // Scroll position is managed locally in timeline components
 
@@ -60,10 +60,10 @@ export const useZoomLevel = () => useEditorStore((state) => state.zoom);
  */
 
 // Get playback state
-export const useIsPlaying = () => usePlaybackStore((state) => state.isPlaying);
+export const useIsPlaying = (): boolean => usePlaybackStore((state): boolean => state.isPlaying);
 
 // Get current time
-export const useCurrentTime = () => usePlaybackStore((state) => state.currentTime);
+export const useCurrentTime = (): number => usePlaybackStore((state): number => state.currentTime);
 
 // Playback rate is managed locally in player components
 
@@ -81,9 +81,9 @@ export const useCurrentTime = () => usePlaybackStore((state) => state.currentTim
 
 // Get selected clips with full data (only re-renders when selected clips change)
 export const useSelectedClips = (): Clip[] =>
-  useTimelineStore((state) => {
+  useTimelineStore((state): Clip[] => {
     const selectedIds = useEditorStore.getState().selectedClipIds;
-    return state.timeline?.clips.filter((c) => selectedIds.has(c.id)) ?? [];
+    return state.timeline?.clips.filter((c): boolean => selectedIds.has(c.id)) ?? [];
   });
 
 /**
@@ -92,8 +92,8 @@ export const useSelectedClips = (): Clip[] =>
  */
 
 // Timeline actions
-export const useTimelineActions = () =>
-  useTimelineStore((state) => ({
+export const useTimelineActions = (): { addClip: (clip: Clip) => void; updateClip: (id: string, patch: Partial<Clip>) => void; removeClip: (id: string) => void; setTimeline: (timeline: Timeline | null) => void; } =>
+  useTimelineStore((state): { addClip: (clip: Clip) => void; updateClip: (id: string, patch: Partial<Clip>) => void; removeClip: (id: string) => void; setTimeline: (timeline: Timeline | null) => void; } => ({
     addClip: state.addClip,
     updateClip: state.updateClip,
     removeClip: state.removeClip,
@@ -101,8 +101,8 @@ export const useTimelineActions = () =>
   }));
 
 // Playback actions
-export const usePlaybackActions = () =>
-  usePlaybackStore((state) => ({
+export const usePlaybackActions = (): { play: () => void; pause: () => void; setCurrentTime: (time: number) => void; } =>
+  usePlaybackStore((state): { play: () => void; pause: () => void; setCurrentTime: (time: number) => void; } => ({
     play: state.play,
     pause: state.pause,
     setCurrentTime: state.setCurrentTime,

@@ -13,8 +13,8 @@ import { serverLogger } from '@/lib/serverLogger';
 /**
  * GET - List all collaborators for a project
  */
-export const GET = withAuth(
-  async (req: NextRequest, { params }: { params: Promise<{ projectId: string }> }) => {
+export const GET = withAuth<{ projectId: string }>(
+  async (req: NextRequest, { params }: { params: Promise<{ projectId: string }> }): Promise<NextResponse<{ error: string; }> | NextResponse<{ collaborators: any[]; }>> => {
     const { projectId } = await params;
     const supabase = await createServerSupabaseClient();
     const {

@@ -42,7 +42,7 @@ export function useFramesData(
   const [selectedFrameUrl, setSelectedFrameUrl] = useState<string | null>(null);
   const [crop, setCrop] = useState<CropState>(defaultCrop());
 
-  const groupedFrames = useMemo(() => {
+  const groupedFrames = useMemo((): Map<string, SceneFrameRow[]> => {
     const byScene = new Map<string, SceneFrameRow[]>();
     for (const frame of frames) {
       const existing = byScene.get(frame.scene_id) ?? [];
@@ -50,7 +50,7 @@ export function useFramesData(
       byScene.set(frame.scene_id, existing);
     }
     for (const frameList of byScene.values()) {
-      frameList.sort((a, b) => {
+      frameList.sort((a, b): number => {
         const order: Record<SceneFrameRow['kind'], number> = { first: 0, middle: 1, last: 2, custom: 3 };
         return order[a.kind] - order[b.kind];
       });
@@ -59,7 +59,7 @@ export function useFramesData(
   }, [frames]);
 
   const clampCrop = useCallback(
-    (next: CropState, frame: SceneFrameRow | null) => {
+    (next: CropState, frame: SceneFrameRow | null): CropState => {
       if (!frame) return next;
       const maxSize = Math.min(frame.width ?? next.size, frame.height ?? next.size);
       const size = Math.min(next.size, maxSize);
@@ -75,7 +75,7 @@ export function useFramesData(
   );
 
   const loadScenesAndFrames = useCallback(
-    async (assetId: string | null) => {
+    async (assetId: string | null): Promise<void> => {
       if (!assetId) {
         setScenes([]);
         setFrames([]);
@@ -110,7 +110,7 @@ export function useFramesData(
       if (frameRows?.length) {
         const urls = Object.fromEntries(
           await Promise.all(
-            frameRows.map(async (frame) => {
+            frameRows.map(async (frame): Promise<readonly [any, string]> => {
               const url = await signStoragePath(frame.storage_path);
               return [frame.id, url ?? ''] as const;
             })
@@ -118,7 +118,7 @@ export function useFramesData(
         );
         setFrameUrls(urls);
 
-        const preferredFrame = frameRows.find((f) => f.kind === 'middle') ?? frameRows[0];
+        const preferredFrame = frameRows.find((f): boolean => f.kind === 'middle') ?? frameRows[0];
         if (preferredFrame) {
           setSelectedFrameId(preferredFrame.id);
           setSelectedFrameUrl(urls[preferredFrame.id] ?? null);
@@ -133,16 +133,16 @@ export function useFramesData(
     [clampCrop, signStoragePath, supabase]
   );
 
-  useEffect(() => {
+  useEffect((): void => {
     void loadScenesAndFrames(selectedAssetId);
   }, [loadScenesAndFrames, selectedAssetId, refreshToken]);
 
   const selectedFrame = useMemo(
-    () => frames.find((frame) => frame.id === selectedFrameId) ?? null,
+    (): SceneFrameRow | null => frames.find((frame): boolean => frame.id === selectedFrameId) ?? null,
     [frames, selectedFrameId]
   );
 
-  const handleFrameSelect = async (frame: SceneFrameRow) => {
+  const handleFrameSelect = async (frame: SceneFrameRow): Promise<void> => {
     setSelectedFrameId(frame.id);
     const url = frameUrls[frame.id] ?? (await signStoragePath(frame.storage_path));
     setSelectedFrameUrl(url);

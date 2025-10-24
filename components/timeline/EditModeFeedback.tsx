@@ -129,7 +129,7 @@ export const EditModeFeedback = React.memo<EditModeFeedbackProps>(function EditM
   currentMode,
   feedback,
   modifiers,
-}) {
+}): JSX.Element {
   const colors = getModeColors(currentMode);
   const showModifiers = modifiers.shift || modifiers.alt || modifiers.cmd || modifiers.ctrl;
 

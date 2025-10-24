@@ -29,7 +29,7 @@
 // Lazy-load Sentry to avoid bundling if not configured
 let sentryService: typeof import('./services/sentryService').sentryService | null = null;
 if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  import('./services/sentryService').then((module) => {
+  import('./services/sentryService').then((module): void => {
     sentryService = module.sentryService;
   });
 }
@@ -201,7 +201,7 @@ class BrowserLogger {
     } else {
       // Schedule flush if not already scheduled
       if (!this.flushTimer) {
-        this.flushTimer = setTimeout(() => {
+        this.flushTimer = setTimeout((): void => {
           this.flush();
         }, BATCH_INTERVAL_MS);
       }
@@ -363,12 +363,12 @@ if (typeof window !== 'undefined' && !globalHandlersInstalled) {
   globalHandlersInstalled = true;
 
   // Flush logs on page unload
-  window.addEventListener('beforeunload', () => {
+  window.addEventListener('beforeunload', (): void => {
     browserLogger.flush(true);
   });
 
   // Capture uncaught JavaScript errors
-  window.addEventListener('error', (event) => {
+  window.addEventListener('error', (event): void => {
     browserLogger.error(
       {
         error: {
@@ -385,7 +385,7 @@ if (typeof window !== 'undefined' && !globalHandlersInstalled) {
   });
 
   // Capture unhandled promise rejections
-  window.addEventListener('unhandledrejection', (event) => {
+  window.addEventListener('unhandledrejection', (event): void => {
     // Skip AbortError from video play/pause (common and non-critical)
     if (event.reason?.name === 'AbortError' && event.reason?.message?.includes('play()')) {
       // Log as debug instead of error
@@ -445,7 +445,7 @@ if (typeof window !== 'undefined' && !globalHandlersInstalled) {
     );
   };
 
-  console.warn = (...args: unknown[]) => {
+  console.warn = (...args: unknown[]): void => {
     // Call original console.warn
     originalConsoleWarn.apply(console, args);
 
@@ -463,7 +463,7 @@ if (typeof window !== 'undefined' && !globalHandlersInstalled) {
     ];
 
     // Skip if message matches any ignored pattern
-    if (ignoredPatterns.some((pattern) => message.includes(pattern))) {
+    if (ignoredPatterns.some((pattern): boolean => message.includes(pattern))) {
       // Log to debug instead for visibility if needed
       if (isDevelopment) {
         browserLogger.debug(
@@ -512,9 +512,9 @@ if (typeof window !== 'undefined') {
 
   // Use dynamic import to avoid SSR issues
   import('web-vitals')
-    .then(({ onCLS, onLCP, onFCP, onTTFB, onINP }) => {
+    .then(({ onCLS, onLCP, onFCP, onTTFB, onINP }): void => {
       // Core Web Vitals
-      onCLS((metric: WebVitalMetric) => {
+      onCLS((metric: WebVitalMetric): void => {
         browserLogger.info(
           {
             type: 'web_vital',
@@ -528,7 +528,7 @@ if (typeof window !== 'undefined') {
         );
       });
 
-      onLCP((metric: WebVitalMetric) => {
+      onLCP((metric: WebVitalMetric): void => {
         browserLogger.info(
           {
             type: 'web_vital',
@@ -542,7 +542,7 @@ if (typeof window !== 'undefined') {
         );
       });
 
-      onFCP((metric: WebVitalMetric) => {
+      onFCP((metric: WebVitalMetric): void => {
         browserLogger.info(
           {
             type: 'web_vital',
@@ -556,7 +556,7 @@ if (typeof window !== 'undefined') {
         );
       });
 
-      onTTFB((metric: WebVitalMetric) => {
+      onTTFB((metric: WebVitalMetric): void => {
         browserLogger.info(
           {
             type: 'web_vital',
@@ -571,7 +571,7 @@ if (typeof window !== 'undefined') {
       });
 
       // Interaction to Next Paint (newer metric replacing FID)
-      onINP((metric: WebVitalMetric) => {
+      onINP((metric: WebVitalMetric): void => {
         browserLogger.info(
           {
             type: 'web_vital',
@@ -585,7 +585,7 @@ if (typeof window !== 'undefined') {
         );
       });
     })
-    .catch((error) => {
+    .catch((error): void => {
       // Silently fail if web-vitals package not available
       if (isDevelopment) {
         console.warn('Web Vitals not available:', error);

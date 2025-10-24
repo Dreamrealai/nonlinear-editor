@@ -3,12 +3,12 @@ import type { BaseAssetRow } from '@/types/assets';
 // Re-export for backward compatibility
 export type { BaseAssetRow as AssetRow } from '@/types/assets';
 
-export const getAssetLabel = (asset: BaseAssetRow) => {
+export const getAssetLabel = (asset: BaseAssetRow): string => {
   const meta = asset.metadata as { filename?: string } | null;
   return meta?.filename ?? asset.title ?? asset.id;
 };
 
-export const formatMs = (ms: number) => {
+export const formatMs = (ms: number): string => {
   const totalSeconds = Math.round(ms / 1000);
   const minutes = Math.floor(totalSeconds / 60)
     .toString()

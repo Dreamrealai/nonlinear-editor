@@ -86,7 +86,7 @@ class PerformanceMonitor {
    * Get metrics for a specific operation
    */
   getMetricsForOperation(operation: string): PerformanceMetrics[] {
-    return this.metrics.filter((m) => m.operation === operation);
+    return this.metrics.filter((m): boolean => m.operation === operation);
   }
 
   /**
@@ -95,7 +95,7 @@ class PerformanceMonitor {
   getAverageDuration(operation: string): number {
     const metrics = this.getMetricsForOperation(operation);
     if (metrics.length === 0) return 0;
-    const total = metrics.reduce((sum, m) => sum + m.duration, 0);
+    const total = metrics.reduce((sum, m): number => sum + m.duration, 0);
     return total / metrics.length;
   }
 
@@ -114,8 +114,8 @@ class PerformanceMonitor {
       return { count: 0, avg: 0, min: 0, max: 0, total: 0 };
     }
 
-    const durations = metrics.map((m) => m.duration);
-    const total = durations.reduce((sum, d) => sum + d, 0);
+    const durations = metrics.map((m): number => m.duration);
+    const total = durations.reduce((sum, d): number => sum + d, 0);
 
     return {
       count: metrics.length,
@@ -140,9 +140,9 @@ class PerformanceMonitor {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
     // Get unique operations
-    const operations = [...new Set(this.metrics.map((m) => m.operation))];
+    const operations = [...new Set(this.metrics.map((m): string => m.operation))];
 
-    operations.forEach((operation) => {
+    operations.forEach((operation): void => {
       const stats = this.getStats(operation);
       console.log(`${operation}:`);
       console.log(`  Count:   ${stats.count}`);

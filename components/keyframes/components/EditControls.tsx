@@ -1,3 +1,58 @@
+/**
+ * EditControls - Keyframe editing controls panel
+ *
+ * Comprehensive control panel for AI-powered keyframe editing. Provides
+ * mode selection (global vs crop), crop positioning controls, prompt input,
+ * reference image management, and generation submission.
+ *
+ * Features:
+ * - Mode toggle: Global editing vs Crop-based editing
+ * - Crop controls: X/Y position and size sliders with feathering
+ * - Multi-line prompt textarea for AI generation
+ * - Reference image attachment and preview
+ * - Image upload with drag-and-drop support
+ * - Clear all edits button
+ * - Generate button with loading state
+ * - Error message display
+ * - Form validation
+ *
+ * Modes:
+ * - Global: Edit entire frame
+ * - Crop: Edit specific region with feathered edges
+ *
+ * @param mode - Current editing mode ('global' | 'crop')
+ * @param onModeChange - Callback to switch editing mode
+ * @param selectedFrame - Currently selected frame data
+ * @param crop - Current crop state (x, y, size)
+ * @param feather - Crop edge feathering amount
+ * @param onCropChange - Callback when crop changes
+ * @param onFeatherChange - Callback when feathering changes
+ * @param prompt - AI generation prompt text
+ * @param onPromptChange - Callback when prompt changes
+ * @param refImages - Attached reference images
+ * @param onAttachRefImages - Callback to attach new reference images
+ * @param onRemoveRefImage - Callback to remove a reference image
+ * @param submitError - Error message from generation attempt
+ * @param isSubmitting - Whether generation is in progress
+ * @param onClear - Callback to clear all edits
+ * @param onSubmit - Callback to submit generation
+ * @param selectedFrameId - ID of selected frame
+ * @param clampCrop - Function to clamp crop values to frame bounds
+ *
+ * @example
+ * ```tsx
+ * <EditControls
+ *   mode="crop"
+ *   onModeChange={setMode}
+ *   selectedFrame={frame}
+ *   crop={cropState}
+ *   onCropChange={setCrop}
+ *   prompt={prompt}
+ *   onPromptChange={setPrompt}
+ *   onSubmit={handleGenerate}
+ * />
+ * ```
+ */
 'use client';
 
 import Image from 'next/image';
@@ -68,7 +123,7 @@ export function EditControls({
   onSubmit,
   selectedFrameId,
   clampCrop,
-}: EditControlsProps) {
+}: EditControlsProps): JSX.Element {
   return (
     <div className="border-b border-neutral-200 bg-white p-6">
       <div className="flex items-center gap-2">
@@ -80,7 +135,7 @@ export function EditControls({
               ? 'bg-neutral-900 text-white'
               : 'border border-neutral-200 text-neutral-600 hover:border-neutral-300'
           )}
-          onClick={() => onModeChange('global')}
+          onClick={(): void => onModeChange('global')}
         >
           Global
         </button>
@@ -92,7 +147,7 @@ export function EditControls({
               ? 'bg-neutral-900 text-white'
               : 'border border-neutral-200 text-neutral-600 hover:border-neutral-300'
           )}
-          onClick={() => onModeChange('crop')}
+          onClick={(): void => onModeChange('crop')}
         >
           Crop
         </button>
@@ -111,7 +166,7 @@ export function EditControls({
               max={Math.min(1024, selectedFrame?.width ?? 1024)}
               step={16}
               value={crop.size}
-              onChange={(event) =>
+              onChange={(event): void =>
                 onCropChange(
                   clampCrop(
                     {
@@ -138,7 +193,7 @@ export function EditControls({
               max={128}
               step={1}
               value={feather}
-              onChange={(event) => onFeatherChange(Number(event.target.value))}
+              onChange={(event): void => onFeatherChange(Number(event.target.value))}
               className="flex-1"
               aria-label="Feather amount"
             />
@@ -170,12 +225,12 @@ export function EditControls({
           className="w-full rounded border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-800 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
           rows={3}
           value={prompt}
-          onChange={(event) => onPromptChange(event.target.value)}
+          onChange={(event): void => onPromptChange(event.target.value)}
           placeholder="Describe your desired edit or paste reference images (Cmd/Ctrl+V)"
         />
         {refImages.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
-            {refImages.map((img) => (
+            {refImages.map((img): JSX.Element => (
               <div
                 key={img.id}
                 className="group relative h-14 w-14 overflow-hidden rounded border border-neutral-200 bg-neutral-50"
@@ -212,7 +267,7 @@ export function EditControls({
                 )}
                 <button
                   type="button"
-                  onClick={() => onRemoveRefImage(img.id)}
+                  onClick={(): void => onRemoveRefImage(img.id)}
                   className="absolute -right-1 -top-1 h-4 w-4 rounded-full border border-neutral-200 bg-white text-neutral-600 opacity-0 transition-opacity hover:bg-neutral-100 group-hover:opacity-100"
                   disabled={img.uploading}
                 >

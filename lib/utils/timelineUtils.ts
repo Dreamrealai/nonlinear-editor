@@ -62,7 +62,7 @@ export function computeSafeClipPosition(
   targetTrackIndex?: number
 ): number {
   const basePosition = Math.max(0, desiredPosition);
-  const movingClip = clips.find((clip) => clip.id === clipId);
+  const movingClip = clips.find((clip): boolean => clip.id === clipId);
 
   if (!movingClip) {
     return Math.max(0, snapToGrid(basePosition, snapInterval));
@@ -74,11 +74,11 @@ export function computeSafeClipPosition(
   const trackIndex =
     typeof targetTrackIndex === 'number' ? targetTrackIndex : movingClip.trackIndex;
   const trackClips = clips
-    .filter((clip) => clip.trackIndex === trackIndex && clip.id !== clipId)
-    .sort((a, b) => a.timelinePosition - b.timelinePosition);
+    .filter((clip): boolean => clip.trackIndex === trackIndex && clip.id !== clipId)
+    .sort((a, b): number => a.timelinePosition - b.timelinePosition);
 
-  const previous = trackClips.filter((clip) => clip.timelinePosition < position).pop();
-  const next = trackClips.find((clip) => clip.timelinePosition > position);
+  const previous = trackClips.filter((clip): boolean => clip.timelinePosition < position).pop();
+  const next = trackClips.find((clip): boolean => clip.timelinePosition > position);
 
   let minStart = 0;
   if (previous) {
@@ -105,7 +105,7 @@ export function computeSafeClipPosition(
   if (maxStart !== Number.POSITIVE_INFINITY) {
     snapCandidates.push(maxStart);
   }
-  trackClips.forEach((clip) => {
+  trackClips.forEach((clip): void => {
     snapCandidates.push(clip.timelinePosition);
     snapCandidates.push(clip.timelinePosition + Math.max(snapInterval, clip.end - clip.start));
   });
@@ -133,9 +133,9 @@ export function calculateTimelineDuration(
   textOverlays: Array<{ timelinePosition: number; duration: number }>,
   minimumDuration = 30
 ): number {
-  const clipEndTimes = clips.length ? clips.map((c) => c.timelinePosition + (c.end - c.start)) : [];
+  const clipEndTimes = clips.length ? clips.map((c): number => c.timelinePosition + (c.end - c.start)) : [];
   const overlayEndTimes = textOverlays.length
-    ? textOverlays.map((o) => o.timelinePosition + o.duration)
+    ? textOverlays.map((o): number => o.timelinePosition + o.duration)
     : [];
   const allEndTimes = [...clipEndTimes, ...overlayEndTimes];
   return allEndTimes.length ? Math.max(...allEndTimes, minimumDuration) : minimumDuration;
@@ -148,7 +148,7 @@ export function calculateTimelineDuration(
  * @returns Clip at that position, or undefined
  */
 export function findClipAtTime(clips: Clip[], time: number): Clip | undefined {
-  return clips.find((clip) => {
+  return clips.find((clip): boolean => {
     const clipStart = clip.timelinePosition;
     const clipEnd = clipStart + (clip.end - clip.start);
     return time > clipStart && time < clipEnd;

@@ -9,12 +9,14 @@ import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { serverLogger } from '@/lib/serverLogger';
+import { validateBoolean, validateUUID, ValidationError } from '@/lib/validation';
+import { validationError } from '@/lib/api/response';
 
 /**
  * PATCH - Update a share link (deactivate, change settings)
  */
-export const PATCH = withAuth(
-  async (req: NextRequest, { params }: { params: Promise<{ projectId: string; linkId: string }> }) => {
+export const PATCH = withAuth<{ projectId: string; linkId: string }>(
+  async (req: NextRequest, { params }: { params: Promise<{ projectId: string; linkId: string }> }): Promise<NextResponse<{ error: string; }> | NextResponse<{ link: any; }>> => {
     const { projectId, linkId } = await params;
     const supabase = await createServerSupabaseClient();
     const {
@@ -26,8 +28,15 @@ export const PATCH = withAuth(
     }
 
     try {
+      // Validate path parameters
+      validateUUID(projectId, 'projectId');
+      validateUUID(linkId, 'linkId');
+
+      // Validate request body
       const body = await req.json();
       const { is_active } = body;
+
+      validateBoolean(is_active, 'is_active', { required: true });
 
       // Verify user owns the project
       const { data: project, error: projectError } = await supabase
@@ -68,6 +77,9 @@ export const PATCH = withAuth(
 
       return NextResponse.json({ link });
     } catch (error) {
+      if (error instanceof ValidationError) {
+        return validationError(error.message);
+      }
       serverLogger.error({ error, linkId, projectId }, 'Error updating share link');
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
@@ -78,8 +90,8 @@ export const PATCH = withAuth(
 /**
  * DELETE - Delete a share link
  */
-export const DELETE = withAuth(
-  async (req: NextRequest, { params }: { params: Promise<{ projectId: string; linkId: string }> }) => {
+export const DELETE = withAuth<{ projectId: string; linkId: string }>(
+  async (req: NextRequest, { params }: { params: Promise<{ projectId: string; linkId: string }> }): Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; }>> => {
     const { projectId, linkId } = await params;
     const supabase = await createServerSupabaseClient();
     const {
@@ -91,6 +103,10 @@ export const DELETE = withAuth(
     }
 
     try {
+      // Validate path parameters
+      validateUUID(projectId, 'projectId');
+      validateUUID(linkId, 'linkId');
+
       // Verify user owns the project
       const { data: project, error: projectError } = await supabase
         .from('projects')
@@ -128,6 +144,9 @@ export const DELETE = withAuth(
 
       return NextResponse.json({ success: true });
     } catch (error) {
+      if (error instanceof ValidationError) {
+        return validationError(error.message);
+      }
       serverLogger.error({ error, linkId, projectId }, 'Error deleting share link');
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }

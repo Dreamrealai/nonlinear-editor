@@ -80,7 +80,7 @@ export function KeyboardShortcutsHelp({
   });
 
   // Close on Escape key
-  useEffect(() => {
+  useEffect((): () => void => {
     const handleEscape = (e: KeyboardEvent): void => {
       if (e.key === 'Escape' && isOpen) {
         handleClose();
@@ -92,7 +92,7 @@ export function KeyboardShortcutsHelp({
   }, [isOpen]);
 
   // Prevent body scroll when modal is open
-  useEffect(() => {
+  useEffect((): () => void => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -112,7 +112,7 @@ export function KeyboardShortcutsHelp({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={handleClose}
-      onKeyDown={(e) => {
+      onKeyDown={(e): void => {
         if (e.key === 'Escape') {
           handleClose();
         }
@@ -144,7 +144,7 @@ export function KeyboardShortcutsHelp({
 
         {/* Content */}
         <div className="overflow-y-auto max-h-[calc(90vh-80px)] px-6 py-4">
-          {Object.entries(groupedShortcuts).map(([category, categoryShortcuts]) => {
+          {Object.entries(groupedShortcuts).map(([category, categoryShortcuts]): JSX.Element | null => {
             if (categoryShortcuts.length === 0) return null;
 
             return (
@@ -153,7 +153,7 @@ export function KeyboardShortcutsHelp({
                   {categoryLabels[category] || category}
                 </h3>
                 <div className="space-y-2">
-                  {categoryShortcuts.map((shortcut) => (
+                  {categoryShortcuts.map((shortcut): JSX.Element => (
                     <div
                       key={shortcut.id}
                       className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-neutral-50 transition-colors"
@@ -169,7 +169,7 @@ export function KeyboardShortcutsHelp({
             );
           })}
 
-          {Object.values(groupedShortcuts).every((arr) => arr.length === 0) && (
+          {Object.values(groupedShortcuts).every((arr): boolean => arr.length === 0) && (
             <div className="text-center py-12">
               <p className="text-neutral-500">No keyboard shortcuts available</p>
             </div>
@@ -199,7 +199,7 @@ export function useKeyboardShortcutsHelp(): { isOpen: boolean; open: () => void;
 
   const open = (): void => setIsOpen(true);
   const close = (): void => setIsOpen(false);
-  const toggle = (): void => setIsOpen((prev) => !prev);
+  const toggle = (): void => setIsOpen((prev): boolean => !prev);
 
   return {
     isOpen,

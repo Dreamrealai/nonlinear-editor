@@ -109,7 +109,7 @@ export class UserPreferencesService {
    */
   private validateKeyboardShortcuts(shortcuts: KeyboardShortcutConfig[]): void {
     // Check for duplicate shortcut IDs
-    const ids = shortcuts.map((s) => s.id);
+    const ids = shortcuts.map((s): string => s.id);
     const uniqueIds = new Set(ids);
     if (ids.length !== uniqueIds.size) {
       throw new Error('Duplicate shortcut IDs found');
@@ -154,7 +154,7 @@ export class UserPreferencesService {
   private normalizeKeyCombo(keys: string[]): string {
     // Sort and lowercase for consistent comparison
     return keys
-      .map((k) => k.toLowerCase().trim())
+      .map((k): string => k.toLowerCase().trim())
       .sort()
       .join('+');
   }

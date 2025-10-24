@@ -1,3 +1,51 @@
+/**
+ * KeyframeSidebar - Keyframe selection and management sidebar
+ *
+ * Left sidebar for browsing, selecting, and managing keyframes across
+ * video scenes. Groups frames by scene with extraction and upload actions.
+ * Displays frame thumbnails, timestamps, and frame types.
+ *
+ * Features:
+ * - Grouped frames by video scene
+ * - Scene timeline ranges (MM:SS format)
+ * - Frame type indicators (first, middle, last, custom)
+ * - Frame timestamp display
+ * - Active frame highlighting
+ * - Extract new frame from video
+ * - Upload custom image as frame
+ * - Loading states for actions
+ * - Responsive thumbnail grid
+ *
+ * Frame Types:
+ * - first: First frame of scene
+ * - middle: Middle frame of scene
+ * - last: Last frame of scene
+ * - custom: User-uploaded custom frame
+ *
+ * @param scenes - Array of video scenes
+ * @param frames - Array of extracted/uploaded frames
+ * @param frameUrls - Map of frame IDs to signed URLs
+ * @param groupedFrames - Frames grouped by scene ID
+ * @param selectedFrameId - Currently selected frame ID
+ * @param onFrameSelect - Callback when frame is selected
+ * @param onExtractFrame - Callback to extract frame from video
+ * @param onUploadImage - Callback to upload custom image
+ * @param isUploadingImage - Whether image upload is in progress
+ * @param canExtractFrame - Whether frame extraction is available
+ *
+ * @example
+ * ```tsx
+ * <KeyframeSidebar
+ *   scenes={videoScenes}
+ *   frames={extractedFrames}
+ *   frameUrls={urlMap}
+ *   groupedFrames={framesByScene}
+ *   selectedFrameId={selectedId}
+ *   onFrameSelect={handleSelect}
+ *   onExtractFrame={handleExtract}
+ * />
+ * ```
+ */
 'use client';
 
 import Image from 'next/image';
@@ -33,7 +81,7 @@ interface KeyframeSidebarProps {
   canExtractFrame: boolean;
 }
 
-const formatMs = (ms: number) => {
+const formatMs = (ms: number): string => {
   const totalSeconds = Math.round(ms / 1000);
   const minutes = Math.floor(totalSeconds / 60)
     .toString()
@@ -53,8 +101,8 @@ export function KeyframeSidebar({
   onUploadImage,
   isUploadingImage,
   canExtractFrame,
-}: KeyframeSidebarProps) {
-  const customFrames = frames.filter((f) => f.kind === 'custom');
+}: KeyframeSidebarProps): JSX.Element {
+  const customFrames = frames.filter((f): boolean => f.kind === 'custom');
 
   return (
     <div className="w-64 flex-shrink-0 overflow-y-auto border-r border-neutral-200 bg-white">
@@ -89,12 +137,12 @@ export function KeyframeSidebar({
           </div>
           <div className="grid grid-cols-2 gap-2">
             {customFrames
-              .sort((a, b) => b.t_ms - a.t_ms)
-              .map((frame) => (
+              .sort((a, b): number => b.t_ms - a.t_ms)
+              .map((frame): JSX.Element => (
                 <button
                   key={frame.id}
                   type="button"
-                  onClick={() => onFrameSelect(frame)}
+                  onClick={(): void => onFrameSelect(frame)}
                   className={clsx(
                     'group relative aspect-[4/3] overflow-hidden rounded border text-left transition-all',
                     selectedFrameId === frame.id
@@ -135,7 +183,7 @@ export function KeyframeSidebar({
           <span className="text-[10px] text-neutral-400">{scenes.length}</span>
         </div>
         <div className="space-y-3">
-          {scenes.map((scene) => {
+          {scenes.map((scene): JSX.Element => {
             const sceneFrames = groupedFrames.get(scene.id) ?? [];
             return (
               <div key={scene.id} className="space-y-1.5">
@@ -145,11 +193,11 @@ export function KeyframeSidebar({
                   <span>{formatMs(scene.end_ms)}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-1.5">
-                  {sceneFrames.map((frame) => (
+                  {sceneFrames.map((frame): JSX.Element => (
                     <button
                       key={frame.id}
                       type="button"
-                      onClick={() => onFrameSelect(frame)}
+                      onClick={(): void => onFrameSelect(frame)}
                       className={clsx(
                         'group relative aspect-[4/3] overflow-hidden rounded border text-left transition-all',
                         selectedFrameId === frame.id

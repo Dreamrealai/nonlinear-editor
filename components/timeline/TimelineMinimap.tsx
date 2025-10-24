@@ -58,17 +58,17 @@ export function TimelineMinimap({
   const [minimapWidth, setMinimapWidth] = useState(0);
 
   // Update minimap width on resize
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!minimapRef.current) return;
 
-    const observer = new ResizeObserver((entries) => {
+    const observer = new ResizeObserver((entries): void => {
       for (const entry of entries) {
         setMinimapWidth(entry.contentRect.width);
       }
     });
 
     observer.observe(minimapRef.current);
-    return () => observer.disconnect();
+    return (): void => observer.disconnect();
   }, []);
 
   // Calculate viewport position and size in minimap coordinates
@@ -82,7 +82,7 @@ export function TimelineMinimap({
 
   // Handle click on minimap to jump to position
   const handleMinimapClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
+    (e: React.MouseEvent<HTMLDivElement>): void => {
       if (!minimapRef.current || isDragging) return;
 
       const rect = minimapRef.current.getBoundingClientRect();
@@ -101,7 +101,7 @@ export function TimelineMinimap({
 
   // Handle viewport drag
   const handleViewportMouseDown = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
+    (e: React.MouseEvent<HTMLDivElement>): void => {
       e.stopPropagation();
       e.preventDefault();
       setIsDragging(true);
@@ -109,7 +109,7 @@ export function TimelineMinimap({
       const startX = e.clientX;
       const startScrollLeft = scrollLeft;
 
-      const handleMouseMove = (moveEvent: MouseEvent) => {
+      const handleMouseMove = (moveEvent: MouseEvent): void => {
         const deltaX = moveEvent.clientX - startX;
         const deltaScrollLeft = (deltaX / minimapWidth) * (timelineDuration * zoom);
         const newScrollLeft = Math.max(0, startScrollLeft + deltaScrollLeft);
@@ -117,7 +117,7 @@ export function TimelineMinimap({
         onPan(newScrollLeft);
       };
 
-      const handleMouseUp = () => {
+      const handleMouseUp = (): void => {
         setIsDragging(false);
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
@@ -130,10 +130,10 @@ export function TimelineMinimap({
   );
 
   // Render clips in minimap
-  const renderClips = () => {
+  const renderClips = (): JSX.Element[] | null => {
     if (minimapWidth === 0) return null;
 
-    return clips.map((clip) => {
+    return clips.map((clip): JSX.Element => {
       const clipLeft = (clip.timelinePosition / timelineDuration) * minimapWidth;
       const clipDuration = clip.end - clip.start;
       const clipWidth = Math.max(2, (clipDuration / timelineDuration) * minimapWidth);
@@ -187,7 +187,7 @@ export function TimelineMinimap({
         role="button"
         tabIndex={0}
         aria-label="Timeline minimap - click to navigate"
-        onKeyDown={(e) => {
+        onKeyDown={(e): void => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             handleMinimapClick(e as unknown as React.MouseEvent<HTMLDivElement>);

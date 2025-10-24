@@ -16,11 +16,11 @@ export function useFrameEdits(
   selectedFrameId: string | null,
   refreshToken: number,
   signStoragePath: (path: string) => Promise<string | null>
-) {
+): { edits: (FrameEditRow & { url: string | null; })[]; } {
   const [edits, setEdits] = useState<Array<FrameEditRow & { url: string | null }>>([]);
 
   const loadFrameEdits = useCallback(
-    async (frameId: string | null) => {
+    async (frameId: string | null): Promise<void> => {
       if (!frameId) {
         setEdits([]);
         return;
@@ -36,7 +36,7 @@ export function useFrameEdits(
         return;
       }
       const editsWithUrls = await Promise.all(
-        (data ?? []).map(async (row) => ({
+        (data ?? []).map(async (row): Promise<{ url: string | null; id: any; frame_id: any; version: any; output_storage_path: any; created_at: any; prompt: any; }> => ({
           ...row,
           url: await signStoragePath(row.output_storage_path),
         }))
@@ -46,7 +46,7 @@ export function useFrameEdits(
     [signStoragePath, supabase]
   );
 
-  useEffect(() => {
+  useEffect((): void => {
     void loadFrameEdits(selectedFrameId);
   }, [loadFrameEdits, selectedFrameId, refreshToken]);
 

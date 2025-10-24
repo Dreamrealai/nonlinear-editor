@@ -1,3 +1,42 @@
+/**
+ * VoiceGenerationForm - Text-to-speech voice generation form
+ *
+ * Form component for converting text to natural-sounding speech using AI.
+ * Features a multi-line text input, voice selection dropdown, and generation
+ * controls with loading states.
+ *
+ * Features:
+ * - Multi-line text input for speech content
+ * - Voice selection from available AI voices
+ * - Loading state during voice list fetch
+ * - Generation progress indicator
+ * - Form validation (requires text input)
+ * - Disabled state during generation
+ * - Character count and guidelines
+ *
+ * @param voiceText - Text content to convert to speech
+ * @param setVoiceText - Callback to update voice text
+ * @param voices - Available AI voices from API
+ * @param selectedVoice - Currently selected voice ID
+ * @param setSelectedVoice - Callback to change selected voice
+ * @param loadingVoices - Whether voices are being loaded
+ * @param generating - Whether audio is currently being generated
+ * @param onSubmit - Form submission handler
+ *
+ * @example
+ * ```tsx
+ * <VoiceGenerationForm
+ *   voiceText={text}
+ *   setVoiceText={setText}
+ *   voices={availableVoices}
+ *   selectedVoice={voiceId}
+ *   setSelectedVoice={setVoiceId}
+ *   loadingVoices={loading}
+ *   generating={isGenerating}
+ *   onSubmit={handleGenerate}
+ * />
+ * ```
+ */
 import { VoiceSelector } from './VoiceSelector';
 
 interface Voice {
@@ -26,7 +65,7 @@ export function VoiceGenerationForm({
   loadingVoices,
   generating,
   onSubmit,
-}: VoiceGenerationFormProps) {
+}: VoiceGenerationFormProps): JSX.Element {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       {/* Text Input */}
@@ -37,7 +76,7 @@ export function VoiceGenerationForm({
         <textarea
           id="voiceText"
           value={voiceText}
-          onChange={(e) => setVoiceText(e.target.value)}
+          onChange={(e): void => setVoiceText(e.target.value)}
           placeholder="Enter the text you want to convert to speech..."
           rows={6}
           disabled={generating}

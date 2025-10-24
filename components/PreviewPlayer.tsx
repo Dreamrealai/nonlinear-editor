@@ -28,10 +28,10 @@ import { computeClipMetas } from '@/lib/utils/videoUtils';
 import { useVideoManager } from '@/lib/hooks/useVideoManager';
 import { useVideoPlayback } from '@/lib/hooks/useVideoPlayback';
 
-export function PreviewPlayer() {
-  const timeline = useEditorStore((state) => state.timeline);
-  const currentTime = useEditorStore((state) => state.currentTime);
-  const setCurrentTime = useEditorStore((state) => state.setCurrentTime);
+export function PreviewPlayer(): JSX.Element | null {
+  const timeline = useEditorStore((state): Timeline | null => state.timeline);
+  const currentTime = useEditorStore((state): number => state.currentTime);
+  const setCurrentTime = useEditorStore((state): (time: number) => void => state.setCurrentTime);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -39,18 +39,18 @@ export function PreviewPlayer() {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Sort clips by timeline position
-  const sortedClips = useMemo(() => {
+  const sortedClips = useMemo((): any[] => {
     if (!timeline) return [];
-    return [...timeline.clips].sort((a, b) => a.timelinePosition - b.timelinePosition);
+    return [...timeline.clips].sort((a, b): number => a.timelinePosition - b.timelinePosition);
   }, [timeline]);
 
   // Compute clip metadata (fades, crossfades, etc.)
-  const clipMetas = useMemo(() => computeClipMetas(sortedClips), [sortedClips]);
+  const clipMetas = useMemo((): Map<string, ClipMeta> => computeClipMetas(sortedClips), [sortedClips]);
 
   // Calculate total duration
-  const totalDuration = useMemo(() => {
+  const totalDuration = useMemo((): number => {
     let max = 0;
-    sortedClips.forEach((clip) => {
+    sortedClips.forEach((clip): void => {
       const meta = clipMetas.get(clip.id);
       if (!meta) return;
       max = Math.max(max, meta.effectiveStart + meta.length);
@@ -76,7 +76,7 @@ export function PreviewPlayer() {
   });
 
   // Fullscreen toggle
-  const toggleFullscreen = useCallback(async () => {
+  const toggleFullscreen = useCallback(async (): Promise<void> => {
     if (!playerContainerRef.current) return;
 
     try {
@@ -94,7 +94,7 @@ export function PreviewPlayer() {
 
   // Handle seeking from progress bar
   const handleSeek = useCallback(
-    (newTime: number) => {
+    (newTime: number): void => {
       setCurrentTime(newTime);
       // Pause during seeking for smoother experience
       if (isPlaying) {
@@ -105,20 +105,20 @@ export function PreviewPlayer() {
   );
 
   // Handle fullscreen change events
-  useEffect(() => {
-    const handleFullscreenChange = () => {
+  useEffect((): () => void => {
+    const handleFullscreenChange = (): void => {
       setIsFullscreen(!!document.fullscreenElement);
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => {
+    return (): void => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, []);
 
   // Handle keyboard shortcuts (Space = play/pause)
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
+  useEffect((): () => void => {
+    const handleKeyPress = (event: KeyboardEvent): void => {
       if (event.code === 'Space' && event.target === document.body) {
         event.preventDefault();
         togglePlayPause();
@@ -126,21 +126,21 @@ export function PreviewPlayer() {
     };
 
     window.addEventListener('keydown', handleKeyPress);
-    return () => {
+    return (): void => {
       window.removeEventListener('keydown', handleKeyPress);
     };
   }, [togglePlayPause]);
 
   // Warm up video elements when current time changes (not playing)
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!timeline || timeline.clips.length === 0 || isPlaying) {
       return;
     }
 
     let cancelled = false;
-    (async () => {
+    (async (): Promise<void> => {
       try {
-        const targets = timeline.clips.filter((clip) => {
+        const targets = timeline.clips.filter((clip): boolean => {
           const meta = clipMetas.get(clip.id);
           if (!meta) return false;
           const localProgress = currentTime - meta.effectiveStart;
@@ -148,8 +148,8 @@ export function PreviewPlayer() {
         });
 
         await Promise.all(
-          targets.map((clip) =>
-            ensureClipElement(clip).catch((error) => {
+          targets.map((clip): Promise<void | HTMLVideoElement> =>
+            ensureClipElement(clip).catch((error): void => {
               browserLogger.error({ clipId: clip.id, error }, 'Failed to warm clip for preview');
             })
           )
@@ -167,16 +167,16 @@ export function PreviewPlayer() {
       }
     })();
 
-    return () => {
+    return (): void => {
       cancelled = true;
     };
   }, [timeline, currentTime, ensureClipElement, syncClipsAtTime, clipMetas, isPlaying]);
 
   // Clean up videos when timeline is removed
-  useEffect(() => {
+  useEffect((): void => {
     if (!timeline) {
       stopPlayback({ finalTime: 0 });
-      videoMapRef.current.forEach((video, clipId) => {
+      videoMapRef.current.forEach((video, clipId): void => {
         cleanupVideo(clipId, video);
       });
       videoMapRef.current.clear();

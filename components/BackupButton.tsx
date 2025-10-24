@@ -36,7 +36,7 @@ export function BackupButton({
       <Button
         variant={variant}
         size={size}
-        onClick={() => setIsOpen(true)}
+        onClick={(): void => setIsOpen(true)}
         className={className}
         title="Project backups"
       >

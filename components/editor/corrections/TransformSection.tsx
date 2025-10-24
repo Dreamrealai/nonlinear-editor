@@ -1,3 +1,41 @@
+/**
+ * TransformSection - Clip transformation and orientation controls
+ *
+ * Provides controls for rotating, scaling, and flipping video clips.
+ * Features a two-column layout with rotation/scale on the left and
+ * flip controls on the right.
+ *
+ * Features:
+ * - Rotation control (0-360 degrees)
+ * - Scale control (0.1x to 3x)
+ * - Horizontal flip toggle
+ * - Vertical flip toggle
+ * - Visual feedback with gradient sliders
+ * - Reset all transformations
+ *
+ * @param rotation - Current rotation angle in degrees (0-360)
+ * @param scale - Current scale multiplier (0.1-3.0)
+ * @param flipHorizontal - Whether clip is flipped horizontally
+ * @param flipVertical - Whether clip is flipped vertically
+ * @param onRotationChange - Callback when rotation changes
+ * @param onScaleChange - Callback when scale changes
+ * @param onFlipUpdate - Callback for flip property updates
+ * @param onReset - Callback to reset all transformations
+ *
+ * @example
+ * ```tsx
+ * <TransformSection
+ *   rotation={0}
+ *   scale={1.0}
+ *   flipHorizontal={false}
+ *   flipVertical={false}
+ *   onRotationChange={(r) => setRotation(r)}
+ *   onScaleChange={(s) => setScale(s)}
+ *   onFlipUpdate={(flip) => updateFlip(flip)}
+ *   onReset={() => resetTransforms()}
+ * />
+ * ```
+ */
 import type { Transform } from '@/types/timeline';
 
 interface TransformSectionProps {
@@ -20,7 +58,7 @@ export function TransformSection({
   onScaleChange,
   onFlipUpdate,
   onReset,
-}: TransformSectionProps) {
+}: TransformSectionProps): JSX.Element {
   return (
     <div className="grid grid-cols-2 gap-6">
       <div className="space-y-4">
@@ -52,7 +90,7 @@ export function TransformSection({
             min="0"
             max="360"
             value={rotation}
-            onChange={(e) => onRotationChange(parseInt(e.target.value))}
+            onChange={(e): void => onRotationChange(parseInt(e.target.value))}
             className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-green-400 to-blue-500"
             style={{ accentColor: '#3b82f6' }}
           />
@@ -87,7 +125,7 @@ export function TransformSection({
             max="3"
             step="0.1"
             value={scale}
-            onChange={(e) => onScaleChange(parseFloat(e.target.value))}
+            onChange={(e): void => onScaleChange(parseFloat(e.target.value))}
             className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-indigo-400 to-purple-500"
             style={{ accentColor: '#3b82f6' }}
           />
@@ -104,7 +142,7 @@ export function TransformSection({
                 <input
                   type="checkbox"
                   checked={flipHorizontal}
-                  onChange={(e) => onFlipUpdate({ flipHorizontal: e.target.checked })}
+                  onChange={(e): void => onFlipUpdate({ flipHorizontal: e.target.checked })}
                   className="peer sr-only"
                 />
                 <div className="h-5 w-9 rounded-full bg-neutral-300 peer-checked:bg-blue-600 transition"></div>
@@ -120,7 +158,7 @@ export function TransformSection({
                 <input
                   type="checkbox"
                   checked={flipVertical}
-                  onChange={(e) => onFlipUpdate({ flipVertical: e.target.checked })}
+                  onChange={(e): void => onFlipUpdate({ flipVertical: e.target.checked })}
                   className="peer sr-only"
                 />
                 <div className="h-5 w-9 rounded-full bg-neutral-300 peer-checked:bg-blue-600 transition"></div>

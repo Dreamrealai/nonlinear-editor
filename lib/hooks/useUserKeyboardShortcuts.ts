@@ -34,8 +34,8 @@ export function useUserKeyboardShortcuts(): UseUserKeyboardShortcutsReturn {
   const [shortcuts, setShortcuts] = useState<KeyboardShortcutConfig[]>(DEFAULT_KEYBOARD_SHORTCUTS);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadShortcuts = async () => {
+  useEffect((): void => {
+    const loadShortcuts = async (): Promise<void> => {
       if (!supabaseClient) {
         setLoading(false);
         return;
@@ -66,7 +66,7 @@ export function useUserKeyboardShortcuts(): UseUserKeyboardShortcutsReturn {
 
   // Helper to get a specific shortcut
   const getShortcut = (id: string): KeyboardShortcutConfig | undefined => {
-    return shortcuts.find((s) => s.id === id);
+    return shortcuts.find((s): boolean => s.id === id);
   };
 
   // Helper to get keys for a shortcut

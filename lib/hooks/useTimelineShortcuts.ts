@@ -25,20 +25,20 @@ export function useTimelineShortcuts({
   onAddTransition,
 }: UseTimelineShortcutsOptions = {}): void {
   // Get editor state and actions
-  const timeline = useEditorStore((state) => state.timeline);
-  const currentTime = useEditorStore((state) => state.currentTime);
-  const selectedClipIds = useEditorStore((state) => state.selectedClipIds);
-  const undo = useEditorStore((state) => state.undo);
-  const redo = useEditorStore((state) => state.redo);
-  const canUndo = useEditorStore((state) => state.canUndo);
-  const canRedo = useEditorStore((state) => state.canRedo);
-  const copyClips = useEditorStore((state) => state.copyClips);
-  const pasteClips = useEditorStore((state) => state.pasteClips);
-  const removeClip = useEditorStore((state) => state.removeClip);
-  const clearSelection = useEditorStore((state) => state.clearSelection);
-  const selectClip = useEditorStore((state) => state.selectClip);
-  const splitClipAtTime = useEditorStore((state) => state.splitClipAtTime);
-  const toggleClipLock = useEditorStore((state) => state.toggleClipLock);
+  const timeline = useEditorStore((state): Timeline | null => state.timeline);
+  const currentTime = useEditorStore((state): number => state.currentTime);
+  const selectedClipIds = useEditorStore((state): Set<string> => state.selectedClipIds);
+  const undo = useEditorStore((state): () => void => state.undo);
+  const redo = useEditorStore((state): () => void => state.redo);
+  const canUndo = useEditorStore((state): () => boolean => state.canUndo);
+  const canRedo = useEditorStore((state): () => boolean => state.canRedo);
+  const copyClips = useEditorStore((state): () => void => state.copyClips);
+  const pasteClips = useEditorStore((state): () => void => state.pasteClips);
+  const removeClip = useEditorStore((state): (id: string) => void => state.removeClip);
+  const clearSelection = useEditorStore((state): () => void => state.clearSelection);
+  const selectClip = useEditorStore((state): (id: string, multi?: boolean) => void => state.selectClip);
+  const splitClipAtTime = useEditorStore((state): (clipId: string, time: number) => void => state.splitClipAtTime);
+  const toggleClipLock = useEditorStore((state): (id: string) => void => state.toggleClipLock);
 
   // Define shortcut actions
   useCustomizableKeyboardShortcuts({
@@ -50,7 +50,7 @@ export function useTimelineShortcuts({
         description: 'Undo the last action',
         category: 'general',
         priority: 10,
-        action: () => {
+        action: (): void => {
           if (canUndo()) {
             undo();
             toast.success('Undo', { duration: 1000 });
@@ -62,7 +62,7 @@ export function useTimelineShortcuts({
         description: 'Redo the last undone action',
         category: 'general',
         priority: 10,
-        action: () => {
+        action: (): void => {
           if (canRedo()) {
             redo();
             toast.success('Redo', { duration: 1000 });
@@ -75,7 +75,7 @@ export function useTimelineShortcuts({
         id: 'copy',
         description: 'Copy selected clips',
         category: 'editing',
-        action: () => {
+        action: (): void => {
           if (selectedClipIds.size > 0) {
             copyClips();
             toast.success(
@@ -89,7 +89,7 @@ export function useTimelineShortcuts({
         id: 'paste',
         description: 'Paste copied clips',
         category: 'editing',
-        action: () => {
+        action: (): void => {
           pasteClips();
         },
       },
@@ -97,10 +97,10 @@ export function useTimelineShortcuts({
         id: 'delete',
         description: 'Delete selected clips',
         category: 'editing',
-        action: () => {
+        action: (): void => {
           if (selectedClipIds.size > 0) {
             const count = selectedClipIds.size;
-            selectedClipIds.forEach((clipId) => removeClip(clipId));
+            selectedClipIds.forEach((clipId): void => removeClip(clipId));
             toast.success(`Deleted ${count} clip${count > 1 ? 's' : ''}`, { duration: 1500 });
           }
         },
@@ -109,10 +109,10 @@ export function useTimelineShortcuts({
         id: 'selectAll',
         description: 'Select all clips in timeline',
         category: 'editing',
-        action: () => {
+        action: (): void => {
           if (timeline?.clips && timeline.clips.length > 0) {
             clearSelection();
-            timeline.clips.forEach((clip) => selectClip(clip.id, true));
+            timeline.clips.forEach((clip): void => selectClip(clip.id, true));
             toast.success(
               `Selected ${timeline.clips.length} clip${timeline.clips.length > 1 ? 's' : ''}`,
               { duration: 1500 }
@@ -126,10 +126,10 @@ export function useTimelineShortcuts({
         id: 'splitClip',
         description: 'Split clip at playhead position',
         category: 'timeline',
-        action: () => {
+        action: (): void => {
           if (!timeline?.clips) return;
 
-          const clipAtPlayhead = timeline.clips.find((clip) => {
+          const clipAtPlayhead = timeline.clips.find((clip): boolean => {
             const clipStart = clip.timelinePosition;
             const clipEnd = clipStart + (clip.end - clip.start);
             return currentTime > clipStart && currentTime < clipEnd;
@@ -145,9 +145,9 @@ export function useTimelineShortcuts({
         id: 'toggleLock',
         description: 'Lock/unlock selected clips',
         category: 'timeline',
-        action: () => {
+        action: (): void => {
           if (selectedClipIds.size > 0) {
-            selectedClipIds.forEach((clipId) => toggleClipLock(clipId));
+            selectedClipIds.forEach((clipId): void => toggleClipLock(clipId));
           }
         },
       },
@@ -155,7 +155,7 @@ export function useTimelineShortcuts({
         id: 'addTransition',
         description: 'Add transition to selected clips',
         category: 'timeline',
-        action: () => {
+        action: (): void => {
           if (selectedClipIds.size > 0 && onAddTransition) {
             onAddTransition();
           }

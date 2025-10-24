@@ -36,7 +36,7 @@ interface ProjectItemProps {
 /**
  * Memoized project item to prevent re-renders when other projects change
  */
-const ProjectItem = React.memo<ProjectItemProps>(function ProjectItem({ project, onDelete, isDeleting }) {
+const ProjectItem = React.memo<ProjectItemProps>(function ProjectItem({ project, onDelete, isDeleting }): JSX.Element {
   return (
     <div key={project.id} className="group relative">
       <Link
@@ -51,7 +51,7 @@ const ProjectItem = React.memo<ProjectItemProps>(function ProjectItem({ project,
         </p>
       </Link>
       <button
-        onClick={(e) => void onDelete(project, e)}
+        onClick={(e): undefined => void onDelete(project, e)}
         disabled={isDeleting}
         className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         title={isDeleting ? 'Deleting...' : 'Delete project'}
@@ -66,12 +66,12 @@ const ProjectItem = React.memo<ProjectItemProps>(function ProjectItem({ project,
   );
 });
 
-export const ProjectList = React.memo<ProjectListProps>(function ProjectList({ projects }) {
+export const ProjectList = React.memo<ProjectListProps>(function ProjectList({ projects }): JSX.Element {
   const router = useRouter();
   const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
 
   const handleDeleteProject = useCallback(
-    async (project: Project, e: React.MouseEvent) => {
+    async (project: Project, e: React.MouseEvent): Promise<void> => {
       e.preventDefault();
       e.stopPropagation();
 
@@ -113,7 +113,7 @@ export const ProjectList = React.memo<ProjectListProps>(function ProjectList({ p
         description="Get started by creating your first project."
         action={{
           label: 'Create Project',
-          onClick: () => router.push('/'),
+          onClick: (): void => router.push('/'),
         }}
       />
     );
@@ -121,7 +121,7 @@ export const ProjectList = React.memo<ProjectListProps>(function ProjectList({ p
 
   return (
     <div className="space-y-4">
-      {projects.map((project) => (
+      {projects.map((project): JSX.Element => (
         <ProjectItem key={project.id} project={project} onDelete={handleDeleteProject} isDeleting={deletingProjectId === project.id} />
       ))}
     </div>

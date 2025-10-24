@@ -12,8 +12,8 @@
 import { useEffect } from 'react';
 import { initWebVitals } from '@/lib/webVitals';
 
-export function WebVitals() {
-  useEffect(() => {
+export function WebVitals(): null {
+  useEffect((): void => {
     // Initialize Web Vitals tracking
     initWebVitals();
   }, []);

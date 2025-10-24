@@ -52,7 +52,20 @@ interface UseRenderQueueOptions {
   includeCompleted?: boolean;
 }
 
-export function useRenderQueue(options: UseRenderQueueOptions = {}) {
+export interface UseRenderQueueReturn {
+  jobs: RenderJob[];
+  activeJobs: RenderJob[];
+  completedJobs: RenderJob[];
+  isLoading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+  cancelJob: (jobId: string) => Promise<boolean>;
+  pauseJob: (jobId: string) => Promise<boolean>;
+  resumeJob: (jobId: string) => Promise<boolean>;
+  updatePriority: (jobId: string, priority: number) => Promise<boolean>;
+}
+
+export function useRenderQueue(options: UseRenderQueueOptions = {}): UseRenderQueueReturn {
   const {
     autoRefresh = true,
     refreshInterval = 5000, // 5 seconds
@@ -63,7 +76,7 @@ export function useRenderQueue(options: UseRenderQueueOptions = {}) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchJobs = useCallback(async () => {
+  const fetchJobs = useCallback(async (): Promise<void> => {
     try {
       const params = new URLSearchParams();
       if (includeCompleted) {
@@ -90,16 +103,16 @@ export function useRenderQueue(options: UseRenderQueueOptions = {}) {
   }, [includeCompleted]);
 
   // Auto-refresh queue
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     fetchJobs();
 
     if (autoRefresh) {
       const interval = setInterval(fetchJobs, refreshInterval);
-      return () => clearInterval(interval);
+      return (): void => clearInterval(interval);
     }
   }, [fetchJobs, autoRefresh, refreshInterval]);
 
-  const cancelJob = useCallback(async (jobId: string) => {
+  const cancelJob = useCallback(async (jobId: string): Promise<boolean> => {
     try {
       const response = await fetch(`/api/export/queue/${jobId}`, {
         method: 'DELETE',
@@ -122,7 +135,7 @@ export function useRenderQueue(options: UseRenderQueueOptions = {}) {
     }
   }, [fetchJobs]);
 
-  const pauseJob = useCallback(async (jobId: string) => {
+  const pauseJob = useCallback(async (jobId: string): Promise<boolean> => {
     try {
       const response = await fetch(`/api/export/queue/${jobId}/pause`, {
         method: 'POST',
@@ -145,7 +158,7 @@ export function useRenderQueue(options: UseRenderQueueOptions = {}) {
     }
   }, [fetchJobs]);
 
-  const resumeJob = useCallback(async (jobId: string) => {
+  const resumeJob = useCallback(async (jobId: string): Promise<boolean> => {
     try {
       const response = await fetch(`/api/export/queue/${jobId}/resume`, {
         method: 'POST',
@@ -168,7 +181,7 @@ export function useRenderQueue(options: UseRenderQueueOptions = {}) {
     }
   }, [fetchJobs]);
 
-  const updatePriority = useCallback(async (jobId: string, priority: number) => {
+  const updatePriority = useCallback(async (jobId: string, priority: number): Promise<boolean> => {
     try {
       const response = await fetch(`/api/export/queue/${jobId}/priority`, {
         method: 'PATCH',

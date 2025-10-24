@@ -142,8 +142,8 @@ export async function safeParseJSON<T = unknown>(
     // Parse JSON with a reasonable timeout
     const body = await Promise.race([
       request.json(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Request body parsing timeout')), 30000)
+      new Promise((_, reject): NodeJS.Timeout =>
+        setTimeout((): void => reject(new Error('Request body parsing timeout')), 30000)
       ),
     ]);
 
@@ -216,7 +216,7 @@ export async function safeParseJSON<T = unknown>(
 export function withBodySizeLimit(
   handler: (request: NextRequest) => Promise<NextResponse> | NextResponse,
   limit: number = DEFAULT_BODY_SIZE_LIMIT
-) {
+): (request: NextRequest) => Promise<NextResponse> {
   return async (request: NextRequest): Promise<NextResponse> => {
     // Skip body size check for GET, DELETE, and OPTIONS (no body expected)
     if (['GET', 'DELETE', 'OPTIONS', 'HEAD'].includes(request.method)) {

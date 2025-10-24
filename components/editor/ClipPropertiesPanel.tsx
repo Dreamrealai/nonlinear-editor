@@ -15,21 +15,21 @@ import { useDebounce } from '@/lib/hooks/useDebounce';
  * Features debounced updates for smooth slider interaction.
  * Shows when a clip is selected on the timeline.
  */
-export function ClipPropertiesPanel() {
-  const selectedClips = useEditorStore((state) => state.selectedClipIds);
-  const clips = useEditorStore((state) => state.timeline?.clips ?? []);
-  const updateClipStore = useEditorStore((state) => state.updateClip);
+export function ClipPropertiesPanel(): JSX.Element {
+  const selectedClips = useEditorStore((state): Set<string> => state.selectedClipIds);
+  const clips = useEditorStore((state): Clip[] => state.timeline?.clips ?? []);
+  const updateClipStore = useEditorStore((state): (id: string, patch: Partial<Clip>) => void => state.updateClip);
 
   // Stable reference for updateClip
   const updateClip = useCallback(
-    (id: string, updates: Record<string, string | number | boolean | object>) => {
+    (id: string, updates: Record<string, string | number | boolean | object>): void => {
       updateClipStore(id, updates);
     },
     [updateClipStore]
   );
 
   // Get first selected clip
-  const selectedClip = selectedClips.size > 0 ? clips.find((c) => selectedClips.has(c.id)) : null;
+  const selectedClip = selectedClips.size > 0 ? clips.find((c): boolean => selectedClips.has(c.id)) : null;
 
   // Local state for slider values (immediate feedback)
   const [localBrightness, setLocalBrightness] = useState(100);
@@ -57,7 +57,7 @@ export function ClipPropertiesPanel() {
 
   // Sync local state with selected clip
   // Dependencies: Only re-run when selectedClip identity changes (via ID) or properties change
-  useEffect(() => {
+  useEffect((): void => {
     if (selectedClip) {
       const colorCorrection = selectedClip.colorCorrection || {
         brightness: 100,
@@ -93,7 +93,7 @@ export function ClipPropertiesPanel() {
   }, [selectedClip]);
 
   // Apply debounced color correction updates
-  useEffect(() => {
+  useEffect((): void => {
     if (selectedClip) {
       const current = selectedClip.colorCorrection || {
         brightness: 100,
@@ -127,7 +127,7 @@ export function ClipPropertiesPanel() {
   ]);
 
   // Apply debounced transform updates
-  useEffect(() => {
+  useEffect((): void => {
     if (selectedClip) {
       const current = selectedClip.transform || {
         rotation: 0,
@@ -148,7 +148,7 @@ export function ClipPropertiesPanel() {
   }, [debouncedRotation, debouncedScale, selectedClip, updateClip]);
 
   // Apply debounced audio effects updates
-  useEffect(() => {
+  useEffect((): void => {
     if (selectedClip && selectedClip.hasAudio) {
       const current = selectedClip.audioEffects || {
         bassGain: 0,
@@ -293,11 +293,11 @@ export function ClipPropertiesPanel() {
                 { name: 'Pink', value: '#ec4899', color: '#ec4899' },
                 { name: 'Teal', value: '#14b8a6', color: '#14b8a6' },
                 { name: 'Indigo', value: '#6366f1', color: '#6366f1' },
-              ].map((preset) => (
+              ].map((preset): JSX.Element => (
                 <button
                   key={preset.name}
                   type="button"
-                  onClick={() => updateClip(selectedClip.id, { color: preset.value })}
+                  onClick={(): void => updateClip(selectedClip.id, { color: preset.value })}
                   className={`h-8 rounded border-2 transition-all hover:scale-110 ${
                     selectedClip.color === preset.value
                       ? 'border-white ring-2 ring-white/50'
@@ -325,13 +325,13 @@ export function ClipPropertiesPanel() {
                 id="custom-color-picker"
                 type="color"
                 value={selectedClip.color ?? '#ffffff'}
-                onChange={(e) => updateClip(selectedClip.id, { color: e.target.value })}
+                onChange={(e): void => updateClip(selectedClip.id, { color: e.target.value })}
                 className="h-10 w-full rounded border border-gray-600 cursor-pointer bg-gray-700"
               />
               {selectedClip.color && (
                 <button
                   type="button"
-                  onClick={() => updateClip(selectedClip.id, { color: undefined })}
+                  onClick={(): void => updateClip(selectedClip.id, { color: undefined })}
                   className="px-3 py-2 text-xs font-medium text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 rounded border border-gray-600 transition-colors"
                   title="Clear color"
                 >

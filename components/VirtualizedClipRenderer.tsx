@@ -41,13 +41,13 @@ export function useVirtualizedItems<T extends Clip | unknown>({
   getItemDuration,
   overscan = 500,
 }: Omit<VirtualizedClipRendererProps<T>, 'renderItem'>): T[] {
-  return useMemo(() => {
+  return useMemo((): T[] => {
     // Calculate visible time range with buffer
     const viewportStartTime = (scrollLeft - overscan) / zoom;
     const viewportEndTime = (scrollLeft + viewportWidth + overscan) / zoom;
 
     // Filter items that intersect with the visible range
-    return items.filter((item) => {
+    return items.filter((item): boolean => {
       const itemStart = getItemPosition(item);
       const itemEnd = itemStart + getItemDuration(item);
 
@@ -70,7 +70,7 @@ export function VirtualizedClipRenderer<T extends Clip | unknown>({
   getItemDuration,
   renderItem,
   overscan = 500,
-}: VirtualizedClipRendererProps<T>) {
+}: VirtualizedClipRendererProps<T>): JSX.Element {
   const visibleItems = useVirtualizedItems({
     items,
     scrollLeft,
@@ -81,22 +81,22 @@ export function VirtualizedClipRenderer<T extends Clip | unknown>({
     overscan,
   });
 
-  return <>{visibleItems.map((item, index) => renderItem(item, index))}</>;
+  return <>{visibleItems.map((item, index): ReactNode => renderItem(item, index))}</>;
 }
 
 /**
  * Hook to detect if a timeline container is being scrolled.
  * Returns scroll position for virtualization.
  */
-export function useTimelineScroll(containerRef: RefObject<HTMLElement | HTMLDivElement | null>) {
+export function useTimelineScroll(containerRef: RefObject<HTMLElement | HTMLDivElement | null>): { scrollLeft: number; viewportWidth: number; } {
   const [scrollLeft, setScrollLeft] = useState(0);
   const [viewportWidth, setViewportWidth] = useState(0);
 
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     const container = containerRef.current;
     if (!container) return;
 
-    const updateScroll = () => {
+    const updateScroll = (): void => {
       setScrollLeft(container.scrollLeft);
       setViewportWidth(container.clientWidth);
     };
@@ -111,7 +111,7 @@ export function useTimelineScroll(containerRef: RefObject<HTMLElement | HTMLDivE
     const resizeObserver = new ResizeObserver(updateScroll);
     resizeObserver.observe(container);
 
-    return () => {
+    return (): void => {
       container.removeEventListener('scroll', updateScroll);
       resizeObserver.disconnect();
     };

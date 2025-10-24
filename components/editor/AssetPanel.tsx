@@ -61,7 +61,7 @@ interface AssetPanelProps {
 /**
  * Extracts the file name from a storage URL.
  */
-const extractFileName = (storageUrl: string) => {
+const extractFileName = (storageUrl: string): string => {
   const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
   const segments = normalized.split('/');
   return segments[segments.length - 1] ?? normalized;
@@ -97,7 +97,7 @@ export function AssetPanel({
   onNextPage,
   onPreviousPage,
   usedAssetIds = new Set(),
-}: AssetPanelProps) {
+}: AssetPanelProps): JSX.Element {
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
   // Search and filter state
@@ -112,29 +112,29 @@ export function AssetPanel({
   const [versionHistoryAsset, setVersionHistoryAsset] = useState<AssetRow | null>(null);
 
   // Extract all available tags from assets
-  const availableTags = useMemo(() => {
+  const availableTags = useMemo((): string[] => {
     const tagSet = new Set<string>();
-    assets.forEach((asset) => {
-      asset.tags?.forEach((tag) => tagSet.add(tag));
+    assets.forEach((asset): void => {
+      asset.tags?.forEach((tag): Set<string> => tagSet.add(tag));
     });
     return Array.from(tagSet).sort();
   }, [assets]);
 
   // Check if any filters are active
-  const hasActiveFilters = useMemo(() => {
+  const hasActiveFilters = useMemo((): boolean => {
     return searchQuery.trim() !== '' || usageFilter !== 'all' || selectedTags.size > 0;
   }, [searchQuery, usageFilter, selectedTags]);
 
   // Clear all filters
-  const clearAllFilters = useCallback(() => {
+  const clearAllFilters = useCallback((): void => {
     setSearchQuery('');
     setUsageFilter('all');
     setSelectedTags(new Set());
   }, []);
 
   // Filter, search, and sort assets
-  const filteredAssets = useMemo(() => {
-    let filtered = assets.filter((a) =>
+  const filteredAssets = useMemo((): AssetRow[] => {
+    let filtered = assets.filter((a): boolean =>
       activeTab === 'video'
         ? a.type === 'video'
         : activeTab === 'image'
@@ -145,7 +145,7 @@ export function AssetPanel({
     // Apply search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((asset) => {
+      filtered = filtered.filter((asset): boolean => {
         const filename = (
           asset.metadata?.filename || extractFileName(asset.storage_url)
         ).toLowerCase();
@@ -157,7 +157,7 @@ export function AssetPanel({
 
     // Apply usage filter
     if (usageFilter !== 'all') {
-      filtered = filtered.filter((asset) => {
+      filtered = filtered.filter((asset): boolean => {
         const isUsed = usedAssetIds.has(asset.id);
         return usageFilter === 'used' ? isUsed : !isUsed;
       });
@@ -165,14 +165,14 @@ export function AssetPanel({
 
     // Apply tag filter
     if (selectedTags.size > 0) {
-      filtered = filtered.filter((asset) => {
+      filtered = filtered.filter((asset): boolean => {
         if (!asset.tags || asset.tags.length === 0) return false;
-        return Array.from(selectedTags).some((tag) => asset.tags?.includes(tag));
+        return Array.from(selectedTags).some((tag): boolean | undefined => asset.tags?.includes(tag));
       });
     }
 
     // Sort assets
-    filtered.sort((a, b) => {
+    filtered.sort((a, b): number => {
       let comparison = 0;
 
       switch (sortBy) {
@@ -219,12 +219,12 @@ export function AssetPanel({
    * Handle files from drag-and-drop zone
    * Converts File[] to ChangeEvent to work with existing upload handler
    */
-  const handleDragDropFiles = async (files: File[]) => {
+  const handleDragDropFiles = async (files: File[]): Promise<void> => {
     if (files.length === 0) return;
 
     // Create a synthetic ChangeEvent to pass to existing handler
     const dataTransfer = new DataTransfer();
-    files.forEach((file) => dataTransfer.items.add(file));
+    files.forEach((file): DataTransferItem | null => dataTransfer.items.add(file));
 
     const event = {
       target: {
@@ -274,7 +274,7 @@ export function AssetPanel({
           />
           <button
             type="button"
-            onClick={() => setShowFilters(!showFilters)}
+            onClick={(): void => setShowFilters(!showFilters)}
             className="rounded-lg bg-neutral-100 dark:bg-neutral-800 px-3 py-1.5 text-xs font-semibold text-neutral-900 dark:text-neutral-100 shadow hover:bg-neutral-200 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             aria-label="Toggle filters"
           >
@@ -289,7 +289,7 @@ export function AssetPanel({
           </button>
           <button
             type="button"
-            onClick={() => uploadInputRef.current?.click()}
+            onClick={(): void | undefined => uploadInputRef.current?.click()}
             disabled={uploadPending}
             aria-label={uploadPending ? 'Uploading files' : `Upload ${activeTab} files`}
             aria-busy={uploadPending}
@@ -308,7 +308,7 @@ export function AssetPanel({
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e): void => setSearchQuery(e.target.value)}
               placeholder={`Search ${activeTab}s...`}
               className="w-full rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-2 pl-9 text-sm text-neutral-900 dark:text-neutral-100 placeholder-neutral-500 dark:placeholder-neutral-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
@@ -327,7 +327,7 @@ export function AssetPanel({
             </svg>
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery('')}
+                onClick={(): void => setSearchQuery('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
                 aria-label="Clear search"
               >
@@ -347,7 +347,7 @@ export function AssetPanel({
           <div className="flex gap-2">
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              onChange={(e): void => setSortBy(e.target.value as SortOption)}
               className="flex-1 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="date">Sort by Date</option>
@@ -357,7 +357,7 @@ export function AssetPanel({
             </select>
             <button
               type="button"
-              onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+              onClick={(): void => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
               className="rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
               aria-label={`Sort ${sortDirection === 'asc' ? 'ascending' : 'descending'}`}
             >
@@ -383,11 +383,11 @@ export function AssetPanel({
               Usage Status
             </label>
             <div className="flex gap-2">
-              {(['all', 'used', 'unused'] as UsageFilter[]).map((filter) => (
+              {(['all', 'used', 'unused'] as UsageFilter[]).map((filter): JSX.Element => (
                 <button
                   key={filter}
                   type="button"
-                  onClick={() => setUsageFilter(filter)}
+                  onClick={(): void => setUsageFilter(filter)}
                   className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
                     usageFilter === filter
                       ? 'bg-purple-500 text-white'
@@ -411,11 +411,11 @@ export function AssetPanel({
                 Filter by Tags
               </label>
               <div className="flex flex-wrap gap-1.5">
-                {availableTags.map((tag) => (
+                {availableTags.map((tag): JSX.Element => (
                   <button
                     key={tag}
                     type="button"
-                    onClick={() => {
+                    onClick={(): void => {
                       const newTags = new Set(selectedTags);
                       if (newTags.has(tag)) {
                         newTags.delete(tag);
@@ -468,8 +468,8 @@ export function AssetPanel({
           role="tab"
           aria-selected={activeTab === 'video'}
           aria-controls="video-tabpanel"
-          onClick={() => onTabChange('video')}
-          onKeyDown={(e) => {
+          onClick={(): void => onTabChange('video')}
+          onKeyDown={(e): void => {
             if (e.key === 'ArrowRight') {
               e.preventDefault();
               onTabChange('image');
@@ -488,8 +488,8 @@ export function AssetPanel({
           role="tab"
           aria-selected={activeTab === 'image'}
           aria-controls="image-tabpanel"
-          onClick={() => onTabChange('image')}
-          onKeyDown={(e) => {
+          onClick={(): void => onTabChange('image')}
+          onKeyDown={(e): void => {
             if (e.key === 'ArrowLeft') {
               e.preventDefault();
               onTabChange('video');
@@ -511,8 +511,8 @@ export function AssetPanel({
           role="tab"
           aria-selected={activeTab === 'audio'}
           aria-controls="audio-tabpanel"
-          onClick={() => onTabChange('audio')}
-          onKeyDown={(e) => {
+          onClick={(): void => onTabChange('audio')}
+          onKeyDown={(e): void => {
             if (e.key === 'ArrowLeft') {
               e.preventDefault();
               onTabChange('image');
@@ -682,12 +682,12 @@ export function AssetPanel({
                 : 'No audio assets yet. Upload or generate audio.'}
           </div>
         )}
-        {filteredAssets.map((asset) => (
+        {filteredAssets.map((asset): JSX.Element => (
           <div key={asset.id} className="group relative flex flex-col gap-2">
             <button
               type="button"
-              onClick={() => void onAssetAdd(asset)}
-              onKeyDown={(e) => {
+              onClick={(): undefined => void onAssetAdd(asset)}
+              onKeyDown={(e): void => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
                   void onAssetAdd(asset);
@@ -744,7 +744,7 @@ export function AssetPanel({
             <div className="absolute right-2 top-1 z-10 flex gap-1">
               {/* Version history button */}
               <button
-                onClick={(e) => {
+                onClick={(e): void => {
                   e.stopPropagation();
                   setVersionHistoryAsset(asset);
                 }}
@@ -770,7 +770,7 @@ export function AssetPanel({
 
               {/* Delete button */}
               <button
-                onClick={(e) => {
+                onClick={(e): void => {
                   e.stopPropagation();
                   void onAssetDelete(asset);
                 }}
@@ -810,7 +810,7 @@ export function AssetPanel({
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => onPreviousPage?.()}
+              onClick={(): Promise<void> | undefined => onPreviousPage?.()}
               disabled={!hasPreviousPage || loadingAssets}
               aria-label="Go to previous page"
               className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 font-medium text-neutral-700 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
@@ -819,7 +819,7 @@ export function AssetPanel({
             </button>
             <button
               type="button"
-              onClick={() => onNextPage?.()}
+              onClick={(): Promise<void> | undefined => onNextPage?.()}
               disabled={!hasNextPage || loadingAssets}
               aria-label="Go to next page"
               className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 font-medium text-neutral-700 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
@@ -836,8 +836,8 @@ export function AssetPanel({
           assetId={versionHistoryAsset.id}
           assetType={versionHistoryAsset.type}
           isOpen={!!versionHistoryAsset}
-          onClose={() => setVersionHistoryAsset(null)}
-          onReverted={() => {
+          onClose={(): void => setVersionHistoryAsset(null)}
+          onReverted={(): void => {
             // Optionally reload assets or show a success message
             setVersionHistoryAsset(null);
           }}

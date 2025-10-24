@@ -24,11 +24,11 @@ export interface UseStorageUrlsReturn {
 export function useStorageUrls(): UseStorageUrlsReturn {
   const [signError, setSignError] = useState<string | null>(null);
 
-  const clearSignError = useCallback(() => {
+  const clearSignError = useCallback((): void => {
     setSignError(null);
   }, []);
 
-  const signStoragePath = useCallback(async (storagePath: string, expiresIn = 3600) => {
+  const signStoragePath = useCallback(async (storagePath: string, expiresIn = 3600): Promise<string | null> => {
     setSignError(null);
 
     if (!storagePath) {

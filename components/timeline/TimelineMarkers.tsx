@@ -30,7 +30,7 @@ export const TimelineMarkers = React.memo<TimelineMarkersProps>(function Timelin
   onMarkerClick,
   onMarkerDelete,
   onMarkerUpdate,
-}) {
+}): JSX.Element {
   const [editingMarkerId, setEditingMarkerId] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState('');
   const [contextMenu, setContextMenu] = useState<{ markerId: string; x: number; y: number } | null>(
@@ -38,31 +38,31 @@ export const TimelineMarkers = React.memo<TimelineMarkersProps>(function Timelin
   );
 
   // Handle marker right-click
-  const handleContextMenu = (e: React.MouseEvent, markerId: string) => {
+  const handleContextMenu = (e: React.MouseEvent, markerId: string): void => {
     e.preventDefault();
     e.stopPropagation();
     setContextMenu({ markerId, x: e.clientX, y: e.clientY });
   };
 
   // Close context menu when clicking outside
-  React.useEffect(() => {
-    const handleClickOutside = () => setContextMenu(null);
+  React.useEffect((): (() => void) | undefined => {
+    const handleClickOutside = (): void => setContextMenu(null);
     if (contextMenu) {
       document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
+      return (): void => document.removeEventListener('click', handleClickOutside);
     }
     return undefined;
   }, [contextMenu]);
 
   // Start editing marker
-  const handleStartEdit = (marker: Marker) => {
+  const handleStartEdit = (marker: Marker): void => {
     setEditingMarkerId(marker.id);
     setEditLabel(marker.label);
     setContextMenu(null);
   };
 
   // Save marker edit
-  const handleSaveEdit = (markerId: string) => {
+  const handleSaveEdit = (markerId: string): void => {
     if (onMarkerUpdate && editLabel.trim()) {
       onMarkerUpdate(markerId, { label: editLabel.trim() });
     }
@@ -71,7 +71,7 @@ export const TimelineMarkers = React.memo<TimelineMarkersProps>(function Timelin
   };
 
   // Cancel marker edit
-  const handleCancelEdit = () => {
+  const handleCancelEdit = (): void => {
     setEditingMarkerId(null);
     setEditLabel('');
   };
@@ -79,7 +79,7 @@ export const TimelineMarkers = React.memo<TimelineMarkersProps>(function Timelin
   return (
     <>
       {/* Markers */}
-      {markers.map((marker) => {
+      {markers.map((marker): JSX.Element => {
         const markerLeft = marker.time * zoom;
         const isActive = Math.abs(currentTime - marker.time) < 0.1; // Within 0.1 seconds
         const markerColor = marker.color || '#3b82f6'; // Default blue
@@ -96,8 +96,8 @@ export const TimelineMarkers = React.memo<TimelineMarkersProps>(function Timelin
                 isActive ? 'opacity-100' : 'opacity-60 hover:opacity-100'
               }`}
               style={{ backgroundColor: markerColor }}
-              onClick={() => onMarkerClick(marker.id)}
-              onContextMenu={(e) => handleContextMenu(e, marker.id)}
+              onClick={(): void => onMarkerClick(marker.id)}
+              onContextMenu={(e): void => handleContextMenu(e, marker.id)}
             />
 
             {/* Marker icon/flag at top */}
@@ -106,8 +106,8 @@ export const TimelineMarkers = React.memo<TimelineMarkersProps>(function Timelin
                 isActive ? 'scale-110' : 'hover:scale-105'
               }`}
               style={{ color: markerColor }}
-              onClick={() => onMarkerClick(marker.id)}
-              onContextMenu={(e) => handleContextMenu(e, marker.id)}
+              onClick={(): void => onMarkerClick(marker.id)}
+              onContextMenu={(e): void => handleContextMenu(e, marker.id)}
               title={marker.label}
             >
               <Bookmark className="w-4 h-4 fill-current" />
@@ -119,8 +119,8 @@ export const TimelineMarkers = React.memo<TimelineMarkersProps>(function Timelin
                 <input
                   type="text"
                   value={editLabel}
-                  onChange={(e) => setEditLabel(e.target.value)}
-                  onKeyDown={(e) => {
+                  onChange={(e): void => setEditLabel(e.target.value)}
+                  onKeyDown={(e): void => {
                     if (e.key === 'Enter') handleSaveEdit(marker.id);
                     if (e.key === 'Escape') handleCancelEdit();
                   }}
@@ -129,7 +129,7 @@ export const TimelineMarkers = React.memo<TimelineMarkersProps>(function Timelin
                 />
                 <div className="flex gap-1 mt-1">
                   <button
-                    onClick={() => handleSaveEdit(marker.id)}
+                    onClick={(): void => handleSaveEdit(marker.id)}
                     className="flex-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
                   >
                     Save
@@ -148,7 +148,7 @@ export const TimelineMarkers = React.memo<TimelineMarkersProps>(function Timelin
                   isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                 }`}
                 style={{ borderColor: markerColor, color: markerColor }}
-                onClick={() => onMarkerClick(marker.id)}
+                onClick={(): void => onMarkerClick(marker.id)}
               >
                 {marker.label}
               </div>
@@ -164,8 +164,8 @@ export const TimelineMarkers = React.memo<TimelineMarkersProps>(function Timelin
           style={{ left: `${contextMenu.x}px`, top: `${contextMenu.y}px` }}
         >
           <button
-            onClick={() => {
-              const marker = markers.find((m) => m.id === contextMenu.markerId);
+            onClick={(): void => {
+              const marker = markers.find((m): boolean => m.id === contextMenu.markerId);
               if (marker) handleStartEdit(marker);
             }}
             className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
@@ -175,7 +175,7 @@ export const TimelineMarkers = React.memo<TimelineMarkersProps>(function Timelin
           </button>
           {onMarkerDelete && (
             <button
-              onClick={() => {
+              onClick={(): void => {
                 onMarkerDelete(contextMenu.markerId);
                 setContextMenu(null);
               }}

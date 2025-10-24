@@ -1,3 +1,55 @@
+/**
+ * AudioEffectsSection - Comprehensive audio effects control panel
+ *
+ * Provides fine-grained control over audio properties including volume,
+ * equalization, compression, fades, and normalization. Features an intuitive
+ * interface with visual feedback for all adjustments.
+ *
+ * Features:
+ * - Volume control with mute toggle (-60dB to +12dB)
+ * - Fade in/out controls (0-5 seconds)
+ * - 3-band equalizer (Bass, Mid, Treble) with -12dB to +12dB range
+ * - Dynamic range compression (0-100%)
+ * - Audio normalization to -3dB peak
+ * - Reset all settings to defaults
+ *
+ * @param volume - Volume adjustment in decibels (-60 to +12)
+ * @param mute - Whether audio is muted
+ * @param fadeIn - Fade in duration in seconds (0-5)
+ * @param fadeOut - Fade out duration in seconds (0-5)
+ * @param bassGain - Bass frequency gain in dB (-12 to +12, 100-400 Hz)
+ * @param midGain - Mid frequency gain in dB (-12 to +12, 400-4000 Hz)
+ * @param trebleGain - Treble frequency gain in dB (-12 to +12, 4000+ Hz)
+ * @param compression - Compression intensity (0-100%)
+ * @param normalize - Whether to auto-normalize to -3dB peak
+ * @param onVolumeChange - Callback when volume changes
+ * @param onFadeInChange - Callback when fade in duration changes
+ * @param onFadeOutChange - Callback when fade out duration changes
+ * @param onBassGainChange - Callback when bass gain changes
+ * @param onMidGainChange - Callback when mid gain changes
+ * @param onTrebleGainChange - Callback when treble gain changes
+ * @param onCompressionChange - Callback when compression changes
+ * @param onAudioUpdate - Callback for batch audio property updates
+ * @param onReset - Callback to reset all effects to defaults
+ *
+ * @example
+ * ```tsx
+ * <AudioEffectsSection
+ *   volume={0}
+ *   mute={false}
+ *   fadeIn={0}
+ *   fadeOut={0}
+ *   bassGain={0}
+ *   midGain={0}
+ *   trebleGain={0}
+ *   compression={0}
+ *   normalize={false}
+ *   onVolumeChange={(v) => setVolume(v)}
+ *   onAudioUpdate={(updates) => applyUpdates(updates)}
+ *   onReset={() => resetToDefaults()}
+ * />
+ * ```
+ */
 import type { AudioEffects } from '@/types/timeline';
 
 interface AudioEffectsSectionProps {
@@ -40,7 +92,7 @@ export function AudioEffectsSection({
   onCompressionChange,
   onAudioUpdate,
   onReset,
-}: AudioEffectsSectionProps) {
+}: AudioEffectsSectionProps): JSX.Element {
   return (
     <div className="space-y-6">
       {/* Volume Control */}
@@ -78,7 +130,7 @@ export function AudioEffectsSection({
               max="12"
               step="1"
               value={volume}
-              onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
+              onChange={(e): void => onVolumeChange(parseFloat(e.target.value))}
               className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-blue-300 to-blue-600"
               style={{ accentColor: '#2563eb' }}
             />
@@ -96,7 +148,7 @@ export function AudioEffectsSection({
                 id="audio-mute"
                 type="checkbox"
                 checked={mute}
-                onChange={(e) => onAudioUpdate({ mute: e.target.checked })}
+                onChange={(e): void => onAudioUpdate({ mute: e.target.checked })}
                 className="peer sr-only"
                 aria-label="Mute audio"
               />
@@ -144,7 +196,7 @@ export function AudioEffectsSection({
             max="5"
             step="0.1"
             value={fadeIn}
-            onChange={(e) => onFadeInChange(parseFloat(e.target.value))}
+            onChange={(e): void => onFadeInChange(parseFloat(e.target.value))}
             className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-neutral-300 to-green-600"
             style={{ accentColor: '#16a34a' }}
           />
@@ -182,7 +234,7 @@ export function AudioEffectsSection({
             max="5"
             step="0.1"
             value={fadeOut}
-            onChange={(e) => onFadeOutChange(parseFloat(e.target.value))}
+            onChange={(e): void => onFadeOutChange(parseFloat(e.target.value))}
             className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-red-600 to-neutral-300"
             style={{ accentColor: '#dc2626' }}
           />
@@ -220,7 +272,7 @@ export function AudioEffectsSection({
                 max="12"
                 step="0.5"
                 value={bassGain}
-                onChange={(e) => onBassGainChange(parseFloat(e.target.value))}
+                onChange={(e): void => onBassGainChange(parseFloat(e.target.value))}
                 className="h-full w-8 cursor-pointer appearance-none rounded-lg bg-gradient-to-t from-purple-300 to-purple-600"
                 style={{
                   writingMode: 'vertical-lr' as const,
@@ -248,7 +300,7 @@ export function AudioEffectsSection({
                 max="12"
                 step="0.5"
                 value={midGain}
-                onChange={(e) => onMidGainChange(parseFloat(e.target.value))}
+                onChange={(e): void => onMidGainChange(parseFloat(e.target.value))}
                 className="h-full w-8 cursor-pointer appearance-none rounded-lg bg-gradient-to-t from-pink-300 to-pink-600"
                 style={{
                   writingMode: 'vertical-lr' as const,
@@ -276,7 +328,7 @@ export function AudioEffectsSection({
                 max="12"
                 step="0.5"
                 value={trebleGain}
-                onChange={(e) => onTrebleGainChange(parseFloat(e.target.value))}
+                onChange={(e): void => onTrebleGainChange(parseFloat(e.target.value))}
                 className="h-full w-8 cursor-pointer appearance-none rounded-lg bg-gradient-to-t from-cyan-300 to-cyan-600"
                 style={{
                   writingMode: 'vertical-lr' as const,
@@ -327,7 +379,7 @@ export function AudioEffectsSection({
             min="0"
             max="100"
             value={compression}
-            onChange={(e) => onCompressionChange(parseInt(e.target.value))}
+            onChange={(e): void => onCompressionChange(parseInt(e.target.value))}
             className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-orange-300 to-orange-600"
             style={{ accentColor: '#3b82f6' }}
           />
@@ -345,7 +397,7 @@ export function AudioEffectsSection({
                 id="audio-normalize"
                 type="checkbox"
                 checked={normalize}
-                onChange={(e) => onAudioUpdate({ normalize: e.target.checked })}
+                onChange={(e): void => onAudioUpdate({ normalize: e.target.checked })}
                 className="peer sr-only"
                 aria-label="Auto-normalize audio"
               />

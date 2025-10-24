@@ -67,7 +67,7 @@ export function useAssetList(
   const [totalCount, setTotalCount] = useState(0);
 
   const loadAssets = useCallback(
-    async (page: number = 0) => {
+    async (page: number = 0): Promise<void> => {
       setLoadingAssets(true);
       setAssetError(null);
       try {
@@ -86,7 +86,7 @@ export function useAssetList(
         }
 
         const mapped = (data ?? [])
-          .map((row) => mapAssetRow(row as Record<string, unknown>))
+          .map((row): AssetRow | null => mapAssetRow(row as Record<string, unknown>))
           .filter((asset): asset is AssetRow => Boolean(asset));
 
         setAssets(mapped);
@@ -105,24 +105,24 @@ export function useAssetList(
     [projectId, supabase, pageSize]
   );
 
-  useEffect(() => {
+  useEffect((): void => {
     void loadAssets(0);
   }, [loadAssets]);
 
-  const loadNextPage = useCallback(async () => {
+  const loadNextPage = useCallback(async (): Promise<void> => {
     if (currentPage < totalPages - 1) {
       await loadAssets(currentPage + 1);
     }
   }, [currentPage, totalPages, loadAssets]);
 
-  const loadPreviousPage = useCallback(async () => {
+  const loadPreviousPage = useCallback(async (): Promise<void> => {
     if (currentPage > 0) {
       await loadAssets(currentPage - 1);
     }
   }, [currentPage, loadAssets]);
 
   const goToPage = useCallback(
-    async (page: number) => {
+    async (page: number): Promise<void> => {
       if (page >= 0 && page < totalPages) {
         await loadAssets(page);
       }
@@ -130,16 +130,16 @@ export function useAssetList(
     [totalPages, loadAssets]
   );
 
-  const reloadAssets = useCallback(async () => {
+  const reloadAssets = useCallback(async (): Promise<void> => {
     await loadAssets(currentPage);
   }, [currentPage, loadAssets]);
 
-  const updateAsset = useCallback((assetId: string, updater: (asset: AssetRow) => AssetRow) => {
-    setAssets((prev) => prev.map((asset) => (asset.id === assetId ? updater(asset) : asset)));
+  const updateAsset = useCallback((assetId: string, updater: (asset: AssetRow) => AssetRow): void => {
+    setAssets((prev): AssetRow[] => prev.map((asset): AssetRow => (asset.id === assetId ? updater(asset) : asset)));
   }, []);
 
-  const removeAsset = useCallback((assetId: string) => {
-    setAssets((prev) => prev.filter((asset) => asset.id !== assetId));
+  const removeAsset = useCallback((assetId: string): void => {
+    setAssets((prev): AssetRow[] => prev.filter((asset): boolean => asset.id !== assetId));
   }, []);
 
   const hasNextPage = currentPage < totalPages - 1;

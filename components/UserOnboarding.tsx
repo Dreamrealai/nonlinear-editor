@@ -17,6 +17,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { X, ChevronRight, ChevronLeft, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { analyticsService, AnalyticsEvents } from '@/lib/services/analyticsService';
 
 interface OnboardingStep {
   id: string;
@@ -91,25 +92,51 @@ export function UserOnboarding({ forceShow = false, onComplete }: UserOnboarding
   const [currentStep, setCurrentStep] = useState(0);
   const [highlightPosition, setHighlightPosition] = useState<DOMRect | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
-  const highlightRef = useRef<HTMLDivElement>(null);
+  const _highlightRef = useRef<HTMLDivElement>(null); // TODO: Implement spotlight highlighting
+  const [onboardingStartTime, setOnboardingStartTime] = useState<number | null>(null);
+  const [stepStartTime, setStepStartTime] = useState<number | null>(null);
 
   // Check if user has completed onboarding
-  useEffect(() => {
+  useEffect((): void => {
     if (typeof window === 'undefined') return;
 
     const hasCompletedOnboarding = localStorage.getItem('onboarding-completed');
     if (!hasCompletedOnboarding || forceShow) {
       // Delay showing onboarding slightly for better UX
-      setTimeout(() => setIsVisible(true), 1000);
+      setTimeout((): void => {
+        setIsVisible(true);
+        const startTime = Date.now();
+        setOnboardingStartTime(startTime);
+        setStepStartTime(startTime);
+
+        // Track onboarding started
+        analyticsService.track(AnalyticsEvents.ONBOARDING_STARTED, {
+          forced: forceShow,
+          timestamp: startTime,
+        });
+      }, 1000);
     }
   }, [forceShow]);
 
   // Update highlight and tooltip position when step changes
-  useEffect(() => {
+  useEffect((): void => {
     if (!isVisible) return;
 
     const step = ONBOARDING_STEPS[currentStep];
     if (!step) return;
+
+    // Track step viewed
+    const now = Date.now();
+    const timeOnPreviousStep = stepStartTime ? now - stepStartTime : 0;
+    setStepStartTime(now);
+
+    analyticsService.track(AnalyticsEvents.ONBOARDING_STEP_VIEWED, {
+      step_id: step.id,
+      step_number: currentStep + 1,
+      step_title: step.title,
+      timestamp: now,
+      time_on_previous_step_ms: timeOnPreviousStep,
+    });
 
     // Execute step action if defined
     if (step.action) {
@@ -180,10 +207,10 @@ export function UserOnboarding({ forceShow = false, onComplete }: UserOnboarding
   }, [isVisible, currentStep]);
 
   // Keyboard navigation
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!isVisible) return;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') {
         handleSkip();
       } else if (e.key === 'ArrowRight') {
@@ -194,38 +221,75 @@ export function UserOnboarding({ forceShow = false, onComplete }: UserOnboarding
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return (): void => window.removeEventListener('keydown', handleKeyDown);
   }, [isVisible, currentStep]);
 
-  const handleNext = useCallback(() => {
+  const handleNext = useCallback((): void => {
+    // Track step completed
+    const step = ONBOARDING_STEPS[currentStep];
+    const now = Date.now();
+    const timeOnStep = stepStartTime ? now - stepStartTime : 0;
+
+    analyticsService.track(AnalyticsEvents.ONBOARDING_STEP_COMPLETED, {
+      step_id: step.id,
+      step_number: currentStep + 1,
+      step_title: step.title,
+      time_on_step_ms: timeOnStep,
+      timestamp: now,
+    });
+
     if (currentStep < ONBOARDING_STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       handleComplete();
     }
-  }, [currentStep]);
+  }, [currentStep, stepStartTime]);
 
-  const handlePrevious = useCallback(() => {
+  const handlePrevious = useCallback((): void => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   }, [currentStep]);
 
-  const handleSkip = useCallback(() => {
-    localStorage.setItem('onboarding-completed', 'true');
-    setIsVisible(false);
-    if (onComplete) {
-      onComplete();
-    }
-  }, [onComplete]);
+  const handleSkip = useCallback((): void => {
+    const now = Date.now();
+    const totalTime = onboardingStartTime ? now - onboardingStartTime : 0;
+    const step = ONBOARDING_STEPS[currentStep];
 
-  const handleComplete = useCallback(() => {
+    // Track abandonment
+    analyticsService.track(AnalyticsEvents.ONBOARDING_SKIPPED, {
+      abandoned_at_step: currentStep + 1,
+      abandoned_at_step_id: step.id,
+      abandoned_at_step_title: step.title,
+      total_time_ms: totalTime,
+      completion_percentage: ((currentStep + 1) / ONBOARDING_STEPS.length) * 100,
+      timestamp: now,
+    });
+
     localStorage.setItem('onboarding-completed', 'true');
     setIsVisible(false);
     if (onComplete) {
       onComplete();
     }
-  }, [onComplete]);
+  }, [onComplete, currentStep, onboardingStartTime]);
+
+  const handleComplete = useCallback((): void => {
+    const now = Date.now();
+    const totalTime = onboardingStartTime ? now - onboardingStartTime : 0;
+
+    // Track completion
+    analyticsService.track(AnalyticsEvents.ONBOARDING_COMPLETED, {
+      total_time_ms: totalTime,
+      total_steps: ONBOARDING_STEPS.length,
+      timestamp: now,
+    });
+
+    localStorage.setItem('onboarding-completed', 'true');
+    setIsVisible(false);
+    if (onComplete) {
+      onComplete();
+    }
+  }, [onComplete, onboardingStartTime]);
 
   if (!isVisible) return null;
 
@@ -322,7 +386,7 @@ export function UserOnboarding({ forceShow = false, onComplete }: UserOnboarding
             </button>
 
             <div className="flex gap-1">
-              {ONBOARDING_STEPS.map((_, index) => (
+              {ONBOARDING_STEPS.map((_, index): JSX.Element => (
                 <div
                   key={index}
                   className={cn(

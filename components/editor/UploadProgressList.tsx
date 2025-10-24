@@ -16,14 +16,14 @@ interface UploadProgressListProps {
 /**
  * Displays a list of active uploads with progress bars and status.
  */
-export function UploadProgressList({ uploads, onClearUpload }: UploadProgressListProps) {
+export function UploadProgressList({ uploads, onClearUpload }: UploadProgressListProps): JSX.Element | null {
   if (uploads.length === 0) {
     return null;
   }
 
   return (
     <div className="space-y-2">
-      {uploads.map((upload) => (
+      {uploads.map((upload): JSX.Element => (
         <div
           key={upload.id}
           className="rounded-lg border border-neutral-200 bg-white p-3 shadow-sm dark:border-neutral-700 dark:bg-neutral-800"
@@ -40,7 +40,7 @@ export function UploadProgressList({ uploads, onClearUpload }: UploadProgressLis
 
             {upload.phase === 'complete' || upload.phase === 'error' ? (
               <button
-                onClick={() => onClearUpload?.(upload.id)}
+                onClick={(): void | undefined => onClearUpload?.(upload.id)}
                 className="text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 transition"
                 aria-label="Dismiss"
               >

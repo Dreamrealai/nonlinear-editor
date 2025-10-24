@@ -15,11 +15,11 @@ import { browserLogger } from '@/lib/browserLogger';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
-export function CreateProjectButton() {
+export function CreateProjectButton(): JSX.Element {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleCreateProject = async () => {
+  const handleCreateProject = async (): Promise<void> => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/projects', {

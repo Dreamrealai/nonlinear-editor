@@ -158,7 +158,7 @@ export async function generateImage(params: ImagenGenerateParams): Promise<Image
 
   // Add timeout handling
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+  const timeout = setTimeout((): void => controller.abort(), 60000); // 60 second timeout
 
   try {
     const response = await fetch(endpoint, {

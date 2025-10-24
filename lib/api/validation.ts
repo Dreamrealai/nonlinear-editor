@@ -7,8 +7,8 @@
  * MIGRATION STATUS:
  * - Canonical validation: @/lib/validation (assertion-based, throws ValidationError)
  * - This wrapper: @/lib/api/validation (result-based, returns ValidationError | null)
- * - Routes migrated: 2/17 (export, history)
- * - Routes pending: 15/17
+ * - Routes migrated: 32/62 routes now use assertion-based validation
+ * - Most routes have adopted the canonical validation pattern
  *
  * RECOMMENDED: Migrate routes to use @/lib/validation directly with try-catch blocks.
  *
@@ -97,7 +97,7 @@ function wrapValidation(validationFn: () => void): ValidationError | null {
  * @returns Validation error if invalid, null if valid
  */
 export function validateUUID(value: unknown, fieldName: string = 'id'): ValidationError | null {
-  return wrapValidation(() => canonicalValidateUUID(value, fieldName));
+  return wrapValidation((): void => canonicalValidateUUID(value, fieldName));
 }
 
 /**
@@ -117,7 +117,7 @@ export function validateString(
     maxLength?: number;
   } = {}
 ): ValidationError | null {
-  return wrapValidation(() => canonicalValidateString(value, fieldName, options));
+  return wrapValidation((): void => canonicalValidateString(value, fieldName, options));
 }
 
 /**
@@ -137,7 +137,7 @@ export function validateInteger(
     max?: number;
   } = {}
 ): ValidationError | null {
-  return wrapValidation(() => canonicalValidateInteger(value, fieldName, options));
+  return wrapValidation((): void => canonicalValidateInteger(value, fieldName, options));
 }
 
 /**
@@ -158,7 +158,7 @@ export function validateEnum(
   if (!required && (value === undefined || value === null || value === '')) {
     return null;
   }
-  return wrapValidation(() => canonicalValidateEnum(value, fieldName, allowedValues));
+  return wrapValidation((): void => canonicalValidateEnum(value, fieldName, allowedValues));
 }
 
 /**
@@ -171,7 +171,7 @@ export function validateAspectRatio(aspectRatio: unknown): ValidationError | nul
   if (aspectRatio === undefined || aspectRatio === null) {
     return null;
   }
-  return wrapValidation(() => canonicalValidateAspectRatio(aspectRatio));
+  return wrapValidation((): void => canonicalValidateAspectRatio(aspectRatio));
 }
 
 /**
@@ -184,7 +184,7 @@ export function validateDuration(duration: unknown): ValidationError | null {
   if (duration === undefined || duration === null) {
     return null;
   }
-  return wrapValidation(() => canonicalValidateDuration(duration));
+  return wrapValidation((): void => canonicalValidateDuration(duration));
 }
 
 /**
@@ -197,7 +197,7 @@ export function validateSeed(seed: unknown): ValidationError | null {
   if (seed === undefined || seed === null) {
     return null;
   }
-  return wrapValidation(() => canonicalValidateSeed(seed));
+  return wrapValidation((): void => canonicalValidateSeed(seed));
 }
 
 /**
@@ -211,7 +211,7 @@ export function validateSampleCount(sampleCount: unknown, max: number = 8): Vali
   if (sampleCount === undefined || sampleCount === null) {
     return null;
   }
-  return wrapValidation(() => canonicalValidateSampleCount(sampleCount, max));
+  return wrapValidation((): void => canonicalValidateSampleCount(sampleCount, max));
 }
 
 /**
@@ -224,7 +224,7 @@ export function validateSafetyFilterLevel(safetyFilterLevel: unknown): Validatio
   if (safetyFilterLevel === undefined || safetyFilterLevel === null) {
     return null;
   }
-  return wrapValidation(() => canonicalValidateSafetyFilterLevel(safetyFilterLevel));
+  return wrapValidation((): void => canonicalValidateSafetyFilterLevel(safetyFilterLevel));
 }
 
 /**
@@ -237,7 +237,7 @@ export function validatePersonGeneration(personGeneration: unknown): ValidationE
   if (personGeneration === undefined || personGeneration === null) {
     return null;
   }
-  return wrapValidation(() => canonicalValidatePersonGeneration(personGeneration));
+  return wrapValidation((): void => canonicalValidatePersonGeneration(personGeneration));
 }
 
 /**
@@ -261,7 +261,7 @@ export function validateUrl(
   if (!required && (value === undefined || value === null || value === '')) {
     return null;
   }
-  return wrapValidation(() => canonicalValidateUrl(value, fieldName, options));
+  return wrapValidation((): void => canonicalValidateUrl(value, fieldName, options));
 }
 
 /**
@@ -285,7 +285,7 @@ export function validateNumber(
   if (!required && (value === undefined || value === null)) {
     return null;
   }
-  return wrapValidation(() => canonicalValidateNumber(value, fieldName, options.min, options.max));
+  return wrapValidation((): void => canonicalValidateNumber(value, fieldName, options.min, options.max));
 }
 
 /**
@@ -304,7 +304,7 @@ export function validateBoolean(
   if (!required && (value === undefined || value === null)) {
     return null;
   }
-  return wrapValidation(() => canonicalValidateBoolean(value, fieldName));
+  return wrapValidation((): void => canonicalValidateBoolean(value, fieldName));
 }
 
 /**
@@ -343,7 +343,7 @@ export function validateAll(
 
       if (!validationResult.valid) {
         if (Array.isArray(validationResult.errors) && validationResult.errors.length > 0) {
-          validationResult.errors.forEach((item) => {
+          validationResult.errors.forEach((item): void => {
             errors.push({
               field: item.field ?? validationResult.field ?? 'unknown',
               message: item.message ?? validationResult.message ?? 'Invalid input',

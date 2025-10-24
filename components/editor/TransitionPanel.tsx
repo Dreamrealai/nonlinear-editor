@@ -61,19 +61,19 @@ type TransitionPanelProps = {
 };
 
 export function TransitionPanel({ onClose }: TransitionPanelProps): React.JSX.Element {
-  const selectedClipIds = useEditorStore((state) => state.selectedClipIds);
-  const addTransitionToSelectedClips = useEditorStore((state) => state.addTransitionToSelectedClips);
-  const timeline = useEditorStore((state) => state.timeline);
+  const selectedClipIds = useEditorStore((state): Set<string> => state.selectedClipIds);
+  const addTransitionToSelectedClips = useEditorStore((state): (transitionType: TransitionType, duration: number) => void => state.addTransitionToSelectedClips);
+  const timeline = useEditorStore((state): Timeline | null => state.timeline);
 
   const [selectedType, setSelectedType] = useState<TransitionType>('crossfade');
   const [duration, setDuration] = useState(0.5);
 
   const selectedClips = React.useMemo(() => {
     if (!timeline) return [];
-    return timeline.clips.filter((clip) => selectedClipIds.has(clip.id));
+    return timeline.clips.filter((clip): boolean => selectedClipIds.has(clip.id));
   }, [timeline, selectedClipIds]);
 
-  const handleApply = () => {
+  const handleApply = (): void => {
     if (selectedClips.length === 0) return;
 
     addTransitionToSelectedClips(selectedType, duration);
@@ -84,8 +84,8 @@ export function TransitionPanel({ onClose }: TransitionPanelProps): React.JSX.El
   };
 
   const currentTransition = selectedClips[0]?.transitionToNext;
-  const implementedOptions = TRANSITION_OPTIONS.filter((opt) => opt.implemented);
-  const comingSoonOptions = TRANSITION_OPTIONS.filter((opt) => !opt.implemented);
+  const implementedOptions = TRANSITION_OPTIONS.filter((opt): boolean => opt.implemented);
+  const comingSoonOptions = TRANSITION_OPTIONS.filter((opt): boolean => !opt.implemented);
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700">
@@ -144,10 +144,10 @@ export function TransitionPanel({ onClose }: TransitionPanelProps): React.JSX.El
             Transition Type
           </label>
           <div className="grid grid-cols-2 gap-2">
-            {implementedOptions.map((option) => (
+            {implementedOptions.map((option): JSX.Element => (
               <button
                 key={option.type}
-                onClick={() => setSelectedType(option.type)}
+                onClick={(): void => setSelectedType(option.type)}
                 className={`p-3 rounded-lg border-2 text-left transition-all ${
                   selectedType === option.type
                     ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
@@ -172,7 +172,7 @@ export function TransitionPanel({ onClose }: TransitionPanelProps): React.JSX.El
               Coming Soon
             </label>
             <div className="grid grid-cols-2 gap-2">
-              {comingSoonOptions.map((option) => (
+              {comingSoonOptions.map((option): JSX.Element => (
                 <div
                   key={option.type}
                   className="p-3 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 opacity-50 cursor-not-allowed"
@@ -200,7 +200,7 @@ export function TransitionPanel({ onClose }: TransitionPanelProps): React.JSX.El
             max="5"
             step="0.1"
             value={duration}
-            onChange={(e) => setDuration(parseFloat(e.target.value) || 0.5)}
+            onChange={(e): void => setDuration(parseFloat(e.target.value) || 0.5)}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent dark:bg-gray-800 dark:text-white"
           />
           <input
@@ -209,7 +209,7 @@ export function TransitionPanel({ onClose }: TransitionPanelProps): React.JSX.El
             max="5"
             step="0.1"
             value={duration}
-            onChange={(e) => setDuration(parseFloat(e.target.value))}
+            onChange={(e): void => setDuration(parseFloat(e.target.value))}
             className="w-full"
           />
           <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">

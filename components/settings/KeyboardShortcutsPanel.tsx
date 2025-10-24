@@ -25,7 +25,7 @@ interface ShortcutEditState {
   keys: string[];
 }
 
-export function KeyboardShortcutsPanel() {
+export function KeyboardShortcutsPanel(): JSX.Element {
   const { supabaseClient } = useSupabase();
   const [shortcuts, setShortcuts] = useState<KeyboardShortcutConfig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,8 +35,8 @@ export function KeyboardShortcutsPanel() {
   const [userId, setUserId] = useState<string | null>(null);
 
   // Load user preferences on mount
-  useEffect(() => {
-    const loadPreferences = async () => {
+  useEffect((): void => {
+    const loadPreferences = async (): Promise<void> => {
       if (!supabaseClient) return;
 
       try {
@@ -63,7 +63,7 @@ export function KeyboardShortcutsPanel() {
 
   // Save shortcuts to database
   const saveShortcuts = useCallback(
-    async (newShortcuts: KeyboardShortcutConfig[]) => {
+    async (newShortcuts: KeyboardShortcutConfig[]): Promise<void> => {
       if (!supabaseClient || !userId) return;
 
       setSaving(true);
@@ -85,8 +85,8 @@ export function KeyboardShortcutsPanel() {
 
   // Toggle shortcut enabled state
   const toggleShortcut = useCallback(
-    (id: string) => {
-      const newShortcuts = shortcuts.map((s) =>
+    (id: string): void => {
+      const newShortcuts = shortcuts.map((s): KeyboardShortcutConfig =>
         s.id === id ? { ...s, enabled: !s.enabled } : s
       );
       setShortcuts(newShortcuts);
@@ -96,26 +96,26 @@ export function KeyboardShortcutsPanel() {
   );
 
   // Start editing a shortcut
-  const startEditing = useCallback((shortcut: KeyboardShortcutConfig) => {
+  const startEditing = useCallback((shortcut: KeyboardShortcutConfig): void => {
     setEditingShortcut({ id: shortcut.id, keys: [...shortcut.keys] });
     setIsRecording(false);
   }, []);
 
   // Cancel editing
-  const cancelEditing = useCallback(() => {
+  const cancelEditing = useCallback((): void => {
     setEditingShortcut(null);
     setIsRecording(false);
   }, []);
 
   // Start recording key combination
-  const startRecording = useCallback(() => {
+  const startRecording = useCallback((): void => {
     setIsRecording(true);
-    setEditingShortcut((prev) => (prev ? { ...prev, keys: [] } : null));
+    setEditingShortcut((prev): { keys: never[]; id: string; } | null => (prev ? { ...prev, keys: [] } : null));
   }, []);
 
   // Handle key press during recording
   const handleKeyPress = useCallback(
-    (event: KeyboardEvent) => {
+    (event: KeyboardEvent): void => {
       if (!isRecording || !editingShortcut) return;
 
       event.preventDefault();
@@ -150,7 +150,7 @@ export function KeyboardShortcutsPanel() {
       }
 
       // Only update if we have a complete key combination
-      if (keys.length > 0 && keys.some((k) => !['Meta', 'Control', 'Shift', 'Alt'].includes(k))) {
+      if (keys.length > 0 && keys.some((k): boolean => !['Meta', 'Control', 'Shift', 'Alt'].includes(k))) {
         setEditingShortcut({ id: editingShortcut.id, keys });
         setIsRecording(false);
       }
@@ -159,16 +159,16 @@ export function KeyboardShortcutsPanel() {
   );
 
   // Add keyboard event listener for recording
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (isRecording) {
       window.addEventListener('keydown', handleKeyPress);
-      return () => window.removeEventListener('keydown', handleKeyPress);
+      return (): void => window.removeEventListener('keydown', handleKeyPress);
     }
     return undefined;
   }, [isRecording, handleKeyPress]);
 
   // Save edited shortcut
-  const saveEditedShortcut = useCallback(async () => {
+  const saveEditedShortcut = useCallback(async (): Promise<void> => {
     if (!editingShortcut || !supabaseClient || !userId) return;
 
     try {
@@ -189,7 +189,7 @@ export function KeyboardShortcutsPanel() {
       }
 
       // Update shortcuts
-      const newShortcuts = shortcuts.map((s) =>
+      const newShortcuts = shortcuts.map((s): KeyboardShortcutConfig =>
         s.id === editingShortcut.id ? { ...s, keys: editingShortcut.keys } : s
       );
       setShortcuts(newShortcuts);
@@ -202,7 +202,7 @@ export function KeyboardShortcutsPanel() {
   }, [editingShortcut, shortcuts, saveShortcuts, supabaseClient, userId]);
 
   // Reset to defaults
-  const resetToDefaults = useCallback(async () => {
+  const resetToDefaults = useCallback(async (): Promise<void> => {
     if (!confirm('Reset all keyboard shortcuts to defaults?')) return;
 
     setShortcuts(DEFAULT_KEYBOARD_SHORTCUTS);
@@ -211,7 +211,7 @@ export function KeyboardShortcutsPanel() {
 
   // Group shortcuts by category
   const groupedShortcuts = shortcuts.reduce(
-    (acc, shortcut) => {
+    (acc, shortcut): Record<string, KeyboardShortcutConfig[]> => {
       const metadata = SHORTCUT_METADATA[shortcut.id];
       if (!metadata) return acc;
 
@@ -254,13 +254,13 @@ export function KeyboardShortcutsPanel() {
 
       {/* Shortcuts list grouped by category */}
       <div className="space-y-6">
-        {Object.entries(groupedShortcuts).map(([category, categoryShortcuts]) => (
+        {Object.entries(groupedShortcuts).map(([category, categoryShortcuts]): JSX.Element => (
           <div key={category}>
             <h4 className="text-sm font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-3">
               {category}
             </h4>
             <div className="space-y-2">
-              {categoryShortcuts.map((shortcut) => {
+              {categoryShortcuts.map((shortcut): JSX.Element | null => {
                 const metadata = SHORTCUT_METADATA[shortcut.id];
                 if (!metadata) return null;
 
@@ -275,7 +275,7 @@ export function KeyboardShortcutsPanel() {
                     <div className="flex items-center gap-4 flex-1">
                       {/* Enable/Disable toggle */}
                       <button
-                        onClick={() => toggleShortcut(shortcut.id)}
+                        onClick={(): void => toggleShortcut(shortcut.id)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                           shortcut.enabled
                             ? 'bg-purple-600'
@@ -346,7 +346,7 @@ export function KeyboardShortcutsPanel() {
                           </kbd>
                           {metadata.allowCustomization && (
                             <button
-                              onClick={() => startEditing(shortcut)}
+                              onClick={(): void => startEditing(shortcut)}
                               className="p-2 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-md transition-colors"
                               aria-label={`Edit ${metadata.label} shortcut`}
                             >

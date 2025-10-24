@@ -51,7 +51,7 @@ export function useVideoGeneration(
     usePolling<VideoStatusResponse>({
       interval: 10000, // 10 seconds
       maxRetries: 100, // ~16 minutes max
-      pollFn: async () => {
+      pollFn: async (): Promise<any> => {
         if (!videoOperationName) {
           throw new Error('No operation name set');
         }
@@ -60,8 +60,8 @@ export function useVideoGeneration(
         );
         return response.json();
       },
-      shouldContinue: (result) => !result.done,
-      onComplete: (result) => {
+      shouldContinue: (result): boolean => !result.done,
+      onComplete: (result): void => {
         if (result.error) {
           toast.error(result.error, { id: 'generate-video' });
           browserLogger.error({ error: result.error, projectId }, 'Video generation failed');
@@ -78,7 +78,7 @@ export function useVideoGeneration(
         setVideoGenPending(false);
         setVideoOperationName(null);
       },
-      onError: (error) => {
+      onError: (error): void => {
         browserLogger.error({ error, projectId }, 'Video generation polling failed');
         toast.error(error.message, { id: 'generate-video' });
         setVideoGenPending(false);

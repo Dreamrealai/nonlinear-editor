@@ -36,29 +36,29 @@ type PlaybackStore = {
   togglePlayPause: () => void;
 };
 
-export const usePlaybackStore = create<PlaybackStore>()((set) => ({
+export const usePlaybackStore = create<PlaybackStore>()((set): { currentTime: number; zoom: 50; isPlaying: false; setCurrentTime: (time: number) => void; setZoom: (zoom: number) => void; setIsPlaying: (playing: boolean) => void; play: () => void; pause: () => void; togglePlayPause: () => void; } => ({
   currentTime: 0,
   zoom: DEFAULT_ZOOM,
   isPlaying: false,
 
-  setCurrentTime: (time) =>
-    set(() => ({
+  setCurrentTime: (time): void =>
+    set((): { currentTime: number; } => ({
       currentTime: Math.max(0, time),
     })),
 
-  setZoom: (zoom) =>
-    set(() => ({
+  setZoom: (zoom): void =>
+    set((): { zoom: number; } => ({
       zoom: Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom)),
     })),
 
-  setIsPlaying: (playing) =>
-    set(() => ({
+  setIsPlaying: (playing): void =>
+    set((): { isPlaying: boolean; } => ({
       isPlaying: playing,
     })),
 
-  play: () => set(() => ({ isPlaying: true })),
+  play: (): void => set((): { isPlaying: true; } => ({ isPlaying: true })),
 
-  pause: () => set(() => ({ isPlaying: false })),
+  pause: (): void => set((): { isPlaying: false; } => ({ isPlaying: false })),
 
-  togglePlayPause: () => set((state) => ({ isPlaying: !state.isPlaying })),
+  togglePlayPause: (): void => set((state): { isPlaying: boolean; } => ({ isPlaying: !state.isPlaying })),
 }));

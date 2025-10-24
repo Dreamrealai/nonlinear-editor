@@ -54,9 +54,9 @@ export function TextOverlayEditor({
   textOverlays,
   currentTime,
   containerRef,
-}: TextOverlayEditorProps) {
-  const updateTextOverlay = useEditorStore((state) => state.updateTextOverlay);
-  const removeTextOverlay = useEditorStore((state) => state.removeTextOverlay);
+}: TextOverlayEditorProps): JSX.Element {
+  const updateTextOverlay = useEditorStore((state): (id: string, patch: Partial<TextOverlay>) => void => state.updateTextOverlay);
+  const removeTextOverlay = useEditorStore((state): (id: string) => void => state.removeTextOverlay);
 
   const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -66,26 +66,26 @@ export function TextOverlayEditor({
 
   // Filter overlays visible at current time
   const visibleOverlays = textOverlays.filter(
-    (overlay) =>
+    (overlay): boolean =>
       currentTime >= overlay.timelinePosition &&
       currentTime <= overlay.timelinePosition + overlay.duration
   );
 
-  const selectedOverlay = visibleOverlays.find((o) => o.id === selectedOverlayId);
+  const selectedOverlay = visibleOverlays.find((o): boolean => o.id === selectedOverlayId);
 
   // Handle clicking on an overlay to select it
-  const handleOverlayClick = useCallback((e: React.MouseEvent, overlayId: string) => {
+  const handleOverlayClick = useCallback((e: React.MouseEvent, overlayId: string): void => {
     e.stopPropagation();
     setSelectedOverlayId(overlayId);
     setIsEditingText(false);
   }, []);
 
   // Handle double-click to edit text
-  const handleOverlayDoubleClick = useCallback((e: React.MouseEvent, overlayId: string) => {
+  const handleOverlayDoubleClick = useCallback((e: React.MouseEvent, overlayId: string): void => {
     e.stopPropagation();
     setSelectedOverlayId(overlayId);
     setIsEditingText(true);
-    setTimeout(() => {
+    setTimeout((): void => {
       textInputRef.current?.focus();
       textInputRef.current?.select();
     }, 0);
@@ -93,7 +93,7 @@ export function TextOverlayEditor({
 
   // Start dragging
   const handleMouseDown = useCallback(
-    (e: React.MouseEvent, overlayId: string) => {
+    (e: React.MouseEvent, overlayId: string): void => {
       e.stopPropagation();
       if (!containerRef.current) return;
 
@@ -109,10 +109,10 @@ export function TextOverlayEditor({
   );
 
   // Handle dragging
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!isDragging || !dragStart || !selectedOverlay || !containerRef.current) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent): void => {
       if (!containerRef.current || !selectedOverlay) return;
 
       const rect = containerRef.current.getBoundingClientRect();
@@ -132,7 +132,7 @@ export function TextOverlayEditor({
       setDragStart({ x: e.clientX, y: e.clientY });
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (): void => {
       setIsDragging(false);
       setDragStart(null);
     };
@@ -140,7 +140,7 @@ export function TextOverlayEditor({
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
 
-    return () => {
+    return (): void => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -148,7 +148,7 @@ export function TextOverlayEditor({
 
   // Handle text change
   const handleTextChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: React.ChangeEvent<HTMLInputElement>): void => {
       if (!selectedOverlay) return;
       updateTextOverlay(selectedOverlay.id, { text: e.target.value });
     },
@@ -157,7 +157,7 @@ export function TextOverlayEditor({
 
   // Handle font size change
   const handleFontSizeChange = useCallback(
-    (fontSize: number) => {
+    (fontSize: number): void => {
       if (!selectedOverlay) return;
       updateTextOverlay(selectedOverlay.id, { fontSize });
     },
@@ -166,7 +166,7 @@ export function TextOverlayEditor({
 
   // Handle color change
   const handleColorChange = useCallback(
-    (color: string) => {
+    (color: string): void => {
       if (!selectedOverlay) return;
       updateTextOverlay(selectedOverlay.id, { color });
     },
@@ -175,7 +175,7 @@ export function TextOverlayEditor({
 
   // Handle font family change
   const handleFontFamilyChange = useCallback(
-    (fontFamily: string) => {
+    (fontFamily: string): void => {
       if (!selectedOverlay) return;
       updateTextOverlay(selectedOverlay.id, { fontFamily });
     },
@@ -184,7 +184,7 @@ export function TextOverlayEditor({
 
   // Handle animation type change
   const handleAnimationTypeChange = useCallback(
-    (type: TextAnimationType) => {
+    (type: TextAnimationType): void => {
       if (!selectedOverlay) return;
 
       if (type === 'none') {
@@ -207,7 +207,7 @@ export function TextOverlayEditor({
 
   // Handle animation property changes
   const handleAnimationPropertyChange = useCallback(
-    (property: keyof TextAnimation, value: number | string) => {
+    (property: keyof TextAnimation, value: number | string): void => {
       if (!selectedOverlay || !selectedOverlay.animation) return;
 
       updateTextOverlay(selectedOverlay.id, {
@@ -221,14 +221,14 @@ export function TextOverlayEditor({
   );
 
   // Handle delete
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback((): void => {
     if (!selectedOverlay) return;
     removeTextOverlay(selectedOverlay.id);
     setSelectedOverlayId(null);
   }, [selectedOverlay, removeTextOverlay]);
 
   // Deselect when clicking outside
-  const handleContainerClick = useCallback((e?: React.MouseEvent<HTMLDivElement>) => {
+  const handleContainerClick = useCallback((e?: React.MouseEvent<HTMLDivElement>): void => {
     // Only deselect if clicking on the container itself, not its children
     if (e && e.target !== e.currentTarget) return;
     setSelectedOverlayId(null);
@@ -236,7 +236,7 @@ export function TextOverlayEditor({
   }, []);
 
   // Calculate animation state (import from animation utilities)
-  const calculateAnimationState = (overlay: TextOverlay) => {
+  const calculateAnimationState = (overlay: TextOverlay): number => {
     const elapsedTime = currentTime - overlay.timelinePosition;
 
     // Import animation calculation inline to avoid circular dependency
@@ -271,7 +271,7 @@ export function TextOverlayEditor({
       <div
         className="absolute inset-0 z-20"
         onClick={handleContainerClick}
-        onKeyDown={(e) => {
+        onKeyDown={(e): void => {
           if (e.key === 'Escape') {
             handleContainerClick(e as unknown as React.MouseEvent<HTMLDivElement>);
           }
@@ -280,7 +280,7 @@ export function TextOverlayEditor({
         tabIndex={0}
         aria-label="Text overlay workspace"
       >
-        {visibleOverlays.map((overlay) => {
+        {visibleOverlays.map((overlay): JSX.Element => {
           const isSelected = overlay.id === selectedOverlayId;
           const opacity = calculateAnimationState(overlay);
 
@@ -307,9 +307,9 @@ export function TextOverlayEditor({
                 fontWeight: 600,
                 pointerEvents: 'auto',
               }}
-              onClick={(e) => handleOverlayClick(e, overlay.id)}
-              onDoubleClick={(e) => handleOverlayDoubleClick(e, overlay.id)}
-              onKeyDown={(e) => {
+              onClick={(e): void => handleOverlayClick(e, overlay.id)}
+              onDoubleClick={(e): void => handleOverlayDoubleClick(e, overlay.id)}
+              onKeyDown={(e): void => {
                 if (e.key === 'Enter') {
                   handleOverlayClick(e as unknown as React.MouseEvent<HTMLDivElement>, overlay.id);
                 }
@@ -317,7 +317,7 @@ export function TextOverlayEditor({
               role="button"
               tabIndex={0}
               aria-label={`Text overlay: ${overlay.text}`}
-              onMouseDown={(e) => handleMouseDown(e, overlay.id)}
+              onMouseDown={(e): void => handleMouseDown(e, overlay.id)}
             >
               {isSelected && isEditingText ? (
                 <input
@@ -325,7 +325,7 @@ export function TextOverlayEditor({
                   type="text"
                   value={overlay.text}
                   onChange={handleTextChange}
-                  onBlur={() => setIsEditingText(false)}
+                  onBlur={(): void => setIsEditingText(false)}
                   className="bg-transparent outline-none border-b-2 border-blue-500 text-center"
                   style={{
                     fontSize: 'inherit',
@@ -333,7 +333,7 @@ export function TextOverlayEditor({
                     fontFamily: 'inherit',
                     fontWeight: 'inherit',
                   }}
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e): void => e.stopPropagation()}
                 />
               ) : (
                 overlay.text
@@ -355,10 +355,10 @@ export function TextOverlayEditor({
               <select
                 id="font-family-select"
                 value={selectedOverlay.fontFamily ?? 'sans-serif'}
-                onChange={(e) => handleFontFamilyChange(e.target.value)}
+                onChange={(e): void => handleFontFamilyChange(e.target.value)}
                 className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none"
               >
-                {FONT_FAMILIES.map((font) => (
+                {FONT_FAMILIES.map((font): JSX.Element => (
                   <option key={font.value} value={font.value} className="bg-gray-900">
                     {font.label}
                   </option>
@@ -374,10 +374,10 @@ export function TextOverlayEditor({
               <select
                 id="font-size-select"
                 value={selectedOverlay.fontSize ?? 48}
-                onChange={(e) => handleFontSizeChange(Number(e.target.value))}
+                onChange={(e): void => handleFontSizeChange(Number(e.target.value))}
                 className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none w-20"
               >
-                {FONT_SIZES.map((size) => (
+                {FONT_SIZES.map((size): JSX.Element => (
                   <option key={size} value={size} className="bg-gray-900">
                     {size}px
                   </option>
@@ -389,11 +389,11 @@ export function TextOverlayEditor({
             <div className="flex flex-col gap-1">
               <div className="text-xs text-white/60 font-medium">Color</div>
               <div className="flex gap-1">
-                {COLOR_PRESETS.map((color) => (
+                {COLOR_PRESETS.map((color): JSX.Element => (
                   <button
                     key={color}
                     type="button"
-                    onClick={() => handleColorChange(color)}
+                    onClick={(): void => handleColorChange(color)}
                     className={`w-6 h-6 rounded border-2 transition-all ${
                       selectedOverlay.color === color
                         ? 'border-blue-500 scale-110'
@@ -407,7 +407,7 @@ export function TextOverlayEditor({
                 <input
                   type="color"
                   value={selectedOverlay.color ?? '#ffffff'}
-                  onChange={(e) => handleColorChange(e.target.value)}
+                  onChange={(e): void => handleColorChange(e.target.value)}
                   className="w-6 h-6 rounded border-2 border-white/30 cursor-pointer"
                   title="Custom color"
                 />
@@ -426,7 +426,7 @@ export function TextOverlayEditor({
               <select
                 id="animation-type-select"
                 value={selectedOverlay.animation?.type ?? 'none'}
-                onChange={(e) => handleAnimationTypeChange(e.target.value as TextAnimationType)}
+                onChange={(e): void => handleAnimationTypeChange(e.target.value as TextAnimationType)}
                 className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none min-w-[140px]"
               >
                 <option value="none" className="bg-gray-900">None</option>
@@ -476,7 +476,7 @@ export function TextOverlayEditor({
                     max="10"
                     step="0.1"
                     value={selectedOverlay.animation.duration}
-                    onChange={(e) => handleAnimationPropertyChange('duration', parseFloat(e.target.value))}
+                    onChange={(e): void => handleAnimationPropertyChange('duration', parseFloat(e.target.value))}
                     className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none w-16"
                   />
                 </div>
@@ -493,7 +493,7 @@ export function TextOverlayEditor({
                     max="10"
                     step="0.1"
                     value={selectedOverlay.animation.delay}
-                    onChange={(e) => handleAnimationPropertyChange('delay', parseFloat(e.target.value))}
+                    onChange={(e): void => handleAnimationPropertyChange('delay', parseFloat(e.target.value))}
                     className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none w-16"
                   />
                 </div>
@@ -506,7 +506,7 @@ export function TextOverlayEditor({
                   <select
                     id="animation-easing"
                     value={selectedOverlay.animation.easing}
-                    onChange={(e) => handleAnimationPropertyChange('easing', e.target.value)}
+                    onChange={(e): void => handleAnimationPropertyChange('easing', e.target.value)}
                     className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none"
                   >
                     <option value="linear" className="bg-gray-900">Linear</option>
@@ -531,7 +531,7 @@ export function TextOverlayEditor({
                   <select
                     id="animation-repeat"
                     value={selectedOverlay.animation.repeat}
-                    onChange={(e) => handleAnimationPropertyChange('repeat', parseInt(e.target.value))}
+                    onChange={(e): void => handleAnimationPropertyChange('repeat', parseInt(e.target.value))}
                     className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none"
                   >
                     <option value="0" className="bg-gray-900">Once</option>

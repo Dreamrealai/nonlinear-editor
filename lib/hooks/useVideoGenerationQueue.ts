@@ -53,7 +53,7 @@ export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQu
   useEffect((): (() => void) => {
     const intervals = pollingIntervalsRef.current;
     return (): void => {
-      intervals.forEach((interval) => clearInterval(interval));
+      intervals.forEach((interval): void => clearInterval(interval));
       intervals.clear();
     };
   }, []);
@@ -79,7 +79,7 @@ export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQu
             }
 
             if (statusJson.error) {
-              setVideoQueue((prev) =>
+              setVideoQueue((prev): VideoQueueItemData[] =>
                 updateQueueItemStatus(prev, videoId, {
                   status: 'failed',
                   error: statusJson.error,
@@ -139,7 +139,7 @@ export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQu
                 toast.error(
                   'Video generated, but playback link could not be created. Refresh the page to retry.'
                 );
-                setVideoQueue((prev) =>
+                setVideoQueue((prev): VideoQueueItemData[] =>
                   updateQueueItemStatus(prev, videoId, {
                     status: 'failed',
                     error: 'Playback link unavailable. Please refresh and try again.',
@@ -148,7 +148,7 @@ export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQu
                 return;
               }
 
-              setVideoQueue((prev) =>
+              setVideoQueue((prev): VideoQueueItemData[] =>
                 updateQueueItemStatus(prev, videoId, {
                   status: 'completed',
                   videoUrl: playbackUrl,
@@ -168,7 +168,7 @@ export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQu
             clearInterval(interval);
             pollingIntervalsRef.current.delete(videoId);
           }
-          setVideoQueue((prev) =>
+          setVideoQueue((prev): VideoQueueItemData[] =>
             updateQueueItemStatus(prev, videoId, {
               status: 'failed',
               error: 'Polling failed',
@@ -199,7 +199,7 @@ export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQu
       const queueItem = createVideoQueueItem(formState.prompt);
 
       // Add to queue immediately
-      setVideoQueue((prev) => [...prev, queueItem]);
+      setVideoQueue((prev): VideoQueueItemData[] => [...prev, queueItem]);
       setGenerating(true);
 
       try {
@@ -219,7 +219,7 @@ export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQu
         }
 
         // Update queue item with operation name and start polling
-        setVideoQueue((prev) =>
+        setVideoQueue((prev): VideoQueueItemData[] =>
           updateQueueItemStatus(prev, queueItem.id, {
             operationName: json.operationName,
             status: 'generating',
@@ -236,7 +236,7 @@ export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQu
         toast.error(error instanceof Error ? error.message : 'Video generation failed');
 
         // Update queue item to failed
-        setVideoQueue((prev) =>
+        setVideoQueue((prev): VideoQueueItemData[] =>
           updateQueueItemStatus(prev, queueItem.id, {
             status: 'failed',
             error: error instanceof Error ? error.message : 'Unknown error',
@@ -258,12 +258,12 @@ export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQu
       pollingIntervalsRef.current.delete(videoId);
     }
 
-    setVideoQueue((prev) => removeFromQueue(prev, videoId));
+    setVideoQueue((prev): VideoQueueItemData[] => removeFromQueue(prev, videoId));
   }, []);
 
   // Clear completed videos
   const clearCompleted = useCallback((): void => {
-    setVideoQueue((prev) => filterCompletedItems(prev));
+    setVideoQueue((prev): VideoQueueItemData[] => filterCompletedItems(prev));
   }, []);
 
   return {

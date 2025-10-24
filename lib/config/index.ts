@@ -49,10 +49,10 @@ export const STORAGE_CONFIG = {
 
   // Storage Path Templates
   PATHS: {
-    USER_ASSET: (userId: string, projectId: string, type: string, filename: string) =>
+    USER_ASSET: (userId: string, projectId: string, type: string, filename: string): string =>
       `${userId}/${projectId}/${type}/${filename}`,
 
-    PROJECT_DATA: (userId: string, projectId: string) => `${userId}/${projectId}/data`,
+    PROJECT_DATA: (userId: string, projectId: string): string => `${userId}/${projectId}/data`,
   },
 
   // URL Prefixes

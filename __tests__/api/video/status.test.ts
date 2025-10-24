@@ -2,9 +2,6 @@
  * Tests for GET /api/video/status - Video Generation Status Check
  */
 
-// Set NODE_ENV before importing modules to ensure error messages are visible
-process.env.NODE_ENV = 'development';
-
 import type { NextRequest } from 'next/server';
 import { GET } from '@/app/api/video/status/route';
 import {
@@ -22,6 +19,7 @@ jest.mock('@/lib/supabase', () => {
   return {
     createServerSupabaseClient: jest.fn(async () => mockClient),
     ensureHttpsProtocol: jest.fn((url) => url),
+    isSupabaseServiceConfigured: jest.fn(() => true),
     __getMockClient: () => mockClient,
   };
 });
@@ -46,14 +44,7 @@ jest.mock('@/lib/rateLimit', () => ({
   },
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-  },
-}));
+// serverLogger is mocked globally in __mocks__/lib/serverLogger.ts
 
 // Mock API response helpers - use actual implementation with instrumented withErrorHandling
 jest.mock('@/lib/api/response', () => {
@@ -124,7 +115,7 @@ describe('GET /api/video/status', () => {
       data: {
         id: 'asset-123',
         user_id: 'test-user-id',
-        project_id: 'test-project-id',
+        project_id: '550e8400-e29b-41d4-a716-446655440000',
         type: 'video',
         source: 'genai',
         storage_url: 'supabase://assets/test-path',
@@ -217,7 +208,7 @@ describe('GET /api/video/status', () => {
       });
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
+        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
@@ -249,7 +240,7 @@ describe('GET /api/video/status', () => {
       }) as unknown as typeof fetch;
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
+        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
@@ -270,7 +261,7 @@ describe('GET /api/video/status', () => {
       });
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
+        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
@@ -285,7 +276,7 @@ describe('GET /api/video/status', () => {
       mockAuthenticatedUser(mockSupabase);
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=fal:invalid&projectId=test-project-id'
+        '/api/video/status?operationName=fal:invalid&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
@@ -303,7 +294,7 @@ describe('GET /api/video/status', () => {
       });
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+        '/api/video/status?operationName=operations/veo-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
@@ -333,7 +324,7 @@ describe('GET /api/video/status', () => {
       });
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+        '/api/video/status?operationName=operations/veo-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
@@ -380,7 +371,7 @@ describe('GET /api/video/status', () => {
       }) as unknown as typeof fetch;
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=operations/veo-456&projectId=test-project-id'
+        '/api/video/status?operationName=operations/veo-456&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
@@ -402,7 +393,7 @@ describe('GET /api/video/status', () => {
       });
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+        '/api/video/status?operationName=operations/veo-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
@@ -432,13 +423,13 @@ describe('GET /api/video/status', () => {
       });
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+        '/api/video/status?operationName=operations/veo-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(mockSupabase.storage.upload).toHaveBeenCalledWith(
-        expect.stringContaining('test-user-id/test-project-id'),
+        expect.stringContaining('test-user-id/550e8400-e29b-41d4-a716-446655440000'),
         expect.any(Buffer),
         expect.objectContaining({
           contentType: 'video/mp4',
@@ -448,7 +439,7 @@ describe('GET /api/video/status', () => {
       expect(mockSupabase.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           user_id: mockUser.id,
-          project_id: 'test-project-id',
+          project_id: '550e8400-e29b-41d4-a716-446655440000',
           type: 'video',
           source: 'genai',
         })
@@ -478,7 +469,7 @@ describe('GET /api/video/status', () => {
       });
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+        '/api/video/status?operationName=operations/veo-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
@@ -504,7 +495,7 @@ describe('GET /api/video/status', () => {
       });
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+        '/api/video/status?operationName=operations/veo-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       await GET(mockRequest, { params: Promise.resolve({}) });
@@ -525,7 +516,7 @@ describe('GET /api/video/status', () => {
       checkOperationStatus.mockRejectedValue(new Error('API error'));
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+        '/api/video/status?operationName=operations/veo-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
@@ -556,7 +547,7 @@ describe('GET /api/video/status', () => {
       });
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+        '/api/video/status?operationName=operations/veo-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
@@ -572,12 +563,12 @@ describe('GET /api/video/status', () => {
       checkOperationStatus.mockRejectedValue(rateLimitError);
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+        '/api/video/status?operationName=operations/veo-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(429);
       const data = await response.json();
       expect(data.error).toContain('Quota exceeded');
     });
@@ -590,12 +581,12 @@ describe('GET /api/video/status', () => {
       checkFalVideoStatus.mockRejectedValue(rateLimitError);
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
+        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(429);
       const data = await response.json();
       expect(data.error).toContain('Rate limit exceeded');
     });
@@ -608,12 +599,12 @@ describe('GET /api/video/status', () => {
       checkFalVideoStatus.mockRejectedValue(authError);
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
+        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(401);
       const data = await response.json();
       expect(data.error).toContain('Invalid API key');
     });
@@ -622,7 +613,7 @@ describe('GET /api/video/status', () => {
       mockAuthenticatedUser(mockSupabase);
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=&projectId=test-project-id'
+        '/api/video/status?operationName=&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
@@ -636,7 +627,7 @@ describe('GET /api/video/status', () => {
       mockAuthenticatedUser(mockSupabase);
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=fal:only-one-part&projectId=test-project-id'
+        '/api/video/status?operationName=fal:only-one-part&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
@@ -665,7 +656,7 @@ describe('GET /api/video/status', () => {
       }) as unknown as typeof fetch;
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
+        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
@@ -693,7 +684,7 @@ describe('GET /api/video/status', () => {
       });
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+        '/api/video/status?operationName=operations/veo-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
@@ -732,7 +723,7 @@ describe('GET /api/video/status', () => {
       });
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+        '/api/video/status?operationName=operations/veo-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
@@ -755,7 +746,7 @@ describe('GET /api/video/status', () => {
       });
 
       mockRequest = createRequest(
-        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+        '/api/video/status?operationName=operations/veo-123&projectId=550e8400-e29b-41d4-a716-446655440000'
       ) as unknown as NextRequest;
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });

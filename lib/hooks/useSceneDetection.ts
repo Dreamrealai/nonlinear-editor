@@ -31,8 +31,8 @@ export function useSceneDetection(
 ): UseSceneDetectionReturn {
   const [sceneDetectPending, setSceneDetectPending] = useState(false);
 
-  const handleDetectScenes = useCallback(async () => {
-    const latestVideo = assets.find((asset) => asset.type === 'video');
+  const handleDetectScenes = useCallback(async (): Promise<void> => {
+    const latestVideo = assets.find((asset): boolean => asset.type === 'video');
     if (!latestVideo) {
       toast.error('Upload a video before detecting scenes');
       return;

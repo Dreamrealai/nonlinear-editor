@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(): Promise<NextResponse<{ status: string; timestamp: string; uptime: number; environment: "development" | "production" | "test"; version: string; }> | NextResponse<{ status: string; timestamp: string; error: string; }>> {
   try {
     // Basic health check
     const healthData = {

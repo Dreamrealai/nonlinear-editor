@@ -57,7 +57,7 @@ export function useVideoManager({
   const videoPoolRef = useRef<HTMLVideoElement[]>([]);
   const [videoError, setVideoError] = useState<string | null>(null);
 
-  const clearVideoError = useCallback(() => {
+  const clearVideoError = useCallback((): void => {
     setVideoError(null);
   }, []);
 
@@ -204,7 +204,7 @@ export function useVideoManager({
               videoErrorHandlersRef.current.set(clip.id, errorHandler);
 
               // Wait for video to buffer enough data for smooth playback
-              await ensureBuffered(video).catch((bufferError) => {
+              await ensureBuffered(video).catch((bufferError): never => {
                 browserLogger.error(
                   {
                     clipId: clip.id,
@@ -254,7 +254,7 @@ export function useVideoManager({
   );
 
   // Cleanup signed URL cache when timeline changes
-  useEffect(() => {
+  useEffect((): void => {
     if (!timeline) {
       // Clear cache for this timeline when unmounting
       signedUrlCache.prune();
@@ -262,9 +262,9 @@ export function useVideoManager({
   }, [timeline]);
 
   // Cleanup video elements when timeline changes
-  useEffect(() => {
+  useEffect((): void => {
     if (!timeline) {
-      videoMapRef.current.forEach((video, clipId) => {
+      videoMapRef.current.forEach((video, clipId): void => {
         cleanupVideo(clipId, video);
       });
       videoMapRef.current.clear();
@@ -273,8 +273,8 @@ export function useVideoManager({
       return;
     }
 
-    const clipIds = new Set(timeline.clips.map((clip) => clip.id));
-    videoMapRef.current.forEach((video, id) => {
+    const clipIds = new Set(timeline.clips.map((clip): string => clip.id));
+    videoMapRef.current.forEach((video, id): void => {
       if (!clipIds.has(id)) {
         cleanupVideo(id, video);
         videoMapRef.current.delete(id);
@@ -292,7 +292,7 @@ export function useVideoManager({
 
     return (): void => {
       // Clean up all active video elements (will return to pool or destroy)
-      videoMap.forEach((video, clipId) => {
+      videoMap.forEach((video, clipId): void => {
         cleanupVideo(clipId, video);
       });
       videoMap.clear();
@@ -300,7 +300,7 @@ export function useVideoManager({
       errorHandlers.clear();
 
       // Destroy all pooled video elements on unmount
-      videoPool.forEach((video) => {
+      videoPool.forEach((video): void => {
         video.pause();
         video.removeAttribute('src');
         video.load();

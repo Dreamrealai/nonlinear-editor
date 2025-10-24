@@ -32,22 +32,22 @@ type ClipboardStore = {
   hasClips: () => boolean;
 };
 
-export const useClipboardStore = create<ClipboardStore>()((set, get) => ({
+export const useClipboardStore = create<ClipboardStore>()((set, get): { copiedClips: never[]; copyClips: (clips: Clip[]) => void; pasteClips: (targetTime: number) => Clip[]; clearClipboard: () => void; hasClips: () => boolean; } => ({
   copiedClips: [],
 
-  copyClips: (clips) =>
-    set(() => ({
+  copyClips: (clips): void =>
+    set((): { copiedClips: Clip[]; } => ({
       copiedClips: structuredClone(clips),
     })),
 
-  pasteClips: (targetTime) => {
+  pasteClips: (targetTime): Clip[] => {
     const state = get();
     if (state.copiedClips.length === 0) return [];
 
     const pastedClips: Clip[] = [];
-    const minPosition = Math.min(...state.copiedClips.map((c) => c.timelinePosition));
+    const minPosition = Math.min(...state.copiedClips.map((c): number => c.timelinePosition));
 
-    state.copiedClips.forEach((copiedClip) => {
+    state.copiedClips.forEach((copiedClip): void => {
       const offset = copiedClip.timelinePosition - minPosition;
       const newClip: Clip = {
         ...copiedClip,
@@ -60,7 +60,7 @@ export const useClipboardStore = create<ClipboardStore>()((set, get) => ({
     return pastedClips;
   },
 
-  clearClipboard: () => set(() => ({ copiedClips: [] })),
+  clearClipboard: (): void => set((): { copiedClips: never[]; } => ({ copiedClips: [] })),
 
-  hasClips: () => get().copiedClips.length > 0,
+  hasClips: (): boolean => get().copiedClips.length > 0,
 }));

@@ -306,7 +306,7 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
       });
 
       if (!downloadResponse.ok) {
-        const detail = await downloadResponse.text().catch(() => '');
+        const detail = await downloadResponse.text().catch((): string => '');
         throw new HttpError(
           `Failed to download Veo video: ${downloadResponse.status} ${detail}`.trim(),
           500

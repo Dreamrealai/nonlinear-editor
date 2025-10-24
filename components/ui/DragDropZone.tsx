@@ -98,9 +98,9 @@ export function DragDropZone({
 
       // Check accept types
       if (accept) {
-        const acceptedTypes = accept.split(',').map((t) => t.trim());
+        const acceptedTypes = accept.split(',').map((t): string => t.trim());
         const fileExtension = `.${file.name.split('.').pop()?.toLowerCase()}`;
-        const isAccepted = acceptedTypes.some((type) => {
+        const isAccepted = acceptedTypes.some((type): boolean => {
           if (type.startsWith('.')) {
             return fileExtension === type.toLowerCase();
           }
@@ -145,7 +145,7 @@ export function DragDropZone({
     }
 
     if (valid.length > 0) {
-      const filesWithPreviews = valid.map((file) => {
+      const filesWithPreviews = valid.map((file): FileWithPreview => {
         const fileWithPreview = file as FileWithPreview;
         // Create preview for images
         if (file.type.startsWith('image/')) {
@@ -210,7 +210,7 @@ export function DragDropZone({
    * Remove a file from selection
    */
   const removeFile = (index: number): void => {
-    const newFiles = selectedFiles.filter((_, i) => i !== index);
+    const newFiles = selectedFiles.filter((_, i): boolean => i !== index);
 
     // Revoke object URL to prevent memory leaks
     const file = selectedFiles[index];
@@ -235,9 +235,9 @@ export function DragDropZone({
   /**
    * Cleanup previews on unmount
    */
-  React.useEffect(() => {
+  React.useEffect((): () => void => {
     return (): void => {
-      selectedFiles.forEach((file) => {
+      selectedFiles.forEach((file): void => {
         if (file.preview) {
           URL.revokeObjectURL(file.preview);
         }
@@ -253,7 +253,7 @@ export function DragDropZone({
         onDragOver={handleDrag}
         onDrop={handleDrop}
         onClick={openFilePicker}
-        onKeyDown={(e) => {
+        onKeyDown={(e): void => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             openFilePicker();
@@ -333,7 +333,7 @@ export function DragDropZone({
         <div className="mt-3 rounded-lg bg-red-50 px-4 py-3">
           <p className="text-sm font-semibold text-red-900 mb-1">Upload Errors:</p>
           <ul className="list-disc list-inside space-y-1">
-            {errors.map((error, index) => (
+            {errors.map((error, index): JSX.Element => (
               <li key={index} className="text-xs text-red-700">
                 {error}
               </li>
@@ -349,7 +349,7 @@ export function DragDropZone({
             Selected Files ({selectedFiles.length})
           </p>
           <div className="space-y-2">
-            {selectedFiles.map((file, index) => (
+            {selectedFiles.map((file, index): JSX.Element => (
               <div
                 key={index}
                 className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3"
@@ -370,7 +370,7 @@ export function DragDropZone({
                 </div>
                 <button
                   type="button"
-                  onClick={(e) => {
+                  onClick={(e): void => {
                     e.stopPropagation();
                     removeFile(index);
                   }}

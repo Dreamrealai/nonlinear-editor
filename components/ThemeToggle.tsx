@@ -52,7 +52,7 @@ export function ThemeToggle({ className = '', size = 'md' }: ThemeToggleProps): 
   const [mounted, setMounted] = React.useState(false);
 
   // Prevent hydration mismatch by only rendering after mount
-  React.useEffect(() => {
+  React.useEffect((): void => {
     setMounted(true);
   }, []);
 
@@ -64,7 +64,7 @@ export function ThemeToggle({ className = '', size = 'md' }: ThemeToggleProps): 
     );
   }
 
-  const cycleTheme = () => {
+  const cycleTheme = (): void => {
     if (theme === 'light') {
       setTheme('dark');
     } else if (theme === 'dark') {
@@ -74,7 +74,7 @@ export function ThemeToggle({ className = '', size = 'md' }: ThemeToggleProps): 
     }
   };
 
-  const getIcon = () => {
+  const getIcon = (): JSX.Element => {
     const iconSize = iconSizes[size];
     switch (theme) {
       case 'light':
@@ -88,7 +88,7 @@ export function ThemeToggle({ className = '', size = 'md' }: ThemeToggleProps): 
     }
   };
 
-  const getTooltipText = () => {
+  const getTooltipText = (): "Light mode" | "Dark mode" | "System theme" | "Toggle theme" => {
     switch (theme) {
       case 'light':
         return 'Light mode';

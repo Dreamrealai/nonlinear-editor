@@ -24,7 +24,7 @@ interface GenerateVideoTabProps {
  * Supports all available Veo parameters including duration, aspect ratio, resolution,
  * negative prompts, person generation settings, and more.
  */
-export function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
+export function GenerateVideoTab({ projectId }: GenerateVideoTabProps): JSX.Element {
   // Form state - Configured with loosest/most permissive settings for Veo 3.1
   const [formState, setFormState] = useState<VideoGenerationFormState>({
     prompt: '',
@@ -56,10 +56,10 @@ export function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
 
   // Handle model change and adjust settings accordingly
   const handleModelChange = useCallback(
-    (newModel: string) => {
+    (newModel: string): void => {
       const adjustments = adjustFormStateForModel(newModel, formState);
 
-      setFormState((prev) => ({
+      setFormState((prev): { prompt: string; model: string; aspectRatio: "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; duration: 4 | 5 | 6 | 8 | 10; resolution: "720p" | "1080p"; negativePrompt: string; personGeneration: "allow_adult" | "dont_allow"; enhancePrompt: boolean; generateAudio: boolean; seed: string; sampleCount: 1 | 2 | 3 | 4; } => ({
         ...prev,
         model: newModel,
         ...adjustments,
@@ -75,7 +75,7 @@ export function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
 
   // Handle form submission
   const handleGenerateVideo = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent): Promise<void> => {
       e.preventDefault();
 
       let imageAssetIdToUse = imageInput.imageAssetId;
@@ -96,7 +96,7 @@ export function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
         await generateVideo(formState, imageAssetIdToUse || undefined);
 
         // Reset form on success
-        setFormState((prev) => ({
+        setFormState((prev): { prompt: string; negativePrompt: string; seed: string; model: string; aspectRatio: "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; duration: 4 | 5 | 6 | 8 | 10; resolution: "720p" | "1080p"; personGeneration: "allow_adult" | "dont_allow"; enhancePrompt: boolean; generateAudio: boolean; sampleCount: 1 | 2 | 3 | 4; } => ({
           ...prev,
           prompt: '',
           negativePrompt: '',
@@ -113,8 +113,8 @@ export function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
 
   // Form field update handlers
   const updateFormField = useCallback(
-    <K extends keyof VideoGenerationFormState>(key: K, value: VideoGenerationFormState[K]) => {
-      setFormState((prev) => ({ ...prev, [key]: value }));
+    <K extends keyof VideoGenerationFormState>(key: K, value: VideoGenerationFormState[K]): void => {
+      setFormState((prev): { prompt: string; model: string; aspectRatio: "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; duration: 4 | 5 | 6 | 8 | 10; resolution: "720p" | "1080p"; negativePrompt: string; personGeneration: "allow_adult" | "dont_allow"; enhancePrompt: boolean; generateAudio: boolean; seed: string; sampleCount: 1 | 2 | 3 | 4; } => ({ ...prev, [key]: value }));
     },
     []
   );
@@ -149,10 +149,10 @@ export function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
                 imagePreviewUrl={imageInput.imagePreviewUrl}
                 fileInputRef={imageInput.fileInputRef}
                 showAssetLibrary={showAssetLibrary}
-                onPromptChange={(value) => updateFormField('prompt', value)}
+                onPromptChange={(value): void => updateFormField('prompt', value)}
                 onModelChange={handleModelChange}
-                onAspectRatioChange={(value) => updateFormField('aspectRatio', value)}
-                onDurationChange={(value) => updateFormField('duration', value)}
+                onAspectRatioChange={(value): void => updateFormField('aspectRatio', value)}
+                onDurationChange={(value): void => updateFormField('duration', value)}
                 onSubmit={handleGenerateVideo}
                 onFileInputChange={imageInput.handleFileInputChange}
                 onClearImage={imageInput.clearImage}
@@ -172,13 +172,13 @@ export function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
                 enhancePrompt={formState.enhancePrompt}
                 generateAudio={formState.generateAudio}
                 disabled={generating || imageInput.uploadingImage}
-                onResolutionChange={(value) => updateFormField('resolution', value)}
-                onSampleCountChange={(value) => updateFormField('sampleCount', value)}
-                onPersonGenerationChange={(value) => updateFormField('personGeneration', value)}
-                onSeedChange={(value) => updateFormField('seed', value)}
-                onNegativePromptChange={(value) => updateFormField('negativePrompt', value)}
-                onEnhancePromptChange={(value) => updateFormField('enhancePrompt', value)}
-                onGenerateAudioChange={(value) => updateFormField('generateAudio', value)}
+                onResolutionChange={(value): void => updateFormField('resolution', value)}
+                onSampleCountChange={(value): void => updateFormField('sampleCount', value)}
+                onPersonGenerationChange={(value): void => updateFormField('personGeneration', value)}
+                onSeedChange={(value): void => updateFormField('seed', value)}
+                onNegativePromptChange={(value): void => updateFormField('negativePrompt', value)}
+                onEnhancePromptChange={(value): void => updateFormField('enhancePrompt', value)}
+                onGenerateAudioChange={(value): void => updateFormField('generateAudio', value)}
               />
             </div>
           </div>

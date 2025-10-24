@@ -1,3 +1,34 @@
+/**
+ * KeyframeEditorShell - Complete keyframe editing interface
+ *
+ * Main container component for the AI-powered keyframe editing system.
+ * Orchestrates keyframe selection, crop editing, AI generation, and version
+ * management. Integrates multiple specialized hooks for data fetching,
+ * editing state, and image uploads.
+ *
+ * Features:
+ * - Asset/scene selection across multiple assets
+ * - Keyframe extraction and custom image upload
+ * - Global or crop-based AI editing modes
+ * - Prompt-based image generation with reference images
+ * - Version history and gallery view
+ * - Real-time preview with crop overlay
+ * - Supabase integration for data and storage
+ * - Automatic URL signing for secure access
+ *
+ * Architecture:
+ * - Uses custom hooks for separation of concerns
+ * - Handles Supabase client initialization
+ * - Manages global editor state and refresh
+ * - Coordinates between sidebar, preview, controls, and gallery
+ *
+ * @param assets - Array of video/image assets to edit keyframes from
+ *
+ * @example
+ * ```tsx
+ * <KeyframeEditorShell assets={projectAssets} />
+ * ```
+ */
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
@@ -23,11 +54,11 @@ function KeyframeEditorContent({
   supabase,
 }: KeyframeEditorShellProps & {
   supabase: NonNullable<ReturnType<typeof useSupabase>['supabaseClient']>;
-}) {
+}): JSX.Element {
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(assets[0]?.id ?? null);
   const [refreshToken, setRefreshToken] = useState(0);
 
-  const signStoragePath = useCallback(async (storagePath: string, expiresIn = 3600) => {
+  const signStoragePath = useCallback(async (storagePath: string, expiresIn = 3600): Promise<string | null> => {
     if (!storagePath) {
       return null;
     }
@@ -50,7 +81,7 @@ function KeyframeEditorContent({
       }
       const response = await fetch(`/api/assets/sign?${params.toString()}`);
       if (!response.ok) {
-        const detail = await response.text().catch(() => '');
+        const detail = await response.text().catch((): string => '');
         browserLogger.error(
           { storagePath, status: response.status, detail },
           'Failed to sign storage path'
@@ -65,8 +96,8 @@ function KeyframeEditorContent({
     }
   }, []);
 
-  const handleRefreshNeeded = useCallback(() => {
-    setRefreshToken((token) => token + 1);
+  const handleRefreshNeeded = useCallback((): void => {
+    setRefreshToken((token): number => token + 1);
   }, []);
 
   // Data loading hooks
@@ -151,24 +182,24 @@ function KeyframeEditorContent({
   });
 
   // Reference image input ref
-  const refImageInputRef = useCallback(() => {
+  const refImageInputRef = useCallback((): void => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
     input.multiple = true;
-    input.onchange = (e) =>
+    input.onchange = (e): undefined =>
       void handleRefImageSelect(e as unknown as React.ChangeEvent<HTMLInputElement>);
     input.click();
   }, [handleRefImageSelect]);
 
   // Attach paste event listeners
-  useEffect(() => {
-    const pasteHandler = (event: Event) => {
+  useEffect((): () => void => {
+    const pasteHandler = (event: Event): void => {
       void handlePaste(event as ClipboardEvent);
       void handlePasteAsKeyframe(event as ClipboardEvent);
     };
     document.addEventListener('paste', pasteHandler);
-    return () => {
+    return (): void => {
       document.removeEventListener('paste', pasteHandler);
     };
   }, [handlePaste, handlePasteAsKeyframe]);
@@ -193,9 +224,9 @@ function KeyframeEditorContent({
           <select
             className="rounded border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-700 transition-colors hover:border-neutral-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
             value={selectedAssetId ?? ''}
-            onChange={(event) => setSelectedAssetId(event.target.value || null)}
+            onChange={(event): void => setSelectedAssetId(event.target.value || null)}
           >
-            {assets.map((asset) => (
+            {assets.map((asset): JSX.Element => (
               <option key={asset.id} value={asset.id}>
                 {getAssetLabel(asset)}
               </option>
@@ -225,7 +256,7 @@ function KeyframeEditorContent({
           <div className="mb-2 flex items-center justify-between">
             <h3 className="text-xs font-medium text-neutral-700">Video Scrubber</h3>
             <button
-              onClick={() => setShowVideoPlayer(false)}
+              onClick={(): void => setShowVideoPlayer(false)}
               className="text-neutral-400 transition-colors hover:text-neutral-900"
               aria-label="Close video player"
             >
@@ -271,8 +302,8 @@ function KeyframeEditorContent({
           groupedFrames={groupedFrames}
           selectedFrameId={selectedFrameId}
           onFrameSelect={handleFrameSelect}
-          onExtractFrame={() => setShowVideoPlayer(!showVideoPlayer)}
-          onUploadImage={() => fileInputRef.current?.click()}
+          onExtractFrame={(): void => setShowVideoPlayer(!showVideoPlayer)}
+          onUploadImage={(): void | undefined => fileInputRef.current?.click()}
           isUploadingImage={isUploadingImage}
           canExtractFrame={!!assetVideoUrl}
         />
@@ -305,7 +336,7 @@ function KeyframeEditorContent({
             onRemoveRefImage={handleRemoveRefImage}
             submitError={submitError}
             isSubmitting={isSubmitting}
-            onClear={() => setPrompt('')}
+            onClear={(): void => setPrompt('')}
             onSubmit={handleSubmit}
             selectedFrameId={selectedFrameId}
             clampCrop={clampCrop}
@@ -319,7 +350,7 @@ function KeyframeEditorContent({
   );
 }
 
-export function KeyframeEditorShell({ assets }: KeyframeEditorShellProps) {
+export function KeyframeEditorShell({ assets }: KeyframeEditorShellProps): JSX.Element {
   const { supabaseClient, isLoading } = useSupabase();
 
   if (isLoading || !supabaseClient) {

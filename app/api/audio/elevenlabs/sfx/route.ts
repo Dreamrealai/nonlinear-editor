@@ -150,10 +150,10 @@ async function executeSFXGeneration(options: {
 export const POST = createGenerationRoute<SFXGenerateRequest, SFXGenerateResponse>({
   routeId: 'audio.sfx',
   rateLimitPrefix: 'audio-sfx',
-  validateRequest: (body: Record<string, unknown>) => {
+  validateRequest: (body: Record<string, unknown>): void => {
     validateString(body.prompt as string, 'prompt', { minLength: 3, maxLength: 500 });
     validateUUID(body.projectId as string, 'projectId');
   },
   execute: executeSFXGeneration,
-  formatResponse: (result) => successResponse(result),
+  formatResponse: (result): NextResponse<SFXGenerateResponse | SuccessResponse<SFXGenerateResponse>> => successResponse(result),
 });

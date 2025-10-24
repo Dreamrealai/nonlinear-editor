@@ -1,5 +1,5 @@
 import { serverLogger } from '@/lib/serverLogger';
-import { badRequestResponse, errorResponse, successResponse } from '@/lib/api/response';
+import { errorResponse, successResponse } from '@/lib/api/response';
 import { validateUUID, ValidationError } from '@/lib/validation';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';

@@ -9,13 +9,15 @@ import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { serverLogger } from '@/lib/serverLogger';
+import { validateEnum, validateUUID, ValidationError } from '@/lib/validation';
+import { validationError } from '@/lib/api/response';
 import type { ShareProjectRequest } from '@/types/collaboration';
 
 /**
  * GET - List all invites for a project
  */
-export const GET = withAuth(
-  async (req: NextRequest, { params }: { params: Promise<{ projectId: string }> }) => {
+export const GET = withAuth<{ projectId: string }>(
+  async (req: NextRequest, { params }: { params: Promise<{ projectId: string }> }): Promise<NextResponse<{ error: string; }> | NextResponse<{ invites: any[]; }>> => {
     const { projectId } = await params;
     const supabase = await createServerSupabaseClient();
     const {
@@ -66,8 +68,8 @@ export const GET = withAuth(
 /**
  * POST - Create a new invite
  */
-export const POST = withAuth(
-  async (req: NextRequest, { params }: { params: Promise<{ projectId: string }> }) => {
+export const POST = withAuth<{ projectId: string }>(
+  async (req: NextRequest, { params }: { params: Promise<{ projectId: string }> }): Promise<NextResponse<{ error: string; }> | NextResponse<{ invite: any; message: string; }>> => {
     const { projectId } = await params;
     const supabase = await createServerSupabaseClient();
     const {
@@ -79,17 +81,19 @@ export const POST = withAuth(
     }
 
     try {
+      // Validate path parameters
+      validateUUID(projectId, 'projectId');
+
+      // Validate request body
       const body: ShareProjectRequest = await req.json();
       const { email, role } = body;
 
-      // Validate input
-      if (!email || !email.includes('@')) {
-        return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
+      // Basic email validation (more comprehensive validation would check format)
+      if (!email || typeof email !== 'string' || !email.includes('@') || email.length < 3 || email.length > 254) {
+        throw new ValidationError('Invalid email address', 'email', 'INVALID_EMAIL');
       }
 
-      if (!role || !['viewer', 'editor', 'admin'].includes(role)) {
-        return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
-      }
+      validateEnum(role, 'role', ['viewer', 'editor', 'admin'] as const);
 
       // Verify user owns the project
       const { data: project, error: projectError } = await supabase
@@ -166,6 +170,9 @@ export const POST = withAuth(
         { status: 201 }
       );
     } catch (error) {
+      if (error instanceof ValidationError) {
+        return validationError(error.message);
+      }
       serverLogger.error({ error, projectId, userId: user.id }, 'Error creating invite');
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }

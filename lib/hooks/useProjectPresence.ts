@@ -44,7 +44,7 @@ export function useProjectPresence({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchActiveUsers = useCallback(async () => {
+  const fetchActiveUsers = useCallback(async (): Promise<void> => {
     if (!enabled || !projectId) {
       setIsLoading(false);
       return;
@@ -64,7 +64,7 @@ export function useProjectPresence({
       }
 
       setActiveUsers(
-        (data || []).map((user) => ({
+        (data || []).map((user): { user_id: any; is_online: any; last_seen_at: any; } => ({
           user_id: user.user_id,
           is_online: user.is_online,
           last_seen_at: user.last_seen_at,
@@ -81,7 +81,7 @@ export function useProjectPresence({
   }, [projectId, enabled]);
 
   const updatePresence = useCallback(
-    async (isOnline: boolean) => {
+    async (isOnline: boolean): Promise<void> => {
       if (!enabled || !projectId) return;
 
       try {
@@ -119,7 +119,7 @@ export function useProjectPresence({
     [projectId, enabled]
   );
 
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!enabled || !projectId) {
       return;
     }
@@ -140,7 +140,7 @@ export function useProjectPresence({
           table: 'project_collaborators',
           filter: `project_id=eq.${projectId}`,
         },
-        (payload) => {
+        (payload): void => {
           browserLogger.debug({ payload, projectId }, 'Presence change detected');
           // Refetch active users when any collaborator record changes
           fetchActiveUsers();
@@ -153,14 +153,14 @@ export function useProjectPresence({
 
     // Set up heartbeat to keep presence alive
     const heartbeatInterval = setInterval(
-      () => {
+      (): void => {
         updatePresence(true);
       },
       30000
     ); // Every 30 seconds
 
     // Cleanup function
-    return () => {
+    return (): void => {
       clearInterval(heartbeatInterval);
       updatePresence(false);
       supabase.removeChannel(channel);

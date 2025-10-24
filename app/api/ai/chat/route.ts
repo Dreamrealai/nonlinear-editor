@@ -93,7 +93,7 @@ async function handleChatPost(
     }
 
     // Convert chat history to Gemini format
-    const history = chatHistory.map((msg) => ({
+    const history = chatHistory.map((msg): { role: "user" | "model"; parts: { text: string; }[]; } => ({
       role: (msg.role === 'user' ? 'user' : 'model') as 'user' | 'model',
       parts: [{ text: msg.content }],
     }));

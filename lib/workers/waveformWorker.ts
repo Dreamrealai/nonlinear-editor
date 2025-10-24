@@ -17,7 +17,7 @@ type WaveformResponse = {
   error?: string;
 };
 
-self.onmessage = async (e: MessageEvent<WaveformMessage>) => {
+self.onmessage = async (e: MessageEvent<WaveformMessage>): Promise<void> => {
   const { type, audioBuffer, sampleCount } = e.data;
 
   if (type !== 'process') {

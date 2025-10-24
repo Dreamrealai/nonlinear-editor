@@ -25,7 +25,7 @@ interface SupabaseProviderProps {
   enabled?: boolean;
 }
 
-export function SupabaseProvider({ children, session: initialSession, enabled = true }: SupabaseProviderProps) {
+export function SupabaseProvider({ children, session: initialSession, enabled = true }: SupabaseProviderProps): JSX.Element {
   const [supabaseClient] = useState(() => {
     // Don't create client if disabled or not configured
     if (!enabled || !isSupabaseConfigured()) {
@@ -44,7 +44,7 @@ export function SupabaseProvider({ children, session: initialSession, enabled = 
   const [user, setUser] = useState<User | null>(initialSession?.user ?? null);
   const [isLoading, setIsLoading] = useState(!initialSession);
 
-  useEffect(() => {
+  useEffect((): (() => void) | undefined => {
     if (!supabaseClient) {
       setIsLoading(false);
       return;
@@ -52,7 +52,7 @@ export function SupabaseProvider({ children, session: initialSession, enabled = 
 
     // Get initial session if not provided
     if (!initialSession) {
-      supabaseClient.auth.getSession().then(({ data: { session } }) => {
+      supabaseClient.auth.getSession().then(({ data: { session } }): void => {
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoading(false);
@@ -64,13 +64,13 @@ export function SupabaseProvider({ children, session: initialSession, enabled = 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+    } = supabaseClient.auth.onAuthStateChange((_event, session): void => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
     });
 
-    return () => {
+    return (): void => {
       subscription.unsubscribe();
     };
   }, [supabaseClient, initialSession]);

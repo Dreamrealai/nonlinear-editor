@@ -31,7 +31,7 @@ export function useOnboarding(): UseOnboardingReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const loadState = useCallback(async () => {
+  const loadState = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     try {
       const supabase = createBrowserSupabaseClient();
@@ -78,12 +78,12 @@ export function useOnboarding(): UseOnboardingReturn {
     }
   }, []);
 
-  useEffect(() => {
+  useEffect((): void => {
     loadState();
   }, [loadState]);
 
   const updateState = useCallback(
-    async (updates: Partial<UserOnboardingState>) => {
+    async (updates: Partial<UserOnboardingState>): Promise<void> => {
       if (!state) return;
 
       try {
@@ -114,7 +114,7 @@ export function useOnboarding(): UseOnboardingReturn {
   );
 
   const startTour = useCallback(
-    async (tourId: string) => {
+    async (tourId: string): Promise<void> => {
       await updateState({
         current_tour_id: tourId,
         current_step_index: 0,
@@ -124,7 +124,7 @@ export function useOnboarding(): UseOnboardingReturn {
   );
 
   const completeTour = useCallback(
-    async (tourId: string) => {
+    async (tourId: string): Promise<void> => {
       if (!state) return;
 
       const toursCompleted = [...state.tours_completed];
@@ -142,7 +142,7 @@ export function useOnboarding(): UseOnboardingReturn {
   );
 
   const skipTour = useCallback(
-    async (tourId: string) => {
+    async (tourId: string): Promise<void> => {
       if (!state) return;
 
       const toursSkipped = [...state.tours_skipped];
@@ -159,7 +159,7 @@ export function useOnboarding(): UseOnboardingReturn {
     [state, updateState]
   );
 
-  const nextStep = useCallback(async () => {
+  const nextStep = useCallback(async (): Promise<void> => {
     if (!state) return;
 
     await updateState({
@@ -167,7 +167,7 @@ export function useOnboarding(): UseOnboardingReturn {
     });
   }, [state, updateState]);
 
-  const previousStep = useCallback(async () => {
+  const previousStep = useCallback(async (): Promise<void> => {
     if (!state) return;
 
     await updateState({
@@ -176,7 +176,7 @@ export function useOnboarding(): UseOnboardingReturn {
   }, [state, updateState]);
 
   const goToStep = useCallback(
-    async (stepIndex: number) => {
+    async (stepIndex: number): Promise<void> => {
       await updateState({
         current_step_index: stepIndex,
       });
@@ -185,14 +185,14 @@ export function useOnboarding(): UseOnboardingReturn {
   );
 
   const hasCompletedTour = useCallback(
-    (tourId: string) => {
+    (tourId: string): boolean => {
       return state?.tours_completed.includes(tourId) || false;
     },
     [state]
   );
 
   const hasSkippedTour = useCallback(
-    (tourId: string) => {
+    (tourId: string): boolean => {
       return state?.tours_skipped.includes(tourId) || false;
     },
     [state]

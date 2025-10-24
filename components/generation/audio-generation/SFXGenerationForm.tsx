@@ -1,3 +1,43 @@
+/**
+ * SFXGenerationForm - Sound effects generation form
+ *
+ * Form component for generating custom sound effects using AI. Features
+ * a description textarea, duration slider, quick presets, and generation
+ * controls with loading states.
+ *
+ * Features:
+ * - Multi-line description input
+ * - Duration slider (1-22 seconds)
+ * - 8 quick preset sound effects
+ * - Generation progress indicator
+ * - Form validation (requires description)
+ * - Disabled state during generation
+ * - Example prompts and guidelines
+ *
+ * Quick Presets:
+ * - Door knock, Phone ringing, Car engine
+ * - Glass breaking, Crowd applause, Thunder storm
+ * - Footsteps, Bird chirping
+ *
+ * @param sfxPrompt - Description of the sound effect to generate
+ * @param setSfxPrompt - Callback to update SFX description
+ * @param sfxDuration - Duration of the sound effect in seconds (1-22)
+ * @param setSfxDuration - Callback to update duration
+ * @param generating - Whether audio is currently being generated
+ * @param onSubmit - Form submission handler
+ *
+ * @example
+ * ```tsx
+ * <SFXGenerationForm
+ *   sfxPrompt="Thunder and rain"
+ *   setSfxPrompt={setPrompt}
+ *   sfxDuration={5.0}
+ *   setSfxDuration={setDuration}
+ *   generating={isGenerating}
+ *   onSubmit={handleGenerate}
+ * />
+ * ```
+ */
 interface SFXGenerationFormProps {
   sfxPrompt: string;
   setSfxPrompt: (value: string) => void;
@@ -25,7 +65,7 @@ export function SFXGenerationForm({
   setSfxDuration,
   generating,
   onSubmit,
-}: SFXGenerationFormProps) {
+}: SFXGenerationFormProps): JSX.Element {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       {/* SFX Prompt */}
@@ -36,7 +76,7 @@ export function SFXGenerationForm({
         <textarea
           id="sfxPrompt"
           value={sfxPrompt}
-          onChange={(e) => setSfxPrompt(e.target.value)}
+          onChange={(e): void => setSfxPrompt(e.target.value)}
           placeholder="Describe the sound effect you want to generate..."
           rows={4}
           disabled={generating}
@@ -61,7 +101,7 @@ export function SFXGenerationForm({
           max="22"
           step="0.5"
           value={sfxDuration}
-          onChange={(e) => setSfxDuration(parseFloat(e.target.value))}
+          onChange={(e): void => setSfxDuration(parseFloat(e.target.value))}
           disabled={generating}
           className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
         />
@@ -75,11 +115,11 @@ export function SFXGenerationForm({
       <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
         <h3 className="block text-sm font-semibold text-neutral-900 mb-3">Quick Presets</h3>
         <div className="grid grid-cols-2 gap-2">
-          {SFX_PRESETS.map((preset) => (
+          {SFX_PRESETS.map((preset): JSX.Element => (
             <button
               key={preset}
               type="button"
-              onClick={() => setSfxPrompt(preset)}
+              onClick={(): void => setSfxPrompt(preset)}
               disabled={generating}
               className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-700 transition-all hover:border-neutral-900 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
             >

@@ -8,6 +8,7 @@ import { serverLogger } from '@/lib/serverLogger';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
+import { validateString, validateUUID, ValidationError } from '@/lib/validation';
 
 interface SunoStatusResponse {
   code: number;
@@ -36,12 +37,15 @@ const handleSunoStatus: AuthenticatedHandler = async (req, { user, supabase }) =
   const taskId = searchParams.get('taskId');
   const projectId = searchParams.get('projectId');
 
-  if (!taskId) {
-    return validationError('Task ID is required', 'taskId');
-  }
-
-  if (!projectId) {
-    return validationError('Project ID is required', 'projectId');
+  // Validate query parameters
+  try {
+    validateString(taskId, 'taskId', { minLength: 1 });
+    validateUUID(projectId, 'projectId');
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return validationError(error.message, error.field);
+    }
+    throw error;
   }
 
   // Verify user owns the project using centralized verification

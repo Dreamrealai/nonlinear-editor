@@ -265,8 +265,8 @@ const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) 
   let results;
   try {
     // Add timeout to prevent function from hanging (45 seconds)
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Video analysis timed out after 45 seconds')), 45000)
+    const timeoutPromise = new Promise<never>((_, reject): NodeJS.Timeout =>
+      setTimeout((): void => reject(new Error('Video analysis timed out after 45 seconds')), 45000)
     );
 
     results = await Promise.race([videoClient.annotateVideo(request), timeoutPromise]);
