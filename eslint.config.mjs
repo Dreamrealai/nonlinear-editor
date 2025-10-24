@@ -37,6 +37,7 @@ export default [
           varsIgnorePattern: '^React$|^__filename$|^__dirname$',
         },
       ],
+      '@typescript-eslint/explicit-function-return-type': 'warn',
       // Disable accessibility rules that require significant refactoring
       // These can be re-enabled incrementally as components are updated
       'jsx-a11y/click-events-have-key-events': 'warn',
