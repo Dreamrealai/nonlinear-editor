@@ -23,6 +23,7 @@ import {
 import { EditorHeader } from '@/components/EditorHeader';
 import { TimelineCorrectionsMenu } from '@/components/editor/TimelineCorrectionsMenu';
 import { useAutosave } from '@/lib/hooks/useAutosave';
+import { useAutoBackup } from '@/lib/hooks/useAutoBackup';
 import {
   useGlobalKeyboardShortcuts,
   type KeyboardShortcut,
@@ -561,6 +562,9 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
       toast.error('Failed to autosave timeline');
     }
   });
+
+  // Auto-backup project periodically (every 30 minutes)
+  useAutoBackup(projectId);
 
   if (!timeline) {
     return (

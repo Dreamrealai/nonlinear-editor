@@ -1,8 +1,8 @@
 # Codebase Issues Tracker
 
 **Last Updated:** 2025-10-24
-**Status:** 59 open issues (15 issues fixed)
-**Priority Breakdown:** P0: 0 | P1: 21 | P2: 26 | P3: 12
+**Status:** 58 open issues (16 issues fixed)
+**Priority Breakdown:** P0: 0 | P1: 20 | P2: 26 | P3: 12
 
 This document tracks all open issues in the codebase. Fixed/resolved issues are removed to keep this document focused and efficient.
 
@@ -88,16 +88,35 @@ This document tracks all open issues in the codebase. Fixed/resolved issues are 
 
 ### Issue #45: Inconsistent Rate Limiting
 
-- **Status:** Open
+- **Status:** Fixed (2025-10-24)
 - **Priority:** P1
-- **Effort:** 8-10 hours
-- **Impact:** Some expensive operations not rate limited
+- **Effort:** 8-10 hours (completed: ~3 hours)
+- **Impact:** All API routes now have consistent tier-based rate limiting
+- **Commit:** d5b7f60
 
-**Issues:**
+**Resolution:**
 
-- AI generation endpoints need stricter limits
-- No rate limiting on some video processing routes
-- Tier-based limits not consistently applied
+Applied consistent tier-based rate limiting across all admin routes:
+- Fixed 3 admin routes to use `RATE_LIMITS.tier1_auth_payment` instead of custom limits
+- Updated documentation with comprehensive rate limiting examples
+
+**Audit Results:**
+- Total API Routes: 37
+- Routes with Rate Limiting: 32 (86%)
+- Routes Fixed: 3 (admin/cache, admin/change-tier, admin/delete-user)
+- Public/Webhook Routes (no rate limiting needed): 5 (health, docs, auth/signout, stripe/webhook, legacy chat)
+
+**Rate Limiting Tiers Applied:**
+- TIER 1 (5 req/min): Admin operations, payments, account deletion - 6 routes ✓
+- TIER 2 (10 req/min): AI generation, video processing, uploads - 17 routes ✓
+- TIER 3 (30 req/min): Status checks, read operations - 6 routes ✓
+- TIER 4 (60 req/min): General operations, logging - 3 routes ✓
+
+**Files Modified:**
+- `app/api/admin/cache/route.ts` - Replaced custom limits (30/min, 5/min) with tier1 (5/min)
+- `app/api/admin/change-tier/route.ts` - Replaced custom limit (5/min) with tier1 constant
+- `app/api/admin/delete-user/route.ts` - Replaced custom limit (5/min) with tier1 constant
+- `docs/CODING_BEST_PRACTICES.md` - Added comprehensive rate limiting decision guide with examples
 
 ---
 

@@ -5,6 +5,7 @@
  * - Platform-specific presets (YouTube, Instagram, TikTok, etc.)
  * - Custom preset creation and management
  * - Quality settings display
+ * - Priority selection for render queue
  * - FFmpeg processing integration
  */
 'use client';
@@ -24,7 +25,7 @@ import {
 } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { Info, Plus, Trash2, Youtube, Instagram, Twitter } from 'lucide-react';
+import { Info, List, Youtube, Instagram, Twitter } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert';
 import { cn } from '@/lib/utils';
 
@@ -33,6 +34,7 @@ export interface ExportModalProps {
   onClose: () => void;
   projectId: string;
   timeline: Timeline | null;
+  onOpenQueue?: () => void; // Callback to open render queue panel
 }
 
 // Platform icons mapping
@@ -49,12 +51,12 @@ const PLATFORM_ICONS: Record<string, React.ComponentType<{ className?: string }>
   linkedin: Info,
 };
 
-export function ExportModal({ isOpen, onClose, projectId, timeline }: ExportModalProps) {
+export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue }: ExportModalProps) {
   const [presets, setPresets] = useState<ExportPreset[]>([]);
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const [isLoadingPresets, setIsLoadingPresets] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
-  const [showCustomPresetForm, setShowCustomPresetForm] = useState(false);
+  const [priority, setPriority] = useState(0); // 0 = normal priority
   const [feedback, setFeedback] = useState<{ type: 'error' | 'success'; message: string } | null>(
     null
   );
@@ -122,6 +124,7 @@ export function ExportModal({ isOpen, onClose, projectId, timeline }: ExportModa
             clips: timeline.clips,
           },
           outputSpec: preset.settings,
+          priority, // Include priority in export request
         }),
       });
 
@@ -131,14 +134,17 @@ export function ExportModal({ isOpen, onClose, projectId, timeline }: ExportModa
         throw new Error(data.error || 'Export failed');
       }
 
-      browserLogger.info({ projectId, jobId: data.jobId, preset: preset.name }, 'Export started');
+      browserLogger.info({ projectId, jobId: data.data?.jobId, preset: preset.name, priority }, 'Export started');
       const successMessage =
-        data.message || `Export job queued. Track progress with job ID ${data.jobId}.`;
+        data.message || `Export added to queue. Track progress in the Render Queue.`;
       setFeedback({
         type: 'success',
         message: successMessage,
       });
-      toast.success('Export started successfully');
+      toast.success('Export added to render queue');
+
+      // Reset priority after successful export
+      setPriority(0);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to start export';
       setFeedback({ type: 'error', message: errorMessage });
@@ -146,41 +152,6 @@ export function ExportModal({ isOpen, onClose, projectId, timeline }: ExportModa
       browserLogger.error({ error: err, projectId }, 'Failed to start export');
     } finally {
       setIsExporting(false);
-    }
-  };
-
-  const handleDeletePreset = async (presetId: string): Promise<void> => {
-    const preset = presets.find((p) => p.id === presetId);
-    if (!preset) return;
-
-    if (!preset.is_custom) {
-      toast.error('Platform presets cannot be deleted');
-      return;
-    }
-
-    if (!window.confirm(`Delete preset "${preset.name}"?`)) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/export-presets/${presetId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete preset');
-      }
-
-      toast.success('Preset deleted successfully');
-      await fetchPresets();
-
-      // Clear selection if deleted preset was selected
-      if (selectedPresetId === presetId) {
-        setSelectedPresetId(presets.length > 0 ? presets[0].id : null);
-      }
-    } catch (err) {
-      browserLogger.error({ error: err, presetId }, 'Failed to delete preset');
-      toast.error('Failed to delete preset');
     }
   };
 
@@ -192,12 +163,11 @@ export function ExportModal({ isOpen, onClose, projectId, timeline }: ExportModa
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Export Video</DialogTitle>
           <DialogDescription>
-            Select a preset to export your video. This feature is a placeholder and requires
-            server-side implementation.
+            Select a preset and priority, then add to render queue
           </DialogDescription>
         </DialogHeader>
 
@@ -211,80 +181,165 @@ export function ExportModal({ isOpen, onClose, projectId, timeline }: ExportModa
             </Alert>
           )}
 
-          <div className="space-y-4">
-            <div>
-              <div className="mb-2 block text-sm font-medium">Export Preset</div>
-              <div className="grid grid-cols-2 gap-3">
-                {EXPORT_PRESETS.map((preset, index) => (
-                  <button
-                    key={preset.name}
-                    onClick={() => setSelectedPreset(index)}
-                    className={cn(
-                      'rounded-lg border p-4 text-left transition-all',
-                      selectedPreset === index
-                        ? 'border-blue-500 bg-blue-500/20'
-                        : 'border-border hover:border-blue-500/50'
-                    )}
-                  >
-                    <div className="font-semibold">{preset.name}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">{preset.description}</div>
-                    <div className="mt-2 text-xs text-muted-foreground/80">
-                      {preset.width}x{preset.height} • {preset.fps}fps •{' '}
-                      {preset.format.toUpperCase()}
+          {isLoadingPresets ? (
+            <div className="flex items-center justify-center p-8">
+              <LoadingSpinner size={32} />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Platform Presets */}
+              {platformPresets.length > 0 && (
+                <div>
+                  <div className="mb-2 block text-sm font-medium">Platform Presets</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {platformPresets.map((preset) => {
+                      const Icon = preset.platform_type ? PLATFORM_ICONS[preset.platform_type] : Info;
+                      return (
+                        <button
+                          key={preset.id}
+                          onClick={() => setSelectedPresetId(preset.id)}
+                          className={cn(
+                            'rounded-lg border p-4 text-left transition-all',
+                            selectedPresetId === preset.id
+                              ? 'border-blue-500 bg-blue-500/20'
+                              : 'border-border hover:border-blue-500/50'
+                          )}
+                        >
+                          <div className="flex items-center gap-2">
+                            {Icon && <Icon className="h-4 w-4" />}
+                            <div className="font-semibold">{preset.name}</div>
+                          </div>
+                          {preset.description && (
+                            <div className="mt-1 text-xs text-muted-foreground">{preset.description}</div>
+                          )}
+                          <div className="mt-2 text-xs text-muted-foreground/80">
+                            {preset.settings.width}x{preset.settings.height} •{' '}
+                            {preset.settings.fps}fps •{' '}
+                            {preset.settings.format.toUpperCase()}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Custom Presets */}
+              {customPresets.length > 0 && (
+                <div>
+                  <div className="mb-2 block text-sm font-medium">Custom Presets</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {customPresets.map((preset) => (
+                      <button
+                        key={preset.id}
+                        onClick={() => setSelectedPresetId(preset.id)}
+                        className={cn(
+                          'rounded-lg border p-4 text-left transition-all',
+                          selectedPresetId === preset.id
+                            ? 'border-blue-500 bg-blue-500/20'
+                            : 'border-border hover:border-blue-500/50'
+                        )}
+                      >
+                        <div className="font-semibold">{preset.name}</div>
+                        {preset.description && (
+                          <div className="mt-1 text-xs text-muted-foreground">{preset.description}</div>
+                        )}
+                        <div className="mt-2 text-xs text-muted-foreground/80">
+                          {preset.settings.width}x{preset.settings.height} •{' '}
+                          {preset.settings.fps}fps •{' '}
+                          {preset.settings.format.toUpperCase()}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Selected Settings */}
+              {selectedPreset && (
+                <div className="rounded-lg bg-muted/50 p-4">
+                  <h3 className="mb-2 text-sm font-medium">Selected Settings</h3>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <div className="text-muted-foreground">Resolution</div>
+                      <div className="font-mono">
+                        {selectedPreset.settings.width}x{selectedPreset.settings.height}
+                      </div>
                     </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-lg bg-muted/50 p-4">
-              <h3 className="mb-2 text-sm font-medium">Selected Settings</h3>
-              <div className="grid grid-cols-3 gap-4 text-sm">
-                <div>
-                  <div className="text-muted-foreground">Resolution</div>
-                  <div className="font-mono">
-                    {EXPORT_PRESETS[selectedPreset]?.width}x{EXPORT_PRESETS[selectedPreset]?.height}
+                    <div>
+                      <div className="text-muted-foreground">Frame Rate</div>
+                      <div className="font-mono">{selectedPreset.settings.fps} fps</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Format</div>
+                      <div className="font-mono">
+                        {selectedPreset.settings.format.toUpperCase()}
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <div className="text-muted-foreground">Frame Rate</div>
-                  <div className="font-mono">{EXPORT_PRESETS[selectedPreset]?.fps} fps</div>
+              )}
+
+              {/* Priority Selection */}
+              <div>
+                <label className="mb-2 block text-sm font-medium">Priority</label>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="range"
+                    min="0"
+                    max="10"
+                    value={priority}
+                    onChange={(e) => setPriority(Number(e.target.value))}
+                    className="flex-1"
+                  />
+                  <span className="text-sm font-medium w-8">{priority}</span>
                 </div>
-                <div>
-                  <div className="text-muted-foreground">Format</div>
-                  <div className="font-mono">
-                    {EXPORT_PRESETS[selectedPreset]?.format.toUpperCase()}
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Higher priority exports render first (0 = normal, 10 = highest)
+                </p>
+              </div>
+
+              {/* Info Alert */}
+              <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-4">
+                <div className="flex items-start gap-3">
+                  <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-400" />
+                  <div className="text-sm text-blue-300">
+                    <strong>Note:</strong> Video export requires FFmpeg processing infrastructure.
+                    This feature is currently a placeholder and will need server-side implementation
+                    to generate actual video files.
                   </div>
                 </div>
               </div>
             </div>
+          )}
+        </div>
 
-            <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-4">
-              <div className="flex items-start gap-3">
-                <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-400" />
-                <div className="text-sm text-blue-300">
-                  <strong>Note:</strong> Video export requires FFmpeg processing infrastructure.
-                  This feature is currently a placeholder and will need server-side implementation
-                  to generate actual video files.
-                </div>
-              </div>
+        <DialogFooter>
+          <div className="flex w-full items-center justify-between">
+            <div>
+              {onOpenQueue && (
+                <Button onClick={onOpenQueue} variant="outline" size="sm">
+                  <List className="mr-2 h-4 w-4" />
+                  View Queue
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={onClose} variant="outline" disabled={isExporting}>
+                Cancel
+              </Button>
+              <Button onClick={handleExport} disabled={isExporting || !timeline || !selectedPresetId}>
+                {isExporting ? (
+                  <div className="flex items-center gap-2">
+                    <LoadingSpinner size={16} />
+                    <span>Adding to queue...</span>
+                  </div>
+                ) : (
+                  'Add to Queue'
+                )}
+              </Button>
             </div>
           </div>
-        </div>
-        <DialogFooter>
-          <Button onClick={onClose} variant="outline" disabled={isLoading}>
-            Cancel
-          </Button>
-          <Button onClick={handleExport} disabled={isLoading || !timeline}>
-            {isLoading ? (
-              <div className="flex items-center gap-2">
-                <LoadingSpinner size={16} />
-                <span>Starting export...</span>
-              </div>
-            ) : (
-              'Start Export'
-            )}
-          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
