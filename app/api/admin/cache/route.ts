@@ -7,6 +7,7 @@ import { withAdminAuth, type AdminAuthContext } from '@/lib/api/withAuth';
 import { successResponse, errorResponse } from '@/lib/api/response';
 import { getCacheStats, clearAllCaches } from '@/lib/cacheInvalidation';
 import { serverLogger } from '@/lib/serverLogger';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
 /**
  * GET /api/admin/cache
@@ -84,10 +85,10 @@ async function handleClearCache(
 // Export with admin authentication middleware
 export const GET = withAdminAuth(handleGetCacheStats, {
   route: '/api/admin/cache',
-  rateLimit: { max: 30, windowMs: 60 * 1000 }, // 30 requests per minute
+  rateLimit: RATE_LIMITS.tier1_auth_payment, // TIER 1: Admin operations (5 req/min)
 });
 
 export const DELETE = withAdminAuth(handleClearCache, {
   route: '/api/admin/cache',
-  rateLimit: { max: 5, windowMs: 60 * 1000 }, // 5 requests per minute (destructive operation)
+  rateLimit: RATE_LIMITS.tier1_auth_payment, // TIER 1: Admin operations (5 req/min)
 });

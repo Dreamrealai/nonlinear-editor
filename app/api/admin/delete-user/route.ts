@@ -8,6 +8,7 @@ import { serverLogger } from '@/lib/serverLogger';
 import { withAdminAuth, logAdminAction, type AdminAuthContext } from '@/lib/api/withAuth';
 import { validationError, errorResponse, successResponse } from '@/lib/api/response';
 import { validateUUID, ValidationError } from '@/lib/validation';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
 async function handleDeleteUser(request: NextRequest, context: AdminAuthContext) {
   const { user } = context;
@@ -111,8 +112,7 @@ async function handleDeleteUser(request: NextRequest, context: AdminAuthContext)
 }
 
 // Export with admin authentication middleware and rate limiting
-// TIER 1: Admin operations - reduced from 10/min to 5/min for security
 export const POST = withAdminAuth(handleDeleteUser, {
   route: '/api/admin/delete-user',
-  rateLimit: { max: 5, windowMs: 60 * 1000 }, // TIER 1: 5 deletions per minute max
+  rateLimit: RATE_LIMITS.tier1_auth_payment, // TIER 1: Admin operations (5 req/min)
 });

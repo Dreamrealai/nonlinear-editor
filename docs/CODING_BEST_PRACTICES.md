@@ -609,6 +609,9 @@ return NextResponse.json({ err: 'Bad request' }, { status: 400 });
 
 ```typescript
 // Use tiered rate limits based on operation cost
+import { RATE_LIMITS } from '@/lib/rateLimit';
+import { withAuth } from '@/lib/api/withAuth';
+
 export const RATE_LIMITS = {
   // TIER 1: 5/min - Authentication, payment, admin operations
   tier1_auth_payment: { max: 5, windowMs: 60 * 1000 },
@@ -623,10 +626,48 @@ export const RATE_LIMITS = {
   tier4_general: { max: 60, windowMs: 60 * 1000 },
 } as const;
 
-// Apply appropriate tier
+// TIER 1 Examples: Admin and payment operations (5 req/min)
+export const POST = withAuth(handleChangeTier, {
+  route: '/api/admin/change-tier',
+  rateLimit: RATE_LIMITS.tier1_auth_payment,
+});
+
+export const POST = withAuth(handleStripeCheckout, {
+  route: '/api/stripe/checkout',
+  rateLimit: RATE_LIMITS.tier1_auth_payment,
+});
+
+// TIER 2 Examples: AI generation and resource creation (10 req/min)
 export const POST = withAuth(handleVideoGenerate, {
   route: '/api/video/generate',
-  rateLimit: RATE_LIMITS.tier2_resource_creation, // Expensive operation!
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
+});
+
+export const POST = withAuth(handleImageGenerate, {
+  route: '/api/image/generate',
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
+});
+
+export const POST = withAuth(handleAssetUpload, {
+  route: '/api/assets/upload',
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
+});
+
+// TIER 3 Examples: Status checks and read operations (30 req/min)
+export const GET = withAuth(handleVideoStatus, {
+  route: '/api/video/status',
+  rateLimit: RATE_LIMITS.tier3_status_read,
+});
+
+export const GET = withAuth(handleAssetsList, {
+  route: '/api/assets',
+  rateLimit: RATE_LIMITS.tier3_status_read,
+});
+
+// TIER 4 Examples: General operations (60 req/min)
+export const POST = withAuth(handleLogEvent, {
+  route: '/api/logs',
+  rateLimit: RATE_LIMITS.tier4_general,
 });
 ```
 
@@ -636,9 +677,28 @@ export const POST = withAuth(handleVideoGenerate, {
 // Same limit for all operations
 const RATE_LIMIT = { max: 100, windowMs: 60000 };
 // Video generation gets same limit as status check? Bad!
+
+// Custom limits instead of using tier constants
+export const POST = withAuth(handleAdminAction, {
+  route: '/api/admin/cache',
+  rateLimit: { max: 5, windowMs: 60 * 1000 }, // ❌ Use tier1_auth_payment!
+});
+
+// Missing rate limiting entirely
+export const POST = withAuth(handleCreate, {
+  route: '/api/expensive-operation',
+  // ❌ No rateLimit specified!
+});
 ```
 
-**Pattern Location:** `lib/rateLimit.ts` lines 314-333
+**Rate Limiting Decision Guide:**
+
+- **Use TIER 1** for: Admin operations, payment processing, account deletion
+- **Use TIER 2** for: AI generation (video, image, audio), video processing (upscale, scene detection), file uploads, exports
+- **Use TIER 3** for: Status polling, asset listing, read-only operations
+- **Use TIER 4** for: Client-side logging, chat messages, general CRUD
+
+**Pattern Location:** `lib/rateLimit.ts` lines 314-369
 
 ---
 

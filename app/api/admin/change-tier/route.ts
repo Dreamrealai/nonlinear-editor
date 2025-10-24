@@ -14,6 +14,7 @@ import {
 } from '@/lib/api/response';
 import { validateUUID, validateEnum, ValidationError } from '@/lib/validation';
 import { invalidateUserProfile } from '@/lib/cacheInvalidation';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
 async function handleChangeTier(
   request: NextRequest,
@@ -159,8 +160,7 @@ async function handleChangeTier(
 }
 
 // Export with admin authentication middleware and rate limiting
-// TIER 1: Admin operations - reduced from 30/min to 5/min for security
 export const POST = withAdminAuth(handleChangeTier, {
   route: '/api/admin/change-tier',
-  rateLimit: { max: 5, windowMs: 60 * 1000 }, // TIER 1: 5 tier changes per minute max
+  rateLimit: RATE_LIMITS.tier1_auth_payment, // TIER 1: Admin operations (5 req/min)
 });
