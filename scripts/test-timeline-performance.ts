@@ -49,7 +49,6 @@ function generateTestTimeline(durationSeconds: number, numClips: number): Timeli
     clips.push({
       id: `clip-${i}`,
       assetId: `asset-${i % 10}`, // Reuse 10 assets
-      name: `Clip ${i + 1}`,
       timelinePosition: currentPosition,
       trackIndex,
       start: 0,
@@ -70,9 +69,9 @@ function generateTestTimeline(durationSeconds: number, numClips: number): Timeli
     textOverlays: [],
     markers: [],
     tracks: [
-      { id: 'track-0', name: 'Track 1', index: 0 },
-      { id: 'track-1', name: 'Track 2', index: 1 },
-      { id: 'track-2', name: 'Track 3', index: 2 },
+      { id: 'track-0', name: 'Track 1', index: 0, type: 'video' as const },
+      { id: 'track-1', name: 'Track 2', index: 1, type: 'video' as const },
+      { id: 'track-2', name: 'Track 3', index: 2, type: 'video' as const },
     ],
     duration: durationSeconds,
     createdAt: new Date().toISOString(),
@@ -110,7 +109,12 @@ interface PerformanceMetrics {
 /**
  * Measure timeline calculations performance
  */
-function measureCalculations(timeline: Timeline, zoom: number, scrollLeft: number, viewportWidth: number): {
+function measureCalculations(
+  timeline: Timeline,
+  zoom: number,
+  scrollLeft: number,
+  viewportWidth: number
+): {
   calculationTime: number;
   virtualizationTime: number;
   visibleClips: number;
@@ -144,7 +148,9 @@ function measureCalculations(timeline: Timeline, zoom: number, scrollLeft: numbe
 /**
  * Run performance test for a scenario
  */
-function runPerformanceTest(scenario: typeof TEST_SCENARIOS[keyof typeof TEST_SCENARIOS]): PerformanceMetrics {
+function runPerformanceTest(
+  scenario: (typeof TEST_SCENARIOS)[keyof typeof TEST_SCENARIOS]
+): PerformanceMetrics {
   console.log(`\n📊 Testing: ${scenario.name}`);
   console.log('━'.repeat(60));
 
@@ -204,9 +210,13 @@ function runPerformanceTest(scenario: typeof TEST_SCENARIOS[keyof typeof TEST_SC
 function printMetrics(metrics: PerformanceMetrics) {
   console.log(`\n📈 Results for ${metrics.scenario}:`);
   console.log('─'.repeat(60));
-  console.log(`  Timeline Duration:     ${metrics.duration}s (${(metrics.duration / 60).toFixed(1)} min)`);
+  console.log(
+    `  Timeline Duration:     ${metrics.duration}s (${(metrics.duration / 60).toFixed(1)} min)`
+  );
   console.log(`  Total Clips:           ${metrics.totalClips}`);
-  console.log(`  Visible Clips:         ${metrics.visibleClips} (${(metrics.virtualizationRatio * 100).toFixed(1)}%)`);
+  console.log(
+    `  Visible Clips:         ${metrics.visibleClips} (${(metrics.virtualizationRatio * 100).toFixed(1)}%)`
+  );
   console.log('');
   console.log('  Performance:');
   console.log(`    Calculation Time:    ${metrics.calculationTime.toFixed(3)}ms`);
@@ -246,15 +256,17 @@ function main() {
   // Summary
   console.log('\n\n📊 Performance Summary');
   console.log('━'.repeat(60));
-  console.table(allMetrics.map((m) => ({
-    Scenario: m.scenario,
-    Clips: m.totalClips,
-    'Duration (min)': (m.duration / 60).toFixed(1),
-    'Render (ms)': m.initialRenderTime.toFixed(2),
-    'Memory (MB)': m.memoryDelta.toFixed(2),
-    'Visible %': (m.virtualizationRatio * 100).toFixed(1) + '%',
-    Status: m.initialRenderTime < 16.67 ? '✅' : '⚠️',
-  })));
+  console.table(
+    allMetrics.map((m) => ({
+      Scenario: m.scenario,
+      Clips: m.totalClips,
+      'Duration (min)': (m.duration / 60).toFixed(1),
+      'Render (ms)': m.initialRenderTime.toFixed(2),
+      'Memory (MB)': m.memoryDelta.toFixed(2),
+      'Visible %': (m.virtualizationRatio * 100).toFixed(1) + '%',
+      Status: m.initialRenderTime < 16.67 ? '✅' : '⚠️',
+    }))
+  );
 
   // Recommendations
   console.log('\n💡 Optimization Recommendations:');
@@ -276,7 +288,9 @@ function main() {
   } else {
     console.log('✅ Performance is good across all scenarios!');
     console.log(`  • Max render time: ${worstCase.initialRenderTime.toFixed(2)}ms`);
-    console.log(`  • Virtualization working: ${(worstCase.virtualizationRatio * 100).toFixed(1)}% visible`);
+    console.log(
+      `  • Virtualization working: ${(worstCase.virtualizationRatio * 100).toFixed(1)}% visible`
+    );
   }
 
   console.log('\n✨ Test complete!\n');

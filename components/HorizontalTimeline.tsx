@@ -53,9 +53,7 @@ type HorizontalTimelineProps = {
 // Optimized shallow selector - only re-render when clips/textOverlays array changes
 // This prevents re-renders when clip properties change (handled by React.memo in TimelineClipRenderer)
 const selectTimelineData = (state: ReturnType<typeof useEditorStore.getState>) => ({
-  clips: state.timeline?.clips ?? [],
-  textOverlays: state.timeline?.textOverlays ?? [],
-  timelineId: state.timeline?.id,
+  timeline: state.timeline,
 });
 
 // Separate selector for frequently changing values to minimize re-renders
@@ -133,7 +131,7 @@ function HorizontalTimeline({
 
   // Reconstruct timeline object for hooks that need it
   const timeline = React.useMemo(
-    () => (timelineId ? { id: timelineId, clips, textOverlays } as Timeline : null),
+    () => (timelineId ? ({ id: timelineId, clips, textOverlays } as Timeline) : null),
     [timelineId, clips, textOverlays]
   );
 
