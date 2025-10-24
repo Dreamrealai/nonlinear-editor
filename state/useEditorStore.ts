@@ -23,12 +23,12 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { enableMapSet } from 'immer';
-import type { Timeline, Clip, Marker, Track, TextOverlay, TransitionType } from '@/types/timeline';
+import type { Timeline, Clip, Marker, Track, TextOverlay, TransitionType, Guide } from '@/types/timeline';
 import { EDITOR_CONSTANTS, CLIP_CONSTANTS, ZOOM_CONSTANTS } from '@/lib/constants';
 import { timelineAnnouncements } from '@/lib/utils/screenReaderAnnouncer';
 import { getClipFileName, formatTimecode } from '@/lib/utils/timelineUtils';
 
-const { MAX_HISTORY, HISTORY_DEBOUNCE_MS } = EDITOR_CONSTANTS;
+const { MAX_HISTORY, HISTORY_DEBOUNCE_MS} = EDITOR_CONSTANTS;
 const { MIN_CLIP_DURATION } = CLIP_CONSTANTS;
 const { MIN_ZOOM, MAX_ZOOM, DEFAULT_ZOOM } = ZOOM_CONSTANTS;
 
@@ -76,6 +76,8 @@ type EditorStore = {
   timecodeDisplayMode: 'duration' | 'timecode';
   /** Auto-scroll timeline during playback to follow playhead */
   autoScrollEnabled: boolean;
+  /** Timeline guides for precise alignment */
+  guides: Guide[];
 
   // ===== Timeline Actions =====
   /** Replace entire timeline (initializes history) */
@@ -118,6 +120,20 @@ type EditorStore = {
   removeMarker: (id: string) => void;
   /** Update marker properties */
   updateMarker: (id: string, patch: Partial<Marker>) => void;
+
+  // ===== Guide Actions =====
+  /** Add a timeline guide */
+  addGuide: (guide: Guide) => void;
+  /** Remove a guide */
+  removeGuide: (id: string) => void;
+  /** Update guide properties */
+  updateGuide: (id: string, patch: Partial<Guide>) => void;
+  /** Toggle guide visibility */
+  toggleGuideVisibility: (id: string) => void;
+  /** Toggle all guides visibility */
+  toggleAllGuidesVisibility: () => void;
+  /** Clear all guides */
+  clearAllGuides: () => void;
 
   // ===== Track Actions =====
   /** Update or create a track (auto-creates if not exists) */
@@ -190,6 +206,16 @@ type EditorStore = {
   canUndo: () => boolean;
   /** Check if redo is available */
   canRedo: () => boolean;
+
+  // ===== Guide Actions =====
+  /** Add a timeline guide */
+  addGuide: (time: number) => void;
+  /** Update guide position */
+  updateGuide: (guideId: string, time: number) => void;
+  /** Delete a guide */
+  deleteGuide: (guideId: string) => void;
+  /** Jump playhead to marker */
+  jumpToMarker: (markerId: string) => void;
 };
 
 /**
@@ -244,6 +270,7 @@ export const useEditorStore = create<EditorStore>()(
     historyIndex: -1,
     timecodeDisplayMode: 'duration',
     autoScrollEnabled: true,
+    guides: [],
 
     setTimeline: (timeline) =>
       set((state) => {
@@ -986,5 +1013,37 @@ export const useEditorStore = create<EditorStore>()(
         state.zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newZoom));
       });
     },
+
+    // ===== Guide Actions =====
+    addGuide: (time) =>
+      set((state) => {
+        const guideId = `guide-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        state.guides.push({
+          id: guideId,
+          time,
+          color: '#a855f7', // Purple color
+        });
+      }),
+
+    updateGuide: (guideId, time) =>
+      set((state) => {
+        const guide = state.guides.find((g) => g.id === guideId);
+        if (guide) {
+          guide.time = time;
+        }
+      }),
+
+    deleteGuide: (guideId) =>
+      set((state) => {
+        state.guides = state.guides.filter((g) => g.id !== guideId);
+      }),
+
+    jumpToMarker: (markerId) =>
+      set((state) => {
+        const marker = state.timeline?.markers?.find((m) => m.id === markerId);
+        if (marker) {
+          state.currentTime = marker.time;
+        }
+      }),
   }))
 );

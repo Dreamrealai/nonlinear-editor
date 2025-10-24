@@ -75,6 +75,12 @@ export const generateCSSFilter = (colorCorrection?: ColorCorrection): string => 
     filters.push(`hue-rotate(${colorCorrection.hue}deg)`);
   }
 
+  // Blur: 0-20 pixels (0 = no blur)
+  const blur = (colorCorrection as { blur?: number }).blur;
+  if (blur !== undefined && blur > 0) {
+    filters.push(`blur(${blur}px)`);
+  }
+
   return filters.length > 0 ? filters.join(' ') : 'none';
 };
 

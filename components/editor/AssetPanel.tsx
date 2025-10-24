@@ -2,15 +2,18 @@
  * AssetPanel Component
  *
  * Displays and manages assets (videos, images, audio) for a project.
- * Provides upload, delete, and organization functionality with tabbed interface.
+ * Provides upload, delete, search, filter, sort, and organization functionality with tabbed interface.
  */
 'use client';
 
-import { type ChangeEvent, useRef } from 'react';
+import { type ChangeEvent, useRef, useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { AssetRow } from '@/types/assets';
 import { DragDropZone } from '@/components/ui/DragDropZone';
+
+type SortOption = 'name' | 'date' | 'size' | 'type';
+type SortDirection = 'asc' | 'desc';
 
 interface AssetPanelProps {
   /** List of all assets */
@@ -79,13 +82,66 @@ export function AssetPanel({
 }: AssetPanelProps) {
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
-  const filteredAssets = assets.filter((a) =>
-    activeTab === 'video'
-      ? a.type === 'video'
-      : activeTab === 'image'
-        ? a.type === 'image'
-        : a.type === 'audio'
-  );
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('date');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Filter, search, and sort assets
+  const filteredAssets = useMemo(() => {
+    let filtered = assets.filter((a) =>
+      activeTab === 'video'
+        ? a.type === 'video'
+        : activeTab === 'image'
+          ? a.type === 'image'
+          : a.type === 'audio'
+    );
+
+    // Apply search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((asset) => {
+        const filename = (asset.metadata?.filename || extractFileName(asset.storage_url)).toLowerCase();
+        const type = asset.type.toLowerCase();
+        return filename.includes(query) || type.includes(query);
+      });
+    }
+
+    // Sort assets
+    filtered.sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortBy) {
+        case 'name': {
+          const nameA = (a.metadata?.filename || extractFileName(a.storage_url)).toLowerCase();
+          const nameB = (b.metadata?.filename || extractFileName(b.storage_url)).toLowerCase();
+          comparison = nameA.localeCompare(nameB);
+          break;
+        }
+        case 'date': {
+          const dateA = new Date(a.created_at).getTime();
+          const dateB = new Date(b.created_at).getTime();
+          comparison = dateA - dateB;
+          break;
+        }
+        case 'size': {
+          const sizeA = a.metadata?.size || 0;
+          const sizeB = b.metadata?.size || 0;
+          comparison = sizeA - sizeB;
+          break;
+        }
+        case 'type': {
+          comparison = a.type.localeCompare(b.type);
+          break;
+        }
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return filtered;
+  }, [assets, activeTab, searchQuery, sortBy, sortDirection]);
 
   /**
    * Handle files from drag-and-drop zone
@@ -124,9 +180,9 @@ export function AssetPanel({
   };
 
   return (
-    <aside className="flex flex-col gap-4 overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+    <aside className="flex flex-col gap-4 overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-neutral-900" id="asset-panel-title">
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100" id="asset-panel-title">
           Assets
         </h2>
         <div className="flex items-center gap-2">
@@ -143,16 +199,117 @@ export function AssetPanel({
           />
           <button
             type="button"
+            onClick={() => setShowFilters(!showFilters)}
+            className="rounded-lg bg-neutral-100 dark:bg-neutral-800 px-3 py-1.5 text-xs font-semibold text-neutral-900 dark:text-neutral-100 shadow hover:bg-neutral-200 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            aria-label="Toggle filters"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+              />
+            </svg>
+          </button>
+          <button
+            type="button"
             onClick={() => uploadInputRef.current?.click()}
             disabled={uploadPending}
             aria-label={uploadPending ? 'Uploading files' : `Upload ${activeTab} files`}
             aria-busy={uploadPending}
-            className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-75"
+            className="rounded-lg bg-neutral-900 dark:bg-neutral-700 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-neutral-700 dark:hover:bg-neutral-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-75"
           >
             {uploadPending ? 'Uploading…' : 'Upload'}
           </button>
         </div>
       </div>
+
+      {/* Search and Filter Controls */}
+      {showFilters && (
+        <div className="space-y-3 pb-3 border-b border-neutral-200 dark:border-neutral-700">
+          {/* Search Input */}
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={`Search ${activeTab}s...`}
+              className="w-full rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-2 pl-9 text-sm text-neutral-900 dark:text-neutral-100 placeholder-neutral-500 dark:placeholder-neutral-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500 dark:text-neutral-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+                aria-label="Clear search"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          {/* Sort Controls */}
+          <div className="flex gap-2">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className="flex-1 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="date">Sort by Date</option>
+              <option value="name">Sort by Name</option>
+              <option value="size">Sort by Size</option>
+              <option value="type">Sort by Type</option>
+            </select>
+            <button
+              type="button"
+              onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+              className="rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              aria-label={`Sort ${sortDirection === 'asc' ? 'ascending' : 'descending'}`}
+            >
+              <svg
+                className={`h-4 w-4 transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 15l7-7 7 7"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {/* Results Count */}
+          {searchQuery && (
+            <p className="text-xs text-neutral-600 dark:text-neutral-400">
+              Found {filteredAssets.length} {filteredAssets.length === 1 ? 'result' : 'results'}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-neutral-200" role="tablist" aria-label="Asset types">

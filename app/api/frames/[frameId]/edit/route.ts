@@ -14,6 +14,7 @@ import {
   serviceUnavailableResponse,
   successResponse,
 } from '@/lib/api/response';
+import { validateUUID, validateString, validateInteger, ValidationError } from '@/lib/validation';
 
 export const POST = withAuth<{ frameId: string }>(
   async (request: NextRequest, { user, supabase }, routeContext) => {
@@ -37,22 +38,29 @@ export const POST = withAuth<{ frameId: string }>(
       numVariations = 4,
     } = body;
 
-    // Validate prompt
-    if (!prompt || typeof prompt !== 'string') {
-      await auditLog({
-        userId: user.id,
-        action: AuditAction.FRAME_EDIT_FAILED,
-        resourceType: 'frame',
-        resourceId: frameId,
-        metadata: { error: 'Invalid prompt' },
-        request,
-        statusCode: HttpStatusCode.BAD_REQUEST,
-      });
-      return validationError('Prompt is required', 'prompt');
+    // Validate inputs using centralized validation utilities
+    try {
+      validateUUID(frameId, 'frameId');
+      validateString(prompt, 'prompt', { minLength: 1, maxLength: 1000 });
+      validateInteger(numVariations, 'numVariations', { required: false, min: 1, max: 8 });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await auditLog({
+          userId: user.id,
+          action: AuditAction.FRAME_EDIT_FAILED,
+          resourceType: 'frame',
+          resourceId: frameId,
+          metadata: { error: error.message, field: error.field },
+          request,
+          statusCode: HttpStatusCode.BAD_REQUEST,
+        });
+        return validationError(error.message, error.field);
+      }
+      throw error;
     }
 
-    // Validate numVariations
-    const variations = Math.max(1, Math.min(numVariations, 8)); // Limit between 1 and 8
+    // Limit variations between 1 and 8 (already validated above)
+    const variations = numVariations || 4;
 
     // Audit log: Frame edit request started
     await auditLog({

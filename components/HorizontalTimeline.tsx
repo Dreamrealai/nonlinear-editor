@@ -26,6 +26,7 @@ import { TimelineContextMenu } from './timeline/TimelineContextMenu';
 import { TimelinePlayhead } from './timeline/TimelinePlayhead';
 import { TimelineTextOverlayTrack } from './timeline/TimelineTextOverlayTrack';
 import { TimelineSnapGuides } from './timeline/TimelineSnapGuides';
+import { TimelineTrimOverlay } from './timeline/TimelineTrimOverlay';
 
 // Extracted hooks
 import { useTimelineDraggingWithSnap } from '@/lib/hooks/useTimelineDraggingWithSnap';
@@ -88,6 +89,9 @@ const selectActions = (state: ReturnType<typeof useEditorStore.getState>) => ({
   updateTextOverlay: state.updateTextOverlay,
   toggleClipLock: state.toggleClipLock,
   toggleAutoScroll: state.toggleAutoScroll,
+  groupSelectedClips: state.groupSelectedClips,
+  ungroupClips: state.ungroupClips,
+  getClipGroupId: state.getClipGroupId,
 });
 
 // Selector for undo/redo state
@@ -168,7 +172,7 @@ function HorizontalTimeline({
   });
 
   // Dragging state (clip, playhead, trim) and snap info
-  const { snapInfo, setDraggingClip, setIsDraggingPlayhead, setTrimmingClip } =
+  const { snapInfo, setDraggingClip, setIsDraggingPlayhead, setTrimmingClip, trimPreviewInfo } =
     useTimelineDraggingWithSnap({
       containerRef,
       timeline,
@@ -443,6 +447,9 @@ function HorizontalTimeline({
               zoom={zoom}
               timelineHeight={numTracks * TRACK_HEIGHT}
             />
+
+            {/* Trim Overlay - Visual feedback during trimming */}
+            <TimelineTrimOverlay trimInfo={trimPreviewInfo} />
           </div>
         </div>
       </div>

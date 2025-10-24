@@ -42,29 +42,42 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
     const toggleClipLock = useEditorStore((state) => state.toggleClipLock);
     const timeline = useEditorStore((state) => state.timeline);
 
-    const clipDuration = clip.end - clip.start;
-    const clipWidth = clipDuration * zoom;
-    const clipLeft = clip.timelinePosition * zoom;
-    const clipTop = clip.trackIndex * TRACK_HEIGHT;
+    // Memoize expensive calculations to prevent recalculation on every render
+    const clipMetrics = React.useMemo(() => {
+      const duration = clip.end - clip.start;
+      return {
+        duration,
+        width: duration * zoom,
+        left: clip.timelinePosition * zoom,
+        top: clip.trackIndex * TRACK_HEIGHT,
+      };
+    }, [clip.end, clip.start, clip.timelinePosition, clip.trackIndex, zoom]);
+
     const thumbnail = clip.thumbnailUrl;
     const isLocked = clip.locked ?? false;
 
-    // Check if clip is grouped
-    const isGrouped = Boolean(clip.groupId);
-    const group = timeline?.groups?.find((g) => g.id === clip.groupId);
-    const groupColor = group?.color || '#8b5cf6'; // Default to purple
+    // Check if clip is grouped (memoized)
+    const groupInfo = React.useMemo(() => {
+      const isGrouped = Boolean(clip.groupId);
+      const group = timeline?.groups?.find((g) => g.id === clip.groupId);
+      const groupColor = group?.color || '#8b5cf6';
+      return { isGrouped, group, groupColor };
+    }, [clip.groupId, timeline?.groups]);
 
-    // Calculate timecode values
-    const inTimecode = formatTimecode(clip.start);
-    const outTimecode = formatTimecode(clip.end);
-    const clipStartTime = formatTimecode(clip.timelinePosition);
-    const clipEndTime = formatTimecode(clip.timelinePosition + clipDuration);
+    // Calculate timecode values (memoized)
+    const timecodes = React.useMemo(() => ({
+      in: formatTimecode(clip.start),
+      out: formatTimecode(clip.end),
+      start: formatTimecode(clip.timelinePosition),
+      end: formatTimecode(clip.timelinePosition + clipMetrics.duration),
+    }), [clip.start, clip.end, clip.timelinePosition, clipMetrics.duration]);
 
-    const handleLockToggle = (e: React.MouseEvent) => {
+    // Memoize event handlers to prevent re-renders
+    const handleLockToggle = React.useCallback((e: React.MouseEvent) => {
       e.stopPropagation();
       e.preventDefault();
       toggleClipLock(clip.id);
-    };
+    }, [toggleClipLock, clip.id]);
 
     return (
       <div
@@ -75,19 +88,19 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
         } ${
           isSelected
             ? 'border-yellow-400 ring-2 ring-yellow-400/50'
-            : isGrouped
-            ? `border-[${groupColor}] hover:brightness-110`
+            : groupInfo.isGrouped
+            ? `border-[${groupInfo.groupColor}] hover:brightness-110`
             : isLocked
             ? 'border-gray-400'
             : 'border-blue-500 hover:border-blue-600'
         }`}
         style={{
-          left: clipLeft,
-          top: clipTop + 8,
-          width: clipWidth,
+          left: clipMetrics.left,
+          top: clipMetrics.top + 8,
+          width: clipMetrics.width,
           height: TRACK_HEIGHT - 16,
-          ...(isGrouped && !isSelected
-            ? { borderColor: groupColor, boxShadow: `0 0 0 1px ${groupColor}80` }
+          ...(groupInfo.isGrouped && !isSelected
+            ? { borderColor: groupInfo.groupColor, boxShadow: `0 0 0 1px ${groupInfo.groupColor}80` }
             : {}),
         }}
         onMouseDown={(e) => onMouseDown(e, clip)}
@@ -103,7 +116,7 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
         }}
         role="button"
         tabIndex={0}
-        aria-label={`Timeline clip: ${getClipFileName(clip)}${isGrouped ? ` (${group?.name || 'Grouped'})` : ''}`}
+        aria-label={`Timeline clip: ${getClipFileName(clip)}${groupInfo.isGrouped ? ` (${groupInfo.group?.name || 'Grouped'})` : ''}`}
       >
         <div className="relative h-full w-full select-none">
           {thumbnail ? (
@@ -132,8 +145,9 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
             >
               <AudioWaveform
                 clip={clip}
-                width={clipWidth}
+                width={clipMetrics.width}
                 height={Math.floor((TRACK_HEIGHT - 16) * 0.3)}
+                zoom={zoom}
                 className="opacity-80"
               />
             </div>
@@ -176,11 +190,11 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1">
                   <p className="truncate text-xs font-semibold">{getClipFileName(clip)}</p>
-                  {isGrouped && (
+                  {groupInfo.isGrouped && (
                     <div
                       className="flex-shrink-0 rounded px-1 py-0.5 text-[8px] font-bold uppercase"
-                      style={{ backgroundColor: groupColor, color: 'white' }}
-                      title={group?.name || 'Grouped'}
+                      style={{ backgroundColor: groupInfo.groupColor, color: 'white' }}
+                      title={groupInfo.group?.name || 'Grouped'}
                     >
                       <svg
                         className="h-2.5 w-2.5"
@@ -200,12 +214,12 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
                 </div>
                 {timecodeDisplayMode === 'duration' ? (
                   <p className="text-[10px] font-medium text-white/70">
-                    {clipDuration.toFixed(1)}s
+                    {clipMetrics.duration.toFixed(1)}s
                   </p>
                 ) : (
                   <div className="text-[9px] font-mono text-white/80 leading-tight">
-                    <div>In: {inTimecode}</div>
-                    <div>Out: {outTimecode}</div>
+                    <div>In: {timecodes.in}</div>
+                    <div>Out: {timecodes.out}</div>
                   </div>
                 )}
               </div>
@@ -286,26 +300,26 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
                 <div className="space-y-0.5 text-xs font-mono">
                   <div className="flex justify-between gap-4">
                     <span className="text-white/70">Start:</span>
-                    <span className="text-white font-semibold">{clipStartTime}</span>
+                    <span className="text-white font-semibold">{timecodes.start}</span>
                   </div>
                   <div className="flex justify-between gap-4">
                     <span className="text-white/70">End:</span>
-                    <span className="text-white font-semibold">{clipEndTime}</span>
+                    <span className="text-white font-semibold">{timecodes.end}</span>
                   </div>
                   <div className="flex justify-between gap-4">
                     <span className="text-white/70">Duration:</span>
                     <span className="text-emerald-400 font-semibold">
-                      {clipDuration.toFixed(2)}s
+                      {clipMetrics.duration.toFixed(2)}s
                     </span>
                   </div>
                   <div className="border-t border-white/20 pt-1 mt-1">
                     <div className="flex justify-between gap-4">
                       <span className="text-white/70">In:</span>
-                      <span className="text-blue-400 font-semibold">{inTimecode}</span>
+                      <span className="text-blue-400 font-semibold">{timecodes.in}</span>
                     </div>
                     <div className="flex justify-between gap-4">
                       <span className="text-white/70">Out:</span>
-                      <span className="text-blue-400 font-semibold">{outTimecode}</span>
+                      <span className="text-blue-400 font-semibold">{timecodes.out}</span>
                     </div>
                   </div>
                 </div>

@@ -8,6 +8,7 @@ import {
   internalServerError,
   successResponse,
 } from '@/lib/api/response';
+import { validateUUID, ValidationError } from '@/lib/validation';
 
 const handleSplitAudio: AuthenticatedHandler = async (req, { user, supabase }) => {
   serverLogger.info({ event: 'split_audio.request_started' }, 'Audio split request received');
@@ -15,20 +16,24 @@ const handleSplitAudio: AuthenticatedHandler = async (req, { user, supabase }) =
   const body = await req.json();
   const { assetId, projectId } = body;
 
-  if (!assetId) {
-    serverLogger.warn(
-      { event: 'split_audio.missing_asset_id', userId: user.id },
-      'Missing asset ID'
-    );
-    return validationError('Asset ID is required', 'assetId');
-  }
-
-  if (!projectId) {
-    serverLogger.warn(
-      { event: 'split_audio.missing_project_id', userId: user.id },
-      'Missing project ID'
-    );
-    return validationError('Project ID is required', 'projectId');
+  // Validate inputs using centralized validation utilities
+  try {
+    validateUUID(assetId, 'assetId');
+    validateUUID(projectId, 'projectId');
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      serverLogger.warn(
+        {
+          event: 'split_audio.validation_error',
+          userId: user.id,
+          field: error.field,
+          error: error.message,
+        },
+        `Validation error: ${error.message}`
+      );
+      return validationError(error.message, error.field);
+    }
+    throw error;
   }
 
   serverLogger.info(

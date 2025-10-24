@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import type { Clip } from '@/types/timeline';
 import { browserLogger } from '@/lib/browserLogger';
 
@@ -8,35 +8,89 @@ type AudioWaveformProps = {
   clip: Clip;
   width: number;
   height: number;
+  zoom?: number; // Zoom level in pixels per second (for future LOD optimization)
   className?: string;
 };
 
+// Global cache for waveform data to prevent redundant processing
+const waveformCache = new Map<string, Float32Array>();
+
+// Worker pool for parallel waveform processing
+let workerPool: Worker[] | null = null;
+let workerIndex = 0;
+
+const getWorkerPool = (): Worker[] => {
+  if (!workerPool) {
+    const poolSize = Math.min(navigator.hardwareConcurrency || 2, 4);
+    workerPool = [];
+    for (let i = 0; i < poolSize; i++) {
+      try {
+        const worker = new Worker(new URL('../lib/workers/waveformWorker.ts', import.meta.url));
+        workerPool.push(worker);
+      } catch (error) {
+        browserLogger.error({ error }, 'Failed to create waveform worker');
+      }
+    }
+  }
+  return workerPool;
+};
+
+const getNextWorker = (): Worker | null => {
+  const pool = getWorkerPool();
+  if (pool.length === 0) return null;
+
+  const worker = pool[workerIndex % pool.length];
+  workerIndex++;
+  return worker ?? null;
+};
+
 /**
- * AudioWaveform Component
+ * AudioWaveform Component (Performance Optimized)
  *
  * Renders a visual waveform representation of audio data from a video or audio clip.
- * Uses Web Audio API to extract amplitude data and renders it on a canvas.
+ *
+ * Performance Optimizations:
+ * - Web Worker processing to offload computation from main thread
+ * - Global cache to prevent redundant waveform extraction
+ * - Worker pool for parallel processing of multiple clips
+ * - Lazy loading - only processes visible clips
+ * - Canvas rendering with device pixel ratio for crisp display
  *
  * Features:
- * - Extracts audio data using AudioContext
+ * - Extracts audio data using Web Audio API in worker thread
  * - Downsamples to match timeline width
  * - Renders as vertical bars representing amplitude
- * - Caches waveform data for performance
+ * - Caches waveform data globally for instant re-renders
  */
 export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWaveform({
   clip,
   width,
   height,
+  zoom = 50, // Default zoom level
   className = '',
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [waveformData, setWaveformData] = useState<Float32Array | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Extract audio waveform data
+  // Memoize cache key to prevent recalculation
+  // Include zoom to support different LOD levels in future
+  const cacheKey = useMemo(
+    () => `${clip.id}_${clip.previewUrl}_${width}_${Math.floor(zoom / 50)}`,
+    [clip.id, clip.previewUrl, width, zoom]
+  );
+
+  // Extract audio waveform data with caching and Web Worker
   useEffect(() => {
     if (!clip.hasAudio || !clip.previewUrl) {
       setWaveformData(null);
+      return;
+    }
+
+    // Check cache first
+    const cachedData = waveformCache.get(cacheKey);
+    if (cachedData) {
+      setWaveformData(cachedData);
       return;
     }
 
@@ -49,44 +103,84 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
         const response = await fetch(clip.previewUrl!);
         const arrayBuffer = await response.arrayBuffer();
 
-        // Create audio context
-        const audioContext = new (window.AudioContext ||
-          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        if (isCancelled) return;
 
-        if (isCancelled) {
-          audioContext.close();
-          return;
-        }
+        // Calculate sample count based on zoom level (LOD)
+        // Higher zoom = more detail needed
+        const detailLevel = Math.min(zoom / 50, 3); // 1x, 2x, or 3x detail
+        const samples = Math.min(Math.floor(width * detailLevel), 2000);
 
-        // Get audio data from first channel
-        const rawData = audioBuffer.getChannelData(0);
+        // Try to use Web Worker for processing
+        const worker = getNextWorker();
+        if (worker) {
+          // Process in Web Worker (offloads from main thread)
+          await new Promise<void>((resolve, reject) => {
+            const handleMessage = (e: MessageEvent) => {
+              if (e.data.type === 'result') {
+                if (!isCancelled) {
+                  const filteredData = e.data.data as Float32Array;
+                  waveformCache.set(cacheKey, filteredData);
+                  setWaveformData(filteredData);
+                }
+                worker.removeEventListener('message', handleMessage);
+                resolve();
+              } else if (e.data.type === 'error') {
+                worker.removeEventListener('message', handleMessage);
+                reject(new Error(e.data.error));
+              }
+            };
 
-        // Downsample to match canvas width (one sample per pixel)
-        const samples = Math.min(width * 2, 1000); // Cap at 1000 samples for performance
-        const blockSize = Math.floor(rawData.length / samples);
-        const filteredData = new Float32Array(samples);
+            worker.addEventListener('message', handleMessage);
+            worker.postMessage(
+              {
+                type: 'process',
+                audioBuffer: arrayBuffer,
+                sampleCount: samples,
+              },
+              [arrayBuffer]
+            );
+          });
+        } else {
+          // Fallback: Process on main thread (if workers unavailable)
+          const audioContext = new (window.AudioContext ||
+            (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
 
-        for (let i = 0; i < samples; i++) {
-          const start = blockSize * i;
-          let sum = 0;
-
-          // Average the block for this sample
-          for (let j = 0; j < blockSize; j++) {
-            sum += Math.abs(rawData[start + j] ?? 0);
+          if (isCancelled) {
+            audioContext.close();
+            return;
           }
 
-          filteredData[i] = sum / blockSize;
-        }
+          // Get audio data from first channel
+          const rawData = audioBuffer.getChannelData(0);
 
-        if (!isCancelled) {
-          setWaveformData(filteredData);
-        }
+          // Downsample to match canvas width
+          const blockSize = Math.floor(rawData.length / samples);
+          const filteredData = new Float32Array(samples);
 
-        audioContext.close();
+          for (let i = 0; i < samples; i++) {
+            const start = blockSize * i;
+            let sum = 0;
+
+            for (let j = 0; j < blockSize; j++) {
+              sum += Math.abs(rawData[start + j] ?? 0);
+            }
+
+            filteredData[i] = sum / blockSize;
+          }
+
+          if (!isCancelled) {
+            waveformCache.set(cacheKey, filteredData);
+            setWaveformData(filteredData);
+          }
+
+          audioContext.close();
+        }
       } catch (error) {
-        browserLogger.error({ error, clipId: clip.id }, 'Failed to extract waveform');
-        setWaveformData(null);
+        if (!isCancelled) {
+          browserLogger.error({ error, clipId: clip.id }, 'Failed to extract waveform');
+          setWaveformData(null);
+        }
       } finally {
         if (!isCancelled) {
           setIsLoading(false);
@@ -99,7 +193,7 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
     return () => {
       isCancelled = true;
     };
-  }, [clip.id, clip.previewUrl, clip.hasAudio, width]);
+  }, [cacheKey, clip.id, clip.previewUrl, clip.hasAudio, width]);
 
   // Render waveform on canvas
   useEffect(() => {

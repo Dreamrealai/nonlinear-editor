@@ -11,6 +11,7 @@ import {
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
+import { validateUUID, ValidationError } from '@/lib/validation';
 
 const parseStorageUrl = (storageUrl: string): { bucket: string; path: string } | null => {
   // SECURITY: Validate input format
@@ -45,23 +46,24 @@ const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) 
   const body = await req.json();
   const { assetId, projectId } = body;
 
-  // Validate assetId format (UUID)
-  if (!assetId) {
-    return validationError('Asset ID is required', 'assetId');
-  }
-
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(assetId)) {
-    return validationError('Invalid asset ID format', 'assetId');
-  }
-
-  // Validate projectId format (UUID)
-  if (!projectId) {
-    return validationError('Project ID is required', 'projectId');
-  }
-
-  if (!uuidRegex.test(projectId)) {
-    return validationError('Invalid project ID format', 'projectId');
+  // Validate inputs using centralized validation utilities
+  try {
+    validateUUID(assetId, 'assetId');
+    validateUUID(projectId, 'projectId');
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      serverLogger.warn(
+        {
+          event: 'split_scenes.validation_error',
+          userId: user.id,
+          field: error.field,
+          error: error.message,
+        },
+        `Validation error: ${error.message}`
+      );
+      return validationError(error.message, error.field);
+    }
+    throw error;
   }
 
   // Get the video asset

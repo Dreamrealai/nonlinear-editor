@@ -1,6 +1,29 @@
 'use client';
 
-import { Copy, Clipboard, Trash2, Files, Info, Volume2, Film, Music, Lock, Unlock, Zap, Users, Ungroup } from 'lucide-react';
+import {
+  Copy,
+  Clipboard,
+  Trash2,
+  Files,
+  Info,
+  Volume2,
+  Film,
+  Music,
+  Lock,
+  Unlock,
+  Zap,
+  Users,
+  Ungroup,
+  Palette,
+  RotateCw,
+  Gauge,
+  VolumeX,
+  Volume1,
+  FastForward,
+  FlipHorizontal,
+  FlipVertical,
+  Maximize2
+} from 'lucide-react';
 import { useState } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip } from '@/types/timeline';
@@ -50,11 +73,14 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
   const ungroupClips = useEditorStore((state) => state.ungroupClips);
   const getClipGroupId = useEditorStore((state) => state.getClipGroupId);
   const selectedClipIds = useEditorStore((state) => state.selectedClipIds);
+  const updateClip = useEditorStore((state) => state.updateClip);
   const clip = useClipData(clipId);
   const isLocked = clip?.locked ?? false;
   const groupId = getClipGroupId(clipId);
   const isGrouped = Boolean(groupId);
   const canGroup = selectedClipIds.size >= 2;
+  const isMuted = clip?.muted ?? false;
+  const hasAudio = clip?.hasAudio ?? false;
 
   // Detect if Mac for keyboard shortcuts
   const isMac =
@@ -64,7 +90,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
   return (
     <>
       <div
-        className="fixed z-50 rounded-md border border-neutral-200 bg-white shadow-lg py-1 min-w-[200px]"
+        className="fixed z-50 rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-lg py-1 min-w-[220px] max-h-[80vh] overflow-y-auto"
         style={{ left: x, top: y }}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => {
@@ -175,6 +201,189 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
           </>
         )}
 
+        {/* Effects Section */}
+        <MenuDivider />
+        <MenuSectionHeader label="Effects" />
+        <MenuButton
+          icon={<Palette className="h-4 w-4" />}
+          label="Color Correction"
+          onClick={() => {
+            // Reset to default color correction
+            updateClip(clipId, {
+              colorCorrection: {
+                brightness: 100,
+                contrast: 100,
+                saturation: 100,
+                hue: 0,
+              },
+            });
+            onClose();
+          }}
+        />
+        <MenuButton
+          icon={<RotateCw className="h-4 w-4" />}
+          label="Reset Transform"
+          onClick={() => {
+            // Reset rotation and scale
+            updateClip(clipId, {
+              transform: {
+                rotation: 0,
+                flipHorizontal: false,
+                flipVertical: false,
+                scale: 1.0,
+              },
+            });
+            onClose();
+          }}
+        />
+        <MenuButton
+          icon={<FlipHorizontal className="h-4 w-4" />}
+          label="Flip Horizontal"
+          onClick={() => {
+            const currentTransform = clip?.transform ?? {
+              rotation: 0,
+              flipHorizontal: false,
+              flipVertical: false,
+              scale: 1.0,
+            };
+            updateClip(clipId, {
+              transform: {
+                ...currentTransform,
+                flipHorizontal: !currentTransform.flipHorizontal,
+              },
+            });
+            onClose();
+          }}
+        />
+        <MenuButton
+          icon={<FlipVertical className="h-4 w-4" />}
+          label="Flip Vertical"
+          onClick={() => {
+            const currentTransform = clip?.transform ?? {
+              rotation: 0,
+              flipHorizontal: false,
+              flipVertical: false,
+              scale: 1.0,
+            };
+            updateClip(clipId, {
+              transform: {
+                ...currentTransform,
+                flipVertical: !currentTransform.flipVertical,
+              },
+            });
+            onClose();
+          }}
+        />
+
+        {/* Speed Control Section */}
+        <MenuDivider />
+        <MenuSectionHeader label="Speed" />
+        <MenuButton
+          icon={<FastForward className="h-4 w-4" />}
+          label="0.5x Speed"
+          onClick={() => {
+            updateClip(clipId, { speed: 0.5 });
+            onClose();
+          }}
+        />
+        <MenuButton
+          icon={<FastForward className="h-4 w-4" />}
+          label="1.0x Speed (Normal)"
+          onClick={() => {
+            updateClip(clipId, { speed: 1.0 });
+            onClose();
+          }}
+        />
+        <MenuButton
+          icon={<FastForward className="h-4 w-4" />}
+          label="2.0x Speed"
+          onClick={() => {
+            updateClip(clipId, { speed: 2.0 });
+            onClose();
+          }}
+        />
+
+        {/* Audio Section */}
+        {hasAudio && (
+          <>
+            <MenuDivider />
+            <MenuSectionHeader label="Audio" />
+            <MenuButton
+              icon={isMuted ? <Volume1 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              label={isMuted ? 'Unmute' : 'Mute'}
+              shortcut="M"
+              onClick={() => {
+                updateClip(clipId, { muted: !isMuted });
+                onClose();
+              }}
+            />
+            <MenuButton
+              icon={<Volume2 className="h-4 w-4" />}
+              label="Reset Volume"
+              onClick={() => {
+                updateClip(clipId, { volume: 1.0 });
+                onClose();
+              }}
+            />
+            <MenuButton
+              icon={<Gauge className="h-4 w-4" />}
+              label="Reset Audio Effects"
+              onClick={() => {
+                updateClip(clipId, {
+                  audioEffects: {
+                    bassGain: 0,
+                    midGain: 0,
+                    trebleGain: 0,
+                    compression: 0,
+                    normalize: false,
+                  },
+                });
+                onClose();
+              }}
+            />
+          </>
+        )}
+
+        {/* Scale/Zoom Section */}
+        <MenuDivider />
+        <MenuSectionHeader label="Scale" />
+        <MenuButton
+          icon={<Maximize2 className="h-4 w-4" />}
+          label="Fit to Frame"
+          onClick={() => {
+            updateClip(clipId, {
+              transform: {
+                ...(clip?.transform ?? {
+                  rotation: 0,
+                  flipHorizontal: false,
+                  flipVertical: false,
+                  scale: 1.0,
+                }),
+                scale: 1.0,
+              },
+            });
+            onClose();
+          }}
+        />
+        <MenuButton
+          icon={<Maximize2 className="h-4 w-4" />}
+          label="Scale 1.5x"
+          onClick={() => {
+            updateClip(clipId, {
+              transform: {
+                ...(clip?.transform ?? {
+                  rotation: 0,
+                  flipHorizontal: false,
+                  flipVertical: false,
+                  scale: 1.0,
+                }),
+                scale: 1.5,
+              },
+            });
+            onClose();
+          }}
+        />
+
         {/* Lock/Unlock */}
         <MenuDivider />
         <MenuButton
@@ -258,7 +467,9 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   variant = 'default',
 }) => {
   const variantClasses =
-    variant === 'danger' ? 'text-red-600 hover:bg-red-50' : 'text-neutral-700 hover:bg-neutral-100';
+    variant === 'danger'
+      ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950'
+      : 'text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700';
 
   return (
     <button
@@ -270,7 +481,9 @@ const MenuButton: React.FC<MenuButtonProps> = ({
         {icon}
         <span>{label}</span>
       </div>
-      {shortcut && <span className="text-xs text-neutral-400 font-mono">{shortcut}</span>}
+      {shortcut && (
+        <span className="text-xs text-neutral-400 dark:text-neutral-500 font-mono">{shortcut}</span>
+      )}
     </button>
   );
 };
@@ -278,7 +491,21 @@ const MenuButton: React.FC<MenuButtonProps> = ({
 /**
  * Menu divider component
  */
-const MenuDivider: React.FC = () => <div className="my-1 h-px bg-neutral-200" />;
+const MenuDivider: React.FC = () => <div className="my-1 h-px bg-neutral-200 dark:bg-neutral-700" />;
+
+/**
+ * Menu section header component
+ * Used to organize menu items into labeled sections
+ */
+type MenuSectionHeaderProps = {
+  label: string;
+};
+
+const MenuSectionHeader: React.FC<MenuSectionHeaderProps> = ({ label }) => (
+  <div className="px-4 py-1.5 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
+    {label}
+  </div>
+);
 
 /**
  * Clip Properties Modal

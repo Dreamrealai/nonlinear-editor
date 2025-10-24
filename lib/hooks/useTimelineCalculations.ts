@@ -67,6 +67,7 @@ export function useTimelineCalculations({
   }, [timeline, forcedTrackCount]);
 
   // Virtualized clip rendering (only visible clips + overscan)
+  // Enhanced with binary search for better performance with large clip arrays
   const visibleClips = useMemo<Clip[]>(() => {
     try {
       if (!timeline?.clips.length) return [];
@@ -75,6 +76,52 @@ export function useTimelineCalculations({
       const viewportStartTime = (scrollLeft - overscan) / zoom;
       const viewportEndTime = (scrollLeft + viewportWidth + overscan) / zoom;
 
+      // For large clip arrays (50+), use sorted + binary search for better performance
+      if (timeline.clips.length > 50) {
+        // Sort clips by timeline position (cached via sortedClips reference)
+        const sortedClips = [...timeline.clips].sort((a, b) => a.timelinePosition - b.timelinePosition);
+
+        // Binary search to find first visible clip
+        let left = 0;
+        let right = sortedClips.length - 1;
+        let firstVisibleIndex = 0;
+
+        while (left <= right) {
+          const mid = Math.floor((left + right) / 2);
+          const clip = sortedClips[mid];
+          if (!clip) break;
+
+          const clipEnd = clip.timelinePosition + (clip.end - clip.start);
+
+          if (clipEnd < viewportStartTime) {
+            left = mid + 1;
+          } else {
+            firstVisibleIndex = mid;
+            right = mid - 1;
+          }
+        }
+
+        // Collect visible clips from first visible index
+        const visible: Clip[] = [];
+        for (let i = firstVisibleIndex; i < sortedClips.length; i++) {
+          const clip = sortedClips[i];
+          if (!clip) break;
+
+          const clipStart = clip.timelinePosition;
+          const clipEnd = clipStart + (clip.end - clip.start);
+
+          // Break early if we've passed the viewport
+          if (clipStart > viewportEndTime) break;
+
+          if (clipEnd >= viewportStartTime && clipStart <= viewportEndTime) {
+            visible.push(clip);
+          }
+        }
+
+        return visible;
+      }
+
+      // For smaller arrays, use simple filter (faster for small N)
       return timeline.clips.filter((clip) => {
         const clipStart = clip.timelinePosition;
         const clipEnd = clipStart + (clip.end - clip.start);

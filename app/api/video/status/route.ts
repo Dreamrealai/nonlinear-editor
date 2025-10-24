@@ -11,6 +11,7 @@ import { RATE_LIMITS } from '@/lib/rateLimit';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 import { createAssetWithCleanup } from '@/lib/api/statusCheckHandler';
+import { validateUUID, validateString, ValidationError } from '@/lib/validation';
 
 const normalizeStorageUrl = (bucket: string, path: string): string =>
   `supabase://${bucket}/${path}`;
@@ -99,12 +100,24 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
   const operationName = searchParams.get('operationName');
   const projectId = searchParams.get('projectId');
 
-  if (!operationName) {
-    return validationError('Operation name is required', 'operationName');
-  }
-
-  if (!projectId) {
-    return validationError('Project ID is required', 'projectId');
+  // Validate inputs using centralized validation utilities
+  try {
+    validateString(operationName, 'operationName', { minLength: 1, maxLength: 500 });
+    validateUUID(projectId, 'projectId');
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      serverLogger.warn(
+        {
+          event: 'video.status.validation_error',
+          userId: user.id,
+          field: error.field,
+          error: error.message,
+        },
+        `Validation error: ${error.message}`
+      );
+      return validationError(error.message, error.field);
+    }
+    throw error;
   }
 
   // Determine if this is a FAL operation or Veo operation

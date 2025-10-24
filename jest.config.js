@@ -15,6 +15,8 @@ const customJestConfig = {
     // Mock Next.js components
     '^next/link$': '<rootDir>/__mocks__/next/link.tsx',
     '^next/image$': '<rootDir>/__mocks__/next/image.tsx',
+    // Mock browser logger to prevent console interception in tests
+    '^@/lib/browserLogger$': '<rootDir>/__mocks__/lib/browserLogger.ts',
     // Handle module aliases
     '^@/(.*)$': '<rootDir>/$1',
   },

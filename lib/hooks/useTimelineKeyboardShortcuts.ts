@@ -7,6 +7,9 @@
  * - Delete/Backspace
  * - Split clip (S key)
  * - Lock/Unlock selected clips (L key)
+ * - Add transition (T key)
+ * - Group selected clips (G key)
+ * - Ungroup clips (Shift+G key)
  */
 'use client';
 
@@ -26,6 +29,8 @@ type UseTimelineKeyboardShortcutsOptions = {
   splitClipAtTime: (clipId: string, time: number) => void;
   toggleClipLock?: (clipId: string) => void;
   onAddTransition?: () => void;
+  onGroupClips?: () => void;
+  onUngroupClips?: () => void;
 };
 
 export function useTimelineKeyboardShortcuts({
@@ -41,6 +46,8 @@ export function useTimelineKeyboardShortcuts({
   splitClipAtTime,
   toggleClipLock,
   onAddTransition,
+  onGroupClips,
+  onUngroupClips,
 }: UseTimelineKeyboardShortcutsOptions) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -124,6 +131,22 @@ export function useTimelineKeyboardShortcuts({
           onAddTransition();
         }
       }
+
+      // G: Group selected clips
+      if ((e.key === 'g' || e.key === 'G') && !e.shiftKey) {
+        e.preventDefault();
+        if (onGroupClips && selectedClipIds.size >= 2) {
+          onGroupClips();
+        }
+      }
+
+      // Shift+G: Ungroup clips
+      if ((e.key === 'g' || e.key === 'G') && e.shiftKey) {
+        e.preventDefault();
+        if (onUngroupClips && selectedClipIds.size > 0) {
+          onUngroupClips();
+        }
+      }
     };
 
     if (typeof window !== 'undefined') {
@@ -144,5 +167,7 @@ export function useTimelineKeyboardShortcuts({
     redo,
     toggleClipLock,
     onAddTransition,
+    onGroupClips,
+    onUngroupClips,
   ]);
 }

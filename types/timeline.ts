@@ -7,12 +7,16 @@ export type CropRect = {
   height: number;
 } | null;
 
-export type ColorCorrection = {
+export type VideoEffects = {
   brightness: number; // 0-200, default 100 (100 = no change)
   contrast: number;   // 0-200, default 100 (100 = no change)
   saturation: number; // 0-200, default 100 (100 = no change)
   hue: number;        // 0-360, default 0 (degrees rotation)
+  blur: number;       // 0-20 pixels, default 0 (no blur)
 };
+
+// Keep ColorCorrection as an alias for backward compatibility
+export type ColorCorrection = VideoEffects;
 
 export type Transform = {
   rotation: number;       // 0-360, default 0 (degrees)
@@ -102,6 +106,15 @@ export type Marker = {
   color?: string; // Hex color (e.g., '#000000')
 };
 
+export type Guide = {
+  id: string;
+  position: number; // Position in seconds (for vertical guides) or track index (for horizontal guides)
+  orientation: 'vertical' | 'horizontal'; // Guide direction
+  color?: string; // Hex color (default: '#3b82f6' - blue)
+  visible?: boolean; // Whether guide is visible (default: true)
+  label?: string; // Optional label for the guide
+};
+
 // Animation types for text overlays
 export type TextAnimationType =
   | 'none'
@@ -172,4 +185,5 @@ export type Timeline = {
   markers?: Marker[]; // Timeline markers
   textOverlays?: TextOverlay[]; // Text overlays
   groups?: ClipGroup[]; // Clip groups for organizing related clips
+  guides?: Guide[]; // Timeline guides for alignment
 };

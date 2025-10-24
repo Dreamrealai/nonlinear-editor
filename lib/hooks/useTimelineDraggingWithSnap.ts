@@ -142,5 +142,6 @@ export function useTimelineDraggingWithSnap(options: UseTimelineDraggingWithSnap
   return {
     ...draggingState,
     snapInfo,
+    trimPreviewInfo: draggingState.trimPreviewInfo,
   };
 }

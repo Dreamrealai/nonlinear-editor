@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import { withSentryConfig } from '@sentry/nextjs';
 
 // Bundle analyzer configuration
 const withBundleAnalyzer =
@@ -164,11 +165,46 @@ const nextConfig: NextConfig = {
   compress: true, // Enable compression (gzip)
   generateEtags: true, // Enable ETags for caching
 
-  // Disable source maps in production for smaller bundle size
-  productionBrowserSourceMaps: false,
+  // Enable source maps in production for Sentry error tracking
+  productionBrowserSourceMaps: true,
 
   // Standalone output for smaller production builds
   output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
 };
 
-export default withBundleAnalyzer(nextConfig);
+// Sentry configuration options
+const sentryWebpackPluginOptions = {
+  // For all available options, see:
+  // https://github.com/getsentry/sentry-webpack-plugin#options
+
+  // Suppresses all logs
+  silent: true,
+
+  // Organization slug (from Sentry dashboard)
+  org: process.env.SENTRY_ORG,
+
+  // Project name (from Sentry dashboard)
+  project: process.env.SENTRY_PROJECT,
+
+  // Auth token for uploading source maps
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Only upload source maps if DSN is configured
+  disabled: !process.env.NEXT_PUBLIC_SENTRY_DSN,
+
+  // Hide source maps from public
+  hideSourceMaps: true,
+
+  // Disable telemetry
+  telemetry: false,
+
+  // Disable source map upload during development
+  disableServerWebpackPlugin: process.env.NODE_ENV !== 'production',
+  disableClientWebpackPlugin: process.env.NODE_ENV !== 'production',
+};
+
+// Wrap config with bundle analyzer, then Sentry
+const configWithAnalyzer = withBundleAnalyzer(nextConfig);
+export default process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(configWithAnalyzer, sentryWebpackPluginOptions)
+  : configWithAnalyzer;

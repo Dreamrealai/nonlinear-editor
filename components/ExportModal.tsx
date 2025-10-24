@@ -2,16 +2,18 @@
  * ExportModal Component
  *
  * Modal for exporting video projects
- * - Multiple export presets (1080p, 720p, 480p, Web)
+ * - Platform-specific presets (YouTube, Instagram, TikTok, etc.)
+ * - Custom preset creation and management
  * - Quality settings display
  * - FFmpeg processing integration
  */
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 import type { Timeline } from '@/types/timeline';
+import type { ExportPreset } from '@/types/export';
 import {
   Dialog,
   DialogContent,
@@ -22,7 +24,7 @@ import {
 } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { Info } from 'lucide-react';
+import { Info, Plus, Trash2, Youtube, Instagram, Twitter } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert';
 import { cn } from '@/lib/utils';
 
@@ -33,66 +35,59 @@ export interface ExportModalProps {
   timeline: Timeline | null;
 }
 
-export interface ExportPreset {
-  name: string;
-  description: string;
-  width: number;
-  height: number;
-  fps: number;
-  vBitrateK: number;
-  aBitrateK: number;
-  format: 'mp4' | 'webm';
-}
-
-const EXPORT_PRESETS: ExportPreset[] = [
-  {
-    name: '1080p HD',
-    description: 'Full HD quality (1920x1080)',
-    width: 1920,
-    height: 1080,
-    fps: 30,
-    vBitrateK: 8000,
-    aBitrateK: 192,
-    format: 'mp4',
-  },
-  {
-    name: '720p HD',
-    description: 'High quality (1280x720)',
-    width: 1280,
-    height: 720,
-    fps: 30,
-    vBitrateK: 5000,
-    aBitrateK: 128,
-    format: 'mp4',
-  },
-  {
-    name: '480p SD',
-    description: 'Standard definition (854x480)',
-    width: 854,
-    height: 480,
-    fps: 30,
-    vBitrateK: 2500,
-    aBitrateK: 128,
-    format: 'mp4',
-  },
-  {
-    name: 'Web Optimized',
-    description: 'Fast loading (1280x720, WebM)',
-    width: 1280,
-    height: 720,
-    fps: 30,
-    vBitrateK: 3000,
-    aBitrateK: 128,
-    format: 'webm',
-  },
-];
+// Platform icons mapping
+const PLATFORM_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  youtube_1080p: Youtube,
+  youtube_4k: Youtube,
+  youtube_shorts: Youtube,
+  instagram_feed: Instagram,
+  instagram_story: Instagram,
+  instagram_reel: Instagram,
+  tiktok: Info, // Use Info as placeholder for TikTok
+  twitter: Twitter,
+  facebook: Info,
+  linkedin: Info,
+};
 
 export function ExportModal({ isOpen, onClose, projectId, timeline }: ExportModalProps) {
-  const [selectedPreset, setSelectedPreset] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [presets, setPresets] = useState<ExportPreset[]>([]);
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
+  const [isLoadingPresets, setIsLoadingPresets] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
+  const [showCustomPresetForm, setShowCustomPresetForm] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'error' | 'success'; message: string } | null>(
     null
   );
+
+  // Fetch presets when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchPresets();
+    }
+  }, [isOpen]);
+
+  const fetchPresets = async (): Promise<void> => {
+    setIsLoadingPresets(true);
+    try {
+      const response = await fetch('/api/export-presets');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch presets');
+      }
+
+      setPresets(data.data.presets);
+      // Select first preset by default
+      if (data.data.presets.length > 0 && !selectedPresetId) {
+        setSelectedPresetId(data.data.presets[0].id);
+      }
+    } catch (err) {
+      browserLogger.error({ error: err }, 'Failed to fetch export presets');
+      toast.error('Failed to load export presets');
+    } finally {
+      setIsLoadingPresets(false);
+    }
+  };
 
   const handleExport = async () => {
     if (!timeline) {

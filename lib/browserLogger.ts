@@ -11,6 +11,7 @@
  * - Non-blocking async send
  * - Error serialization
  * - User context support
+ * - Sentry integration for error tracking
  *
  * Usage:
  * ```typescript
@@ -24,6 +25,14 @@
  * pageLogger.info('Page loaded');
  * ```
  */
+
+// Lazy-load Sentry to avoid bundling if not configured
+let sentryService: typeof import('./services/sentryService').sentryService | null = null;
+if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  import('./services/sentryService').then((module) => {
+    sentryService = module.sentryService;
+  });
+}
 
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
@@ -275,14 +284,63 @@ class BrowserLogger {
 
   warn(...args: unknown[]): void {
     this.log('warn', ...args);
+
+    // Send warning to Sentry
+    if (sentryService) {
+      const { message, data } = this.formatArgs(args);
+      sentryService.captureMessage(message || 'Warning', 'warning', {
+        metadata: data,
+      });
+    }
   }
 
   error(...args: unknown[]): void {
     this.log('error', ...args);
+
+    // Send error to Sentry
+    if (sentryService) {
+      const { message, data } = this.formatArgs(args);
+      const error = data?.error;
+
+      if (error instanceof Error) {
+        sentryService.captureError(error, {
+          userId: data?.userId as string | undefined,
+          projectId: data?.projectId as string | undefined,
+          assetId: data?.assetId as string | undefined,
+          action: data?.action as string | undefined,
+          metadata: data,
+        });
+      } else {
+        sentryService.captureMessage(message || 'Error', 'error', {
+          metadata: data,
+        });
+      }
+    }
   }
 
   fatal(...args: unknown[]): void {
     this.log('fatal', ...args);
+
+    // Send fatal error to Sentry
+    if (sentryService) {
+      const { message, data } = this.formatArgs(args);
+      const error = data?.error;
+
+      if (error instanceof Error) {
+        sentryService.captureError(error, {
+          userId: data?.userId as string | undefined,
+          projectId: data?.projectId as string | undefined,
+          assetId: data?.assetId as string | undefined,
+          action: data?.action as string | undefined,
+          metadata: data,
+          tags: { level: 'fatal' },
+        });
+      } else {
+        sentryService.captureMessage(message || 'Fatal error', 'fatal', {
+          metadata: data,
+        });
+      }
+    }
   }
 
   /**

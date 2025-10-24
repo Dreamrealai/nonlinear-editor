@@ -270,13 +270,63 @@ const handleAssetUpload: AuthenticatedHandler = async (request, { user, supabase
   // uses a UUID-based name for security, but we sanitize the display name in metadata.
   const sanitizedOriginalName = sanitize(originalName || fileName);
 
-  // Generate thumbnail server-side for video assets
+  // Asset optimization: thumbnail generation, waveforms, image optimization
   let thumbnailDataURL: string | undefined;
-  if (type === 'video') {
-    try {
+  let waveformData: { waveform: number[]; peaks: number[]; duration: number } | undefined;
+  let optimizedBuffer = buffer;
+  let optimizedMetadata: Partial<AssetMetadata> = {};
+
+  try {
+    const { AssetOptimizationService } = await import(
+      '@/lib/services/assetOptimizationService'
+    );
+    const optimizationService = new AssetOptimizationService();
+
+    if (type === 'image') {
+      // Optimize images (compress, resize if needed)
+      serverLogger.debug(
+        {
+          event: 'assets.upload.optimizing_image',
+          userId: user.id,
+          projectId,
+          assetId,
+          originalSize: buffer.length,
+        },
+        'Optimizing image during upload'
+      );
+
+      const optimized = await optimizationService.optimizeImage(buffer, {
+        maxWidth: 1920,
+        maxHeight: 1080,
+        quality: 85,
+        format: 'jpeg',
+      });
+
+      optimizedBuffer = optimized.buffer;
+      optimizedMetadata = optimized.metadata;
+
+      // Generate thumbnail for optimized image
       const { ThumbnailService } = await import('@/lib/services/thumbnailService');
       const thumbnailService = new ThumbnailService();
+      thumbnailDataURL = await thumbnailService.generateImageThumbnailDataURL(optimizedBuffer, {
+        width: 320,
+        quality: 80,
+      });
 
+      serverLogger.info(
+        {
+          event: 'assets.upload.image_optimized',
+          userId: user.id,
+          projectId,
+          assetId,
+          originalSize: buffer.length,
+          optimizedSize: optimizedBuffer.length,
+          compression: ((1 - optimizedBuffer.length / buffer.length) * 100).toFixed(2) + '%',
+        },
+        'Image optimized successfully during upload'
+      );
+    } else if (type === 'video') {
+      // Generate enhanced video thumbnail
       serverLogger.debug(
         {
           event: 'assets.upload.generating_thumbnail',
@@ -288,12 +338,16 @@ const handleAssetUpload: AuthenticatedHandler = async (request, { user, supabase
         'Generating video thumbnail during upload'
       );
 
-      // Generate thumbnail at 1 second mark with 320px width
-      thumbnailDataURL = await thumbnailService.generateVideoThumbnailDataURL(buffer, {
+      const thumbnails = await optimizationService.generateVideoThumbnails(buffer, {
         timestamp: 1.0,
         width: 320,
         quality: 80,
+        count: 1,
       });
+
+      if (thumbnails.length > 0) {
+        thumbnailDataURL = thumbnails[0];
+      }
 
       serverLogger.info(
         {
@@ -301,23 +355,53 @@ const handleAssetUpload: AuthenticatedHandler = async (request, { user, supabase
           userId: user.id,
           projectId,
           assetId,
-          thumbnailSize: thumbnailDataURL.length,
+          thumbnailCount: thumbnails.length,
         },
         'Video thumbnail generated successfully during upload'
       );
-    } catch (thumbnailError) {
-      serverLogger.warn(
+    } else if (type === 'audio') {
+      // Generate audio waveform for visualization
+      serverLogger.debug(
         {
-          event: 'assets.upload.thumbnail_failed',
+          event: 'assets.upload.generating_waveform',
           userId: user.id,
           projectId,
           assetId,
-          error: thumbnailError instanceof Error ? thumbnailError.message : 'Unknown error',
+          fileSize: file.size,
         },
-        'Failed to generate thumbnail during upload (non-fatal)'
+        'Generating audio waveform during upload'
       );
-      // Don't fail the upload if thumbnail generation fails
+
+      waveformData = await optimizationService.generateAudioWaveform(buffer, {
+        samples: 1000,
+        width: 1000,
+        height: 100,
+      });
+
+      serverLogger.info(
+        {
+          event: 'assets.upload.waveform_generated',
+          userId: user.id,
+          projectId,
+          assetId,
+          samples: waveformData.waveform.length,
+          duration: waveformData.duration,
+        },
+        'Audio waveform generated successfully during upload'
+      );
     }
+  } catch (optimizationError) {
+    serverLogger.warn(
+      {
+        event: 'assets.upload.optimization_failed',
+        userId: user.id,
+        projectId,
+        assetId,
+        error: optimizationError instanceof Error ? optimizationError.message : 'Unknown error',
+      },
+      'Failed to optimize asset during upload (non-fatal)'
+    );
+    // Don't fail the upload if optimization fails
   }
 
   const { error: dbError } = await supabase.from('assets').insert({
@@ -327,15 +411,18 @@ const handleAssetUpload: AuthenticatedHandler = async (request, { user, supabase
     storage_url: storageUrl,
     type,
     mime_type: file.type,
-    width,
-    height,
+    width: optimizedMetadata.width || width,
+    height: optimizedMetadata.height || height,
     source: 'upload',
     metadata: {
       filename: sanitizedOriginalName,
       mimeType: file.type,
       sourceUrl: publicUrl,
-      size: file.size,
+      size: optimizedMetadata.size || file.size,
       ...(thumbnailDataURL && { thumbnail: thumbnailDataURL }),
+      ...(waveformData && { waveform: waveformData }),
+      ...(optimizedMetadata.format && { format: optimizedMetadata.format }),
+      optimized: type === 'image' && optimizedBuffer !== buffer,
     },
   });
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { formatTime } from '@/lib/utils/timelineUtils';
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Undo,
   Redo,
@@ -14,6 +14,9 @@ import {
   Sparkles,
   Clock,
   MousePointerClick,
+  Maximize2,
+  ChevronDown,
+  Bookmark,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -40,6 +43,11 @@ type TimelineControlsProps = {
   onUpscaleVideo?: () => void;
   onToggleTimecodeDisplay?: () => void;
   onToggleAutoScroll?: () => void;
+  onZoomPreset?: (preset: 25 | 50 | 100 | 200 | 400) => void;
+  onFitToTimeline?: () => void;
+  onFitToSelection?: () => void;
+  onAddMarker?: () => void;
+  hasSelection?: boolean;
 };
 
 /**
@@ -68,7 +76,29 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
   onUpscaleVideo,
   onToggleTimecodeDisplay,
   onToggleAutoScroll,
+  onZoomPreset,
+  onFitToTimeline,
+  onFitToSelection,
+  onAddMarker,
+  hasSelection = false,
 }) {
+  const [showZoomMenu, setShowZoomMenu] = useState(false);
+  const zoomMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close zoom menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (zoomMenuRef.current && !zoomMenuRef.current.contains(event.target as Node)) {
+        setShowZoomMenu(false);
+      }
+    };
+
+    if (showZoomMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+    return undefined;
+  }, [showZoomMenu]);
   return (
     <div className="flex items-center justify-between rounded-lg bg-neutral-100 px-2 sm:px-4 py-2 overflow-x-auto">
       <div className="flex items-center gap-1.5 sm:gap-3">
@@ -101,7 +131,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
         <div className="h-4 w-px bg-neutral-300" />
 
         {/* Zoom Controls */}
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 relative">
           <span className="hidden sm:inline text-xs font-medium text-neutral-600">Zoom:</span>
           <Button
             onClick={onZoomOut}
@@ -124,6 +154,99 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
           >
             <ZoomIn className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Button>
+          {/* Zoom Presets Menu */}
+          <div ref={zoomMenuRef} className="relative">
+            <Button
+              onClick={() => setShowZoomMenu(!showZoomMenu)}
+              variant="outline"
+              size="icon"
+              title="Zoom presets"
+              aria-label="Zoom presets menu"
+              className="h-8 w-8 sm:h-9 sm:w-9"
+            >
+              <ChevronDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            </Button>
+            {showZoomMenu && (
+              <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-700 z-50 py-1">
+                {onZoomPreset && (
+                  <>
+                    <button
+                      onClick={() => {
+                        onZoomPreset(25);
+                        setShowZoomMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                    >
+                      25% (12.5 px/s)
+                    </button>
+                    <button
+                      onClick={() => {
+                        onZoomPreset(50);
+                        setShowZoomMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                    >
+                      50% (25 px/s)
+                    </button>
+                    <button
+                      onClick={() => {
+                        onZoomPreset(100);
+                        setShowZoomMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                    >
+                      100% (50 px/s)
+                    </button>
+                    <button
+                      onClick={() => {
+                        onZoomPreset(200);
+                        setShowZoomMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                    >
+                      200% (100 px/s)
+                    </button>
+                    <button
+                      onClick={() => {
+                        onZoomPreset(400);
+                        setShowZoomMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                    >
+                      400% (200 px/s)
+                    </button>
+                  </>
+                )}
+                {onFitToTimeline && (
+                  <>
+                    <div className="h-px bg-neutral-200 dark:bg-neutral-700 my-1" />
+                    <button
+                      onClick={() => {
+                        onFitToTimeline();
+                        setShowZoomMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors flex items-center gap-2"
+                    >
+                      <Maximize2 className="h-3.5 w-3.5" />
+                      Fit Timeline
+                    </button>
+                  </>
+                )}
+                {onFitToSelection && hasSelection && (
+                  <button
+                    onClick={() => {
+                      onFitToSelection();
+                      setShowZoomMenu(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors flex items-center gap-2"
+                  >
+                    <Maximize2 className="h-3.5 w-3.5" />
+                    Fit Selection
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="h-4 w-px bg-neutral-300" />
@@ -140,6 +263,23 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
         >
           <Scissors className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
+
+        {/* Add Marker Button */}
+        {onAddMarker && (
+          <>
+            <div className="h-4 w-px bg-neutral-300" />
+            <Button
+              onClick={onAddMarker}
+              variant="outline"
+              size="icon"
+              title="Add marker at playhead (M)"
+              aria-label="Add marker at playhead"
+              className="h-8 w-8 sm:h-9 sm:w-9 bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
+            >
+              <Bookmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            </Button>
+          </>
+        )}
 
         {/* Scene Detection - Hidden on small screens */}
         {onDetectScenes && (
