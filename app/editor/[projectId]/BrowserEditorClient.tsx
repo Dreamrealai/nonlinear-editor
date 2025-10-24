@@ -14,8 +14,8 @@ import {
   LazyExportModal,
   LazyClipPropertiesPanel,
 } from '@/components/LazyComponents';
-import EditorHeader from '@/components/EditorHeader';
-import TimelineCorrectionsMenu from '@/components/editor/TimelineCorrectionsMenu';
+import { EditorHeader } from '@/components/EditorHeader';
+import { TimelineCorrectionsMenu } from '@/components/editor/TimelineCorrectionsMenu';
 import { useAutosave } from '@/lib/hooks/useAutosave';
 import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts';
 import { createBrowserSupabaseClient } from '@/lib/supabase';

@@ -20,15 +20,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
-import TextOverlayRenderer from './TextOverlayRenderer';
-import TextOverlayEditor from './TextOverlayEditor';
-import PlaybackControls from './preview/PlaybackControls';
+import { TextOverlayRenderer } from './TextOverlayRenderer';
+import { TextOverlayEditor } from './TextOverlayEditor';
+import { PlaybackControls } from './preview/PlaybackControls';
 import { browserLogger } from '@/lib/browserLogger';
 import { computeClipMetas } from '@/lib/utils/videoUtils';
 import { useVideoManager } from '@/lib/hooks/useVideoManager';
 import { useVideoPlayback } from '@/lib/hooks/useVideoPlayback';
 
-export default function PreviewPlayer() {
+export function PreviewPlayer() {
   const timeline = useEditorStore((state) => state.timeline);
   const currentTime = useEditorStore((state) => state.currentTime);
   const setCurrentTime = useEditorStore((state) => state.setCurrentTime);

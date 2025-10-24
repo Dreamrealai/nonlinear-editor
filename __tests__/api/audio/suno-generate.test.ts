@@ -623,6 +623,148 @@ describe('POST /api/audio/suno/generate', () => {
 
       await expect(POST(mockRequest)).rejects.toThrow('Network error');
     });
+
+    it('should handle 429 rate limit from Comet API', async () => {
+      mockAuthenticatedUser(mockSupabase);
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 429,
+        text: jest.fn().mockResolvedValue('Rate limit exceeded'),
+      });
+
+      const mockRequest = new NextRequest('http://localhost/api/audio/suno/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          projectId: validProjectId,
+          prompt: 'Epic music',
+        }),
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(429);
+      const data = await response.json();
+      expect(data.error).toContain('Rate limit exceeded');
+    });
+
+    it('should handle 401 invalid API key from Comet API', async () => {
+      mockAuthenticatedUser(mockSupabase);
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 401,
+        text: jest.fn().mockResolvedValue('Unauthorized - Invalid API key'),
+      });
+
+      const mockRequest = new NextRequest('http://localhost/api/audio/suno/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          projectId: validProjectId,
+          prompt: 'Epic music',
+        }),
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(401);
+      const data = await response.json();
+      expect(data.error).toContain('Unauthorized');
+    });
+
+    it('should handle 403 forbidden from Comet API', async () => {
+      mockAuthenticatedUser(mockSupabase);
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 403,
+        text: jest.fn().mockResolvedValue('Forbidden - Insufficient permissions'),
+      });
+
+      const mockRequest = new NextRequest('http://localhost/api/audio/suno/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          projectId: validProjectId,
+          prompt: 'Epic music',
+        }),
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(403);
+      const data = await response.json();
+      expect(data.error).toContain('Forbidden');
+    });
+
+    it('should handle 503 service unavailable from Comet API', async () => {
+      mockAuthenticatedUser(mockSupabase);
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 503,
+        text: jest.fn().mockResolvedValue('Service temporarily unavailable'),
+      });
+
+      const mockRequest = new NextRequest('http://localhost/api/audio/suno/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          projectId: validProjectId,
+          prompt: 'Epic music',
+        }),
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(503);
+      const data = await response.json();
+      expect(data.error).toContain('Service temporarily unavailable');
+    });
+
+    it('should handle malformed JSON response from Comet API', async () => {
+      mockAuthenticatedUser(mockSupabase);
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockRejectedValue(new Error('Invalid JSON')),
+      });
+
+      const mockRequest = new NextRequest('http://localhost/api/audio/suno/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          projectId: validProjectId,
+          prompt: 'Epic music',
+        }),
+      });
+
+      await expect(POST(mockRequest)).rejects.toThrow('Invalid JSON');
+    });
+
+    it('should handle external service returning error in success response', async () => {
+      mockAuthenticatedUser(mockSupabase);
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          code: 500,
+          msg: 'Internal server error on Suno service',
+          data: null,
+        }),
+      });
+
+      const mockRequest = new NextRequest('http://localhost/api/audio/suno/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          projectId: validProjectId,
+          prompt: 'Epic music',
+        }),
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(500);
+      const data = await response.json();
+      expect(data.error).toContain('Internal server error on Suno service');
+    });
   });
 
   describe('Request Timeout', () => {

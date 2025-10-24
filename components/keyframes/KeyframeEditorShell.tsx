@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useKeyframeData, useFrameEdits } from './hooks/useKeyframeData';
 import { useKeyframeSelection } from './hooks/useKeyframeSelection';
 import { useKeyframeEditing } from './hooks/useKeyframeEditing';
@@ -319,7 +319,7 @@ function KeyframeEditorContent({
   );
 }
 
-export default function KeyframeEditorShell({ assets }: KeyframeEditorShellProps) {
+export function KeyframeEditorShell({ assets }: KeyframeEditorShellProps) {
   const { supabaseClient, isLoading } = useSupabase();
 
   if (isLoading || !supabaseClient) {

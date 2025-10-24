@@ -69,7 +69,7 @@ const selectTimelineState = (state: ReturnType<typeof useEditorStore.getState>) 
   removeTextOverlay: state.removeTextOverlay,
 });
 
-export default function HorizontalTimeline({
+export function HorizontalTimeline({
   onDetectScenes,
   sceneDetectPending = false,
   onAddText,

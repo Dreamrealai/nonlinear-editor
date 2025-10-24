@@ -25,7 +25,7 @@ interface SupabaseProviderProps {
   enabled?: boolean;
 }
 
-export default function SupabaseProvider({ children, session: initialSession, enabled = true }: SupabaseProviderProps) {
+export function SupabaseProvider({ children, session: initialSession, enabled = true }: SupabaseProviderProps) {
   const [supabaseClient] = useState(() => {
     // Don't create client if disabled or not configured
     if (!enabled || !isSupabaseConfigured()) {

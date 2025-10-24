@@ -8,7 +8,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 interface ImageAsset {
   id: string;
@@ -25,7 +25,7 @@ interface AssetLibraryModalProps {
   onClose: () => void;
 }
 
-export default function AssetLibraryModal({
+export function AssetLibraryModal({
   projectId,
   onSelect,
   onClose,

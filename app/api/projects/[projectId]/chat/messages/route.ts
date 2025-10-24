@@ -3,104 +3,115 @@
  * Saves a chat message to the database
  *
  * Security:
- * - Requires authentication
+ * - Requires authentication via withAuth middleware
  * - RLS enforces project ownership
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { serverLogger } from '@/lib/serverLogger';
-import { validateUUID, ValidationError } from '@/lib/validation';
+import { validateString, validateUUID, validateEnum, validateAll } from '@/lib/api/validation';
+import {
+  validationError,
+  errorResponse,
+} from '@/lib/api/response';
+import { withAuth, type AuthContext } from '@/lib/api/withAuth';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
-export async function POST(
+const VALID_ROLES = ['user', 'assistant'] as const;
+
+async function handleChatMessagePost(
   request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
+  context: AuthContext & { params?: { projectId: string } }
 ) {
-  try {
-    const { projectId } = await params;
+  const { user, supabase, params } = context;
+  const projectId = params?.projectId;
 
-    // Validate UUID format
-    try {
-      validateUUID(projectId, 'Project ID');
-    } catch (error) {
-      if (error instanceof ValidationError || (error as Error).name === 'ValidationError') {
-        return NextResponse.json({ error: (error as Error).message }, { status: 400 });
-      }
-      throw error;
+  // Validate projectId from URL params
+  const projectIdValidation = validateAll([validateUUID(projectId, 'projectId')]);
+
+  if (!projectIdValidation.valid) {
+    const firstError = projectIdValidation.errors[0];
+    if (!firstError) {
+      return validationError('Validation failed');
     }
 
-    // Create authenticated Supabase client (enforces RLS)
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      serverLogger.warn(
-        { projectId, event: 'chat.save.unauthorized' },
-        'Unauthorized chat save attempt'
-      );
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Parse request body
-    const body = await request.json();
-    const { role, content, model, attachments } = body;
-
-    // Validate required fields
-    if (
-      typeof role !== 'string' ||
-      role.trim().length === 0 ||
-      typeof content !== 'string' ||
-      content.trim().length === 0
-    ) {
-      return NextResponse.json(
-        { error: 'Missing required fields: role and content' },
-        { status: 400 }
-      );
-    }
-
-    // Validate role
-    if (role !== 'user' && role !== 'assistant') {
-      return NextResponse.json(
-        { error: 'Invalid role. Must be "user" or "assistant"' },
-        { status: 400 }
-      );
-    }
-
-    // Insert message (RLS ensures ownership)
-    const { data, error } = await supabase
-      .from('chat_messages')
-      .insert({
-        project_id: projectId,
-        role,
-        content,
-        model: model || null,
-        attachments: attachments || null,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      serverLogger.error(
-        { error, projectId, userId: user.id, event: 'chat.save.error' },
-        'Failed to save chat message'
-      );
-      return NextResponse.json({ error: 'Failed to save chat message' }, { status: 500 });
-    }
-
-    serverLogger.info(
-      { projectId, userId: user.id, role, event: 'chat.save.success' },
-      'Chat message saved'
+    serverLogger.warn(
+      {
+        event: 'chat.save.validation_error',
+        userId: user.id,
+        field: firstError.field,
+        error: firstError.message,
+      },
+      `Validation error: ${firstError.message}`
     );
-
-    return NextResponse.json({ message: data }, { status: 201 });
-  } catch (error) {
-    serverLogger.error(
-      { error, event: 'chat.save.exception' },
-      'Unexpected error saving chat message'
-    );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return validationError(firstError.message, firstError.field);
   }
+
+  // Parse request body
+  const body = await request.json();
+  const { role, content, model, attachments } = body;
+
+  // Validate all required inputs using centralized validation utilities
+  const validation = validateAll([
+    validateEnum(role, 'role', VALID_ROLES, true),
+    validateString(content, 'content', { minLength: 1 }),
+    validateString(model, 'model', { required: false }),
+  ]);
+
+  if (!validation.valid) {
+    const firstError = validation.errors[0];
+    if (!firstError) {
+      return validationError('Validation failed');
+    }
+
+    serverLogger.warn(
+      {
+        event: 'chat.save.validation_error',
+        userId: user.id,
+        projectId,
+        field: firstError.field,
+        error: firstError.message,
+      },
+      `Validation error: ${firstError.message}`
+    );
+    return validationError(firstError.message, firstError.field);
+  }
+
+  // After validation, TypeScript knows these are strings
+  const validatedRole = role as string;
+  const validatedContent = content as string;
+
+  // Insert message (RLS ensures ownership)
+  const { data, error } = await supabase
+    .from('chat_messages')
+    .insert({
+      project_id: projectId,
+      role: validatedRole,
+      content: validatedContent,
+      model: (typeof model === 'string' ? model : null),
+      attachments: attachments || null,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    serverLogger.error(
+      { error, projectId, userId: user.id, event: 'chat.save.error' },
+      'Failed to save chat message'
+    );
+    return errorResponse('Failed to save chat message', 500);
+  }
+
+  serverLogger.info(
+    { projectId, userId: user.id, role: validatedRole, event: 'chat.save.success' },
+    'Chat message saved'
+  );
+
+  return NextResponse.json({ message: data }, { status: 201 });
 }
+
+// Export with authentication middleware and rate limiting
+export const POST = withAuth(handleChatMessagePost, {
+  route: '/api/projects/[projectId]/chat/messages',
+  rateLimit: RATE_LIMITS.tier4_general, // 60 requests per minute for message operations
+});

@@ -1,4 +1,4 @@
-import VoiceSelector from './VoiceSelector';
+import { VoiceSelector } from './VoiceSelector';
 
 interface Voice {
   voice_id: string;
@@ -17,7 +17,7 @@ interface VoiceGenerationFormProps {
   onSubmit: (e: React.FormEvent) => void;
 }
 
-export default function VoiceGenerationForm({
+export function VoiceGenerationForm({
   voiceText,
   setVoiceText,
   voices,

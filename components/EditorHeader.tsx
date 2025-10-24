@@ -19,7 +19,7 @@ interface Project {
   title: string;
 }
 
-export default function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderProps) {
+export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderProps) {
   const router = useRouter();
   const { supabaseClient } = useSupabase();
   const [projects, setProjects] = useState<Project[]>([]);

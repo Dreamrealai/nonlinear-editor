@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import ChatBox from '@/components/editor/ChatBox';
+import { ChatBox } from '@/components/editor/ChatBox';
 import { useParams } from 'next/navigation';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export default function EditorLayout({ children }: { children: React.ReactNode }) {
   const params = useParams();

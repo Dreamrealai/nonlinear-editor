@@ -7,7 +7,7 @@
 
 'use client';
 
-import VideoQueueItem from './VideoQueueItem';
+import { VideoQueueItem } from './VideoQueueItem';
 import { NUMERIC_LIMITS } from '@/lib/config';
 import type { VideoQueueItemData } from '@/lib/utils/videoGenerationUtils';
 import { hasCompletedItems } from '@/lib/utils/videoGenerationUtils';
@@ -24,7 +24,7 @@ interface VideoGenerationQueueProps {
 /**
  * Video generation queue display component
  */
-export default function VideoGenerationQueue({
+export function VideoGenerationQueue({
   videoQueue,
   onRemove,
   onClearCompleted,

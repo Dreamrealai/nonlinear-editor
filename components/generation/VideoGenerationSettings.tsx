@@ -43,7 +43,7 @@ interface VideoGenerationSettingsProps {
 /**
  * Advanced settings component for video generation
  */
-export default function VideoGenerationSettings({
+export function VideoGenerationSettings({
   modelConfig,
   resolution,
   sampleCount,

@@ -3,10 +3,11 @@ import { chat } from '@/lib/gemini';
 import { serverLogger } from '@/lib/serverLogger';
 import {
   errorResponse,
-  badRequestResponse,
   successResponse,
   serviceUnavailableResponse,
+  validationError,
 } from '@/lib/api/response';
+import { validateString, validateUUID, validateAll } from '@/lib/api/validation';
 import { withAuth, type AuthContext } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 
@@ -14,6 +15,14 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
+
+// Constants for validation
+const MAX_MESSAGE_LENGTH = 5000;
+const MAX_HISTORY_SIZE = 100 * 1024; // 100KB
+const MAX_MESSAGES = 50;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB per file
+const MAX_FILES = 5;
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 
 async function handleChatPost(request: NextRequest, context: AuthContext) {
   const { user } = context;
@@ -24,41 +33,54 @@ async function handleChatPost(request: NextRequest, context: AuthContext) {
   const projectId = formData.get('projectId');
   const chatHistoryJson = formData.get('chatHistory');
 
-  if (typeof message !== 'string' || typeof model !== 'string' || typeof projectId !== 'string') {
-    return badRequestResponse('Missing required fields');
+  // Validate all required inputs using centralized validation utilities
+  const validation = validateAll([
+    validateString(message, 'message', { minLength: 1, maxLength: MAX_MESSAGE_LENGTH }),
+    validateString(model, 'model', { minLength: 1 }),
+    validateUUID(projectId, 'projectId'),
+  ]);
+
+  if (!validation.valid) {
+    const firstError = validation.errors[0];
+    if (!firstError) {
+      return validationError('Validation failed');
+    }
+
+    serverLogger.warn(
+      {
+        event: 'ai.chat.validation_error',
+        userId: user.id,
+        field: firstError.field,
+        error: firstError.message,
+      },
+      `Validation error: ${firstError.message}`
+    );
+    return validationError(firstError.message, firstError.field);
   }
 
-  // Validate message length
-  const MAX_MESSAGE_LENGTH = 5000;
-  if (message.length > MAX_MESSAGE_LENGTH) {
-    return badRequestResponse('Message too long');
-  }
+  // After validation, TypeScript knows these are strings
+  const validatedMessage = message as string;
+  const validatedModel = model as string;
 
   // Parse chat history with size limits
-  const MAX_HISTORY_SIZE = 100 * 1024; // 100KB
-  const MAX_MESSAGES = 50;
   let chatHistory: Message[] = [];
   if (typeof chatHistoryJson === 'string' && chatHistoryJson.trim().length > 0) {
     if (chatHistoryJson.length > MAX_HISTORY_SIZE) {
-      return badRequestResponse('Chat history too large');
+      return validationError('Chat history too large', 'chatHistory');
     }
 
     try {
       chatHistory = JSON.parse(chatHistoryJson);
 
       if (!Array.isArray(chatHistory) || chatHistory.length > MAX_MESSAGES) {
-        return badRequestResponse('Invalid chat history format');
+        return validationError('Invalid chat history format', 'chatHistory');
       }
     } catch {
-      return badRequestResponse('Invalid chat history');
+      return validationError('Invalid chat history JSON', 'chatHistory');
     }
   }
 
   // Process attached files with validation
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB per file
-  const MAX_FILES = 5;
-  const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
-
   const files: { data: string; mimeType: string }[] = [];
   let fileCount = 0;
 
@@ -67,7 +89,7 @@ async function handleChatPost(request: NextRequest, context: AuthContext) {
       fileCount++;
 
       if (fileCount > MAX_FILES) {
-        return badRequestResponse(`Maximum ${MAX_FILES} files allowed`);
+        return validationError(`Maximum ${MAX_FILES} files allowed`, 'files');
       }
 
       if (value.size > MAX_FILE_SIZE) {
@@ -75,7 +97,7 @@ async function handleChatPost(request: NextRequest, context: AuthContext) {
       }
 
       if (!ALLOWED_MIME_TYPES.includes(value.type)) {
-        return badRequestResponse(`Invalid file type: ${value.type}`);
+        return validationError(`Invalid file type: ${value.type}`, 'files');
       }
 
       const arrayBuffer = await value.arrayBuffer();
@@ -96,15 +118,15 @@ async function handleChatPost(request: NextRequest, context: AuthContext) {
   // Call Gemini (will use GEMINI_API_KEY or GOOGLE_SERVICE_ACCOUNT)
   try {
     const response = await chat({
-      model,
-      message,
+      model: validatedModel,
+      message: validatedMessage,
       history,
       files,
     });
 
     return successResponse({
       response,
-      model,
+      model: validatedModel,
       timestamp: new Date().toISOString(),
     });
   } catch (chatError) {

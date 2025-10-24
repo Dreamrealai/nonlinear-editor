@@ -23,18 +23,13 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
-jest.mock('@/lib/api/response', () => ({
-  unauthorizedResponse: jest.fn(
-    () => new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
-  ),
-  validationError: jest.fn((msg) => new Response(JSON.stringify({ error: msg }), { status: 400 })),
-  notFoundResponse: jest.fn(
-    () => new Response(JSON.stringify({ error: 'Not found' }), { status: 404 })
-  ),
-  errorResponse: jest.fn((msg, status) => new Response(JSON.stringify({ error: msg }), { status })),
-  successResponse: jest.fn((data) => new Response(JSON.stringify(data), { status: 200 })),
-  withErrorHandling: jest.fn((handler) => handler),
-}));
+jest.mock('@/lib/api/response', () => {
+  const actual = jest.requireActual('@/lib/api/response');
+  return {
+    ...actual,
+    withErrorHandling: jest.fn((handler) => handler),
+  };
+});
 
 jest.mock('@/lib/api/project-verification', () => ({
   verifyProjectOwnership: jest.fn(),

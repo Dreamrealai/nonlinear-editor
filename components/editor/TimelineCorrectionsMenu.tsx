@@ -20,7 +20,7 @@ import type { SectionType } from './corrections/types';
  *
  * Features modern, sleek design with smooth animations and debounced updates.
  */
-export default function TimelineCorrectionsMenu() {
+export function TimelineCorrectionsMenu() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionType>('color');
 

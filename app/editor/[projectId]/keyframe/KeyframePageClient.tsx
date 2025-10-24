@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
-import EditorHeader from '@/components/EditorHeader';
-import KeyframeEditorShell from '@/components/keyframes/KeyframeEditorShell';
+import { EditorHeader } from '@/components/EditorHeader';
+import { KeyframeEditorShell } from '@/components/keyframes/KeyframeEditorShell';
 import { browserLogger } from '@/lib/browserLogger';
 import type { BaseAssetRow } from '@/types/assets';
 

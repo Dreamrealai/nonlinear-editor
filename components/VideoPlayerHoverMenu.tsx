@@ -16,7 +16,7 @@ interface VideoPlayerHoverMenuProps {
   currentTime: number;
 }
 
-export default function VideoPlayerHoverMenu({
+export function VideoPlayerHoverMenu({
   onAddText,
   onAddTransition,
   currentTime,

@@ -25,7 +25,7 @@ const sizeClasses = {
   xl: 'w-12 h-12 border-4',
 };
 
-export default function LoadingSpinner({ size = 'md', className, text }: LoadingSpinnerProps) {
+export function LoadingSpinner({ size = 'md', className, text }: LoadingSpinnerProps) {
   return (
     <div className={clsx('flex items-center gap-2', className)}>
       <div

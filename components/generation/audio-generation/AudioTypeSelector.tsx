@@ -3,7 +3,7 @@ interface AudioTypeSelectorProps {
   onTypeChange: (type: 'music' | 'voice' | 'sfx') => void;
 }
 
-export default function AudioTypeSelector({ audioType, onTypeChange }: AudioTypeSelectorProps) {
+export function AudioTypeSelector({ audioType, onTypeChange }: AudioTypeSelectorProps) {
   return (
     <div className="mb-6 flex gap-2 rounded-lg border border-neutral-200 bg-white p-1">
       <button

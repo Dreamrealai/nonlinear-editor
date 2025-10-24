@@ -86,4 +86,4 @@ const TextOverlayRenderer = React.memo<TextOverlayRendererProps>(
 
 TextOverlayRenderer.displayName = 'TextOverlayRenderer';
 
-export default TextOverlayRenderer;
+export { TextOverlayRenderer };

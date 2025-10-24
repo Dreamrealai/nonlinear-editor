@@ -18,7 +18,7 @@ const SFX_PRESETS = [
   'Bird chirping',
 ];
 
-export default function SFXGenerationForm({
+export function SFXGenerationForm({
   sfxPrompt,
   setSfxPrompt,
   sfxDuration,

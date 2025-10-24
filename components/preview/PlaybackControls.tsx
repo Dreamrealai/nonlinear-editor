@@ -32,7 +32,7 @@ export interface PlaybackControlsProps {
  * Renders video player controls with auto-hide functionality.
  * Handles seeking via progress bar click/drag.
  */
-export default function PlaybackControls({
+export function PlaybackControls({
   isPlaying,
   currentTime,
   totalDuration,

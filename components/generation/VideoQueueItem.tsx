@@ -190,4 +190,4 @@ const VideoQueueItem = React.memo<VideoQueueItemProps>(function VideoQueueItem({
   );
 });
 
-export default VideoQueueItem;
+export { VideoQueueItem };

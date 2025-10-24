@@ -87,7 +87,7 @@ const EXPORT_PRESETS: ExportPreset[] = [
   },
 ];
 
-export default function ExportModal({ isOpen, onClose, projectId, timeline }: ExportModalProps) {
+export function ExportModal({ isOpen, onClose, projectId, timeline }: ExportModalProps) {
   const [selectedPreset, setSelectedPreset] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'error' | 'success'; message: string } | null>(

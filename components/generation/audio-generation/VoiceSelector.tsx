@@ -12,7 +12,7 @@ interface VoiceSelectorProps {
   disabled?: boolean;
 }
 
-export default function VoiceSelector({
+export function VoiceSelector({
   voices,
   selectedVoice,
   onVoiceChange,

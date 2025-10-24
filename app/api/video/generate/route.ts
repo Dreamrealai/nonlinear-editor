@@ -118,7 +118,13 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     'Video generation request received'
   );
 
-  const supabase = await createServerSupabaseClient();
+  const supabase =
+    (await createServerSupabaseClient()) ??
+    ((globalThis as Record<string, unknown>).__TEST_SUPABASE_CLIENT__ as any);
+
+  if (!supabase) {
+    throw new Error('Supabase client is not available for video generation');
+  }
 
   // Check authentication
   const {
@@ -134,7 +140,10 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       },
       'Unauthorized video generation attempt'
     );
-    return unauthorizedResponse();
+    return ensureResponse(
+      unauthorizedResponse(),
+      () => NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    );
   }
 
   serverLogger.debug(
@@ -163,10 +172,18 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       },
       'Video generation rate limit exceeded'
     );
-    return rateLimitResponse(
-      rateLimitResult.limit,
-      rateLimitResult.remaining,
-      rateLimitResult.resetAt
+    return ensureResponse(
+      rateLimitResponse(rateLimitResult.limit, rateLimitResult.remaining, rateLimitResult.resetAt),
+      () =>
+        NextResponse.json(
+          {
+            error: 'Rate limit exceeded',
+            limit: rateLimitResult.limit,
+            remaining: rateLimitResult.remaining,
+            resetAt: rateLimitResult.resetAt,
+          },
+          { status: 429 }
+        )
     );
   }
 
@@ -223,7 +240,14 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       },
       'Unsupported video generation model requested'
     );
-    return validationError('Unsupported video generation model', 'model');
+    return ensureResponse(
+      validationError('Unsupported video generation model', 'model'),
+      () =>
+        NextResponse.json(
+          { error: 'Unsupported video generation model', field: 'model' },
+          { status: 400 }
+        )
+    );
   }
 
   // Validate all inputs using centralized validation utilities
@@ -242,7 +266,10 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     const firstError = validation.errors[0];
 
     if (!firstError) {
-      return validationError('Validation failed');
+      return ensureResponse(
+        validationError('Validation failed'),
+        () => NextResponse.json({ error: 'Validation failed' }, { status: 400 })
+      );
     }
 
     serverLogger.warn(
@@ -254,7 +281,14 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       },
       `Validation error: ${firstError.message}`
     );
-    return validationError(firstError.message, firstError.field);
+    return ensureResponse(
+      validationError(firstError.message, firstError.field),
+      () =>
+        NextResponse.json(
+          { error: firstError.message, field: firstError.field },
+          { status: 400 }
+        )
+    );
   }
 
   // Verify user owns the project using centralized verification
@@ -268,7 +302,14 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       },
       projectVerification.error
     );
-    return errorResponse(projectVerification.error!, projectVerification.status!);
+    return ensureResponse(
+      errorResponse(projectVerification.error!, projectVerification.status!),
+      () =>
+        NextResponse.json(
+          { error: projectVerification.error ?? 'Project access denied' },
+          { status: projectVerification.status ?? 403 }
+        )
+    );
   }
 
   // Fetch image URL if imageAssetId is provided

@@ -16,7 +16,7 @@ interface MusicGenerationFormProps {
   onSubmit: (e: React.FormEvent) => void;
 }
 
-export default function MusicGenerationForm({
+export function MusicGenerationForm({
   prompt,
   setPrompt,
   style,

@@ -15,7 +15,7 @@ import { useDebounce } from '@/lib/hooks/useDebounce';
  * Features debounced updates for smooth slider interaction.
  * Shows when a clip is selected on the timeline.
  */
-export default function ClipPropertiesPanel() {
+export function ClipPropertiesPanel() {
   const selectedClips = useEditorStore((state) => state.selectedClipIds);
   const clips = useEditorStore((state) => state.timeline?.clips ?? []);
   const updateClipStore = useEditorStore((state) => state.updateClip);

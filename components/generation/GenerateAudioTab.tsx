@@ -2,10 +2,10 @@
 
 import { Toaster } from 'react-hot-toast';
 import { useAudioGeneration } from './audio-generation/useAudioGeneration';
-import AudioTypeSelector from './audio-generation/AudioTypeSelector';
-import MusicGenerationForm from './audio-generation/MusicGenerationForm';
-import VoiceGenerationForm from './audio-generation/VoiceGenerationForm';
-import SFXGenerationForm from './audio-generation/SFXGenerationForm';
+import { AudioTypeSelector } from './audio-generation/AudioTypeSelector';
+import { MusicGenerationForm } from './audio-generation/MusicGenerationForm';
+import { VoiceGenerationForm } from './audio-generation/VoiceGenerationForm';
+import { SFXGenerationForm } from './audio-generation/SFXGenerationForm';
 
 interface GenerateAudioTabProps {
   projectId: string;
@@ -20,7 +20,7 @@ interface GenerateAudioTabProps {
  * This component orchestrates the audio generation UI by delegating to specialized
  * sub-components for each audio type (music, voice, sound effects).
  */
-export default function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
+export function GenerateAudioTab({ projectId }: GenerateAudioTabProps) {
   const audioGeneration = useAudioGeneration({ projectId });
 
   return (

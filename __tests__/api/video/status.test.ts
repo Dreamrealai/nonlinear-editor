@@ -563,5 +563,198 @@ describe('GET /api/video/status', () => {
 
       expect(response.status).toBe(500);
     });
+
+    it('should handle external service 429 rate limit (Veo)', async () => {
+      mockAuthenticatedUser(mockSupabase);
+
+      const rateLimitError = new Error('Quota exceeded');
+      (rateLimitError as any).status = 429;
+      checkOperationStatus.mockRejectedValue(rateLimitError);
+
+      mockRequest = createRequest(
+        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
+
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
+
+      expect(response.status).toBe(500);
+      const data = await response.json();
+      expect(data.error).toContain('Quota exceeded');
+    });
+
+    it('should handle external service 429 rate limit (FAL)', async () => {
+      mockAuthenticatedUser(mockSupabase);
+
+      const rateLimitError = new Error('Rate limit exceeded on external service');
+      (rateLimitError as any).status = 429;
+      checkFalVideoStatus.mockRejectedValue(rateLimitError);
+
+      mockRequest = createRequest(
+        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
+
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
+
+      expect(response.status).toBe(500);
+      const data = await response.json();
+      expect(data.error).toContain('Rate limit exceeded');
+    });
+
+    it('should handle invalid API key for external service', async () => {
+      mockAuthenticatedUser(mockSupabase);
+
+      const authError = new Error('Invalid API key');
+      (authError as any).status = 401;
+      checkFalVideoStatus.mockRejectedValue(authError);
+
+      mockRequest = createRequest(
+        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
+
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
+
+      expect(response.status).toBe(500);
+      const data = await response.json();
+      expect(data.error).toContain('Invalid API key');
+    });
+
+    it('should handle malformed video ID', async () => {
+      mockAuthenticatedUser(mockSupabase);
+
+      mockRequest = createRequest(
+        '/api/video/status?operationName=&projectId=test-project-id'
+      ) as unknown as NextRequest;
+
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
+
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data.field).toBe('operationName');
+    });
+
+    it('should handle invalid FAL endpoint format', async () => {
+      mockAuthenticatedUser(mockSupabase);
+
+      mockRequest = createRequest(
+        '/api/video/status?operationName=fal:only-one-part&projectId=test-project-id'
+      ) as unknown as NextRequest;
+
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
+
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data.error).toContain('Invalid FAL operation name format');
+    });
+
+    it('should handle failed video download from FAL', async () => {
+      mockAuthenticatedUser(mockSupabase);
+
+      checkFalVideoStatus.mockResolvedValue({
+        done: true,
+        result: {
+          video: {
+            url: 'https://fal.ai/video.mp4',
+            content_type: 'video/mp4',
+          },
+        },
+      });
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+      }) as unknown as typeof fetch;
+
+      mockRequest = createRequest(
+        '/api/video/status?operationName=fal:seedance-1.0-pro:request-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
+
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
+
+      expect(response.status).toBe(500);
+      const data = await response.json();
+      expect(data.error).toContain('Failed to download FAL video');
+    });
+
+    it('should handle missing Google service account for GCS download', async () => {
+      mockAuthenticatedUser(mockSupabase);
+
+      delete process.env.GOOGLE_SERVICE_ACCOUNT;
+
+      checkOperationStatus.mockResolvedValue({
+        done: true,
+        response: {
+          videos: [
+            {
+              gcsUri: 'gs://test-bucket/video.mp4',
+              mimeType: 'video/mp4',
+            },
+          ],
+        },
+      });
+
+      mockRequest = createRequest(
+        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
+
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
+
+      expect(response.status).toBe(500);
+      const data = await response.json();
+      expect(data.error).toContain('GOOGLE_SERVICE_ACCOUNT');
+    });
+
+    it('should handle invalid GCS URI format', async () => {
+      mockAuthenticatedUser(mockSupabase);
+
+      process.env.GOOGLE_SERVICE_ACCOUNT = JSON.stringify({
+        type: 'service_account',
+        project_id: 'test',
+      });
+
+      checkOperationStatus.mockResolvedValue({
+        done: true,
+        response: {
+          videos: [
+            {
+              gcsUri: 'gs://invalid-uri-no-path',
+              mimeType: 'video/mp4',
+            },
+          ],
+        },
+      });
+
+      mockRequest = createRequest(
+        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
+
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
+
+      expect(response.status).toBe(500);
+      const data = await response.json();
+      expect(data.error).toContain('Invalid GCS URI');
+
+      delete process.env.GOOGLE_SERVICE_ACCOUNT;
+    });
+
+    it('should handle no video artifact returned by Veo', async () => {
+      mockAuthenticatedUser(mockSupabase);
+
+      checkOperationStatus.mockResolvedValue({
+        done: true,
+        response: {
+          videos: [],
+        },
+      });
+
+      mockRequest = createRequest(
+        '/api/video/status?operationName=operations/veo-123&projectId=test-project-id'
+      ) as unknown as NextRequest;
+
+      const response = await GET(mockRequest, { params: Promise.resolve({}) });
+
+      expect(response.status).toBe(500);
+      const data = await response.json();
+      expect(data.error).toContain('No downloadable video');
+    });
   });
 });

@@ -276,6 +276,8 @@ export function createMockSupabaseClient(
     count: null,
   });
 
+  (globalThis as Record<string, unknown>).__TEST_SUPABASE_CLIENT__ = baseClient;
+
   return baseClient;
 }
 

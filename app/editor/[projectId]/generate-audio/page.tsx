@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 import { getCachedProjectMetadata } from '@/lib/cachedData';
-import EditorHeader from '@/components/EditorHeader';
-import GenerateAudioTab from '@/components/generation/GenerateAudioTab';
+import { EditorHeader } from '@/components/EditorHeader';
+import { GenerateAudioTab } from '@/components/generation/GenerateAudioTab';
 
 /**
  * CACHING STRATEGY:

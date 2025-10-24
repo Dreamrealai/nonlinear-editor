@@ -21,7 +21,7 @@ const GEMINI_MODELS = [
   { id: 'gemini-2.5-pro', name: 'Gemini Pro', description: 'Advanced thinking & reasoning' },
 ] as const;
 
-export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
+export function ChatBox({ projectId, collapsed }: ChatBoxProps) {
   const { supabaseClient } = useSupabase();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');

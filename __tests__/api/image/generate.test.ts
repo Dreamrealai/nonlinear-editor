@@ -37,21 +37,13 @@ jest.mock('@/lib/rateLimit', () => ({
   },
 }));
 
-jest.mock('@/lib/api/response', () => ({
-  unauthorizedResponse: jest.fn(() =>
-    new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } })
-  ),
-  rateLimitResponse: jest.fn(() =>
-    new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429, headers: { 'Content-Type': 'application/json' } })
-  ),
-  validationError: jest.fn((msg) =>
-    new Response(JSON.stringify({ error: msg }), { status: 400, headers: { 'Content-Type': 'application/json' } })
-  ),
-  errorResponse: jest.fn((msg, status) =>
-    new Response(JSON.stringify({ error: msg }), { status, headers: { 'Content-Type': 'application/json' } })
-  ),
-  withErrorHandling: jest.fn((handler) => handler),
-}));
+jest.mock('@/lib/api/response', () => {
+  const actual = jest.requireActual('@/lib/api/response');
+  return {
+    ...actual,
+    withErrorHandling: jest.fn((handler) => handler),
+  };
+});
 
 jest.mock('@/lib/api/project-verification', () => ({
   verifyProjectOwnership: jest.fn(),

@@ -49,7 +49,7 @@ const COLOR_PRESETS = [
   '#8800ff', // Purple
 ];
 
-export default function TextOverlayEditor({
+export function TextOverlayEditor({
   textOverlays,
   currentTime,
   containerRef,
