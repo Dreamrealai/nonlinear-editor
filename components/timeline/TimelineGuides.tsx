@@ -32,7 +32,7 @@ type TimelineGuidesProps = {
   numTracks: number;
   onGuideUpdate: (guideId: string, patch: Partial<Guide>) => void;
   onGuideDelete: (guideId: string) => void;
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
 };
 
 export const TimelineGuides = React.memo<TimelineGuidesProps>(function TimelineGuides({

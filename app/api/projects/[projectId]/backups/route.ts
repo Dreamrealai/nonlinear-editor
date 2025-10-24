@@ -13,7 +13,7 @@ import { withAuth, type AuthContext } from '@/lib/api/withAuth';
 import { BackupService } from '@/lib/services/backupService';
 import { errorResponse } from '@/lib/api/response';
 import { validateString, ValidationError } from '@/lib/validation';
-import { RATE_LIMITS } from '@/lib/config/rateLimit';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 import type { BackupType } from '@/lib/services/backupService';
 import type { AssetRow } from '@/types/assets';
 

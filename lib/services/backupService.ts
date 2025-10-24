@@ -81,7 +81,7 @@ export class BackupService {
       .single();
 
     if (error) {
-      throw new DatabaseError('Failed to create backup', {
+      throw new HttpError(500, 'Failed to create backup', {
         cause: error,
         context: { projectId, backupType },
       });
@@ -101,7 +101,7 @@ export class BackupService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      throw new DatabaseError('Failed to list backups', {
+      throw new HttpError(500, 'Failed to list backups', {
         cause: error,
         context: { projectId },
       });
@@ -121,7 +121,7 @@ export class BackupService {
       .single();
 
     if (error) {
-      throw new DatabaseError('Failed to get backup', {
+      throw new HttpError(500, 'Failed to get backup', {
         cause: error,
         context: { backupId },
       });
@@ -140,14 +140,14 @@ export class BackupService {
     // Get the backup
     const backup = await this.getBackup(backupId);
     if (!backup) {
-      throw new DatabaseError('Backup not found', {
+      throw new HttpError(404, 'Backup not found', {
         context: { backupId },
       });
     }
 
     // Verify the backup belongs to the project
     if (backup.project_id !== projectId) {
-      throw new DatabaseError('Backup does not belong to project', {
+      throw new HttpError(403, 'Backup does not belong to project', {
         context: { backupId, projectId },
       });
     }
@@ -162,7 +162,7 @@ export class BackupService {
       .eq('id', projectId);
 
     if (projectError) {
-      throw new DatabaseError('Failed to restore project metadata', {
+      throw new HttpError(500, 'Failed to restore project metadata', {
         cause: projectError,
         context: { backupId, projectId },
       });
@@ -178,7 +178,7 @@ export class BackupService {
       });
 
     if (timelineError) {
-      throw new DatabaseError('Failed to restore timeline', {
+      throw new HttpError(500, 'Failed to restore timeline', {
         cause: timelineError,
         context: { backupId, projectId },
       });
@@ -199,7 +199,7 @@ export class BackupService {
       .eq('id', backupId);
 
     if (error) {
-      throw new DatabaseError('Failed to delete backup', {
+      throw new HttpError(500, 'Failed to delete backup', {
         cause: error,
         context: { backupId },
       });
