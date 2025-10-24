@@ -2,6 +2,15 @@
 
 A modern, browser-based non-linear video editor built with Next.js 15, React 19, and Supabase.
 
+## Project Status
+
+![Tests](https://img.shields.io/badge/tests-807%2F924%20passing-green)
+![Test%20Coverage](https://img.shields.io/badge/coverage-22.67%25-yellow)
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
+![Lint](https://img.shields.io/badge/lint-0%20errors-brightgreen)
+
+See [Test Success Report](docs/reports/TEST_SUCCESS_REPORT.md) for detailed testing metrics.
+
 ## Features
 
 ✅ **Multi-Track Timeline**

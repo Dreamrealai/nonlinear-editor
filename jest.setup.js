@@ -7,15 +7,36 @@ if (typeof global.structuredClone === 'undefined') {
   };
 }
 
-// Polyfill TextEncoder/TextDecoder for Node < 18
+// Polyfill TextEncoder/TextDecoder from Node.js util
 if (typeof global.TextEncoder === 'undefined') {
   const { TextEncoder, TextDecoder } = require('util');
   global.TextEncoder = TextEncoder;
   global.TextDecoder = TextDecoder;
 }
 
-// Note: Request/Response are NOT polyfilled globally to avoid conflicts with Next.js
-// API route tests should mock NextRequest/NextResponse individually if needed
+// Polyfill ReadableStream from Node.js stream/web (required by undici)
+if (typeof global.ReadableStream === 'undefined') {
+  const { ReadableStream, WritableStream, TransformStream } = require('stream/web');
+  global.ReadableStream = ReadableStream;
+  global.WritableStream = WritableStream;
+  global.TransformStream = TransformStream;
+}
+
+// Polyfill MessagePort from worker_threads (required by undici)
+if (typeof global.MessagePort === 'undefined') {
+  const { MessagePort, MessageChannel } = require('worker_threads');
+  global.MessagePort = MessagePort;
+  global.MessageChannel = MessageChannel;
+}
+
+// Polyfill Request, Response, Headers, FormData from undici
+if (typeof global.Request === 'undefined') {
+  const { Request, Response, Headers, FormData } = require('undici');
+  global.Request = Request;
+  global.Response = Response;
+  global.Headers = Headers;
+  global.FormData = FormData;
+}
 
 // Mock IntersectionObserver
 if (typeof global.IntersectionObserver === 'undefined') {
