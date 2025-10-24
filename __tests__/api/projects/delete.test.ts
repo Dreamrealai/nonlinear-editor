@@ -54,8 +54,17 @@ describe('DELETE /api/projects/[projectId]', () => {
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockClear();
-    // Return mockSupabase directly wrapped in a new Promise to avoid thenable issues
-    createServerSupabaseClient.mockImplementation(async () => mockSupabase);
+    // IMPORTANT: mockSupabase has a 'then' method for query chaining, but this makes
+    // Promise.resolve(mockSupabase) try to await it. We temporarily delete 'then'
+    // when returning from createServerSupabaseClient, then restore it.
+    createServerSupabaseClient.mockImplementation(async () => {
+      const thenMethod = mockSupabase.then;
+      delete (mockSupabase as any).then;
+      setImmediate(() => {
+        (mockSupabase as any).then = thenMethod;
+      });
+      return mockSupabase;
+    });
   });
 
   afterEach(() => {

@@ -71,6 +71,12 @@ describe('GET /api/video/status', () => {
     const { __getMockClient } = require('@/lib/supabase');
     mockSupabase = __getMockClient();
 
+    // Setup default auth mock (needs to be reset after clearAllMocks)
+    mockSupabase.auth.getUser.mockResolvedValue({
+      data: { user: { id: 'test-user-id', email: 'test@example.com' } },
+      error: null,
+    });
+
     // Setup default storage mocks
     mockSupabase.storage.from.mockReturnThis();
     mockSupabase.storage.upload.mockResolvedValue({

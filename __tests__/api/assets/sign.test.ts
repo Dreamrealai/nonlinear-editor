@@ -22,8 +22,19 @@ jest.mock('@/lib/serverLogger', () => ({
   serverLogger: {
     info: jest.fn(),
     error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
   },
 }));
+
+// Mock withErrorHandling to pass through without catching errors in tests
+jest.mock('@/lib/api/response', () => {
+  const actual = jest.requireActual('@/lib/api/response');
+  return {
+    ...actual,
+    withErrorHandling: (handler: any) => handler,
+  };
+});
 
 describe('GET /api/assets/sign', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
