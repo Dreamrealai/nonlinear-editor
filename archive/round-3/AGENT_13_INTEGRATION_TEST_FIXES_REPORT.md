@@ -34,12 +34,14 @@ Successfully improved integration test pass rate from **78.7% to 87.7%** (+9% im
 Tests were using non-UUID strings like `'specific-asset'`, `'other-asset'`, `'auth-user-123'` which failed UUID validation.
 
 **Example Error:**
+
 ```
 ValidationError: Invalid Asset ID format
   at validateUUID (lib/validation.ts:40:11)
 ```
 
 **Files Fixed:**
+
 - `__tests__/integration/asset-management-workflow.test.ts`
   - Changed `'specific-asset'` → `'550e8400-e29b-41d4-a716-446655440050'`
   - Changed `'other-asset'` → `'550e8400-e29b-41d4-a716-446655440098'`
@@ -51,6 +53,7 @@ ValidationError: Invalid Asset ID format
   - Changed `'delete-user-123'` → `'550e8400-e29b-41d4-a716-446655440022'`
 
 **Pattern Applied:**
+
 ```typescript
 // BEFORE
 const mockAsset = AssetFixtures.video(project.id, env.user.id, {
@@ -73,6 +76,7 @@ The mockSupabase query builder was missing chainable methods that Supabase suppo
 
 **Root Cause:**
 The createQueryBuilder only had basic methods. Missing:
+
 - `filter`
 - `match`
 - `or`
@@ -85,17 +89,50 @@ Updated `test-utils/mockSupabase.ts`:
 ```typescript
 // BEFORE
 const chainableMethods = [
-  'select', 'insert', 'update', 'upsert', 'delete',
-  'eq', 'neq', 'in', 'is', 'gte', 'lte', 'gt', 'lt',
-  'like', 'ilike', 'order', 'limit', 'range',
+  'select',
+  'insert',
+  'update',
+  'upsert',
+  'delete',
+  'eq',
+  'neq',
+  'in',
+  'is',
+  'gte',
+  'lte',
+  'gt',
+  'lt',
+  'like',
+  'ilike',
+  'order',
+  'limit',
+  'range',
 ] as const;
 
 // AFTER
 const chainableMethods = [
-  'select', 'insert', 'update', 'upsert', 'delete',
-  'eq', 'neq', 'in', 'is', 'gte', 'lte', 'gt', 'lt',
-  'like', 'ilike', 'order', 'limit', 'range',
-  'filter', 'match', 'or', 'not', // ✅ Added
+  'select',
+  'insert',
+  'update',
+  'upsert',
+  'delete',
+  'eq',
+  'neq',
+  'in',
+  'is',
+  'gte',
+  'lte',
+  'gt',
+  'lt',
+  'like',
+  'ilike',
+  'order',
+  'limit',
+  'range',
+  'filter',
+  'match',
+  'or',
+  'not', // ✅ Added
 ] as const;
 ```
 
@@ -107,6 +144,7 @@ Also updated the `MockSupabaseChain` interface to include these methods.
 
 **Problem:**
 Asset deletion tests were incorrectly mocking the delete operation. The service method `deleteAsset()` does:
+
 1. Fetch asset details → `.from('assets').select('storage_url').eq().single()`
 2. Remove from storage → `.storage.remove()`
 3. Delete from database → `.from('assets').delete().eq()`
@@ -114,6 +152,7 @@ Asset deletion tests were incorrectly mocking the delete operation. The service 
 Tests were only mocking the delete step, not the fetch step.
 
 **Example Error:**
+
 ```
 TypeError: this.supabase.from(...).select is not a function
   at AssetService.deleteAsset (lib/services/assetService.ts:525:10)
@@ -157,6 +196,7 @@ await assetService.deleteAsset(assetId, userId);
 ```
 
 **Files Fixed:**
+
 - `__tests__/integration/asset-management-workflow.test.ts` (3 deletion tests)
 - `__tests__/integration/user-account-workflow.test.ts` (2 deletion tests)
 
@@ -165,21 +205,23 @@ await assetService.deleteAsset(assetId, userId);
 ## Test Results Breakdown
 
 ### Before Agent 13
+
 - **Pass Rate:** 122/146 (83.5%)
 - **Failing:** 24 tests
 
 ### After Agent 13
+
 - **Pass Rate:** 128/146 (87.7%)
 - **Failing:** 18 tests
 - **Improvement:** +6 tests fixed
 
 ### Tests Fixed by Category
 
-| Category | Fixed | Details |
-|----------|-------|---------|
-| UUID Validation | 2 | Asset ID lookups now use valid UUIDs |
-| Asset Deletion | 4 | Proper mock chains for fetch+delete operations |
-| Mock Chain Methods | N/A | Enhanced infrastructure (enables future fixes) |
+| Category           | Fixed | Details                                        |
+| ------------------ | ----- | ---------------------------------------------- |
+| UUID Validation    | 2     | Asset ID lookups now use valid UUIDs           |
+| Asset Deletion     | 4     | Proper mock chains for fetch+delete operations |
+| Mock Chain Methods | N/A   | Enhanced infrastructure (enables future fixes) |
 
 ---
 
@@ -188,14 +230,17 @@ await assetService.deleteAsset(assetId, userId);
 Most remaining failures are in video generation workflows and require additional fixes beyond this scope:
 
 ### 1. Video Service `.insert().select()` Chain (10 tests)
+
 **Error:** `TypeError: this.supabase.from(...).insert(...).select is not a function`
 
 **Affected Tests:**
+
 - Video Generation Flow (5 tests)
 - AI Generation Complete Workflow (5 tests)
 
 **Root Cause:**
 The VideoService does:
+
 ```typescript
 const { data: asset } = await this.supabase
   .from('assets')
@@ -210,9 +255,11 @@ While `.select()` is in the chainable methods list, tests need to properly mock 
 **Recommendation:** Agent 14 should focus on video generation test patterns.
 
 ### 2. Timeline State Undefined (4 tests)
+
 **Error:** `expect(received).toBeDefined()` - timeline properties undefined
 
 **Affected Tests:**
+
 - Video Editor Workflow (3 tests)
 - Project Workflow (1 test)
 
@@ -222,15 +269,18 @@ Tests are not properly mocking the timeline state updates. The workflow helper r
 **Recommendation:** Fix timeline state mocking patterns.
 
 ### 3. Metadata Mismatch (1 test)
+
 **Error:** Expected `"test-image.jpg"` but received `"sample.jpg"`
 
 **Affected Test:**
+
 - Asset Management Workflow - image upload metadata
 
 **Root Cause:**
 Test creates an asset with `filename: 'test-image.jpg'` but the mock fixture returns default `filename: 'sample.jpg'`.
 
 **Fix:**
+
 ```typescript
 const mockImageAsset = AssetFixtures.image(project.id, env.user.id, {
   metadata: {
@@ -241,27 +291,33 @@ const mockImageAsset = AssetFixtures.image(project.id, env.user.id, {
 ```
 
 ### 4. Multi-Project Timeline (1 test)
+
 **Error:** `Cannot read properties of undefined (reading 'clips')`
 
 **Affected Test:**
+
 - User Account Workflow - switch between projects
 
 **Root Cause:**
 Test fetches multiple projects but timeline_state_jsonb is not properly mocked for each project.
 
 ### 5. Google Cloud Storage Auth (1 test)
+
 **Error:** `error:1E08010C:DECODER routines::unsupported`
 
 **Affected Test:**
+
 - Video Generation Flow - Veo video from GCS URI
 
 **Root Cause:**
 This is a complex external service test requiring Google Cloud credentials. Should be skipped or mocked differently.
 
 ### 6. Missing Video Data (1 test)
+
 **Error:** `No downloadable video returned by Veo operation`
 
 **Affected Test:**
+
 - Parallel AI Generation - poll multiple generations
 
 **Root Cause:**
@@ -315,15 +371,15 @@ async function mockAssetDeletion(assetId: string, userId: string, mockAsset: any
 // ✅ The mock now supports all these chains
 await supabase
   .from('table')
-  .select()       // ✅
-  .filter()       // ✅ NEW
-  .eq()           // ✅
-  .match()        // ✅ NEW
-  .or()           // ✅ NEW
-  .not()          // ✅ NEW
-  .order()        // ✅
-  .limit()        // ✅
-  .single();      // ✅
+  .select() // ✅
+  .filter() // ✅ NEW
+  .eq() // ✅
+  .match() // ✅ NEW
+  .or() // ✅ NEW
+  .not() // ✅ NEW
+  .order() // ✅
+  .limit() // ✅
+  .single(); // ✅
 ```
 
 ---
@@ -331,12 +387,14 @@ await supabase
 ## Files Modified
 
 ### Test Utilities
+
 - `test-utils/mockSupabase.ts`
   - Added `filter`, `match`, `or`, `not` to chainable methods
   - Updated `MockSupabaseChain` interface
   - Updated `createMockSupabaseClient` to expose new methods
 
 ### Integration Tests
+
 - `__tests__/integration/asset-management-workflow.test.ts`
   - Fixed 2 UUID validation issues
   - Fixed 3 asset deletion mock patterns
@@ -352,6 +410,7 @@ await supabase
 ## Recommendations for Next Steps
 
 ### Immediate (Agent 14)
+
 1. **Fix video generation insert().select() chains** (10 tests)
    - Pattern: Mock the full chain for VideoService.uploadAndCreateVideoAsset()
    - Impact: +10 tests
@@ -361,6 +420,7 @@ await supabase
    - Impact: +4 tests
 
 ### Short-term
+
 3. **Fix metadata mismatch** (1 test)
    - Simple override in mock fixture
    - Impact: +1 test
@@ -370,6 +430,7 @@ await supabase
    - Impact: +1 test (or skip)
 
 ### Expected Final Pass Rate
+
 With all fixes applied: **144/146 (98.6%)**
 
 ---
@@ -379,11 +440,13 @@ With all fixes applied: **144/146 (98.6%)**
 ### Why UUID Validation Failed
 
 The validation regex is strict:
+
 ```typescript
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 ```
 
 Note the specific requirements:
+
 - 8-4-4-4-12 format
 - Version 4 UUID (4th group starts with `4`)
 - Variant 1 UUID (5th group starts with `8`, `9`, `a`, or `b`)
@@ -396,13 +459,15 @@ Supabase uses a builder pattern where each method returns the builder:
 
 ```typescript
 // Real Supabase
-supabase.from('table')    // → returns builder
-  .select()               // → returns builder
-  .eq('id', '123')        // → returns builder
-  .single()               // → returns promise
+supabase
+  .from('table') // → returns builder
+  .select() // → returns builder
+  .eq('id', '123') // → returns builder
+  .single(); // → returns promise
 ```
 
 If any method in the chain returns `undefined`, the next call fails with:
+
 ```
 TypeError: Cannot read properties of undefined (reading 'nextMethod')
 ```
@@ -433,16 +498,19 @@ const user = { id: 'test-user', email: 'test@example.com' };
 ## Impact Summary
 
 ### Code Quality
+
 - ✅ Improved test reliability
 - ✅ More complete mock infrastructure
 - ✅ Better test data patterns
 
 ### Developer Experience
+
 - ✅ Clearer error messages (no more UUID validation failures)
 - ✅ Reusable patterns documented
 - ✅ Foundation for fixing remaining tests
 
 ### Test Coverage
+
 - **Before:** 83.5% integration tests passing
 - **After:** 87.7% integration tests passing
 - **Improvement:** +4.2 percentage points, +6 tests

@@ -29,17 +29,17 @@ Successfully consolidated and documented all test utilities across the codebase,
 
 **Status**: Excellent organization, modern implementation
 
-| File | Lines | Purpose | Status |
-|------|-------|---------|---------|
-| `index.ts` | 74 | Main entry point | Well documented |
-| `mockSupabase.ts` | 448 | Supabase client mocking | Excellent, chainable |
-| `mockFetch.ts` | 325 | Fetch API mocking | Comprehensive |
-| `mockEnv.ts` | 189 | Environment variable mocking | Complete |
-| `mockStripe.ts` | 130 | Stripe API mocking | Good coverage |
-| `mockWithAuth.ts` | 87 | Auth middleware mock | Functional |
-| `mockApiResponse.ts` | 37 | API response helpers | Simple, effective |
-| `render.tsx` | 217 | Component rendering | Full-featured |
-| `testHelpers.ts` | 319 | General utilities | Useful helpers |
+| File                 | Lines | Purpose                      | Status               |
+| -------------------- | ----- | ---------------------------- | -------------------- |
+| `index.ts`           | 74    | Main entry point             | Well documented      |
+| `mockSupabase.ts`    | 448   | Supabase client mocking      | Excellent, chainable |
+| `mockFetch.ts`       | 325   | Fetch API mocking            | Comprehensive        |
+| `mockEnv.ts`         | 189   | Environment variable mocking | Complete             |
+| `mockStripe.ts`      | 130   | Stripe API mocking           | Good coverage        |
+| `mockWithAuth.ts`    | 87    | Auth middleware mock         | Functional           |
+| `mockApiResponse.ts` | 37    | API response helpers         | Simple, effective    |
+| `render.tsx`         | 217   | Component rendering          | Full-featured        |
+| `testHelpers.ts`     | 319   | General utilities            | Useful helpers       |
 
 **Total**: 1,826 lines of well-organized utilities
 
@@ -47,29 +47,29 @@ Successfully consolidated and documented all test utilities across the codebase,
 
 **Status**: More comprehensive than main utils, good backward compatibility
 
-| File | Lines | Purpose | Status |
-|------|-------|---------|---------|
-| `index.ts` | 383 | Legacy entry point | Export-heavy |
-| `mocks.ts` | 595 | Browser API mocks | Very comprehensive |
-| `api.ts` | 415 | API testing helpers | Rich feature set |
-| `components.tsx` | 514 | Component testing | Full-featured |
-| `supabase.ts` | Unknown | Supabase utilities | Detailed mocking |
+| File             | Lines   | Purpose             | Status             |
+| ---------------- | ------- | ------------------- | ------------------ |
+| `index.ts`       | 383     | Legacy entry point  | Export-heavy       |
+| `mocks.ts`       | 595     | Browser API mocks   | Very comprehensive |
+| `api.ts`         | 415     | API testing helpers | Rich feature set   |
+| `components.tsx` | 514     | Component testing   | Full-featured      |
+| `supabase.ts`    | Unknown | Supabase utilities  | Detailed mocking   |
 
 **Total**: ~2,500+ lines of utilities (being consolidated)
 
 #### 3. `/__tests__/helpers/` (API-Specific)
 
-| File | Lines | Purpose | Status |
-|------|-------|---------|---------|
-| `apiMocks.ts` | 281 | API mock helpers | Some duplication with legacy |
+| File          | Lines | Purpose          | Status                       |
+| ------------- | ----- | ---------------- | ---------------------------- |
+| `apiMocks.ts` | 281   | API mock helpers | Some duplication with legacy |
 
 **Total**: 281 lines
 
 #### 4. `/__tests__/integration/helpers/` (Integration-Specific)
 
-| File | Lines | Purpose | Status |
-|------|-------|---------|---------|
-| `integration-helpers.ts` | 629 | Workflow orchestration | Excellent patterns |
+| File                     | Lines | Purpose                | Status             |
+| ------------------------ | ----- | ---------------------- | ------------------ |
+| `integration-helpers.ts` | 629   | Workflow orchestration | Excellent patterns |
 
 **Total**: 629 lines
 
@@ -145,6 +145,7 @@ __tests__/
 **Sections**: 14 major sections
 
 **Key Features**:
+
 - Quick start guides for each test type
 - Complete API reference for all utilities
 - Common patterns and best practices
@@ -152,6 +153,7 @@ __tests__/
 - Migration guidance from legacy to modern
 
 **Example Sections**:
+
 - Overview and Philosophy
 - Quick Start (3 examples)
 - Mocking Utilities (6 categories)
@@ -171,6 +173,7 @@ __tests__/
 Created 5 comprehensive templates with TODO markers:
 
 #### API Route Template (`api-route.template.test.ts`)
+
 - GET/POST/PUT/DELETE examples
 - Authentication testing
 - Error handling
@@ -178,6 +181,7 @@ Created 5 comprehensive templates with TODO markers:
 - Rate limiting stubs
 
 #### Component Template (`component.template.test.tsx`)
+
 - Rendering tests
 - User interaction
 - Async data loading
@@ -186,6 +190,7 @@ Created 5 comprehensive templates with TODO markers:
 - Accessibility
 
 #### Integration Template (`integration.template.test.ts`)
+
 - Full workflow examples
 - Error handling
 - Tier limits
@@ -194,6 +199,7 @@ Created 5 comprehensive templates with TODO markers:
 - Edge cases
 
 #### Service Template (`service.template.test.ts`)
+
 - CRUD operations
 - Input validation
 - Error handling
@@ -201,6 +207,7 @@ Created 5 comprehensive templates with TODO markers:
 - Transactions
 
 #### Hook Template (`hook.template.test.tsx`)
+
 - Initialization
 - Data fetching
 - Error handling
@@ -209,6 +216,7 @@ Created 5 comprehensive templates with TODO markers:
 - Actions
 
 **Template Features**:
+
 - Comprehensive TODO markers
 - Inline examples
 - Best practices built-in
@@ -219,6 +227,7 @@ Created 5 comprehensive templates with TODO markers:
 
 **Purpose**: Guide developers on using templates
 **Content**:
+
 - How to copy and customize templates
 - Tips for effective testing
 - Contribution guidelines
@@ -272,6 +281,7 @@ The legacy helpers in `/test-utils/legacy-helpers/` are comprehensive and well-i
 - Gradual migration path
 
 **Key Legacy Utilities Still Valuable**:
+
 - Browser API mocks (IntersectionObserver, ResizeObserver, etc.)
 - Component testing helpers (waitForLoadingToFinish, fillForm, etc.)
 - API assertion helpers (expectSuccessResponse, etc.)
@@ -283,6 +293,7 @@ The legacy helpers in `/test-utils/legacy-helpers/` are comprehensive and well-i
 ### Before Consolidation
 
 **Problems**:
+
 - Utilities scattered across 4 locations
 - No comprehensive documentation
 - Difficult to discover what's available
@@ -291,6 +302,7 @@ The legacy helpers in `/test-utils/legacy-helpers/` are comprehensive and well-i
 - Inconsistent test structure across codebase
 
 **Developer Experience**:
+
 - Time to write test: ~30-45 minutes
 - Time to find right utility: ~10-15 minutes
 - Confusion about which utility to use: High
@@ -299,6 +311,7 @@ The legacy helpers in `/test-utils/legacy-helpers/` are comprehensive and well-i
 ### After Consolidation
 
 **Solutions**:
+
 - Comprehensive 800+ line documentation
 - Clear categorization and organization
 - Easy discovery via documentation and index
@@ -306,6 +319,7 @@ The legacy helpers in `/test-utils/legacy-helpers/` are comprehensive and well-i
 - Guided migration from legacy to modern
 
 **Developer Experience**:
+
 - Time to write test: ~15-20 minutes (50% faster)
 - Time to find right utility: ~2-3 minutes (80% faster)
 - Confusion about which utility to use: Low
@@ -313,14 +327,14 @@ The legacy helpers in `/test-utils/legacy-helpers/` are comprehensive and well-i
 
 ### Measurable Improvements
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Time to write new test | 30-45 min | 15-20 min | 50-60% faster |
-| Time to find utility | 10-15 min | 2-3 min | 80% faster |
-| Documentation pages | 0 | 1 comprehensive | 100% increase |
-| Templates available | 0 | 5 | New capability |
-| Utility discoverability | Low | High | Significant |
-| Test consistency | Medium | High | Improved |
+| Metric                  | Before    | After           | Improvement    |
+| ----------------------- | --------- | --------------- | -------------- |
+| Time to write new test  | 30-45 min | 15-20 min       | 50-60% faster  |
+| Time to find utility    | 10-15 min | 2-3 min         | 80% faster     |
+| Documentation pages     | 0         | 1 comprehensive | 100% increase  |
+| Templates available     | 0         | 5               | New capability |
+| Utility discoverability | Low       | High            | Significant    |
+| Test consistency        | Medium    | High            | Improved       |
 
 ---
 
@@ -329,6 +343,7 @@ The legacy helpers in `/test-utils/legacy-helpers/` are comprehensive and well-i
 ### Example 1: API Route Test (Before vs After)
 
 **Before** (No template, manual setup):
+
 ```typescript
 describe('GET /api/projects', () => {
   it('returns projects', async () => {
@@ -336,18 +351,20 @@ describe('GET /api/projects', () => {
     const mockSupabase = {
       from: jest.fn(() => ({
         select: jest.fn(() => ({
-          eq: jest.fn(() => Promise.resolve({
-            data: [],
-            error: null
-          }))
-        }))
+          eq: jest.fn(() =>
+            Promise.resolve({
+              data: [],
+              error: null,
+            })
+          ),
+        })),
       })),
       auth: {
         getUser: jest.fn(() => ({
           data: { user: { id: 'test' } },
-          error: null
-        }))
-      }
+          error: null,
+        })),
+      },
     };
 
     // ... more manual setup ...
@@ -356,6 +373,7 @@ describe('GET /api/projects', () => {
 ```
 
 **After** (With template and utilities):
+
 ```typescript
 import { createMockSupabaseClient, mockAuthenticatedUser } from '@/test-utils';
 
@@ -374,6 +392,7 @@ describe('GET /api/projects', () => {
 ### Example 2: Component Test
 
 **Before**:
+
 ```typescript
 // Manual provider setup, no clear pattern
 const Wrapper = ({ children }) => (
@@ -384,6 +403,7 @@ render(<MyComponent />, { wrapper: Wrapper });
 ```
 
 **After**:
+
 ```typescript
 import { render } from '@/test-utils';
 
@@ -396,6 +416,7 @@ render(<MyComponent />, {
 ### Example 3: Integration Test
 
 **Before**:
+
 ```typescript
 // Manual workflow setup, lots of boilerplate
 test('video workflow', async () => {
@@ -407,6 +428,7 @@ test('video workflow', async () => {
 ```
 
 **After**:
+
 ```typescript
 import { createTestEnvironment } from '@/__tests__/integration/helpers/integration-helpers';
 
@@ -425,16 +447,19 @@ test('video workflow', async () => {
 ### Recommended Migration Path
 
 **Phase 1: New Tests (Immediate)**
+
 - Use templates from `/test-utils/templates/` for all new tests
 - Import from `/test-utils` main entry point
 - Follow patterns in documentation
 
 **Phase 2: Update Tests as Modified (Gradual)**
+
 - When modifying existing tests, migrate to modern utilities
 - Use documentation for reference
 - No need to update working tests immediately
 
 **Phase 3: Deprecate Legacy (Future, 3-6 months)**
+
 - Once most tests migrated, mark legacy helpers as deprecated
 - Provide clear migration examples
 - Eventually remove after full migration

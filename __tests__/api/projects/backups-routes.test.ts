@@ -23,18 +23,49 @@ jest.mock('@/lib/api/withAuth', () => ({
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    return handler(req, { user, supabase, params: context?.params || {} });
+    // Call handler with THREE parameters: request, authContext, routeContext
+    return handler(req, { user, supabase }, context);
   }),
 }));
 
 jest.mock('@/lib/supabase', () => ({ createServerSupabaseClient: jest.fn() }));
-jest.mock('@/lib/serverLogger', () => ({ serverLogger: { info: jest.fn(), error: jest.fn() } }));
-jest.mock('@/lib/rateLimit', () => ({ RATE_LIMITS: { tier3_status_read: { requests: 60, window: 60 }, tier2_resource_creation: { requests: 10, window: 60 } } }));
+jest.mock('@/lib/serverLogger', () => ({
+  serverLogger: {
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    child: jest.fn(() => ({
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    })),
+  },
+}));
+jest.mock('@/lib/rateLimit', () => ({
+  RATE_LIMITS: {
+    tier3_status_read: { requests: 60, window: 60 },
+    tier2_resource_creation: { requests: 10, window: 60 },
+  },
+}));
+jest.mock('@/lib/auditLog', () => ({
+  auditSecurityEvent: jest.fn().mockResolvedValue(undefined),
+  auditRateLimitViolation: jest.fn().mockResolvedValue(undefined),
+  AuditAction: { SECURITY_UNAUTHORIZED_ACCESS: 'security.unauthorized_access' },
+}));
 jest.mock('@/lib/services/backupService', () => ({
   BackupService: jest.fn().mockImplementation(() => ({
-    listBackups: jest.fn().mockResolvedValue([
-      { id: 'backup-1', created_at: '2024-01-01', backup_type: 'manual', backup_name: 'Test Backup' },
-    ]),
+    listBackups: jest
+      .fn()
+      .mockResolvedValue([
+        {
+          id: 'backup-1',
+          created_at: '2024-01-01',
+          backup_type: 'manual',
+          backup_name: 'Test Backup',
+        },
+      ]),
     createBackup: jest.fn().mockResolvedValue({ id: 'new-backup', created_at: '2024-01-02' }),
     restoreBackup: jest.fn().mockResolvedValue(undefined),
   })),
@@ -57,13 +88,19 @@ describe('GET /api/projects/[projectId]/backups', () => {
 
   it('should return 401 when not authenticated', async () => {
     mockUnauthenticatedUser(mockSupabase);
-    const response = await GET(new NextRequest(`http://localhost/api/projects/${validProjectId}/backups`), { params: Promise.resolve({ projectId: validProjectId }) });
+    const response = await GET(
+      new NextRequest(`http://localhost/api/projects/${validProjectId}/backups`),
+      { params: Promise.resolve({ projectId: validProjectId }) }
+    );
     expect(response.status).toBe(401);
   });
 
   it('should list backups for project', async () => {
     mockAuthenticatedUser(mockSupabase);
-    const response = await GET(new NextRequest(`http://localhost/api/projects/${validProjectId}/backups`), { params: Promise.resolve({ projectId: validProjectId }) });
+    const response = await GET(
+      new NextRequest(`http://localhost/api/projects/${validProjectId}/backups`),
+      { params: Promise.resolve({ projectId: validProjectId }) }
+    );
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.success).toBe(true);
@@ -73,7 +110,9 @@ describe('GET /api/projects/[projectId]/backups', () => {
 
   it('should return 400 for invalid projectId', async () => {
     mockAuthenticatedUser(mockSupabase);
-    const response = await GET(new NextRequest('http://localhost/api/projects/invalid/backups'), { params: Promise.resolve({ projectId: 'invalid' }) });
+    const response = await GET(new NextRequest('http://localhost/api/projects/invalid/backups'), {
+      params: Promise.resolve({ projectId: 'invalid' }),
+    });
     expect(response.status).toBe(400);
   });
 
@@ -83,7 +122,10 @@ describe('GET /api/projects/[projectId]/backups', () => {
     BackupService.mockImplementationOnce(() => ({
       listBackups: jest.fn().mockRejectedValue(new Error('Service error')),
     }));
-    const response = await GET(new NextRequest(`http://localhost/api/projects/${validProjectId}/backups`), { params: Promise.resolve({ projectId: validProjectId }) });
+    const response = await GET(
+      new NextRequest(`http://localhost/api/projects/${validProjectId}/backups`),
+      { params: Promise.resolve({ projectId: validProjectId }) }
+    );
     expect(response.status).toBe(500);
   });
 });
@@ -103,7 +145,10 @@ describe('POST /api/projects/[projectId]/backups', () => {
   it('should return 401 when not authenticated', async () => {
     mockUnauthenticatedUser(mockSupabase);
     const response = await POST(
-      new NextRequest(`http://localhost/api/projects/${validProjectId}/backups`, { method: 'POST', body: JSON.stringify({ backupType: 'manual' }) }),
+      new NextRequest(`http://localhost/api/projects/${validProjectId}/backups`, {
+        method: 'POST',
+        body: JSON.stringify({ backupType: 'manual' }),
+      }),
       { params: Promise.resolve({ projectId: validProjectId }) }
     );
     expect(response.status).toBe(401);
@@ -112,7 +157,10 @@ describe('POST /api/projects/[projectId]/backups', () => {
   it('should create manual backup', async () => {
     mockAuthenticatedUser(mockSupabase);
     const response = await POST(
-      new NextRequest(`http://localhost/api/projects/${validProjectId}/backups`, { method: 'POST', body: JSON.stringify({ backupType: 'manual', backupName: 'My Backup' }) }),
+      new NextRequest(`http://localhost/api/projects/${validProjectId}/backups`, {
+        method: 'POST',
+        body: JSON.stringify({ backupType: 'manual', backupName: 'My Backup' }),
+      }),
       { params: Promise.resolve({ projectId: validProjectId }) }
     );
     expect(response.status).toBe(200);
@@ -123,7 +171,10 @@ describe('POST /api/projects/[projectId]/backups', () => {
   it('should create auto backup', async () => {
     mockAuthenticatedUser(mockSupabase);
     const response = await POST(
-      new NextRequest(`http://localhost/api/projects/${validProjectId}/backups`, { method: 'POST', body: JSON.stringify({ backupType: 'auto' }) }),
+      new NextRequest(`http://localhost/api/projects/${validProjectId}/backups`, {
+        method: 'POST',
+        body: JSON.stringify({ backupType: 'auto' }),
+      }),
       { params: Promise.resolve({ projectId: validProjectId }) }
     );
     expect(response.status).toBe(200);
@@ -145,7 +196,10 @@ describe('POST /api/projects/[projectId]/backups/[backupId]/restore', () => {
   it('should return 401 when not authenticated', async () => {
     mockUnauthenticatedUser(mockSupabase);
     const response = await restoreBackup(
-      new NextRequest(`http://localhost/api/projects/${validProjectId}/backups/${validBackupId}/restore`, { method: 'POST' }),
+      new NextRequest(
+        `http://localhost/api/projects/${validProjectId}/backups/${validBackupId}/restore`,
+        { method: 'POST' }
+      ),
       { params: Promise.resolve({ projectId: validProjectId, backupId: validBackupId }) }
     );
     expect(response.status).toBe(401);
@@ -154,7 +208,10 @@ describe('POST /api/projects/[projectId]/backups/[backupId]/restore', () => {
   it('should restore backup successfully', async () => {
     mockAuthenticatedUser(mockSupabase);
     const response = await restoreBackup(
-      new NextRequest(`http://localhost/api/projects/${validProjectId}/backups/${validBackupId}/restore`, { method: 'POST' }),
+      new NextRequest(
+        `http://localhost/api/projects/${validProjectId}/backups/${validBackupId}/restore`,
+        { method: 'POST' }
+      ),
       { params: Promise.resolve({ projectId: validProjectId, backupId: validBackupId }) }
     );
     expect(response.status).toBe(200);
@@ -166,7 +223,9 @@ describe('POST /api/projects/[projectId]/backups/[backupId]/restore', () => {
   it('should return 400 for invalid projectId', async () => {
     mockAuthenticatedUser(mockSupabase);
     const response = await restoreBackup(
-      new NextRequest(`http://localhost/api/projects/invalid/backups/${validBackupId}/restore`, { method: 'POST' }),
+      new NextRequest(`http://localhost/api/projects/invalid/backups/${validBackupId}/restore`, {
+        method: 'POST',
+      }),
       { params: Promise.resolve({ projectId: 'invalid', backupId: validBackupId }) }
     );
     expect(response.status).toBe(400);
@@ -175,7 +234,9 @@ describe('POST /api/projects/[projectId]/backups/[backupId]/restore', () => {
   it('should return 400 for invalid backupId', async () => {
     mockAuthenticatedUser(mockSupabase);
     const response = await restoreBackup(
-      new NextRequest(`http://localhost/api/projects/${validProjectId}/backups/invalid/restore`, { method: 'POST' }),
+      new NextRequest(`http://localhost/api/projects/${validProjectId}/backups/invalid/restore`, {
+        method: 'POST',
+      }),
       { params: Promise.resolve({ projectId: validProjectId, backupId: 'invalid' }) }
     );
     expect(response.status).toBe(400);
@@ -188,7 +249,10 @@ describe('POST /api/projects/[projectId]/backups/[backupId]/restore', () => {
       restoreBackup: jest.fn().mockRejectedValue(new Error('Restore failed')),
     }));
     const response = await restoreBackup(
-      new NextRequest(`http://localhost/api/projects/${validProjectId}/backups/${validBackupId}/restore`, { method: 'POST' }),
+      new NextRequest(
+        `http://localhost/api/projects/${validProjectId}/backups/${validBackupId}/restore`,
+        { method: 'POST' }
+      ),
       { params: Promise.resolve({ projectId: validProjectId, backupId: validBackupId }) }
     );
     expect(response.status).toBe(500);
