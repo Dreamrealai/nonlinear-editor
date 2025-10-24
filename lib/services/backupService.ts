@@ -11,7 +11,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { ProjectId } from '@/types/branded';
 import type { Timeline } from '@/types/timeline';
 import type { AssetRow } from '@/types/assets';
-import { DatabaseError } from '@/lib/errors';
+import { HttpError } from '@/lib/errors/HttpError';
 
 export type BackupType = 'auto' | 'manual';
 

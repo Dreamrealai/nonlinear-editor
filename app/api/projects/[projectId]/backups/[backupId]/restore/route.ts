@@ -13,7 +13,7 @@ import { BackupService } from '@/lib/services/backupService';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { errorResponse } from '@/lib/api/response';
 import { validateString } from '@/lib/validation';
-import { RateLimitTier } from '@/lib/api/rateLimit';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
 /**
  * POST /api/projects/[projectId]/backups/[backupId]/restore

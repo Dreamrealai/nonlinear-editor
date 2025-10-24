@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import type { Clip, Transform, AudioEffects } from '@/types/timeline';
+import type { Clip, Transform, AudioEffects, VideoEffects } from '@/types/timeline';
 
 interface CorrectionHandlersProps {
   selectedClip: Clip | null;
@@ -9,6 +9,7 @@ interface CorrectionHandlersProps {
     contrast: number;
     saturation: number;
     hue: number;
+    blur: number;
     rotation: number;
     scale: number;
     volume: number;
@@ -24,6 +25,7 @@ interface CorrectionHandlersProps {
     setContrast: (val: number) => void;
     setSaturation: (val: number) => void;
     setHue: (val: number) => void;
+    setBlur: (val: number) => void;
     setRotation: (val: number) => void;
     setScale: (val: number) => void;
     setVolume: (val: number) => void;
@@ -45,7 +47,7 @@ export function useCorrectionHandlers({
   debounced,
   setters,
 }: CorrectionHandlersProps) {
-  // Apply debounced color correction updates
+  // Apply debounced video effects updates
   useEffect(() => {
     if (selectedClip) {
       const current = selectedClip.colorCorrection || {
@@ -53,12 +55,15 @@ export function useCorrectionHandlers({
         contrast: 100,
         saturation: 100,
         hue: 0,
+        blur: 0,
       };
+      const currentBlur = (current as { blur?: number }).blur ?? 0;
       if (
         current.brightness !== debounced.brightness ||
         current.contrast !== debounced.contrast ||
         current.saturation !== debounced.saturation ||
-        current.hue !== debounced.hue
+        current.hue !== debounced.hue ||
+        currentBlur !== debounced.blur
       ) {
         updateClip(selectedClip.id, {
           colorCorrection: {
@@ -66,6 +71,7 @@ export function useCorrectionHandlers({
             contrast: debounced.contrast,
             saturation: debounced.saturation,
             hue: debounced.hue,
+            blur: debounced.blur,
           },
         });
       }
@@ -75,6 +81,7 @@ export function useCorrectionHandlers({
     debounced.contrast,
     debounced.saturation,
     debounced.hue,
+    debounced.blur,
     selectedClip,
     updateClip,
   ]);
@@ -193,10 +200,26 @@ export function useCorrectionHandlers({
     setters.setContrast(100);
     setters.setSaturation(100);
     setters.setHue(0);
+    setters.setBlur(0);
     updateClip(selectedClip.id, {
-      colorCorrection: { brightness: 100, contrast: 100, saturation: 100, hue: 0 },
+      colorCorrection: { brightness: 100, contrast: 100, saturation: 100, hue: 0, blur: 0 },
     });
   }, [selectedClip, updateClip, setters]);
+
+  const applyVideoEffectsPreset = useCallback(
+    (effects: VideoEffects) => {
+      if (!selectedClip) return;
+      setters.setBrightness(effects.brightness);
+      setters.setContrast(effects.contrast);
+      setters.setSaturation(effects.saturation);
+      setters.setHue(effects.hue);
+      setters.setBlur(effects.blur);
+      updateClip(selectedClip.id, {
+        colorCorrection: effects,
+      });
+    },
+    [selectedClip, updateClip, setters]
+  );
 
   const resetTransform = useCallback(() => {
     if (!selectedClip) return;
@@ -235,6 +258,7 @@ export function useCorrectionHandlers({
     updateTransform,
     updateAudioEffects,
     resetColorCorrection,
+    applyVideoEffectsPreset,
     resetTransform,
     resetAudioEffects,
   };

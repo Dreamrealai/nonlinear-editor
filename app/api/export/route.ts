@@ -61,6 +61,7 @@ export interface ExportRequest {
     aBitrateK: number;
     format: 'mp4' | 'webm';
   };
+  priority?: number; // Optional priority (0-10, default 0)
 }
 
 export interface ExportResponse {
@@ -153,6 +154,10 @@ const handleExportCreate: AuthenticatedHandler = async (request, { user, supabas
       min: 32,
       max: 320,
     });
+    // Validate optional priority field
+    if (payload.priority !== undefined) {
+      validateInteger(payload.priority, 'priority', { min: 0, max: 10 });
+    }
   } catch (error) {
     if (error instanceof ValidationError) {
       return validationError(error.message, error.field);
@@ -251,6 +256,7 @@ const handleExportCreate: AuthenticatedHandler = async (request, { user, supabas
       job_type: 'video-export',
       status: 'pending',
       provider: 'internal',
+      priority: payload.priority || 0,
       config: {
         timeline: payload.timeline,
         outputSpec: payload.outputSpec,

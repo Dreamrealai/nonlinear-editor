@@ -45,3 +45,11 @@ export type {
   MusicGenerationResult,
   SFXGenerationOptions,
 } from './audioService';
+
+// Sentry Error Tracking Service
+export { sentryService, isSentryConfigured } from './sentryService';
+export type { ErrorContext, BreadcrumbData, UserContext } from './sentryService';
+
+// Analytics Service (PostHog)
+export { analyticsService, isPostHogConfigured, AnalyticsEvents } from './analyticsService';
+export type { EventProperties, UserProperties } from './analyticsService';

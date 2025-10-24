@@ -13,6 +13,7 @@ import type { AssetRow } from '@/types/assets';
 import { DragDropZone } from '@/components/ui/DragDropZone';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { SkeletonCard } from '@/components/ui/Skeleton';
+import { AssetVersionHistory } from '@/components/editor/AssetVersionHistory';
 
 type SortOption = 'name' | 'date' | 'size' | 'type';
 type SortDirection = 'asc' | 'desc';

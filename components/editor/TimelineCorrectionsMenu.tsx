@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import { useCorrectionSync } from './corrections/useCorrectionSync';
 import { useCorrectionHandlers } from './corrections/useCorrectionHandlers';
-import { ColorCorrectionSection } from './corrections/ColorCorrectionSection';
+import { VideoEffectsSection, VIDEO_EFFECT_PRESETS } from './corrections/VideoEffectsSection';
 import { TransformSection } from './corrections/TransformSection';
 import { AudioEffectsSection } from './corrections/AudioEffectsSection';
 import { SectionTabs } from './corrections/SectionTabs';
@@ -46,6 +46,7 @@ export function TimelineCorrectionsMenu() {
     updateTransform,
     updateAudioEffects,
     resetColorCorrection,
+    applyVideoEffectsPreset,
     resetTransform,
     resetAudioEffects,
   } = useCorrectionHandlers({
@@ -112,17 +113,20 @@ export function TimelineCorrectionsMenu() {
             onSectionChange={setActiveSection}
           />
 
-          {/* Color Correction Section */}
+          {/* Video Effects Section (Color Correction + Blur) */}
           {activeSection === 'color' && (
-            <ColorCorrectionSection
+            <VideoEffectsSection
               brightness={local.brightness}
               contrast={local.contrast}
               saturation={local.saturation}
               hue={local.hue}
+              blur={local.blur}
               onBrightnessChange={setters.setBrightness}
               onContrastChange={setters.setContrast}
               onSaturationChange={setters.setSaturation}
               onHueChange={setters.setHue}
+              onBlurChange={setters.setBlur}
+              onPresetApply={(preset) => applyVideoEffectsPreset(preset.effects)}
               onReset={resetColorCorrection}
             />
           )}

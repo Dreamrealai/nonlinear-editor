@@ -8,6 +8,7 @@
  * - Split clip (S key)
  * - Lock/Unlock selected clips (L key)
  * - Add transition (T key)
+ * - Add marker (M key)
  * - Group selected clips (G key)
  * - Ungroup clips (Shift+G key)
  */
@@ -29,6 +30,7 @@ type UseTimelineKeyboardShortcutsOptions = {
   splitClipAtTime: (clipId: string, time: number) => void;
   toggleClipLock?: (clipId: string) => void;
   onAddTransition?: () => void;
+  onAddMarker?: () => void;
   onGroupClips?: () => void;
   onUngroupClips?: () => void;
 };
@@ -46,6 +48,7 @@ export function useTimelineKeyboardShortcuts({
   splitClipAtTime,
   toggleClipLock,
   onAddTransition,
+  onAddMarker,
   onGroupClips,
   onUngroupClips,
 }: UseTimelineKeyboardShortcutsOptions) {
@@ -132,6 +135,14 @@ export function useTimelineKeyboardShortcuts({
         }
       }
 
+      // M: Add marker at playhead
+      if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        if (onAddMarker) {
+          onAddMarker();
+        }
+      }
+
       // G: Group selected clips
       if ((e.key === 'g' || e.key === 'G') && !e.shiftKey) {
         e.preventDefault();
@@ -167,6 +178,7 @@ export function useTimelineKeyboardShortcuts({
     redo,
     toggleClipLock,
     onAddTransition,
+    onAddMarker,
     onGroupClips,
     onUngroupClips,
   ]);

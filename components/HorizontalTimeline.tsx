@@ -27,6 +27,7 @@ import { TimelinePlayhead } from './timeline/TimelinePlayhead';
 import { TimelineTextOverlayTrack } from './timeline/TimelineTextOverlayTrack';
 import { TimelineSnapGuides } from './timeline/TimelineSnapGuides';
 import { TimelineTrimOverlay } from './timeline/TimelineTrimOverlay';
+import { TimelineGuides } from './timeline/TimelineGuides';
 
 // Extracted hooks
 import { useTimelineDraggingWithSnap } from '@/lib/hooks/useTimelineDraggingWithSnap';
@@ -58,6 +59,7 @@ const selectTimelineData = (state: ReturnType<typeof useEditorStore.getState>) =
   clips: state.timeline?.clips ?? [],
   textOverlays: state.timeline?.textOverlays ?? [],
   groups: state.timeline?.groups ?? [],
+  guides: state.timeline?.guides ?? [],
 });
 
 // Separate selector for frequently changing values to minimize re-renders

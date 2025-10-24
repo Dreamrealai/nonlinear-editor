@@ -96,8 +96,8 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https://*.supabase.co",
               // Media sources - Supabase storage for video/audio assets
               "media-src 'self' blob: https://*.supabase.co",
-              // API connections - Supabase realtime, Fal.ai video, Google Gemini
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://queue.fal.run https://fal.run https://generativelanguage.googleapis.com",
+              // API connections - Supabase realtime, Fal.ai video, Google Gemini, Sentry, PostHog
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://queue.fal.run https://fal.run https://generativelanguage.googleapis.com https://*.ingest.sentry.io https://app.posthog.com",
               // Font sources - Google Fonts CDN for optimized font delivery
               "font-src 'self' data: https://fonts.gstatic.com",
               // Prevent object/embed/applet tags (no Flash, Java, etc.)
