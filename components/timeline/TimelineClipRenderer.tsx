@@ -108,9 +108,9 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
             role="slider"
             tabIndex={0}
             aria-label="Trim clip start"
-            aria-valuenow={clip.trimStart || 0}
+            aria-valuenow={clip.start || 0}
             aria-valuemin={0}
-            aria-valuemax={clip.duration}
+            aria-valuemax={clip.sourceDuration || 0}
             title="Trim start"
           />
           <div
@@ -119,9 +119,9 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
             role="slider"
             tabIndex={0}
             aria-label="Trim clip end"
-            aria-valuenow={clip.trimEnd || clip.duration}
+            aria-valuenow={clip.end || clip.sourceDuration || 0}
             aria-valuemin={0}
-            aria-valuemax={clip.duration}
+            aria-valuemax={clip.sourceDuration || 0}
             title="Trim end"
           />
 
