@@ -20,42 +20,42 @@ describe('LoadingSpinner', () => {
   describe('Size Prop', () => {
     it('should use default size of 24 when not specified', () => {
       const { container } = render(<LoadingSpinner />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]') as HTMLElement;
+      const spinner = container.querySelector('[data-lucide="loader-2"]') as HTMLElement;
       expect(spinner.style.width).toBe('24px');
       expect(spinner.style.height).toBe('24px');
     });
 
     it('should apply custom size', () => {
       const { container } = render(<LoadingSpinner size={32} />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]') as HTMLElement;
+      const spinner = container.querySelector('[data-lucide="loader-2"]') as HTMLElement;
       expect(spinner.style.width).toBe('32px');
       expect(spinner.style.height).toBe('32px');
     });
 
     it('should apply small size', () => {
       const { container } = render(<LoadingSpinner size={16} />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]') as HTMLElement;
+      const spinner = container.querySelector('[data-lucide="loader-2"]') as HTMLElement;
       expect(spinner.style.width).toBe('16px');
       expect(spinner.style.height).toBe('16px');
     });
 
     it('should apply large size', () => {
       const { container } = render(<LoadingSpinner size={48} />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]') as HTMLElement;
+      const spinner = container.querySelector('[data-lucide="loader-2"]') as HTMLElement;
       expect(spinner.style.width).toBe('48px');
       expect(spinner.style.height).toBe('48px');
     });
 
     it('should apply very small size', () => {
       const { container } = render(<LoadingSpinner size={8} />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]') as HTMLElement;
+      const spinner = container.querySelector('[data-lucide="loader-2"]') as HTMLElement;
       expect(spinner.style.width).toBe('8px');
       expect(spinner.style.height).toBe('8px');
     });
 
     it('should apply very large size', () => {
       const { container } = render(<LoadingSpinner size={100} />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]') as HTMLElement;
+      const spinner = container.querySelector('[data-lucide="loader-2"]') as HTMLElement;
       expect(spinner.style.width).toBe('100px');
       expect(spinner.style.height).toBe('100px');
     });
@@ -64,13 +64,13 @@ describe('LoadingSpinner', () => {
   describe('Animation', () => {
     it('should have spin animation class', () => {
       const { container } = render(<LoadingSpinner />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toHaveClass('animate-spin');
     });
 
     it('should preserve animation class with custom className', () => {
       const { container } = render(<LoadingSpinner className="custom-class" />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toHaveClass('animate-spin');
       expect(spinner).toHaveClass('custom-class');
     });
@@ -79,20 +79,20 @@ describe('LoadingSpinner', () => {
   describe('Custom ClassName', () => {
     it('should apply custom className', () => {
       const { container } = render(<LoadingSpinner className="text-blue-500" />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toHaveClass('text-blue-500');
     });
 
     it('should apply multiple custom classes', () => {
       const { container } = render(<LoadingSpinner className="text-red-500 opacity-50" />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toHaveClass('text-red-500');
       expect(spinner).toHaveClass('opacity-50');
     });
 
     it('should combine default and custom classes', () => {
       const { container } = render(<LoadingSpinner className="custom-class" />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toHaveClass('animate-spin');
       expect(spinner).toHaveClass('custom-class');
     });
@@ -101,25 +101,25 @@ describe('LoadingSpinner', () => {
   describe('Style Variations', () => {
     it('should render with primary color class', () => {
       const { container } = render(<LoadingSpinner className="text-primary" />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toHaveClass('text-primary');
     });
 
     it('should render with secondary color class', () => {
       const { container } = render(<LoadingSpinner className="text-secondary" />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toHaveClass('text-secondary');
     });
 
     it('should render with muted color class', () => {
       const { container } = render(<LoadingSpinner className="text-muted-foreground" />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toHaveClass('text-muted-foreground');
     });
 
     it('should render with custom opacity', () => {
       const { container } = render(<LoadingSpinner className="opacity-75" />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toHaveClass('opacity-75');
     });
   });
@@ -132,7 +132,7 @@ describe('LoadingSpinner', () => {
           Loading...
         </button>
       );
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toBeInTheDocument();
     });
 
@@ -142,7 +142,7 @@ describe('LoadingSpinner', () => {
           <LoadingSpinner size={48} />
         </div>
       );
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toBeInTheDocument();
     });
 
@@ -153,7 +153,7 @@ describe('LoadingSpinner', () => {
           <span>Processing</span>
         </span>
       );
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toBeInTheDocument();
     });
 
@@ -163,7 +163,7 @@ describe('LoadingSpinner', () => {
           <LoadingSpinner size={32} />
         </div>
       );
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toBeInTheDocument();
     });
   });
@@ -176,7 +176,7 @@ describe('LoadingSpinner', () => {
           <span>Loading content...</span>
         </div>
       );
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toBeInTheDocument();
     });
 
@@ -187,7 +187,7 @@ describe('LoadingSpinner', () => {
           <p>Please wait while we process your request</p>
         </div>
       );
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toBeInTheDocument();
     });
 
@@ -197,7 +197,7 @@ describe('LoadingSpinner', () => {
           <LoadingSpinner size={40} />
         </div>
       );
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toBeInTheDocument();
     });
   });
@@ -212,13 +212,13 @@ describe('LoadingSpinner', () => {
 
     it('should handle undefined className', () => {
       const { container } = render(<LoadingSpinner className={undefined} />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toHaveClass('animate-spin');
     });
 
     it('should handle empty className', () => {
       const { container } = render(<LoadingSpinner className="" />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toHaveClass('animate-spin');
     });
 
@@ -238,7 +238,7 @@ describe('LoadingSpinner', () => {
   describe('Accessibility', () => {
     it('should be visible to screen readers', () => {
       const { container } = render(<LoadingSpinner />);
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toBeInTheDocument();
     });
 
@@ -248,7 +248,7 @@ describe('LoadingSpinner', () => {
           <LoadingSpinner />
         </div>
       );
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toBeInTheDocument();
     });
 
@@ -258,7 +258,7 @@ describe('LoadingSpinner', () => {
           <LoadingSpinner />
         </div>
       );
-      const spinner = container.querySelector('[data-testid="loader-icon"]');
+      const spinner = container.querySelector('[data-lucide="loader-2"]');
       expect(spinner).toBeInTheDocument();
     });
   });
