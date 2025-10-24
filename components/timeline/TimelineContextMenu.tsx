@@ -1,6 +1,6 @@
 'use client';
 
-import { Copy, Clipboard, Trash2, Files, Info, Volume2, Film, Music, Lock, Unlock } from 'lucide-react';
+import { Copy, Clipboard, Trash2, Files, Info, Volume2, Film, Music, Lock, Unlock, Zap, Users, Ungroup } from 'lucide-react';
 import { useState } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip } from '@/types/timeline';
@@ -19,6 +19,7 @@ type TimelineContextMenuProps = {
   onSplitAudio?: (clipId: string) => void;
   onSplitScenes?: (clipId: string) => void;
   onGenerateAudio?: (clipId: string) => void;
+  onAddTransition?: (clipId: string) => void;
   onClose: () => void;
 };
 
@@ -40,12 +41,20 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
   onSplitAudio,
   onSplitScenes,
   onGenerateAudio,
+  onAddTransition,
   onClose,
 }) => {
   const [showProperties, setShowProperties] = useState(false);
   const toggleClipLock = useEditorStore((state) => state.toggleClipLock);
+  const groupSelectedClips = useEditorStore((state) => state.groupSelectedClips);
+  const ungroupClips = useEditorStore((state) => state.ungroupClips);
+  const getClipGroupId = useEditorStore((state) => state.getClipGroupId);
+  const selectedClipIds = useEditorStore((state) => state.selectedClipIds);
   const clip = useClipData(clipId);
   const isLocked = clip?.locked ?? false;
+  const groupId = getClipGroupId(clipId);
+  const isGrouped = Boolean(groupId);
+  const canGroup = selectedClipIds.size >= 2;
 
   // Detect if Mac for keyboard shortcuts
   const isMac =
@@ -150,6 +159,22 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
           </>
         )}
 
+        {/* Transition */}
+        {onAddTransition && (
+          <>
+            <MenuDivider />
+            <MenuButton
+              icon={<Zap className="h-4 w-4" />}
+              label="Add Transition"
+              shortcut="T"
+              onClick={() => {
+                onAddTransition(clipId);
+                onClose();
+              }}
+            />
+          </>
+        )}
+
         {/* Lock/Unlock */}
         <MenuDivider />
         <MenuButton
@@ -161,6 +186,31 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
             onClose();
           }}
         />
+
+        {/* Group/Ungroup */}
+        <MenuDivider />
+        {canGroup && !isGrouped && (
+          <MenuButton
+            icon={<Users className="h-4 w-4" />}
+            label="Group Selected Clips"
+            shortcut="G"
+            onClick={() => {
+              groupSelectedClips();
+              onClose();
+            }}
+          />
+        )}
+        {isGrouped && groupId && (
+          <MenuButton
+            icon={<Ungroup className="h-4 w-4" />}
+            label="Ungroup"
+            shortcut="Shift+G"
+            onClick={() => {
+              ungroupClips(groupId);
+              onClose();
+            }}
+          />
+        )}
 
         {/* Properties */}
         <MenuDivider />
@@ -333,6 +383,15 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClo
               <PropertyRow label="Scale" value={`${Math.round(clip.transform.scale * 100)}%`} />
               {clip.transform.flipHorizontal && <PropertyRow label="Flip" value="Horizontal" />}
               {clip.transform.flipVertical && <PropertyRow label="Flip" value="Vertical" />}
+            </>
+          )}
+
+          {clip.transitionToNext && clip.transitionToNext.type !== 'none' && (
+            <>
+              <div className="my-3 h-px bg-neutral-200" />
+              <div className="font-medium text-neutral-700">Transition</div>
+              <PropertyRow label="Type" value={clip.transitionToNext.type} />
+              <PropertyRow label="Duration" value={`${clip.transitionToNext.duration.toFixed(2)}s`} />
             </>
           )}
         </div>

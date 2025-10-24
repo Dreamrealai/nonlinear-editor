@@ -16,6 +16,7 @@ import {
   generateCSSTransform,
   type ClipMeta,
 } from '@/lib/utils/videoUtils';
+import { useAudioEffects } from './useAudioEffects';
 
 export interface UseVideoPlaybackOptions {
   sortedClips: Clip[];
@@ -81,6 +82,9 @@ export function useVideoPlayback({
   const frameTimeThresholdRef = useRef<number>(PERFORMANCE_CONSTANTS.FRAME_TIME_60FPS); // Adaptive frame rate
   const droppedFramesRef = useRef<number>(0);
   const performanceCheckCountRef = useRef<number>(0);
+
+  // Audio effects processing
+  const { connectAudio, applyEffects, disconnectAudio } = useAudioEffects();
 
   // Detect device capabilities and adjust frame rate adaptively
   useEffect(() => {
@@ -181,6 +185,15 @@ export function useVideoPlayback({
           return;
         }
 
+        // Connect audio effects on first playback (if clip has audio)
+        if (clip.hasAudio) {
+          try {
+            connectAudio(clip.id, video);
+          } catch (error) {
+            browserLogger.warn({ clipId: clip.id, error }, 'Failed to connect audio effects');
+          }
+        }
+
         const clipEnd = clip.start + meta.length;
         const targetTime = clamp(
           clip.start + localProgress,
@@ -208,6 +221,16 @@ export function useVideoPlayback({
         video.style.filter = generateCSSFilter(clip.colorCorrection);
         video.style.transform = generateCSSTransform(clip.transform);
 
+        // Apply audio effects (if clip has audio)
+        if (clip.hasAudio && clip.audioEffects) {
+          try {
+            const clipDuration = meta.length;
+            applyEffects(clip.id, clip.audioEffects, localProgress, clipDuration);
+          } catch (error) {
+            browserLogger.warn({ clipId: clip.id, error }, 'Failed to apply audio effects');
+          }
+        }
+
         if (play) {
           if (video.paused && video.readyState >= 3) {
             // Only play if video has buffered enough data
@@ -228,7 +251,7 @@ export function useVideoPlayback({
         }
       });
     },
-    [sortedClips, clipMetas, videoMapRef]
+    [sortedClips, clipMetas, videoMapRef, connectAudio, applyEffects]
   );
 
   /**
@@ -356,8 +379,14 @@ export function useVideoPlayback({
         playbackRafRef.current = null;
       }
       playingRef.current = false;
+      // Clean up all audio effects connections
+      sortedClips.forEach((clip) => {
+        if (clip.hasAudio) {
+          disconnectAudio(clip.id);
+        }
+      });
     };
-  }, []);
+  }, [sortedClips, disconnectAudio]);
 
   return {
     isPlaying,

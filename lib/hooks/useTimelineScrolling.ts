@@ -159,36 +159,53 @@ export function useTimelineScrolling({
     container.style.cursor = isSpacePressedRef.current ? 'grab' : '';
   }, [containerRef]);
 
-  // Auto-scroll during playback
+  // Auto-scroll during playback with requestAnimationFrame throttling
   useEffect(() => {
     if (!isPlaying || !autoScrollEnabled) return;
 
     const container = containerRef.current;
     if (!container) return;
 
-    // Throttle auto-scroll to every 100ms for performance
-    const now = Date.now();
-    if (now - lastAutoScrollTimeRef.current < 100) return;
-    lastAutoScrollTimeRef.current = now;
+    // Use requestAnimationFrame for smooth 60fps scrolling
+    let rafId: number | null = null;
 
-    // Calculate playhead position in pixels
-    const playheadX = currentTime * zoom;
-    const viewportWidth = container.clientWidth;
-    const scrollLeft = container.scrollLeft;
-    const scrollRight = scrollLeft + viewportWidth;
+    const performAutoScroll = () => {
+      const now = Date.now();
+      // Throttle to ~60fps (16ms) minimum
+      if (now - lastAutoScrollTimeRef.current < 16) {
+        rafId = requestAnimationFrame(performAutoScroll);
+        return;
+      }
+      lastAutoScrollTimeRef.current = now;
 
-    // Auto-scroll if playhead is near the edge or outside viewport
-    const edgeThreshold = viewportWidth * 0.2; // 20% from edge
+      // Calculate playhead position in pixels
+      const playheadX = currentTime * zoom;
+      const viewportWidth = container.clientWidth;
+      const scrollLeft = container.scrollLeft;
+      const scrollRight = scrollLeft + viewportWidth;
 
-    if (playheadX > scrollRight - edgeThreshold) {
-      // Playhead approaching right edge - scroll right
-      const targetScrollLeft = playheadX - viewportWidth * 0.3; // Keep playhead at 30% from left
-      container.scrollLeft = Math.max(0, targetScrollLeft);
-    } else if (playheadX < scrollLeft + edgeThreshold && scrollLeft > 0) {
-      // Playhead approaching left edge - scroll left
-      const targetScrollLeft = playheadX - viewportWidth * 0.3;
-      container.scrollLeft = Math.max(0, targetScrollLeft);
-    }
+      // Auto-scroll if playhead is near the edge or outside viewport
+      const edgeThreshold = viewportWidth * 0.2; // 20% from edge
+
+      if (playheadX > scrollRight - edgeThreshold) {
+        // Playhead approaching right edge - scroll right
+        const targetScrollLeft = playheadX - viewportWidth * 0.3; // Keep playhead at 30% from left
+        container.scrollLeft = Math.max(0, targetScrollLeft);
+      } else if (playheadX < scrollLeft + edgeThreshold && scrollLeft > 0) {
+        // Playhead approaching left edge - scroll left
+        const targetScrollLeft = playheadX - viewportWidth * 0.3;
+        container.scrollLeft = Math.max(0, targetScrollLeft);
+      }
+    };
+
+    // Start the auto-scroll loop
+    rafId = requestAnimationFrame(performAutoScroll);
+
+    return () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+    };
   }, [containerRef, currentTime, zoom, isPlaying, autoScrollEnabled]);
 
   // Setup event listeners

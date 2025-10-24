@@ -45,7 +45,7 @@ export interface ExportRequest {
       timelinePosition: number;
       trackIndex: number;
       transitionToNext?: {
-        type: 'crossfade' | 'fade-in' | 'fade-out';
+        type: 'none' | 'crossfade' | 'fade-in' | 'fade-out' | 'slide-left' | 'slide-right' | 'slide-up' | 'slide-down' | 'wipe-left' | 'wipe-right' | 'zoom-in' | 'zoom-out';
         duration: number;
       };
       volume?: number;
@@ -71,7 +71,20 @@ export interface ExportResponse {
 }
 
 const VALID_FORMATS = ['mp4', 'webm'] as const;
-const VALID_TRANSITIONS = ['crossfade', 'fade-in', 'fade-out'] as const;
+const VALID_TRANSITIONS = [
+  'none',
+  'crossfade',
+  'fade-in',
+  'fade-out',
+  'slide-left',
+  'slide-right',
+  'slide-up',
+  'slide-down',
+  'wipe-left',
+  'wipe-right',
+  'zoom-in',
+  'zoom-out',
+] as const;
 
 const handleExportCreate: AuthenticatedHandler = async (request, { user, supabase }) => {
   const exportEnabled = process.env['VIDEO_EXPORT_ENABLED'] === 'true';

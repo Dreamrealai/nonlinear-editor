@@ -574,39 +574,44 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
   return (
     <div className="flex h-full flex-col">
       <EditorHeader projectId={projectId} currentTab="video-editor" onExport={handleExportClick} />
-      <div className="flex h-full gap-6 p-6">
+      <div className="flex h-full gap-3 lg:gap-6 p-3 lg:p-6">
         <Toaster position="bottom-right" />
 
-        {/* Assets Panel - Resizable */}
-        <ResizableAssetPanel
-          projectId={projectId}
-          activeTab={activeTab}
-          assets={assets}
-          loadingAssets={loadingAssets}
-          assetError={assetError}
-          uploadPending={uploadPending}
-          onTabChange={setActiveTab}
-          onAssetAdd={handlers.handleClipAdd}
-          onAssetDelete={handlers.handleAssetDelete}
-          onFileSelect={handlers.handleFileSelect}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalCount={totalCount}
-          hasNextPage={hasNextPage}
-          hasPreviousPage={hasPreviousPage}
-          onNextPage={loadNextPage}
-          onPreviousPage={loadPreviousPage}
-          initialWidth={280}
-          minWidth={200}
-          maxWidth={500}
-        />
+        {/* Assets Panel - Desktop Only (Resizable) */}
+        <div className="hidden lg:block">
+          <ResizableAssetPanel
+            projectId={projectId}
+            activeTab={activeTab}
+            assets={assets}
+            loadingAssets={loadingAssets}
+            assetError={assetError}
+            uploadPending={uploadPending}
+            onTabChange={setActiveTab}
+            onAssetAdd={handlers.handleClipAdd}
+            onAssetDelete={handlers.handleAssetDelete}
+            onFileSelect={handlers.handleFileSelect}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            hasNextPage={hasNextPage}
+            hasPreviousPage={hasPreviousPage}
+            onNextPage={loadNextPage}
+            onPreviousPage={loadPreviousPage}
+            initialWidth={280}
+            minWidth={200}
+            maxWidth={500}
+          />
+        </div>
 
         {/* Main Editor - Flexible width */}
-        <main className="flex h-full flex-1 flex-col gap-4 overflow-hidden">
-          <section className="flex-[18] overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+        <main className="flex h-full flex-1 flex-col gap-2 lg:gap-4 overflow-hidden">
+          {/* Preview Player */}
+          <section className="flex-[18] overflow-hidden rounded-lg lg:rounded-xl border border-neutral-200 bg-white p-2 lg:p-4 shadow-sm">
             <LazyPreviewPlayer />
           </section>
-          <section className="flex-[5] rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+
+          {/* Timeline */}
+          <section className="flex-[5] rounded-lg lg:rounded-xl border border-neutral-200 bg-white p-2 lg:p-4 shadow-sm">
             <LazyHorizontalTimeline
               onDetectScenes={handleDetectScenes}
               sceneDetectPending={sceneDetectPending}
@@ -625,8 +630,8 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
           <TimelineCorrectionsMenu />
         </main>
 
-        {/* Clip Properties Panel - Fixed width */}
-        <div className="w-80 flex-shrink-0">
+        {/* Clip Properties Panel - Desktop Only (Fixed width) */}
+        <div className="hidden xl:block w-80 flex-shrink-0">
           <LazyClipPropertiesPanel />
         </div>
 

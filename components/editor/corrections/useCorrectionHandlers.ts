@@ -11,6 +11,9 @@ interface CorrectionHandlersProps {
     hue: number;
     rotation: number;
     scale: number;
+    volume: number;
+    fadeIn: number;
+    fadeOut: number;
     bassGain: number;
     midGain: number;
     trebleGain: number;
@@ -23,6 +26,9 @@ interface CorrectionHandlersProps {
     setHue: (val: number) => void;
     setRotation: (val: number) => void;
     setScale: (val: number) => void;
+    setVolume: (val: number) => void;
+    setFadeIn: (val: number) => void;
+    setFadeOut: (val: number) => void;
     setBassGain: (val: number) => void;
     setMidGain: (val: number) => void;
     setTrebleGain: (val: number) => void;
@@ -98,6 +104,10 @@ export function useCorrectionHandlers({
   useEffect(() => {
     if (selectedClip && selectedClip.hasAudio) {
       const current = selectedClip.audioEffects || {
+        volume: 0,
+        mute: false,
+        fadeIn: 0,
+        fadeOut: 0,
         bassGain: 0,
         midGain: 0,
         trebleGain: 0,
@@ -105,6 +115,9 @@ export function useCorrectionHandlers({
         normalize: false,
       };
       if (
+        current.volume !== debounced.volume ||
+        current.fadeIn !== debounced.fadeIn ||
+        current.fadeOut !== debounced.fadeOut ||
         current.bassGain !== debounced.bassGain ||
         current.midGain !== debounced.midGain ||
         current.trebleGain !== debounced.trebleGain ||
@@ -113,6 +126,9 @@ export function useCorrectionHandlers({
         updateClip(selectedClip.id, {
           audioEffects: {
             ...current,
+            volume: debounced.volume,
+            fadeIn: debounced.fadeIn,
+            fadeOut: debounced.fadeOut,
             bassGain: debounced.bassGain,
             midGain: debounced.midGain,
             trebleGain: debounced.trebleGain,
@@ -122,6 +138,9 @@ export function useCorrectionHandlers({
       }
     }
   }, [
+    debounced.volume,
+    debounced.fadeIn,
+    debounced.fadeOut,
     debounced.bassGain,
     debounced.midGain,
     debounced.trebleGain,
@@ -151,6 +170,10 @@ export function useCorrectionHandlers({
     (updates: Partial<AudioEffects>) => {
       if (!selectedClip) return;
       const audioEffects = selectedClip.audioEffects || {
+        volume: 0,
+        mute: false,
+        fadeIn: 0,
+        fadeOut: 0,
         bassGain: 0,
         midGain: 0,
         trebleGain: 0,
@@ -186,12 +209,25 @@ export function useCorrectionHandlers({
 
   const resetAudioEffects = useCallback(() => {
     if (!selectedClip) return;
+    setters.setVolume(0);
+    setters.setFadeIn(0);
+    setters.setFadeOut(0);
     setters.setBassGain(0);
     setters.setMidGain(0);
     setters.setTrebleGain(0);
     setters.setCompression(0);
     updateClip(selectedClip.id, {
-      audioEffects: { bassGain: 0, midGain: 0, trebleGain: 0, compression: 0, normalize: false },
+      audioEffects: {
+        volume: 0,
+        mute: false,
+        fadeIn: 0,
+        fadeOut: 0,
+        bassGain: 0,
+        midGain: 0,
+        trebleGain: 0,
+        compression: 0,
+        normalize: false,
+      },
     });
   }, [selectedClip, updateClip, setters]);
 

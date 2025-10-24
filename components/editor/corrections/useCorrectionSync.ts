@@ -13,6 +13,9 @@ export function useCorrectionSync(selectedClip: Clip | null) {
   const [localHue, setLocalHue] = useState(0);
   const [localRotation, setLocalRotation] = useState(0);
   const [localScale, setLocalScale] = useState(1.0);
+  const [localVolume, setLocalVolume] = useState(0);
+  const [localFadeIn, setLocalFadeIn] = useState(0);
+  const [localFadeOut, setLocalFadeOut] = useState(0);
   const [localBassGain, setLocalBassGain] = useState(0);
   const [localMidGain, setLocalMidGain] = useState(0);
   const [localTrebleGain, setLocalTrebleGain] = useState(0);
@@ -25,6 +28,9 @@ export function useCorrectionSync(selectedClip: Clip | null) {
   const debouncedHue = useDebounce(localHue, 100);
   const debouncedRotation = useDebounce(localRotation, 100);
   const debouncedScale = useDebounce(localScale, 100);
+  const debouncedVolume = useDebounce(localVolume, 100);
+  const debouncedFadeIn = useDebounce(localFadeIn, 100);
+  const debouncedFadeOut = useDebounce(localFadeOut, 100);
   const debouncedBassGain = useDebounce(localBassGain, 100);
   const debouncedMidGain = useDebounce(localMidGain, 100);
   const debouncedTrebleGain = useDebounce(localTrebleGain, 100);
@@ -46,6 +52,10 @@ export function useCorrectionSync(selectedClip: Clip | null) {
         scale: 1.0,
       };
       const audioEffects = selectedClip.audioEffects || {
+        volume: 0,
+        mute: false,
+        fadeIn: 0,
+        fadeOut: 0,
         bassGain: 0,
         midGain: 0,
         trebleGain: 0,
@@ -59,6 +69,9 @@ export function useCorrectionSync(selectedClip: Clip | null) {
       setLocalHue(colorCorrection.hue);
       setLocalRotation(transform.rotation);
       setLocalScale(transform.scale);
+      setLocalVolume(audioEffects.volume);
+      setLocalFadeIn(audioEffects.fadeIn);
+      setLocalFadeOut(audioEffects.fadeOut);
       setLocalBassGain(audioEffects.bassGain);
       setLocalMidGain(audioEffects.midGain);
       setLocalTrebleGain(audioEffects.trebleGain);
@@ -75,6 +88,9 @@ export function useCorrectionSync(selectedClip: Clip | null) {
       hue: localHue,
       rotation: localRotation,
       scale: localScale,
+      volume: localVolume,
+      fadeIn: localFadeIn,
+      fadeOut: localFadeOut,
       bassGain: localBassGain,
       midGain: localMidGain,
       trebleGain: localTrebleGain,
@@ -88,6 +104,9 @@ export function useCorrectionSync(selectedClip: Clip | null) {
       setHue: setLocalHue,
       setRotation: setLocalRotation,
       setScale: setLocalScale,
+      setVolume: setLocalVolume,
+      setFadeIn: setLocalFadeIn,
+      setFadeOut: setLocalFadeOut,
       setBassGain: setLocalBassGain,
       setMidGain: setLocalMidGain,
       setTrebleGain: setLocalTrebleGain,
@@ -101,6 +120,9 @@ export function useCorrectionSync(selectedClip: Clip | null) {
       hue: debouncedHue,
       rotation: debouncedRotation,
       scale: debouncedScale,
+      volume: debouncedVolume,
+      fadeIn: debouncedFadeIn,
+      fadeOut: debouncedFadeOut,
       bassGain: debouncedBassGain,
       midGain: debouncedMidGain,
       trebleGain: debouncedTrebleGain,

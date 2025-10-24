@@ -125,13 +125,27 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: [
       '@supabase/supabase-js',
+      '@supabase/ssr',
       'zustand',
       'clsx',
       'lucide-react',
       'react-hot-toast',
       'web-vitals',
+      'immer',
+      'uuid',
+      'pino',
     ],
+    // Enable optimized CSS loading
+    optimizeCss: true,
+    // Enable server actions for better data fetching
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
   },
+
+  // Turbopack configuration (Next.js 16+ default bundler)
+  // Turbopack automatically handles tree-shaking, code splitting, and optimizations
+  turbopack: {},
 
   // Modularize imports for better tree-shaking
   modularizeImports: {

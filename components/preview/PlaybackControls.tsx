@@ -141,8 +141,9 @@ export function PlaybackControls({
           <button
             type="button"
             onClick={onToggleFullscreen}
-            className="absolute top-4 right-4 rounded-full bg-black/50 hover:bg-black/70 p-2 text-white transition-all backdrop-blur-sm"
-            title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            className="absolute top-4 right-4 rounded-full bg-black/50 hover:bg-black/70 p-2 text-white transition-all backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black"
+            title={isFullscreen ? 'Exit fullscreen (F)' : 'Enter fullscreen (F)'}
           >
             {isFullscreen ? (
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -196,7 +197,8 @@ export function PlaybackControls({
               <button
                 type="button"
                 onClick={onPlayPause}
-                className="flex items-center justify-center rounded-full bg-white/90 hover:bg-white hover:scale-110 p-1.5 text-black transition-all disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 shadow-lg"
+                aria-label={isPlaying ? 'Pause video' : 'Play video'}
+                className="flex items-center justify-center rounded-full bg-white/90 hover:bg-white hover:scale-110 p-1.5 text-black transition-all disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black"
                 disabled={!hasClips}
                 title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
               >
@@ -212,10 +214,17 @@ export function PlaybackControls({
               </button>
 
               {/* Time Display */}
-              <div className="flex items-center gap-2 text-xs font-mono font-semibold text-white drop-shadow-lg">
-                <span>{formattedCurrent}</span>
-                <span className="text-white/60">/</span>
-                <span>{formattedTotal}</span>
+              <div
+                className="flex items-center gap-2 text-xs font-mono font-semibold text-white drop-shadow-lg"
+                role="timer"
+                aria-live="off"
+                aria-label={`Video time: ${formattedCurrent} of ${formattedTotal}`}
+              >
+                <span aria-label="Current time">{formattedCurrent}</span>
+                <span className="text-white/60" aria-hidden="true">
+                  /
+                </span>
+                <span aria-label="Total duration">{formattedTotal}</span>
               </div>
             </div>
           </div>
@@ -227,7 +236,8 @@ export function PlaybackControls({
         <button
           type="button"
           onClick={() => setShowControls(true)}
-          className="absolute bottom-4 right-4 rounded-full bg-black/50 hover:bg-black/70 p-3 text-white transition-all backdrop-blur-sm opacity-0 hover:opacity-100 pointer-events-auto"
+          aria-label="Show video controls"
+          className="absolute bottom-4 right-4 rounded-full bg-black/50 hover:bg-black/70 p-3 text-white transition-all backdrop-blur-sm opacity-0 hover:opacity-100 focus:opacity-100 pointer-events-auto focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black"
           title="Show controls"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

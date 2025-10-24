@@ -40,6 +40,7 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
   }) {
     const [isHovered, setIsHovered] = React.useState(false);
     const toggleClipLock = useEditorStore((state) => state.toggleClipLock);
+    const timeline = useEditorStore((state) => state.timeline);
 
     const clipDuration = clip.end - clip.start;
     const clipWidth = clipDuration * zoom;
@@ -47,6 +48,11 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
     const clipTop = clip.trackIndex * TRACK_HEIGHT;
     const thumbnail = clip.thumbnailUrl;
     const isLocked = clip.locked ?? false;
+
+    // Check if clip is grouped
+    const isGrouped = Boolean(clip.groupId);
+    const group = timeline?.groups?.find((g) => g.id === clip.groupId);
+    const groupColor = group?.color || '#8b5cf6'; // Default to purple
 
     // Calculate timecode values
     const inTimecode = formatTimecode(clip.start);
@@ -69,6 +75,8 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
         } ${
           isSelected
             ? 'border-yellow-400 ring-2 ring-yellow-400/50'
+            : isGrouped
+            ? `border-[${groupColor}] hover:brightness-110`
             : isLocked
             ? 'border-gray-400'
             : 'border-blue-500 hover:border-blue-600'
@@ -78,6 +86,9 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
           top: clipTop + 8,
           width: clipWidth,
           height: TRACK_HEIGHT - 16,
+          ...(isGrouped && !isSelected
+            ? { borderColor: groupColor, boxShadow: `0 0 0 1px ${groupColor}80` }
+            : {}),
         }}
         onMouseDown={(e) => onMouseDown(e, clip)}
         onClick={(e) => onClick(e, clip)}
@@ -92,7 +103,7 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
         }}
         role="button"
         tabIndex={0}
-        aria-label={`Timeline clip: ${getClipFileName(clip)}`}
+        aria-label={`Timeline clip: ${getClipFileName(clip)}${isGrouped ? ` (${group?.name || 'Grouped'})` : ''}`}
       >
         <div className="relative h-full w-full select-none">
           {thumbnail ? (
@@ -163,7 +174,30 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
           <div className="absolute inset-0 flex h-full flex-col justify-between p-2 text-white pointer-events-none">
             <div className="flex items-start justify-between gap-1">
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold">{getClipFileName(clip)}</p>
+                <div className="flex items-center gap-1">
+                  <p className="truncate text-xs font-semibold">{getClipFileName(clip)}</p>
+                  {isGrouped && (
+                    <div
+                      className="flex-shrink-0 rounded px-1 py-0.5 text-[8px] font-bold uppercase"
+                      style={{ backgroundColor: groupColor, color: 'white' }}
+                      title={group?.name || 'Grouped'}
+                    >
+                      <svg
+                        className="h-2.5 w-2.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
                 {timecodeDisplayMode === 'duration' ? (
                   <p className="text-[10px] font-medium text-white/70">
                     {clipDuration.toFixed(1)}s
@@ -278,9 +312,18 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
               </div>
             )}
 
-            {clip.transitionToNext && (
-              <div className="text-[9px] font-medium text-white/80">
-                ⟿ {clip.transitionToNext.type}
+            {clip.transitionToNext && clip.transitionToNext.type !== 'none' && (
+              <div className="absolute bottom-1 right-1 flex items-center gap-1 bg-gradient-to-r from-purple-600 to-purple-500 text-white text-[9px] font-medium px-2 py-0.5 rounded-full shadow-md border border-purple-400/30">
+                <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+                <span>{clip.transitionToNext.type}</span>
+                <span className="text-purple-200">{clip.transitionToNext.duration.toFixed(1)}s</span>
               </div>
             )}
           </div>

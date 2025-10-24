@@ -126,7 +126,9 @@ export function AssetPanel({
   return (
     <aside className="flex flex-col gap-4 overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-neutral-900">Assets</h2>
+        <h2 className="text-sm font-semibold text-neutral-900" id="asset-panel-title">
+          Assets
+        </h2>
         <div className="flex items-center gap-2">
           <input
             ref={uploadInputRef}
@@ -137,12 +139,15 @@ export function AssetPanel({
             }
             className="hidden"
             onChange={onFileSelect}
+            aria-label={`Upload ${activeTab} files`}
           />
           <button
             type="button"
             onClick={() => uploadInputRef.current?.click()}
             disabled={uploadPending}
-            className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-75"
+            aria-label={uploadPending ? 'Uploading files' : `Upload ${activeTab} files`}
+            aria-busy={uploadPending}
+            className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-75"
           >
             {uploadPending ? 'Uploading…' : 'Upload'}
           </button>
@@ -150,36 +155,66 @@ export function AssetPanel({
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-neutral-200">
+      <div className="flex gap-2 border-b border-neutral-200" role="tablist" aria-label="Asset types">
         <button
           type="button"
+          role="tab"
+          aria-selected={activeTab === 'video'}
+          aria-controls="video-tabpanel"
           onClick={() => onTabChange('video')}
-          className={`px-3 py-2 text-xs font-medium transition ${
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              onTabChange('image');
+            }
+          }}
+          className={`px-3 py-2 text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-t ${
             activeTab === 'video'
               ? 'border-b-2 border-neutral-900 text-neutral-900'
-              : 'text-neutral-500 hover:text-neutral-700'
+              : 'text-neutral-600 hover:text-neutral-900'
           }`}
         >
           Videos
         </button>
         <button
           type="button"
+          role="tab"
+          aria-selected={activeTab === 'image'}
+          aria-controls="image-tabpanel"
           onClick={() => onTabChange('image')}
-          className={`px-3 py-2 text-xs font-medium transition ${
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              onTabChange('video');
+            } else if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              onTabChange('audio');
+            }
+          }}
+          className={`px-3 py-2 text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-t ${
             activeTab === 'image'
               ? 'border-b-2 border-neutral-900 text-neutral-900'
-              : 'text-neutral-500 hover:text-neutral-700'
+              : 'text-neutral-600 hover:text-neutral-900'
           }`}
         >
           Images
         </button>
         <button
           type="button"
+          role="tab"
+          aria-selected={activeTab === 'audio'}
+          aria-controls="audio-tabpanel"
           onClick={() => onTabChange('audio')}
-          className={`px-3 py-2 text-xs font-medium transition ${
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              onTabChange('image');
+            }
+          }}
+          className={`px-3 py-2 text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-t ${
             activeTab === 'audio'
               ? 'border-b-2 border-neutral-900 text-neutral-900'
-              : 'text-neutral-500 hover:text-neutral-700'
+              : 'text-neutral-600 hover:text-neutral-900'
           }`}
         >
           Audio
@@ -283,17 +318,35 @@ export function AssetPanel({
       )}
 
       {assetError && (
-        <div className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{assetError}</div>
+        <div
+          className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600"
+          role="alert"
+          aria-live="assertive"
+        >
+          {assetError}
+        </div>
       )}
 
-      <div className="flex-1 overflow-y-auto space-y-3">
+      <div
+        className="flex-1 overflow-y-auto space-y-3"
+        role="tabpanel"
+        id={`${activeTab}-tabpanel`}
+        aria-labelledby={`${activeTab}-tab`}
+      >
         {loadingAssets && (
-          <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+          <div
+            className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-700"
+            role="status"
+            aria-live="polite"
+          >
             Loading assets…
           </div>
         )}
         {!loadingAssets && filteredAssets.length === 0 && (
-          <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+          <div
+            className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-700"
+            role="status"
+          >
             {activeTab === 'video'
               ? 'No video assets yet. Upload video to begin editing.'
               : activeTab === 'image'
@@ -306,7 +359,14 @@ export function AssetPanel({
             <button
               type="button"
               onClick={() => void onAssetAdd(asset)}
-              className="flex w-full items-center gap-3 rounded-lg border border-transparent bg-neutral-50 px-3 py-2 text-left transition hover:border-neutral-200 hover:bg-white"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  void onAssetAdd(asset);
+                }
+              }}
+              aria-label={`Add ${asset.metadata?.filename ?? asset.type} to timeline`}
+              className="flex w-full items-center gap-3 rounded-lg border border-transparent bg-neutral-50 px-3 py-2 text-left transition hover:border-neutral-200 hover:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {asset.metadata?.thumbnail ? (
                 <Image
@@ -333,10 +393,17 @@ export function AssetPanel({
             {/* Delete button - always visible */}
             <button
               onClick={() => void onAssetDelete(asset)}
-              className="absolute right-2 top-1 z-10 rounded-md bg-red-500 p-1 text-white shadow-lg transition-all hover:bg-red-600"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  void onAssetDelete(asset);
+                }
+              }}
+              aria-label={`Delete ${asset.metadata?.filename ?? asset.type}`}
+              className="absolute right-2 top-1 z-10 rounded-md bg-red-500 p-1 text-white shadow-lg transition-all hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               title="Delete asset"
             >
-              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -351,8 +418,11 @@ export function AssetPanel({
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-neutral-200 pt-3 text-xs">
-          <div className="text-neutral-600">
+        <nav
+          className="flex items-center justify-between border-t border-neutral-200 pt-3 text-xs"
+          aria-label="Asset pagination"
+        >
+          <div className="text-neutral-700" aria-live="polite" aria-atomic="true">
             Page {currentPage + 1} of {totalPages} ({totalCount} total)
           </div>
           <div className="flex gap-2">
@@ -360,7 +430,8 @@ export function AssetPanel({
               type="button"
               onClick={() => onPreviousPage?.()}
               disabled={!hasPreviousPage || loadingAssets}
-              className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 font-medium text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Go to previous page"
+              className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 font-medium text-neutral-700 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Previous
             </button>
@@ -368,12 +439,13 @@ export function AssetPanel({
               type="button"
               onClick={() => onNextPage?.()}
               disabled={!hasNextPage || loadingAssets}
-              className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 font-medium text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Go to next page"
+              className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 font-medium text-neutral-700 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Next
             </button>
           </div>
-        </div>
+        </nav>
       )}
     </aside>
   );

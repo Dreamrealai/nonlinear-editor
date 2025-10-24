@@ -57,10 +57,10 @@ export default function SignInPage() {
   // Show configuration error message
   if (!supabaseConfigured) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50">
-        <div className="max-w-md rounded-xl border border-neutral-200 bg-white p-8 text-center shadow-sm">
-          <h1 className="text-2xl font-bold text-neutral-900">Supabase Not Configured</h1>
-          <p className="mt-4 text-neutral-600">
+      <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-950">
+        <div className="max-w-md rounded-xl border border-neutral-200 bg-white p-8 text-center shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Supabase Not Configured</h1>
+          <p className="mt-4 text-neutral-600 dark:text-neutral-400">
             Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables to
             enable authentication.
           </p>

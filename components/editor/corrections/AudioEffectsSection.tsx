@@ -1,11 +1,18 @@
 import type { AudioEffects } from '@/types/timeline';
 
 interface AudioEffectsSectionProps {
+  volume: number;
+  mute: boolean;
+  fadeIn: number;
+  fadeOut: number;
   bassGain: number;
   midGain: number;
   trebleGain: number;
   compression: number;
   normalize: boolean;
+  onVolumeChange: (value: number) => void;
+  onFadeInChange: (value: number) => void;
+  onFadeOutChange: (value: number) => void;
   onBassGainChange: (value: number) => void;
   onMidGainChange: (value: number) => void;
   onTrebleGainChange: (value: number) => void;
@@ -15,11 +22,18 @@ interface AudioEffectsSectionProps {
 }
 
 export function AudioEffectsSection({
+  volume,
+  mute,
+  fadeIn,
+  fadeOut,
   bassGain,
   midGain,
   trebleGain,
   compression,
   normalize,
+  onVolumeChange,
+  onFadeInChange,
+  onFadeOutChange,
   onBassGainChange,
   onMidGainChange,
   onTrebleGainChange,
@@ -29,6 +43,154 @@ export function AudioEffectsSection({
 }: AudioEffectsSectionProps) {
   return (
     <div className="space-y-6">
+      {/* Volume Control */}
+      <div className="rounded-lg border border-neutral-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
+        <h4 className="mb-4 flex items-center gap-2 text-sm font-semibold text-neutral-900">
+          <svg
+            className="h-5 w-5 text-blue-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+            />
+          </svg>
+          Volume Control
+        </h4>
+
+        <div className="space-y-4">
+          {/* Volume Slider */}
+          <div>
+            <label className="mb-2 flex items-center justify-between text-xs font-medium text-neutral-700">
+              <span>Volume</span>
+              <span className="rounded bg-blue-600 px-2 py-0.5 text-xs font-bold text-white">
+                {volume > 0 ? '+' : ''}
+                {volume} dB
+              </span>
+            </label>
+            <input
+              type="range"
+              min="-60"
+              max="12"
+              step="1"
+              value={volume}
+              onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
+              className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-blue-300 to-blue-600"
+              style={{ accentColor: '#2563eb' }}
+            />
+            <div className="mt-1 flex justify-between text-[10px] text-neutral-600">
+              <span>-60dB (Silent)</span>
+              <span>0dB (Normal)</span>
+              <span>+12dB (Boost)</span>
+            </div>
+          </div>
+
+          {/* Mute Toggle */}
+          <label htmlFor="audio-mute" className="flex items-center gap-3 cursor-pointer group">
+            <div className="relative">
+              <input
+                id="audio-mute"
+                type="checkbox"
+                checked={mute}
+                onChange={(e) => onAudioUpdate({ mute: e.target.checked })}
+                className="peer sr-only"
+                aria-label="Mute audio"
+              />
+              <div className="h-6 w-11 rounded-full bg-neutral-300 peer-checked:bg-red-600 transition"></div>
+              <div className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition peer-checked:translate-x-5"></div>
+            </div>
+            <div>
+              <span className="text-xs font-medium text-neutral-700 group-hover:text-neutral-900">
+                Mute
+              </span>
+              <p className="text-[10px] text-neutral-600">Silence audio completely</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      {/* Fades */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Fade In */}
+        <div className="rounded-lg border border-neutral-200 bg-white p-4">
+          <label className="mb-3 flex items-center justify-between text-xs font-medium text-neutral-700">
+            <span className="flex items-center gap-2">
+              <svg
+                className="h-4 w-4 text-green-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 10l7-7m0 0l7 7m-7-7v18"
+                />
+              </svg>
+              Fade In
+            </span>
+            <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">
+              {fadeIn.toFixed(1)}s
+            </span>
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="5"
+            step="0.1"
+            value={fadeIn}
+            onChange={(e) => onFadeInChange(parseFloat(e.target.value))}
+            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-neutral-300 to-green-600"
+            style={{ accentColor: '#16a34a' }}
+          />
+          <p className="mt-2 text-[10px] text-neutral-600">
+            Gradual volume increase at start
+          </p>
+        </div>
+
+        {/* Fade Out */}
+        <div className="rounded-lg border border-neutral-200 bg-white p-4">
+          <label className="mb-3 flex items-center justify-between text-xs font-medium text-neutral-700">
+            <span className="flex items-center gap-2">
+              <svg
+                className="h-4 w-4 text-red-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                />
+              </svg>
+              Fade Out
+            </span>
+            <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">
+              {fadeOut.toFixed(1)}s
+            </span>
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="5"
+            step="0.1"
+            value={fadeOut}
+            onChange={(e) => onFadeOutChange(parseFloat(e.target.value))}
+            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-red-600 to-neutral-300"
+            style={{ accentColor: '#dc2626' }}
+          />
+          <p className="mt-2 text-[10px] text-neutral-600">
+            Gradual volume decrease at end
+          </p>
+        </div>
+      </div>
       {/* Equalizer */}
       <div className="rounded-lg border border-neutral-200 bg-gradient-to-br from-purple-50 to-pink-50 p-4">
         <h4 className="mb-4 flex items-center gap-2 text-sm font-semibold text-neutral-900">

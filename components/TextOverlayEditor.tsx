@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Trash2 } from 'lucide-react';
-import type { TextOverlay } from '@/types/timeline';
+import { Trash2, Sparkles } from 'lucide-react';
+import type { TextOverlay, TextAnimation, TextAnimationType, EasingFunction } from '@/types/timeline';
 import { useEditorStore } from '@/state/useEditorStore';
+import { animationPresets } from '@/lib/utils/textAnimations';
 
 /**
  * TextOverlayEditor
@@ -181,6 +182,44 @@ export function TextOverlayEditor({
     [selectedOverlay, updateTextOverlay]
   );
 
+  // Handle animation type change
+  const handleAnimationTypeChange = useCallback(
+    (type: TextAnimationType) => {
+      if (!selectedOverlay) return;
+
+      if (type === 'none') {
+        updateTextOverlay(selectedOverlay.id, { animation: undefined });
+      } else {
+        // Use preset for the animation type, or create default
+        const preset = animationPresets[type.replace(/-/g, '')] ?? {
+          type,
+          duration: 0.5,
+          delay: 0,
+          easing: 'ease-out' as EasingFunction,
+          repeat: 0,
+          direction: 'normal' as const,
+        };
+        updateTextOverlay(selectedOverlay.id, { animation: preset });
+      }
+    },
+    [selectedOverlay, updateTextOverlay]
+  );
+
+  // Handle animation property changes
+  const handleAnimationPropertyChange = useCallback(
+    (property: keyof TextAnimation, value: number | string) => {
+      if (!selectedOverlay || !selectedOverlay.animation) return;
+
+      updateTextOverlay(selectedOverlay.id, {
+        animation: {
+          ...selectedOverlay.animation,
+          [property]: value,
+        },
+      });
+    },
+    [selectedOverlay, updateTextOverlay]
+  );
+
   // Handle delete
   const handleDelete = useCallback(() => {
     if (!selectedOverlay) return;
@@ -196,18 +235,31 @@ export function TextOverlayEditor({
     setIsEditingText(false);
   }, []);
 
-  // Calculate opacity with fade effects
-  const calculateOpacity = (overlay: TextOverlay) => {
-    const elapsed = currentTime - overlay.timelinePosition;
-    const remaining = overlay.timelinePosition + overlay.duration - currentTime;
-    const fadeInDuration = 0.3;
-    const fadeOutDuration = 0.3;
+  // Calculate animation state (import from animation utilities)
+  const calculateAnimationState = (overlay: TextOverlay) => {
+    const elapsedTime = currentTime - overlay.timelinePosition;
 
+    // Import animation calculation inline to avoid circular dependency
+    // For editor view, we want to show static text with basic opacity
     let computedOpacity = overlay.opacity ?? 1.0;
-    if (elapsed < fadeInDuration) {
-      computedOpacity *= elapsed / fadeInDuration;
-    } else if (remaining < fadeOutDuration) {
-      computedOpacity *= remaining / fadeOutDuration;
+
+    // Apply animation preview if animation is defined
+    if (overlay.animation && overlay.animation.type !== 'none') {
+      // Basic animation preview - just fade in/out for editor
+      const elapsed = elapsedTime;
+      const duration = overlay.animation.duration;
+      const delay = overlay.animation.delay;
+
+      if (elapsed < delay) {
+        computedOpacity = overlay.animation.type.includes('fade-in') ? 0 : 1;
+      } else if (elapsed < delay + duration) {
+        const progress = (elapsed - delay) / duration;
+        if (overlay.animation.type === 'fade-in') {
+          computedOpacity *= progress;
+        } else if (overlay.animation.type === 'fade-out') {
+          computedOpacity *= (1 - progress);
+        }
+      }
     }
 
     return computedOpacity;
@@ -230,7 +282,7 @@ export function TextOverlayEditor({
       >
         {visibleOverlays.map((overlay) => {
           const isSelected = overlay.id === selectedOverlayId;
-          const opacity = calculateOpacity(overlay);
+          const opacity = calculateAnimationState(overlay);
 
           return (
             <div
@@ -293,87 +345,219 @@ export function TextOverlayEditor({
 
       {/* Formatting Toolbar */}
       {selectedOverlay && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 rounded-lg bg-black/90 backdrop-blur-sm px-4 py-3 shadow-xl border border-white/10">
-          {/* Font Family */}
-          <div className="flex flex-col gap-1">
-            <label htmlFor="font-family-select" className="text-xs text-white/60 font-medium">
-              Font
-            </label>
-            <select
-              id="font-family-select"
-              value={selectedOverlay.fontFamily ?? 'sans-serif'}
-              onChange={(e) => handleFontFamilyChange(e.target.value)}
-              className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none"
-            >
-              {FONT_FAMILIES.map((font) => (
-                <option key={font.value} value={font.value} className="bg-gray-900">
-                  {font.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Font Size */}
-          <div className="flex flex-col gap-1">
-            <label htmlFor="font-size-select" className="text-xs text-white/60 font-medium">
-              Size
-            </label>
-            <select
-              id="font-size-select"
-              value={selectedOverlay.fontSize ?? 48}
-              onChange={(e) => handleFontSizeChange(Number(e.target.value))}
-              className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none w-20"
-            >
-              {FONT_SIZES.map((size) => (
-                <option key={size} value={size} className="bg-gray-900">
-                  {size}px
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Color Picker */}
-          <div className="flex flex-col gap-1">
-            <div className="text-xs text-white/60 font-medium">Color</div>
-            <div className="flex gap-1">
-              {COLOR_PRESETS.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => handleColorChange(color)}
-                  className={`w-6 h-6 rounded border-2 transition-all ${
-                    selectedOverlay.color === color
-                      ? 'border-blue-500 scale-110'
-                      : 'border-white/30 hover:border-white/60'
-                  }`}
-                  style={{ backgroundColor: color }}
-                  title={color}
-                />
-              ))}
-              {/* Custom color input */}
-              <input
-                type="color"
-                value={selectedOverlay.color ?? '#ffffff'}
-                onChange={(e) => handleColorChange(e.target.value)}
-                className="w-6 h-6 rounded border-2 border-white/30 cursor-pointer"
-                title="Custom color"
-              />
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 max-w-[95vw] overflow-x-auto">
+          <div className="flex items-center gap-3 rounded-lg bg-black/90 backdrop-blur-sm px-4 py-3 shadow-xl border border-white/10">
+            {/* Font Family */}
+            <div className="flex flex-col gap-1">
+              <label htmlFor="font-family-select" className="text-xs text-white/60 font-medium">
+                Font
+              </label>
+              <select
+                id="font-family-select"
+                value={selectedOverlay.fontFamily ?? 'sans-serif'}
+                onChange={(e) => handleFontFamilyChange(e.target.value)}
+                className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none"
+              >
+                {FONT_FAMILIES.map((font) => (
+                  <option key={font.value} value={font.value} className="bg-gray-900">
+                    {font.label}
+                  </option>
+                ))}
+              </select>
             </div>
+
+            {/* Font Size */}
+            <div className="flex flex-col gap-1">
+              <label htmlFor="font-size-select" className="text-xs text-white/60 font-medium">
+                Size
+              </label>
+              <select
+                id="font-size-select"
+                value={selectedOverlay.fontSize ?? 48}
+                onChange={(e) => handleFontSizeChange(Number(e.target.value))}
+                className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none w-20"
+              >
+                {FONT_SIZES.map((size) => (
+                  <option key={size} value={size} className="bg-gray-900">
+                    {size}px
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Color Picker */}
+            <div className="flex flex-col gap-1">
+              <div className="text-xs text-white/60 font-medium">Color</div>
+              <div className="flex gap-1">
+                {COLOR_PRESETS.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => handleColorChange(color)}
+                    className={`w-6 h-6 rounded border-2 transition-all ${
+                      selectedOverlay.color === color
+                        ? 'border-blue-500 scale-110'
+                        : 'border-white/30 hover:border-white/60'
+                    }`}
+                    style={{ backgroundColor: color }}
+                    title={color}
+                  />
+                ))}
+                {/* Custom color input */}
+                <input
+                  type="color"
+                  value={selectedOverlay.color ?? '#ffffff'}
+                  onChange={(e) => handleColorChange(e.target.value)}
+                  className="w-6 h-6 rounded border-2 border-white/30 cursor-pointer"
+                  title="Custom color"
+                />
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="w-px h-8 bg-white/20" />
+
+            {/* Animation Type */}
+            <div className="flex flex-col gap-1">
+              <label htmlFor="animation-type-select" className="text-xs text-white/60 font-medium flex items-center gap-1">
+                <Sparkles className="h-3 w-3" />
+                Animation
+              </label>
+              <select
+                id="animation-type-select"
+                value={selectedOverlay.animation?.type ?? 'none'}
+                onChange={(e) => handleAnimationTypeChange(e.target.value as TextAnimationType)}
+                className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none min-w-[140px]"
+              >
+                <option value="none" className="bg-gray-900">None</option>
+                <optgroup label="Fade" className="bg-gray-900">
+                  <option value="fade-in" className="bg-gray-900">Fade In</option>
+                  <option value="fade-out" className="bg-gray-900">Fade Out</option>
+                  <option value="fade-in-out" className="bg-gray-900">Fade In/Out</option>
+                </optgroup>
+                <optgroup label="Slide" className="bg-gray-900">
+                  <option value="slide-in-left" className="bg-gray-900">Slide In Left</option>
+                  <option value="slide-in-right" className="bg-gray-900">Slide In Right</option>
+                  <option value="slide-in-top" className="bg-gray-900">Slide In Top</option>
+                  <option value="slide-in-bottom" className="bg-gray-900">Slide In Bottom</option>
+                  <option value="slide-out-left" className="bg-gray-900">Slide Out Left</option>
+                  <option value="slide-out-right" className="bg-gray-900">Slide Out Right</option>
+                  <option value="slide-out-top" className="bg-gray-900">Slide Out Top</option>
+                  <option value="slide-out-bottom" className="bg-gray-900">Slide Out Bottom</option>
+                </optgroup>
+                <optgroup label="Scale" className="bg-gray-900">
+                  <option value="scale-in" className="bg-gray-900">Scale In</option>
+                  <option value="scale-out" className="bg-gray-900">Scale Out</option>
+                  <option value="scale-pulse" className="bg-gray-900">Scale Pulse</option>
+                </optgroup>
+                <optgroup label="Rotate" className="bg-gray-900">
+                  <option value="rotate-in" className="bg-gray-900">Rotate In</option>
+                  <option value="rotate-out" className="bg-gray-900">Rotate Out</option>
+                </optgroup>
+                <optgroup label="Special" className="bg-gray-900">
+                  <option value="bounce-in" className="bg-gray-900">Bounce In</option>
+                  <option value="typewriter" className="bg-gray-900">Typewriter</option>
+                </optgroup>
+              </select>
+            </div>
+
+            {/* Animation Controls - Show when animation is selected */}
+            {selectedOverlay.animation && selectedOverlay.animation.type !== 'none' && (
+              <>
+                {/* Duration */}
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="animation-duration" className="text-xs text-white/60 font-medium">
+                    Duration
+                  </label>
+                  <input
+                    id="animation-duration"
+                    type="number"
+                    min="0.1"
+                    max="10"
+                    step="0.1"
+                    value={selectedOverlay.animation.duration}
+                    onChange={(e) => handleAnimationPropertyChange('duration', parseFloat(e.target.value))}
+                    className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none w-16"
+                  />
+                </div>
+
+                {/* Delay */}
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="animation-delay" className="text-xs text-white/60 font-medium">
+                    Delay
+                  </label>
+                  <input
+                    id="animation-delay"
+                    type="number"
+                    min="0"
+                    max="10"
+                    step="0.1"
+                    value={selectedOverlay.animation.delay}
+                    onChange={(e) => handleAnimationPropertyChange('delay', parseFloat(e.target.value))}
+                    className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none w-16"
+                  />
+                </div>
+
+                {/* Easing */}
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="animation-easing" className="text-xs text-white/60 font-medium">
+                    Easing
+                  </label>
+                  <select
+                    id="animation-easing"
+                    value={selectedOverlay.animation.easing}
+                    onChange={(e) => handleAnimationPropertyChange('easing', e.target.value)}
+                    className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="linear" className="bg-gray-900">Linear</option>
+                    <option value="ease-in" className="bg-gray-900">Ease In</option>
+                    <option value="ease-out" className="bg-gray-900">Ease Out</option>
+                    <option value="ease-in-out" className="bg-gray-900">Ease In/Out</option>
+                    <option value="ease-in-quad" className="bg-gray-900">Ease In Quad</option>
+                    <option value="ease-out-quad" className="bg-gray-900">Ease Out Quad</option>
+                    <option value="ease-in-out-quad" className="bg-gray-900">Ease In/Out Quad</option>
+                    <option value="ease-in-cubic" className="bg-gray-900">Ease In Cubic</option>
+                    <option value="ease-out-cubic" className="bg-gray-900">Ease Out Cubic</option>
+                    <option value="ease-in-out-cubic" className="bg-gray-900">Ease In/Out Cubic</option>
+                    <option value="bounce" className="bg-gray-900">Bounce</option>
+                  </select>
+                </div>
+
+                {/* Repeat */}
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="animation-repeat" className="text-xs text-white/60 font-medium">
+                    Repeat
+                  </label>
+                  <select
+                    id="animation-repeat"
+                    value={selectedOverlay.animation.repeat}
+                    onChange={(e) => handleAnimationPropertyChange('repeat', parseInt(e.target.value))}
+                    className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="0" className="bg-gray-900">Once</option>
+                    <option value="1" className="bg-gray-900">2x</option>
+                    <option value="2" className="bg-gray-900">3x</option>
+                    <option value="3" className="bg-gray-900">4x</option>
+                    <option value="-1" className="bg-gray-900">Loop</option>
+                  </select>
+                </div>
+              </>
+            )}
+
+            {/* Divider */}
+            <div className="w-px h-8 bg-white/20" />
+
+            {/* Delete Button */}
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 transition-colors text-sm font-medium"
+              title="Delete text overlay"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>Delete</span>
+            </button>
           </div>
-
-          {/* Divider */}
-          <div className="w-px h-8 bg-white/20" />
-
-          {/* Delete Button */}
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 transition-colors text-sm font-medium"
-            title="Delete text overlay"
-          >
-            <Trash2 className="h-4 w-4" />
-            <span>Delete</span>
-          </button>
         </div>
       )}
     </>

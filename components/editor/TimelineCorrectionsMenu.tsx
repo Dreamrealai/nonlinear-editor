@@ -66,6 +66,10 @@ export function TimelineCorrectionsMenu() {
     scale: 1.0,
   };
   const audioEffects = selectedClip.audioEffects || {
+    volume: 0,
+    mute: false,
+    fadeIn: 0,
+    fadeOut: 0,
     bassGain: 0,
     midGain: 0,
     trebleGain: 0,
@@ -140,11 +144,18 @@ export function TimelineCorrectionsMenu() {
           {/* Audio Effects Section */}
           {activeSection === 'audio' && selectedClip.hasAudio && (
             <AudioEffectsSection
+              volume={local.volume}
+              mute={audioEffects.mute}
+              fadeIn={local.fadeIn}
+              fadeOut={local.fadeOut}
               bassGain={local.bassGain}
               midGain={local.midGain}
               trebleGain={local.trebleGain}
               compression={local.compression}
               normalize={audioEffects.normalize}
+              onVolumeChange={setters.setVolume}
+              onFadeInChange={setters.setFadeIn}
+              onFadeOutChange={setters.setFadeOut}
               onBassGainChange={setters.setBassGain}
               onMidGainChange={setters.setMidGain}
               onTrebleGainChange={setters.setTrebleGain}

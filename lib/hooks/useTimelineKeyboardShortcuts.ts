@@ -25,6 +25,7 @@ type UseTimelineKeyboardShortcutsOptions = {
   clearSelection: () => void;
   splitClipAtTime: (clipId: string, time: number) => void;
   toggleClipLock?: (clipId: string) => void;
+  onAddTransition?: () => void;
 };
 
 export function useTimelineKeyboardShortcuts({
@@ -39,6 +40,7 @@ export function useTimelineKeyboardShortcuts({
   clearSelection,
   splitClipAtTime,
   toggleClipLock,
+  onAddTransition,
 }: UseTimelineKeyboardShortcutsOptions) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -114,6 +116,14 @@ export function useTimelineKeyboardShortcuts({
           selectedClipIds.forEach((clipId) => toggleClipLock(clipId));
         }
       }
+
+      // T: Add transition to selected clips
+      if (e.key === 't' || e.key === 'T') {
+        e.preventDefault();
+        if (onAddTransition && selectedClipIds.size > 0) {
+          onAddTransition();
+        }
+      }
     };
 
     if (typeof window !== 'undefined') {
@@ -133,5 +143,6 @@ export function useTimelineKeyboardShortcuts({
     undo,
     redo,
     toggleClipLock,
+    onAddTransition,
   ]);
 }

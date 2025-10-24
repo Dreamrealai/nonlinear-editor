@@ -22,6 +22,14 @@ export type Transform = {
 };
 
 export type AudioEffects = {
+  // Volume
+  volume: number;        // -60 to +12 dB, default 0 (0 dB = 100%, no change)
+  mute: boolean;         // Mute flag, default false
+
+  // Fades
+  fadeIn: number;        // Fade in duration in seconds, default 0
+  fadeOut: number;       // Fade out duration in seconds, default 0
+
   // 3-band EQ (equalizer)
   bassGain: number;      // -12 to +12 dB, default 0 (100-400 Hz)
   midGain: number;       // -12 to +12 dB, default 0 (400-4000 Hz)
@@ -55,6 +63,16 @@ export type Clip = {
   transform?: Transform; // Transform settings (rotation, flip, scale)
   audioEffects?: AudioEffects; // Audio effects (EQ, compression, normalization)
   locked?: boolean; // Clip locked flag (prevents moving/editing, default false)
+  groupId?: string; // Group ID if this clip belongs to a group (default undefined)
+};
+
+export type ClipGroup = {
+  id: string;
+  name?: string; // Optional custom name for the group
+  clipIds: string[]; // Array of clip IDs in this group
+  color?: string; // Optional color for visual indication (hex color)
+  locked?: boolean; // Group locked flag (locks all clips in group)
+  created_at?: number; // Timestamp when group was created
 };
 
 export type OutputSpec = {
@@ -84,6 +102,52 @@ export type Marker = {
   color?: string; // Hex color (e.g., '#000000')
 };
 
+// Animation types for text overlays
+export type TextAnimationType =
+  | 'none'
+  | 'fade-in'
+  | 'fade-out'
+  | 'fade-in-out'
+  | 'slide-in-left'
+  | 'slide-in-right'
+  | 'slide-in-top'
+  | 'slide-in-bottom'
+  | 'slide-out-left'
+  | 'slide-out-right'
+  | 'slide-out-top'
+  | 'slide-out-bottom'
+  | 'scale-in'
+  | 'scale-out'
+  | 'scale-pulse'
+  | 'rotate-in'
+  | 'rotate-out'
+  | 'bounce-in'
+  | 'typewriter';
+
+// Easing function types
+export type EasingFunction =
+  | 'linear'
+  | 'ease-in'
+  | 'ease-out'
+  | 'ease-in-out'
+  | 'ease-in-quad'
+  | 'ease-out-quad'
+  | 'ease-in-out-quad'
+  | 'ease-in-cubic'
+  | 'ease-out-cubic'
+  | 'ease-in-out-cubic'
+  | 'bounce';
+
+// Animation configuration
+export type TextAnimation = {
+  type: TextAnimationType;
+  duration: number; // Animation duration in seconds (default: 0.5)
+  delay: number; // Delay before animation starts in seconds (default: 0)
+  easing: EasingFunction; // Easing function (default: 'ease-out')
+  repeat: number; // Number of times to repeat (0 = no repeat, -1 = infinite)
+  direction: 'normal' | 'reverse' | 'alternate' | 'alternate-reverse'; // Animation direction
+};
+
 export type TextOverlay = {
   id: string;
   text: string;
@@ -97,6 +161,7 @@ export type TextOverlay = {
   fontFamily?: string; // Font family (default sans-serif)
   align?: 'left' | 'center' | 'right'; // Text alignment (default center)
   opacity?: number; // Text opacity (0-1, default 1.0)
+  animation?: TextAnimation; // Animation configuration (default: none)
 };
 
 export type Timeline = {
@@ -106,4 +171,5 @@ export type Timeline = {
   tracks?: Track[]; // Track configurations
   markers?: Marker[]; // Timeline markers
   textOverlays?: TextOverlay[]; // Text overlays
+  groups?: ClipGroup[]; // Clip groups for organizing related clips
 };

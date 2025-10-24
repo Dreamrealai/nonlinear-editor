@@ -296,10 +296,37 @@ export function useTimelineDragging({
             clip.timelinePosition !== safePosition ||
             clip.trackIndex !== proposedTrack
           ) {
-            updateClip(draggingClip.id, {
-              timelinePosition: safePosition,
-              trackIndex: proposedTrack,
-            });
+            // Check if clip is part of a group
+            const groupId = clip?.groupId;
+            const group = timeline.groups?.find((g) => g.id === groupId);
+
+            if (groupId && group) {
+              // Move all clips in group together, maintaining relative positions
+              const originalPosition = clip.timelinePosition;
+              const originalTrack = clip.trackIndex;
+              const deltaPosition = safePosition - originalPosition;
+              const deltaTrack = proposedTrack - originalTrack;
+
+              // Update all clips in the group
+              group.clipIds.forEach((clipId) => {
+                const groupClip = timeline.clips.find((c) => c.id === clipId);
+                if (groupClip) {
+                  updateClip(clipId, {
+                    timelinePosition: groupClip.timelinePosition + deltaPosition,
+                    trackIndex: Math.max(
+                      0,
+                      Math.min(numTracks - 1, groupClip.trackIndex + deltaTrack)
+                    ),
+                  });
+                }
+              });
+            } else {
+              // Single clip, move normally
+              updateClip(draggingClip.id, {
+                timelinePosition: safePosition,
+                trackIndex: proposedTrack,
+              });
+            }
           }
         }
       });

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { UserMenu } from '@/components/UserMenu';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 
@@ -27,6 +28,7 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!supabaseClient) return;
@@ -113,10 +115,25 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
   }, [supabaseClient, projectId, currentProject?.title, router]);
 
   return (
-    <header className="border-b border-neutral-200 bg-white px-6 py-3 shadow-sm">
+    <header className="border-b border-neutral-200 bg-white px-3 sm:px-6 py-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <div className="flex items-center justify-between">
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="lg:hidden rounded-lg border border-neutral-300 bg-white p-2 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+          aria-label="Toggle menu"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            {isMobileMenuOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            )}
+          </svg>
+        </button>
+
         {/* Project Dropdown and Actions */}
-        <div className="flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2">
           <div className="relative">
             {isRenaming ? (
               <div className="flex items-center gap-2">
@@ -270,8 +287,8 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <nav className="flex items-center gap-1 rounded-lg bg-neutral-100 p-1">
+        {/* Navigation Tabs - Desktop */}
+        <nav className="hidden lg:flex items-center gap-1 rounded-lg bg-neutral-100 p-1">
           <Link
             href={`/editor/${projectId}/timeline`}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
@@ -314,8 +331,8 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
           </Link>
         </nav>
 
-        {/* Export Video Button and User Menu */}
-        <div className="flex items-center gap-3">
+        {/* Export Video Button, Theme Toggle, and User Menu - Desktop */}
+        <div className="hidden lg:flex items-center gap-3">
           {currentTab === 'video-editor' && (
             <>
               {/* Keyboard Shortcuts Help Button */}
@@ -356,14 +373,157 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
                       d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                     />
                   </svg>
-                  Export Video
+                  <span className="hidden sm:inline">Export Video</span>
                 </button>
               )}
             </>
           )}
+          <ThemeToggle />
+          <UserMenu />
+        </div>
+
+        {/* Mobile: Current Tab Title, Theme Toggle, and User Menu */}
+        <div className="flex lg:hidden items-center gap-2">
+          <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 truncate max-w-[120px]">
+            {currentTab === 'video-editor' && 'Video Editor'}
+            {currentTab === 'generate-video' && 'Generate'}
+            {currentTab === 'generate-audio' && 'Audio'}
+            {currentTab === 'image-editor' && 'Image'}
+          </span>
+          <ThemeToggle size="sm" />
           <UserMenu />
         </div>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <div className="fixed inset-y-0 left-0 w-80 bg-white shadow-xl z-50 lg:hidden overflow-y-auto dark:bg-neutral-900">
+            <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Menu</h2>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-2 rounded-lg hover:bg-neutral-100"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Project Selector - Mobile */}
+              {currentProject && (
+                <div className="mb-4">
+                  <p className="text-xs text-neutral-500 mb-1">Current Project</p>
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="w-full flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+                  >
+                    <svg className="h-4 w-4 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                    </svg>
+                    <span className="flex-1 text-left truncate">{currentProject.title}</span>
+                    <svg className={`h-4 w-4 text-neutral-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {isDropdownOpen && (
+                    <div className="mt-2 border border-neutral-200 rounded-lg bg-white">
+                      <div className="max-h-48 overflow-y-auto">
+                        {projects.map((project) => (
+                          <button
+                            key={project.id}
+                            onClick={() => {
+                              handleProjectChange(project.id);
+                              setIsMobileMenuOpen(false);
+                            }}
+                            className={`w-full px-3 py-2 text-left text-sm hover:bg-neutral-50 ${project.id === projectId ? 'bg-blue-50 text-blue-700 font-medium' : 'text-neutral-900'}`}
+                          >
+                            {project.title}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Navigation Links - Mobile */}
+            <nav className="p-4">
+              <p className="text-xs text-neutral-500 mb-2">Navigation</p>
+              <div className="space-y-1">
+                <Link
+                  href={`/editor/${projectId}/timeline`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`block px-3 py-2 rounded-lg text-sm font-medium ${currentTab === 'video-editor' ? 'bg-blue-50 text-blue-700' : 'text-neutral-700 hover:bg-neutral-50'}`}
+                >
+                  Video Editor
+                </Link>
+                <Link
+                  href={`/editor/${projectId}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`block px-3 py-2 rounded-lg text-sm font-medium ${currentTab === 'generate-video' ? 'bg-blue-50 text-blue-700' : 'text-neutral-700 hover:bg-neutral-50'}`}
+                >
+                  Generate Video
+                </Link>
+                <Link
+                  href={`/editor/${projectId}/generate-audio`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`block px-3 py-2 rounded-lg text-sm font-medium ${currentTab === 'generate-audio' ? 'bg-blue-50 text-blue-700' : 'text-neutral-700 hover:bg-neutral-50'}`}
+                >
+                  Generate Audio
+                </Link>
+                <Link
+                  href={`/editor/${projectId}/keyframe`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`block px-3 py-2 rounded-lg text-sm font-medium ${currentTab === 'image-editor' ? 'bg-blue-50 text-blue-700' : 'text-neutral-700 hover:bg-neutral-50'}`}
+                >
+                  Image Editor
+                </Link>
+              </div>
+            </nav>
+
+            {/* Actions - Mobile */}
+            {currentTab === 'video-editor' && (
+              <div className="p-4 border-t border-neutral-200 space-y-2">
+                <button
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('show-shortcuts-help'));
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center justify-center gap-2"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Keyboard Shortcuts
+                </button>
+                {onExport && (
+                  <button
+                    onClick={() => {
+                      onExport();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 flex items-center justify-center gap-2"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Export Video
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </header>
   );
 }

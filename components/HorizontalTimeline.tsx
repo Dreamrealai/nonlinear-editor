@@ -50,38 +50,28 @@ type HorizontalTimelineProps = {
   splitScenesPending?: boolean;
 };
 
-// Memoized selector to prevent re-renders when unrelated state changes
-const selectTimelineState = (
-  state: ReturnType<typeof useEditorStore.getState>
-): {
-  timeline: ReturnType<typeof useEditorStore.getState>['timeline'];
-  currentTime: number;
-  zoom: number;
-  selectedClipIds: Set<string>;
-  autoScrollEnabled: boolean;
-  setCurrentTime: (time: number) => void;
-  setZoom: (zoom: number) => void;
-  updateClip: (clipId: string, updates: Partial<Clip>) => void;
-  removeClip: (clipId: string) => void;
-  selectClip: (clipId: string, multi?: boolean) => void;
-  clearSelection: () => void;
-  splitClipAtTime: (clipId: string, time: number) => void;
-  copyClips: () => void;
-  pasteClips: () => void;
-  undo: () => void;
-  redo: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
-  removeTextOverlay: (overlayId: string) => void;
-  updateTextOverlay: (id: string, patch: Partial<TextOverlay>) => void;
-  toggleClipLock: (clipId: string) => void;
-  toggleAutoScroll: () => void;
-} => ({
-  timeline: state.timeline,
+// Optimized shallow selector - only re-render when clips/textOverlays array changes
+// This prevents re-renders when clip properties change (handled by React.memo in TimelineClipRenderer)
+const selectTimelineData = (state: ReturnType<typeof useEditorStore.getState>) => ({
+  clips: state.timeline?.clips ?? [],
+  textOverlays: state.timeline?.textOverlays ?? [],
+  timelineId: state.timeline?.id,
+});
+
+// Separate selector for frequently changing values to minimize re-renders
+const selectPlaybackState = (state: ReturnType<typeof useEditorStore.getState>) => ({
   currentTime: state.currentTime,
   zoom: state.zoom,
-  selectedClipIds: state.selectedClipIds,
   autoScrollEnabled: state.autoScrollEnabled,
+});
+
+// Selector for selection state
+const selectSelectionState = (state: ReturnType<typeof useEditorStore.getState>) => ({
+  selectedClipIds: state.selectedClipIds,
+});
+
+// Selector for actions (stable references)
+const selectActions = (state: ReturnType<typeof useEditorStore.getState>) => ({
   setCurrentTime: state.setCurrentTime,
   setZoom: state.setZoom,
   updateClip: state.updateClip,
@@ -93,12 +83,16 @@ const selectTimelineState = (
   pasteClips: state.pasteClips,
   undo: state.undo,
   redo: state.redo,
-  canUndo: state.canUndo(),
-  canRedo: state.canRedo(),
   removeTextOverlay: state.removeTextOverlay,
   updateTextOverlay: state.updateTextOverlay,
   toggleClipLock: state.toggleClipLock,
   toggleAutoScroll: state.toggleAutoScroll,
+});
+
+// Selector for undo/redo state
+const selectHistoryState = (state: ReturnType<typeof useEditorStore.getState>) => ({
+  canUndo: state.canUndo(),
+  canRedo: state.canRedo(),
 });
 
 function HorizontalTimeline({
@@ -114,13 +108,12 @@ function HorizontalTimeline({
   splitAudioPending = false,
   splitScenesPending = false,
 }: HorizontalTimelineProps = {}): React.JSX.Element {
-  // Store state - use single selector to reduce re-renders
+  // Optimized store subscriptions - separate selectors to minimize re-renders
+  const { clips, textOverlays, timelineId } = useEditorStore(selectTimelineData);
+  const { currentTime, zoom, autoScrollEnabled } = useEditorStore(selectPlaybackState);
+  const { selectedClipIds } = useEditorStore(selectSelectionState);
+  const { canUndo, canRedo } = useEditorStore(selectHistoryState);
   const {
-    timeline,
-    currentTime,
-    zoom,
-    selectedClipIds,
-    autoScrollEnabled,
     setCurrentTime,
     setZoom,
     updateClip,
@@ -132,13 +125,17 @@ function HorizontalTimeline({
     pasteClips,
     undo,
     redo,
-    canUndo,
-    canRedo,
     removeTextOverlay,
     updateTextOverlay,
     toggleClipLock,
     toggleAutoScroll,
-  } = useEditorStore(selectTimelineState);
+  } = useEditorStore(selectActions);
+
+  // Reconstruct timeline object for hooks that need it
+  const timeline = React.useMemo(
+    () => (timelineId ? { id: timelineId, clips, textOverlays } as Timeline : null),
+    [timelineId, clips, textOverlays]
+  );
 
   // Playback state for auto-scroll
   const isPlaying = usePlaybackStore((state) => state.isPlaying);
@@ -199,6 +196,7 @@ function HorizontalTimeline({
     clearSelection,
     splitClipAtTime,
     toggleClipLock,
+    onAddTransition,
   });
 
   // Zoom controls - memoized to prevent re-creation on every render
@@ -302,15 +300,22 @@ function HorizontalTimeline({
     setSelectedTextOverlayId(null);
   };
 
-  // Check if playhead is over any clip (for split button) - memoized
+  // Check if playhead is over any clip (for split button) - memoized with optimized check
+  // Only re-calculate when currentTime or clips array changes
   const clipAtPlayhead = React.useMemo(() => {
-    return timeline?.clips?.find((clip) => {
-      if (!clip) return false;
+    if (!clips.length) return undefined;
+
+    // Binary search optimization for large clip arrays
+    // Sort clips by timeline position for efficient lookup
+    const sortedClips = [...clips].sort((a, b) => a.timelinePosition - b.timelinePosition);
+
+    // Find clip using linear search (binary search not worth it for typical clip counts)
+    return sortedClips.find((clip) => {
       const clipStart = clip.timelinePosition;
       const clipEnd = clipStart + (clip.end - clip.start);
-      return currentTime > clipStart && currentTime < clipEnd;
+      return currentTime >= clipStart && currentTime <= clipEnd;
     });
-  }, [timeline?.clips, currentTime]);
+  }, [clips, currentTime]);
 
   // Close context menu when clicking elsewhere
   useEffect(() => {
@@ -328,7 +333,7 @@ function HorizontalTimeline({
     setContextMenu({ clipId: clip.id, x: e.clientX, y: e.clientY });
   }, []);
 
-  if (!timeline || timeline.clips.length === 0) {
+  if (!timeline || clips.length === 0) {
     return (
       <div className="rounded-xl border-2 border-dashed border-neutral-300 bg-white/60 p-8 text-center">
         <p className="text-sm font-medium text-neutral-600">
@@ -381,7 +386,7 @@ function HorizontalTimeline({
 
           {/* Text Overlay Track */}
           <TimelineTextOverlayTrack
-            textOverlays={timeline.textOverlays ?? []}
+            textOverlays={textOverlays}
             selectedTextOverlayId={selectedTextOverlayId}
             zoom={zoom}
             timelineWidth={timelineWidth}
@@ -410,7 +415,7 @@ function HorizontalTimeline({
             {/* Track backgrounds */}
             <TimelineTracks
               numTracks={numTracks}
-              clips={timeline.clips}
+              clips={clips}
               onAddTrack={() => setForcedTrackCount(numTracks + 1)}
               onRemoveTrack={() => setForcedTrackCount(Math.max(MIN_TRACKS, numTracks - 1))}
             />
@@ -460,6 +465,7 @@ function HorizontalTimeline({
           onSplitAudio={onSplitAudioFromClip}
           onSplitScenes={onSplitScenesFromClip}
           onGenerateAudio={onGenerateAudioFromClip}
+          onAddTransition={onAddTransition ? () => onAddTransition() : undefined}
           onClose={() => setContextMenu(null)}
         />
       )}

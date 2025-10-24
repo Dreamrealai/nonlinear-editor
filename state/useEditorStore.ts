@@ -25,6 +25,8 @@ import { immer } from 'zustand/middleware/immer';
 import { enableMapSet } from 'immer';
 import type { Timeline, Clip, Marker, Track, TextOverlay, TransitionType } from '@/types/timeline';
 import { EDITOR_CONSTANTS, CLIP_CONSTANTS, ZOOM_CONSTANTS } from '@/lib/constants';
+import { timelineAnnouncements } from '@/lib/utils/screenReaderAnnouncer';
+import { getClipFileName, formatTimecode } from '@/lib/utils/timelineUtils';
 
 const { MAX_HISTORY, HISTORY_DEBOUNCE_MS } = EDITOR_CONSTANTS;
 const { MIN_CLIP_DURATION } = CLIP_CONSTANTS;
@@ -167,6 +169,18 @@ type EditorStore = {
   /** Paste clips from clipboard at playhead position */
   pasteClips: () => void;
 
+  // ===== Group Actions =====
+  /** Create a group from selected clips */
+  groupSelectedClips: (name?: string) => void;
+  /** Ungroup clips in a group */
+  ungroupClips: (groupId: string) => void;
+  /** Get all clip IDs in a group */
+  getGroupClipIds: (groupId: string) => string[];
+  /** Check if a clip is grouped */
+  isClipGrouped: (clipId: string) => boolean;
+  /** Get group ID for a clip */
+  getClipGroupId: (clipId: string) => string | null;
+
   // ===== History Actions =====
   /** Undo last action */
   undo: () => void;
@@ -200,19 +214,23 @@ const cloneTimeline = (timeline: Timeline | null): Timeline | null => {
  * @returns Deduplicated array of clips
  */
 const dedupeClips = (clips: Clip[]): Clip[] => {
+  if (clips.length <= 1) return clips; // Fast path for small arrays
+
   const seen = new Set<string>();
   const deduped: Clip[] = [];
+
   // Iterate backwards to keep last occurrence
   for (let i = clips.length - 1; i >= 0; i -= 1) {
     const clip = clips[i];
     if (!clip) continue; // Skip undefined entries
-    if (seen.has(clip.id)) {
-      continue; // Skip duplicate
+    if (!seen.has(clip.id)) {
+      seen.add(clip.id);
+      deduped.push(clip); // Push to end (we'll reverse later)
     }
-    seen.add(clip.id);
-    deduped.unshift(clip); // Add to front (preserves order)
   }
-  return deduped;
+
+  // Reverse to restore original order (faster than unshift in loop)
+  return deduped.reverse();
 };
 
 export const useEditorStore = create<EditorStore>()(
@@ -242,6 +260,11 @@ export const useEditorStore = create<EditorStore>()(
         if (!state.timeline) return;
         state.timeline.clips.push(clip);
         state.timeline.clips = dedupeClips(state.timeline.clips);
+
+        // Announce to screen readers
+        if (typeof window !== 'undefined') {
+          timelineAnnouncements.clipAdded(getClipFileName(clip), clip.trackIndex);
+        }
 
         // Save to history
         const cloned = cloneTimeline(state.timeline);
@@ -341,9 +364,18 @@ export const useEditorStore = create<EditorStore>()(
     removeClip: (id) =>
       set((state) => {
         if (!state.timeline) return;
+
+        // Get clip info before removing for screen reader announcement
+        const clipToRemove = state.timeline.clips.find((clip) => clip.id === id);
+
         state.timeline.clips = state.timeline.clips.filter((clip) => clip.id !== id);
         state.timeline.clips = dedupeClips(state.timeline.clips);
         state.selectedClipIds.delete(id);
+
+        // Announce to screen readers
+        if (typeof window !== 'undefined' && clipToRemove) {
+          timelineAnnouncements.clipRemoved(getClipFileName(clipToRemove));
+        }
 
         // Save to history
         const cloned = cloneTimeline(state.timeline);
@@ -711,6 +743,15 @@ export const useEditorStore = create<EditorStore>()(
         const clip = state.timeline?.clips.find((c) => c.id === id);
         if (clip) {
           clip.locked = !clip.locked;
+
+          // Announce to screen readers
+          if (typeof window !== 'undefined') {
+            if (clip.locked) {
+              timelineAnnouncements.clipLocked(getClipFileName(clip));
+            } else {
+              timelineAnnouncements.clipUnlocked(getClipFileName(clip));
+            }
+          }
         }
       }),
 
@@ -735,6 +776,101 @@ export const useEditorStore = create<EditorStore>()(
           }
         });
       }),
+
+    // ===== Group Actions =====
+    groupSelectedClips: (name) =>
+      set((state) => {
+        if (!state.timeline || state.selectedClipIds.size < 2) return;
+
+        // Initialize groups array if needed
+        if (!state.timeline.groups) {
+          state.timeline.groups = [];
+        }
+
+        // Generate group ID
+        const groupId = `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+        // Get selected clip IDs
+        const clipIds = Array.from(state.selectedClipIds);
+
+        // Create group
+        state.timeline.groups.push({
+          id: groupId,
+          name: name || `Group ${state.timeline.groups.length + 1}`,
+          clipIds,
+          created_at: Date.now(),
+        });
+
+        // Set groupId on all selected clips
+        state.timeline.clips.forEach((clip) => {
+          if (clipIds.includes(clip.id)) {
+            clip.groupId = groupId;
+          }
+        });
+
+        // Save to history
+        const cloned = cloneTimeline(state.timeline);
+        if (cloned) {
+          state.history = state.history.slice(0, state.historyIndex + 1);
+          state.history.push(cloned);
+          if (state.history.length > MAX_HISTORY) {
+            state.history.shift();
+          } else {
+            state.historyIndex++;
+          }
+        }
+      }),
+
+    ungroupClips: (groupId) =>
+      set((state) => {
+        if (!state.timeline || !state.timeline.groups) return;
+
+        // Remove group
+        state.timeline.groups = state.timeline.groups.filter((g) => g.id !== groupId);
+
+        // Clear groupId from clips
+        state.timeline.clips.forEach((clip) => {
+          if (clip.groupId === groupId) {
+            delete clip.groupId;
+          }
+        });
+
+        // Save to history
+        const cloned = cloneTimeline(state.timeline);
+        if (cloned) {
+          state.history = state.history.slice(0, state.historyIndex + 1);
+          state.history.push(cloned);
+          if (state.history.length > MAX_HISTORY) {
+            state.history.shift();
+          } else {
+            state.historyIndex++;
+          }
+        }
+      }),
+
+    getGroupClipIds: (groupId) => {
+      const state = get();
+      if (!state.timeline || !state.timeline.groups) return [];
+
+      const group = state.timeline.groups.find((g) => g.id === groupId);
+      return group ? [...group.clipIds] : [];
+    },
+
+    isClipGrouped: (clipId) => {
+      const state = get();
+      if (!state.timeline) return false;
+
+      const clip = state.timeline.clips.find((c) => c.id === clipId);
+      return Boolean(clip?.groupId);
+    },
+
+    getClipGroupId: (clipId) => {
+      const state = get();
+      if (!state.timeline) return null;
+
+      const clip = state.timeline.clips.find((c) => c.id === clipId);
+      return clip?.groupId || null;
+    },
 
     // ===== Zoom Preset Actions =====
     /**
