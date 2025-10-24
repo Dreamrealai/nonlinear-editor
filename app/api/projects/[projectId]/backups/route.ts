@@ -9,12 +9,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/api/withAuth';
+import { withAuth, type AuthContext } from '@/lib/api/withAuth';
 import { BackupService } from '@/lib/services/backupService';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { errorResponse } from '@/lib/api/response';
-import { validateString } from '@/lib/validation';
-import { RATE_LIMITS } from '@/lib/rateLimit';
+import { validateString, ValidationError } from '@/lib/validation';
+import { RATE_LIMITS } from '@/lib/config/rateLimit';
 import type { BackupType } from '@/lib/services/backupService';
 import type { AssetRow } from '@/types/assets';
 
@@ -22,31 +21,48 @@ import type { AssetRow } from '@/types/assets';
  * GET /api/projects/[projectId]/backups
  * List all backups for a project
  */
-export const GET = withAuth(
-  async (
-    _request: NextRequest,
-    context: { params: Promise<{ projectId: string }> }
-  ): Promise<NextResponse> => {
-    const { projectId } = await context.params;
-    assertValidString(projectId, 'projectId');
+async function handleListBackups(
+  _request: NextRequest,
+  context: AuthContext,
+  routeContext?: { params: Promise<{ projectId: string }> }
+): Promise<NextResponse> {
+  const { supabase } = context;
+  const resolvedParams = await routeContext?.params;
 
-    const supabase = createServerSupabaseClient();
-    const backupService = new BackupService(supabase);
+  if (!resolvedParams?.projectId) {
+    return errorResponse('Project ID is required', {}, 400);
+  }
 
-    try {
-      const backups = await backupService.listBackups(projectId);
+  const { projectId } = resolvedParams;
 
-      return NextResponse.json({
-        success: true,
-        backups,
-        count: backups.length,
-      });
-    } catch (error) {
-      return errorResponse('Failed to list backups', { error, projectId });
+  try {
+    validateString(projectId, 'projectId');
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return errorResponse(error.message, { projectId }, 400);
     }
-  },
-  { tier: RateLimitTier.STANDARD }
-);
+    throw error;
+  }
+
+  const backupService = new BackupService(supabase);
+
+  try {
+    const backups = await backupService.listBackups(projectId);
+
+    return NextResponse.json({
+      success: true,
+      backups,
+      count: backups.length,
+    });
+  } catch (error) {
+    return errorResponse('Failed to list backups', { error, projectId });
+  }
+}
+
+export const GET = withAuth(handleListBackups, {
+  route: '/api/projects/[projectId]/backups',
+  rateLimit: RATE_LIMITS.tier3_status_reads
+});
 
 /**
  * POST /api/projects/[projectId]/backups
@@ -56,83 +72,100 @@ export const GET = withAuth(
  * - backupType: 'auto' | 'manual'
  * - backupName?: string (optional for manual backups)
  */
-export const POST = withAuth(
-  async (
-    request: NextRequest,
-    context: { params: Promise<{ projectId: string }> }
-  ): Promise<NextResponse> => {
-    const { projectId } = await context.params;
-    assertValidString(projectId, 'projectId');
+async function handleCreateBackup(
+  request: NextRequest,
+  context: AuthContext,
+  routeContext?: { params: Promise<{ projectId: string }> }
+): Promise<NextResponse> {
+  const { supabase } = context;
+  const resolvedParams = await routeContext?.params;
 
-    const body = await request.json();
-    const backupType = body.backupType as BackupType;
-    const backupName = body.backupName as string | undefined;
+  if (!resolvedParams?.projectId) {
+    return errorResponse('Project ID is required', {}, 400);
+  }
 
-    // Validate backup type
-    if (backupType !== 'auto' && backupType !== 'manual') {
-      return errorResponse('Invalid backup type', { backupType }, 400);
+  const { projectId } = resolvedParams;
+
+  try {
+    validateString(projectId, 'projectId');
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return errorResponse(error.message, { projectId }, 400);
+    }
+    throw error;
+  }
+
+  const body = await request.json();
+  const backupType = body.backupType as BackupType;
+  const backupName = body.backupName as string | undefined;
+
+  // Validate backup type
+  if (backupType !== 'auto' && backupType !== 'manual') {
+    return errorResponse('Invalid backup type', { backupType }, 400);
+  }
+
+  const backupService = new BackupService(supabase);
+
+  try {
+    // Get project data
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', projectId)
+      .single();
+
+    if (projectError || !project) {
+      return errorResponse('Project not found', { projectId }, 404);
     }
 
-    const supabase = createServerSupabaseClient();
-    const backupService = new BackupService(supabase);
+    // Get timeline data
+    const { data: timelineRow, error: timelineError } = await supabase
+      .from('timelines')
+      .select('timeline_data')
+      .eq('project_id', projectId)
+      .single();
 
-    try {
-      // Get project data
-      const { data: project, error: projectError } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('id', projectId)
-        .single();
-
-      if (projectError || !project) {
-        return errorResponse('Project not found', { projectId }, 404);
-      }
-
-      // Get timeline data
-      const { data: timelineRow, error: timelineError } = await supabase
-        .from('timelines')
-        .select('timeline_data')
-        .eq('project_id', projectId)
-        .single();
-
-      if (timelineError || !timelineRow) {
-        return errorResponse('Timeline not found', { projectId }, 404);
-      }
-
-      // Get assets
-      const { data: assets, error: assetsError } = await supabase
-        .from('assets')
-        .select('*')
-        .eq('project_id', projectId);
-
-      if (assetsError) {
-        return errorResponse('Failed to fetch assets', { projectId }, 500);
-      }
-
-      // Create backup
-      const backup = await backupService.createBackup({
-        projectId,
-        backupType,
-        backupName,
-        projectData: {
-          id: project.id,
-          title: project.title,
-          user_id: project.user_id,
-          created_at: project.created_at,
-          updated_at: project.updated_at,
-        },
-        timelineData: timelineRow.timeline_data,
-        assets: (assets || []) as AssetRow[],
-      });
-
-      return NextResponse.json({
-        success: true,
-        backup,
-        message: `${backupType === 'auto' ? 'Auto' : 'Manual'} backup created successfully`,
-      });
-    } catch (error) {
-      return errorResponse('Failed to create backup', { error, projectId });
+    if (timelineError || !timelineRow) {
+      return errorResponse('Timeline not found', { projectId }, 404);
     }
-  },
-  { tier: RateLimitTier.STANDARD }
-);
+
+    // Get assets
+    const { data: assets, error: assetsError } = await supabase
+      .from('assets')
+      .select('*')
+      .eq('project_id', projectId);
+
+    if (assetsError) {
+      return errorResponse('Failed to fetch assets', { projectId }, 500);
+    }
+
+    // Create backup
+    const backup = await backupService.createBackup({
+      projectId,
+      backupType,
+      backupName,
+      projectData: {
+        id: project.id,
+        title: project.title,
+        user_id: project.user_id,
+        created_at: project.created_at,
+        updated_at: project.updated_at,
+      },
+      timelineData: timelineRow.timeline_data,
+      assets: (assets || []) as AssetRow[],
+    });
+
+    return NextResponse.json({
+      success: true,
+      backup,
+      message: `${backupType === 'auto' ? 'Auto' : 'Manual'} backup created successfully`,
+    });
+  } catch (error) {
+    return errorResponse('Failed to create backup', { error, projectId });
+  }
+}
+
+export const POST = withAuth(handleCreateBackup, {
+  route: '/api/projects/[projectId]/backups',
+  rateLimit: RATE_LIMITS.tier2_resource_creation
+});

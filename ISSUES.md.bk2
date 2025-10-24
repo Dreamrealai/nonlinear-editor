@@ -1726,7 +1726,7 @@ shortcuts and wiring up the callbacks to make grouping fully functional.
 - **Status:** Open
 - **Priority:** P2
 - **Effort:** 16-20 hours
-- **Impact:** Users can now queue and manage multiple exports
+- **Impact:** Can only export one video at a time
 
 **Needed:**
 

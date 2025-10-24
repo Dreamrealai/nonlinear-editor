@@ -1,8 +1,8 @@
 # Codebase Issues Tracker
 
 **Last Updated:** 2025-10-24
-**Status:** 55 open issues (19 issues fixed)
-**Priority Breakdown:** P0: 0 | P1: 19 | P2: 24 | P3: 12
+**Status:** 56 open issues (18 issues fixed)
+**Priority Breakdown:** P0: 0 | P1: 20 | P2: 24 | P3: 12
 
 This document tracks all open issues in the codebase. Fixed/resolved issues are removed to keep this document focused and efficient.
 
@@ -351,31 +351,18 @@ Comprehensive performance optimization suite for timeline rendering with 100+ cl
 
 ### Issue #93: No Audio Waveform Visualization
 
-- **Status:** Fixed (2025-10-24)
+- **Status:** Open
 - **Priority:** P1
-- **Effort:** 16-20 hours (completed)
-- **Impact:** Users can now see audio peaks for editing
-- **Fixed Date:** 2025-10-24
-- **Commits:** 0278aa2, 4798f71
+- **Effort:** 16-20 hours
+- **Impact:** Cannot see audio peaks for editing
 
-**Implementation:**
+**Needed:**
 
-Comprehensive audio waveform visualization system:
+- Waveform generation on upload
+- Waveform rendering in timeline
+- Zoom-aware detail levels
+- Efficient canvas rendering
 
-- **AudioWaveform Component**: Web Worker processing, global caching, worker pool (4 workers), zoom-aware LOD (3 levels: 100/500/2000 samples), canvas rendering with device pixel ratio
-- **Waveform Generator**: Multi-resolution generation with RMS-based downsampling, automatic LOD selection based on zoom
-- **Web Worker**: Offloads audio processing, uses OfflineAudioContext, transferable objects
-- **Timeline Integration**: Renders in bottom 30% of audio clips, blue gradient with 80% opacity
-
-**Features Implemented:**
-✅ Waveform generation with Web Audio API
-✅ Timeline rendering with zoom-aware detail levels
-✅ Efficient canvas rendering
-✅ Performance optimization (Web Workers, caching, worker pool)
-
-**Bug Fixes:**
-- Fixed undefined clipWidth variable (commit 4798f71)
-- Fixed TypeScript postMessage error (commit 4798f71)
 ---
 
 ### Issue #94: Missing Export Presets
@@ -1726,7 +1713,7 @@ shortcuts and wiring up the callbacks to make grouping fully functional.
 - **Status:** Open
 - **Priority:** P2
 - **Effort:** 16-20 hours
-- **Impact:** Users can now queue and manage multiple exports
+- **Impact:** Can only export one video at a time
 
 **Needed:**
 

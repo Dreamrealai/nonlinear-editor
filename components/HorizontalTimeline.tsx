@@ -211,6 +211,18 @@ function HorizontalTimeline({
     }
   }, [selectedClipIds, getClipGroupId, ungroupClips]);
 
+  // Add guide at playhead callback
+  const handleAddGuide = useCallback(() => {
+    const guide = {
+      id: `guide-${Date.now()}`,
+      position: currentTime,
+      orientation: 'vertical' as const,
+      color: '#3b82f6',
+      visible: true,
+    };
+    addGuide(guide);
+  }, [currentTime, addGuide]);
+
   // Keyboard shortcuts
   useTimelineKeyboardShortcuts({
     timeline,
@@ -227,6 +239,7 @@ function HorizontalTimeline({
     onAddTransition,
     onGroupClips: handleGroupClips,
     onUngroupClips: handleUngroupClips,
+    onAddGuide: handleAddGuide,
   });
 
   // Zoom controls - memoized to prevent re-creation on every render

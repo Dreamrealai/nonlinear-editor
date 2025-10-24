@@ -215,6 +215,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
                 contrast: 100,
                 saturation: 100,
                 hue: 0,
+                blur: 0,
               },
             });
             onClose();

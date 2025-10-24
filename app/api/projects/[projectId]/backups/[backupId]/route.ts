@@ -9,28 +9,41 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/api/withAuth';
+import { withAuth, type AuthContext } from '@/lib/api/withAuth';
 import { BackupService } from '@/lib/services/backupService';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { errorResponse } from '@/lib/api/response';
-import { validateString } from '@/lib/validation';
+import { validateUUID, ValidationError } from '@/lib/validation';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 
 /**
  * GET /api/projects/[projectId]/backups/[backupId]
  * Get backup details (for download)
  */
-export const GET = withAuth(
-  async (
-    _request: NextRequest,
-    context: { params: Promise<{ projectId: string; backupId: string }> }
-  ): Promise<NextResponse> => {
-    const { projectId, backupId } = await context.params;
-    assertValidString(projectId, 'projectId');
-    assertValidString(backupId, 'backupId');
+async function handleGetBackup(
+  _request: NextRequest,
+  context: AuthContext,
+  routeContext?: { params: Promise<{ projectId: string; backupId: string }> }
+): Promise<NextResponse> {
+  const { supabase } = context;
+  const resolvedParams = await routeContext?.params;
 
-    const supabase = createServerSupabaseClient();
-    const backupService = new BackupService(supabase);
+  if (!resolvedParams?.projectId || !resolvedParams?.backupId) {
+    return errorResponse('Project ID and Backup ID are required', {}, 400);
+  }
+
+  const { projectId, backupId } = resolvedParams;
+
+  try {
+    validateString(projectId, 'projectId');
+    validateString(backupId, 'backupId');
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return errorResponse(error.message, { projectId, backupId }, 400);
+    }
+    throw error;
+  }
+
+  const backupService = new BackupService(supabase);
 
     try {
       const backup = await backupService.getBackup(backupId);
@@ -57,25 +70,39 @@ export const GET = withAuth(
     } catch (error) {
       return errorResponse('Failed to get backup', { error, backupId });
     }
-  },
-  { tier: RateLimitTier.STANDARD }
-);
+}
+
+export const GET = withAuth(handleGetBackup, { rateLimit: RATE_LIMITS.STANDARD });
 
 /**
  * DELETE /api/projects/[projectId]/backups/[backupId]
  * Delete a backup
  */
-export const DELETE = withAuth(
-  async (
-    _request: NextRequest,
-    context: { params: Promise<{ projectId: string; backupId: string }> }
-  ): Promise<NextResponse> => {
-    const { projectId, backupId } = await context.params;
-    assertValidString(projectId, 'projectId');
-    assertValidString(backupId, 'backupId');
+async function handleDeleteBackup(
+  _request: NextRequest,
+  context: AuthContext,
+  routeContext?: { params: Promise<{ projectId: string; backupId: string }> }
+): Promise<NextResponse> {
+  const { supabase } = context;
+  const resolvedParams = await routeContext?.params;
 
-    const supabase = createServerSupabaseClient();
-    const backupService = new BackupService(supabase);
+  if (!resolvedParams?.projectId || !resolvedParams?.backupId) {
+    return errorResponse('Project ID and Backup ID are required', {}, 400);
+  }
+
+  const { projectId, backupId } = resolvedParams;
+
+  try {
+    validateString(projectId, 'projectId');
+    validateString(backupId, 'backupId');
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return errorResponse(error.message, { projectId, backupId }, 400);
+    }
+    throw error;
+  }
+
+  const backupService = new BackupService(supabase);
 
     try {
       // Verify backup exists and belongs to project
@@ -99,6 +126,6 @@ export const DELETE = withAuth(
     } catch (error) {
       return errorResponse('Failed to delete backup', { error, backupId });
     }
-  },
-  { tier: RateLimitTier.STANDARD }
-);
+}
+
+export const DELETE = withAuth(handleDeleteBackup, { rateLimit: RATE_LIMITS.STANDARD });

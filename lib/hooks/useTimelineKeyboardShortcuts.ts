@@ -11,6 +11,7 @@
  * - Add marker (M key)
  * - Group selected clips (G key)
  * - Ungroup clips (Shift+G key)
+ * - Add guide at playhead (Shift+R key)
  */
 'use client';
 
@@ -33,6 +34,7 @@ type UseTimelineKeyboardShortcutsOptions = {
   onAddMarker?: () => void;
   onGroupClips?: () => void;
   onUngroupClips?: () => void;
+  onAddGuide?: () => void;
 };
 
 export function useTimelineKeyboardShortcuts({
@@ -51,6 +53,7 @@ export function useTimelineKeyboardShortcuts({
   onAddMarker,
   onGroupClips,
   onUngroupClips,
+  onAddGuide,
 }: UseTimelineKeyboardShortcutsOptions) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -158,6 +161,14 @@ export function useTimelineKeyboardShortcuts({
           onUngroupClips();
         }
       }
+
+      // Shift+R: Add guide at playhead position
+      if ((e.key === 'r' || e.key === 'R') && e.shiftKey) {
+        e.preventDefault();
+        if (onAddGuide) {
+          onAddGuide();
+        }
+      }
     };
 
     if (typeof window !== 'undefined') {
@@ -181,5 +192,6 @@ export function useTimelineKeyboardShortcuts({
     onAddMarker,
     onGroupClips,
     onUngroupClips,
+    onAddGuide,
   ]);
 }

@@ -12,8 +12,8 @@ import { withAuth } from '@/lib/api/withAuth';
 import { BackupService } from '@/lib/services/backupService';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { errorResponse } from '@/lib/api/response';
-import { validateString } from '@/lib/validation';
-import { RATE_LIMITS } from '@/lib/rateLimit';
+import { validateUUID, ValidationError } from '@/lib/validation';
+import { RATE_LIMITS } from '@/lib/config/rateLimit';
 
 /**
  * POST /api/projects/[projectId]/backups/[backupId]/restore
@@ -25,8 +25,8 @@ export const POST = withAuth(
     context: { params: Promise<{ projectId: string; backupId: string }> }
   ): Promise<NextResponse> => {
     const { projectId, backupId } = await context.params;
-    assertValidString(projectId, 'projectId');
-    assertValidString(backupId, 'backupId');
+    validateUUID(projectId, 'projectId');
+    validateUUID(backupId, 'backupId');
 
     const supabase = createServerSupabaseClient();
     const backupService = new BackupService(supabase);
@@ -46,5 +46,8 @@ export const POST = withAuth(
       return errorResponse('Failed to restore backup', { error, backupId, projectId });
     }
   },
-  { tier: RateLimitTier.STANDARD }
+  {
+    route: '/api/projects/[projectId]/backups/[backupId]/restore',
+    rateLimit: RATE_LIMITS.tier2_resource_creation
+  }
 );
