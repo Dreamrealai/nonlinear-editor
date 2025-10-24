@@ -19,16 +19,18 @@ import { invalidateUserProjects } from '@/lib/cacheInvalidation';
 
 async function handleProjectDelete(
   _request: NextRequest,
-  context: AuthContext & { params?: { projectId: string } }
+  context: AuthContext,
+  routeContext?: { params: Promise<{ projectId: string }> }
 ) {
-  const { user, supabase, params } = context;
+  const { user, supabase } = context;
   const startTime = Date.now();
+  const resolvedParams = await routeContext?.params;
 
-  if (!params?.projectId) {
+  if (!resolvedParams?.projectId) {
     return validationError('Project ID is required', 'projectId');
   }
 
-  const { projectId } = params;
+  const { projectId } = resolvedParams;
 
   serverLogger.info(
     {

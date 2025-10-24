@@ -16,8 +16,9 @@ import {
 } from '@/lib/api/response';
 
 export const POST = withAuth<{ frameId: string }>(
-  async (request: NextRequest, { user, supabase, params }) => {
+  async (request: NextRequest, { user, supabase }, routeContext) => {
     const startTime = Date.now();
+    const params = await routeContext?.params;
 
     if (!params?.frameId) {
       return validationError('Frame ID is required', 'frameId');
