@@ -191,7 +191,7 @@ export function getShortcutsByCategory(
       if (!grouped[shortcut.category]) {
         grouped[shortcut.category] = [];
       }
-      grouped[shortcut.category].push(shortcut);
+      grouped[shortcut.category]?.push(shortcut);
     }
   });
 

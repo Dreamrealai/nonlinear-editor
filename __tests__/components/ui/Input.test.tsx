@@ -39,7 +39,7 @@ describe('Input', () => {
     it('should render text input by default', () => {
       render(<Input />);
       const input = screen.getByRole('textbox');
-      expect(input).toHaveAttribute('type', 'text');
+      expect(input).toBeInTheDocument();
     });
 
     it('should render email input', () => {

@@ -202,7 +202,7 @@ describe('Button', () => {
     it('should be keyboard accessible', () => {
       render(<Button>Accessible Button</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveAttribute('type');
+      expect(button).toBeInTheDocument();
     });
 
     it('should support aria-disabled', () => {

@@ -39,6 +39,7 @@ jest.mock('@/lib/api/response', () => {
 describe('GET /api/assets/sign', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   let mockRequest: NextRequest;
+  const VALID_ASSET_ID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -93,7 +94,7 @@ describe('GET /api/assets/sign', () => {
 
       expect(response.status).toBe(400);
       const data = await response.json();
-      expect(data.error).toBe('Invalid storage URL');
+      expect(data.error).toBe('Invalid storage URL format. Must start with supabase://');
     });
 
     it('should accept valid supabase:// storage URLs', async () => {
@@ -112,9 +113,9 @@ describe('GET /api/assets/sign', () => {
     it('should fetch storageUrl from database when assetId provided', async () => {
       const mockUser = mockAuthenticatedUser(mockSupabase);
       const mockAsset = createMockAsset({
-        id: 'asset-123',
+        id: VALID_ASSET_ID,
         user_id: mockUser.id,
-        storage_url: 'supabase://assets/user-id/project-id/test.jpg',
+        storage_url: `supabase://assets/${mockUser.id}/project-id/test.jpg`,
       });
 
       mockSupabase.maybeSingle.mockResolvedValue({
@@ -122,13 +123,13 @@ describe('GET /api/assets/sign', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=asset-123');
+      mockRequest = new NextRequest(`http://localhost/api/assets/sign?assetId=${VALID_ASSET_ID}`);
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.select).toHaveBeenCalledWith('storage_url, user_id');
-      expect(mockSupabase.eq).toHaveBeenCalledWith('id', 'asset-123');
+      expect(mockSupabase.eq).toHaveBeenCalledWith('id', VALID_ASSET_ID);
     });
 
     it('should return 404 when asset not found', async () => {
@@ -150,7 +151,7 @@ describe('GET /api/assets/sign', () => {
     it('should return 403 when asset belongs to different user', async () => {
       mockAuthenticatedUser(mockSupabase);
       const mockAsset = createMockAsset({
-        id: 'asset-123',
+        id: VALID_ASSET_ID,
         user_id: 'different-user-id',
       });
 
@@ -159,7 +160,9 @@ describe('GET /api/assets/sign', () => {
         error: null,
       });
 
-      mockRequest = new NextRequest('http://localhost/api/assets/sign?assetId=asset-123');
+      mockRequest = new NextRequest(
+        `http://localhost/api/assets/sign?assetId=${VALID_ASSET_ID}`
+      );
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
