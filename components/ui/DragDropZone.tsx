@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, DragEvent, ChangeEvent } from 'react';
-import { Upload, FileIcon, X } from 'lucide-react';
+import { Upload, File, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface DragDropZoneProps {
@@ -50,13 +50,13 @@ function formatFileSize(bytes: number): string {
  */
 function getFileIcon(file: File): React.ReactNode {
   if (file.type.startsWith('image/')) {
-    return <FileIcon className="h-8 w-8 text-blue-500" />;
+    return <File className="h-8 w-8 text-blue-500" />;
   } else if (file.type.startsWith('video/')) {
-    return <FileIcon className="h-8 w-8 text-purple-500" />;
+    return <File className="h-8 w-8 text-purple-500" />;
   } else if (file.type.startsWith('audio/')) {
-    return <FileIcon className="h-8 w-8 text-green-500" />;
+    return <File className="h-8 w-8 text-green-500" />;
   }
-  return <FileIcon className="h-8 w-8 text-neutral-500" />;
+  return <File className="h-8 w-8 text-neutral-500" />;
 }
 
 export function DragDropZone({

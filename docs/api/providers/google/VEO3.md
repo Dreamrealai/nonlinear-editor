@@ -2,6 +2,7 @@
 
 **Last Updated:** October 10, 2025
 **Documentation Sources:**
+
 - https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/veo-video-generation
 - https://ai.google.dev/gemini-api/docs/video
 - https://cloud.google.com/vertex-ai/generative-ai/docs/video/overview
@@ -46,6 +47,7 @@ Veo 3 is Google's state-of-the-art model for generating high-fidelity, 8-second 
 ### Available Models
 
 #### Veo 3 (Standard)
+
 - **Model ID**: `veo-3.0-generate-001`
 - **Status**: Stable
 - **Resolution**: 720p & 1080p (16:9 only)
@@ -54,6 +56,7 @@ Veo 3 is Google's state-of-the-art model for generating high-fidelity, 8-second 
 - **Latest Update**: July 2025
 
 #### Veo 3 Fast
+
 - **Model ID**: `veo-3.0-fast-generate-001`
 - **Status**: Stable
 - **Resolution**: 720p & 1080p (16:9 only)
@@ -62,6 +65,7 @@ Veo 3 is Google's state-of-the-art model for generating high-fidelity, 8-second 
 - **Latest Update**: July 2025
 
 #### Veo 3 Preview
+
 - **Model ID**: `veo-3.0-generate-preview`
 - **Status**: Preview
 - **Resolution**: 720p
@@ -69,6 +73,7 @@ Veo 3 is Google's state-of-the-art model for generating high-fidelity, 8-second 
 - **Use Case**: Latest experimental features
 
 #### Veo 3 Fast Preview
+
 - **Model ID**: `veo-3.0-fast-generate-preview`
 - **Status**: Preview
 - **Resolution**: 720p
@@ -76,6 +81,7 @@ Veo 3 is Google's state-of-the-art model for generating high-fidelity, 8-second 
 - **Use Case**: Fast generation with latest features
 
 #### Veo 2 (Legacy)
+
 - **Model ID**: `veo-2.0-generate-001`
 - **Status**: Stable
 - **Resolution**: 720p only
@@ -96,6 +102,7 @@ POST https://{LOCATION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locat
 ```
 
 **Supported Locations:**
+
 - `us-central1` (recommended)
 - See [Generative AI on Vertex AI locations](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/locations-genai) for full list
 
@@ -113,36 +120,37 @@ POST https://generativelanguage.googleapis.com/v1beta/models/{MODEL_ID}:predictL
 
 ### Instances
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `prompt` | string | Yes (for text-to-video) | Text description to guide video generation. Max 1,024 tokens. |
-| `image` | object | Optional | Initial image to animate (Image-to-Video) |
-| `image.bytesBase64Encoded` | string | - | Base64-encoded image string |
-| `image.gcsUri` | string | - | Cloud Storage URI (gs://...) |
-| `image.mimeType` | string | Required with image | `image/jpeg` or `image/png` |
-| `lastFrame` | object | Optional | Image for last frame (Veo 2 only) |
-| `video` | object | Optional | Video to extend (Veo 2 only) |
-| `referenceImages` | array | Optional | Up to 3 asset images or 1 style image (Veo 2 experimental) |
+| Parameter                  | Type   | Required                | Description                                                   |
+| -------------------------- | ------ | ----------------------- | ------------------------------------------------------------- |
+| `prompt`                   | string | Yes (for text-to-video) | Text description to guide video generation. Max 1,024 tokens. |
+| `image`                    | object | Optional                | Initial image to animate (Image-to-Video)                     |
+| `image.bytesBase64Encoded` | string | -                       | Base64-encoded image string                                   |
+| `image.gcsUri`             | string | -                       | Cloud Storage URI (gs://...)                                  |
+| `image.mimeType`           | string | Required with image     | `image/jpeg` or `image/png`                                   |
+| `lastFrame`                | object | Optional                | Image for last frame (Veo 2 only)                             |
+| `video`                    | object | Optional                | Video to extend (Veo 2 only)                                  |
+| `referenceImages`          | array  | Optional                | Up to 3 asset images or 1 style image (Veo 2 experimental)    |
 
 ### Parameters
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `aspectRatio` | string | "16:9" | `"16:9"` or `"9:16"` (720p only) |
-| `resolution` | string | "720p" | `"720p"` or `"1080p"` (16:9 only, Veo 3 only) |
-| `durationSeconds` | integer | 8 | Veo 3: `4`, `6`, or `8`<br>Veo 2: `5` to `8` |
-| `generateAudio` | boolean | - | Required for Veo 3. Must be `true` for Veo 3 models. Not supported by Veo 2. |
-| `negativePrompt` | string | - | Text describing what to exclude from the video |
-| `personGeneration` | string | "allow_adult" | Veo 3: `"allow_adult"` only<br>Veo 2: `"allow_adult"`, `"dont_allow"` |
-| `sampleCount` | integer | 1 | Number of videos to generate (1-4) |
-| `seed` | uint32 | - | For deterministic generation (0-4,294,967,295). Slightly improves determinism but doesn't guarantee it. |
-| `storageUri` | string | - | Cloud Storage bucket URI (gs://...). If not provided, base64-encoded video returned in response. |
-| `compressionQuality` | string | "optimized" | `"optimized"` or `"lossless"` |
-| `enhancePrompt` | boolean | true | Use Gemini to enhance prompts |
+| Parameter            | Type    | Default       | Description                                                                                             |
+| -------------------- | ------- | ------------- | ------------------------------------------------------------------------------------------------------- |
+| `aspectRatio`        | string  | "16:9"        | `"16:9"` or `"9:16"` (720p only)                                                                        |
+| `resolution`         | string  | "720p"        | `"720p"` or `"1080p"` (16:9 only, Veo 3 only)                                                           |
+| `durationSeconds`    | integer | 8             | Veo 3: `4`, `6`, or `8`<br>Veo 2: `5` to `8`                                                            |
+| `generateAudio`      | boolean | -             | Required for Veo 3. Must be `true` for Veo 3 models. Not supported by Veo 2.                            |
+| `negativePrompt`     | string  | -             | Text describing what to exclude from the video                                                          |
+| `personGeneration`   | string  | "allow_adult" | Veo 3: `"allow_adult"` only<br>Veo 2: `"allow_adult"`, `"dont_allow"`                                   |
+| `sampleCount`        | integer | 1             | Number of videos to generate (1-4)                                                                      |
+| `seed`               | uint32  | -             | For deterministic generation (0-4,294,967,295). Slightly improves determinism but doesn't guarantee it. |
+| `storageUri`         | string  | -             | Cloud Storage bucket URI (gs://...). If not provided, base64-encoded video returned in response.        |
+| `compressionQuality` | string  | "optimized"   | `"optimized"` or `"lossless"`                                                                           |
+| `enhancePrompt`      | boolean | true          | Use Gemini to enhance prompts                                                                           |
 
 ### Regional Limitations
 
 **EU, UK, CH, MENA locations:**
+
 - Veo 3: `personGeneration` can only be `"allow_adult"`
 - Veo 2: `personGeneration` can be `"allow_adult"` or `"dont_allow"` (default: `"dont_allow"`)
 
@@ -257,7 +265,7 @@ if operation.response:
 ### JavaScript (Gemini API)
 
 ```javascript
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from '@google/genai';
 
 const ai = new GoogleGenAI({});
 
@@ -265,23 +273,23 @@ const prompt = `A close up of two people staring at a cryptic drawing on a wall,
 A man murmurs, 'This must be it. That's the secret code.' The woman looks at him and whispering excitedly, 'What did you find?'`;
 
 let operation = await ai.models.generateVideos({
-    model: "veo-3.0-generate-001",
-    prompt: prompt,
+  model: 'veo-3.0-generate-001',
+  prompt: prompt,
 });
 
 // Poll the operation status until the video is ready.
 while (!operation.done) {
-    console.log("Waiting for video generation to complete...")
-    await new Promise((resolve) => setTimeout(resolve, 10000));
-    operation = await ai.operations.getVideosOperation({
-        operation: operation,
-    });
+  console.log('Waiting for video generation to complete...');
+  await new Promise((resolve) => setTimeout(resolve, 10000));
+  operation = await ai.operations.getVideosOperation({
+    operation: operation,
+  });
 }
 
 // Download the generated video.
 ai.files.download({
-    file: operation.response.generatedVideos[0].video,
-    downloadPath: "dialogue_example.mp4",
+  file: operation.response.generatedVideos[0].video,
+  downloadPath: 'dialogue_example.mp4',
 });
 console.log(`Generated video saved to dialogue_example.mp4`);
 ```
@@ -349,6 +357,7 @@ func main() {
 ### Polling the Operation
 
 **Request:**
+
 ```bash
 curl -X POST \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
@@ -360,6 +369,7 @@ curl -X POST \
 ```
 
 **Response (In Progress):**
+
 ```json
 {
   "name": "projects/PROJECT_ID/locations/us-central1/publishers/google/models/veo-3.0-generate-001/operations/OPERATION_ID",
@@ -368,6 +378,7 @@ curl -X POST \
 ```
 
 **Response (Completed):**
+
 ```json
 {
   "name": "projects/PROJECT_ID/locations/us-central1/publishers/google/models/veo-3.0-generate-001/operations/OPERATION_ID",
@@ -387,17 +398,17 @@ curl -X POST \
 
 ### Response Fields
 
-| Field | Description |
-|-------|-------------|
-| `name` | Full operation name with unique operation ID |
-| `done` | Boolean indicating if operation is complete |
-| `response.@type` | Response type identifier |
-| `response.raiMediaFilteredCount` | Count of videos filtered by safety policies (0 if none) |
-| `response.raiMediaFilteredReasons` | Reasons for filtered videos (if any) |
-| `response.videos` | Array of generated videos |
-| `response.videos[].gcsUri` | Cloud Storage URI of video |
-| `response.videos[].bytesBase64Encoded` | Base64-encoded video (if no storage URI provided) |
-| `response.videos[].mimeType` | Video MIME type (video/mp4) |
+| Field                                  | Description                                             |
+| -------------------------------------- | ------------------------------------------------------- |
+| `name`                                 | Full operation name with unique operation ID            |
+| `done`                                 | Boolean indicating if operation is complete             |
+| `response.@type`                       | Response type identifier                                |
+| `response.raiMediaFilteredCount`       | Count of videos filtered by safety policies (0 if none) |
+| `response.raiMediaFilteredReasons`     | Reasons for filtered videos (if any)                    |
+| `response.videos`                      | Array of generated videos                               |
+| `response.videos[].gcsUri`             | Cloud Storage URI of video                              |
+| `response.videos[].bytesBase64Encoded` | Base64-encoded video (if no storage URI provided)       |
+| `response.videos[].mimeType`           | Video MIME type (video/mp4)                             |
 
 ---
 
@@ -406,16 +417,19 @@ curl -X POST \
 ### Vertex AI (Google Cloud)
 
 1. **Set up Google Cloud Project:**
+
    ```bash
    gcloud config set project PROJECT_ID
    ```
 
 2. **Enable Vertex AI API:**
+
    ```bash
    gcloud services enable aiplatform.googleapis.com
    ```
 
 3. **Authenticate:**
+
    ```bash
    gcloud auth application-default login
    ```
@@ -433,11 +447,13 @@ curl -X POST \
    - Generate an API key
 
 2. **Set Environment Variables:**
+
    ```bash
    export GEMINI_API_KEY="your-api-key"
    ```
 
 3. **Python SDK Setup:**
+
    ```bash
    pip install google-genai
    ```
@@ -455,13 +471,14 @@ curl -X POST \
 
 ### Gemini API Pricing (Per Second of Video)
 
-| Model | Free Tier | Paid Tier (per second) |
-|-------|-----------|------------------------|
-| **Veo 3 Standard** (with audio) | Not available | $0.40 USD |
-| **Veo 3 Fast** (with audio) | Not available | $0.15 USD |
-| **Veo 2** (no audio) | Not available | $0.35 USD |
+| Model                           | Free Tier     | Paid Tier (per second) |
+| ------------------------------- | ------------- | ---------------------- |
+| **Veo 3 Standard** (with audio) | Not available | $0.40 USD              |
+| **Veo 3 Fast** (with audio)     | Not available | $0.15 USD              |
+| **Veo 2** (no audio)            | Not available | $0.35 USD              |
 
 **Notes:**
+
 - Pricing is per second of generated video
 - 8-second video (Veo 3 Standard): $3.20
 - 8-second video (Veo 3 Fast): $1.20
@@ -486,24 +503,25 @@ Pricing may differ from Gemini API. See [Vertex AI pricing page](https://cloud.g
 
 ### Gemini API Rate Limits
 
-| Tier | Veo 3 RPM | Veo 3 RPD | Veo 2 RPM | Veo 2 RPD |
-|------|-----------|-----------|-----------|-----------|
-| **Free** | N/A | N/A | N/A | N/A |
-| **Tier 1** (Billing enabled) | 2 | 10 | 2 | 50 |
-| **Tier 2** ($250+ spent) | 4 | 50 | 2 | 50 |
-| **Tier 3** ($1,000+ spent) | 10 | 500 | 2 | 50 |
+| Tier                         | Veo 3 RPM | Veo 3 RPD | Veo 2 RPM | Veo 2 RPD |
+| ---------------------------- | --------- | --------- | --------- | --------- |
+| **Free**                     | N/A       | N/A       | N/A       | N/A       |
+| **Tier 1** (Billing enabled) | 2         | 10        | 2         | 50        |
+| **Tier 2** ($250+ spent)     | 4         | 50        | 2         | 50        |
+| **Tier 3** ($1,000+ spent)   | 10        | 500       | 2         | 50        |
 
 **Legend:**
+
 - RPM = Requests Per Minute
 - RPD = Requests Per Day
 
 ### Tier Qualifications
 
-| Tier | Requirements |
-|------|--------------|
-| Free | Users in eligible countries |
-| Tier 1 | Billing account linked to project |
-| Tier 2 | Total spend > $250 AND at least 30 days since successful payment |
+| Tier   | Requirements                                                       |
+| ------ | ------------------------------------------------------------------ |
+| Free   | Users in eligible countries                                        |
+| Tier 1 | Billing account linked to project                                  |
+| Tier 2 | Total spend > $250 AND at least 30 days since successful payment   |
 | Tier 3 | Total spend > $1,000 AND at least 30 days since successful payment |
 
 ### Request Latency
@@ -538,27 +556,31 @@ Good prompts should include:
 Veo 3 generates audio synchronized with video. Include audio cues in your prompts:
 
 **Dialogue:**
+
 - Use quotes for speech
 - Example: "This must be the key," he murmured.
 
 **Sound Effects (SFX):**
+
 - Explicitly describe sounds
 - Example: tires screeching loudly, engine roaring
 
 **Ambient Noise:**
+
 - Describe the environment's soundscape
 - Example: A faint, eerie hum resonates in the background
 
 #### Audio Examples
 
-| Detail Level | Prompt | Description |
-|--------------|--------|-------------|
-| **High Detail** | A close up of two people staring at a cryptic drawing on a wall, torchlight flickering. "This must be the key," he murmured, tracing the pattern. "What does it mean though?" she asked, puzzled, tilting her head. Damp stone, intricate carvings, hidden symbols. A faint, eerie hum resonates in the background. | Includes dialogue, sound effects, and ambient noise |
-| **Medium Detail** | Camping (Stop Motion): Camper: "I'm one with nature now!" Bear: "Nature would prefer some personal space". | Includes only dialogue |
+| Detail Level      | Prompt                                                                                                                                                                                                                                                                                                              | Description                                         |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| **High Detail**   | A close up of two people staring at a cryptic drawing on a wall, torchlight flickering. "This must be the key," he murmured, tracing the pattern. "What does it mean though?" she asked, puzzled, tilting her head. Damp stone, intricate carvings, hidden symbols. A faint, eerie hum resonates in the background. | Includes dialogue, sound effects, and ambient noise |
+| **Medium Detail** | Camping (Stop Motion): Camper: "I'm one with nature now!" Bear: "Nature would prefer some personal space".                                                                                                                                                                                                          | Includes only dialogue                              |
 
 ### Example Prompts
 
 #### Dialogue & Sound Effects
+
 ```
 A close up of two people staring at a cryptic drawing on a wall, torchlight flickering.
 A man murmurs, 'This must be it. That's the secret code.'
@@ -566,6 +588,7 @@ The woman looks at him and whispering excitedly, 'What did you find?'
 ```
 
 #### Cinematic Realism
+
 ```
 A close-up cinematic shot follows a desperate man in a weathered green trench coat
 as he dials a rotary phone mounted on a gritty brick wall, bathed in the eerie glow
@@ -574,6 +597,7 @@ the desperation etched on his face as he struggles to make the call.
 ```
 
 #### Creative Animation
+
 ```
 Create a short 3D animated scene in a joyful cartoon style. A cute creature with
 snow leopard-like fur, large expressive eyes, and a friendly, rounded form happily
@@ -587,12 +611,15 @@ the branches.
 Specify what NOT to include in the video:
 
 **DON'T:**
+
 - ❌ "No walls" or "don't show walls"
 
 **DO:**
+
 - ✅ "wall, frame" (describe what you don't want)
 
 Example:
+
 ```json
 {
   "prompt": "Generate a short, stylized animation of a large, solitary oak tree...",
@@ -636,12 +663,14 @@ When using reference images:
 ### Person Generation Restrictions
 
 **Global (default):**
+
 - Veo 3 Text-to-Video: `allow_adult` only
 - Veo 3 Image-to-Video: `allow_adult` only
 - Veo 2 Text-to-Video: `allow_all`, `allow_adult`, `dont_allow`
 - Veo 2 Image-to-Video: `allow_adult`, `dont_allow`
 
 **EU, UK, CH, MENA:**
+
 - Veo 3: `allow_adult` only
 - Veo 2: `dont_allow` (default) and `allow_adult`
 
@@ -649,14 +678,14 @@ If approval is required, contact your Google account representative.
 
 ### Model-Specific Limitations
 
-| Feature | Veo 3 | Veo 2 |
-|---------|-------|-------|
-| Audio | ✅ Always on | ❌ Silent only |
-| 1080p | ✅ (16:9 only) | ❌ 720p only |
-| Image-to-Video | ✅ Supported (since mid-2025) | ✅ Supported |
-| Video Extension | ❌ Not supported | ✅ Supported |
-| Last Frame Control | ❌ Not supported | ✅ Supported |
-| Reference Images | ❌ Not supported | ✅ (Experimental) |
+| Feature            | Veo 3                         | Veo 2             |
+| ------------------ | ----------------------------- | ----------------- |
+| Audio              | ✅ Always on                  | ❌ Silent only    |
+| 1080p              | ✅ (16:9 only)                | ❌ 720p only      |
+| Image-to-Video     | ✅ Supported (since mid-2025) | ✅ Supported      |
+| Video Extension    | ❌ Not supported              | ✅ Supported      |
+| Last Frame Control | ❌ Not supported              | ✅ Supported      |
+| Reference Images   | ❌ Not supported              | ✅ (Experimental) |
 
 ---
 
@@ -706,6 +735,7 @@ except Exception as e:
 ### 3. Storage Management
 
 **Use Cloud Storage:**
+
 ```python
 config = GenerateVideosConfig(
     output_gcs_uri="gs://your-bucket/videos/",
@@ -715,6 +745,7 @@ config = GenerateVideosConfig(
 ```
 
 **Benefits:**
+
 - Avoids large base64-encoded responses
 - Organized storage with timestamps
 - Easy sharing and archiving
@@ -723,11 +754,13 @@ config = GenerateVideosConfig(
 ### 4. Prompt Engineering
 
 **Start Simple:**
+
 ```
 A cat reading a book
 ```
 
 **Add Detail:**
+
 ```
 Close-up shot of a tabby cat wearing reading glasses, carefully reading
 a leather-bound book in a cozy library, warm afternoon sunlight streaming
@@ -735,6 +768,7 @@ through the window, soft focus on background bookshelves
 ```
 
 **Include Audio (Veo 3):**
+
 ```
 Close-up shot of a tabby cat wearing reading glasses, carefully reading
 a leather-bound book in a cozy library, warm afternoon sunlight streaming
@@ -758,6 +792,7 @@ operation = client.models.generate_videos(
 ### 6. Batch Processing
 
 Generate multiple variations:
+
 ```python
 config = GenerateVideosConfig(
     sample_count=4,  # Generate 4 variations
@@ -795,6 +830,7 @@ logger.info(f"Video generated in {time.time() - start_time:.1f}s")
 ### Safety Filters
 
 Veo applies safety filters to:
+
 - Block prompts violating usage policies
 - Filter generated content with offensive material
 - Check for memorization of copyrighted content
@@ -802,6 +838,7 @@ Veo applies safety filters to:
 ### SynthID Watermarking
 
 All Veo-generated videos include SynthID watermarking for:
+
 - Identifying AI-generated content
 - Preventing misuse
 - Maintaining transparency
@@ -819,42 +856,52 @@ To report abuse: [Report suspected abuse form](https://support.google.com/code/c
 ### Common Issues
 
 #### 1. Operation Timeout
+
 **Problem:** Video generation takes longer than expected
 
 **Solution:**
+
 - Expected range: 11 seconds to 6 minutes
 - Increase polling interval during peak hours
 - Check operation status periodically
 
 #### 2. Safety Filter Blocks
+
 **Problem:** Video blocked by safety filters
 
 **Solution:**
+
 - Review prompt for policy violations
 - Modify prompt to remove concerning content
 - Check `raiMediaFilteredReasons` in response
 
 #### 3. Audio Generation Errors
+
 **Problem:** Veo 3 blocks video due to audio issues
 
 **Solution:**
+
 - You are not charged for blocked videos
 - Simplify audio descriptions
 - Avoid complex dialogue or sound effects
 
 #### 4. Rate Limit Exceeded
+
 **Problem:** 429 error - too many requests
 
 **Solution:**
+
 - Check current tier limits
 - Implement exponential backoff
 - Upgrade to higher tier if needed
 - Request rate limit increase
 
 #### 5. Person Generation Denied
+
 **Problem:** Request denied for generating people
 
 **Solution:**
+
 - Check regional restrictions
 - Verify `personGeneration` parameter
 - Contact Google account representative for approval
@@ -864,6 +911,7 @@ To report abuse: [Report suspected abuse form](https://support.google.com/code/c
 ## Additional Resources
 
 ### Documentation
+
 - [Veo Overview](https://cloud.google.com/vertex-ai/generative-ai/docs/video/overview)
 - [Generate Videos from Text](https://cloud.google.com/vertex-ai/generative-ai/docs/video/generate-videos-from-text)
 - [Generate Videos from Images](https://cloud.google.com/vertex-ai/generative-ai/docs/video/generate-videos-from-an-image)
@@ -871,16 +919,19 @@ To report abuse: [Report suspected abuse form](https://support.google.com/code/c
 - [Responsible AI Guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/video/responsible-ai-and-usage-guidelines)
 
 ### Tools
+
 - [Vertex AI Studio](https://console.cloud.google.com/vertex-ai/studio/media/generate;tab=video)
 - [Google AI Studio](https://aistudio.google.com/)
 - [Veo Colab Notebook](https://colab.research.google.com/github/GoogleCloudPlatform/generative-ai/blob/main/vision/getting-started/veo3_video_generation.ipynb)
 
 ### SDKs
+
 - [Python SDK](https://googleapis.github.io/python-genai/)
 - [JavaScript SDK](https://www.npmjs.com/package/@google/genai)
 - [Go SDK](https://pkg.go.dev/google.golang.org/genai)
 
 ### Support
+
 - [Gemini API Community](https://discuss.ai.google.dev/c/gemini-api/)
 - [Google Cloud Support](https://cloud.google.com/support)
 - [Rate Limit Increase Request](https://forms.gle/ETzX94k8jf7iSotH9)
@@ -890,16 +941,18 @@ To report abuse: [Report suspected abuse form](https://support.google.com/code/c
 ## Changelog
 
 ### July 2025
+
 - Veo 3 Standard and Veo 3 Fast released (stable)
 - Native audio generation introduced
 - 1080p support added (16:9 only)
 - 4, 6, 8 second duration options
 
 ### April 2025
+
 - Veo 2 released
 
 ---
 
 **End of Documentation**
 
-*This documentation is based on official Google documentation as of October 10, 2025. Please check official sources for the latest updates.*
+_This documentation is based on official Google documentation as of October 10, 2025. Please check official sources for the latest updates._

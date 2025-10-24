@@ -10,6 +10,7 @@ import { type ChangeEvent, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { AssetRow } from '@/types/assets';
+import { DragDropZone } from '@/components/ui/DragDropZone';
 
 interface AssetPanelProps {
   /** List of all assets */
@@ -86,6 +87,42 @@ export function AssetPanel({
         : a.type === 'audio'
   );
 
+  /**
+   * Handle files from drag-and-drop zone
+   * Converts File[] to ChangeEvent to work with existing upload handler
+   */
+  const handleDragDropFiles = async (files: File[]) => {
+    if (files.length === 0) return;
+
+    // Create a synthetic ChangeEvent to pass to existing handler
+    const dataTransfer = new DataTransfer();
+    files.forEach((file) => dataTransfer.items.add(file));
+
+    const event = {
+      target: {
+        files: dataTransfer.files,
+      },
+    } as ChangeEvent<HTMLInputElement>;
+
+    await onFileSelect(event);
+  };
+
+  /**
+   * Get accepted file types based on active tab
+   */
+  const getAcceptedTypes = (): string => {
+    switch (activeTab) {
+      case 'video':
+        return 'video/*';
+      case 'image':
+        return 'image/*';
+      case 'audio':
+        return 'audio/*';
+      default:
+        return 'video/*,image/*,audio/*';
+    }
+  };
+
   return (
     <aside className="flex flex-col gap-4 overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
@@ -152,24 +189,16 @@ export function AssetPanel({
       {/* Video Tab Buttons */}
       {activeTab === 'video' && (
         <div className="flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={() => uploadInputRef.current?.click()}
+          <DragDropZone
+            onFilesSelected={handleDragDropFiles}
+            accept={getAcceptedTypes()}
+            multiple={true}
+            maxFileSize={200 * 1024 * 1024}
             disabled={uploadPending}
-            className="group w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700 transition-all hover:border-blue-300 hover:bg-blue-100 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-75"
-          >
-            <div className="flex items-center justify-center gap-2">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                />
-              </svg>
-              {uploadPending ? 'Uploading…' : 'Upload Video/Image'}
-            </div>
-          </button>
+            description={uploadPending ? 'Uploading files...' : 'or click to browse'}
+            showPreviews={false}
+            className="min-h-[120px]"
+          />
           <Link
             href={`/video-gen?projectId=${projectId}`}
             className="group w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-xs font-semibold text-white text-center shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg"
@@ -192,24 +221,16 @@ export function AssetPanel({
       {/* Images Tab Buttons */}
       {activeTab === 'image' && (
         <div className="flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={() => uploadInputRef.current?.click()}
+          <DragDropZone
+            onFilesSelected={handleDragDropFiles}
+            accept={getAcceptedTypes()}
+            multiple={true}
+            maxFileSize={100 * 1024 * 1024}
             disabled={uploadPending}
-            className="group w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700 transition-all hover:border-blue-300 hover:bg-blue-100 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-75"
-          >
-            <div className="flex items-center justify-center gap-2">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                />
-              </svg>
-              {uploadPending ? 'Uploading…' : 'Upload Images'}
-            </div>
-          </button>
+            description={uploadPending ? 'Uploading files...' : 'or click to browse'}
+            showPreviews={false}
+            className="min-h-[120px]"
+          />
           <Link
             href={`/image-gen?projectId=${projectId}`}
             className="group w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-xs font-semibold text-white text-center shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg"
@@ -232,24 +253,16 @@ export function AssetPanel({
       {/* Audio Tab Buttons */}
       {activeTab === 'audio' && (
         <div className="flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={() => uploadInputRef.current?.click()}
+          <DragDropZone
+            onFilesSelected={handleDragDropFiles}
+            accept={getAcceptedTypes()}
+            multiple={true}
+            maxFileSize={100 * 1024 * 1024}
             disabled={uploadPending}
-            className="group w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700 transition-all hover:border-blue-300 hover:bg-blue-100 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-75"
-          >
-            <div className="flex items-center justify-center gap-2">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                />
-              </svg>
-              {uploadPending ? 'Uploading…' : 'Upload Audio'}
-            </div>
-          </button>
+            description={uploadPending ? 'Uploading files...' : 'or click to browse'}
+            showPreviews={false}
+            className="min-h-[120px]"
+          />
           <Link
             href={`/audio-gen?projectId=${projectId}`}
             className="group w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-xs font-semibold text-white text-center shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg"

@@ -41,6 +41,7 @@ ElevenLabs provides a powerful AI audio API for text-to-speech, voice cloning, a
 - **High-Quality Output**: Professional-grade audio generation
 
 **Key Features:**
+
 - RESTful API design
 - Streaming and non-streaming modes
 - Custom voice creation and cloning
@@ -59,6 +60,7 @@ ElevenLabs API uses API key authentication. Every request to the API must includ
 All API requests should include your API key in an `xi-api-key` HTTP header.
 
 **Required Header:**
+
 ```http
 xi-api-key: YOUR_API_KEY_HERE
 ```
@@ -75,16 +77,19 @@ Content-Type: application/json
 ### Environment Variable Setup
 
 **Bash/Shell:**
+
 ```bash
 export ELEVENLABS_API_KEY="your_api_key_here"
 ```
 
 **Python (.env file):**
+
 ```bash
 ELEVENLABS_API_KEY=your_api_key_here
 ```
 
 **Node.js (.env file):**
+
 ```bash
 ELEVENLABS_API_KEY=your_api_key_here
 ```
@@ -112,11 +117,13 @@ ELEVENLABS_API_KEY=your_api_key_here
 ### API Key Types
 
 #### Personal API Key
+
 - Found in profile settings
 - Full access to all account features
 - Suitable for development and testing
 
 #### Service Account API Keys
+
 - Created via API or dashboard
 - Scoped access control
 - Custom credit quotas
@@ -140,6 +147,7 @@ Each API key can be scoped to:
 **Endpoint:** `POST /v1/service-accounts/api-keys/create`
 
 **Request Body:**
+
 ```json
 {
   "name": "Production TTS Key",
@@ -149,6 +157,7 @@ Each API key can be scoped to:
 ```
 
 **Response:**
+
 ```json
 {
   "api_key_id": "key_abc123",
@@ -165,6 +174,7 @@ Each API key can be scoped to:
 **Endpoint:** `GET /v1/service-accounts/api-keys/list`
 
 **Response:**
+
 ```json
 {
   "api_keys": [
@@ -192,15 +202,15 @@ https://api.elevenlabs.io
 
 ### Required Headers
 
-| Header | Value | Description |
-|--------|-------|-------------|
-| `xi-api-key` | Your API key | Authentication header |
-| `Content-Type` | `application/json` | Request body format |
+| Header         | Value              | Description           |
+| -------------- | ------------------ | --------------------- |
+| `xi-api-key`   | Your API key       | Authentication header |
+| `Content-Type` | `application/json` | Request body format   |
 
 ### Optional Headers
 
-| Header | Value | Description |
-|--------|-------|-------------|
+| Header   | Value                     | Description           |
+| -------- | ------------------------- | --------------------- |
 | `Accept` | `audio/mpeg`, `audio/wav` | Response audio format |
 
 ### Example Request Headers
@@ -223,32 +233,32 @@ Accept: audio/mpeg
 
 ### Path Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `voice_id` | string | Yes | ID of the voice to use |
+| Parameter  | Type   | Required | Description            |
+| ---------- | ------ | -------- | ---------------------- |
+| `voice_id` | string | Yes      | ID of the voice to use |
 
 ### Request Body
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `text` | string | Yes | - | Text to convert to speech |
-| `model_id` | string | No | `eleven_monolingual_v1` | TTS model to use |
-| `voice_settings` | object | No | - | Voice configuration |
-| `pronunciation_dictionary_locators` | array | No | - | Custom pronunciation rules |
-| `seed` | integer | No | random | Seed for reproducibility |
-| `previous_text` | string | No | - | Context from previous request |
-| `next_text` | string | No | - | Context for next request |
-| `previous_request_ids` | array | No | - | IDs for request stitching |
-| `next_request_ids` | array | No | - | IDs for request stitching |
+| Parameter                           | Type    | Required | Default                 | Description                   |
+| ----------------------------------- | ------- | -------- | ----------------------- | ----------------------------- |
+| `text`                              | string  | Yes      | -                       | Text to convert to speech     |
+| `model_id`                          | string  | No       | `eleven_monolingual_v1` | TTS model to use              |
+| `voice_settings`                    | object  | No       | -                       | Voice configuration           |
+| `pronunciation_dictionary_locators` | array   | No       | -                       | Custom pronunciation rules    |
+| `seed`                              | integer | No       | random                  | Seed for reproducibility      |
+| `previous_text`                     | string  | No       | -                       | Context from previous request |
+| `next_text`                         | string  | No       | -                       | Context for next request      |
+| `previous_request_ids`              | array   | No       | -                       | IDs for request stitching     |
+| `next_request_ids`                  | array   | No       | -                       | IDs for request stitching     |
 
 ### Voice Settings Parameters
 
 ```json
 {
-  "stability": 0.5,           // 0.0-1.0: Voice consistency
-  "similarity_boost": 0.8,    // 0.0-1.0: Voice similarity to original
-  "style": 0.0,               // 0.0-1.0: Style exaggeration
-  "use_speaker_boost": true   // Boolean: Enhance speaker characteristics
+  "stability": 0.5, // 0.0-1.0: Voice consistency
+  "similarity_boost": 0.8, // 0.0-1.0: Voice similarity to original
+  "style": 0.0, // 0.0-1.0: Style exaggeration
+  "use_speaker_boost": true // Boolean: Enhance speaker characteristics
 }
 ```
 
@@ -260,13 +270,13 @@ Accept: audio/mpeg
 - **Default:** 0
 - **Description:** Turn on latency optimizations at some cost of quality
 
-| Value | Description |
-|-------|-------------|
-| 0 | No optimization (highest quality) |
-| 1 | Light optimization |
-| 2 | Moderate optimization |
-| 3 | Strong optimization |
-| 4 | Maximum optimization (text normalizer off) |
+| Value | Description                                |
+| ----- | ------------------------------------------ |
+| 0     | No optimization (highest quality)          |
+| 1     | Light optimization                         |
+| 2     | Moderate optimization                      |
+| 3     | Strong optimization                        |
+| 4     | Maximum optimization (text normalizer off) |
 
 ### Privacy Settings
 
@@ -277,6 +287,7 @@ Accept: audio/mpeg
 - **Description:** When false, full privacy mode is used
 
 **Important:**
+
 - Privacy mode disables history features
 - Request stitching unavailable
 - May only be used by enterprise customers
@@ -328,17 +339,17 @@ Transform existing audio with different voices while preserving the speaking sty
 
 ### Path Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `voice_id` | string | Yes | ID of the target voice |
+| Parameter  | Type   | Required | Description            |
+| ---------- | ------ | -------- | ---------------------- |
+| `voice_id` | string | Yes      | ID of the target voice |
 
 ### Request Body (Multipart Form Data)
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `audio` | file | Yes | - | Source audio file (mp3, wav, etc.) |
-| `model_id` | string | No | `eleven_multilingual_v2` | Model to use |
-| `voice_settings` | object | No | - | Voice configuration |
+| Parameter        | Type   | Required | Default                  | Description                        |
+| ---------------- | ------ | -------- | ------------------------ | ---------------------------------- |
+| `audio`          | file   | Yes      | -                        | Source audio file (mp3, wav, etc.) |
+| `model_id`       | string | No       | `eleven_multilingual_v2` | Model to use                       |
+| `voice_settings` | object | No       | -                        | Voice configuration                |
 
 ### Example Request (cURL)
 
@@ -398,6 +409,7 @@ else:
 **Endpoint:** `GET /v1/voices`
 
 **Response:**
+
 ```json
 {
   "voices": [
@@ -422,6 +434,7 @@ else:
 **Endpoint:** `GET /v1/voices/{voice_id}`
 
 **Response:**
+
 ```json
 {
   "voice_id": "21m00Tcm4TlvDq8ikWAM",
@@ -452,6 +465,7 @@ else:
 **Endpoint:** `POST /v1/voices/add`
 
 **Request:**
+
 ```bash
 curl -X POST "https://api.elevenlabs.io/v1/voices/add" \
   -H "xi-api-key: your_api_key_here" \
@@ -474,12 +488,14 @@ Service accounts allow you to manage API keys with specific scopes and credit li
 ### Manage API Keys
 
 **List Keys:**
+
 ```bash
 curl "https://api.elevenlabs.io/v1/service-accounts/api-keys/list" \
   -H "xi-api-key: your_api_key_here"
 ```
 
 **Create Key:**
+
 ```bash
 curl -X POST "https://api.elevenlabs.io/v1/service-accounts/api-keys/create" \
   -H "xi-api-key: your_api_key_here" \
@@ -492,6 +508,7 @@ curl -X POST "https://api.elevenlabs.io/v1/service-accounts/api-keys/create" \
 ```
 
 **Delete Key:**
+
 ```bash
 curl -X DELETE "https://api.elevenlabs.io/v1/service-accounts/api-keys/{key_id}" \
   -H "xi-api-key: your_api_key_here"
@@ -503,44 +520,49 @@ curl -X DELETE "https://api.elevenlabs.io/v1/service-accounts/api-keys/{key_id}"
 
 ### Available Models with Detailed Comparison
 
-| Feature | eleven_monolingual_v1 | eleven_multilingual_v1 | eleven_multilingual_v2 | eleven_turbo_v2 | eleven_turbo_v2_5 |
-|---------|----------------------|------------------------|------------------------|-----------------|-------------------|
-| **Languages** | English only | 29 languages | 29 languages | English only | 32 languages |
-| **Quality** | High | Medium-High | High | Good | High |
-| **Latency** | ~1-2s | ~1-2s | ~1-2s | ~0.3-0.5s | ~0.25-0.3s |
-| **Best For** | English content | Multi-language | Premium multilingual | Real-time apps | Conversational AI |
-| **Emotional Range** | High | Medium | High | Medium | Medium-High |
-| **Character Limit** | 5,000 | 5,000 | 5,000 | 10,000 | 40,000 |
-| **Relative Cost** | Standard | Standard | Standard | Standard | 50% lower |
-| **Voice Cloning** | Yes | Yes | Yes | Yes | Yes |
-| **Released** | 2023 | 2023 | 2024 | 2024 | 2025 |
+| Feature             | eleven_monolingual_v1 | eleven_multilingual_v1 | eleven_multilingual_v2 | eleven_turbo_v2 | eleven_turbo_v2_5 |
+| ------------------- | --------------------- | ---------------------- | ---------------------- | --------------- | ----------------- |
+| **Languages**       | English only          | 29 languages           | 29 languages           | English only    | 32 languages      |
+| **Quality**         | High                  | Medium-High            | High                   | Good            | High              |
+| **Latency**         | ~1-2s                 | ~1-2s                  | ~1-2s                  | ~0.3-0.5s       | ~0.25-0.3s        |
+| **Best For**        | English content       | Multi-language         | Premium multilingual   | Real-time apps  | Conversational AI |
+| **Emotional Range** | High                  | Medium                 | High                   | Medium          | Medium-High       |
+| **Character Limit** | 5,000                 | 5,000                  | 5,000                  | 10,000          | 40,000            |
+| **Relative Cost**   | Standard              | Standard               | Standard               | Standard        | 50% lower         |
+| **Voice Cloning**   | Yes                   | Yes                    | Yes                    | Yes             | Yes               |
+| **Released**        | 2023                  | 2023                   | 2024                   | 2024            | 2025              |
 
 ### Model Selection Guide
 
 **Choose eleven_monolingual_v1 when:**
+
 - English-only content
 - Maximum emotional expression needed
 - Audiobooks and storytelling
 - Voice quality is top priority
 
 **Choose eleven_multilingual_v1 when:**
+
 - Budget-conscious multi-language projects
 - Standard quality acceptable
 - Wide language support needed
 
 **Choose eleven_multilingual_v2 when:**
+
 - Premium multi-language content
 - Professional video narration
 - E-learning in multiple languages
 - Best multilingual quality needed
 
 **Choose eleven_turbo_v2 when:**
+
 - Real-time English applications
 - Low latency is critical
 - Conversational AI and chatbots
 - Cost optimization important
 
 **Choose eleven_turbo_v2_5 when:**
+
 - Real-time multilingual applications
 - Ultra-low latency required (250-300ms)
 - High-volume processing
@@ -549,20 +571,24 @@ curl -X DELETE "https://api.elevenlabs.io/v1/service-accounts/api-keys/{key_id}"
 ### Voice Settings Explained
 
 **Stability (0.0 - 1.0):**
+
 - **Low (0.0-0.3):** More variable, emotional
 - **Medium (0.4-0.6):** Balanced
 - **High (0.7-1.0):** Very consistent, less variation
 
 **Similarity Boost (0.0 - 1.0):**
+
 - **Low (0.0-0.3):** More creative interpretation
 - **Medium (0.4-0.6):** Balanced similarity
 - **High (0.7-1.0):** Closest to original voice
 
 **Style (0.0 - 1.0):**
+
 - **Low (0.0):** Neutral delivery
 - **High (1.0):** Exaggerated style
 
 **Use Speaker Boost (Boolean):**
+
 - **true:** Enhance speaker characteristics (recommended)
 - **false:** Standard processing
 
@@ -572,18 +598,19 @@ curl -X DELETE "https://api.elevenlabs.io/v1/service-accounts/api-keys/{key_id}"
 
 ### Supported Audio Formats
 
-| Format | MIME Type | Quality | Use Case |
-|--------|-----------|---------|----------|
-| **MP3** | `audio/mpeg` | Compressed | Standard use, smaller files |
-| **PCM** | `audio/pcm` | Uncompressed | High quality, editing |
-| **WAV** | `audio/wav` | Uncompressed | Professional production |
-| **μ-law** | `audio/basic` | Compressed | Telephony |
+| Format    | MIME Type     | Quality      | Use Case                    |
+| --------- | ------------- | ------------ | --------------------------- |
+| **MP3**   | `audio/mpeg`  | Compressed   | Standard use, smaller files |
+| **PCM**   | `audio/pcm`   | Uncompressed | High quality, editing       |
+| **WAV**   | `audio/wav`   | Uncompressed | Professional production     |
+| **μ-law** | `audio/basic` | Compressed   | Telephony                   |
 
 ### Specifying Output Format
 
 Use the `output_format` parameter or `Accept` header:
 
 **Via Parameter:**
+
 ```json
 {
   "text": "Hello world",
@@ -592,6 +619,7 @@ Use the `output_format` parameter or `Accept` header:
 ```
 
 **Via Header:**
+
 ```http
 Accept: audio/wav
 ```
@@ -617,36 +645,42 @@ Accept: audio/wav
 Rate limits vary by subscription plan. Here are the specific limits:
 
 #### Free Tier
+
 - **Characters per month:** 10,000
 - **Concurrent requests:** 2
 - **Rate limit:** 10 requests/minute
 - **Queue priority:** Standard
 
 #### Starter Plan ($5/month)
+
 - **Characters per month:** 30,000
 - **Concurrent requests:** 3
 - **Rate limit:** 20 requests/minute
 - **Queue priority:** Standard
 
 #### Creator Plan ($22/month)
+
 - **Characters per month:** 100,000
 - **Concurrent requests:** 5
 - **Rate limit:** 40 requests/minute
 - **Queue priority:** Priority
 
 #### Pro Plan ($99/month)
+
 - **Characters per month:** 500,000
 - **Concurrent requests:** 10
 - **Rate limit:** 100 requests/minute
 - **Queue priority:** Priority
 
 #### Scale Plan ($330/month)
+
 - **Characters per month:** 2,000,000
 - **Concurrent requests:** 20
 - **Rate limit:** 200 requests/minute
 - **Queue priority:** Priority
 
 #### Business Plan (Custom)
+
 - **Characters per month:** Custom
 - **Concurrent requests:** Custom
 - **Rate limit:** Custom (no limits)
@@ -658,6 +692,7 @@ Rate limits vary by subscription plan. Here are the specific limits:
 When rate limits are exceeded, the API returns a `429` status code.
 
 **Response Headers:**
+
 ```http
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 0
@@ -665,6 +700,7 @@ X-RateLimit-Reset: 1697558400
 ```
 
 **Best Practices:**
+
 1. Implement exponential backoff
 2. Monitor rate limit headers
 3. Queue requests during high load
@@ -677,6 +713,7 @@ X-RateLimit-Reset: 1697558400
 ### Protecting Your API Key
 
 #### DO:
+
 - ✅ Store API keys as environment variables
 - ✅ Use .env files (add to .gitignore)
 - ✅ Rotate keys periodically
@@ -685,6 +722,7 @@ X-RateLimit-Reset: 1697558400
 - ✅ Monitor usage for suspicious activity
 
 #### DON'T:
+
 - ❌ Commit API keys to version control
 - ❌ Expose keys in client-side code
 - ❌ Share keys publicly
@@ -695,6 +733,7 @@ X-RateLimit-Reset: 1697558400
 ### Example: Secure Configuration
 
 **Python (.env):**
+
 ```python
 # .env file (add to .gitignore)
 ELEVENLABS_API_KEY=sk_abc123xyz...
@@ -708,6 +747,7 @@ API_KEY = os.getenv('ELEVENLABS_API_KEY')
 ```
 
 **Node.js (.env):**
+
 ```javascript
 // .env file (add to .gitignore)
 ELEVENLABS_API_KEY=sk_abc123xyz...
@@ -959,7 +999,7 @@ async function textToSpeech(text, outputFile = 'output.mp3') {
 
   const headers = {
     'xi-api-key': API_KEY,
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   };
 
   const data = {
@@ -969,14 +1009,14 @@ async function textToSpeech(text, outputFile = 'output.mp3') {
       stability: 0.5,
       similarity_boost: 0.8,
       style: 0.0,
-      use_speaker_boost: true
-    }
+      use_speaker_boost: true,
+    },
   };
 
   try {
     const response = await axios.post(url, data, {
       headers: headers,
-      responseType: 'arraybuffer'
+      responseType: 'arraybuffer',
     });
 
     fs.writeFileSync(outputFile, response.data);
@@ -1007,19 +1047,19 @@ async function streamTextToSpeech(text, outputFile = 'stream_output.mp3') {
 
   const headers = {
     'xi-api-key': API_KEY,
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   };
 
   const data = {
     text: text,
     model_id: 'eleven_turbo_v2_5',
-    optimize_streaming_latency: 2
+    optimize_streaming_latency: 2,
   };
 
   try {
     const response = await axios.post(url, data, {
       headers: headers,
-      responseType: 'stream'
+      responseType: 'stream',
     });
 
     const writer = fs.createWriteStream(outputFile);
@@ -1055,7 +1095,7 @@ class ElevenLabsAPI {
     this.baseUrl = 'https://api.elevenlabs.io/v1';
     this.headers = {
       'xi-api-key': this.apiKey,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     };
   }
 
@@ -1072,19 +1112,19 @@ class ElevenLabsAPI {
       stability: 0.5,
       similarity_boost: 0.8,
       style: 0.0,
-      use_speaker_boost: true
+      use_speaker_boost: true,
     };
 
     const data = {
       text: text,
       model_id: modelId,
-      voice_settings: voiceSettings || defaultSettings
+      voice_settings: voiceSettings || defaultSettings,
     };
 
     try {
       const response = await axios.post(url, data, {
         headers: this.headers,
-        responseType: 'arraybuffer'
+        responseType: 'arraybuffer',
       });
 
       fs.writeFileSync(outputFile, response.data);
@@ -1106,13 +1146,13 @@ class ElevenLabsAPI {
     const data = {
       text: text,
       model_id: modelId,
-      optimize_streaming_latency: optimizeLatency
+      optimize_streaming_latency: optimizeLatency,
     };
 
     try {
       const response = await axios.post(url, data, {
         headers: this.headers,
-        responseType: 'stream'
+        responseType: 'stream',
       });
 
       const writer = fs.createWriteStream(outputFile);
@@ -1155,10 +1195,7 @@ class ElevenLabsAPI {
   const client = new ElevenLabsAPI();
 
   // Generate speech
-  const audioFile = await client.textToSpeech(
-    'Hello from ElevenLabs!',
-    '21m00Tcm4TlvDq8ikWAM'
-  );
+  const audioFile = await client.textToSpeech('Hello from ElevenLabs!', '21m00Tcm4TlvDq8ikWAM');
   console.log(`Generated: ${audioFile}`);
 
   // List voices
@@ -1173,13 +1210,13 @@ class ElevenLabsAPI {
 
 ### Common Error Codes
 
-| Status Code | Error | Cause | Solution |
-|-------------|-------|-------|----------|
-| **401** | Unauthorized | Invalid API key | Verify API key is correct |
-| **400** | Bad Request | Invalid parameters | Check request format |
-| **422** | Validation Error | Invalid input data | Review parameter values |
-| **429** | Rate Limit | Too many requests | Implement rate limiting |
-| **500** | Server Error | Internal error | Retry request |
+| Status Code | Error            | Cause              | Solution                  |
+| ----------- | ---------------- | ------------------ | ------------------------- |
+| **401**     | Unauthorized     | Invalid API key    | Verify API key is correct |
+| **400**     | Bad Request      | Invalid parameters | Check request format      |
+| **422**     | Validation Error | Invalid input data | Review parameter values   |
+| **429**     | Rate Limit       | Too many requests  | Implement rate limiting   |
+| **500**     | Server Error     | Internal error     | Retry request             |
 
 ### Error Response Format
 
@@ -1243,6 +1280,7 @@ def text_to_speech_with_retry(text, voice_id, max_retries=3):
 ElevenLabs offers various pricing plans based on usage needs:
 
 #### Free Tier
+
 - 10,000 characters/month
 - 3 custom voices
 - All voice effects
@@ -1250,6 +1288,7 @@ ElevenLabs offers various pricing plans based on usage needs:
 - Basic support
 
 #### Starter Plan
+
 - $5/month or $48/year (20% savings)
 - 30,000 characters/month
 - 10 custom voices
@@ -1257,6 +1296,7 @@ ElevenLabs offers various pricing plans based on usage needs:
 - Priority support
 
 #### Creator Plan
+
 - $22/month or $211/year (20% savings)
 - 100,000 characters/month
 - 30 custom voices
@@ -1265,6 +1305,7 @@ ElevenLabs offers various pricing plans based on usage needs:
 - Additional features
 
 #### Pro Plan
+
 - $99/month or $950/year (20% savings)
 - 500,000 characters/month
 - 160 custom voices
@@ -1274,6 +1315,7 @@ ElevenLabs offers various pricing plans based on usage needs:
 - Advanced features
 
 #### Scale Plan
+
 - $330/month or $3,168/year (20% savings)
 - 2,000,000 characters/month
 - Unlimited custom voices
@@ -1281,6 +1323,7 @@ ElevenLabs offers various pricing plans based on usage needs:
 - Dedicated support
 
 #### Business Plan
+
 - Custom pricing
 - Custom character quota
 - Dedicated account manager
@@ -1322,10 +1365,12 @@ ElevenLabs offers various pricing plans based on usage needs:
 ### Client Libraries
 
 **Official SDKs:**
+
 - Python: `pip install elevenlabs`
 - JavaScript/TypeScript: `npm install elevenlabs`
 
 **Community Libraries:**
+
 - Various language implementations available
 - Check GitHub for latest libraries
 
@@ -1334,6 +1379,7 @@ ElevenLabs offers various pricing plans based on usage needs:
 ## Changelog
 
 ### October 17, 2025
+
 - Initial comprehensive documentation
 - Added authentication and API key management details
 - Complete code examples in Python and JavaScript
@@ -1347,24 +1393,24 @@ ElevenLabs offers various pricing plans based on usage needs:
 
 ### Essential Endpoints
 
-| Operation | Endpoint | Method |
-|-----------|----------|--------|
-| Text-to-Speech | `/v1/text-to-speech/{voice_id}` | POST |
-| Streaming TTS | `/v1/text-to-speech/{voice_id}/stream` | POST |
-| List Voices | `/v1/voices` | GET |
-| Get Voice | `/v1/voices/{voice_id}` | GET |
-| Create API Key | `/v1/service-accounts/api-keys/create` | POST |
-| List API Keys | `/v1/service-accounts/api-keys/list` | GET |
+| Operation      | Endpoint                               | Method |
+| -------------- | -------------------------------------- | ------ |
+| Text-to-Speech | `/v1/text-to-speech/{voice_id}`        | POST   |
+| Streaming TTS  | `/v1/text-to-speech/{voice_id}/stream` | POST   |
+| List Voices    | `/v1/voices`                           | GET    |
+| Get Voice      | `/v1/voices/{voice_id}`                | GET    |
+| Create API Key | `/v1/service-accounts/api-keys/create` | POST   |
+| List API Keys  | `/v1/service-accounts/api-keys/list`   | GET    |
 
 ### Popular Voice IDs
 
-| Voice Name | Voice ID | Gender | Accent |
-|------------|----------|--------|--------|
-| Rachel | `21m00Tcm4TlvDq8ikWAM` | Female | American |
-| Adam | `pNInz6obpgDQGcFmaJgB` | Male | American |
-| Antoni | `ErXwobaYiN019PkySvjV` | Male | American |
-| Elli | `MF3mGyEYCl7XYWbV9V6O` | Female | American |
-| Josh | `TxGEqnHWrfWFTfGW9XjX` | Male | American |
+| Voice Name | Voice ID               | Gender | Accent   |
+| ---------- | ---------------------- | ------ | -------- |
+| Rachel     | `21m00Tcm4TlvDq8ikWAM` | Female | American |
+| Adam       | `pNInz6obpgDQGcFmaJgB` | Male   | American |
+| Antoni     | `ErXwobaYiN019PkySvjV` | Male   | American |
+| Elli       | `MF3mGyEYCl7XYWbV9V6O` | Female | American |
+| Josh       | `TxGEqnHWrfWFTfGW9XjX` | Male   | American |
 
 ---
 

@@ -45,36 +45,36 @@ https://LOCATION-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/LOCA
 
 ## Instance Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `prompt` | `string` | Required for text-to-video. Text string to guide video generation. |
-| `image` | Union field | Optional. Image to guide video generation (image-to-video). |
-| `lastFrame` | Union field | Optional. Image of last frame to fill space between (Preview models). |
-| `video` | Union field | Optional. Veo-generated video to extend in length (Preview models). |
-| `mask` | Union field | Optional. Mask image to add/remove objects from video. |
-| `referenceImages` | `list[referenceImages]` | Optional. Up to 3 asset images or 1 style image (Preview: veo-2.0-generate-exp, veo-3.1-generate-preview). |
-| `referenceImages.image` | Union field | Image for reference (asset or style). |
-| `referenceImages.referenceType` | `string` | Required. Type of reference: `"asset"` or `"style"` |
-| `bytesBase64Encoded` | `string` | Base64-encoded image or video file. |
-| `gcsUri` | `string` | Cloud Storage bucket URI. |
-| `mimeType` | `string` | Required. MIME type (`image/jpeg`, `image/png`, `video/mp4`, etc.) |
+| Parameter                       | Type                    | Description                                                                                                |
+| ------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `prompt`                        | `string`                | Required for text-to-video. Text string to guide video generation.                                         |
+| `image`                         | Union field             | Optional. Image to guide video generation (image-to-video).                                                |
+| `lastFrame`                     | Union field             | Optional. Image of last frame to fill space between (Preview models).                                      |
+| `video`                         | Union field             | Optional. Veo-generated video to extend in length (Preview models).                                        |
+| `mask`                          | Union field             | Optional. Mask image to add/remove objects from video.                                                     |
+| `referenceImages`               | `list[referenceImages]` | Optional. Up to 3 asset images or 1 style image (Preview: veo-2.0-generate-exp, veo-3.1-generate-preview). |
+| `referenceImages.image`         | Union field             | Image for reference (asset or style).                                                                      |
+| `referenceImages.referenceType` | `string`                | Required. Type of reference: `"asset"` or `"style"`                                                        |
+| `bytesBase64Encoded`            | `string`                | Base64-encoded image or video file.                                                                        |
+| `gcsUri`                        | `string`                | Cloud Storage bucket URI.                                                                                  |
+| `mimeType`                      | `string`                | Required. MIME type (`image/jpeg`, `image/png`, `video/mp4`, etc.)                                         |
 
 ## Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `aspectRatio` | `string` | Optional. Aspect ratio (`16:9` or `9:16`). Default: `16:9` |
-| `compressionQuality` | `string` | Optional. Compression quality (`optimized` or `lossless`). Default: `optimized` |
-| `durationSeconds` | `integer` | Required. Video length in seconds. Veo 2: 5-8, Veo 3: 4, 6, or 8. Default: 8 |
-| `enhancePrompt` | `boolean` | Optional. Use Gemini to enhance prompts. Default: `true` |
-| `generateAudio` | `boolean` | Required for Veo 3 models. Generate audio for video. |
-| `negativePrompt` | `string` | Optional. Description of what to discourage. |
-| `personGeneration` | `string` | Optional. People generation setting (`allow_adult` or `dont_allow`). Default: `allow_adult` |
-| `resizeMode` | `string` | Optional. Veo 3 image-to-video resize mode (`pad` or `crop`). Default: `pad` |
-| `resolution` | `string` | Optional. Veo 3 only. Video resolution (`720p` or `1080p`). Default: `720p` |
-| `sampleCount` | `int` | Optional. Number of output videos (1-4). |
-| `seed` | `uint32` | Optional. Random seed for deterministic generation (0-4,294,967,295). |
-| `storageUri` | `string` | Optional. Cloud Storage bucket URI for output. |
+| Parameter            | Type      | Description                                                                                 |
+| -------------------- | --------- | ------------------------------------------------------------------------------------------- |
+| `aspectRatio`        | `string`  | Optional. Aspect ratio (`16:9` or `9:16`). Default: `16:9`                                  |
+| `compressionQuality` | `string`  | Optional. Compression quality (`optimized` or `lossless`). Default: `optimized`             |
+| `durationSeconds`    | `integer` | Required. Video length in seconds. Veo 2: 5-8, Veo 3: 4, 6, or 8. Default: 8                |
+| `enhancePrompt`      | `boolean` | Optional. Use Gemini to enhance prompts. Default: `true`                                    |
+| `generateAudio`      | `boolean` | Required for Veo 3 models. Generate audio for video.                                        |
+| `negativePrompt`     | `string`  | Optional. Description of what to discourage.                                                |
+| `personGeneration`   | `string`  | Optional. People generation setting (`allow_adult` or `dont_allow`). Default: `allow_adult` |
+| `resizeMode`         | `string`  | Optional. Veo 3 image-to-video resize mode (`pad` or `crop`). Default: `pad`                |
+| `resolution`         | `string`  | Optional. Veo 3 only. Video resolution (`720p` or `1080p`). Default: `720p`                 |
+| `sampleCount`        | `int`     | Optional. Number of output videos (1-4).                                                    |
+| `seed`               | `uint32`  | Optional. Random seed for deterministic generation (0-4,294,967,295).                       |
+| `storageUri`         | `string`  | Optional. Cloud Storage bucket URI for output.                                              |
 
 ## Text-to-Video Example
 
@@ -197,26 +197,28 @@ curl -X POST \
 
 ## Response Elements
 
-| Element | Description |
-|---------|-------------|
-| `name` | Full operation name of the long-running operation |
-| `done` | Boolean indicating if operation is complete |
-| `response` | Response body of the long-running operation |
-| `raiMediaFilteredCount` | Count of videos filtered due to responsible AI policies |
-| `raiMediaFilteredReasons` | Reasons for filtered videos |
-| `videos` | Array of generated videos |
-| `gcsUri` | Cloud Storage URI of generated video |
-| `bytesBase64Encoded` | Base64-encoded video (if storage URI not provided) |
+| Element                   | Description                                             |
+| ------------------------- | ------------------------------------------------------- |
+| `name`                    | Full operation name of the long-running operation       |
+| `done`                    | Boolean indicating if operation is complete             |
+| `response`                | Response body of the long-running operation             |
+| `raiMediaFilteredCount`   | Count of videos filtered due to responsible AI policies |
+| `raiMediaFilteredReasons` | Reasons for filtered videos                             |
+| `videos`                  | Array of generated videos                               |
+| `gcsUri`                  | Cloud Storage URI of generated video                    |
+| `bytesBase64Encoded`      | Base64-encoded video (if storage URI not provided)      |
 
 ## Veo 3.1 Features (Preview)
 
 ### New Capabilities:
+
 - **Enhanced audio generation**: Richer, more realistic audio
 - **Reference images**: Use up to 3 asset images or 1 style image
 - **Improved realism**: Better motion, lighting, and detail
 - **Last frame control**: Specify ending frame for smoother transitions
 
 ### Models:
+
 - `veo-3.1-generate-preview` - Full quality
 - `veo-3.1-fast-generate-preview` - Faster generation
 
@@ -246,6 +248,7 @@ curl -X POST \
 ## Rate Limits
 
 Check the model-specific documentation for current rate limits:
+
 - Maximum API requests per minute: Varies by model
 - Maximum videos per request: 1-4
 - Processing time: Varies by duration and complexity
@@ -268,7 +271,7 @@ async function generateVideo(prompt: string, projectId: string) {
     {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${accessToken.token}`,
+        Authorization: `Bearer ${accessToken.token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

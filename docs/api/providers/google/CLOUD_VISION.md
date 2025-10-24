@@ -71,6 +71,7 @@ The **Google Cloud Video Intelligence API** allows developers to use Google's ad
 ### What is Video Intelligence API?
 
 The Video Intelligence API allows you to:
+
 - Annotate videos stored locally or in Google Cloud Storage
 - Analyze live-streamed videos in real-time
 - Extract contextual information at multiple granularity levels:
@@ -147,6 +148,7 @@ go get cloud.google.com/go/videointelligence/apiv1
 Detects transitions between different camera shots or scenes in a video. A shot is a series of frames with visual continuity captured from a single camera perspective.
 
 **Use Cases:**
+
 - Video editing and post-production
 - Content indexing and navigation
 - Scene-based video segmentation
@@ -161,6 +163,7 @@ Detects transitions between different camera shots or scenes in a video. A shot 
 Automatically categorizes and tags video content with descriptive labels at the video, segment, and shot levels. Labels describe entities, actions, objects, and scenes detected throughout the video.
 
 **Use Cases:**
+
 - Video search and discovery
 - Content categorization
 - Metadata generation
@@ -177,6 +180,7 @@ Automatically categorizes and tags video content with descriptive labels at the 
 Tracks specific objects as they move through video frames, providing bounding box coordinates and tracking IDs.
 
 **Use Cases:**
+
 - Sports analytics
 - Surveillance and security
 - Retail analytics
@@ -191,6 +195,7 @@ Tracks specific objects as they move through video frames, providing bounding bo
 Identifies and extracts textual content appearing within video frames using OCR (Optical Character Recognition).
 
 **Use Cases:**
+
 - License plate recognition
 - Sign reading
 - Subtitle extraction
@@ -205,6 +210,7 @@ Identifies and extracts textual content appearing within video frames using OCR 
 Converts spoken audio in videos into written text with timestamps.
 
 **Use Cases:**
+
 - Closed caption generation
 - Content search by spoken words
 - Meeting transcriptions
@@ -221,6 +227,7 @@ Converts spoken audio in videos into written text with timestamps.
 Identifies potentially inappropriate or sensitive visual content in videos.
 
 **Use Cases:**
+
 - Content moderation
 - Parental controls
 - Compliance enforcement
@@ -235,6 +242,7 @@ Identifies potentially inappropriate or sensitive visual content in videos.
 Detects and tracks corporate logos and brand symbols in videos.
 
 **Use Cases:**
+
 - Brand monitoring
 - Sponsorship tracking
 - Advertising analytics
@@ -249,6 +257,7 @@ Detects and tracks corporate logos and brand symbols in videos.
 Identifies and analyzes facial features in video frames.
 
 **Use Cases:**
+
 - Person identification
 - Emotion analysis
 - Audience analytics
@@ -263,6 +272,7 @@ Identifies and analyzes facial features in video frames.
 Identifies human presence and tracks people throughout the video.
 
 **Use Cases:**
+
 - People counting
 - Crowd analysis
 - Retail footfall tracking
@@ -289,6 +299,7 @@ export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account-key.json"
 ```
 
 For Windows:
+
 ```cmd
 set GOOGLE_APPLICATION_CREDENTIALS=C:\path\to\service-account-key.json
 ```
@@ -358,6 +369,7 @@ const request = {
 For real-time analysis of live video streams.
 
 **Supported Features:**
+
 - `STREAMING_LABEL_DETECTION`
 - `STREAMING_SHOT_CHANGE_DETECTION`
 - `STREAMING_EXPLICIT_CONTENT_DETECTION`
@@ -369,7 +381,7 @@ For real-time analysis of live video streams.
 
 ```javascript
 {
-  inputUri: 'gs://my-bucket/videos/sample.mp4'
+  inputUri: 'gs://my-bucket/videos/sample.mp4';
 }
 ```
 
@@ -377,7 +389,7 @@ For real-time analysis of live video streams.
 
 ```javascript
 {
-  inputUri: 'https://example.com/video.mp4'
+  inputUri: 'https://example.com/video.mp4';
 }
 ```
 
@@ -388,7 +400,7 @@ const fs = require('fs');
 const videoContent = fs.readFileSync('/path/to/video.mp4');
 
 {
-  inputContent: videoContent.toString('base64')
+  inputContent: videoContent.toString('base64');
 }
 ```
 
@@ -453,12 +465,9 @@ async function detectShots(videoUri) {
 
   shots.forEach((shot, idx) => {
     const startTime =
-      Number(shot.startTimeOffset.seconds || 0) +
-      (shot.startTimeOffset.nanos || 0) / 1e9;
+      Number(shot.startTimeOffset.seconds || 0) + (shot.startTimeOffset.nanos || 0) / 1e9;
 
-    const endTime =
-      Number(shot.endTimeOffset.seconds || 0) +
-      (shot.endTimeOffset.nanos || 0) / 1e9;
+    const endTime = Number(shot.endTimeOffset.seconds || 0) + (shot.endTimeOffset.nanos || 0) / 1e9;
 
     console.log(`Shot ${idx + 1}:`);
     console.log(`  Start: ${startTime.toFixed(2)}s`);
@@ -497,14 +506,10 @@ async function detectShotsFromSupabase(assetId) {
   const key = keyParts.join('/');
 
   // Create signed URL (valid for 15 minutes)
-  const { data: signed } = await supabase.storage
-    .from(bucket)
-    .createSignedUrl(key, 60 * 15);
+  const { data: signed } = await supabase.storage.from(bucket).createSignedUrl(key, 60 * 15);
 
   // Initialize Video Intelligence client
-  const credentials = JSON.parse(
-    process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON
-  );
+  const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
 
   const client = new VideoIntelligenceServiceClient({
     projectId: process.env.GCP_PROJECT_ID,
@@ -557,8 +562,7 @@ async function detectLabels(videoUri) {
   const [operationResult] = await operation.promise();
 
   // Get segment labels (labels for video segments)
-  const segmentLabels =
-    operationResult.annotationResults[0].segmentLabelAnnotations;
+  const segmentLabels = operationResult.annotationResults[0].segmentLabelAnnotations;
 
   console.log('Segment labels:');
   segmentLabels.forEach((label) => {
@@ -616,8 +620,7 @@ async function trackObjects(videoUri) {
     // First frame
     const firstFrame = object.frames[0];
     const timeOffset =
-      Number(firstFrame.timeOffset.seconds || 0) +
-      (firstFrame.timeOffset.nanos || 0) / 1e9;
+      Number(firstFrame.timeOffset.seconds || 0) + (firstFrame.timeOffset.nanos || 0) / 1e9;
 
     console.log(`  First seen at: ${timeOffset.toFixed(2)}s`);
     console.log(`  Bounding box (normalized):`);
@@ -655,8 +658,7 @@ async function transcribeSpeech(videoUri) {
   console.log('Transcribing audio...');
 
   const [operationResult] = await operation.promise();
-  const transcriptions =
-    operationResult.annotationResults[0].speechTranscriptions;
+  const transcriptions = operationResult.annotationResults[0].speechTranscriptions;
 
   transcriptions.forEach((transcription, idx) => {
     console.log(`\nTranscription ${idx + 1}:`);
@@ -669,13 +671,9 @@ async function transcribeSpeech(videoUri) {
     // Word-level details
     console.log('Words:');
     alternative.words.forEach((word) => {
-      const startTime =
-        Number(word.startTime.seconds || 0) +
-        (word.startTime.nanos || 0) / 1e9;
+      const startTime = Number(word.startTime.seconds || 0) + (word.startTime.nanos || 0) / 1e9;
 
-      const endTime =
-        Number(word.endTime.seconds || 0) +
-        (word.endTime.nanos || 0) / 1e9;
+      const endTime = Number(word.endTime.seconds || 0) + (word.endTime.nanos || 0) / 1e9;
 
       console.log(`  "${word.word}": ${startTime.toFixed(2)}s - ${endTime.toFixed(2)}s`);
     });
@@ -701,8 +699,7 @@ async function detectText(videoUri) {
   const [operation] = await client.annotateVideo(request);
   const [operationResult] = await operation.promise();
 
-  const textAnnotations =
-    operationResult.annotationResults[0].textAnnotations;
+  const textAnnotations = operationResult.annotationResults[0].textAnnotations;
 
   console.log('Detected text:');
   textAnnotations.forEach((text) => {
@@ -774,18 +771,18 @@ analyzeLocalVideo('./video.mp4');
 
 **After Free Tier** (per minute):
 
-| Feature | Price |
-|---------|-------|
-| Label Detection | $0.10 |
-| Shot Detection | $0.05 (FREE when used with Label Detection) |
-| Explicit Content Detection | $0.10 |
-| Speech Transcription | $0.048 (en-US only) |
-| Object Tracking | $0.15 |
-| Text Detection | $0.15 |
-| Logo Detection | $0.15 |
-| Face Detection | $0.10 |
-| Person Detection | $0.10 |
-| Celebrity Recognition | ~~$0.10~~ **DEPRECATED** (unavailable since Sept 16, 2024) |
+| Feature                    | Price                                                      |
+| -------------------------- | ---------------------------------------------------------- |
+| Label Detection            | $0.10                                                      |
+| Shot Detection             | $0.05 (FREE when used with Label Detection)                |
+| Explicit Content Detection | $0.10                                                      |
+| Speech Transcription       | $0.048 (en-US only)                                        |
+| Object Tracking            | $0.15                                                      |
+| Text Detection             | $0.15                                                      |
+| Logo Detection             | $0.15                                                      |
+| Face Detection             | $0.10                                                      |
+| Person Detection           | $0.10                                                      |
+| Celebrity Recognition      | ~~$0.10~~ **DEPRECATED** (unavailable since Sept 16, 2024) |
 
 ### Streaming Video Annotation Pricing
 
@@ -793,12 +790,12 @@ analyzeLocalVideo('./video.mp4');
 
 **After Free Tier** (per minute):
 
-| Feature | Price |
-|---------|-------|
-| Label Detection | $0.12 |
-| Shot Detection | $0.07 |
+| Feature                    | Price |
+| -------------------------- | ----- |
+| Label Detection            | $0.12 |
+| Shot Detection             | $0.07 |
 | Explicit Content Detection | $0.12 |
-| Object Tracking | $0.17 |
+| Object Tracking            | $0.17 |
 
 ### Free Tier
 
@@ -840,15 +837,15 @@ If you need higher limits, request a quota increase through the [Google Cloud Co
 
 ### Common Error Codes
 
-| Code | Status | Description | Solution |
-|------|--------|-------------|----------|
-| 400 | INVALID_ARGUMENT | Invalid request parameters | Check request format and feature flags |
-| 401 | UNAUTHENTICATED | Authentication failed | Verify credentials and API key |
-| 403 | PERMISSION_DENIED | Insufficient permissions | Check service account IAM roles |
-| 404 | NOT_FOUND | Video not found | Verify video URI and access permissions |
-| 429 | RESOURCE_EXHAUSTED | Quota exceeded | Wait or request quota increase |
-| 500 | INTERNAL | Server error | Retry with exponential backoff |
-| 503 | UNAVAILABLE | Service unavailable | Retry with exponential backoff |
+| Code | Status             | Description                | Solution                                |
+| ---- | ------------------ | -------------------------- | --------------------------------------- |
+| 400  | INVALID_ARGUMENT   | Invalid request parameters | Check request format and feature flags  |
+| 401  | UNAUTHENTICATED    | Authentication failed      | Verify credentials and API key          |
+| 403  | PERMISSION_DENIED  | Insufficient permissions   | Check service account IAM roles         |
+| 404  | NOT_FOUND          | Video not found            | Verify video URI and access permissions |
+| 429  | RESOURCE_EXHAUSTED | Quota exceeded             | Wait or request quota increase          |
+| 500  | INTERNAL           | Server error               | Retry with exponential backoff          |
+| 503  | UNAVAILABLE        | Service unavailable        | Retry with exponential backoff          |
 
 ### Error Handling Example
 
@@ -918,7 +915,7 @@ async function annotateWithRetry(videoUri, maxRetries = 3) {
       // Exponential backoff: 2^attempt seconds
       const delayMs = Math.pow(2, attempt) * 1000;
       console.log(`Attempt ${attempt} failed. Retrying in ${delayMs}ms...`);
-      await new Promise(resolve => setTimeout(resolve, delayMs));
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
   }
 }
@@ -934,10 +931,14 @@ For files larger than 10MB, upload to Google Cloud Storage and use GCS URIs rath
 
 ```javascript
 // Good - Cloud Storage URI
-{ inputUri: 'gs://my-bucket/large-video.mp4' }
+{
+  inputUri: 'gs://my-bucket/large-video.mp4';
+}
 
 // Avoid for large files - Base64 encoded
-{ inputContent: base64EncodedVideoData }
+{
+  inputContent: base64EncodedVideoData;
+}
 ```
 
 ### 2. Request Only Needed Features
@@ -946,10 +947,10 @@ Only request the features you actually need to minimize processing time and cost
 
 ```javascript
 // Good - Specific features
-features: ['SHOT_CHANGE_DETECTION']
+features: ['SHOT_CHANGE_DETECTION'];
 
 // Avoid - Unnecessary features
-features: ['SHOT_CHANGE_DETECTION', 'LABEL_DETECTION', 'OBJECT_TRACKING']
+features: ['SHOT_CHANGE_DETECTION', 'LABEL_DETECTION', 'OBJECT_TRACKING'];
 ```
 
 ### 3. Use Signed URLs for Temporary Access
@@ -975,7 +976,7 @@ const [result] = await operation.promise();
 
 // Option 2: Poll periodically
 while (!operation.done) {
-  await new Promise(resolve => setTimeout(resolve, 5000));
+  await new Promise((resolve) => setTimeout(resolve, 5000));
   await operation.getMetadata();
 }
 ```

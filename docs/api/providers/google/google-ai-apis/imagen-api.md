@@ -59,28 +59,28 @@ response.images[0].show()
 
 ## Generate Images Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `prompt` | `string` | Required. The text prompt for the image. |
-| `addWatermark` | `bool` | Optional. Add an invisible watermark to generated images. Default: `true` |
-| `aspectRatio` | `string` | Optional. Aspect ratio for generated images. Default: "1:1" |
-| `enhancePrompt` | `boolean` | Optional. Use LLM-based prompt rewriting for higher quality. |
-| `language` | `string` | Optional. Language of text prompt (`auto`, `en`, `zh`, `hi`, `ja`, `ko`, `pt`, `es`) |
-| `negativePrompt` | `string` | Optional. Description of what to discourage. Not supported by `imagen-3.0-generate-002` and newer. |
-| `outputOptions` | `outputOptions` | Optional. Output image format options. |
-| `personGeneration` | `string` | Optional. Allow generation of people (`dont_allow`, `allow_adult`, `allow_all`). Default: `allow_adult` |
-| `safetySetting` | `string` | Optional. Safety filter level (`block_low_and_above`, `block_medium_and_above`, `block_only_high`, `block_none`) |
-| `sampleCount` | `int` | Required. Number of images to generate. Default: 4 |
-| `sampleImageSize` | `string` | Optional. Output resolution (`1K` or `2K`). Default: `1K` |
-| `seed` | `Uint32` | Optional. Random seed for deterministic generation. Not available when `addWatermark` is `true`. |
-| `storageUri` | `string` | Optional. Cloud Storage URI to store generated images. |
+| Parameter          | Type            | Description                                                                                                      |
+| ------------------ | --------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `prompt`           | `string`        | Required. The text prompt for the image.                                                                         |
+| `addWatermark`     | `bool`          | Optional. Add an invisible watermark to generated images. Default: `true`                                        |
+| `aspectRatio`      | `string`        | Optional. Aspect ratio for generated images. Default: "1:1"                                                      |
+| `enhancePrompt`    | `boolean`       | Optional. Use LLM-based prompt rewriting for higher quality.                                                     |
+| `language`         | `string`        | Optional. Language of text prompt (`auto`, `en`, `zh`, `hi`, `ja`, `ko`, `pt`, `es`)                             |
+| `negativePrompt`   | `string`        | Optional. Description of what to discourage. Not supported by `imagen-3.0-generate-002` and newer.               |
+| `outputOptions`    | `outputOptions` | Optional. Output image format options.                                                                           |
+| `personGeneration` | `string`        | Optional. Allow generation of people (`dont_allow`, `allow_adult`, `allow_all`). Default: `allow_adult`          |
+| `safetySetting`    | `string`        | Optional. Safety filter level (`block_low_and_above`, `block_medium_and_above`, `block_only_high`, `block_none`) |
+| `sampleCount`      | `int`           | Required. Number of images to generate. Default: 4                                                               |
+| `sampleImageSize`  | `string`        | Optional. Output resolution (`1K` or `2K`). Default: `1K`                                                        |
+| `seed`             | `Uint32`        | Optional. Random seed for deterministic generation. Not available when `addWatermark` is `true`.                 |
+| `storageUri`       | `string`        | Optional. Cloud Storage URI to store generated images.                                                           |
 
 ## Output Options
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `outputOptions.mimeType` | `string` | Optional. Image format (`image/png` or `image/jpeg`). Default: `image/png` |
-| `outputOptions.compressionQuality` | `int` | Optional. Compression quality for JPEG (0-100). Default: 75 |
+| Parameter                          | Type     | Description                                                                |
+| ---------------------------------- | -------- | -------------------------------------------------------------------------- |
+| `outputOptions.mimeType`           | `string` | Optional. Image format (`image/png` or `image/jpeg`). Default: `image/png` |
+| `outputOptions.compressionQuality` | `int`    | Optional. Compression quality for JPEG (0-100). Default: 75                |
 
 ## Example Request
 
@@ -139,13 +139,13 @@ curl -X POST \
 
 ### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `mode` | `string` | Required. Must be set to `"upscale"` |
-| `upscaleConfig` | `UpscaleConfig` | Required. Configuration for upscaling |
-| `upscaleConfig.upscaleFactor` | `string` | Required. Upscale factor (`x2` or `x4`) |
-| `outputOptions` | `OutputOptions` | Optional. Output image format options |
-| `storageUri` | `string` | Optional. Cloud Storage URI for output |
+| Parameter                     | Type            | Description                             |
+| ----------------------------- | --------------- | --------------------------------------- |
+| `mode`                        | `string`        | Required. Must be set to `"upscale"`    |
+| `upscaleConfig`               | `UpscaleConfig` | Required. Configuration for upscaling   |
+| `upscaleConfig.upscaleFactor` | `string`        | Required. Upscale factor (`x2` or `x4`) |
+| `outputOptions`               | `OutputOptions` | Optional. Output image format options   |
+| `storageUri`                  | `string`        | Optional. Cloud Storage URI for output  |
 
 ## Python Example
 

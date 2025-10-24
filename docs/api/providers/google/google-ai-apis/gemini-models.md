@@ -12,15 +12,15 @@ Gemini is Google's family of multimodal AI models supporting text, images, audio
 
 ### Model Details
 
-| Property | Value |
-|----------|-------|
-| **Model Code** | `gemini-2.5-pro` |
-| **Input Types** | Audio, images, video, text, PDF |
-| **Output Types** | Text |
-| **Input Token Limit** | 1,048,576 |
-| **Output Token Limit** | 65,536 |
-| **Latest Update** | June 2025 |
-| **Knowledge Cutoff** | January 2025 |
+| Property               | Value                           |
+| ---------------------- | ------------------------------- |
+| **Model Code**         | `gemini-2.5-pro`                |
+| **Input Types**        | Audio, images, video, text, PDF |
+| **Output Types**       | Text                            |
+| **Input Token Limit**  | 1,048,576                       |
+| **Output Token Limit** | 65,536                          |
+| **Latest Update**      | June 2025                       |
+| **Knowledge Cutoff**   | January 2025                    |
 
 ### Capabilities
 
@@ -49,15 +49,15 @@ Gemini is Google's family of multimodal AI models supporting text, images, audio
 
 ### Model Details
 
-| Property | Value |
-|----------|-------|
-| **Model Code** | `gemini-2.5-flash` |
-| **Input Types** | Text, images, video, audio |
-| **Output Types** | Text |
-| **Input Token Limit** | 1,048,576 |
-| **Output Token Limit** | 65,536 |
-| **Latest Update** | June 2025 |
-| **Knowledge Cutoff** | January 2025 |
+| Property               | Value                      |
+| ---------------------- | -------------------------- |
+| **Model Code**         | `gemini-2.5-flash`         |
+| **Input Types**        | Text, images, video, audio |
+| **Output Types**       | Text                       |
+| **Input Token Limit**  | 1,048,576                  |
+| **Output Token Limit** | 65,536                     |
+| **Latest Update**      | June 2025                  |
+| **Knowledge Cutoff**   | January 2025               |
 
 ### Capabilities
 
@@ -87,15 +87,15 @@ Gemini is Google's family of multimodal AI models supporting text, images, audio
 
 ### Model Details
 
-| Property | Value |
-|----------|-------|
-| **Model Code** | `gemini-2.5-flash-image` |
-| **Input Types** | Images and text |
-| **Output Types** | Images and text |
-| **Input Token Limit** | 32,768 |
-| **Output Token Limit** | 32,768 |
-| **Latest Update** | October 2025 |
-| **Knowledge Cutoff** | June 2025 |
+| Property               | Value                    |
+| ---------------------- | ------------------------ |
+| **Model Code**         | `gemini-2.5-flash-image` |
+| **Input Types**        | Images and text          |
+| **Output Types**       | Images and text          |
+| **Input Token Limit**  | 32,768                   |
+| **Output Token Limit** | 32,768                   |
+| **Latest Update**      | October 2025             |
+| **Knowledge Cutoff**   | June 2025                |
 
 ### Capabilities
 
@@ -133,15 +133,15 @@ Gemini is Google's family of multimodal AI models supporting text, images, audio
 
 ### Model Details
 
-| Property | Value |
-|----------|-------|
-| **Model Code** | `gemini-2.5-flash-native-audio-preview-09-2025` |
-| **Input Types** | Audio, video, text |
-| **Output Types** | Audio and text |
-| **Input Token Limit** | 128,000 |
-| **Output Token Limit** | 8,000 |
-| **Latest Update** | September 2025 |
-| **Knowledge Cutoff** | January 2025 |
+| Property               | Value                                           |
+| ---------------------- | ----------------------------------------------- |
+| **Model Code**         | `gemini-2.5-flash-native-audio-preview-09-2025` |
+| **Input Types**        | Audio, video, text                              |
+| **Output Types**       | Audio and text                                  |
+| **Input Token Limit**  | 128,000                                         |
+| **Output Token Limit** | 8,000                                           |
+| **Latest Update**      | September 2025                                  |
+| **Knowledge Cutoff**   | January 2025                                    |
 
 ### Capabilities
 
@@ -171,14 +171,14 @@ Gemini is Google's family of multimodal AI models supporting text, images, audio
 
 ### Model Details
 
-| Property | Value |
-|----------|-------|
-| **Model Code** | `gemini-2.5-flash-preview-tts` |
-| **Input Types** | Text |
-| **Output Types** | Audio |
-| **Input Token Limit** | 8,000 |
-| **Output Token Limit** | 16,000 |
-| **Latest Update** | May 2025 |
+| Property               | Value                          |
+| ---------------------- | ------------------------------ |
+| **Model Code**         | `gemini-2.5-flash-preview-tts` |
+| **Input Types**        | Text                           |
+| **Output Types**       | Audio                          |
+| **Input Token Limit**  | 8,000                          |
+| **Output Token Limit** | 16,000                         |
+| **Latest Update**      | May 2025                       |
 
 ### Capabilities
 
@@ -194,15 +194,15 @@ Gemini is Google's family of multimodal AI models supporting text, images, audio
 
 ### Model Details
 
-| Property | Value |
-|----------|-------|
-| **Model Code** | `gemini-2.5-flash-lite` |
-| **Input Types** | Text, image, video, audio, PDF |
-| **Output Types** | Text |
-| **Input Token Limit** | 1,048,576 |
-| **Output Token Limit** | 65,536 |
-| **Latest Update** | July 2025 |
-| **Knowledge Cutoff** | January 2025 |
+| Property               | Value                          |
+| ---------------------- | ------------------------------ |
+| **Model Code**         | `gemini-2.5-flash-lite`        |
+| **Input Types**        | Text, image, video, audio, PDF |
+| **Output Types**       | Text                           |
+| **Input Token Limit**  | 1,048,576                      |
+| **Output Token Limit** | 65,536                         |
+| **Latest Update**      | July 2025                      |
+| **Knowledge Cutoff**   | January 2025                   |
 
 ### Capabilities
 
@@ -229,19 +229,27 @@ Gemini is Google's family of multimodal AI models supporting text, images, audio
 ## Model Version Patterns
 
 ### Stable
+
 Points to a specific stable model that usually doesn't change. Recommended for production.
+
 - Example: `gemini-2.5-flash`
 
 ### Preview
+
 Preview model suitable for production with billing enabled and restrictive rate limits. Will be deprecated with at least 2 weeks notice.
+
 - Example: `gemini-2.5-flash-preview-09-2025`
 
 ### Latest
+
 Points to the latest release (stable, preview, or experimental). Gets hot-swapped with new releases. 2-week notice before version changes.
+
 - Example: `gemini-flash-latest`
 
 ### Experimental
+
 Not suitable for production, more restrictive rate limits. Released for early feedback.
+
 - Availability subject to change without notice
 
 ---
@@ -368,15 +376,15 @@ response = model.generate_content('What is the weather in San Francisco?')
 
 ## Comparison Chart
 
-| Feature | 2.5 Pro | 2.5 Flash | 2.5 Flash Image | 2.5 Flash-Lite |
-|---------|---------|-----------|-----------------|----------------|
-| **Speed** | ⚡⚡ | ⚡⚡⚡ | ⚡⚡⚡ | ⚡⚡⚡⚡ |
-| **Quality** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
-| **Context** | 1M+ tokens | 1M+ tokens | 32K tokens | 1M+ tokens |
-| **Image Gen** | ❌ | ❌ | ✅ | ❌ |
-| **Thinking** | ✅ | ✅ | ❌ | ✅ |
-| **Audio** | ✅ Input | ✅ Input | ❌ | ✅ Input |
-| **Video** | ✅ Input | ✅ Input | ❌ | ✅ Input |
+| Feature       | 2.5 Pro    | 2.5 Flash  | 2.5 Flash Image | 2.5 Flash-Lite |
+| ------------- | ---------- | ---------- | --------------- | -------------- |
+| **Speed**     | ⚡⚡       | ⚡⚡⚡     | ⚡⚡⚡          | ⚡⚡⚡⚡       |
+| **Quality**   | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐   | ⭐⭐⭐⭐        | ⭐⭐⭐         |
+| **Context**   | 1M+ tokens | 1M+ tokens | 32K tokens      | 1M+ tokens     |
+| **Image Gen** | ❌         | ❌         | ✅              | ❌             |
+| **Thinking**  | ✅         | ✅         | ❌              | ✅             |
+| **Audio**     | ✅ Input   | ✅ Input   | ❌              | ✅ Input       |
+| **Video**     | ✅ Input   | ✅ Input   | ❌              | ✅ Input       |
 
 ---
 

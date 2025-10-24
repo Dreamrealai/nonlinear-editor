@@ -46,14 +46,14 @@ Veo 2 Experimental is an experimental video generation model available through G
 
 The Veo API supports the following models:
 
-| Model ID | Status | Description |
-|----------|--------|-------------|
-| `veo-2.0-generate-001` | GA | Veo 2 general availability model |
-| `veo-2.0-generate-exp` | Experimental | Veo 2 experimental model with preview features |
-| `veo-3.0-generate-001` | GA | Veo 3 general availability model |
-| `veo-3.0-fast-generate-001` | GA | Veo 3 fast generation model |
-| `veo-3.0-generate-preview` | Preview | Veo 3 preview model |
-| `veo-3.0-fast-generate-preview` | Preview | Veo 3 fast preview model |
+| Model ID                        | Status       | Description                                    |
+| ------------------------------- | ------------ | ---------------------------------------------- |
+| `veo-2.0-generate-001`          | GA           | Veo 2 general availability model               |
+| `veo-2.0-generate-exp`          | Experimental | Veo 2 experimental model with preview features |
+| `veo-3.0-generate-001`          | GA           | Veo 3 general availability model               |
+| `veo-3.0-fast-generate-001`     | GA           | Veo 3 fast generation model                    |
+| `veo-3.0-generate-preview`      | Preview      | Veo 3 preview model                            |
+| `veo-3.0-fast-generate-preview` | Preview      | Veo 3 fast preview model                       |
 
 For more information, see [Veo models documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/models#veo-models).
 
@@ -63,35 +63,36 @@ For more information, see [Veo models documentation](https://cloud.google.com/ve
 
 ### Veo 2.0 Generate Experimental
 
-| Feature | Support Status | Details |
-|---------|---------------|----------|
-| **Text to video** | ✓ Supported | Generate videos from text prompts |
-| **Image to video** | ✓ Supported | Generate videos from image inputs |
-| **Prompt rewriting** | ✓ Supported | Automatic enhancement with Gemini |
-| **Reference image to video** | ✓ Preview | Use asset/style images to guide generation |
+| Feature                      | Support Status | Details                                    |
+| ---------------------------- | -------------- | ------------------------------------------ |
+| **Text to video**            | ✓ Supported    | Generate videos from text prompts          |
+| **Image to video**           | ✓ Supported    | Generate videos from image inputs          |
+| **Prompt rewriting**         | ✓ Supported    | Automatic enhancement with Gemini          |
+| **Reference image to video** | ✓ Preview      | Use asset/style images to guide generation |
 
 **Note:** The following features are **NOT** supported by `veo-2.0-generate-exp` and are **only available** in `veo-2.0-generate-001` (GA model):
+
 - **Extend a Veo video** - Use the `video` parameter to extend existing Veo-generated videos
 - **Generate videos from first and last frames** - Use the `lastFrame` parameter to create videos between two frame images
 
 ### Video Specifications
 
-| Specification | Value |
-|---------------|-------|
-| **Video aspect ratios** | 16:9, 9:16 |
-| **Supported resolutions** | 720p |
-| **Supported framerates** | 24 FPS |
-| **Prompt languages** | English |
-| **Video length** | 5 to 8 seconds |
+| Specification             | Value          |
+| ------------------------- | -------------- |
+| **Video aspect ratios**   | 16:9, 9:16     |
+| **Supported resolutions** | 720p           |
+| **Supported framerates**  | 24 FPS         |
+| **Prompt languages**      | English        |
+| **Video length**          | 5 to 8 seconds |
 
 ### Limits
 
-| Limit | Value |
-|-------|-------|
-| **Maximum API requests per minute per project** | 20 |
-| **Maximum videos returned per request** | 4 |
-| **Video length** | 5 to 8 seconds |
-| **Maximum image size (image-to-video)** | 20 MB |
+| Limit                                           | Value          |
+| ----------------------------------------------- | -------------- |
+| **Maximum API requests per minute per project** | 20             |
+| **Maximum videos returned per request**         | 4              |
+| **Video length**                                | 5 to 8 seconds |
+| **Maximum image size (image-to-video)**         | 20 MB          |
 
 ---
 
@@ -186,12 +187,14 @@ A text string to guide the first eight seconds in the video.
 #### `image` (Union field, Optional)
 
 An image to guide video generation. Can be either:
+
 - `bytesBase64Encoded`: A Base64-encoded string of the image
 - `gcsUri`: A Cloud Storage URI (e.g., `gs://bucket-name/image.jpg`)
 
 **Required field:** `mimeType`
 
 **Supported MIME types:**
+
 - `image/jpeg`
 - `image/png`
 
@@ -226,6 +229,7 @@ A list of up to three asset images or at most one style image that describes the
   - `"style"`: The reference image provides style information (colors, lighting, or texture)
 
 **Supported MIME types:**
+
 - `image/jpeg`
 - `image/png`
 
@@ -238,6 +242,7 @@ A list of up to three asset images or at most one style image that describes the
 Specifies the aspect ratio of generated videos.
 
 **Accepted values:**
+
 - `"16:9"` (default) - Landscape
 - `"9:16"` - Portrait
 
@@ -248,6 +253,7 @@ Specifies the aspect ratio of generated videos.
 Specifies the compression quality of the generated videos.
 
 **Accepted values:**
+
 - `"optimized"` (default)
 - `"lossless"`
 
@@ -258,6 +264,7 @@ Specifies the compression quality of the generated videos.
 The length in seconds of video files that you want to generate.
 
 **Accepted values:**
+
 - **Veo 2 models:** `5` - `8` (default: `8`)
 - **Veo 3 models:** `4`, `6`, or `8` (default: `8`)
 - **When using `referenceImages`:** `8`
@@ -269,6 +276,7 @@ The length in seconds of video files that you want to generate.
 Use Gemini to enhance your prompts.
 
 **Accepted values:**
+
 - `true` (default) - Enable prompt enhancement
 - `false` - Disable prompt enhancement
 
@@ -279,6 +287,7 @@ Use Gemini to enhance your prompts.
 **Required for Veo 3 models only.** Generate audio for the video.
 
 **Accepted values:**
+
 - `true`
 - `false`
 
@@ -289,6 +298,7 @@ Use Gemini to enhance your prompts.
 A text string that describes anything you want to discourage the model from generating.
 
 **Examples:**
+
 - "overhead lighting, bright colors"
 - "people, animals"
 - "multiple cars, wind"
@@ -298,6 +308,7 @@ A text string that describes anything you want to discourage the model from gene
 The safety setting that controls whether people or face generation is allowed.
 
 **Accepted values:**
+
 - `"allow_adult"` (default) - Allow generation of adults only
 - `"dont_allow"` - Disallows inclusion of people/faces in videos
 
@@ -308,6 +319,7 @@ The safety setting that controls whether people or face generation is allowed.
 **Veo 3 models only.** The resolution of the generated video.
 
 **Accepted values:**
+
 - `"720p"` (default)
 - `"1080p"`
 
@@ -578,8 +590,8 @@ Invoke-WebRequest `
 
 **Response Elements:**
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field  | Type   | Description                                                                                                |
+| ------ | ------ | ---------------------------------------------------------------------------------------------------------- |
 | `name` | string | The full operation name of the long-running operation that begins after a video generation request is sent |
 
 **Sample Response:**
@@ -615,17 +627,17 @@ Invoke-WebRequest `
 
 **Response Elements:**
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `name` | string | The full operation name of the long-running operation |
-| `done` | boolean | Indicates whether the operation is complete |
-| `@type` | string | Type identifier for the response |
-| `raiMediaFilteredCount` | integer | Count of videos filtered due to responsible AI policies. Returns `0` if no videos are filtered |
-| `raiMediaFilteredReasons` | array[string] | Lists the reasons for any filtered videos due to responsible AI policies |
-| `videos` | array | Array of generated video objects |
-| `videos[].gcsUri` | string | Cloud Storage URI of the generated video |
-| `videos[].mimeType` | string | MIME type of the video (e.g., `video/mp4`) |
-| `videos[].bytesBase64Encoded` | string | Base64-encoded video bytes (if no `storageUri` was provided) |
+| Field                         | Type          | Description                                                                                    |
+| ----------------------------- | ------------- | ---------------------------------------------------------------------------------------------- |
+| `name`                        | string        | The full operation name of the long-running operation                                          |
+| `done`                        | boolean       | Indicates whether the operation is complete                                                    |
+| `@type`                       | string        | Type identifier for the response                                                               |
+| `raiMediaFilteredCount`       | integer       | Count of videos filtered due to responsible AI policies. Returns `0` if no videos are filtered |
+| `raiMediaFilteredReasons`     | array[string] | Lists the reasons for any filtered videos due to responsible AI policies                       |
+| `videos`                      | array         | Array of generated video objects                                                               |
+| `videos[].gcsUri`             | string        | Cloud Storage URI of the generated video                                                       |
+| `videos[].mimeType`           | string        | MIME type of the video (e.g., `video/mp4`)                                                     |
+| `videos[].bytesBase64Encoded` | string        | Base64-encoded video bytes (if no `storageUri` was provided)                                   |
 
 **Sample Complete Response:**
 
@@ -709,14 +721,14 @@ See the [Configure application default credentials guide](https://cloud.google.c
 
 ### Veo 2.0 Generate Experimental Limits
 
-| Resource | Limit | Scope |
-|----------|-------|-------|
-| **API requests per minute** | 20 | Per project |
-| **Videos per request** | 4 | Per request |
-| **Video duration** | 5-8 seconds | Per video |
-| **Maximum image size (image-to-video)** | 20 MB | Per image |
-| **Reference images (asset)** | 3 | Per request |
-| **Reference images (style)** | 1 | Per request |
+| Resource                                | Limit       | Scope       |
+| --------------------------------------- | ----------- | ----------- |
+| **API requests per minute**             | 20          | Per project |
+| **Videos per request**                  | 4           | Per request |
+| **Video duration**                      | 5-8 seconds | Per video   |
+| **Maximum image size (image-to-video)** | 20 MB       | Per image   |
+| **Reference images (asset)**            | 3           | Per request |
+| **Reference images (style)**            | 1           | Per request |
 
 ### Quota Management
 
@@ -732,6 +744,7 @@ See the [Configure application default credentials guide](https://cloud.google.c
 4. Distribute requests across multiple projects for higher throughput
 
 For more information, see:
+
 - [Quotas and system limits](https://cloud.google.com/vertex-ai/generative-ai/docs/quotas)
 - [Dynamic shared quota](https://cloud.google.com/vertex-ai/generative-ai/docs/dynamic-shared-quota)
 
@@ -754,13 +767,13 @@ For Veo pricing information, see the [Veo pricing section](https://cloud.google.
 
 ### Common Error Codes
 
-| HTTP Status | Error Code | Description | Solution |
-|-------------|------------|-------------|----------|
-| 400 | Bad Request | Invalid request format or parameters | Verify request body matches API specification |
-| 401 | Unauthorized | Authentication failed | Check authentication credentials |
-| 403 | Forbidden | Insufficient permissions | Verify IAM roles and permissions |
-| 429 | Too Many Requests | Rate limit exceeded | Implement exponential backoff and retry logic |
-| 500 | Internal Server Error | Server-side error | Retry the request after a delay |
+| HTTP Status | Error Code            | Description                          | Solution                                      |
+| ----------- | --------------------- | ------------------------------------ | --------------------------------------------- |
+| 400         | Bad Request           | Invalid request format or parameters | Verify request body matches API specification |
+| 401         | Unauthorized          | Authentication failed                | Check authentication credentials              |
+| 403         | Forbidden             | Insufficient permissions             | Verify IAM roles and permissions              |
+| 429         | Too Many Requests     | Rate limit exceeded                  | Implement exponential backoff and retry logic |
+| 500         | Internal Server Error | Server-side error                    | Retry the request after a delay               |
 
 ### Safety Filter Responses
 
@@ -814,6 +827,7 @@ def make_request_with_retry(url, headers, data, max_retries=3):
 4. **Leverage Negative Prompts**: Use `negativePrompt` to exclude unwanted elements
 
 **Good prompt examples:**
+
 - "A slow tracking shot through a futuristic city at sunset, warm golden light, volumetric fog, cinematic composition"
 - "Close-up of a blooming flower, shallow depth of field, soft morning light, vibrant colors"
 
@@ -830,11 +844,13 @@ For best quality in image-to-video generation:
 ### Reference Images (Preview Feature)
 
 **Asset Images:**
+
 - Use up to 3 asset images to define objects, characters, or scenes
 - Ensure images clearly show the subject matter
 - Use consistent lighting and style across multiple asset images
 
 **Style Images:**
+
 - Use 1 style image to define aesthetic, color palette, or artistic style
 - Choose images that clearly represent the desired visual style
 - Works best with distinctive artistic styles or color grading

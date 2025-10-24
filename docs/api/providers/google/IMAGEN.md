@@ -49,6 +49,7 @@
 ### Imagen 4 Family (Released May 2025)
 
 #### imagen-4.0-generate-001 (Standard)
+
 - **Price**: $0.04 per image
 - **Resolution**: 1K, 2K
 - **Best For**: Balanced quality and speed
@@ -56,6 +57,7 @@
 - **Status**: Generally Available
 
 #### imagen-4.0-ultra-generate-001 (Ultra)
+
 - **Price**: $0.06 per image
 - **Resolution**: 1K, 2K
 - **Best For**: Highest quality, photorealistic images
@@ -64,6 +66,7 @@
 - **Status**: Generally Available
 
 #### imagen-4.0-fast-generate-001 (Fast)
+
 - **Price**: $0.04 per image
 - **Resolution**: 1K, 2K
 - **Best For**: Ultra-fast generation (up to 10x faster)
@@ -74,6 +77,7 @@
 ### Imagen 3 Family
 
 #### imagen-3.0-generate-002 (Standard)
+
 - **Price**: $0.04 per image
 - **Resolution**: 1K only
 - **Rate Limit**: 20 requests per minute per project
@@ -81,12 +85,14 @@
 - **Status**: Generally Available
 
 #### imagen-3.0-fast-generate-001 (Fast)
+
 - **Price**: $0.02 per image
 - **Resolution**: 1K only
 - **Best For**: Low-latency generation at lowest cost
 - **Status**: Generally Available
 
 #### imagen-3.0-capability-001 (Editing & Customization)
+
 - **Price**: $0.04 per image
 - **Resolution**: 1K only
 - **Rate Limit**: 100 requests per minute per project
@@ -97,11 +103,11 @@
 
 ### Legacy Models (Deprecated)
 
-| Model ID | Deprecation Date | Removal Date | Action Required |
-|----------|------------------|--------------|-----------------|
-| `imagegeneration@002` | June 24, 2025 | September 24, 2025 | Migrate to Imagen 3/4 |
-| `imagegeneration@005` | June 24, 2025 | September 24, 2025 | Migrate to Imagen 3/4 |
-| `imagegeneration@006` | June 24, 2025 | September 24, 2025 | Migrate to Imagen 3/4 |
+| Model ID              | Deprecation Date | Removal Date       | Action Required       |
+| --------------------- | ---------------- | ------------------ | --------------------- |
+| `imagegeneration@002` | June 24, 2025    | September 24, 2025 | Migrate to Imagen 3/4 |
+| `imagegeneration@005` | June 24, 2025    | September 24, 2025 | Migrate to Imagen 3/4 |
+| `imagegeneration@006` | June 24, 2025    | September 24, 2025 | Migrate to Imagen 3/4 |
 
 ---
 
@@ -145,16 +151,19 @@ gcloud services enable aiplatform.googleapis.com
 ### Step 2: Authenticate
 
 #### Option 1: User Credentials (Development)
+
 ```bash
 gcloud auth application-default login
 ```
 
 #### Option 2: Service Account (Production)
+
 ```bash
 gcloud auth activate-service-account --key-file=path/to/key.json
 ```
 
 #### Option 3: Service Account Impersonation (Local Development)
+
 ```bash
 gcloud auth application-default login --impersonate-service-account=SERVICE_ACCT_EMAIL
 ```
@@ -202,55 +211,55 @@ Content-Type: application/json; charset=utf-8
 
 ### Required Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `prompt` | string | Text description for image generation (max 480 tokens) |
+| Parameter | Type   | Description                                            |
+| --------- | ------ | ------------------------------------------------------ |
+| `prompt`  | string | Text description for image generation (max 480 tokens) |
 
 ### Optional Parameters
 
-| Parameter | Type | Default | Values | Description |
-|-----------|------|---------|--------|-------------|
-| `sampleCount` | integer | 4 | 1-4 | Number of images to generate |
-| `aspectRatio` | string | "1:1" | See table below | Image aspect ratio |
-| `sampleImageSize` | string | "1K" | "1K", "2K" | Output resolution (Imagen 4 only) |
-| `seed` | integer | - | 1-2,147,483,647 | For deterministic generation |
-| `addWatermark` | boolean | true | true/false | Add SynthID digital watermark |
-| `enhancePrompt` | boolean | false | true/false | Use AI prompt enhancement |
-| `language` | string | "en" | See table below | Prompt language |
-| `safetySetting` | string | "block_medium_and_above" | See Safety section | Content filtering level |
-| `personGeneration` | string | "allow_adult" | "allow_adult", "dont_allow" | Control people/face generation |
-| `includeRaiReason` | boolean | false | true/false | Return RAI filter reason codes |
-| `includeSafetyAttributes` | boolean | false | true/false | Return safety attribute scores |
-| `storageUri` | string | - | gs://bucket/path/ | Cloud Storage location for output |
-| `compressionQuality` | integer | 75 | 0-100 | JPEG compression quality |
-| `negativePrompt` | string | - | - | Elements to avoid (Imagen 3 Capability only) |
+| Parameter                 | Type    | Default                  | Values                      | Description                                  |
+| ------------------------- | ------- | ------------------------ | --------------------------- | -------------------------------------------- |
+| `sampleCount`             | integer | 4                        | 1-4                         | Number of images to generate                 |
+| `aspectRatio`             | string  | "1:1"                    | See table below             | Image aspect ratio                           |
+| `sampleImageSize`         | string  | "1K"                     | "1K", "2K"                  | Output resolution (Imagen 4 only)            |
+| `seed`                    | integer | -                        | 1-2,147,483,647             | For deterministic generation                 |
+| `addWatermark`            | boolean | true                     | true/false                  | Add SynthID digital watermark                |
+| `enhancePrompt`           | boolean | false                    | true/false                  | Use AI prompt enhancement                    |
+| `language`                | string  | "en"                     | See table below             | Prompt language                              |
+| `safetySetting`           | string  | "block_medium_and_above" | See Safety section          | Content filtering level                      |
+| `personGeneration`        | string  | "allow_adult"            | "allow_adult", "dont_allow" | Control people/face generation               |
+| `includeRaiReason`        | boolean | false                    | true/false                  | Return RAI filter reason codes               |
+| `includeSafetyAttributes` | boolean | false                    | true/false                  | Return safety attribute scores               |
+| `storageUri`              | string  | -                        | gs://bucket/path/           | Cloud Storage location for output            |
+| `compressionQuality`      | integer | 75                       | 0-100                       | JPEG compression quality                     |
+| `negativePrompt`          | string  | -                        | -                           | Elements to avoid (Imagen 3 Capability only) |
 
 ### Aspect Ratios and Resolutions
 
-| Ratio | Use Cases | 1K Resolution | 2K Resolution (Imagen 4) |
-|-------|-----------|---------------|---------------------------|
-| **1:1** | Social media, profile images | 1024x1024 | 2048x2048 |
-| **3:4** | TV, media, portraits | 896x1280 | 1792x2560 |
-| **4:3** | TV, photography | 1280x896 | 2560x1792 |
-| **9:16** | Mobile, Stories, vertical video | 768x1408 | 1536x2816 |
-| **16:9** | Landscape, widescreen | 1408x768 | 2816x1536 |
-| **2:3** | Vertical standard | 896x1344 | 1792x2688 |
-| **3:2** | DSLR standard | 1344x896 | 2688x1792 |
-| **4:5** | Nearly square portrait | 1024x1280 | 2048x2560 |
-| **5:4** | Nearly square landscape | 1280x1024 | 2560x2048 |
-| **21:9** | Ultra-wide cinematic | 1536x640 | 3072x1280 |
+| Ratio    | Use Cases                       | 1K Resolution | 2K Resolution (Imagen 4) |
+| -------- | ------------------------------- | ------------- | ------------------------ |
+| **1:1**  | Social media, profile images    | 1024x1024     | 2048x2048                |
+| **3:4**  | TV, media, portraits            | 896x1280      | 1792x2560                |
+| **4:3**  | TV, photography                 | 1280x896      | 2560x1792                |
+| **9:16** | Mobile, Stories, vertical video | 768x1408      | 1536x2816                |
+| **16:9** | Landscape, widescreen           | 1408x768      | 2816x1536                |
+| **2:3**  | Vertical standard               | 896x1344      | 1792x2688                |
+| **3:2**  | DSLR standard                   | 1344x896      | 2688x1792                |
+| **4:5**  | Nearly square portrait          | 1024x1280     | 2048x2560                |
+| **5:4**  | Nearly square landscape         | 1280x1024     | 2560x2048                |
+| **21:9** | Ultra-wide cinematic            | 1536x640      | 3072x1280                |
 
 ### Supported Languages
 
-| Language | Code | Status | Description |
-|----------|------|--------|-------------|
-| English | `en` | ✅ Full Support | Complete feature access |
-| Chinese | `zh` | ⚠️ Preview | Beta support |
-| Hindi | `hi` | ⚠️ Preview | Beta support |
-| Japanese | `ja` | ⚠️ Preview | Beta support |
-| Korean | `ko` | ⚠️ Preview | Beta support |
-| Portuguese | `pt` | ⚠️ Preview | Beta support |
-| Spanish | `es` | ⚠️ Preview | Beta support |
+| Language   | Code | Status          | Description             |
+| ---------- | ---- | --------------- | ----------------------- |
+| English    | `en` | ✅ Full Support | Complete feature access |
+| Chinese    | `zh` | ⚠️ Preview      | Beta support            |
+| Hindi      | `hi` | ⚠️ Preview      | Beta support            |
+| Japanese   | `ja` | ⚠️ Preview      | Beta support            |
+| Korean     | `ko` | ⚠️ Preview      | Beta support            |
+| Portuguese | `pt` | ⚠️ Preview      | Beta support            |
+| Spanish    | `es` | ⚠️ Preview      | Beta support            |
 
 ---
 
@@ -275,11 +284,11 @@ Content-Type: application/json; charset=utf-8
 
 ### Response Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `predictions` | array | Array of generated image objects |
-| `mimeType` | string | Image format (typically "image/png" or "image/jpeg") |
-| `bytesBase64Encoded` | string | Base64-encoded image data |
+| Field                | Type   | Description                                          |
+| -------------------- | ------ | ---------------------------------------------------- |
+| `predictions`        | array  | Array of generated image objects                     |
+| `mimeType`           | string | Image format (typically "image/png" or "image/jpeg") |
+| `bytesBase64Encoded` | string | Base64-encoded image data                            |
 
 ---
 
@@ -381,7 +390,7 @@ interface ImageGenerationRequest {
 
 async function generateImage(): Promise<void> {
   const auth = new GoogleAuth({
-    scopes: ['https://www.googleapis.com/auth/cloud-platform']
+    scopes: ['https://www.googleapis.com/auth/cloud-platform'],
   });
 
   const client = await auth.getClient();
@@ -396,16 +405,14 @@ async function generateImage(): Promise<void> {
   const modelVersion = 'imagen-4.0-generate-001';
 
   const requestBody: ImageGenerationRequest = {
-    instances: [
-      { prompt: 'A cyberpunk cat wearing VR goggles in a neon-lit alley' }
-    ],
+    instances: [{ prompt: 'A cyberpunk cat wearing VR goggles in a neon-lit alley' }],
     parameters: {
       sampleCount: 2,
       aspectRatio: '16:9',
       sampleImageSize: '2K',
       addWatermark: true,
-      safetySetting: 'block_medium_and_above'
-    }
+      safetySetting: 'block_medium_and_above',
+    },
   };
 
   const options = {
@@ -413,9 +420,9 @@ async function generateImage(): Promise<void> {
     path: `/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`,
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${accessToken.token}`,
-      'Content-Type': 'application/json'
-    }
+      Authorization: `Bearer ${accessToken.token}`,
+      'Content-Type': 'application/json',
+    },
   };
 
   return new Promise((resolve, reject) => {
@@ -455,7 +462,7 @@ async function generateImage(): Promise<void> {
 
 generateImage()
   .then(() => console.log('Image generation complete'))
-  .catch(error => console.error('Error:', error));
+  .catch((error) => console.error('Error:', error));
 ```
 
 ### cURL
@@ -486,19 +493,19 @@ curl -X POST \
 
 ### Imagen 4 Pricing (2025)
 
-| Model | Price per Image | Resolution | Best For |
-|-------|-----------------|------------|----------|
-| **imagen-4.0-ultra-generate-001** | $0.06 | Up to 2K | Highest quality, photorealistic |
-| **imagen-4.0-generate-001** | $0.04 | Up to 2K | Balanced quality and cost |
-| **imagen-4.0-fast-generate-001** | $0.04 | Up to 2K | Speed-optimized generation |
+| Model                             | Price per Image | Resolution | Best For                        |
+| --------------------------------- | --------------- | ---------- | ------------------------------- |
+| **imagen-4.0-ultra-generate-001** | $0.06           | Up to 2K   | Highest quality, photorealistic |
+| **imagen-4.0-generate-001**       | $0.04           | Up to 2K   | Balanced quality and cost       |
+| **imagen-4.0-fast-generate-001**  | $0.04           | Up to 2K   | Speed-optimized generation      |
 
 ### Imagen 3 Pricing
 
-| Model | Price per Image | Resolution |
-|-------|-----------------|------------|
-| **imagen-3.0-generate-002** | $0.04 | 1K only |
-| **imagen-3.0-fast-generate-001** | $0.02 | 1K only |
-| **imagen-3.0-capability-001** | $0.04 | 1K only |
+| Model                            | Price per Image | Resolution |
+| -------------------------------- | --------------- | ---------- |
+| **imagen-3.0-generate-002**      | $0.04           | 1K only    |
+| **imagen-3.0-fast-generate-001** | $0.02           | 1K only    |
+| **imagen-3.0-capability-001**    | $0.04           | 1K only    |
 
 ### Alternative Pricing (Gemini Developer API)
 
@@ -525,12 +532,12 @@ curl -X POST \
 
 ### Model-Specific Limits
 
-| Model | Requests per Minute (RPM) | Images per Request |
-|-------|---------------------------|-------------------|
-| **imagen-3.0-generate-002** | 20 per project | 1-4 |
-| **imagen-3.0-capability-001** | 100 per project | 1-4 |
-| **imagen-4.0-generate-001** | Varies by tier | 1-4 |
-| **imagen-4.0-ultra-generate-001** | Varies by tier | 1-4 |
+| Model                             | Requests per Minute (RPM) | Images per Request |
+| --------------------------------- | ------------------------- | ------------------ |
+| **imagen-3.0-generate-002**       | 20 per project            | 1-4                |
+| **imagen-3.0-capability-001**     | 100 per project           | 1-4                |
+| **imagen-4.0-generate-001**       | Varies by tier            | 1-4                |
+| **imagen-4.0-ultra-generate-001** | Varies by tier            | 1-4                |
 
 ### General Quotas
 
@@ -571,16 +578,19 @@ Effective prompts include:
 ### Examples by Quality Level
 
 #### Basic Prompt
+
 ```
 A cat reading a book
 ```
 
 #### Detailed Prompt
+
 ```
 A tabby cat wearing reading glasses, carefully reading a leather-bound book in a cozy library, warm afternoon sunlight streaming through the window, soft focus on background bookshelves
 ```
 
 #### Advanced Prompt (Imagen 4 Ultra)
+
 ```
 Close-up shot of a tabby cat wearing round reading glasses, carefully reading a leather-bound book in a cozy Victorian library, warm golden afternoon sunlight streaming through tall arched windows, soft bokeh on background mahogany bookshelves, dust motes floating in light beams, shallow depth of field, shot with 85mm lens at f/1.8, warm color grading, National Geographic photography style
 ```
@@ -588,11 +598,13 @@ Close-up shot of a tabby cat wearing round reading glasses, carefully reading a 
 ### Imagen 4 Specific Tips
 
 1. **Leverage Text Rendering**: Imagen 4 excels at generating text in images
+
    ```
    A vintage storefront sign reading "CAFÉ ROUGE" in art deco typography, weathered red paint, Paris street scene, 1920s style
    ```
 
 2. **Fine Detail Emphasis**: Imagen 4 captures intricate details
+
    ```
    Macro photograph of a butterfly wing showing individual iridescent scales, backlit with natural sunlight, extreme close-up, 8K resolution
    ```
@@ -605,6 +617,7 @@ Close-up shot of a tabby cat wearing round reading glasses, carefully reading a 
 ### Quality Modifiers
 
 Add these for enhanced quality:
+
 - "highly detailed"
 - "8K resolution"
 - "professional photography"
@@ -627,23 +640,25 @@ Add these for enhanced quality:
 
 ### 1. Choosing the Right Model
 
-| Use Case | Recommended Model | Reason |
-|----------|-------------------|--------|
-| Highest quality | imagen-4.0-ultra-generate-001 | Best detail and text rendering |
-| Balanced quality/cost | imagen-4.0-generate-001 | Good quality at lower cost |
-| Speed critical | imagen-4.0-fast-generate-001 | 10x faster generation |
-| Lowest cost | imagen-3.0-fast-generate-001 | $0.02 per image |
-| Image editing | imagen-3.0-capability-001 | Specialized editing features |
+| Use Case              | Recommended Model             | Reason                         |
+| --------------------- | ----------------------------- | ------------------------------ |
+| Highest quality       | imagen-4.0-ultra-generate-001 | Best detail and text rendering |
+| Balanced quality/cost | imagen-4.0-generate-001       | Good quality at lower cost     |
+| Speed critical        | imagen-4.0-fast-generate-001  | 10x faster generation          |
+| Lowest cost           | imagen-3.0-fast-generate-001  | $0.02 per image                |
+| Image editing         | imagen-3.0-capability-001     | Specialized editing features   |
 
 ### 2. Optimization Strategies
 
 **For Production:**
+
 - Always specify `storageUri` to avoid large base64 responses
 - Use Cloud Storage in the same region as Vertex AI endpoint
 - Implement retry logic with exponential backoff
 - Monitor costs using Google Cloud Console
 
 **For Development:**
+
 - Use Imagen 3 Fast for rapid iteration
 - Test prompts with `sampleCount: 1` first
 - Use deterministic generation (seed) for A/B testing
@@ -696,12 +711,12 @@ print(f"Estimated cost: ${total_cost}")
 
 ### Model-Specific Limitations
 
-| Feature | Imagen 3 | Imagen 4 |
-|---------|----------|----------|
-| **2K Resolution** | ❌ | ✅ |
-| **Superior Text** | ❌ | ✅ |
-| **Image Editing** | ✅ (Capability model) | ❌ |
-| **Upscaling** | ❌ | ❌ |
+| Feature           | Imagen 3              | Imagen 4 |
+| ----------------- | --------------------- | -------- |
+| **2K Resolution** | ❌                    | ✅       |
+| **Superior Text** | ❌                    | ✅       |
+| **Image Editing** | ✅ (Capability model) | ❌       |
+| **Upscaling**     | ❌                    | ❌       |
 
 ---
 
@@ -714,6 +729,7 @@ print(f"Estimated cost: ${total_cost}")
 **Cause**: Content violates Responsible AI policies
 
 **Example Error**:
+
 ```
 "The prompt could not be submitted. This prompt contains sensitive words that violate Google's Responsible AI practices. Try rephrasing the prompt."
 ```
@@ -723,11 +739,13 @@ print(f"Estimated cost: ${total_cost}")
 #### 403 - Forbidden
 
 **Causes**:
+
 - Missing authentication credentials
 - Insufficient IAM permissions
 - API not enabled
 
 **Solution**:
+
 ```bash
 # Enable API
 gcloud services enable aiplatform.googleapis.com
@@ -742,6 +760,7 @@ gcloud projects get-iam-policy PROJECT_ID
 #### 429 - Quota Exceeded
 
 **Example Error**:
+
 ```json
 {
   "error": {
@@ -752,6 +771,7 @@ gcloud projects get-iam-policy PROJECT_ID
 ```
 
 **Solution**:
+
 - Implement exponential backoff
 - Request quota increase in Cloud Console
 - Distribute requests across multiple regions
@@ -832,6 +852,7 @@ def generate_image_with_retry(prompt, max_retries=3):
 ## Changelog
 
 ### October 2025
+
 - Comprehensive documentation created covering Imagen 3, 4, and 4 Ultra
 - Added 10 aspect ratio support details
 - Documented 2K resolution capabilities
@@ -840,12 +861,14 @@ def generate_image_with_retry(prompt, max_retries=3):
 - Added multi-language support details
 
 ### May 2025
+
 - Imagen 4 family released (Standard, Ultra, Fast)
 - 2K resolution support added
 - Superior text rendering capabilities
 - 10x faster generation with Fast variant
 
 ### February 2025
+
 - Imagen 3 Generate 002 model updated
 
 ---
@@ -856,4 +879,4 @@ def generate_image_with_retry(prompt, max_retries=3):
 
 ---
 
-*This documentation provides comprehensive coverage of Google Cloud Vertex AI Imagen 3, Imagen 4, and Imagen 4 Ultra, including complete API specifications, code examples, pricing, best practices, and troubleshooting guidance.*
+_This documentation provides comprehensive coverage of Google Cloud Vertex AI Imagen 3, Imagen 4, and Imagen 4 Ultra, including complete API specifications, code examples, pricing, best practices, and troubleshooting guidance._

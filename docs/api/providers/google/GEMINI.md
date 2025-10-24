@@ -35,7 +35,6 @@ Gemini 2.5 Flash is Google's best model in terms of price and performance, offer
 - **Maximum Output**: 65,535 tokens (default)
 - **Knowledge Cutoff**: January 2025
 
-
 ### Technical Report
 
 For detailed technical information including performance benchmarks, training datasets, sustainability efforts, intended usage and limitations, and approach to ethics and safety, see the [Gemini 2.5 Technical Report](https://storage.googleapis.com/deepmind-media/gemini/gemini_v2_5_report.pdf).
@@ -48,44 +47,45 @@ For detailed technical information including performance benchmarks, training da
 
 #### gemini-2.5-flash (GA)
 
-| Property | Details |
-|----------|---------|
-| **Model ID** | `gemini-2.5-flash` |
-| **Launch Stage** | GA (Generally Available) |
-| **Release Date** | June 17, 2025 |
-| **Discontinuation Date** | June 17, 2026 |
-| **Input Size Limit** | 500 MB |
+| Property                 | Details                  |
+| ------------------------ | ------------------------ |
+| **Model ID**             | `gemini-2.5-flash`       |
+| **Launch Stage**         | GA (Generally Available) |
+| **Release Date**         | June 17, 2025            |
+| **Discontinuation Date** | June 17, 2026            |
+| **Input Size Limit**     | 500 MB                   |
 
 #### gemini-2.5-flash-preview-09-2025 (Preview)
 
-| Property | Details |
-|----------|---------|
-| **Model ID** | `gemini-2.5-flash-preview-09-2025` |
-| **Launch Stage** | Public Preview |
-| **Release Date** | September 25, 2025 |
+| Property         | Details                            |
+| ---------------- | ---------------------------------- |
+| **Model ID**     | `gemini-2.5-flash-preview-09-2025` |
+| **Launch Stage** | Public Preview                     |
+| **Release Date** | September 25, 2025                 |
 
 #### gemini-2.5-flash-image (Image Generation)
 
-| Property | Details |
-|----------|---------|
-| **Model ID** | `gemini-2.5-flash-image` |
-| **Capabilities** | Text and Image generation |
-| **Image Resolution** | 1024px |
-| **Aspect Ratios** | 1:1, 3:2, 2:3, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9 |
+| Property             | Details                                             |
+| -------------------- | --------------------------------------------------- |
+| **Model ID**         | `gemini-2.5-flash-image`                            |
+| **Capabilities**     | Text and Image generation                           |
+| **Image Resolution** | 1024px                                              |
+| **Aspect Ratios**    | 1:1, 3:2, 2:3, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9 |
 
 #### gemini-live-2.5-flash (Live API)
 
-| Property | Details |
-|----------|---------|
-| **Model ID** | `gemini-live-2.5-flash` |
-| **Launch Stage** | Private GA |
-| **Release Date** | June 17, 2025 |
+| Property         | Details                 |
+| ---------------- | ----------------------- |
+| **Model ID**     | `gemini-live-2.5-flash` |
+| **Launch Stage** | Private GA              |
+| **Release Date** | June 17, 2025           |
 
 ---
 
 ## Supported Inputs & Outputs
 
 ### Input Modalities
+
 - Text
 - Code
 - Images (up to 3,000 per prompt)
@@ -93,17 +93,20 @@ For detailed technical information including performance benchmarks, training da
 - Video (up to ~45 min with audio, ~1 hour without)
 
 ### Output Modalities
+
 - Text (all models)
 - Images (with `gemini-2.5-flash-image`)
 
 ### Technical Specifications
 
 #### Images
+
 - **Maximum images per prompt**: 3,000
 - **Maximum image size**: 7 MB
 - **Supported MIME types**: `image/png`, `image/jpeg`, `image/webp`
 
 #### Documents
+
 - **Maximum files per prompt**: 3,000
 - **Maximum pages per file**: 1,000
 - **Maximum file size (API/Cloud Storage)**: 50 MB
@@ -111,12 +114,14 @@ For detailed technical information including performance benchmarks, training da
 - **Supported MIME types**: `application/pdf`, `text/plain`
 
 #### Video
+
 - **Maximum video length (with audio)**: ~45 minutes
 - **Maximum video length (without audio)**: ~1 hour
 - **Maximum videos per prompt**: 10
 - **Supported MIME types**: `video/x-flv`, `video/quicktime`, `video/mpeg`, `video/mpegs`, `video/mpg`, `video/mp4`, `video/webm`, `video/wmv`, `video/3gpp`
 
 #### Audio
+
 - **Maximum audio length**: ~8.4 hours or up to 1 million tokens
 - **Maximum audio files per prompt**: 1
 - **Speech capabilities**: Audio summarization, transcription, translation
@@ -129,6 +134,7 @@ For detailed technical information including performance benchmarks, training da
 ### Core Features
 
 ✅ **Supported:**
+
 - [Grounding with Google Search](https://cloud.google.com/vertex-ai/generative-ai/docs/grounding/grounding-with-google-search)
 - [Code execution](https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/code-execution)
 - [Tuning](https://cloud.google.com/vertex-ai/generative-ai/docs/models/tune-models)
@@ -144,11 +150,13 @@ For detailed technical information including performance benchmarks, training da
 ### Usage Types
 
 ✅ **Supported:**
+
 - [Provisioned Throughput](https://cloud.google.com/vertex-ai/generative-ai/docs/provisioned-throughput)
 - [Dynamic shared quota](https://cloud.google.com/vertex-ai/generative-ai/docs/dsq)
 - [Batch prediction](https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/batch-prediction-gemini)
 
 ❌ **Not Supported:**
+
 - Fixed quota
 
 ---
@@ -217,6 +225,7 @@ pip install --upgrade google-genai
 ```
 
 Set environment variables:
+
 ```bash
 export GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID
 export GOOGLE_CLOUD_LOCATION=global
@@ -230,6 +239,7 @@ npm install @google/genai
 ```
 
 Set environment variables:
+
 ```bash
 export GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID
 export GOOGLE_CLOUD_LOCATION=global
@@ -239,6 +249,7 @@ export GOOGLE_GENAI_USE_VERTEXAI=True
 ### Java Gen AI SDK
 
 Add to your `pom.xml`:
+
 ```xml
 <dependencies>
   <dependency>
@@ -250,6 +261,7 @@ Add to your `pom.xml`:
 ```
 
 Set environment variables:
+
 ```bash
 export GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID
 export GOOGLE_CLOUD_LOCATION=global
@@ -365,7 +377,7 @@ for part in response.candidates[0].content.parts:
 
 ```javascript
 const fs = require('fs');
-const {GoogleGenAI, Modality} = require('@google/genai');
+const { GoogleGenAI, Modality } = require('@google/genai');
 
 const GOOGLE_CLOUD_PROJECT = process.env.GOOGLE_CLOUD_PROJECT;
 const GOOGLE_CLOUD_LOCATION = process.env.GOOGLE_CLOUD_LOCATION || 'us-central1';
@@ -586,7 +598,7 @@ print(response.text)
 #### Node.js
 
 ```javascript
-const {GoogleGenAI} = require('@google/genai');
+const { GoogleGenAI } = require('@google/genai');
 
 const GOOGLE_CLOUD_PROJECT = process.env.GOOGLE_CLOUD_PROJECT;
 const GOOGLE_CLOUD_LOCATION = process.env.GOOGLE_CLOUD_LOCATION || 'global';
@@ -711,6 +723,7 @@ Images are tokenized as follows:
 1. **Single image for text detection**: Use one image per prompt for OCR tasks
 2. **Place images before text**: In single-image prompts
 3. **Index multiple images**: Use labels like `image 1`, `image 2`, `image 3`
+
    ```
    image 1
    image 2
@@ -719,6 +732,7 @@ Images are tokenized as follows:
    Write a blogpost about my day using image 1 and image 2.
    Then, give me ideas for tomorrow based on image 3.
    ```
+
 4. **Use high-resolution images**: Better results with higher quality
 5. **Include examples**: Few-shot prompting improves accuracy
 6. **Rotate images**: Ensure proper orientation
@@ -740,6 +754,7 @@ Images are tokenized as follows:
 ### Generation Parameters
 
 #### Temperature
+
 - **Range**: 0.0 - 2.0
 - **Default**: 1.0
 - **Description**: Controls randomness in token selection
@@ -747,15 +762,18 @@ Images are tokenized as follows:
   - Higher (2.0): More creative, diverse responses
 
 #### Top-P
+
 - **Range**: 0.0 - 1.0
 - **Default**: 0.95
 - **Description**: Nucleus sampling - tokens are selected from most probable to least until sum of probabilities equals top-P
 
 #### Top-K
+
 - **Value**: 64 (fixed)
 - **Description**: Samples from top K most probable tokens
 
 #### Candidate Count
+
 - **Range**: 1 - 8
 - **Default**: 1
 - **Description**: Number of response variations to generate
@@ -792,6 +810,7 @@ safety_settings=[
 ```
 
 **Threshold Options:**
+
 - `BLOCK_NONE`
 - `BLOCK_LOW_AND_ABOVE`
 - `BLOCK_MEDIUM_AND_ABOVE`
@@ -822,7 +841,7 @@ print(response.text)
 #### Node.js
 
 ```javascript
-const {GoogleGenAI} = require('@google/genai');
+const { GoogleGenAI } = require('@google/genai');
 
 const client = new GoogleGenAI({
   vertexai: true,
@@ -919,7 +938,7 @@ print(response.code_execution_result)
 #### Node.js
 
 ```javascript
-const {GoogleGenAI} = require('@google/genai');
+const { GoogleGenAI } = require('@google/genai');
 
 const client = new GoogleGenAI({
   vertexai: true,
@@ -929,9 +948,10 @@ const client = new GoogleGenAI({
 
 const response = await client.models.generateContent({
   model: 'gemini-2.5-flash',
-  contents: 'What is the sum of the first 50 prime numbers? Generate and run code for the calculation.',
+  contents:
+    'What is the sum of the first 50 prime numbers? Generate and run code for the calculation.',
   config: {
-    tools: [{codeExecution: {}}],
+    tools: [{ codeExecution: {} }],
     temperature: 0,
   },
 });
@@ -985,6 +1005,7 @@ Gemini 2.5 Flash uses **Dynamic Shared Quota (DSQ)**, which:
 - ⚠️ Requests may be queued during high demand periods
 
 **Models using DSQ:**
+
 - `gemini-2.5-flash`
 - `gemini-2.5-flash-preview-09-2025`
 - `gemini-2.5-flash-image`
@@ -995,6 +1016,7 @@ Gemini 2.5 Flash uses **Dynamic Shared Quota (DSQ)**, which:
 ### Rate Limit Recommendations
 
 For **production workloads** requiring guaranteed capacity:
+
 - Use [Provisioned Throughput](https://cloud.google.com/vertex-ai/generative-ai/docs/provisioned-throughput)
 - Provides dedicated resources and predictable performance
 - Eliminates queueing during high demand
@@ -1008,37 +1030,37 @@ For **production workloads** requiring guaranteed capacity:
 
 ### Text Embedding Limits
 
-| Quota | Value |
-|-------|-------|
-| Embed content input tokens per minute | 5,000,000 |
-| Maximum input texts per request | 250 |
-| Maximum tokens per request | 20,000 |
-| Maximum tokens used per input | 2,048 (first 2,048 tokens) |
+| Quota                                 | Value                      |
+| ------------------------------------- | -------------------------- |
+| Embed content input tokens per minute | 5,000,000                  |
+| Maximum input texts per request       | 250                        |
+| Maximum tokens per request            | 20,000                     |
+| Maximum tokens used per input         | 2,048 (first 2,048 tokens) |
 
 ### Vertex AI Agent Engine Limits
 
-| Description | Limit |
-|-------------|-------|
-| Create/delete/update operations per minute | 10 |
-| Create/delete/update sessions per minute | 100 |
-| Query/StreamQuery per minute | 90 |
-| Append event to sessions per minute | 300 |
-| Maximum resources | 100 |
-| Memory resources operations per minute | 100 |
-| Memory Bank operations per minute | 300 |
-| Code Execution requests per minute | 1000 |
-| Code Execution entities per region | 1000 |
-| A2A Agent post requests per minute | 60 |
-| A2A Agent get requests per minute | 600 |
-| Concurrent BidiStreamQuery connections per minute | 10 |
+| Description                                       | Limit |
+| ------------------------------------------------- | ----- |
+| Create/delete/update operations per minute        | 10    |
+| Create/delete/update sessions per minute          | 100   |
+| Query/StreamQuery per minute                      | 90    |
+| Append event to sessions per minute               | 300   |
+| Maximum resources                                 | 100   |
+| Memory resources operations per minute            | 100   |
+| Memory Bank operations per minute                 | 300   |
+| Code Execution requests per minute                | 1000  |
+| Code Execution entities per region                | 1000  |
+| A2A Agent post requests per minute                | 60    |
+| A2A Agent get requests per minute                 | 600   |
+| Concurrent BidiStreamQuery connections per minute | 10    |
 
 ### Gen AI Evaluation Service Quotas
 
-| Request Quota | Default Quota |
-|---------------|---------------|
+| Request Quota                          | Default Quota                 |
+| -------------------------------------- | ----------------------------- |
 | Evaluation service requests per minute | 1,000 requests/project/region |
-| Online prediction | See model quotas |
-| Request timeout | 60 seconds |
+| Online prediction                      | See model quotas              |
+| Request timeout                        | 60 seconds                    |
 
 ---
 
@@ -1049,6 +1071,7 @@ For detailed pricing information, visit the official [Vertex AI Pricing Page](ht
 ### Pricing Model
 
 Gemini 2.5 Flash uses **pay-as-you-go** pricing based on:
+
 - **Input tokens**: Charged per 1,000 tokens
 - **Output tokens**: Charged per 1,000 tokens
 - **Image inputs**: Charged per image
@@ -1069,9 +1092,11 @@ Gemini 2.5 Flash uses **pay-as-you-go** pricing based on:
 ### Model Availability (DSQ & Provisioned Throughput)
 
 **Global:**
+
 - `global`
 
 **United States:**
+
 - `us-central1`
 - `us-east1`
 - `us-east4`
@@ -1081,6 +1106,7 @@ Gemini 2.5 Flash uses **pay-as-you-go** pricing based on:
 - `us-west4`
 
 **Europe:**
+
 - `europe-central2`
 - `europe-north1`
 - `europe-southwest1`
@@ -1091,25 +1117,30 @@ Gemini 2.5 Flash uses **pay-as-you-go** pricing based on:
 ### ML Processing Regions
 
 **United States:**
+
 - Multi-region
 
 **Canada:**
+
 - `northamerica-northeast1`+ (Supervised fine-tuning not supported)
 
 **Europe:**
+
 - Multi-region
-- `europe-west2`* + (128K context only, no fine-tuning)
-- `europe-west3`* + (128K context only, no fine-tuning)
-- `europe-west9`* + (128K context only, no fine-tuning)
+- `europe-west2`\* + (128K context only, no fine-tuning)
+- `europe-west3`\* + (128K context only, no fine-tuning)
+- `europe-west9`\* + (128K context only, no fine-tuning)
 
 **Asia Pacific:**
-- `asia-northeast1`* + (128K context only, no fine-tuning)
-- `asia-northeast3`* + (128K context only, no fine-tuning)
-- `asia-south1`* + (128K context only, no fine-tuning)
+
+- `asia-northeast1`\* + (128K context only, no fine-tuning)
+- `asia-northeast3`\* + (128K context only, no fine-tuning)
+- `asia-south1`\* + (128K context only, no fine-tuning)
 - `asia-southeast1`+
-- `australia-southeast1`* + (128K context only, no fine-tuning)
+- `australia-southeast1`\* + (128K context only, no fine-tuning)
 
 **Legend:**
+
 - \+ Supervised fine-tuning not supported
 - \* Available for 128K context window only, no fine-tuning
 
@@ -1137,6 +1168,7 @@ For comprehensive security information, see [Security Controls Documentation](ht
 Gemini 2.5 Flash supports a wide range of languages. For the complete list, see [Supported Languages Documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/models#expandable-1).
 
 **Best Performance Languages (Image Generation):**
+
 - English (EN)
 - Spanish - Mexico (es-MX)
 - Japanese (ja-JP)
@@ -1353,6 +1385,7 @@ response = client.models.generate_content(
 **Problem**: `401 Unauthorized` or authentication failures
 
 **Solutions:**
+
 ```bash
 # Re-authenticate
 gcloud auth application-default login
@@ -1369,6 +1402,7 @@ gcloud config get-value project
 **Problem**: Rate limit or quota errors
 
 **Solutions:**
+
 - Implement exponential backoff
 - Use Provisioned Throughput for guaranteed capacity
 - Batch requests efficiently
@@ -1379,6 +1413,7 @@ gcloud config get-value project
 **Problem**: Content blocked by safety filters
 
 **Solutions:**
+
 - Adjust safety thresholds (if appropriate)
 - Rephrase prompts to avoid triggering filters
 - Review content policy guidelines
@@ -1389,6 +1424,7 @@ gcloud config get-value project
 **Problem**: High latency
 
 **Solutions:**
+
 - Use streaming for long responses
 - Optimize prompt length
 - Consider regional endpoints
@@ -1399,6 +1435,7 @@ gcloud config get-value project
 **Problem**: Images not processed correctly
 
 **Solutions:**
+
 - Verify MIME types are correct
 - Check image file sizes (max 7 MB)
 - Ensure images are in supported formats (PNG, JPEG, WebP)
@@ -1410,23 +1447,27 @@ gcloud config get-value project
 ## Additional Resources
 
 ### Official Documentation
+
 - [Vertex AI Documentation](https://cloud.google.com/vertex-ai/docs)
 - [Gemini API Reference](https://cloud.google.com/vertex-ai/docs/reference)
 - [Generative AI on Vertex AI](https://cloud.google.com/vertex-ai/generative-ai/docs)
 
 ### SDKs and Libraries
+
 - [Python Gen AI SDK](https://googleapis.github.io/python-genai/)
 - [Node.js Gen AI SDK](https://googleapis.github.io/js-genai/)
 - [Java Gen AI SDK](https://central.sonatype.com/artifact/com.google.genai/google-genai)
 - [Go Gen AI SDK](https://pkg.go.dev/google.golang.org/genai)
 
 ### Community and Support
+
 - [Google Cloud Console](https://console.cloud.google.com/)
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/google-cloud-vertex-ai)
 - [Google Cloud Support](https://cloud.google.com/support)
 - [Issue Tracker](https://issuetracker.google.com/issues?q=componentid:187204)
 
 ### Related Services
+
 - [Vertex AI Studio](https://cloud.google.com/vertex-ai/docs/generative-ai/start/quickstarts/quickstart-multimodal)
 - [Vertex AI RAG Engine](https://cloud.google.com/vertex-ai/generative-ai/docs/rag-engine/rag-overview)
 - [Vertex AI Agent Engine](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/overview)

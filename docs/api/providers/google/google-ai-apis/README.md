@@ -5,9 +5,11 @@ This directory contains comprehensive API documentation for Google's AI models a
 ## Contents
 
 ### 1. Imagen API (`imagen-api.md`)
+
 Documentation for Google's Imagen 3 and Imagen 4 image generation models.
 
 **Key Features:**
+
 - Text-to-image generation
 - Image upscaling
 - Multiple model versions (Imagen 3.0, 4.0)
@@ -15,14 +17,17 @@ Documentation for Google's Imagen 3 and Imagen 4 image generation models.
 - Prompt enhancement with LLM
 
 **Use Cases:**
+
 - Generate images from text descriptions
 - Upscale low-resolution images
 - Create variations of existing images
 
 ### 2. Veo API (`veo-api.md`)
+
 Documentation for Google's Veo video generation models (Veo 2.0, 3.0, and 3.1).
 
 **Key Features:**
+
 - Text-to-video generation
 - Image-to-video generation
 - Reference images for style and assets
@@ -32,15 +37,18 @@ Documentation for Google's Veo video generation models (Veo 2.0, 3.0, and 3.1).
 - 720p and 1080p resolution options
 
 **Use Cases:**
+
 - Generate videos from text prompts
 - Animate static images
 - Create video content with specific styles
 - Generate videos with synchronized audio
 
 ### 3. Gemini Models (`gemini-models.md`)
+
 Documentation for Google's Gemini family of multimodal AI models.
 
 **Models Covered:**
+
 - **Gemini 2.5 Pro** - Most advanced reasoning model
 - **Gemini 2.5 Flash** - Best price-performance model
 - **Gemini 2.5 Flash Image** (NEW!) - Image generation and editing
@@ -49,6 +57,7 @@ Documentation for Google's Gemini family of multimodal AI models.
 - **Gemini 2.5 Flash-Lite** - Ultra-fast, cost-efficient
 
 **Key Features:**
+
 - 1M+ token context window
 - Multimodal inputs (text, image, audio, video, PDF)
 - Function calling
@@ -82,13 +91,13 @@ const response = await fetch(
   {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${accessToken}`,
+      Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       instances: [{ prompt: 'A serene mountain landscape' }],
-      parameters: { sampleCount: 1 }
-    })
+      parameters: { sampleCount: 1 },
+    }),
   }
 );
 ```
@@ -101,7 +110,7 @@ const response = await fetch(
   {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${accessToken}`,
+      Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -109,9 +118,9 @@ const response = await fetch(
       parameters: {
         durationSeconds: 8,
         generateAudio: true,
-        aspectRatio: '16:9'
-      }
-    })
+        aspectRatio: '16:9',
+      },
+    }),
   }
 );
 ```
@@ -131,15 +140,18 @@ console.log(result.response.text());
 ## API Endpoints
 
 ### Imagen
+
 - **Endpoint**: `https://LOCATION-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/LOCATION/publishers/google/models/MODEL_VERSION:predict`
 - **Region**: us-central1, europe-west2, asia-northeast3
 
 ### Veo
+
 - **Endpoint**: `https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/MODEL_ID:predictLongRunning`
 - **Status Check**: `https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/MODEL_ID:fetchPredictOperation`
 - **Region**: us-central1 only
 
 ### Gemini
+
 - **Endpoint**: Uses `@google/generative-ai` SDK
 - **Regions**: Multiple regions available
 
@@ -161,15 +173,18 @@ PROJECT_ID='your-project-id'
 ## Rate Limits
 
 ### Imagen
+
 - Requests per minute: Varies by model
 - Images per request: 1-8 (depending on model)
 
 ### Veo
+
 - Requests per minute: 10 (Veo 3.1)
 - Videos per request: 1-4
 - Processing time: 1-5 minutes per video
 
 ### Gemini
+
 - Varies by model and tier
 - Use batch API for large-scale processing
 - Caching available for repeated contexts
@@ -193,6 +208,7 @@ PROJECT_ID='your-project-id'
 ## Integration Examples
 
 See the `/lib` directory for integration examples:
+
 - `/lib/veo.ts` - Veo 3.1 integration
 - `/lib/gemini.ts` - Gemini integration
 - `/app/api/video/` - Video generation API routes
@@ -201,16 +217,19 @@ See the `/lib` directory for integration examples:
 ## Resources
 
 ### Official Documentation
+
 - [Imagen on Vertex AI](https://cloud.google.com/vertex-ai/generative-ai/docs/image/overview)
 - [Veo on Vertex AI](https://cloud.google.com/vertex-ai/generative-ai/docs/video/overview)
 - [Gemini API](https://ai.google.dev/gemini-api/docs)
 
 ### Getting Started
+
 - [Get Gemini API Key](https://aistudio.google.com/apikey)
 - [Google Cloud Console](https://console.cloud.google.com/)
 - [Vertex AI Studio](https://console.cloud.google.com/vertex-ai/studio)
 
 ### Community
+
 - [Gemini API Community](https://discuss.ai.google.dev/c/gemini-api/)
 - [Gemini Cookbook](https://github.com/google-gemini/cookbook)
 

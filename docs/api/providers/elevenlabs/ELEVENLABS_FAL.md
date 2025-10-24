@@ -42,12 +42,14 @@ All models are accessible through the Fal.ai platform with simple REST API integ
 **Endpoint:** `fal-ai/elevenlabs/tts/eleven-v3`
 
 **Features:**
+
 - 70+ languages supported
 - Advanced audio tags and dialogue mode
 - Most emotionally rich output
 - Best for: audiobooks, character dialogues, emotional content
 
 **Limitations:**
+
 - Higher latency (not suitable for real-time/conversational use)
 - Requires more prompt engineering
 - Alpha stage (subject to changes)
@@ -61,6 +63,7 @@ All models are accessible through the Fal.ai platform with simple REST API integ
 **Endpoint:** `fal-ai/elevenlabs/tts/turbo-v2.5`
 
 **Features:**
+
 - Ultra-low latency (~250-300ms)
 - 32 languages
 - 50% lower cost than Multilingual v2
@@ -76,6 +79,7 @@ All models are accessible through the Fal.ai platform with simple REST API integ
 **Endpoint:** `fal-ai/elevenlabs/tts/multilingual-v2`
 
 **Features:**
+
 - 29 languages
 - High-quality, emotionally nuanced speech
 - 10,000 character limit
@@ -92,20 +96,23 @@ All Fal.ai ElevenLabs endpoints require authentication using an API Key.
 ### Setting up Authentication
 
 #### Environment Variable (Recommended)
+
 ```bash
 export FAL_KEY="your-fal-api-key-here"
 ```
 
 #### Manual Configuration (JavaScript/TypeScript)
+
 ```javascript
-import { fal } from "@fal-ai/client";
+import { fal } from '@fal-ai/client';
 
 fal.config({
-  credentials: "YOUR_FAL_KEY"
+  credentials: 'YOUR_FAL_KEY',
 });
 ```
 
 #### Manual Configuration (Python)
+
 ```python
 import fal_client
 
@@ -132,22 +139,22 @@ fal_client.config(
 
 ### Input Parameters
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `text` | string | Yes | - | Text to convert to speech (max 3,000 characters) |
-| `voice_id` | string | Yes | - | ElevenLabs voice ID |
-| `model_id` | string | No | "eleven_v3" | Model identifier |
-| `voice_settings` | object | No | - | Voice configuration settings |
-| `language_code` | string | No | - | ISO 639-1 language code |
+| Parameter        | Type   | Required | Default     | Description                                      |
+| ---------------- | ------ | -------- | ----------- | ------------------------------------------------ |
+| `text`           | string | Yes      | -           | Text to convert to speech (max 3,000 characters) |
+| `voice_id`       | string | Yes      | -           | ElevenLabs voice ID                              |
+| `model_id`       | string | No       | "eleven_v3" | Model identifier                                 |
+| `voice_settings` | object | No       | -           | Voice configuration settings                     |
+| `language_code`  | string | No       | -           | ISO 639-1 language code                          |
 
 ### Voice Settings
 
 ```json
 {
-  "stability": 0.5,           // 0.0-1.0: Voice consistency
-  "similarity_boost": 0.75,   // 0.0-1.0: Voice clarity/similarity
-  "style": 0.0,               // 0.0-1.0: Style exaggeration
-  "use_speaker_boost": true   // Boolean: Enhance speaker characteristics
+  "stability": 0.5, // 0.0-1.0: Voice consistency
+  "similarity_boost": 0.75, // 0.0-1.0: Voice clarity/similarity
+  "style": 0.0, // 0.0-1.0: Style exaggeration
+  "use_speaker_boost": true // Boolean: Enhance speaker characteristics
 }
 ```
 
@@ -164,29 +171,29 @@ fal_client.config(
 ### Example Request (JavaScript)
 
 ```javascript
-import { fal } from "@fal-ai/client";
+import { fal } from '@fal-ai/client';
 
-const result = await fal.subscribe("fal-ai/elevenlabs/tts/eleven-v3", {
+const result = await fal.subscribe('fal-ai/elevenlabs/tts/eleven-v3', {
   input: {
-    text: "Hello! This is the most emotionally expressive text-to-speech model from ElevenLabs.",
-    voice_id: "21m00Tcm4TlvDq8ikWAM", // Rachel voice
+    text: 'Hello! This is the most emotionally expressive text-to-speech model from ElevenLabs.',
+    voice_id: '21m00Tcm4TlvDq8ikWAM', // Rachel voice
     voice_settings: {
       stability: 0.5,
       similarity_boost: 0.75,
       style: 0.5,
-      use_speaker_boost: true
+      use_speaker_boost: true,
     },
-    language_code: "en"
+    language_code: 'en',
   },
   logs: true,
   onQueueUpdate: (update) => {
-    if (update.status === "IN_PROGRESS") {
-      console.log("Processing:", update.logs?.map(l => l.message).join("\n"));
+    if (update.status === 'IN_PROGRESS') {
+      console.log('Processing:', update.logs?.map((l) => l.message).join('\n'));
     }
-  }
+  },
 });
 
-console.log("Audio URL:", result.data.audio_url);
+console.log('Audio URL:', result.data.audio_url);
 ```
 
 ### Example Request (Python)
@@ -222,28 +229,28 @@ print("Audio URL:", result["audio_url"])
 
 ### Input Parameters
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `text` | string | Yes | - | Text to convert to speech (max 40,000 characters) |
-| `voice_id` | string | Yes | - | ElevenLabs voice ID |
-| `model_id` | string | No | "eleven_turbo_v2_5" | Model identifier |
-| `voice_settings` | object | No | - | Voice configuration settings |
-| `output_format` | string | No | "mp3_44100_128" | Audio output format |
+| Parameter        | Type   | Required | Default             | Description                                       |
+| ---------------- | ------ | -------- | ------------------- | ------------------------------------------------- |
+| `text`           | string | Yes      | -                   | Text to convert to speech (max 40,000 characters) |
+| `voice_id`       | string | Yes      | -                   | ElevenLabs voice ID                               |
+| `model_id`       | string | No       | "eleven_turbo_v2_5" | Model identifier                                  |
+| `voice_settings` | object | No       | -                   | Voice configuration settings                      |
+| `output_format`  | string | No       | "mp3_44100_128"     | Audio output format                               |
 
 ### Example Request (JavaScript)
 
 ```javascript
-import { fal } from "@fal-ai/client";
+import { fal } from '@fal-ai/client';
 
-const result = await fal.subscribe("fal-ai/elevenlabs/tts/turbo-v2.5", {
+const result = await fal.subscribe('fal-ai/elevenlabs/tts/turbo-v2.5', {
   input: {
-    text: "This is ultra-fast text-to-speech for real-time applications.",
-    voice_id: "21m00Tcm4TlvDq8ikWAM",
-    output_format: "mp3_44100_128"
-  }
+    text: 'This is ultra-fast text-to-speech for real-time applications.',
+    voice_id: '21m00Tcm4TlvDq8ikWAM',
+    output_format: 'mp3_44100_128',
+  },
 });
 
-console.log("Audio URL:", result.data.audio_url);
+console.log('Audio URL:', result.data.audio_url);
 ```
 
 ---
@@ -256,13 +263,13 @@ console.log("Audio URL:", result.data.audio_url);
 
 ### Input Parameters
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `text` | string | Yes | - | Text to convert to speech (max 10,000 characters) |
-| `voice_id` | string | Yes | - | ElevenLabs voice ID |
-| `model_id` | string | No | "eleven_multilingual_v2" | Model identifier |
-| `voice_settings` | object | No | - | Voice configuration settings |
-| `language_code` | string | No | - | ISO 639-1 language code |
+| Parameter        | Type   | Required | Default                  | Description                                       |
+| ---------------- | ------ | -------- | ------------------------ | ------------------------------------------------- |
+| `text`           | string | Yes      | -                        | Text to convert to speech (max 10,000 characters) |
+| `voice_id`       | string | Yes      | -                        | ElevenLabs voice ID                               |
+| `model_id`       | string | No       | "eleven_multilingual_v2" | Model identifier                                  |
+| `voice_settings` | object | No       | -                        | Voice configuration settings                      |
+| `language_code`  | string | No       | -                        | ISO 639-1 language code                           |
 
 ### Example Request (Python)
 
@@ -288,14 +295,14 @@ print("Audio URL:", result["audio_url"])
 ### Complete Implementation (JavaScript/TypeScript)
 
 ```javascript
-import { fal } from "@fal-ai/client";
+import { fal } from '@fal-ai/client';
 
 // Configure authentication
 fal.config({
-  credentials: process.env.FAL_KEY
+  credentials: process.env.FAL_KEY,
 });
 
-async function generateSpeech(text, voiceId, model = "eleven-v3") {
+async function generateSpeech(text, voiceId, model = 'eleven-v3') {
   try {
     const endpoint = `fal-ai/elevenlabs/tts/${model}`;
 
@@ -306,42 +313,42 @@ async function generateSpeech(text, voiceId, model = "eleven-v3") {
         voice_settings: {
           stability: 0.5,
           similarity_boost: 0.75,
-          use_speaker_boost: true
-        }
+          use_speaker_boost: true,
+        },
       },
       logs: true,
       onQueueUpdate: (update) => {
-        if (update.status === "IN_PROGRESS") {
+        if (update.status === 'IN_PROGRESS') {
           console.log(`Status: ${update.status}`);
         }
-      }
+      },
     });
 
     return {
       audioUrl: result.data.audio_url,
-      duration: result.data.duration_seconds
+      duration: result.data.duration_seconds,
     };
   } catch (error) {
-    console.error("Generation failed:", error);
+    console.error('Generation failed:', error);
     throw error;
   }
 }
 
 // Usage examples
 const audiobook = await generateSpeech(
-  "Once upon a time in a land far away...",
-  "21m00Tcm4TlvDq8ikWAM",
-  "eleven-v3"
+  'Once upon a time in a land far away...',
+  '21m00Tcm4TlvDq8ikWAM',
+  'eleven-v3'
 );
 
 const conversational = await generateSpeech(
-  "Hello! How can I help you today?",
-  "21m00Tcm4TlvDq8ikWAM",
-  "turbo-v2.5"
+  'Hello! How can I help you today?',
+  '21m00Tcm4TlvDq8ikWAM',
+  'turbo-v2.5'
 );
 
-console.log("Audiobook:", audiobook.audioUrl);
-console.log("Conversational:", conversational.audioUrl);
+console.log('Audiobook:', audiobook.audioUrl);
+console.log('Conversational:', conversational.audioUrl);
 ```
 
 ### Queue Management (Python)
@@ -442,13 +449,14 @@ audio_url = generate_speech_with_retry(
 
 ### Model Pricing Comparison
 
-| Model | Character Limit | Relative Cost | Best For |
-|-------|----------------|---------------|----------|
-| **Eleven v3** | 3,000 | Standard | Emotional, expressive content |
-| **Turbo v2.5** | 40,000 | 50% lower | Real-time, conversational |
-| **Multilingual v2** | 10,000 | Standard | Professional content |
+| Model               | Character Limit | Relative Cost | Best For                      |
+| ------------------- | --------------- | ------------- | ----------------------------- |
+| **Eleven v3**       | 3,000           | Standard      | Emotional, expressive content |
+| **Turbo v2.5**      | 40,000          | 50% lower     | Real-time, conversational     |
+| **Multilingual v2** | 10,000          | Standard      | Professional content          |
 
 **Pricing Model:**
+
 - Pay-per-use, no subscription required
 - Charged per character processed
 - Failed requests (5xx errors) not charged
@@ -477,18 +485,21 @@ audio_url = generate_speech_with_retry(
 ### Model Selection
 
 **Choose Eleven v3 when:**
+
 - Emotional expression is critical
 - Audiobook or narrative content
 - Character dialogues with distinct emotions
 - Quality is more important than speed
 
 **Choose Turbo v2.5 when:**
+
 - Real-time applications
 - Conversational AI/chatbots
 - High-volume processing
 - Cost optimization is important
 
 **Choose Multilingual v2 when:**
+
 - Professional content production
 - Video narration
 - E-learning materials
@@ -504,6 +515,7 @@ audio_url = generate_speech_with_retry(
 ### Voice Selection
 
 Popular voices:
+
 - **Rachel** (`21m00Tcm4TlvDq8ikWAM`): American female, clear
 - **Adam** (`pNInz6obpgDQGcFmaJgB`): American male, deep
 - **Antoni** (`ErXwobaYiN019PkySvjV`): American male, warm
@@ -524,21 +536,23 @@ Browse all voices at [ElevenLabs Voice Library](https://elevenlabs.io/voice-libr
 ### Common Errors
 
 #### 422 Validation Error
+
 **Cause**: Invalid input parameters
 
 ```javascript
 // Check character limits
-if (text.length > 3000 && model === "eleven-v3") {
-  throw new Error("Text exceeds 3,000 character limit for Eleven v3");
+if (text.length > 3000 && model === 'eleven-v3') {
+  throw new Error('Text exceeds 3,000 character limit for Eleven v3');
 }
 
 // Validate voice_id
 if (!voice_id) {
-  throw new Error("voice_id is required");
+  throw new Error('voice_id is required');
 }
 ```
 
 #### 429 Rate Limit Error
+
 **Cause**: Too many concurrent requests
 
 ```javascript
@@ -550,7 +564,7 @@ async function retryWithBackoff(fn, maxRetries = 5) {
       if (error.status === 429 && i < maxRetries - 1) {
         const delay = Math.pow(2, i) * 1000;
         console.log(`Rate limited. Retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       } else {
         throw error;
       }
@@ -560,6 +574,7 @@ async function retryWithBackoff(fn, maxRetries = 5) {
 ```
 
 #### 500 Server Error
+
 **Cause**: Internal server error (not charged)
 
 ```python
@@ -576,6 +591,7 @@ except fal_client.ServerError as e:
 ## Additional Resources
 
 ### Official Documentation
+
 - [Fal.ai Documentation](https://fal.ai/docs)
 - [ElevenLabs Eleven v3](https://fal.ai/models/fal-ai/elevenlabs/tts/eleven-v3)
 - [ElevenLabs Turbo v2.5](https://fal.ai/models/fal-ai/elevenlabs/tts/turbo-v2.5)
@@ -583,11 +599,13 @@ except fal_client.ServerError as e:
 - [ElevenLabs Voice Library](https://elevenlabs.io/voice-library)
 
 ### Support
+
 - **Email**: support@fal.ai
 - **Discord**: [Join Fal.ai Community](https://discord.gg/fal-ai)
 - **Status**: [status.fal.ai](https://status.fal.ai/)
 
 ### Client Libraries
+
 - **JavaScript/TypeScript**: [@fal-ai/client](https://www.npmjs.com/package/@fal-ai/client)
 - **Python**: [fal-client](https://pypi.org/project/fal-client/)
 
@@ -596,6 +614,7 @@ except fal_client.ServerError as e:
 ## Changelog
 
 ### October 10, 2025
+
 - Initial documentation for ElevenLabs TTS via Fal.ai
 - Added Eleven v3, Turbo v2.5, and Multilingual v2 endpoints
 - Comprehensive code examples in JavaScript and Python
