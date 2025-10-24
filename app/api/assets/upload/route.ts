@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createServerSupabaseClient, ensureHttpsProtocol } from '@/lib/supabase';
 import crypto from 'crypto';
+import sanitize from 'sanitize-filename';
 import { serverLogger } from '@/lib/serverLogger';
 import {
   unauthorizedResponse,
@@ -50,6 +51,7 @@ const VALID_ASSET_TYPES = ['image', 'video', 'audio'] as const;
  * - MIME type validation per asset type
  * - Ownership verification for project access
  * - Unique filenames with UUID to prevent collisions
+ * - Original filename sanitized to prevent path traversal attacks
  *
  * Allowed MIME types:
  * - image: image/jpeg, image/png, image/gif, image/webp, image/avif
@@ -317,6 +319,12 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   const assetId = crypto.randomUUID();
   const storageUrl = `supabase://assets/${filePath}`;
 
+  // SECURITY: Sanitize the original filename to prevent path traversal attacks
+  // This removes dangerous characters like '../', '\', and null bytes that could be used
+  // to escape the intended directory or cause filesystem issues. The actual stored file
+  // uses a UUID-based name for security, but we sanitize the display name in metadata.
+  const sanitizedOriginalName = sanitize(originalName || fileName);
+
   const { error: dbError } = await supabase.from('assets').insert({
     id: assetId,
     project_id: projectId,
@@ -328,7 +336,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     height,
     source: 'upload',
     metadata: {
-      filename: originalName || fileName,
+      filename: sanitizedOriginalName,
       mimeType: file.type,
       sourceUrl: publicUrl,
       size: file.size,
@@ -381,7 +389,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     user_id: user.id,
     project_id: projectId,
     activity_type: activityTypeMap[type] || 'image_upload',
-    title: originalName || fileName,
+    title: sanitizedOriginalName,
     description: `Uploaded ${type}`,
     asset_id: assetId,
     metadata: {
