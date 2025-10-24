@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
-import { validateString, validateUUID, validateAll } from '@/lib/api/validation';
+import { validateString, validateUUID, validateAll, validateBoolean } from '@/lib/api/validation';
+import type { ValidationError } from '@/lib/api/validation';
 import {
   errorResponse,
   unauthorizedResponse,
@@ -10,6 +11,7 @@ import {
   rateLimitResponse,
   internalServerError,
   withErrorHandling,
+  successResponse,
 } from '@/lib/api/response';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
 
@@ -108,38 +110,30 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   const body: SunoGenerateRequest = await req.json();
   const { prompt, style, title, customMode = false, instrumental = false, projectId } = body;
 
-  // Validate customMode and instrumental are booleans
-  if (typeof customMode !== 'boolean') {
-    return validationError('Custom mode must be a boolean', 'customMode');
-  }
-  if (typeof instrumental !== 'boolean') {
-    return validationError('Instrumental must be a boolean', 'instrumental');
-  }
+  // Validate all inputs using centralized validation utilities
+  try {
+    validateAll(() => {
+      validateUUID(projectId, 'projectId');
+      validateBoolean(customMode, 'customMode');
+      validateBoolean(instrumental, 'instrumental');
 
-  // Build validation array based on customMode
-  const validations = [validateUUID(projectId, 'projectId')];
+      if (!customMode) {
+        validateString(prompt, 'prompt', { minLength: 3, maxLength: 1000 });
+      }
 
-  if (!customMode && prompt) {
-    validations.push(validateString(prompt, 'prompt', { minLength: 3, maxLength: 1000 }));
-  } else if (!customMode) {
-    return validationError('Prompt is required for non-custom mode', 'prompt');
-  }
+      if (customMode) {
+        validateString(style, 'style', { minLength: 2, maxLength: 200 });
+      }
 
-  if (customMode) {
-    if (!style) {
-      return validationError('Style is required for custom mode', 'style');
+      if (title) {
+        validateString(title, 'title', { required: false, maxLength: 100 });
+      }
+    });
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return validationError(error.message, error.field);
     }
-    validations.push(validateString(style, 'style', { minLength: 2, maxLength: 200 }));
-  }
-
-  if (title) {
-    validations.push(validateString(title, 'title', { required: false, maxLength: 100 }));
-  }
-
-  const validation = validateAll(validations);
-  if (!validation.valid) {
-    const firstError = validation.errors[0];
-    return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
+    throw error;
   }
 
   // Verify project ownership using centralized verification
@@ -230,7 +224,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     `Suno music generation started successfully in ${duration}ms`
   );
 
-  return NextResponse.json({
+  return successResponse({
     taskId: result.data.taskId,
     message: 'Audio generation started',
   });

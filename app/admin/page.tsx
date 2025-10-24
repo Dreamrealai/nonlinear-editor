@@ -8,7 +8,7 @@ import { UserProfile, UserTier } from '@/lib/types/subscription';
 import toast, { Toaster } from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 
-export default function AdminDashboard() {
+export default function AdminDashboard(): React.ReactElement {
   const router = useRouter();
   const { supabaseClient } = useSupabase();
   const [currentUserProfile, setCurrentUserProfile] = useState<UserProfile | null>(null);
@@ -19,10 +19,13 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!supabaseClient) return;
 
-    const loadData = async () => {
+    const loadData = async (): Promise<void> => {
       try {
         // Get current user
-        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+        const {
+          data: { user },
+          error: authError,
+        } = await supabaseClient.auth.getUser();
         if (authError || !user) {
           router.push('/signin');
           return;
@@ -74,7 +77,7 @@ export default function AdminDashboard() {
     loadData();
   }, [supabaseClient, router]);
 
-  const handleChangeTier = async (userId: string, newTier: UserTier) => {
+  const handleChangeTier = async (userId: string, newTier: UserTier): Promise<void> => {
     if (!supabaseClient) return;
 
     setActionLoading(userId);
@@ -112,7 +115,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleDeleteUser = async (userId: string, userEmail: string) => {
+  const handleDeleteUser = async (userId: string, userEmail: string): Promise<void> => {
     if (!supabaseClient) return;
 
     const confirmed = confirm(
@@ -138,7 +141,7 @@ export default function AdminDashboard() {
       }
 
       // Remove user from local state
-      setUsers(users.filter(u => u.id !== userId));
+      setUsers(users.filter((u) => u.id !== userId));
 
       toast.success('User deleted successfully');
     } catch (error) {
@@ -167,9 +170,9 @@ export default function AdminDashboard() {
 
   const stats = {
     total: users.length,
-    free: users.filter(u => u.tier === 'free').length,
-    premium: users.filter(u => u.tier === 'premium').length,
-    admin: users.filter(u => u.tier === 'admin').length,
+    free: users.filter((u) => u.tier === 'free').length,
+    premium: users.filter((u) => u.tier === 'premium').length,
+    admin: users.filter((u) => u.tier === 'admin').length,
   };
 
   return (
@@ -183,7 +186,12 @@ export default function AdminDashboard() {
             className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 transition-colors mb-4"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
             Back to Projects
           </Link>
@@ -244,17 +252,25 @@ export default function AdminDashboard() {
                       {user.email}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                        user.tier === 'admin' ? 'bg-purple-100 text-purple-900' :
-                        user.tier === 'premium' ? 'bg-blue-100 text-blue-900' :
-                        'bg-neutral-100 text-neutral-900'
-                      }`}>
+                      <span
+                        className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                          user.tier === 'admin'
+                            ? 'bg-purple-100 text-purple-900'
+                            : user.tier === 'premium'
+                              ? 'bg-blue-100 text-blue-900'
+                              : 'bg-neutral-100 text-neutral-900'
+                        }`}
+                      >
                         {user.tier.toUpperCase()}
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-xs text-neutral-600">
-                      <div>{user.video_minutes_used}/{user.video_minutes_limit} min</div>
-                      <div>{user.ai_requests_used}/{user.ai_requests_limit} AI</div>
+                      <div>
+                        {user.video_minutes_used}/{user.video_minutes_limit} min
+                      </div>
+                      <div>
+                        {user.ai_requests_used}/{user.ai_requests_limit} AI
+                      </div>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-600">
                       {new Date(user.created_at).toLocaleDateString()}

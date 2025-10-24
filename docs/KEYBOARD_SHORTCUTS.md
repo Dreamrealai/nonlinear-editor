@@ -115,34 +115,95 @@ For developers working on the codebase:
 
 ### Hook Usage
 
-```typescript
-import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts';
+The editor now uses the advanced `useGlobalKeyboardShortcuts` hook for centralized shortcut management:
 
-// In your component
-useKeyboardShortcuts({
-  enabled: true,
-  onPlayPause: handlePlayPause,
-  onSave: handleSave,
-  onExport: handleExport,
-  onShowHelp: handleShowHelp,
-  onSplitClip: handleSplitClip,
+```typescript
+import {
+  useGlobalKeyboardShortcuts,
+  type KeyboardShortcut,
+} from '@/lib/hooks/useGlobalKeyboardShortcuts';
+
+// Define shortcuts with categories
+const editorShortcuts: KeyboardShortcut[] = [
+  {
+    id: 'undo',
+    keys: ['meta', 'z'],
+    description: 'Undo',
+    category: 'editing',
+    action: handleUndo,
+  },
+  // ... more shortcuts
+];
+
+// Register shortcuts
+useGlobalKeyboardShortcuts({
+  shortcuts: editorShortcuts,
+  enabled: !showModal, // Disable when modal is open
+  disableInInputs: true,
 });
 ```
+
+### Integration Points
+
+**Main Editor**: `/app/editor/[projectId]/BrowserEditorClient.tsx`
+
+- Defines all editor shortcuts with categories
+- Integrates KeyboardShortcutsHelp modal
+- Manages shortcut state (enabled/disabled based on context)
+
+**Keyboard Shortcuts Infrastructure**:
+
+- Primary hook: `useGlobalKeyboardShortcuts` (centralized, priority-based)
+- Legacy hook: `useKeyboardShortcuts` (simpler, specific actions)
+- Help modal: `KeyboardShortcutsHelp` component with category grouping
 
 ### Testing
 
 Comprehensive tests are available in:
 
-- `/Users/davidchen/Projects/non-linear-editor/__tests__/lib/hooks/useKeyboardShortcuts.test.ts`
+- `__tests__/lib/hooks/useKeyboardShortcuts.test.ts`
 
 ### Files
 
 Key files implementing keyboard shortcuts:
 
-- `/Users/davidchen/Projects/non-linear-editor/lib/hooks/useKeyboardShortcuts.ts` - Main shortcuts hook
-- `/Users/davidchen/Projects/non-linear-editor/lib/hooks/useGlobalKeyboardShortcuts.ts` - Advanced shortcuts system
-- `/Users/davidchen/Projects/non-linear-editor/lib/hooks/useTimelineKeyboardShortcuts.ts` - Timeline-specific shortcuts
-- `/Users/davidchen/Projects/non-linear-editor/components/KeyboardShortcutsHelp.tsx` - Help modal component
+- `lib/hooks/useKeyboardShortcuts.ts` - Simple shortcuts hook (legacy)
+- `lib/hooks/useGlobalKeyboardShortcuts.ts` - **Advanced shortcuts system (recommended)**
+- `components/KeyboardShortcutsHelp.tsx` - Help modal component with category display
+- `app/editor/[projectId]/BrowserEditorClient.tsx` - Main integration point
+
+### Adding New Shortcuts
+
+To add a new shortcut to the editor:
+
+1. Define a handler function in BrowserEditorClient.tsx:
+
+```typescript
+const handleMyAction = useCallback(() => {
+  // Your action logic here
+}, [dependencies]);
+```
+
+2. Add the shortcut to the `editorShortcuts` array:
+
+```typescript
+{
+  id: 'my-action',
+  keys: ['meta', 'k'],  // Cmd+K or Ctrl+K
+  description: 'My custom action',
+  category: 'editing',  // or 'general', 'playback', 'navigation'
+  action: handleMyAction,
+  priority: 10,  // Optional: higher = executes first
+}
+```
+
+3. Add the handler to the dependencies array:
+
+```typescript
+[handleUndo, handleRedo, ..., handleMyAction]
+```
+
+The shortcut will automatically appear in the help modal under its category.
 
 ## Future Enhancements
 
