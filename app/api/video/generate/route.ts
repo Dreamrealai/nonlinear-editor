@@ -118,13 +118,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     'Video generation request received'
   );
 
-  const supabase =
-    (await createServerSupabaseClient()) ??
-    ((globalThis as Record<string, unknown>).__TEST_SUPABASE_CLIENT__ as any);
-
-  if (!supabase) {
-    throw new Error('Supabase client is not available for video generation');
-  }
+  const supabase = await createServerSupabaseClient();
 
   // Check authentication
   const {
@@ -140,10 +134,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       },
       'Unauthorized video generation attempt'
     );
-    return ensureResponse(
-      unauthorizedResponse(),
-      () => NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    );
+    return unauthorizedResponse();
   }
 
   serverLogger.debug(
@@ -172,18 +163,10 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       },
       'Video generation rate limit exceeded'
     );
-    return ensureResponse(
-      rateLimitResponse(rateLimitResult.limit, rateLimitResult.remaining, rateLimitResult.resetAt),
-      () =>
-        NextResponse.json(
-          {
-            error: 'Rate limit exceeded',
-            limit: rateLimitResult.limit,
-            remaining: rateLimitResult.remaining,
-            resetAt: rateLimitResult.resetAt,
-          },
-          { status: 429 }
-        )
+    return rateLimitResponse(
+      rateLimitResult.limit,
+      rateLimitResult.remaining,
+      rateLimitResult.resetAt
     );
   }
 
@@ -240,14 +223,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       },
       'Unsupported video generation model requested'
     );
-    return ensureResponse(
-      validationError('Unsupported video generation model', 'model'),
-      () =>
-        NextResponse.json(
-          { error: 'Unsupported video generation model', field: 'model' },
-          { status: 400 }
-        )
-    );
+    return validationError('Unsupported video generation model', 'model');
   }
 
   // Validate all inputs using centralized validation utilities
@@ -266,9 +242,8 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     const firstError = validation.errors[0];
 
     if (!firstError) {
-      return ensureResponse(
-        validationError('Validation failed'),
-        () => NextResponse.json({ error: 'Validation failed' }, { status: 400 })
+      return ensureResponse(validationError('Validation failed'), () =>
+        NextResponse.json({ error: 'Validation failed' }, { status: 400 })
       );
     }
 
@@ -281,13 +256,8 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       },
       `Validation error: ${firstError.message}`
     );
-    return ensureResponse(
-      validationError(firstError.message, firstError.field),
-      () =>
-        NextResponse.json(
-          { error: firstError.message, field: firstError.field },
-          { status: 400 }
-        )
+    return ensureResponse(validationError(firstError.message, firstError.field), () =>
+      NextResponse.json({ error: firstError.message, field: firstError.field }, { status: 400 })
     );
   }
 
@@ -317,7 +287,14 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   if (imageAssetId) {
     const assetVerification = await verifyAssetOwnership(supabase, imageAssetId, user.id);
     if (!assetVerification.hasAccess) {
-      return errorResponse(assetVerification.error!, assetVerification.status!);
+      return ensureResponse(
+        errorResponse(assetVerification.error!, assetVerification.status!),
+        () =>
+          NextResponse.json(
+            { error: assetVerification.error ?? 'Asset access denied' },
+            { status: assetVerification.status ?? 404 }
+          )
+      );
     }
 
     const imageAsset = assetVerification.asset!;
