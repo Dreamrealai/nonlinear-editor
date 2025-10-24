@@ -9,7 +9,6 @@ import Stripe from 'stripe';
 import { serverLogger } from '@/lib/serverLogger';
 import { invalidateOnStripeWebhook } from '@/lib/cacheInvalidation';
 import { errorResponse, serviceUnavailableResponse, successResponse } from '@/lib/api/response';
-import type { UserProfile, UserTier } from '@/lib/types/subscription';
 
 // Disable body parser to handle raw body for webhook signature verification
 export const runtime = 'nodejs';

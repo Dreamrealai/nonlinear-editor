@@ -68,7 +68,7 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
   height,
   zoom = 50, // Default zoom level
   className = '',
-}): JSX.Element | null {
+}): React.JSX.Element | null {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [waveformData, setWaveformData] = useState<Float32Array | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -143,7 +143,8 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
         } else {
           // Fallback: Process on main thread (if workers unavailable)
           const audioContext = new (window.AudioContext ||
-            (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+            (window as unknown as { webkitAudioContext: typeof AudioContext })
+              .webkitAudioContext)();
           const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
 
           if (isCancelled) {

@@ -57,7 +57,10 @@ interface ActivityEntryProps {
   formatDate: (dateString: string) => string;
 }
 
-const ActivityEntry = React.memo<ActivityEntryProps>(function ActivityEntry({ entry, formatDate }): JSX.Element {
+const ActivityEntry = React.memo<ActivityEntryProps>(function ActivityEntry({
+  entry,
+  formatDate,
+}): React.JSX.Element {
   return (
     <div
       key={entry.id}
@@ -108,7 +111,7 @@ const ActivityEntry = React.memo<ActivityEntryProps>(function ActivityEntry({ en
   );
 });
 
-export const ActivityHistory = React.memo(function ActivityHistory(): JSX.Element {
+export const ActivityHistory = React.memo(function ActivityHistory(): React.JSX.Element {
   const { supabaseClient } = useSupabase();
   const [history, setHistory] = useState<ActivityHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -231,9 +234,11 @@ export const ActivityHistory = React.memo(function ActivityHistory(): JSX.Elemen
       ) : (
         <div className="space-y-3">
           <div className="max-h-96 overflow-y-auto">
-            {history.map((entry): JSX.Element => (
-              <ActivityEntry key={entry.id} entry={entry} formatDate={formatDate} />
-            ))}
+            {history.map(
+              (entry): React.JSX.Element => (
+                <ActivityEntry key={entry.id} entry={entry} formatDate={formatDate} />
+              )
+            )}
           </div>
           <div className="pt-2 text-center text-xs text-neutral-500">
             Showing {history.length} {history.length === 1 ? 'entry' : 'entries'}

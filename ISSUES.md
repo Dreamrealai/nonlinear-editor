@@ -1,7 +1,7 @@
 # Codebase Issues Tracker
 
 **Last Updated:** 2025-10-24
-**Status:** ✅ **All Critical Bugs Fixed!** (0 open bugs, 65 issues resolved)
+**Status:** ✅ **All Critical Bugs Fixed!** (0 open bugs, 66 issues resolved)
 **Priority Breakdown:** P0: 0 | P1: 0 | P2: 0 | P3: 0
 
 ---
@@ -222,7 +222,7 @@ addClip: (clip: Clip) =>
 
 This tracker previously contained 67 issues (3453 lines). After comprehensive resolution efforts:
 
-- **65 issues resolved** (bugs, technical debt, and missing features)
+- **66 issues resolved** (bugs, technical debt, and missing features)
 - **2 feature requests** moved to FEATURES_BACKLOG.md
 - **Document reduced by 93%** (3453 → 245 lines) for better readability
 
@@ -231,6 +231,7 @@ This tracker previously contained 67 issues (3453 lines). After comprehensive re
 - 2025-10-24: Major cleanup effort, 10 subagents + manual work
 - 2025-10-24: All P0, P1, P2, P3 issues resolved
 - 2025-10-24: Document restructured, features moved to backlog
+- 2025-10-24: Issue #5 - Fixed JSX namespace errors in ActivityHistory.tsx and AudioWaveform.tsx
 
 For detailed implementation notes on resolved issues, see:
 
