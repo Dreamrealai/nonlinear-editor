@@ -2,6 +2,8 @@
 
 import { Copy, Clipboard, Trash2, Files, Info, Volume2, Film, Music } from 'lucide-react';
 import { useState } from 'react';
+import { useEditorStore } from '@/state/useEditorStore';
+import type { Clip } from '@/types/timeline';
 
 type TimelineContextMenuProps = {
   clipId: string;

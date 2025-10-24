@@ -266,17 +266,20 @@ This document tracks all open issues in the codebase. Fixed/resolved issues are 
 
 ### Issue #83: Duplicate Password Validation Files
 
-- **Status:** Open
+- **Status:** Fixed
 - **Priority:** P1
 - **Effort:** 1-2 hours
 - **Impact:** 184 LOC duplicated across 2 files
+- **Fixed:** 2025-10-24
+- **Validation:** Complete
 
-**Files:**
+**Resolution:**
 
-- `/lib/validation/password.ts` (98 LOC) - settings page
-- `/lib/password-validation.ts` (86 LOC) - signup/reset
-
-**Action:** Consolidate into single implementation
+- Removed duplicate file `/lib/password-validation.ts`
+- Consolidated into single implementation at `/lib/validation/password.ts`
+- All imports updated to use canonical location (`@/lib/validation/password`)
+- Both test files verified to import from correct location
+- Test files cover different function sets (backward compatibility vs. new API)
 
 ---
 
