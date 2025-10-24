@@ -30,7 +30,7 @@
     "test:all": "npm run test && npm run test:e2e",
     "clean": "rm -rf .next out coverage playwright-report test-results .turbo",
     "clean:deps": "rm -rf node_modules package-lock.json && npm install",
-    "postinstall": "npm run validate:env || echo 'Warning: Environment validation failed'",
+    "postinstall": "npm run validate:env || true",
     "prepare": "husky"
   },
   "dependencies": {

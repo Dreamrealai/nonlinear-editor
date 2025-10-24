@@ -14,7 +14,11 @@ export function generateNonce(): string {
   // Use Web Crypto API (available in Edge Runtime)
   const array = new Uint8Array(16);
   crypto.getRandomValues(array);
-  return Buffer.from(array).toString('base64');
+
+  // Use btoa for Edge Runtime compatibility (Buffer not available in Edge)
+  // Convert Uint8Array to base64 using btoa (available in both Node.js and Edge)
+  const binaryString = String.fromCharCode(...array);
+  return btoa(binaryString);
 }
 
 /**
