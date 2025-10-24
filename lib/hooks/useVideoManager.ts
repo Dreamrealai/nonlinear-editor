@@ -17,7 +17,7 @@ import {
 } from '@/lib/utils/videoUtils';
 
 export interface UseVideoManagerOptions {
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
   timeline: Timeline | null;
 }
 
