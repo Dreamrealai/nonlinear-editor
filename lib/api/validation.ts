@@ -512,13 +512,13 @@ export function validateAll(validations: (ValidationError | null | { valid: bool
         if (Array.isArray(validationResult.errors) && validationResult.errors.length > 0) {
           validationResult.errors.forEach((item) => {
             errors.push({
-              field: item.field ?? validationResult.field,
+              field: item.field ?? validationResult.field ?? 'unknown',
               message: item.message ?? validationResult.message ?? 'Invalid input',
             });
           });
         } else {
           errors.push({
-            field: validationResult.field,
+            field: validationResult.field ?? 'unknown',
             message: validationResult.message ?? 'Invalid input',
           });
         }

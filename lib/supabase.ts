@@ -35,19 +35,27 @@ import { createBrowserClient, createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import type { CookieOptions } from '@supabase/ssr';
 
+// Define Logger interface matching serverLogger structure
+interface Logger {
+  warn: (context: Record<string, unknown>, message: string) => void;
+  error?: (context: Record<string, unknown>, message: string) => void;
+  info?: (context: Record<string, unknown>, message: string) => void;
+  debug?: (context: Record<string, unknown>, message: string) => void;
+}
+
 // Conditional import of serverLogger for server-only contexts
 // Cannot use serverLogger in Edge Runtime or client components
-let serverLogger: any;
-if (typeof window === 'undefined' && typeof EdgeRuntime === 'undefined') {
+let serverLogger: Logger;
+if (typeof window === 'undefined' && typeof (globalThis as unknown as { EdgeRuntime?: string }).EdgeRuntime === 'undefined') {
   try {
     serverLogger = require('./serverLogger').serverLogger;
   } catch {
     // Fallback to console if serverLogger is not available
-    serverLogger = console;
+    serverLogger = console as Logger;
   }
 } else {
   // Use console in browser/edge contexts
-  serverLogger = console;
+  serverLogger = console as Logger;
 }
 
 const missingPublicConfigMessage =

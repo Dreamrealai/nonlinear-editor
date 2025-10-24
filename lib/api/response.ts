@@ -88,14 +88,16 @@ export function errorResponse(
 
   // Extend response body with field and details for backward compatibility
   if (field || details) {
-    return NextResponse.json(
-      {
-        error: message,
-        ...(field && { field }),
-        ...(details && { details }),
-      } as ErrorResponse,
-      { status }
-    );
+    const errorBody: ErrorResponse = {
+      error: message,
+    };
+    if (field) {
+      errorBody.field = field;
+    }
+    if (details !== undefined) {
+      errorBody.details = details;
+    }
+    return NextResponse.json(errorBody, { status });
   }
 
   return response as NextResponse<ErrorResponse>;

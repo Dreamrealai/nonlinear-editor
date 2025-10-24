@@ -3,8 +3,8 @@ import { connection } from 'next/server';
 import { headers } from 'next/headers';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import SupabaseProvider from '@/components/providers/SupabaseProvider';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { SupabaseProvider } from '@/components/providers/SupabaseProvider';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { WebVitals } from '@/components/WebVitals';
 import { CSP_NONCE_HEADER } from '@/lib/security/csp';
 

@@ -1,7 +1,6 @@
-import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
-import { errorResponse, internalServerError } from '@/lib/api/response';
+import { errorResponse, internalServerError, successResponse } from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
 
 interface Voice {
@@ -48,7 +47,7 @@ async function handleGetVoices() {
 
       const result: VoicesResponse = await response.json();
 
-      return NextResponse.json({
+      return successResponse({
         voices: result.voices,
       });
     } catch (error) {

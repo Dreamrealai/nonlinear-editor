@@ -4,7 +4,7 @@ import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase
 import { getCachedProjectMetadata } from '@/lib/cachedData';
 import { EditorHeader } from '@/components/EditorHeader';
 import { GenerateVideoTab } from '@/components/generation/GenerateVideoTab';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 /**
  * CACHING STRATEGY:

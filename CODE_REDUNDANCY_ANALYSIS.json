@@ -1,0 +1,401 @@
+{
+  "summary": "Comprehensive code redundancy analysis identified 94+ instances of duplicate code, similar patterns, and consolidation opportunities across 476 source files. Major findings include: 2 complete validation systems (549 + 537 LOC), 2 LoadingSpinner implementations, 4+ complete component duplicates in keyframes/, 3 time formatting functions, and extensive API route pattern duplication. Estimated potential reduction: 2,500-3,500 lines of code (5-7% of codebase).",
+  
+  "metrics": {
+    "total_source_files": 476,
+    "duplicate_functions_found": 28,
+    "similar_components": 12,
+    "redundant_types": 8,
+    "consolidation_opportunities": 15,
+    "estimated_loc_reduction": "2500-3500",
+    "percentage_reduction": "5-7%"
+  },
+
+  "duplicate_code_blocks": [
+    {
+      "category": "Validation Systems",
+      "severity": "CRITICAL",
+      "files": [
+        "lib/validation.ts (549 LOC)",
+        "lib/api/validation.ts (537 LOC)"
+      ],
+      "description": "Two complete validation systems with 90% overlapping functionality. Both implement: validateUUID, validateString, validateEnum, validateInteger/IntegerRange, validateNumber, validateBoolean, validateUrl, validateAspectRatio, validateDuration, validateSeed, validateSampleCount, validateSafetyFilterLevel, validatePersonGeneration",
+      "lines": "lib/validation.ts: 1-549, lib/api/validation.ts: 1-537",
+      "consolidation_strategy": "MERGE: Keep lib/validation.ts as the canonical source with assertion-based validators (throws ValidationError). Keep lib/api/validation.ts as a thin wrapper that returns ValidationError | null for API routes that prefer null-based validation. Share common validation constants (VALID_ASPECT_RATIOS, VALID_DURATIONS, etc.) and the ValidationError class definition.",
+      "estimated_savings": "400-450 LOC"
+    },
+    {
+      "category": "UI Components",
+      "severity": "HIGH",
+      "files": [
+        "components/LoadingSpinner.tsx",
+        "components/ui/LoadingSpinner.tsx"
+      ],
+      "description": "Two LoadingSpinner components with different implementations. First uses CSS border animation with size variants (sm/md/lg/xl), optional text. Second uses lucide-react Loader2 icon with numeric size prop.",
+      "lines": "components/LoadingSpinner.tsx: 1-43, components/ui/LoadingSpinner.tsx: 1-14",
+      "consolidation_strategy": "DELETE components/LoadingSpinner.tsx and update all imports to use components/ui/LoadingSpinner.tsx. Enhance the ui version to support text labels if needed. The lucide-react implementation is simpler and more maintainable.",
+      "estimated_savings": "30-40 LOC"
+    },
+    {
+      "category": "Keyframe Components",
+      "severity": "HIGH",
+      "files": [
+        "components/keyframes/KeyframePreview.tsx",
+        "components/keyframes/components/KeyframePreview.tsx"
+      ],
+      "description": "Nearly identical KeyframePreview components (79 and 94 lines respectively). Only difference is type imports - first imports from hooks/useFramesData, second defines types inline.",
+      "lines": "Both files: lines 1-79/94",
+      "consolidation_strategy": "DELETE one version. Move shared types (SceneRow, SceneFrameRow) to types/keyframes.ts. Keep components/keyframes/components/KeyframePreview.tsx as canonical version.",
+      "estimated_savings": "75-80 LOC"
+    },
+    {
+      "category": "Keyframe Components",
+      "severity": "HIGH",
+      "files": [
+        "components/keyframes/KeyframeSidebar.tsx",
+        "components/keyframes/components/KeyframeSidebar.tsx"
+      ],
+      "description": "Nearly identical KeyframeSidebar components (194 and 207 lines). Both have same structure, formatMs helper, and UI. Minor prop differences (hasAssetVideoUrl vs canExtractFrame, selectedAssetId presence).",
+      "lines": "Both files: lines 1-194/207",
+      "consolidation_strategy": "DELETE one version. Unify prop interfaces, keep components/keyframes/components/KeyframeSidebar.tsx. Extract formatMs to shared utility lib/utils/timeUtils.ts.",
+      "estimated_savings": "190-200 LOC"
+    },
+    {
+      "category": "Keyframe Components",
+      "severity": "HIGH",
+      "files": [
+        "components/keyframes/KeyframeEditControls.tsx",
+        "components/keyframes/components/EditControls.tsx"
+      ],
+      "description": "Nearly identical edit control components (248 and 261 lines). Same UI structure for mode toggle, crop controls, prompt textarea, reference images. Different prop patterns (direct setters vs callbacks).",
+      "lines": "Both files: lines 1-248/261",
+      "consolidation_strategy": "DELETE one version. Standardize on callback pattern from EditControls.tsx for better encapsulation. Keep components/keyframes/components/EditControls.tsx.",
+      "estimated_savings": "240-250 LOC"
+    },
+    {
+      "category": "Time Formatting",
+      "severity": "MEDIUM",
+      "files": [
+        "lib/utils/timelineUtils.ts",
+        "lib/utils/videoUtils.ts",
+        "components/keyframes/utils.ts"
+      ],
+      "description": "Three different time formatting functions: formatTime (MM:SS.CS), formatTimecode (MM:SS:FF at 30fps), formatMs (MM:SS from milliseconds). All doing similar work with slight variations.",
+      "lines": "timelineUtils.ts: 9-14, videoUtils.ts: 258-271, keyframes/utils.ts: 11-18",
+      "consolidation_strategy": "CREATE lib/utils/timeUtils.ts with: formatTime(seconds, format: 'timecode' | 'centiseconds' | 'milliseconds'). Centralize all time formatting logic. Update all usages.",
+      "estimated_savings": "20-30 LOC + improved consistency"
+    },
+    {
+      "category": "Error Response",
+      "severity": "MEDIUM",
+      "files": [
+        "lib/api/errorResponse.ts",
+        "lib/api/response.ts"
+      ],
+      "description": "errorResponse.ts (144 LOC) is the core implementation. response.ts (340 LOC) wraps it for backward compatibility, adding field/details params. Both export ErrorResponse type (slightly different), ErrorContext type, and helper functions.",
+      "lines": "errorResponse.ts: 1-144, response.ts: 1-340",
+      "consolidation_strategy": "KEEP BOTH but document relationship clearly. errorResponse.ts is canonical for new code. response.ts provides backward-compatible wrappers (errorResponse, successResponse, validationError, etc.). Consider deprecating response.ts duplicated helpers in favor of ErrorResponses object.",
+      "estimated_savings": "50-100 LOC by removing duplicate helpers"
+    }
+  ],
+
+  "similar_patterns": [
+    {
+      "pattern_type": "API Route Structure",
+      "instances": [
+        "app/api/video/generate/route.ts",
+        "app/api/image/generate/route.ts",
+        "app/api/audio/suno/generate/route.ts",
+        "app/api/audio/elevenlabs/generate/route.ts",
+        "...16 total generation routes"
+      ],
+      "description": "All AI generation routes follow identical pattern: (1) Import validation utilities, (2) withAuth middleware, (3) Rate limiting (TIER 2), (4) Request validation with validateString/validateUUID/validateEnum, (5) Project ownership verification, (6) Call AI service, (7) Store result in DB, (8) Return standardized response. 63 validation calls across 18 files.",
+      "unified_approach": "CREATE lib/api/generationRoute.ts with createGenerationRoute() factory that accepts: validationSchema, serviceCall, rateLimitTier. This would reduce each route to ~50 LOC config vs current ~200-300 LOC.",
+      "estimated_savings": "800-1200 LOC"
+    },
+    {
+      "pattern_type": "Validation Patterns in API Routes",
+      "instances": [
+        "Found 63 validation calls across 18 API route files",
+        "Common pattern: const error = validateX(...); if (error) return validationError(...)"
+      ],
+      "description": "Repetitive validation error handling in every API route. Each route manually checks validation errors and returns errorResponse. No centralized validation middleware.",
+      "unified_approach": "CREATE validateRequest() utility that takes validation array and throws on first error. Use try-catch with withErrorHandling wrapper. Example: validateRequest([ () => validateString(prompt, 'prompt', {...}), () => validateUUID(projectId, 'projectId') ])",
+      "estimated_savings": "200-300 LOC + consistency"
+    },
+    {
+      "pattern_type": "Type Definitions",
+      "instances": [
+        "lib/api/errorResponse.ts: ErrorContext interface",
+        "lib/errorTracking.ts: ErrorContext interface",
+        "lib/api/response.ts: ErrorResponse interface",
+        "lib/api/errorResponse.ts: ErrorResponse interface",
+        "lib/api/validation.ts: ValidationError interface",
+        "lib/validation.ts: ValidationError class",
+        "types/api.ts: ValidationError, BaseAPIError, ErrorResponse, etc."
+      ],
+      "description": "Multiple definitions of ErrorContext (2x), ErrorResponse (3x different structures), ValidationError (3x different forms). Creates type confusion and maintenance burden.",
+      "unified_approach": "CONSOLIDATE all error-related types in types/api.ts or types/errors.ts. Make all other files re-export from canonical source. Use type aliases and interface extension instead of duplication.",
+      "estimated_savings": "30-50 LOC + type safety"
+    },
+    {
+      "pattern_type": "Constants Duplication",
+      "instances": [
+        "lib/validation.ts: VALID_ASPECT_RATIOS, VALID_DURATIONS, VALID_SAFETY_LEVELS, VALID_PERSON_GENERATION, IMAGE_GENERATION_VALIDATORS",
+        "lib/api/validation.ts: VALID_ASPECT_RATIOS, VALID_DURATIONS, VALID_SAFETY_LEVELS, VALID_PERSON_GENERATION"
+      ],
+      "description": "Validation constants defined in both validation modules with identical values.",
+      "unified_approach": "MOVE all validation constants to lib/constants/validation.ts. Import and re-export from both validation modules.",
+      "estimated_savings": "20-30 LOC"
+    },
+    {
+      "pattern_type": "Supabase Client Creation",
+      "instances": [
+        "Multiple files use createServerSupabaseClient() directly",
+        "Pattern repeats: const supabase = createServerSupabaseClient(); const { data: { user } } = await supabase.auth.getUser();"
+      ],
+      "description": "Client creation and user fetching pattern repeated across API routes.",
+      "unified_approach": "ENHANCE withAuth middleware to inject supabase and user into request context, eliminating need for manual creation. Already partially implemented but not consistently used.",
+      "estimated_savings": "50-100 LOC"
+    }
+  ],
+
+  "refactoring_opportunities": [
+    {
+      "area": "Validation System Consolidation",
+      "priority": "P0 - Critical",
+      "current_duplication": "549 LOC + 537 LOC = 1086 LOC for two nearly identical validation systems",
+      "proposed_abstraction": "Merge into single canonical validation.ts with assertion-based validators. Create thin API wrapper for null-based validation if needed. Extract shared constants to lib/constants/validation.ts.",
+      "estimated_loc_reduction": "400-450 LOC",
+      "implementation_steps": [
+        "1. Move shared constants to lib/constants/validation.ts",
+        "2. Keep lib/validation.ts as canonical with assertion-based validators",
+        "3. Make lib/api/validation.ts a thin wrapper that catches ValidationError and returns null",
+        "4. Update all API routes to use consistent validation pattern",
+        "5. Remove duplicate type definitions"
+      ]
+    },
+    {
+      "area": "Keyframe Components Deduplication",
+      "priority": "P0 - Critical",
+      "current_duplication": "4 complete component duplicates: KeyframePreview (79+94 LOC), KeyframeSidebar (194+207 LOC), KeyframeEditControls/EditControls (248+261 LOC), plus type duplications",
+      "proposed_abstraction": "Delete components/keyframes/*.tsx, keep only components/keyframes/components/*.tsx. Move types to types/keyframes.ts. Extract formatMs to lib/utils/timeUtils.ts",
+      "estimated_loc_reduction": "550-600 LOC",
+      "implementation_steps": [
+        "1. Create types/keyframes.ts with SceneRow, SceneFrameRow, etc.",
+        "2. Create lib/utils/timeUtils.ts with formatMs and other time utilities",
+        "3. Delete components/keyframes/KeyframePreview.tsx, KeyframeSidebar.tsx, KeyframeEditControls.tsx",
+        "4. Update all imports to use components/keyframes/components/*",
+        "5. Run tests to verify no regressions"
+      ]
+    },
+    {
+      "area": "API Generation Routes Factory",
+      "priority": "P1 - High",
+      "current_duplication": "16+ generation routes with 200-300 LOC each following identical pattern. ~800-1200 LOC of duplicated boilerplate.",
+      "proposed_abstraction": "Create lib/api/createGenerationRoute.ts factory function that accepts: validationSchema (array of validators), serviceCall (async function), rateLimitTier, and returns configured route handler. Each route becomes 30-50 LOC config vs 200-300 LOC.",
+      "estimated_loc_reduction": "800-1200 LOC",
+      "implementation_steps": [
+        "1. Create createGenerationRoute<TRequest, TResponse>(config: RouteConfig) factory",
+        "2. Migrate one route (e.g., image/generate) to use factory",
+        "3. Test thoroughly to ensure all edge cases handled",
+        "4. Migrate remaining generation routes",
+        "5. Document pattern in docs/api/"
+      ]
+    },
+    {
+      "area": "Time Formatting Utilities",
+      "priority": "P1 - High",
+      "current_duplication": "3 separate time formatting functions scattered across codebase",
+      "proposed_abstraction": "Create lib/utils/timeUtils.ts with unified formatTime(value: number, options: FormatOptions) that supports: input format (seconds/ms), output format (timecode/centiseconds/mm:ss), fps for timecode. Deprecate individual formatters.",
+      "estimated_loc_reduction": "20-30 LOC + improved consistency",
+      "implementation_steps": [
+        "1. Create lib/utils/timeUtils.ts",
+        "2. Implement formatTime with options pattern",
+        "3. Migrate formatMs from keyframes/utils.ts",
+        "4. Migrate formatTime from timelineUtils.ts",
+        "5. Migrate formatTimecode from videoUtils.ts",
+        "6. Update all usages",
+        "7. Delete old implementations"
+      ]
+    },
+    {
+      "area": "Error Type Consolidation",
+      "priority": "P2 - Medium",
+      "current_duplication": "ErrorContext (2 defs), ErrorResponse (3 defs), ValidationError (3 forms) scattered across 6+ files",
+      "proposed_abstraction": "Move all error-related types to types/errors.ts as single source of truth. Use type aliases and re-exports in other modules. Unify ErrorResponse structure.",
+      "estimated_loc_reduction": "30-50 LOC + type safety",
+      "implementation_steps": [
+        "1. Create types/errors.ts with canonical definitions",
+        "2. Export ErrorContext, ErrorResponse, ValidationError",
+        "3. Update lib/api/errorResponse.ts to import and re-export",
+        "4. Update lib/api/response.ts to import and re-export",
+        "5. Update lib/validation.ts to import",
+        "6. Update types/api.ts to re-export",
+        "7. Remove duplicate definitions"
+      ]
+    },
+    {
+      "area": "Validation Constants",
+      "priority": "P2 - Medium",
+      "current_duplication": "VALID_ASPECT_RATIOS, VALID_DURATIONS, etc. defined in 2 places",
+      "proposed_abstraction": "Create lib/constants/validation.ts with all AI generation validation constants. Import in both validation modules.",
+      "estimated_loc_reduction": "20-30 LOC",
+      "implementation_steps": [
+        "1. Create lib/constants/validation.ts",
+        "2. Move all VALID_* constants",
+        "3. Import in lib/validation.ts",
+        "4. Import in lib/api/validation.ts",
+        "5. Remove duplicates"
+      ]
+    },
+    {
+      "area": "LoadingSpinner Component",
+      "priority": "P2 - Medium",
+      "current_duplication": "2 implementations with different APIs",
+      "proposed_abstraction": "Keep components/ui/LoadingSpinner.tsx (lucide-react based). Add optional text prop if needed. Delete components/LoadingSpinner.tsx. Update all 27+ usages.",
+      "estimated_loc_reduction": "30-40 LOC",
+      "implementation_steps": [
+        "1. Add text prop to ui/LoadingSpinner if needed",
+        "2. Find all imports of components/LoadingSpinner",
+        "3. Update to import from components/ui/LoadingSpinner",
+        "4. Update size props from sm/md/lg to numeric values",
+        "5. Delete components/LoadingSpinner.tsx",
+        "6. Run tests"
+      ]
+    }
+  ],
+
+  "detailed_findings": {
+    "api_routes": {
+      "total_routes": 38,
+      "generation_routes": 16,
+      "auth_middleware_usage": "16/38 routes use withAuth (42%)",
+      "validation_patterns": {
+        "validateUUID_calls": 63,
+        "validateString_calls": 45,
+        "validateEnum_calls": 28,
+        "files_with_validation": 18
+      },
+      "error_handling_patterns": {
+        "errorResponse_calls": 25,
+        "unauthorizedResponse_calls": 16,
+        "validationError_calls": 18
+      }
+    },
+    "components": {
+      "total_components": 75,
+      "duplicate_components": 4,
+      "similar_components": 8,
+      "components_using_useState": 27
+    },
+    "hooks": {
+      "total_hooks": 18,
+      "custom_hooks": 18,
+      "potential_consolidation": [
+        "usePolling + useSimplePolling could be unified",
+        "useKeyboardShortcuts + useGlobalKeyboardShortcuts + useTimelineKeyboardShortcuts have overlapping logic"
+      ]
+    },
+    "types": {
+      "total_type_files": 4,
+      "duplicate_interfaces": 8,
+      "types_needing_consolidation": [
+        "ErrorContext (2 definitions)",
+        "ErrorResponse (3 definitions)",
+        "ValidationError (3 forms)",
+        "SceneRow, SceneFrameRow (duplicated in components)"
+      ]
+    },
+    "utilities": {
+      "total_util_files": 6,
+      "time_formatting_functions": 3,
+      "duplicate_utilities": 5
+    }
+  },
+
+  "priority_matrix": {
+    "p0_critical": [
+      "Validation system consolidation (400-450 LOC savings)",
+      "Keyframe components deduplication (550-600 LOC savings)"
+    ],
+    "p1_high": [
+      "API generation routes factory (800-1200 LOC savings)",
+      "Time formatting utilities (20-30 LOC savings)"
+    ],
+    "p2_medium": [
+      "Error type consolidation (30-50 LOC savings)",
+      "Validation constants (20-30 LOC savings)",
+      "LoadingSpinner component (30-40 LOC savings)"
+    ],
+    "p3_low": [
+      "Hook consolidation opportunities",
+      "Response helper deduplication"
+    ]
+  },
+
+  "recommendations": [
+    {
+      "priority": "IMMEDIATE",
+      "action": "Merge validation systems (lib/validation.ts + lib/api/validation.ts)",
+      "rationale": "Largest single source of duplication with 1086 LOC. High risk of divergence and bugs.",
+      "impact": "400-450 LOC reduction, improved consistency, single source of truth"
+    },
+    {
+      "priority": "IMMEDIATE",
+      "action": "Delete duplicate keyframe components",
+      "rationale": "4 complete component duplicates creating maintenance burden and confusion",
+      "impact": "550-600 LOC reduction, clearer component structure"
+    },
+    {
+      "priority": "HIGH",
+      "action": "Create API generation route factory pattern",
+      "rationale": "16+ routes with identical boilerplate. Factory pattern would reduce each to 50 LOC config.",
+      "impact": "800-1200 LOC reduction, faster route development, consistency"
+    },
+    {
+      "priority": "MEDIUM",
+      "action": "Consolidate error types in types/errors.ts",
+      "rationale": "Multiple conflicting type definitions cause type confusion",
+      "impact": "30-50 LOC reduction, improved type safety"
+    },
+    {
+      "priority": "MEDIUM",
+      "action": "Create unified time formatting utility",
+      "rationale": "3 similar functions with slight variations. Should be one configurable function.",
+      "impact": "20-30 LOC reduction, consistency across codebase"
+    }
+  ],
+
+  "total_estimated_savings": {
+    "conservative_estimate": "2500 LOC (5.2% of codebase)",
+    "aggressive_estimate": "3500 LOC (7.3% of codebase)",
+    "breakdown": {
+      "validation_systems": "400-450 LOC",
+      "keyframe_components": "550-600 LOC",
+      "api_route_factory": "800-1200 LOC",
+      "time_utilities": "20-30 LOC",
+      "error_types": "30-50 LOC",
+      "constants": "20-30 LOC",
+      "loading_spinner": "30-40 LOC",
+      "response_helpers": "50-100 LOC",
+      "miscellaneous": "100-200 LOC"
+    }
+  },
+
+  "quality_impact": {
+    "maintainability": "HIGH - Single source of truth eliminates drift between duplicates",
+    "testability": "MEDIUM - Fewer code paths to test",
+    "consistency": "HIGH - Standardized patterns across codebase",
+    "onboarding": "HIGH - Clearer structure, less confusion about which version to use",
+    "bug_risk": "MEDIUM - Consolidation requires careful migration but reduces long-term bug risk"
+  },
+
+  "migration_risk_assessment": {
+    "validation_consolidation": "MEDIUM - Used in 18+ API routes, requires careful migration",
+    "keyframe_deletion": "LOW - Components appear to be in migration, newer versions in components/ subdir",
+    "api_factory": "HIGH - Touches 16 routes, requires extensive testing",
+    "type_consolidation": "MEDIUM - Wide usage but mostly transparent changes",
+    "time_utils": "LOW - Localized changes, easy to test"
+  }
+}

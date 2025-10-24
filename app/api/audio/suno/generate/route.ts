@@ -3,7 +3,6 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateString, validateUUID, validateAll, validateBoolean } from '@/lib/api/validation';
-import type { ValidationError } from '@/lib/api/validation';
 import {
   errorResponse,
   unauthorizedResponse,
@@ -111,29 +110,29 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   const { prompt, style, title, customMode = false, instrumental = false, projectId } = body;
 
   // Validate all inputs using centralized validation utilities
-  try {
-    validateAll(() => {
-      validateUUID(projectId, 'projectId');
-      validateBoolean(customMode, 'customMode');
-      validateBoolean(instrumental, 'instrumental');
+  const validationResults = [
+    validateUUID(projectId, 'projectId'),
+    validateBoolean(customMode, 'customMode'),
+    validateBoolean(instrumental, 'instrumental'),
+  ];
 
-      if (!customMode) {
-        validateString(prompt, 'prompt', { minLength: 3, maxLength: 1000 });
-      }
+  if (!customMode) {
+    validationResults.push(validateString(prompt, 'prompt', { minLength: 3, maxLength: 1000 }));
+  }
 
-      if (customMode) {
-        validateString(style, 'style', { minLength: 2, maxLength: 200 });
-      }
+  if (customMode) {
+    validationResults.push(validateString(style, 'style', { minLength: 2, maxLength: 200, required: true }));
+  }
 
-      if (title) {
-        validateString(title, 'title', { required: false, maxLength: 100 });
-      }
-    });
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      return validationError(error.message, error.field);
-    }
-    throw error;
+  if (title) {
+    validationResults.push(validateString(title, 'title', { required: false, maxLength: 100 }));
+  }
+
+  const validation = validateAll(validationResults);
+
+  if (!validation.valid) {
+    const firstError = validation.errors[0];
+    return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
   }
 
   // Verify project ownership using centralized verification

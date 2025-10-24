@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 import { getCachedProjectMetadata } from '@/lib/cachedData';
 import KeyframePageClient from './KeyframePageClient';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 /**
  * CACHING STRATEGY:
