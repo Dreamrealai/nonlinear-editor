@@ -6,6 +6,7 @@ const React = require('react');
 const createMockIcon = (name) => {
   // Return a simple function component instead of forwardRef to avoid issues
   function MockIcon(props) {
+    // Forward all props (including role, aria-label, className, style, etc.)
     return React.createElement('svg', {
       ...props,
       'data-testid': `icon-${name}`,

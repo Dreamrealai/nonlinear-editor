@@ -9,11 +9,11 @@ import {
   mockAuthenticatedUser,
   mockUnauthenticatedUser,
   resetAllMocks,
-} from '@/test-utils/mockSupabase';
+} from '@/__tests__/helpers/apiMocks';
 
 // Mock modules
 jest.mock('@/lib/supabase', () => {
-  const { createMockSupabaseClient } = jest.requireActual('@/test-utils/mockSupabase');
+  const { createMockSupabaseClient } = jest.requireActual('@/__tests__/helpers/apiMocks');
   const mockClient = createMockSupabaseClient();
 
   return {

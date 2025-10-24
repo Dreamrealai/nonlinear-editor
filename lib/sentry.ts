@@ -307,7 +307,7 @@ export function startTransaction(options: {
     {
       name: options.name,
       op: options.op,
-      data: options.data,
+      attributes: options.data as Record<string, string | number | boolean | undefined> || {},
     },
     (span): Sentry.Span => span
   );

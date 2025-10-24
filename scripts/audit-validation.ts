@@ -82,7 +82,9 @@ function analyzeRoute(filePath: string, baseDir: string): RouteInfo | null {
     const methodRegex = /export\s+async\s+function\s+(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)/g;
     let match;
     while ((match = methodRegex.exec(content)) !== null) {
-      httpMethods.push(match[1]);
+      if (match[1]) {
+        httpMethods.push(match[1]);
+      }
     }
 
     // Skip if no HTTP methods found (not a route handler)
@@ -193,7 +195,7 @@ function main() {
       if (!categories[route.category]) {
         categories[route.category] = [];
       }
-      categories[route.category].push(route);
+      categories[route.category]!.push(route);
     }
   });
 
@@ -210,7 +212,7 @@ function main() {
         if (!categoryBreakdown[route.category]) {
           categoryBreakdown[route.category] = [];
         }
-        categoryBreakdown[route.category].push(route);
+        categoryBreakdown[route.category]!.push(route);
       });
 
       for (const [cat, catRoutes] of Object.entries(categoryBreakdown)) {

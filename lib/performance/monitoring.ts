@@ -188,20 +188,6 @@ export function initWebVitalsMonitoring(): void {
     });
   });
 
-  // First Input Delay
-  onFID((metric: Metric): void => {
-    performanceStore.record({
-      name: 'web_vital_fid',
-      value: metric.value,
-      unit: 'ms',
-      timestamp: Date.now(),
-      metadata: {
-        rating: metric.rating,
-        navigationType: metric.navigationType,
-      },
-    });
-  });
-
   // Cumulative Layout Shift
   onCLS((metric: Metric): void => {
     performanceStore.record({

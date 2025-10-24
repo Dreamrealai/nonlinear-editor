@@ -161,9 +161,8 @@ class ReturnTypeFixer {
         return null;
       }
 
-      // Get the type text, preferring the source file for better import resolution
-      const sourceFile = node.getSourceFile();
-      let typeText = returnType.getText(node, sourceFile);
+      // Get the type text
+      let typeText = returnType.getText(node);
 
       // Clean up the type text
       typeText = this.cleanTypeText(typeText);
@@ -295,6 +294,8 @@ class ReturnTypeFixer {
 
     for (let i = 0; i < sourceFiles.length; i++) {
       const file = sourceFiles[i];
+
+      if (!file) continue;
 
       if (!this.options.verbose) {
         this.printProgress(i + 1, sourceFiles.length, file.getFilePath());

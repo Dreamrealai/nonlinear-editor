@@ -19,7 +19,7 @@
  * - Audio generation: Enabled by default in Veo 3.1
  */
 
-import { GoogleAuth } from 'google-auth-library';
+import { GoogleAuth, type AuthClient } from 'google-auth-library';
 
 /**
  * Parameters for Veo video generation request.

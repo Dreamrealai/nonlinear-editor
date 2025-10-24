@@ -1,0 +1,100 @@
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+{"level":30,"time":1761342994322,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342994323,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342994323,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342994325,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342994326,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342994327,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342994327,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342994328,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342994328,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342994329,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342994329,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342994330,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761342994330,"env":"development","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "✓ Sent 5 logs to Axiom".
+
+      88 |                 level: this.levelToString(levelNum),
+      89 |                 message: msg,
+    > 90 |                 source: 'server',
+         |                                 ^
+      91 |                 ...rest,
+      92 |               };
+      93 |             })
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at sendLogs (lib/axiomTransport.ts:90:33)
+
+A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
+
+Test Suites: 6 failed, 3 passed, 9 total
+Tests:       24 failed, 122 passed, 146 total
+Snapshots:   0 total
+Time:        1.094 s
+Ran all test suites matching __tests__/integration.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

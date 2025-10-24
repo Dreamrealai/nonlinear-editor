@@ -13,8 +13,7 @@ import {
   mockUnauthenticatedUser,
   mockQuerySuccess,
   mockQueryError,
-  resetAllMocks,
-} from '@/test-utils/mockSupabase';
+} from '@/__tests__/helpers/apiMocks';
 
 // Mock the Supabase module
 jest.mock('@/lib/supabase', () => ({
@@ -48,6 +47,35 @@ jest.mock('@/lib/validation', () => ({
   },
 }));
 
+// Mock withAuth wrapper
+jest.mock('@/lib/api/withAuth', () => ({
+  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+    const { createServerSupabaseClient } = require('@/lib/supabase');
+    const supabase = await createServerSupabaseClient();
+
+    if (!supabase || !supabase.auth) {
+      return new Response(JSON.stringify({ error: 'Internal server error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    return handler(req, { user, supabase, params: context?.params || {} });
+  }),
+}));
+
+
 describe('GET /api/projects/[projectId]/chat', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   const validProjectId = '550e8400-e29b-41d4-a716-446655440000';
@@ -76,7 +104,7 @@ describe('GET /api/projects/[projectId]/chat', () => {
   });
 
   afterEach(() => {
-    resetAllMocks(mockSupabase);
+    jest.clearAllMocks();
   });
 
   describe('Authentication', () => {
@@ -282,7 +310,7 @@ describe('DELETE /api/projects/[projectId]/chat', () => {
   });
 
   afterEach(() => {
-    resetAllMocks(mockSupabase);
+    jest.clearAllMocks();
   });
 
   describe('Authentication', () => {

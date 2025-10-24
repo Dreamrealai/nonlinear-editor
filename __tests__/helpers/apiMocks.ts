@@ -34,43 +34,47 @@ export function createMockRequest(options: {
  * Creates a mock Supabase client for testing
  */
 export function createMockSupabaseClient(): any {
+  const queryBuilder = {
+    select: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
+    delete: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    neq: jest.fn().mockReturnThis(),
+    gt: jest.fn().mockReturnThis(),
+    gte: jest.fn().mockReturnThis(),
+    lt: jest.fn().mockReturnThis(),
+    lte: jest.fn().mockReturnThis(),
+    like: jest.fn().mockReturnThis(),
+    ilike: jest.fn().mockReturnThis(),
+    is: jest.fn().mockReturnThis(),
+    in: jest.fn().mockReturnThis(),
+    contains: jest.fn().mockReturnThis(),
+    containedBy: jest.fn().mockReturnThis(),
+    rangeGt: jest.fn().mockReturnThis(),
+    rangeGte: jest.fn().mockReturnThis(),
+    rangeLt: jest.fn().mockReturnThis(),
+    rangeLte: jest.fn().mockReturnThis(),
+    rangeAdjacent: jest.fn().mockReturnThis(),
+    overlaps: jest.fn().mockReturnThis(),
+    textSearch: jest.fn().mockReturnThis(),
+    match: jest.fn().mockReturnThis(),
+    not: jest.fn().mockReturnThis(),
+    or: jest.fn().mockReturnThis(),
+    filter: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    range: jest.fn().mockReturnThis(),
+    single: jest.fn().mockReturnThis(),
+    maybeSingle: jest.fn().mockReturnThis(),
+    csv: jest.fn().mockReturnThis(),
+    then: jest.fn(),
+  };
+
   const mockClient = {
-    from: jest.fn().mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockReturnThis(),
-      update: jest.fn().mockReturnThis(),
-      delete: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      neq: jest.fn().mockReturnThis(),
-      gt: jest.fn().mockReturnThis(),
-      gte: jest.fn().mockReturnThis(),
-      lt: jest.fn().mockReturnThis(),
-      lte: jest.fn().mockReturnThis(),
-      like: jest.fn().mockReturnThis(),
-      ilike: jest.fn().mockReturnThis(),
-      is: jest.fn().mockReturnThis(),
-      in: jest.fn().mockReturnThis(),
-      contains: jest.fn().mockReturnThis(),
-      containedBy: jest.fn().mockReturnThis(),
-      rangeGt: jest.fn().mockReturnThis(),
-      rangeGte: jest.fn().mockReturnThis(),
-      rangeLt: jest.fn().mockReturnThis(),
-      rangeLte: jest.fn().mockReturnThis(),
-      rangeAdjacent: jest.fn().mockReturnThis(),
-      overlaps: jest.fn().mockReturnThis(),
-      textSearch: jest.fn().mockReturnThis(),
-      match: jest.fn().mockReturnThis(),
-      not: jest.fn().mockReturnThis(),
-      or: jest.fn().mockReturnThis(),
-      filter: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      range: jest.fn().mockReturnThis(),
-      single: jest.fn().mockReturnThis(),
-      maybeSingle: jest.fn().mockReturnThis(),
-      csv: jest.fn().mockReturnThis(),
-      then: jest.fn(),
-    }),
+    from: jest.fn().mockReturnValue(queryBuilder),
+    // Also expose query builder methods at the top level for direct access
+    ...queryBuilder,
     auth: {
       getUser: jest.fn().mockResolvedValue({
         data: { user: null },
@@ -83,18 +87,19 @@ export function createMockSupabaseClient(): any {
       signOut: jest.fn().mockResolvedValue({ error: null }),
     },
     storage: {
-      from: jest.fn().mockReturnValue({
-        upload: jest.fn().mockResolvedValue({ data: null, error: null }),
-        download: jest.fn().mockResolvedValue({ data: null, error: null }),
-        remove: jest.fn().mockResolvedValue({ data: null, error: null }),
-        list: jest.fn().mockResolvedValue({ data: [], error: null }),
-        createSignedUrl: jest.fn().mockResolvedValue({
-          data: { signedUrl: 'https://example.com/signed' },
-          error: null,
-        }),
-        getPublicUrl: jest.fn().mockReturnValue({
-          data: { publicUrl: 'https://example.com/public' },
-        }),
+      from: jest.fn(function(this: any) {
+        return this;
+      }).mockReturnThis(),
+      upload: jest.fn().mockResolvedValue({ data: null, error: null }),
+      download: jest.fn().mockResolvedValue({ data: null, error: null }),
+      remove: jest.fn().mockResolvedValue({ data: null, error: null }),
+      list: jest.fn().mockResolvedValue({ data: [], error: null }),
+      createSignedUrl: jest.fn().mockResolvedValue({
+        data: { signedUrl: 'https://example.com/signed' },
+        error: null,
+      }),
+      getPublicUrl: jest.fn().mockReturnValue({
+        data: { publicUrl: 'https://example.com/public' },
       }),
     },
     rpc: jest.fn().mockResolvedValue({ data: null, error: null }),
@@ -225,6 +230,44 @@ export function mockQueryError(supabaseClient: any, error: any): void {
   mockQuery.then.mockImplementation((resolve: any) => {
     resolve({ data: null, error });
     return Promise.resolve({ data: null, error });
+  });
+}
+
+/**
+ * Creates a mock asset for testing
+ */
+export function createMockAsset(overrides?: any): any {
+  return {
+    id: 'test-asset-id',
+    user_id: 'test-user-id',
+    project_id: 'test-project-id',
+    type: 'image',
+    source: 'upload',
+    storage_url: 'supabase://assets/test.jpg',
+    metadata: {},
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    ...overrides,
+  };
+}
+
+/**
+ * Mocks a successful storage upload
+ */
+export function mockStorageUploadSuccess(supabaseClient: any, path: string): void {
+  supabaseClient.storage.from().upload.mockResolvedValue({
+    data: { path },
+    error: null,
+  });
+}
+
+/**
+ * Mocks a storage upload error
+ */
+export function mockStorageUploadError(supabaseClient: any, error: any): void {
+  supabaseClient.storage.from().upload.mockResolvedValue({
+    data: null,
+    error,
   });
 }
 

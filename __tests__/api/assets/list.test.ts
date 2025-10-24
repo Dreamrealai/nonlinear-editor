@@ -52,15 +52,18 @@ jest.mock('@/lib/serverLogger', () => ({
     error: jest.fn(),
     info: jest.fn(),
     debug: jest.fn(),
+    warn: jest.fn(),
   },
 }));
 
 describe('GET /api/assets', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
+  let mockUser: ReturnType<typeof createMockUser>;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
+    mockUser = mockAuthenticatedUser(mockSupabase);
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });

@@ -157,10 +157,11 @@ function createQueryBuilder(): any {
 export function createMockSupabaseClient(
   overrides?: Partial<MockSupabaseChain>
 ): MockSupabaseClient {
-  const queryBuilder = createQueryBuilder();
+  const defaultQueryBuilder = createQueryBuilder();
 
   const client: Record<string, any> = {
-    from: jest.fn(() => queryBuilder),
+    // Return the default query builder so that mock configurations persist
+    from: jest.fn(() => defaultQueryBuilder),
     channel: jest.fn(() => ({
       on: jest.fn().mockReturnThis(),
       subscribe: jest.fn().mockResolvedValue({ data: null, error: null }),
@@ -237,19 +238,19 @@ export function createMockSupabaseClient(
   ];
 
   chainableKeys.forEach((key) => {
-    client[key] = queryBuilder[key];
+    client[key] = defaultQueryBuilder[key];
   });
 
-  client.single = queryBuilder.single;
-  client.maybeSingle = queryBuilder.maybeSingle;
+  client.single = defaultQueryBuilder.single;
+  client.maybeSingle = defaultQueryBuilder.maybeSingle;
 
   client.mockResolvedValue = (value: QueryResult) => {
-    queryBuilder.mockResolvedValue(value);
+    defaultQueryBuilder.mockResolvedValue(value);
     return client as MockSupabaseClient;
   };
 
   client.mockRejectedValue = (error: unknown) => {
-    queryBuilder.mockRejectedValue(error);
+    defaultQueryBuilder.mockRejectedValue(error);
     return client as MockSupabaseClient;
   };
 

@@ -14,7 +14,7 @@ import {
   mockStorageUploadSuccess,
   mockStorageUploadError,
   resetAllMocks,
-} from '@/test-utils/mockSupabase';
+} from '@/__tests__/helpers/apiMocks';
 
 // Mock modules
 jest.mock('@/lib/supabase', () => ({

@@ -347,8 +347,9 @@ describe('Integration: Asset Upload Flow', () => {
 
     it('should fetch single asset by ID', async () => {
       // Arrange
+      const assetId = '550e8400-e29b-41d4-a716-446655440020';
       const mockAsset = createMockAsset({
-        id: 'specific-asset-id',
+        id: assetId,
         project_id: mockProject.id,
         user_id: mockUser.id,
       });
@@ -359,23 +360,24 @@ describe('Integration: Asset Upload Flow', () => {
       });
 
       // Act
-      const asset = await assetService.getAssetById('specific-asset-id', mockUser.id);
+      const asset = await assetService.getAssetById(assetId, mockUser.id);
 
       // Assert
       expect(asset).toBeDefined();
-      expect(asset?.id).toBe('specific-asset-id');
-      expect(mockSupabase.eq).toHaveBeenCalledWith('id', 'specific-asset-id');
+      expect(asset?.id).toBe(assetId);
+      expect(mockSupabase.eq).toHaveBeenCalledWith('id', assetId);
     });
 
     it('should return null for non-existent asset', async () => {
       // Arrange
+      const nonExistentId = '550e8400-e29b-41d4-a716-446655440099';
       mockSupabase.single.mockResolvedValueOnce({
         data: null,
         error: { code: 'PGRST116' },
       });
 
       // Act
-      const asset = await assetService.getAssetById('non-existent-id', mockUser.id);
+      const asset = await assetService.getAssetById(nonExistentId, mockUser.id);
 
       // Assert
       expect(asset).toBeNull();
@@ -387,7 +389,7 @@ describe('Integration: Asset Upload Flow', () => {
         createMockAsset({ id: `asset-${i}`, project_id: mockProject.id })
       );
 
-      mockSupabase.range = jest.fn().mockReturnThis();
+      // Mock the query chain - the range() call is awaited directly
       mockSupabase.range.mockResolvedValueOnce({
         data: mockAssets.slice(0, 5),
         error: null,
@@ -413,14 +415,15 @@ describe('Integration: Asset Upload Flow', () => {
   describe('Asset Deletion Flow', () => {
     it('should delete asset from storage and database', async () => {
       // Arrange
+      const assetId = '550e8400-e29b-41d4-a716-446655440021';
       const mockAsset = createMockAsset({
-        id: 'asset-to-delete',
+        id: assetId,
         project_id: mockProject.id,
         user_id: mockUser.id,
         storage_url: 'supabase://assets/test-user/test-project/test.jpg',
       });
 
-      // Mock asset fetch
+      // Mock asset fetch - first .from() call returns default builder with mocked data
       mockSupabase.single.mockResolvedValueOnce({
         data: mockAsset,
         error: null,
@@ -432,29 +435,27 @@ describe('Integration: Asset Upload Flow', () => {
         error: null,
       });
 
-      // Mock database deletion
-      const mockDeleteChain = {
-        eq: jest.fn().mockResolvedValue({ error: null }),
-      };
-      const mockDelete = {
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue(mockDeleteChain),
+      // Mock database deletion - mockDelete is used for the second .from() call
+      const mockDeleteResult = { error: null };
+      mockSupabase.delete.mockReturnValueOnce({
+        eq: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue(mockDeleteResult),
         }),
-      };
-      mockSupabase.from.mockReturnValueOnce(mockDelete);
+      });
 
       // Act
-      await assetService.deleteAsset('asset-to-delete', mockUser.id);
+      await assetService.deleteAsset(assetId, mockUser.id);
 
       // Assert
       expect(mockSupabase.storage.remove).toHaveBeenCalled();
-      expect(mockDelete.delete).toHaveBeenCalled();
+      expect(mockSupabase.delete).toHaveBeenCalled();
     });
 
     it('should delete from database even if storage deletion fails', async () => {
       // Arrange
+      const assetId = '550e8400-e29b-41d4-a716-446655440022';
       const mockAsset = createMockAsset({
-        id: 'asset-id',
+        id: assetId,
         storage_url: 'supabase://assets/test-path.jpg',
       });
 
@@ -470,32 +471,30 @@ describe('Integration: Asset Upload Flow', () => {
       });
 
       // Database deletion succeeds
-      const mockDeleteChain = {
-        eq: jest.fn().mockResolvedValue({ error: null }),
-      };
-      const mockDelete = {
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue(mockDeleteChain),
+      const mockDeleteResult = { error: null };
+      mockSupabase.delete.mockReturnValueOnce({
+        eq: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue(mockDeleteResult),
         }),
-      };
-      mockSupabase.from.mockReturnValueOnce(mockDelete);
+      });
 
       // Act
-      await assetService.deleteAsset('asset-id', mockUser.id);
+      await assetService.deleteAsset(assetId, mockUser.id);
 
       // Assert - database deletion should still happen
-      expect(mockDelete.delete).toHaveBeenCalled();
+      expect(mockSupabase.delete).toHaveBeenCalled();
     });
 
     it('should throw error if asset not found during deletion', async () => {
       // Arrange
+      const nonExistentId = '550e8400-e29b-41d4-a716-446655440099';
       mockSupabase.single.mockResolvedValueOnce({
         data: null,
         error: { code: 'PGRST116' },
       });
 
       // Act & Assert
-      await expect(assetService.deleteAsset('non-existent-id', mockUser.id)).rejects.toThrow(
+      await expect(assetService.deleteAsset(nonExistentId, mockUser.id)).rejects.toThrow(
         'Failed to fetch asset'
       );
     });
@@ -647,9 +646,10 @@ describe('Integration: Asset Upload Flow', () => {
   describe('Complete Asset Lifecycle', () => {
     it('should complete full asset lifecycle: upload → verify → use in project → delete', async () => {
       // Step 1: Upload asset
+      const lifecycleAssetId = '550e8400-e29b-41d4-a716-446655440023';
       const imageBuffer = Buffer.from('test-image');
       const mockAsset = createMockAsset({
-        id: 'lifecycle-asset',
+        id: lifecycleAssetId,
         project_id: mockProject.id,
         user_id: mockUser.id,
       });
@@ -678,7 +678,7 @@ describe('Integration: Asset Upload Flow', () => {
         }
       );
 
-      expect(uploadedAsset.id).toBe('lifecycle-asset');
+      expect(uploadedAsset.id).toBe(lifecycleAssetId);
 
       // Step 2: Verify asset exists
       mockSupabase.single.mockResolvedValueOnce({
@@ -710,20 +710,17 @@ describe('Integration: Asset Upload Flow', () => {
         error: null,
       });
 
-      const mockDeleteChain = {
-        eq: jest.fn().mockResolvedValue({ error: null }),
-      };
-      const mockDelete = {
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue(mockDeleteChain),
+      const mockDeleteResult = { error: null };
+      mockSupabase.delete.mockReturnValueOnce({
+        eq: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue(mockDeleteResult),
         }),
-      };
-      mockSupabase.from.mockReturnValueOnce(mockDelete);
+      });
 
       await assetService.deleteAsset(uploadedAsset.id, mockUser.id);
 
       expect(mockSupabase.storage.remove).toHaveBeenCalled();
-      expect(mockDelete.delete).toHaveBeenCalled();
+      expect(mockSupabase.delete).toHaveBeenCalled();
 
       // Step 5: Verify asset no longer exists
       mockSupabase.single.mockResolvedValueOnce({

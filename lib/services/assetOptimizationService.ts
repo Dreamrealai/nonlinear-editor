@@ -251,9 +251,9 @@ export class AssetOptimizationService {
         const { stdout: durationOutput } = await execAsync(ffmpegCmd);
         const durationMatch = durationOutput.match(/Duration: (\d{2}):(\d{2}):(\d{2}\.\d{2})/);
         const duration = durationMatch
-          ? parseInt(durationMatch[1]) * 3600 +
-            parseInt(durationMatch[2]) * 60 +
-            parseFloat(durationMatch[3])
+          ? parseInt(durationMatch[1]!) * 3600 +
+            parseInt(durationMatch[2]!) * 60 +
+            parseFloat(durationMatch[3]!)
           : 0;
 
         // Generate amplitude samples

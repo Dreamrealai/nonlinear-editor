@@ -38,7 +38,6 @@ jest.mock('@/lib/api/withAuth', () => ({
   }),
 }));
 
-
 jest.mock('@/lib/supabase', () => ({
   createServerSupabaseClient: jest.fn(),
 }));
@@ -46,6 +45,7 @@ jest.mock('@/lib/supabase', () => ({
 jest.mock('@/lib/serverLogger', () => ({
   serverLogger: {
     info: jest.fn(),
+    debug: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),
   },

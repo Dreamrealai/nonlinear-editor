@@ -3,11 +3,12 @@ import { render } from '@testing-library/react';
 import { WebVitals } from '@/components/WebVitals';
 
 // Mock the webVitals module
-const mockInitWebVitals = jest.fn();
-
 jest.mock('@/lib/webVitals', () => ({
-  initWebVitals: mockInitWebVitals,
+  initWebVitals: jest.fn(),
 }));
+
+// Get the mock after it's been created by jest.mock
+const { initWebVitals: mockInitWebVitals } = jest.requireMock('@/lib/webVitals');
 
 describe('WebVitals', () => {
   beforeEach(() => {
@@ -180,9 +181,9 @@ describe('WebVitals', () => {
 
   describe('Performance', () => {
     it('should render quickly', () => {
-      const start = performance.now();
+      const start = Date.now();
       render(<WebVitals />);
-      const end = performance.now();
+      const end = Date.now();
       expect(end - start).toBeLessThan(100); // Should render in less than 100ms
     });
 

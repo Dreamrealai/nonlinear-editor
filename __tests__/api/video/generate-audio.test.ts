@@ -9,7 +9,7 @@ import {
   mockAuthenticatedUser,
   mockUnauthenticatedUser,
   resetAllMocks,
-} from '@/test-utils/mockSupabase';
+} from '@/__tests__/helpers/apiMocks';
 
 // Mock dependencies
 jest.mock('@/lib/supabase', () => ({

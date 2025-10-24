@@ -59,7 +59,14 @@ const customJestConfig = {
     },
   },
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
-  testPathIgnorePatterns: ['/node_modules/', '/.next/', '/e2e/', '/k6/', '/__tests__/helpers/'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/.next/',
+    '/e2e/',
+    '/k6/',
+    '/__tests__/helpers/',
+    '/__tests__/integration/helpers/',
+  ],
   // Transform ESM packages - critical for lucide-react and other ESM-only packages
   transformIgnorePatterns: [
     'node_modules/(?!(' +

@@ -12,13 +12,41 @@ import {
   createMockUser,
   mockAuthenticatedUser,
   mockUnauthenticatedUser,
-  resetAllMocks,
-} from '@/test-utils/mockSupabase';
+} from '@/__tests__/helpers/apiMocks';
 
 // Mock modules
 jest.mock('@/lib/supabase', () => ({
   createServerSupabaseClient: jest.fn(),
 }));
+
+// Mock withAuth wrapper
+jest.mock('@/lib/api/withAuth', () => ({
+  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+    const { createServerSupabaseClient } = require('@/lib/supabase');
+    const supabase = await createServerSupabaseClient();
+
+    if (!supabase || !supabase.auth) {
+      return new Response(JSON.stringify({ error: 'Internal server error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    return handler(req, { user, supabase, params: context?.params || {} });
+  }),
+}));
+
 
 jest.mock('@/lib/serverLogger', () => ({
   serverLogger: {
@@ -66,7 +94,7 @@ describe('POST /api/logs', () => {
   });
 
   afterEach(() => {
-    resetAllMocks(mockSupabase);
+    jest.clearAllMocks();
     process.env = originalEnv;
   });
 
