@@ -11,7 +11,7 @@ import { recordPerformanceMetric, PerformanceCategory } from './performance';
 /**
  * Web Vitals metrics
  */
-export type WebVitalMetric = 'CLS' | 'FID' | 'FCP' | 'LCP' | 'TTFB' | 'INP';
+export type WebVitalMetric = 'CLS' | 'FCP' | 'LCP' | 'TTFB' | 'INP';
 
 /**
  * Metric data interface
@@ -33,8 +33,6 @@ export interface Metric {
 const THRESHOLDS: Record<WebVitalMetric, { good: number; poor: number }> = {
   // Cumulative Layout Shift
   CLS: { good: 0.1, poor: 0.25 },
-  // First Input Delay
-  FID: { good: 100, poor: 300 },
   // First Contentful Paint
   FCP: { good: 1800, poor: 3000 },
   // Largest Contentful Paint
@@ -44,16 +42,6 @@ const THRESHOLDS: Record<WebVitalMetric, { good: number; poor: number }> = {
   // Interaction to Next Paint
   INP: { good: 200, poor: 500 },
 };
-
-/**
- * Get rating for a metric value
- */
-function getRating(name: WebVitalMetric, value: number): 'good' | 'needs-improvement' | 'poor' {
-  const threshold = THRESHOLDS[name];
-  if (value <= threshold.good) return 'good';
-  if (value <= threshold.poor) return 'needs-improvement';
-  return 'poor';
-}
 
 /**
  * Report metric to analytics
@@ -111,11 +99,10 @@ export async function initWebVitals(): Promise<void> {
 
   try {
     // Dynamic import to reduce initial bundle size
-    const { onCLS, onFID, onFCP, onLCP, onTTFB, onINP } = await import('web-vitals');
+    const { onCLS, onFCP, onLCP, onTTFB, onINP } = await import('web-vitals');
 
     // Track all Core Web Vitals
     onCLS((metric) => reportMetric(metric as unknown as Metric));
-    onFID((metric) => reportMetric(metric as unknown as Metric));
     onFCP((metric) => reportMetric(metric as unknown as Metric));
     onLCP((metric) => reportMetric(metric as unknown as Metric));
     onTTFB((metric) => reportMetric(metric as unknown as Metric));

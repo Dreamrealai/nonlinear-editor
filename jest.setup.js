@@ -8,8 +8,87 @@ if (typeof structuredClone === 'undefined') {
   };
 }
 
-// Note: Request/Response are not polyfilled globally to avoid conflicts with Next.js
-// API route tests should mock NextRequest/NextResponse individually if needed
+// Polyfill Request and Response for Next.js API route tests
+// These are needed when importing from 'next/server' in tests
+// Using a minimal polyfill approach
+if (typeof Request === 'undefined') {
+  global.Request = class Request {
+    constructor(input, init) {
+      this.url = typeof input === 'string' ? input : input.url;
+      this.method = init?.method || 'GET';
+      this.headers = new Headers(init?.headers);
+      this.body = init?.body;
+    }
+  };
+}
+
+if (typeof Response === 'undefined') {
+  global.Response = class Response {
+    constructor(body, init) {
+      this.body = body;
+      this.status = init?.status || 200;
+      this.statusText = init?.statusText || '';
+      this.headers = new Headers(init?.headers);
+      this.ok = this.status >= 200 && this.status < 300;
+    }
+
+    async json() {
+      return typeof this.body === 'string' ? JSON.parse(this.body) : this.body;
+    }
+
+    async text() {
+      return typeof this.body === 'string' ? this.body : JSON.stringify(this.body);
+    }
+  };
+}
+
+if (typeof Headers === 'undefined') {
+  global.Headers = class Headers {
+    constructor(init) {
+      this.headers = {};
+      if (init) {
+        if (init instanceof Headers) {
+          this.headers = { ...init.headers };
+        } else if (typeof init === 'object') {
+          this.headers = { ...init };
+        }
+      }
+    }
+
+    get(name) {
+      return this.headers[name.toLowerCase()];
+    }
+
+    set(name, value) {
+      this.headers[name.toLowerCase()] = value;
+    }
+
+    has(name) {
+      return name.toLowerCase() in this.headers;
+    }
+
+    delete(name) {
+      delete this.headers[name.toLowerCase()];
+    }
+
+    append(name, value) {
+      const existing = this.get(name);
+      this.set(name, existing ? `${existing}, ${value}` : value);
+    }
+
+    entries() {
+      return Object.entries(this.headers);
+    }
+
+    keys() {
+      return Object.keys(this.headers);
+    }
+
+    values() {
+      return Object.values(this.headers);
+    }
+  };
+}
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {

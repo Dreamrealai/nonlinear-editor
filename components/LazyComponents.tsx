@@ -126,19 +126,25 @@ export const LazyChatBox = dynamic(() => import('@/components/editor/ChatBox'), 
  * Lazy-loaded ProjectList component
  * Only loaded on home/project listing page
  */
-export const LazyProjectList = dynamic(() => import('@/components/ProjectList'), {
-  loading: LoadingFallback,
-  ssr: false,
-});
+export const LazyProjectList = dynamic(
+  () => import('@/components/ProjectList').then((mod) => ({ default: mod.ProjectList })),
+  {
+    loading: LoadingFallback,
+    ssr: false,
+  }
+);
 
 /**
  * Lazy-loaded ActivityHistory component
  * Only loaded when viewing activity/history
  */
-export const LazyActivityHistory = dynamic(() => import('@/components/ActivityHistory'), {
-  loading: LoadingFallback,
-  ssr: false,
-});
+export const LazyActivityHistory = dynamic(
+  () => import('@/components/ActivityHistory').then((mod) => ({ default: mod.ActivityHistory })),
+  {
+    loading: LoadingFallback,
+    ssr: false,
+  }
+);
 
 /**
  * Generic lazy loader for any component

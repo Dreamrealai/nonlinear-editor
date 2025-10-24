@@ -131,9 +131,6 @@ const nextConfig: NextConfig = {
   compress: true, // Enable compression (gzip)
   generateEtags: true, // Enable ETags for caching
 
-  // Optimize output
-  output: 'standalone',
-
   // Disable source maps in production for smaller bundle size
   productionBrowserSourceMaps: false,
 };

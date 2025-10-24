@@ -6,24 +6,52 @@ This directory contains all project documentation organized by category.
 
 ### `/api/` - API Documentation
 
-API documentation for all services and endpoints used in the project.
+Complete API documentation for all services, endpoints, and external integrations.
 
-- [API_DOCUMENTATION.md](./api/API_DOCUMENTATION.md) - Complete API documentation
+**Core API Documentation:**
+
+- [API_DOCUMENTATION.md](./api/API_DOCUMENTATION.md) - Complete API reference for all endpoints
 - [API_DOCUMENTATION_SUMMARY.md](./api/API_DOCUMENTATION_SUMMARY.md) - API documentation summary
-- [API_QUICK_REFERENCE.md](./api/API_QUICK_REFERENCE.md) - Quick reference guide for APIs
-- [CLOUDVISION_VIDEOANALYSIS_GOOGLE_DOCUMENTATION.md](./api/CLOUDVISION_VIDEOANALYSIS_GOOGLE_DOCUMENTATION.md) - Google Cloud Vision video analysis API
-- [ELEVENLABS_TTS_ELEVENLABS_DOCUMENTATION.md](./api/ELEVENLABS_TTS_ELEVENLABS_DOCUMENTATION.md) - ElevenLabs TTS API documentation
-- [ELEVENLABS_TTS_FAL_DOCUMENTATION.md](./api/ELEVENLABS_TTS_FAL_DOCUMENTATION.md) - FAL ElevenLabs TTS documentation
-- [fal-kling.md](./api/fal-kling.md) - FAL Kling API documentation
-- [fal-minimax.md](./api/fal-minimax.md) - FAL Minimax API documentation
-- [fal-pixverse.md](./api/fal-pixverse.md) - FAL Pixverse API documentation
-- [fal-sora-2.md](./api/fal-sora-2.md) - FAL Sora 2 API documentation
-- [GEMINI25FLASH_MULTIMODAL_GOOGLE_DOCUMENTATION.md](./api/GEMINI25FLASH_MULTIMODAL_GOOGLE_DOCUMENTATION.md) - Gemini 2.5 Flash multimodal API
-- [IMAGEN_IMAGE_GOOGLE_DOCUMENTATION.md](./api/IMAGEN_IMAGE_GOOGLE_DOCUMENTATION.md) - Google Imagen image generation API
-- [minimax.md](./api/minimax.md) - Minimax API documentation
-- [SUNO_AUDIO_COMET_DOCUMENTATION.md](./api/SUNO_AUDIO_COMET_DOCUMENTATION.md) - Suno audio generation API
-- [VEO2_VIDEO_GOOGLE_DOCUMENTATION.md](./api/VEO2_VIDEO_GOOGLE_DOCUMENTATION.md) - Google Veo 2 video API
-- [VEO3_VIDEO_GOOGLE_DOCUMENTATION.md](./api/VEO3_VIDEO_GOOGLE_DOCUMENTATION.md) - Google Veo 3 video API
+- [API_QUICK_REFERENCE.md](./api/API_QUICK_REFERENCE.md) - Quick reference guide
+
+**External Service APIs:**
+
+- [axiom-api-docs.md](./api/axiom-api-docs.md) - Axiom logging service
+- [comet-suno-api-docs.md](./api/comet-suno-api-docs.md) - Comet/Suno audio generation
+- [elevenlabs-api-docs.md](./api/elevenlabs-api-docs.md) - ElevenLabs text-to-speech
+- [fal-ai-docs.md](./api/fal-ai-docs.md) - FAL.AI services
+- [google-ai-studio-docs.md](./api/google-ai-studio-docs.md) - Google AI Studio
+- [google-vertex-ai-docs.md](./api/google-vertex-ai-docs.md) - Google Vertex AI
+- [resend-api-docs.md](./api/resend-api-docs.md) - Resend email service
+- [stripe-api-docs.md](./api/stripe-api-docs.md) - Stripe payment integration
+- [supabase-api-docs.md](./api/supabase-api-docs.md) - Supabase database & auth
+- [vercel-api-docs.md](./api/vercel-api-docs.md) - Vercel deployment
+
+**Video Generation APIs:**
+
+- [fal-kling.md](./api/fal-kling.md) - Kling video generation
+- [fal-minimax.md](./api/fal-minimax.md) - Minimax video generation
+- [fal-pixverse.md](./api/fal-pixverse.md) - Pixverse video generation
+- [fal-sora-2.md](./api/fal-sora-2.md) - Sora 2 video generation
+- [minimax.md](./api/minimax.md) - Minimax API
+- [VEO2_VIDEO_GOOGLE_DOCUMENTATION.md](./api/VEO2_VIDEO_GOOGLE_DOCUMENTATION.md) - Google Veo 2
+- [VEO3_VIDEO_GOOGLE_DOCUMENTATION.md](./api/VEO3_VIDEO_GOOGLE_DOCUMENTATION.md) - Google Veo 3
+
+**Additional APIs:**
+
+- [CLOUDVISION_VIDEOANALYSIS_GOOGLE_DOCUMENTATION.md](./api/CLOUDVISION_VIDEOANALYSIS_GOOGLE_DOCUMENTATION.md) - Video analysis
+- [ELEVENLABS_TTS_ELEVENLABS_DOCUMENTATION.md](./api/ELEVENLABS_TTS_ELEVENLABS_DOCUMENTATION.md) - ElevenLabs TTS
+- [ELEVENLABS_TTS_FAL_DOCUMENTATION.md](./api/ELEVENLABS_TTS_FAL_DOCUMENTATION.md) - FAL ElevenLabs integration
+- [GEMINI25FLASH_MULTIMODAL_GOOGLE_DOCUMENTATION.md](./api/GEMINI25FLASH_MULTIMODAL_GOOGLE_DOCUMENTATION.md) - Gemini 2.5 Flash
+- [IMAGEN_IMAGE_GOOGLE_DOCUMENTATION.md](./api/IMAGEN_IMAGE_GOOGLE_DOCUMENTATION.md) - Google Imagen
+- [SUNO_AUDIO_COMET_DOCUMENTATION.md](./api/SUNO_AUDIO_COMET_DOCUMENTATION.md) - Suno audio
+
+**API Audit Reports:**
+
+- [FIXES_APPLIED.md](./api/FIXES_APPLIED.md) - API fixes applied
+- [MASTER_API_AUDIT_SUMMARY.md](./api/MASTER_API_AUDIT_SUMMARY.md) - Master audit summary
+- [PARAMETER_AUDIT_REPORT.md](./api/PARAMETER_AUDIT_REPORT.md) - Parameter validation audit
+- [VALIDATION_REPORT.md](./api/VALIDATION_REPORT.md) - Validation implementation report
 
 ### `/architecture/` - Architecture and Standards
 
@@ -72,6 +100,7 @@ Comprehensive reports, audit logs, validation reports, and codebase analysis.
 - [AUDIT_LOGGING_IMPLEMENTATION.md](./reports/AUDIT_LOGGING_IMPLEMENTATION.md) - Audit logging implementation
 - [AUDIT_LOGGING_SUMMARY.md](./reports/AUDIT_LOGGING_SUMMARY.md) - Audit logging summary
 - [AUTHENTICATION_AND_SUBSCRIPTION_ANALYSIS.md](./reports/AUTHENTICATION_AND_SUBSCRIPTION_ANALYSIS.md) - Authentication and subscription analysis
+- [CACHING_IMPLEMENTATION.md](./reports/CACHING_IMPLEMENTATION.md) - Caching layer implementation report
 - [CACHING_STRATEGY.md](./reports/CACHING_STRATEGY.md) - Caching strategy documentation
 - [CACHING_SUMMARY.md](./reports/CACHING_SUMMARY.md) - Caching implementation summary
 - [CODEBASE_ANALYSIS.md](./reports/CODEBASE_ANALYSIS.md) - Comprehensive codebase analysis
@@ -84,6 +113,7 @@ Comprehensive reports, audit logs, validation reports, and codebase analysis.
 - [IMPROVEMENTS_SUMMARY.md](./reports/IMPROVEMENTS_SUMMARY.md) - Project improvements summary
 - [KEYFRAME_EDITOR_REVIEW.md](./reports/KEYFRAME_EDITOR_REVIEW.md) - Keyframe editor review
 - [NEXT_10_FIXES_REPORT.md](./reports/NEXT_10_FIXES_REPORT.md) - Next 10 fixes report
+- [PERFORMANCE_OPTIMIZATIONS.md](./reports/PERFORMANCE_OPTIMIZATIONS.md) - Performance optimizations report
 - [QUALITY_VALIDATION_REPORT.md](./reports/QUALITY_VALIDATION_REPORT.md) - Quality validation report
 - [SERVICE_LAYER_IMPROVEMENTS_SUMMARY.md](./reports/SERVICE_LAYER_IMPROVEMENTS_SUMMARY.md) - Service layer improvements
 - [SUBSCRIPTION_ANALYSIS_INDEX.md](./reports/SUBSCRIPTION_ANALYSIS_INDEX.md) - Subscription analysis index
@@ -94,6 +124,19 @@ Comprehensive reports, audit logs, validation reports, and codebase analysis.
 - [VALIDATION_REPORT.md](./reports/VALIDATION_REPORT.md) - Validation report
 - [VERIFICATION_REPORT.md](./reports/VERIFICATION_REPORT.md) - Verification report
 
+## Root-Level Guides
+
+Core guides and references in the docs directory:
+
+- [AXIOM_SETUP.md](./AXIOM_SETUP.md) - Axiom logging setup guide
+- [CACHING.md](./CACHING.md) - Caching layer developer usage guide
+- [LOGGING.md](./LOGGING.md) - Logging implementation guide
+- [PERFORMANCE.md](./PERFORMANCE.md) - Performance optimization guide (includes database indexes)
+- [RATE_LIMITING.md](./RATE_LIMITING.md) - Rate limiting implementation
+- [SERVICE_LAYER_GUIDE.md](./SERVICE_LAYER_GUIDE.md) - Service layer architecture guide
+- [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) - Supabase setup and configuration
+- [TESTING.md](./TESTING.md) - Testing guide and best practices
+
 ## Quick Links
 
 - **Getting Started**: See [/setup/](./setup/) for configuration and setup guides
@@ -101,6 +144,8 @@ Comprehensive reports, audit logs, validation reports, and codebase analysis.
 - **Security**: See [/security/SECURITY.md](./security/SECURITY.md)
 - **Issue Tracking**: See [/issues/ISSUETRACKING.md](./issues/ISSUETRACKING.md)
 - **Architecture**: See [/architecture/ARCHITECTURE_STANDARDS.md](./architecture/ARCHITECTURE_STANDARDS.md)
+- **Performance**: See [PERFORMANCE.md](./PERFORMANCE.md)
+- **Caching**: See [CACHING.md](./CACHING.md)
 
 ## Navigation
 

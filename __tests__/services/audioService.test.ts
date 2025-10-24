@@ -641,16 +641,52 @@ describe('AudioService', () => {
       );
     });
 
-    it('should only delete audio type assets', async () => {
+    it('should filter by audio type in the query', async () => {
+      const assetId = '550e8400-e29b-41d4-a716-446655440000';
+
       mockSupabase.single.mockResolvedValue({
         data: {
-          storage_url: 'supabase://assets/path',
+          storage_url: 'supabase://assets/user123/project123/audio/file.mp3',
           type: 'audio',
         },
         error: null,
       });
 
-      // Verify the query filters by type
+      // Mock storage deletion
+      mockSupabase.storage.remove.mockResolvedValue({
+        data: [],
+        error: null,
+      });
+
+      // Mock database deletion
+      const mockEqChain = {
+        eq: jest.fn().mockResolvedValue({
+          error: null,
+        }),
+      };
+
+      const mockDeleteChain = {
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue(mockEqChain),
+        }),
+      };
+
+      mockSupabase.from.mockImplementation((table) => {
+        if (table === 'assets') {
+          if (mockSupabase.from.mock.calls.length === 1) {
+            return mockSupabase as any;
+          }
+          return mockDeleteChain as any;
+        }
+        return mockSupabase as any;
+      });
+
+      await audioService.deleteAudio(assetId, userId);
+
+      // Verify the select query includes type filter
+      expect(mockSupabase.select).toHaveBeenCalledWith('storage_url, type');
+      expect(mockSupabase.eq).toHaveBeenCalledWith('id', assetId);
+      expect(mockSupabase.eq).toHaveBeenCalledWith('user_id', userId);
       expect(mockSupabase.eq).toHaveBeenCalledWith('type', 'audio');
     });
   });

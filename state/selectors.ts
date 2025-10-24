@@ -8,8 +8,7 @@
 import { useTimelineStore } from './useTimelineStore';
 import { useEditorStore } from './useEditorStore';
 import { usePlaybackStore } from './usePlaybackStore';
-import { useSelectionStore } from './useSelectionStore';
-import type { Timeline, Clip } from '@/types/timeline';
+import type { Clip } from '@/types/timeline';
 
 /**
  * Timeline Selectors
@@ -54,8 +53,7 @@ export const useSelectedClipIds = () => useEditorStore((state) => state.selected
 // Get zoom level
 export const useZoomLevel = () => useEditorStore((state) => state.zoom);
 
-// Get scroll position
-export const useScrollPosition = () => useEditorStore((state) => state.scrollPosition);
+// Scroll position is managed locally in timeline components
 
 /**
  * Playback Selectors
@@ -67,19 +65,14 @@ export const useIsPlaying = () => usePlaybackStore((state) => state.isPlaying);
 // Get current time
 export const useCurrentTime = () => usePlaybackStore((state) => state.currentTime);
 
-// Get playback rate
-export const usePlaybackRate = () => usePlaybackStore((state) => state.playbackRate);
+// Playback rate is managed locally in player components
 
 /**
  * Selection Selectors
  */
 
-// Get selected items
-export const useSelectedItems = () => useSelectionStore((state) => state.selectedItems);
-
-// Check if specific item is selected (efficient for individual items)
-export const useIsItemSelected = (itemId: string) =>
-  useSelectionStore((state) => state.selectedItems.includes(itemId));
+// Selection is managed through selectedClipIds in EditorStore
+// These selectors have been deprecated
 
 /**
  * Composite Selectors
@@ -90,7 +83,7 @@ export const useIsItemSelected = (itemId: string) =>
 export const useSelectedClips = (): Clip[] =>
   useTimelineStore((state) => {
     const selectedIds = useEditorStore.getState().selectedClipIds;
-    return state.timeline?.clips.filter((c) => selectedIds.includes(c.id)) ?? [];
+    return state.timeline?.clips.filter((c) => selectedIds.has(c.id)) ?? [];
   });
 
 /**
@@ -112,14 +105,7 @@ export const usePlaybackActions = () =>
   usePlaybackStore((state) => ({
     play: state.play,
     pause: state.pause,
-    seek: state.seek,
-    setPlaybackRate: state.setPlaybackRate,
+    setCurrentTime: state.setCurrentTime,
   }));
 
-// Editor actions
-export const useEditorActions = () =>
-  useEditorStore((state) => ({
-    setSelectedClipIds: state.setSelectedClipIds,
-    setZoom: state.setZoom,
-    setScrollPosition: state.setScrollPosition,
-  }));
+// Editor actions are in /state/useEditorActions.ts (high-level actions with history)
