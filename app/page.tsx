@@ -53,15 +53,21 @@ export default async function HomePage() {
     // Use most recent project
     projectId = projects[0].id;
   } else {
-    // Create a default project using ProjectService
-    const newProject = await projectService.createProject(user.id, {
-      title: 'My Project',
-    });
+    try {
+      // Create a default project using ProjectService
+      const newProject = await projectService.createProject(user.id, {
+        title: 'My Project',
+      });
 
-    projectId = newProject.id;
+      projectId = newProject.id;
 
-    // Invalidate projects cache after creation
-    await invalidateUserProjects(user.id);
+      // Invalidate projects cache after creation
+      await invalidateUserProjects(user.id);
+    } catch (error) {
+      console.error('Failed to create default project:', error);
+      // Redirect to a error page or show message
+      redirect('/error?message=Failed to create project');
+    }
   }
 
   // Redirect directly to the video editor
