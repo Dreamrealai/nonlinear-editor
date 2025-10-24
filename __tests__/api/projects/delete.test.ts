@@ -50,10 +50,13 @@ describe('DELETE /api/projects/[projectId]', () => {
   let mockRequest: NextRequest;
 
   beforeEach(() => {
+    // Clear all mock calls BEFORE setting up new mocks
+    jest.clearAllMocks();
+
+    // Create and configure mock Supabase client
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
-    createServerSupabaseClient.mockResolvedValue(mockSupabase);
-    jest.clearAllMocks();
+    createServerSupabaseClient.mockImplementation(() => Promise.resolve(mockSupabase));
   });
 
   afterEach(() => {

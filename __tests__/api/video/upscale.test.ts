@@ -13,9 +13,17 @@ import {
 } from '@/test-utils/mockSupabase';
 
 // Mock dependencies
-jest.mock('@/lib/supabase', () => ({
-  createServerSupabaseClient: jest.fn(),
-}));
+jest.mock('@/lib/supabase', () => {
+  const { createMockSupabaseClient } = jest.requireActual('@/test-utils/mockSupabase');
+  let mockClient = createMockSupabaseClient();
+
+  return {
+    createServerSupabaseClient: jest.fn(async () => mockClient),
+    __setMockClient: (client: ReturnType<typeof createMockSupabaseClient>) => {
+      mockClient = client;
+    },
+  };
+});
 
 jest.mock('@/lib/serverLogger', () => ({
   serverLogger: {
@@ -37,17 +45,33 @@ jest.mock('@/lib/rateLimit', () => ({
 }));
 
 jest.mock('@/lib/api/response', () => ({
-  errorResponse: jest.fn((msg, status) =>
-    new Response(JSON.stringify({ error: msg }), { status, headers: { 'Content-Type': 'application/json' } })
+  errorResponse: jest.fn(
+    (msg, status) =>
+      new Response(JSON.stringify({ error: msg }), {
+        status,
+        headers: { 'Content-Type': 'application/json' },
+      })
   ),
-  unauthorizedResponse: jest.fn(() =>
-    new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } })
+  unauthorizedResponse: jest.fn(
+    () =>
+      new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      })
   ),
-  validationError: jest.fn((msg) =>
-    new Response(JSON.stringify({ error: msg }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+  validationError: jest.fn(
+    (msg) =>
+      new Response(JSON.stringify({ error: msg }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      })
   ),
-  internalServerError: jest.fn((msg) =>
-    new Response(JSON.stringify({ error: msg }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+  internalServerError: jest.fn(
+    (msg) =>
+      new Response(JSON.stringify({ error: msg }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      })
   ),
   withErrorHandling: jest.fn((handler) => handler),
 }));
@@ -61,13 +85,11 @@ describe('POST /api/video/upscale', () => {
 
   beforeEach(() => {
     mockSupabase = createMockSupabaseClient();
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    createServerSupabaseClient.mockResolvedValue(mockSupabase);
+    const { __setMockClient } = require('@/lib/supabase');
+    __setMockClient(mockSupabase);
 
-    const { checkRateLimit } = require('@/lib/rateLimit');
     checkRateLimit.mockResolvedValue({ success: true, remaining: 9 });
 
-    const { verifyAssetOwnership } = require('@/lib/api/project-verification');
     const mockAsset = createMockAsset({ type: 'video' });
     verifyAssetOwnership.mockResolvedValue({ hasAccess: true, asset: mockAsset });
 
@@ -141,7 +163,7 @@ describe('POST /api/video/upscale', () => {
         success: false,
         limit: 10,
         remaining: 0,
-        resetAt: Date.now() + 60000
+        resetAt: Date.now() + 60000,
       });
 
       const mockRequest = new NextRequest('http://localhost/api/video/upscale', {

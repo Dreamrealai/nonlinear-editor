@@ -256,7 +256,8 @@ export const formatTimecode = (seconds: number): string => {
   const totalSeconds = Math.floor(safe);
   const minutes = Math.floor(totalSeconds / 60);
   const secs = totalSeconds % 60;
-  const frames = Math.floor((safe - totalSeconds) * 30); // 30fps
+  // Add small epsilon to handle floating point precision issues (e.g., 0.1 * 30 = 2.9999...)
+  const frames = Math.floor((safe - totalSeconds) * 30 + 0.0001); // 30fps
   return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}:${frames
     .toString()
     .padStart(2, '0')}`;

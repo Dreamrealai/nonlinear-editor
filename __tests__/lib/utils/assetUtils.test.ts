@@ -95,7 +95,7 @@ describe('assetUtils', () => {
     });
 
     it('should handle multiple unsafe characters', () => {
-      expect(sanitizeFileName('test@#$%^&*()file.mp4')).toBe('test__________file.mp4');
+      expect(sanitizeFileName('test@#$%^&*()file.mp4')).toBe('test_________file.mp4');
     });
 
     it('should trim whitespace', () => {

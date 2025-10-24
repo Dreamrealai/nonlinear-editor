@@ -24,9 +24,13 @@ jest.mock('@/lib/serverLogger', () => ({
 }));
 
 jest.mock('@/lib/api/response', () => ({
-  unauthorizedResponse: jest.fn(() => new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })),
+  unauthorizedResponse: jest.fn(
+    () => new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+  ),
   validationError: jest.fn((msg) => new Response(JSON.stringify({ error: msg }), { status: 400 })),
-  notFoundResponse: jest.fn(() => new Response(JSON.stringify({ error: 'Not found' }), { status: 404 })),
+  notFoundResponse: jest.fn(
+    () => new Response(JSON.stringify({ error: 'Not found' }), { status: 404 })
+  ),
   errorResponse: jest.fn((msg, status) => new Response(JSON.stringify({ error: msg }), { status })),
   successResponse: jest.fn((data) => new Response(JSON.stringify(data), { status: 200 })),
   withErrorHandling: jest.fn((handler) => handler),
@@ -40,15 +44,18 @@ describe('POST /api/export', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
   beforeEach(() => {
+    // Clear all mock calls BEFORE setting up new mocks
+    jest.clearAllMocks();
+
+    // Create and configure mock Supabase client
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
-    createServerSupabaseClient.mockResolvedValue(mockSupabase);
+    createServerSupabaseClient.mockImplementation(() => Promise.resolve(mockSupabase));
 
     const { verifyProjectOwnership } = require('@/lib/api/project-verification');
     verifyProjectOwnership.mockResolvedValue({ hasAccess: true });
 
     process.env['VIDEO_EXPORT_ENABLED'] = 'true';
-    jest.clearAllMocks();
   });
 
   afterEach(() => {
@@ -64,7 +71,14 @@ describe('POST /api/export', () => {
         body: JSON.stringify({
           projectId: 'test-project-id',
           timeline: { clips: [] },
-          outputSpec: { width: 1920, height: 1080, fps: 30, vBitrateK: 5000, aBitrateK: 128, format: 'mp4' },
+          outputSpec: {
+            width: 1920,
+            height: 1080,
+            fps: 30,
+            vBitrateK: 5000,
+            aBitrateK: 128,
+            format: 'mp4',
+          },
         }),
       });
 
@@ -83,7 +97,14 @@ describe('POST /api/export', () => {
         body: JSON.stringify({
           projectId: 'test-project-id-valid',
           timeline: { clips: [] },
-          outputSpec: { width: 1920, height: 1080, fps: 30, vBitrateK: 5000, aBitrateK: 128, format: 'mp4' },
+          outputSpec: {
+            width: 1920,
+            height: 1080,
+            fps: 30,
+            vBitrateK: 5000,
+            aBitrateK: 128,
+            format: 'mp4',
+          },
         }),
       });
 
@@ -108,16 +129,25 @@ describe('POST /api/export', () => {
         body: JSON.stringify({
           projectId: 'test-project-id-valid',
           timeline: {
-            clips: [{
-              id: 'clip-1-valid-uuid',
-              assetId: 'asset-1-valid-uuid',
-              start: 0,
-              end: 10,
-              timelinePosition: 0,
-              trackIndex: 0,
-            }],
+            clips: [
+              {
+                id: 'clip-1-valid-uuid',
+                assetId: 'asset-1-valid-uuid',
+                start: 0,
+                end: 10,
+                timelinePosition: 0,
+                trackIndex: 0,
+              },
+            ],
           },
-          outputSpec: { width: 1920, height: 1080, fps: 30, vBitrateK: 5000, aBitrateK: 128, format: 'mp4' },
+          outputSpec: {
+            width: 1920,
+            height: 1080,
+            fps: 30,
+            vBitrateK: 5000,
+            aBitrateK: 128,
+            format: 'mp4',
+          },
         }),
       });
 
@@ -134,10 +164,13 @@ describe('GET /api/export', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
   beforeEach(() => {
+    // Clear all mock calls BEFORE setting up new mocks
+    jest.clearAllMocks();
+
+    // Create and configure mock Supabase client
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
-    createServerSupabaseClient.mockResolvedValue(mockSupabase);
-    jest.clearAllMocks();
+    createServerSupabaseClient.mockImplementation(() => Promise.resolve(mockSupabase));
   });
 
   afterEach(() => {

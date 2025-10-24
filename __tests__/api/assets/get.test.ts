@@ -12,31 +12,53 @@ import {
   resetAllMocks,
 } from '@/test-utils/mockSupabase';
 
-// Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', () => ({
-  withAuth: jest.fn((handler) => async (req: NextRequest) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
-        status: 401, 
-        headers: { 'Content-Type': 'application/json' } 
-      });
-    }
-    
-    return handler(req, { user, supabase });
-  }),
+// Store the mock at module level
+let mockSupabaseForAuth: any = null;
+
+// Mock modules
+jest.mock('@/lib/supabase', () => ({
+  createServerSupabaseClient: jest.fn(() => mockSupabaseForAuth),
 }));
 
-jest.mock('@/lib/supabase', () => ({
-  createServerSupabaseClient: jest.fn(),
+// Mock withAuth wrapper that properly handles authentication
+jest.mock('@/lib/api/withAuth', () => ({
+  withAuth: (handler: any, options: any) => async (req: any, context: any) => {
+    const supabase = mockSupabaseForAuth;
+
+    if (!supabase) {
+      return new Response(JSON.stringify({ error: 'Internal server error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    return handler(req, { user, supabase });
+  },
 }));
 
 jest.mock('@/lib/serverLogger', () => ({
   serverLogger: {
     error: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
+
+jest.mock('@/lib/rateLimit', () => ({
+  RATE_LIMITS: {
+    tier3_status_read: { requests: 30, window: 60 },
   },
 }));
 
@@ -44,10 +66,9 @@ describe('GET /api/assets', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
   beforeEach(() => {
-    mockSupabase = createMockSupabaseClient();
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    createServerSupabaseClient.mockResolvedValue(mockSupabase);
     jest.clearAllMocks();
+    mockSupabase = createMockSupabaseClient();
+    mockSupabaseForAuth = mockSupabase;
   });
 
   afterEach(() => {
@@ -73,10 +94,6 @@ describe('GET /api/assets', () => {
         createMockAsset({ id: 'asset-2', type: 'image' }),
       ];
 
-      mockSupabase.from('assets').select = jest.fn().mockReturnValue({
-        ...mockSupabase,
-        count: mockAssets.length,
-      });
       mockSupabase.range.mockResolvedValue({
         data: mockAssets,
         error: null,
@@ -95,7 +112,8 @@ describe('GET /api/assets', () => {
 
     it('should filter assets by projectId', async () => {
       mockAuthenticatedUser(mockSupabase);
-      const mockAssets = [createMockAsset({ project_id: 'project-1' })];
+      const projectId = '123e4567-e89b-12d3-a456-426614174000';
+      const mockAssets = [createMockAsset({ project_id: projectId })];
 
       mockSupabase.range.mockResolvedValue({
         data: mockAssets,
@@ -103,12 +121,12 @@ describe('GET /api/assets', () => {
         count: 1,
       });
 
-      const mockRequest = new NextRequest('http://localhost/api/assets?projectId=project-1-valid-uuid');
+      const mockRequest = new NextRequest(`http://localhost/api/assets?projectId=${projectId}`);
 
       const response = await GET(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
-      expect(mockSupabase.eq).toHaveBeenCalledWith('project_id', 'project-1-valid-uuid');
+      expect(mockSupabase.eq).toHaveBeenCalledWith('project_id', projectId);
     });
 
     it('should filter assets by type', async () => {

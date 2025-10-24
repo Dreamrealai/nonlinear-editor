@@ -210,8 +210,9 @@ export const mapAssetRow = (row: Record<string, unknown>): AssetRow | null => {
     return null;
   }
 
-  const rawMetadata = (row.rawMetadata ?? row.metadata ?? null) as Record<string, unknown> | null;
-  const parsedMetadata = parseAssetMetadata(rawMetadata);
+  const rawMetadata = (row.rawMetadata ?? null) as Record<string, unknown> | null;
+  const fallbackMetadata = row.metadata ? (row.metadata as Record<string, unknown>) : null;
+  const parsedMetadata = parseAssetMetadata(rawMetadata ?? fallbackMetadata);
   const metadataDuration = parsedMetadata?.durationSeconds ?? null;
 
   return {

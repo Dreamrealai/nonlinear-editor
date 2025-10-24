@@ -185,7 +185,9 @@ describe('POST /api/stripe/checkout', () => {
 
       // Mock successful update
       mockSupabase.update.mockReturnThis();
-      mockSupabase.eq.mockResolvedValue({ error: null });
+      mockSupabase.eq.mockReturnThis();
+      // The actual update result should be mocked via the thenable mockClient
+      mockSupabase.mockResolvedValue({ error: null });
 
       const { createCheckoutSession, getOrCreateStripeCustomer } = require('@/lib/stripe');
       getOrCreateStripeCustomer.mockResolvedValue('cus_new_123');
@@ -198,7 +200,12 @@ describe('POST /api/stripe/checkout', () => {
         body: JSON.stringify({}),
       });
 
-      await POST(mockRequest, { params: Promise.resolve({}) });
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
+
+      if (response.status !== 200) {
+        const errorData = await response.json();
+        console.error('Checkout error:', errorData, 'Status:', response.status);
+      }
 
       expect(getOrCreateStripeCustomer).toHaveBeenCalledWith({
         userId: mockUser.id,

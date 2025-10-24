@@ -56,6 +56,7 @@ describe('POST /api/assets/upload', () => {
   let mockRequest: NextRequest;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
@@ -72,8 +73,6 @@ describe('POST /api/assets/upload', () => {
       hasAccess: true,
       project: createMockProject(),
     });
-
-    jest.clearAllMocks();
   });
 
   afterEach(() => {

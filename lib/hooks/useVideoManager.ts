@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import type { Clip, Timeline } from '@/types/timeline';
 import { browserLogger } from '@/lib/browserLogger';
 import { signedUrlCache } from '@/lib/signedUrlCache';
+import { isSupabasePublicAssetUrl } from '@/lib/utils/assetUtils';
 import {
   ensureBuffered,
   generateCSSFilter,
@@ -87,18 +88,29 @@ export function useVideoManager({
         throw new Error('Clip is missing file path information.');
       }
 
-      const directUrl = typeof clip.previewUrl === 'string' ? clip.previewUrl.trim() : '';
-      if (directUrl && (directUrl.startsWith('http') || directUrl.startsWith('blob:'))) {
-        return directUrl;
+      const previewUrl = typeof clip.previewUrl === 'string' ? clip.previewUrl.trim() : '';
+      const previewRequiresSigning = previewUrl ? isSupabasePublicAssetUrl(previewUrl) : false;
+
+      if (
+        previewUrl &&
+        !previewRequiresSigning &&
+        (previewUrl.startsWith('http') || previewUrl.startsWith('blob:'))
+      ) {
+        return previewUrl;
       }
 
-      if (clip.filePath.startsWith('http') || clip.filePath.startsWith('blob:')) {
+      if (
+        !clip.filePath.startsWith('supabase://') &&
+        (clip.filePath.startsWith('http') || clip.filePath.startsWith('blob:')) &&
+        !previewRequiresSigning
+      ) {
         return clip.filePath;
       }
 
-      // Use centralized signed URL cache with automatic request deduplication
-      const ttl = SIGNED_URL_TTL_DEFAULT - (SIGNED_URL_BUFFER_MS / 1000);
-      const signedUrl = await signedUrlCache.get(clip.assetId, clip.filePath, ttl);
+      const ttlSeconds = Math.max(5, SIGNED_URL_TTL_DEFAULT - SIGNED_URL_BUFFER_MS / 1000);
+      const storageTarget = clip.filePath.startsWith('supabase://') ? clip.filePath : undefined;
+
+      const signedUrl = await signedUrlCache.get(clip.assetId, storageTarget, ttlSeconds);
       return signedUrl;
     } catch (error) {
       browserLogger.error(

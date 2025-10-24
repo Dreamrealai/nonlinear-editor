@@ -69,11 +69,12 @@ export function getPasswordStrength(password: string): number {
   if (password.length >= 12) score += 10;
   if (password.length >= 16) score += 10;
 
-  // Character type scores (15 points each)
-  if (UPPERCASE_REGEX.test(password)) score += 15;
-  if (LOWERCASE_REGEX.test(password)) score += 15;
-  if (NUMBER_REGEX.test(password)) score += 15;
-  if (SPECIAL_CHARS_REGEX.test(password)) score += 15;
+  // Character type scores (15 points each, but reduced for short passwords)
+  const charTypePoints = password.length < 8 ? 10 : 15;
+  if (UPPERCASE_REGEX.test(password)) score += charTypePoints;
+  if (LOWERCASE_REGEX.test(password)) score += charTypePoints;
+  if (NUMBER_REGEX.test(password)) score += charTypePoints;
+  if (SPECIAL_CHARS_REGEX.test(password)) score += charTypePoints;
 
   return Math.min(100, score);
 }

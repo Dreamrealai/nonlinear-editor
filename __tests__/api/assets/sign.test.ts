@@ -30,6 +30,7 @@ describe('GET /api/assets/sign', () => {
   let mockRequest: NextRequest;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
@@ -40,8 +41,6 @@ describe('GET /api/assets/sign', () => {
       data: { signedUrl: 'https://example.com/signed-url' },
       error: null,
     });
-
-    jest.clearAllMocks();
   });
 
   afterEach(() => {

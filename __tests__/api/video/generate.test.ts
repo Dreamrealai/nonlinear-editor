@@ -16,10 +16,18 @@ import {
 } from '@/test-utils/mockSupabase';
 
 // Mock modules
-jest.mock('@/lib/supabase', () => ({
-  createServerSupabaseClient: jest.fn(),
-  ensureHttpsProtocol: jest.fn((url) => url),
-}));
+jest.mock('@/lib/supabase', () => {
+  const { createMockSupabaseClient } = jest.requireActual('@/test-utils/mockSupabase');
+  let mockClient = createMockSupabaseClient();
+
+  return {
+    createServerSupabaseClient: jest.fn(async () => mockClient),
+    ensureHttpsProtocol: jest.fn((url) => url),
+    __setMockClient: (client: ReturnType<typeof createMockSupabaseClient>) => {
+      mockClient = client;
+    },
+  };
+});
 
 jest.mock('@/lib/veo', () => ({
   generateVideo: jest.fn(),
@@ -91,10 +99,9 @@ describe('POST /api/video/generate', () => {
 
   beforeEach(() => {
     mockSupabase = createMockSupabaseClient();
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    createServerSupabaseClient.mockResolvedValue(mockSupabase);
+    const { __setMockClient } = require('@/lib/supabase');
+    __setMockClient(mockSupabase);
 
-    const { checkRateLimit } = require('@/lib/rateLimit');
     checkRateLimit.mockResolvedValue({
       success: true,
       limit: 5,

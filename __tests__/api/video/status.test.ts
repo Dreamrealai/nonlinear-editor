@@ -12,10 +12,18 @@ import {
 } from '@/test-utils/mockSupabase';
 
 // Mock modules
-jest.mock('@/lib/supabase', () => ({
-  createServerSupabaseClient: jest.fn(),
-  ensureHttpsProtocol: jest.fn((url) => url),
-}));
+jest.mock('@/lib/supabase', () => {
+  const { createMockSupabaseClient } = jest.requireActual('@/test-utils/mockSupabase');
+  let mockClient = createMockSupabaseClient();
+
+  return {
+    createServerSupabaseClient: jest.fn(async () => mockClient),
+    ensureHttpsProtocol: jest.fn((url) => url),
+    __setMockClient: (client: ReturnType<typeof createMockSupabaseClient>) => {
+      mockClient = client;
+    },
+  };
+});
 
 jest.mock('@/lib/veo', () => ({
   checkOperationStatus: jest.fn(),
@@ -52,6 +60,8 @@ const createRequest = (path: string, init: RequestInit = {}) =>
   new Request(`http://localhost${path}`, init);
 
 const { checkRateLimit } = require('@/lib/rateLimit');
+const { checkFalVideoStatus } = require('@/lib/fal-video');
+const { checkOperationStatus } = require('@/lib/veo');
 
 describe('GET /api/video/status', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
@@ -61,8 +71,8 @@ describe('GET /api/video/status', () => {
     jest.clearAllMocks();
 
     mockSupabase = createMockSupabaseClient();
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    createServerSupabaseClient.mockResolvedValue(mockSupabase);
+    const { __setMockClient } = require('@/lib/supabase');
+    __setMockClient(mockSupabase);
 
     // Setup default storage mocks
     mockSupabase.storage.from.mockReturnThis();
@@ -145,7 +155,6 @@ describe('GET /api/video/status', () => {
   describe('FAL Video Status', () => {
     it('should check FAL operation status', async () => {
       mockAuthenticatedUser(mockSupabase);
-      const { checkFalVideoStatus } = require('@/lib/fal-video');
       checkFalVideoStatus.mockResolvedValue({
         done: false,
         error: null,
@@ -165,7 +174,6 @@ describe('GET /api/video/status', () => {
 
     it('should handle completed FAL video generation', async () => {
       const mockUser = mockAuthenticatedUser(mockSupabase);
-      const { checkFalVideoStatus } = require('@/lib/fal-video');
 
       // Mock FAL result
       checkFalVideoStatus.mockResolvedValue({
@@ -211,7 +219,6 @@ describe('GET /api/video/status', () => {
 
     it('should return error when FAL video generation fails', async () => {
       mockAuthenticatedUser(mockSupabase);
-      const { checkFalVideoStatus } = require('@/lib/fal-video');
       checkFalVideoStatus.mockResolvedValue({
         done: true,
         error: 'Generation failed',
@@ -245,7 +252,6 @@ describe('GET /api/video/status', () => {
   describe('Veo Video Status', () => {
     it('should check Veo operation status', async () => {
       mockAuthenticatedUser(mockSupabase);
-      const { checkOperationStatus } = require('@/lib/veo');
       checkOperationStatus.mockResolvedValue({
         done: false,
         metadata: { progressPercentage: 50 },
@@ -266,7 +272,6 @@ describe('GET /api/video/status', () => {
 
     it('should handle completed Veo video with base64 data', async () => {
       const mockUser = mockAuthenticatedUser(mockSupabase);
-      const { checkOperationStatus } = require('@/lib/veo');
 
       // Mock base64 video data
       const testVideoData = Buffer.from('test video data').toString('base64');
@@ -307,7 +312,6 @@ describe('GET /api/video/status', () => {
 
     it('should download Veo video from GCS URI', async () => {
       mockAuthenticatedUser(mockSupabase);
-      const { checkOperationStatus } = require('@/lib/veo');
 
       process.env.GOOGLE_SERVICE_ACCOUNT = JSON.stringify({
         type: 'service_account',
@@ -363,7 +367,6 @@ describe('GET /api/video/status', () => {
 
     it('should return error when Veo operation fails', async () => {
       mockAuthenticatedUser(mockSupabase);
-      const { checkOperationStatus } = require('@/lib/veo');
       checkOperationStatus.mockResolvedValue({
         done: true,
         error: {
@@ -387,7 +390,6 @@ describe('GET /api/video/status', () => {
   describe('Storage and Database', () => {
     it('should upload video to storage and create asset record', async () => {
       const mockUser = mockAuthenticatedUser(mockSupabase);
-      const { checkOperationStatus } = require('@/lib/veo');
 
       const testVideoData = Buffer.from('test video').toString('base64');
       checkOperationStatus.mockResolvedValue({
@@ -435,7 +437,6 @@ describe('GET /api/video/status', () => {
 
     it('should clean up storage on database insert failure', async () => {
       mockAuthenticatedUser(mockSupabase);
-      const { checkOperationStatus } = require('@/lib/veo');
 
       const testVideoData = Buffer.from('test video').toString('base64');
       checkOperationStatus.mockResolvedValue({
@@ -474,7 +475,6 @@ describe('GET /api/video/status', () => {
 
     it('should create activity history entry on success', async () => {
       mockAuthenticatedUser(mockSupabase);
-      const { checkOperationStatus } = require('@/lib/veo');
 
       const testVideoData = Buffer.from('test video').toString('base64');
       checkOperationStatus.mockResolvedValue({
@@ -515,7 +515,6 @@ describe('GET /api/video/status', () => {
   describe('Error Handling', () => {
     it('should return 500 when status check fails', async () => {
       mockAuthenticatedUser(mockSupabase);
-      const { checkOperationStatus } = require('@/lib/veo');
       checkOperationStatus.mockRejectedValue(new Error('API error'));
 
       mockRequest = createRequest(
@@ -531,7 +530,6 @@ describe('GET /api/video/status', () => {
 
     it('should handle storage upload failure', async () => {
       mockAuthenticatedUser(mockSupabase);
-      const { checkOperationStatus } = require('@/lib/veo');
 
       checkOperationStatus.mockResolvedValue({
         done: true,

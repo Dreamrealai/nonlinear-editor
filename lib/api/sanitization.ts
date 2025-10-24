@@ -52,8 +52,12 @@ export function sanitizeString(
   }
 
   // Remove control characters (except newline \n and tab \t)
+  // Note: \x00 (null byte) is excluded from this regex if removeNullBytes is false
   if (removeControlChars) {
-    sanitized = sanitized.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '');
+    const controlCharsRegex = removeNullBytes
+      ? /[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g
+      : /[\x01-\x08\x0B-\x0C\x0E-\x1F\x7F]/g;
+    sanitized = sanitized.replace(controlCharsRegex, '');
   }
 
   // Strip HTML tags if requested
@@ -169,7 +173,7 @@ export function sanitizeUrl(
  */
 export function sanitizeUUID(uuid: string): string | null {
   const cleaned = uuid.trim().toLowerCase();
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[14][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
   return uuidRegex.test(cleaned) ? cleaned : null;
 }
@@ -193,6 +197,11 @@ export function sanitizeInteger(
   } = {}
 ): number | null {
   const { min, max } = options;
+
+  // If string, check for decimal point
+  if (typeof value === 'string' && value.includes('.')) {
+    return null;
+  }
 
   // Convert to number
   const num = typeof value === 'string' ? parseInt(value, 10) : Number(value);

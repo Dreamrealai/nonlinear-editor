@@ -272,6 +272,17 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       'Failed to create checkout session'
     );
 
+    // In test environment, include error details for debugging
+    if (process.env.NODE_ENV === 'test') {
+      return NextResponse.json(
+        {
+          error: 'Failed to create checkout session',
+          details: error instanceof Error ? error.message : 'Unknown error',
+        },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 });
   }
 });

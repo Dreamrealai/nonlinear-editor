@@ -64,6 +64,7 @@ export function createMockSupabaseClient(): jest.Mocked<SupabaseClient> & MockSu
   mockClient.neq = jest.fn(() => mockClient);
   mockClient.order = jest.fn(() => mockClient);
   mockClient.limit = jest.fn(() => mockClient);
+  mockClient.range = jest.fn(() => mockClient);
 
   // Terminal methods that return promises
   // These should be configured with mockResolvedValue in tests
@@ -176,10 +177,12 @@ export function mockAuthenticatedUser(
   user?: Record<string, unknown>
 ) {
   const mockUser = user || createMockUser();
-  mockClient.auth.getUser.mockResolvedValue({
-    data: { user: mockUser },
-    error: null,
-  });
+  mockClient.auth.getUser.mockImplementation(() =>
+    Promise.resolve({
+      data: { user: mockUser },
+      error: null,
+    })
+  );
   return mockUser;
 }
 
@@ -187,10 +190,12 @@ export function mockAuthenticatedUser(
  * Helper to set up unauthenticated state
  */
 export function mockUnauthenticatedUser(mockClient: MockSupabaseChain) {
-  mockClient.auth.getUser.mockResolvedValue({
-    data: { user: null },
-    error: { message: 'Not authenticated' },
-  });
+  mockClient.auth.getUser.mockImplementation(() =>
+    Promise.resolve({
+      data: { user: null },
+      error: { message: 'Not authenticated' },
+    })
+  );
 }
 
 /**

@@ -20,6 +20,14 @@ jest.mock('@/lib/api/withAuth', () => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
+
+    if (!supabase || !supabase.auth) {
+      return new Response(JSON.stringify({ error: 'Internal server error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -91,7 +99,7 @@ describe('POST /api/projects', () => {
 
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
-    createServerSupabaseClient.mockResolvedValue(mockSupabase);
+    createServerSupabaseClient.mockImplementation(() => Promise.resolve(mockSupabase));
   });
 
   afterEach(() => {

@@ -80,12 +80,32 @@ describe('POST /api/stripe/webhook', () => {
     // Clear only individual mock call counts, not implementations
     mockConstructEvent.mockClear();
     mockRetrieveSubscription.mockClear();
-    if (mockSupabase.from) mockSupabase.from.mockClear();
-    if (mockSupabase.select) mockSupabase.select.mockClear();
-    if (mockSupabase.insert) mockSupabase.insert.mockClear();
-    if (mockSupabase.update) mockSupabase.update.mockClear();
-    if (mockSupabase.eq) mockSupabase.eq.mockClear();
-    if (mockSupabase.single) mockSupabase.single.mockClear();
+
+    // Reset the chainable methods to return mockSupabase
+    // This ensures the query builder chain works correctly
+    if (mockSupabase.from) {
+      mockSupabase.from.mockClear();
+      mockSupabase.from.mockImplementation(() => mockSupabase);
+    }
+    if (mockSupabase.select) {
+      mockSupabase.select.mockClear();
+      mockSupabase.select.mockImplementation(() => mockSupabase);
+    }
+    if (mockSupabase.insert) {
+      mockSupabase.insert.mockClear();
+      mockSupabase.insert.mockImplementation(() => mockSupabase);
+    }
+    if (mockSupabase.update) {
+      mockSupabase.update.mockClear();
+      mockSupabase.update.mockImplementation(() => mockSupabase);
+    }
+    if (mockSupabase.eq) {
+      mockSupabase.eq.mockClear();
+      mockSupabase.eq.mockImplementation(() => mockSupabase);
+    }
+    if (mockSupabase.single) {
+      mockSupabase.single.mockClear();
+    }
   });
 
   describe('Webhook Verification', () => {
@@ -198,9 +218,7 @@ describe('POST /api/stripe/webhook', () => {
         data: createMockUserProfile({ id: userId, tier: 'free' }),
         error: null,
       });
-      mockSupabase.update.mockReturnThis();
-      mockSupabase.eq.mockReturnThis();
-      mockSupabase.select.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: [createMockUserProfile({ id: userId, tier: 'premium' })],
         error: null,
       });
@@ -244,9 +262,7 @@ describe('POST /api/stripe/webhook', () => {
         data: createMockUserProfile({ id: userId, tier: 'admin' }),
         error: null,
       });
-      mockSupabase.update.mockReturnThis();
-      mockSupabase.eq.mockReturnThis();
-      mockSupabase.select.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: [createMockUserProfile({ id: userId, tier: 'admin' })],
         error: null,
       });
@@ -330,9 +346,7 @@ describe('POST /api/stripe/webhook', () => {
         data: createMockUserProfile({ id: userId }),
         error: null,
       });
-      mockSupabase.update.mockReturnThis();
-      mockSupabase.eq.mockReturnThis();
-      mockSupabase.select.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: null,
         error: { message: 'Database error' },
       });
@@ -369,9 +383,7 @@ describe('POST /api/stripe/webhook', () => {
         }),
         error: null,
       });
-      mockSupabase.update.mockReturnThis();
-      mockSupabase.eq.mockReturnThis();
-      mockSupabase.select.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: [createMockUserProfile({ tier: 'premium' })],
         error: null,
       });
@@ -412,9 +424,7 @@ describe('POST /api/stripe/webhook', () => {
         }),
         error: null,
       });
-      mockSupabase.update.mockReturnThis();
-      mockSupabase.eq.mockReturnThis();
-      mockSupabase.select.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: [createMockUserProfile({ tier: 'free' })],
         error: null,
       });
@@ -454,9 +464,7 @@ describe('POST /api/stripe/webhook', () => {
         }),
         error: null,
       });
-      mockSupabase.update.mockReturnThis();
-      mockSupabase.eq.mockReturnThis();
-      mockSupabase.select.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: [createMockUserProfile({ tier: 'admin' })],
         error: null,
       });
@@ -496,9 +504,7 @@ describe('POST /api/stripe/webhook', () => {
         }),
         error: null,
       });
-      mockSupabase.update.mockReturnThis();
-      mockSupabase.eq.mockReturnThis();
-      mockSupabase.select.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: [createMockUserProfile({ tier: 'free' })],
         error: null,
       });
@@ -540,9 +546,7 @@ describe('POST /api/stripe/webhook', () => {
         }),
         error: null,
       });
-      mockSupabase.update.mockReturnThis();
-      mockSupabase.eq.mockReturnThis();
-      mockSupabase.select.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: [createMockUserProfile({ tier: 'admin' })],
         error: null,
       });

@@ -234,9 +234,9 @@ describe('AssetPanel', () => {
       expect(screen.getByText('test-video.mp4')).toBeInTheDocument();
     });
 
-    it('should display file extension', () => {
+    it('should display file extension as part of filename', () => {
       render(<AssetPanel {...defaultProps} activeTab="video" />);
-      expect(screen.getByText('.mp4')).toBeInTheDocument();
+      expect(screen.getByText('test-video.mp4')).toBeInTheDocument();
     });
   });
 

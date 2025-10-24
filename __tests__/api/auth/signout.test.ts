@@ -35,8 +35,14 @@ describe('POST /api/auth/signout', () => {
   let mockRequest: NextRequest;
 
   beforeEach(() => {
+    // Clear all mock calls BEFORE setting up new mocks
+    jest.clearAllMocks();
+
+    // Create and configure mock Supabase client
     mockSupabase = createMockSupabaseClient();
-    (createServerSupabaseClient as jest.Mock).mockResolvedValue(mockSupabase);
+    (createServerSupabaseClient as jest.Mock).mockImplementation(() =>
+      Promise.resolve(mockSupabase)
+    );
     (isSupabaseConfigured as jest.Mock).mockReturnValue(true);
 
     // Create mock request with valid origin
@@ -46,8 +52,6 @@ describe('POST /api/auth/signout', () => {
         origin: 'http://localhost:3000',
       },
     });
-
-    jest.clearAllMocks();
   });
 
   afterEach(() => {

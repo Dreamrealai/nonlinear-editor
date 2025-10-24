@@ -10,43 +10,54 @@ import {
   resetAllMocks,
 } from '@/test-utils/mockSupabase';
 
+// Mock the Supabase module
+jest.mock('@/lib/supabase', () => ({
+  createServerSupabaseClient: jest.fn(),
+}));
+
 // Create a generic mock handler for testing
+let globalMockSupabase: ReturnType<typeof createMockSupabaseClient>;
+
 const createMockHandler = () => async (req: NextRequest) => {
-  const mockSupabase = createMockSupabaseClient();
-  const { data: { user } } = await mockSupabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await globalMockSupabase.auth.getUser();
+
   if (!user) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
-      status: 401, 
-      headers: { 'Content-Type': 'application/json' } 
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 
   const body = await req.json();
-  
+
   // Basic validation
   if (!body.text || !body.voiceId || !body.projectId) {
-    return new Response(JSON.stringify({ error: 'Missing required fields' }), { 
-      status: 400, 
-      headers: { 'Content-Type': 'application/json' } 
+    return new Response(JSON.stringify({ error: 'Missing required fields' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 
   // Rate limiting check
   if (body.text.length > 5000) {
-    return new Response(JSON.stringify({ error: 'Text too long' }), { 
-      status: 400, 
-      headers: { 'Content-Type': 'application/json' } 
+    return new Response(JSON.stringify({ error: 'Text too long' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  return new Response(JSON.stringify({ 
-    audioUrl: 'https://example.com/audio.mp3',
-    assetId: 'asset-123'
-  }), { 
-    status: 200, 
-    headers: { 'Content-Type': 'application/json' } 
-  });
+  return new Response(
+    JSON.stringify({
+      audioUrl: 'https://example.com/audio.mp3',
+      assetId: 'asset-123',
+    }),
+    {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
 };
 
 describe('POST /api/audio/elevenlabs/generate', () => {
@@ -54,8 +65,14 @@ describe('POST /api/audio/elevenlabs/generate', () => {
   const mockHandler = createMockHandler();
 
   beforeEach(() => {
-    mockSupabase = createMockSupabaseClient();
+    // Clear all mock calls BEFORE setting up new mocks
     jest.clearAllMocks();
+
+    // Create and configure mock Supabase client
+    mockSupabase = createMockSupabaseClient();
+    globalMockSupabase = mockSupabase;
+    const { createServerSupabaseClient } = require('@/lib/supabase');
+    createServerSupabaseClient.mockImplementation(() => Promise.resolve(mockSupabase));
   });
 
   afterEach(() => {
