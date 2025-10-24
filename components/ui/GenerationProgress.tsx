@@ -53,7 +53,7 @@ function getStatusMessage(progress: number, generationType: string = 'content'):
 function estimateTimeRemaining(
   progress: number,
   currentAttempt: number,
-  maxAttempts: number,
+  _maxAttempts: number,
   pollInterval: number = 10
 ): number {
   // If no progress yet, estimate based on average time
