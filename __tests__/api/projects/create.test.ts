@@ -15,6 +15,26 @@ import {
   resetAllMocks,
 } from '@/test-utils/mockSupabase';
 
+// Mock withAuth wrapper
+jest.mock('@/lib/api/withAuth', () => ({
+  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+    const { createServerSupabaseClient } = require('@/lib/supabase');
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    return handler(req, { user, supabase, params: context?.params || {} });
+  }),
+}));
+
 // Mock the Supabase module
 jest.mock('@/lib/supabase', () => ({
   createServerSupabaseClient: jest.fn(),
@@ -31,34 +51,47 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
-// Mock response utilities
-jest.mock('@/lib/api/response', () => {
-  const jsonResponse = (payload: unknown, init?: ResponseInit) =>
-    new Response(JSON.stringify(payload), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-      ...init,
-    });
+// Mock cache invalidation
+jest.mock('@/lib/cacheInvalidation', () => ({
+  invalidateUserProjects: jest.fn().mockResolvedValue(undefined),
+  invalidateProjectCache: jest.fn().mockResolvedValue(undefined),
+}));
 
-  return {
-    unauthorizedResponse: jest.fn(() => jsonResponse({ error: 'Unauthorized' }, { status: 401 })),
-    errorResponse: jest.fn((message: string, status: number) =>
-      jsonResponse({ error: message }, { status })
-    ),
-    withErrorHandling: jest.fn((handler: unknown) => handler),
-    successResponse: jest.fn((data) => jsonResponse(data)),
-  };
-});
+// Mock error tracking
+jest.mock('@/lib/errorTracking', () => ({
+  trackError: jest.fn(),
+  ErrorCategory: { DATABASE: 'DATABASE' },
+  ErrorSeverity: { HIGH: 'HIGH', MEDIUM: 'MEDIUM' },
+}));
+
+// Mock cache
+jest.mock('@/lib/cache', () => ({
+  cache: {
+    get: jest.fn().mockResolvedValue(null),
+    set: jest.fn().mockResolvedValue(undefined),
+    del: jest.fn().mockResolvedValue(undefined),
+  },
+  CacheKeys: {
+    userProjects: (userId: string) => `user:${userId}:projects`,
+    project: (projectId: string) => `project:${projectId}`,
+  },
+  CacheTTL: {
+    SHORT: 300,
+    MEDIUM: 900,
+    LONG: 3600,
+  },
+}));
 
 describe('POST /api/projects', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   let mockRequest: NextRequest;
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
-    jest.clearAllMocks();
   });
 
   afterEach(() => {
@@ -73,7 +106,7 @@ describe('POST /api/projects', () => {
         body: JSON.stringify({ title: 'Test Project' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -90,7 +123,7 @@ describe('POST /api/projects', () => {
         body: JSON.stringify({ title: 'Test Project' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(401);
     });
@@ -110,7 +143,7 @@ describe('POST /api/projects', () => {
         body: JSON.stringify({ title: 'My Custom Project' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -137,7 +170,7 @@ describe('POST /api/projects', () => {
         body: JSON.stringify({}),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -159,7 +192,7 @@ describe('POST /api/projects', () => {
         body: JSON.stringify({ title: 'Test' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -177,11 +210,11 @@ describe('POST /api/projects', () => {
         body: JSON.stringify({ title: 'Test Project' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
-      expect(data.error).toBe('Database connection failed');
+      expect(data.error).toContain('Failed to create project');
     });
 
     it('should return 500 when unexpected error occurs', async () => {
@@ -195,11 +228,11 @@ describe('POST /api/projects', () => {
         body: JSON.stringify({ title: 'Test Project' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
-      expect(data.error).toBe('Internal server error');
+      expect(data.error).toContain('Unexpected error');
     });
 
     it('should handle malformed JSON body', async () => {
@@ -208,11 +241,12 @@ describe('POST /api/projects', () => {
       mockRequest = new NextRequest('http://localhost/api/projects', {
         method: 'POST',
         body: 'invalid json',
+        headers: { 'Content-Type': 'application/json' },
       });
 
-      const response = await POST(mockRequest);
-
-      expect(response.status).toBe(500);
+      // JSON parsing errors are caught by the withAuth wrapper in production
+      // Since we're mocking withAuth to test the handler directly, we expect the error to throw
+      await expect(POST(mockRequest, { params: Promise.resolve({}) })).rejects.toThrow();
     });
   });
 
@@ -230,7 +264,7 @@ describe('POST /api/projects', () => {
         body: JSON.stringify({ title: '' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.insert).toHaveBeenCalledWith(
@@ -253,14 +287,14 @@ describe('POST /api/projects', () => {
         body: JSON.stringify({ title: '   ' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
     });
 
     it('should accept very long titles', async () => {
       const mockUser = mockAuthenticatedUser(mockSupabase);
-      const longTitle = 'A'.repeat(500);
+      const longTitle = 'A'.repeat(200); // Max allowed length is 200
       const mockProject = createMockProject({
         title: longTitle,
         user_id: mockUser.id,
@@ -272,7 +306,7 @@ describe('POST /api/projects', () => {
         body: JSON.stringify({ title: longTitle }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(mockSupabase.insert).toHaveBeenCalledWith(
@@ -294,7 +328,7 @@ describe('POST /api/projects', () => {
         body: JSON.stringify({ title: 'Test Project' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(data).toHaveProperty('id');
@@ -315,7 +349,7 @@ describe('POST /api/projects', () => {
         body: JSON.stringify({ title: 'Test Project' }),
       });
 
-      const response = await POST(mockRequest);
+      const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(response.headers.get('content-type')).toContain('application/json');
     });
@@ -332,7 +366,7 @@ describe('POST /api/projects', () => {
         body: JSON.stringify({ title: 'Test Project' }),
       });
 
-      await POST(mockRequest);
+      await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(mockSupabase.from).toHaveBeenCalledWith('projects');
       expect(mockSupabase.insert).toHaveBeenCalled();
@@ -350,7 +384,7 @@ describe('POST /api/projects', () => {
         body: JSON.stringify({ title: 'Test Project' }),
       });
 
-      await POST(mockRequest);
+      await POST(mockRequest, { params: Promise.resolve({}) });
 
       expect(mockSupabase.select).toHaveBeenCalled();
       expect(mockSupabase.single).toHaveBeenCalled();

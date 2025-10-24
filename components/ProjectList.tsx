@@ -14,6 +14,8 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 import { ICON_SIZES } from '@/lib/constants/ui';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Film, Trash2 } from 'lucide-react';
 
 export interface Project {
   id: string;
@@ -52,19 +54,7 @@ const ProjectItem = React.memo<ProjectItemProps>(function ProjectItem({ project,
         className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50 transition-all shadow-sm"
         title="Delete project"
       >
-        <svg
-          className={`h-${ICON_SIZES.ICON_SIZE_SM} w-${ICON_SIZES.ICON_SIZE_SM}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-          />
-        </svg>
+        <Trash2 className={`h-${ICON_SIZES.ICON_SIZE_SM} w-${ICON_SIZES.ICON_SIZE_SM}`} />
       </button>
     </div>
   );
@@ -105,7 +95,17 @@ export const ProjectList = React.memo<ProjectListProps>(function ProjectList({ p
   );
 
   if (projects.length === 0) {
-    return null;
+    return (
+      <EmptyState
+        icon={<Film className="h-10 w-10 text-gray-400" />}
+        title="No projects yet"
+        description="Get started by creating your first project."
+        action={{
+          label: 'Create Project',
+          onClick: () => router.push('/'),
+        }}
+      />
+    );
   }
 
   return (

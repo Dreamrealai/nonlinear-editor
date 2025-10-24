@@ -25,7 +25,8 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
-const ADMIN_ID = '00000000-0000-0000-0000-000000000001';
+const ADMIN_ID = '550e8400-e29b-41d4-a716-446655440000';
+const OTHER_USER_ID = '550e8400-e29b-41d4-a716-446655440001';
 
 jest.mock('@/lib/api/withAuth', () => ({
   withAdminAuth: jest.fn((handler) => async (req: NextRequest) => {
@@ -90,6 +91,10 @@ describe('POST /api/admin/change-tier', () => {
       });
 
       const response = await POST(mockRequest);
+      if (response.status !== 403) {
+        const error = await response.json();
+        console.log('Expected 403, got:', response.status, error);
+      }
       expect(response.status).toBe(403);
     });
   });
@@ -98,10 +103,14 @@ describe('POST /api/admin/change-tier', () => {
     it('should change user tier successfully', async () => {
       const mockRequest = new NextRequest('http://localhost/api/admin/change-tier', {
         method: 'POST',
-        body: JSON.stringify({ userId: '00000000-0000-0000-0000-000000000002', tier: 'premium' }),
+        body: JSON.stringify({ userId: OTHER_USER_ID, tier: 'premium' }),
       });
 
       const response = await POST(mockRequest);
+      if (response.status !== 200) {
+        const error = await response.json();
+        console.log('Expected 200, got:', response.status, error);
+      }
       expect(response.status).toBe(200);
     });
   });

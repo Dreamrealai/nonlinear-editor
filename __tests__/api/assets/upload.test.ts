@@ -35,6 +35,22 @@ jest.mock('crypto', () => ({
   randomUUID: jest.fn(() => 'mock-uuid-123'),
 }));
 
+jest.mock('@/lib/rateLimit', () => ({
+  checkRateLimit: jest.fn().mockResolvedValue({
+    success: true,
+    limit: 10,
+    remaining: 9,
+    resetAt: Date.now() + 60000,
+  }),
+  RATE_LIMITS: {
+    tier2_resource_creation: { requests: 10, window: 60 },
+  },
+}));
+
+jest.mock('@/lib/api/project-verification', () => ({
+  verifyProjectOwnership: jest.fn(),
+}));
+
 describe('POST /api/assets/upload', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   let mockRequest: NextRequest;
@@ -50,6 +66,13 @@ describe('POST /api/assets/upload', () => {
       data: { publicUrl: 'https://example.com/test.jpg' },
     });
 
+    // Default project verification mock - returns success
+    const { verifyProjectOwnership } = require('@/lib/api/project-verification');
+    verifyProjectOwnership.mockResolvedValue({
+      hasAccess: true,
+      project: createMockProject(),
+    });
+
     jest.clearAllMocks();
   });
 
@@ -63,7 +86,7 @@ describe('POST /api/assets/upload', () => {
 
       const formData = new FormData();
       formData.append('file', new Blob(['test'], { type: 'image/jpeg' }), 'test.jpg');
-      formData.append('projectId', 'test-project-id');
+      formData.append('projectId', '123e4567-e89b-12d3-a456-426614174000');
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
@@ -83,7 +106,7 @@ describe('POST /api/assets/upload', () => {
       mockAuthenticatedUser(mockSupabase);
 
       const formData = new FormData();
-      formData.append('projectId', 'test-project-id');
+      formData.append('projectId', '123e4567-e89b-12d3-a456-426614174000');
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
@@ -130,7 +153,7 @@ describe('POST /api/assets/upload', () => {
 
       const formData = new FormData();
       formData.append('file', mockFile as any);
-      formData.append('projectId', 'test-project-id');
+      formData.append('projectId', '123e4567-e89b-12d3-a456-426614174000');
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
@@ -151,7 +174,7 @@ describe('POST /api/assets/upload', () => {
 
       const formData = new FormData();
       formData.append('file', new Blob(['test'], { type: 'application/exe' }), 'test.exe');
-      formData.append('projectId', 'test-project-id');
+      formData.append('projectId', '123e4567-e89b-12d3-a456-426614174000');
       formData.append('type', 'image');
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
@@ -184,7 +207,7 @@ describe('POST /api/assets/upload', () => {
           arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1024)),
         };
         formData.append('file', mockFile as any);
-        formData.append('projectId', 'test-project-id');
+        formData.append('projectId', '123e4567-e89b-12d3-a456-426614174000');
 
         mockRequest = new NextRequest('http://localhost/api/assets/upload', {
           method: 'POST',
@@ -214,7 +237,7 @@ describe('POST /api/assets/upload', () => {
           arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1024)),
         };
         formData.append('file', mockFile as any);
-        formData.append('projectId', 'test-project-id');
+        formData.append('projectId', '123e4567-e89b-12d3-a456-426614174000');
         formData.append('type', 'video');
 
         mockRequest = new NextRequest('http://localhost/api/assets/upload', {
@@ -232,6 +255,14 @@ describe('POST /api/assets/upload', () => {
     it('should return 404 when project not found', async () => {
       mockAuthenticatedUser(mockSupabase);
       mockQueryError(mockSupabase, 'Project not found');
+
+      // Override project verification to return not found
+      const { verifyProjectOwnership } = require('@/lib/api/project-verification');
+      verifyProjectOwnership.mockResolvedValueOnce({
+        hasAccess: false,
+        error: 'Project not found or access denied',
+        status: 404,
+      });
 
       const formData = new FormData();
       const mockFile = {
@@ -260,6 +291,14 @@ describe('POST /api/assets/upload', () => {
       mockSupabase.single.mockResolvedValue({
         data: null,
         error: { message: 'No rows found' },
+      });
+
+      // Override project verification to return not found
+      const { verifyProjectOwnership } = require('@/lib/api/project-verification');
+      verifyProjectOwnership.mockResolvedValueOnce({
+        hasAccess: false,
+        error: 'Project not found or access denied',
+        status: 404,
       });
 
       const formData = new FormData();
@@ -297,7 +336,7 @@ describe('POST /api/assets/upload', () => {
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1024)),
       };
       formData.append('file', mockFile as any);
-      formData.append('projectId', 'test-project-id');
+      formData.append('projectId', '123e4567-e89b-12d3-a456-426614174000');
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
@@ -306,7 +345,7 @@ describe('POST /api/assets/upload', () => {
 
       await POST(mockRequest);
 
-      expect(mockSupabase.eq).toHaveBeenCalledWith('id', 'test-project-id');
+      expect(mockSupabase.eq).toHaveBeenCalledWith('id', '123e4567-e89b-12d3-a456-426614174000');
       expect(mockSupabase.eq).toHaveBeenCalledWith('user_id', mockUser.id);
     });
   });
@@ -327,7 +366,7 @@ describe('POST /api/assets/upload', () => {
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1024)),
       };
       formData.append('file', mockFile as any);
-      formData.append('projectId', 'test-project-id');
+      formData.append('projectId', '123e4567-e89b-12d3-a456-426614174000');
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
@@ -340,7 +379,7 @@ describe('POST /api/assets/upload', () => {
       expect(mockSupabase.storage.upload).toHaveBeenCalled();
       expect(mockSupabase.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          project_id: 'test-project-id',
+          project_id: '123e4567-e89b-12d3-a456-426614174000',
           user_id: mockUser.id,
           type: 'image',
           mime_type: 'image/jpeg',
@@ -364,7 +403,7 @@ describe('POST /api/assets/upload', () => {
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1024)),
       };
       formData.append('file', mockFile as any);
-      formData.append('projectId', 'test-project-id');
+      formData.append('projectId', '123e4567-e89b-12d3-a456-426614174000');
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
@@ -395,7 +434,7 @@ describe('POST /api/assets/upload', () => {
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1024)),
       };
       formData.append('file', mockFile as any);
-      formData.append('projectId', 'test-project-id');
+      formData.append('projectId', '123e4567-e89b-12d3-a456-426614174000');
       formData.append('type', 'image');
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
@@ -427,7 +466,7 @@ describe('POST /api/assets/upload', () => {
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1024)),
       };
       formData.append('file', mockFile as any);
-      formData.append('projectId', 'test-project-id');
+      formData.append('projectId', '123e4567-e89b-12d3-a456-426614174000');
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
@@ -458,7 +497,7 @@ describe('POST /api/assets/upload', () => {
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1024)),
       };
       formData.append('file', mockFile as any);
-      formData.append('projectId', 'test-project-id');
+      formData.append('projectId', '123e4567-e89b-12d3-a456-426614174000');
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
@@ -493,7 +532,7 @@ describe('POST /api/assets/upload', () => {
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1024)),
       };
       formData.append('file', mockFile as any);
-      formData.append('projectId', 'test-project-id');
+      formData.append('projectId', '123e4567-e89b-12d3-a456-426614174000');
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
@@ -520,7 +559,7 @@ describe('POST /api/assets/upload', () => {
         arrayBuffer: jest.fn(),
       };
       formData.append('file', mockFile as any);
-      formData.append('projectId', 'test-project-id');
+      formData.append('projectId', '123e4567-e89b-12d3-a456-426614174000');
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
@@ -551,7 +590,7 @@ describe('POST /api/assets/upload', () => {
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1024)),
       };
       formData.append('file', mockFile as any);
-      formData.append('projectId', 'test-project-id');
+      formData.append('projectId', '123e4567-e89b-12d3-a456-426614174000');
 
       mockRequest = new NextRequest('http://localhost/api/assets/upload', {
         method: 'POST',
@@ -564,7 +603,7 @@ describe('POST /api/assets/upload', () => {
         expect.objectContaining({
           activity_type: 'image_upload',
           user_id: mockUser.id,
-          project_id: 'test-project-id',
+          project_id: '123e4567-e89b-12d3-a456-426614174000',
         })
       );
     });

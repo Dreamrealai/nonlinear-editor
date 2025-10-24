@@ -152,9 +152,9 @@ export default function VideoGenerationForm({
         {/* Image Input */}
         {modelConfig.supportsReferenceImage && (
           <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-            <label className="block text-sm font-semibold text-neutral-900 mb-3">
+            <div className="block text-sm font-semibold text-neutral-900 mb-3">
               Reference Image (Optional)
-            </label>
+            </div>
 
             {imagePreviewUrl ? (
               <div className="relative">

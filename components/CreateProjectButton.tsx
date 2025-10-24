@@ -13,6 +13,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 import { Button } from '@/components/ui/Button';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export function CreateProjectButton() {
   const router = useRouter();
@@ -48,7 +49,7 @@ export function CreateProjectButton() {
 
   return (
     <Button onClick={handleCreateProject} disabled={isLoading}>
-      {isLoading ? 'Creating...' : 'New Project'}
+      {isLoading ? <LoadingSpinner size={20} /> : 'New Project'}
     </Button>
   );
 }

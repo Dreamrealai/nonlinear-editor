@@ -12,6 +12,19 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 import type { Timeline } from '@/types/timeline';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from '@/components/ui/Dialog';
+import { Button } from '@/components/ui/Button';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Info } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert';
+import { cn } from '@/lib/utils';
 
 export interface ExportModalProps {
   isOpen: boolean;
@@ -81,8 +94,6 @@ export default function ExportModal({ isOpen, onClose, projectId, timeline }: Ex
     null
   );
 
-  if (!isOpen) return null;
-
   const handleExport = async () => {
     if (!timeline) {
       setFeedback({ type: 'error', message: 'No timeline to export' });
@@ -142,125 +153,95 @@ export default function ExportModal({ isOpen, onClose, projectId, timeline }: Ex
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-2xl rounded-xl border border-neutral-700 bg-neutral-900 p-6 shadow-2xl">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-white">Export Video</h2>
-          <button
-            onClick={onClose}
-            disabled={isLoading}
-            className="rounded-lg p-2 text-neutral-400 hover:bg-neutral-800 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Export Video</DialogTitle>
+          <DialogDescription>
+            Select a preset to export your video. This feature is a placeholder and requires
+            server-side implementation.
+          </DialogDescription>
+        </DialogHeader>
 
-        {feedback && (
-          <div
-            className={`mb-4 rounded-lg border px-4 py-3 text-sm ${
-              feedback.type === 'success'
-                ? 'border-green-500/30 bg-green-500/10 text-green-200'
-                : 'border-red-500/30 bg-red-500/10 text-red-200'
-            }`}
-          >
-            {feedback.message}
-          </div>
-        )}
+        <div className="space-y-4 py-4">
+          {feedback && (
+            <Alert variant={feedback.type === 'success' ? 'success' : 'destructive'}>
+              <AlertTitle>
+                {feedback.type === 'success' ? 'Export Started' : 'Export Failed'}
+              </AlertTitle>
+              <AlertDescription>{feedback.message}</AlertDescription>
+            </Alert>
+          )}
 
-        <div className="space-y-4">
-          <div>
-            <label className="mb-2 block text-sm font-medium text-neutral-300">Export Preset</label>
-            <div className="grid grid-cols-2 gap-3">
-              {EXPORT_PRESETS.map((preset, index) => (
-                <button
-                  key={preset.name}
-                  onClick={() => setSelectedPreset(index)}
-                  className={`rounded-lg border p-4 text-left transition-all ${
-                    selectedPreset === index
-                      ? 'border-blue-500 bg-blue-500/10'
-                      : 'border-neutral-700 bg-neutral-800 hover:border-neutral-600'
-                  }`}
-                >
-                  <div className="font-semibold text-white">{preset.name}</div>
-                  <div className="mt-1 text-xs text-neutral-400">{preset.description}</div>
-                  <div className="mt-2 text-xs text-neutral-500">
-                    {preset.width}x{preset.height} • {preset.fps}fps • {preset.format.toUpperCase()}
+          <div className="space-y-4">
+            <div>
+              <div className="mb-2 block text-sm font-medium">Export Preset</div>
+              <div className="grid grid-cols-2 gap-3">
+                {EXPORT_PRESETS.map((preset, index) => (
+                  <button
+                    key={preset.name}
+                    onClick={() => setSelectedPreset(index)}
+                    className={cn(
+                      'rounded-lg border p-4 text-left transition-all',
+                      selectedPreset === index
+                        ? 'border-blue-500 bg-blue-500/20'
+                        : 'border-border hover:border-blue-500/50'
+                    )}
+                  >
+                    <div className="font-semibold">{preset.name}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">{preset.description}</div>
+                    <div className="mt-2 text-xs text-muted-foreground/80">
+                      {preset.width}x{preset.height} • {preset.fps}fps •{' '}
+                      {preset.format.toUpperCase()}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-lg bg-muted/50 p-4">
+              <h3 className="mb-2 text-sm font-medium">Selected Settings</h3>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <div className="text-muted-foreground">Resolution</div>
+                  <div className="font-mono">
+                    {EXPORT_PRESETS[selectedPreset].width}x{EXPORT_PRESETS[selectedPreset].height}
                   </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-neutral-800 p-4">
-            <h3 className="mb-2 text-sm font-medium text-neutral-300">Selected Settings</h3>
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div>
-                <div className="text-neutral-500">Resolution</div>
-                <div className="font-mono text-white">
-                  {EXPORT_PRESETS[selectedPreset].width}x{EXPORT_PRESETS[selectedPreset].height}
                 </div>
-              </div>
-              <div>
-                <div className="text-neutral-500">Frame Rate</div>
-                <div className="font-mono text-white">{EXPORT_PRESETS[selectedPreset].fps} fps</div>
-              </div>
-              <div>
-                <div className="text-neutral-500">Format</div>
-                <div className="font-mono text-white">
-                  {EXPORT_PRESETS[selectedPreset].format.toUpperCase()}
+                <div>
+                  <div className="text-muted-foreground">Frame Rate</div>
+                  <div className="font-mono">{EXPORT_PRESETS[selectedPreset].fps} fps</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">Format</div>
+                  <div className="font-mono">
+                    {EXPORT_PRESETS[selectedPreset].format.toUpperCase()}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-4">
-            <div className="flex items-start gap-3">
-              <svg
-                className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <div className="text-sm text-blue-200">
-                <strong>Note:</strong> Video export requires FFmpeg processing infrastructure. This
-                feature is currently a placeholder and will need server-side implementation to
-                generate actual video files.
+            <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-4">
+              <div className="flex items-start gap-3">
+                <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-400" />
+                <div className="text-sm text-blue-300">
+                  <strong>Note:</strong> Video export requires FFmpeg processing infrastructure.
+                  This feature is currently a placeholder and will need server-side implementation
+                  to generate actual video files.
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              onClick={onClose}
-              disabled={isLoading}
-              className="flex-1 rounded-lg border border-neutral-700 bg-neutral-800 px-4 py-2 font-semibold text-white hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleExport}
-              disabled={isLoading || !timeline}
-              className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isLoading ? 'Starting Export...' : 'Start Export'}
-            </button>
           </div>
         </div>
-      </div>
-    </div>
+        <DialogFooter>
+          <Button onClick={onClose} variant="outline" disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button onClick={handleExport} disabled={isLoading || !timeline}>
+            {isLoading ? <LoadingSpinner size={20} /> : 'Start Export'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

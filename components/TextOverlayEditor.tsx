@@ -73,28 +73,22 @@ export default function TextOverlayEditor({
   const selectedOverlay = visibleOverlays.find((o) => o.id === selectedOverlayId);
 
   // Handle clicking on an overlay to select it
-  const handleOverlayClick = useCallback(
-    (e: React.MouseEvent, overlayId: string) => {
-      e.stopPropagation();
-      setSelectedOverlayId(overlayId);
-      setIsEditingText(false);
-    },
-    []
-  );
+  const handleOverlayClick = useCallback((e: React.MouseEvent, overlayId: string) => {
+    e.stopPropagation();
+    setSelectedOverlayId(overlayId);
+    setIsEditingText(false);
+  }, []);
 
   // Handle double-click to edit text
-  const handleOverlayDoubleClick = useCallback(
-    (e: React.MouseEvent, overlayId: string) => {
-      e.stopPropagation();
-      setSelectedOverlayId(overlayId);
-      setIsEditingText(true);
-      setTimeout(() => {
-        textInputRef.current?.focus();
-        textInputRef.current?.select();
-      }, 0);
-    },
-    []
-  );
+  const handleOverlayDoubleClick = useCallback((e: React.MouseEvent, overlayId: string) => {
+    e.stopPropagation();
+    setSelectedOverlayId(overlayId);
+    setIsEditingText(true);
+    setTimeout(() => {
+      textInputRef.current?.focus();
+      textInputRef.current?.select();
+    }, 0);
+  }, []);
 
   // Start dragging
   const handleMouseDown = useCallback(
@@ -281,8 +275,11 @@ export default function TextOverlayEditor({
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 rounded-lg bg-black/90 backdrop-blur-sm px-4 py-3 shadow-xl border border-white/10">
           {/* Font Family */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-white/60 font-medium">Font</label>
+            <label htmlFor="font-family-select" className="text-xs text-white/60 font-medium">
+              Font
+            </label>
             <select
+              id="font-family-select"
               value={selectedOverlay.fontFamily ?? 'sans-serif'}
               onChange={(e) => handleFontFamilyChange(e.target.value)}
               className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none"
@@ -297,8 +294,11 @@ export default function TextOverlayEditor({
 
           {/* Font Size */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-white/60 font-medium">Size</label>
+            <label htmlFor="font-size-select" className="text-xs text-white/60 font-medium">
+              Size
+            </label>
             <select
+              id="font-size-select"
               value={selectedOverlay.fontSize ?? 48}
               onChange={(e) => handleFontSizeChange(Number(e.target.value))}
               className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none w-20"
@@ -313,7 +313,7 @@ export default function TextOverlayEditor({
 
           {/* Color Picker */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-white/60 font-medium">Color</label>
+            <div className="text-xs text-white/60 font-medium">Color</div>
             <div className="flex gap-1">
               {COLOR_PRESETS.map((color) => (
                 <button

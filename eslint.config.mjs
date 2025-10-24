@@ -44,6 +44,12 @@ export default [
       'jsx-a11y/label-has-associated-control': 'warn',
       'jsx-a11y/no-autofocus': 'warn',
       'jsx-a11y/media-has-caption': 'warn',
+      'jsx-a11y/heading-has-content': [
+        'error',
+        {
+          components: [''],
+        },
+      ],
       // Regex warnings - these are intentional for sanitization
       'no-control-regex': 'off',
       'no-useless-escape': 'off',
@@ -71,6 +77,8 @@ export default [
       'k6/**',
       'scripts/**',
       'jest.config.js',
+      'tailwind.config.js',
+      'postcss.config.js',
     ],
   },
   {
