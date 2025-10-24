@@ -147,6 +147,54 @@ export const LazyActivityHistory = dynamic(
 );
 
 /**
+ * Lazy-loaded VideoGenerationForm component
+ * Only loaded when user opens video generation
+ */
+export const LazyVideoGenerationForm = dynamic(
+  () => import('@/components/generation/VideoGenerationForm'),
+  {
+    loading: LoadingFallback,
+    ssr: false,
+  }
+);
+
+/**
+ * Lazy-loaded GenerateAudioTab component
+ * Only loaded when user opens audio generation
+ */
+export const LazyGenerateAudioTab = dynamic(
+  () => import('@/components/generation/GenerateAudioTab'),
+  {
+    loading: LoadingFallback,
+    ssr: false,
+  }
+);
+
+/**
+ * Lazy-loaded AssetLibraryModal component
+ * Only loaded when user opens asset library
+ */
+export const LazyAssetLibraryModal = dynamic(
+  () => import('@/components/generation/AssetLibraryModal'),
+  {
+    loading: LoadingFallback,
+    ssr: false,
+  }
+);
+
+/**
+ * Lazy-loaded VideoGenerationQueue component
+ * Only loaded in video generation context
+ */
+export const LazyVideoGenerationQueue = dynamic(
+  () => import('@/components/generation/VideoGenerationQueue'),
+  {
+    loading: LoadingFallback,
+    ssr: false,
+  }
+);
+
+/**
  * Generic lazy loader for any component
  * Useful for dynamically loading components based on conditions
  */

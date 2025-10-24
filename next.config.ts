@@ -11,7 +11,7 @@ const withBundleAnalyzer =
     : (config: NextConfig) => config;
 
 const nextConfig: NextConfig = {
-  // Skip type checking during bundle analysis
+  // Skip type checking during bundle analysis only
   typescript: {
     ignoreBuildErrors: process.env.ANALYZE === 'true',
   },
@@ -123,7 +123,15 @@ const nextConfig: NextConfig = {
 
   // Optimize bundle and performance
   experimental: {
-    optimizePackageImports: ['@supabase/supabase-js', 'zustand', 'clsx', 'lucide-react'],
+    optimizePackageImports: [
+      '@supabase/supabase-js',
+      'zustand',
+      'clsx',
+      'lucide-react',
+      'react-hot-toast',
+      '@stripe/stripe-js',
+      'web-vitals',
+    ],
   },
 
   // Production-only optimizations
