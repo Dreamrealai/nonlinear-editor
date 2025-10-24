@@ -1,8 +1,8 @@
 # Codebase Issues Tracker
 
 **Last Updated:** 2025-10-24
-**Status:** 68 open issues (6 issues fixed)
-**Priority Breakdown:** P0: 0 | P1: 22 | P2: 30 | P3: 15
+**Status:** 68 open issues (7 issues fixed and removed)
+**Priority Breakdown:** P0: 0 | P1: 22 | P2: 31 | P3: 15
 
 This document tracks all open issues in the codebase. Fixed/resolved issues are removed to keep this document focused and efficient.
 
@@ -157,12 +157,34 @@ All required indexes have been implemented in migration `20251024100000_add_perf
 
 ### Issue #49: No Keyboard Shortcuts Documentation
 
-- **Status:** Open
+- **Status:** FIXED ✅
 - **Priority:** P1
-- **Effort:** 2-3 hours
-- **Impact:** Users don't know available shortcuts
+- **Fixed:** 2025-10-24
+- **Effort:** 2-3 hours (completed)
+- **Impact:** Users can now discover and learn all available shortcuts
 
-**Action:** Create keyboard shortcuts reference in UI and docs
+**Implementation:**
+
+1. ✅ Created comprehensive documentation at `/docs/KEYBOARD_SHORTCUTS.md`
+2. ✅ Integrated `KeyboardShortcutsHelp` modal component in editor
+3. ✅ Added Cmd/Ctrl+? and Cmd/Ctrl+/ shortcuts to open help modal
+4. ✅ Shortcuts grouped by category (General, Playback, Editing, Navigation)
+5. ✅ Platform-specific display (Cmd on Mac, Ctrl on Windows/Linux)
+6. ✅ Auto-disables shortcuts in text input contexts
+
+**Available Shortcuts:**
+
+- General: Save, Export, Show Help
+- Playback: Space (Play/Pause)
+- Editing: Undo, Redo, Copy, Paste, Select All, Delete, Split Clip
+- All shortcuts documented with examples and troubleshooting tips
+
+**Files:**
+
+- `/docs/KEYBOARD_SHORTCUTS.md` - Complete documentation
+- `/components/KeyboardShortcutsHelp.tsx` - Help modal component
+- `/lib/hooks/useGlobalKeyboardShortcuts.ts` - Shortcut system
+- `/app/editor/[projectId]/BrowserEditorClient.tsx` - Integration
 
 ---
 
