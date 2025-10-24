@@ -47,7 +47,9 @@ export async function saveTimeline(projectId: string, timeline: Timeline): Promi
     // NOTE: Double write to projects.timeline_state_jsonb removed (2025-10-23)
     // Analysis showed no code reads from this column - all reads use timelines table
     // The column remains in schema for true backward compatibility but is no longer updated
-    // TODO: Create migration to deprecate timeline_state_jsonb column in projects table
+    // DONE: Migration created to deprecate timeline_state_jsonb column (2025-10-25)
+    // See: /supabase/migrations/20251025100000_deprecate_timeline_state_jsonb.sql
+    // Docs: /docs/migrations/TIMELINE_STATE_DEPRECATION.md
 
     browserLogger.info({ projectId }, 'Timeline saved successfully');
   } catch (error) {
