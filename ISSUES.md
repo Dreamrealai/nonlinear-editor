@@ -2752,6 +2752,7 @@ Missing dependencies:
 ### By Category
 
 - **Timeline Editor UI/UX:** 36 issues (71-100 hours)
+- **Deprecation Warnings:** 11 issues (16-24 hours) ← NEW (Issues #142-152)
 - **Code Duplication:** 11 issues (28-42 hours) ← -2 (Issues #7, #88 completed)
 - **Type Safety:** 2 issues (20-30 hours) ← Updated (Issue #4 scope increased)
 - **Documentation:** 6 issues (71-100 hours)
@@ -2763,8 +2764,8 @@ Missing dependencies:
 ### Impact Assessment
 
 - **High Impact:** 22 issues ← +12 Timeline UI/UX issues (P0 + P1)
-- **Medium Impact:** 32 issues ← +13 Timeline UI/UX issues (P2)
-- **Low Impact:** 27 issues ← +11 Timeline UI/UX issues (P3)
+- **Medium Impact:** 35 issues ← +13 Timeline UI/UX issues (P2), +3 Deprecation (P2)
+- **Low Impact:** 35 issues ← +11 Timeline UI/UX issues (P3), +8 Deprecation (P3)
 
 ### Estimated LOC Reduction
 
@@ -2776,8 +2777,9 @@ Missing dependencies:
 ### Total Estimated Work Remaining
 
 - **Baseline (before validation):** 216-307 hours
-- **After Validation & Updates:** 228-326 hours
+- **After Validation & Deprecation Audit:** 245-351 hours
   - +12-18 hours (Issue #4 scope increased: 432 vs 40 occurrences)
+  - +16-24 hours (Deprecation issues #142-152 added)
   - -0.5 hours (Issues #27-31 removed - false positives)
   - -0.1 hours (Issue #88 completed)
 
