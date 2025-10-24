@@ -198,25 +198,6 @@ function HorizontalTimeline({
       updateClip,
     });
 
-  // Add marker at playhead position
-  const handleAddMarker = useCallback((): void => {
-    const marker: Marker = {
-      id: `marker-${Date.now()}`,
-      time: currentTime,
-      label: `Marker ${(markers?.length ?? 0) + 1}`,
-      color: '#3b82f6', // Default blue
-    };
-    addMarker(marker);
-  }, [currentTime, markers, addMarker]);
-
-  // Marker click handler - jump playhead to marker position
-  const handleMarkerClick = useCallback(
-    (markerId: string): void => {
-      jumpToMarker(markerId);
-    },
-    [jumpToMarker]
-  );
-
   // Keyboard shortcuts
   useTimelineKeyboardShortcuts({
     timeline,

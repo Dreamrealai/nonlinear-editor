@@ -18,6 +18,7 @@ import {
   ChevronDown,
   Bookmark,
   History,
+  HelpCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -50,6 +51,7 @@ type TimelineControlsProps = {
   onFitToSelection?: () => void;
   onAddMarker?: () => void;
   onShowHistory?: () => void;
+  onShowKeyboardShortcuts?: () => void;
   hasSelection?: boolean;
 };
 
@@ -85,6 +87,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
   onFitToSelection,
   onAddMarker,
   onShowHistory,
+  onShowKeyboardShortcuts,
   hasSelection = false,
 }) {
   const [showZoomMenu, setShowZoomMenu] = useState(false);

@@ -116,6 +116,7 @@ function HorizontalTimeline({
   sceneDetectPending = false,
   onAddText,
   onAddTransition,
+    onAddMarker: handleAddMarker,
   onGenerateAudioFromClip,
   onUpscaleVideo,
   upscaleVideoPending = false,
@@ -198,6 +199,25 @@ function HorizontalTimeline({
       updateClip,
     });
 
+  // Add marker at playhead position
+  const handleAddMarker = useCallback((): void => {
+    const marker: Marker = {
+      id: `marker-${Date.now()}`,
+      time: currentTime,
+      label: `Marker ${(markers?.length ?? 0) + 1}`,
+      color: '#3b82f6', // Default blue
+    };
+    addMarker(marker);
+  }, [currentTime, markers, addMarker]);
+
+  // Marker click handler - jump playhead to marker position
+  const handleMarkerClick = useCallback(
+    (markerId: string): void => {
+      jumpToMarker(markerId);
+    },
+    [jumpToMarker]
+  );
+
   // Keyboard shortcuts
   useTimelineKeyboardShortcuts({
     timeline,
@@ -212,6 +232,7 @@ function HorizontalTimeline({
     splitClipAtTime,
     toggleClipLock,
     onAddTransition,
+    onAddMarker: handleAddMarker,
   });
 
   // Zoom controls - memoized to prevent re-creation on every render
@@ -464,6 +485,7 @@ function HorizontalTimeline({
                 clip={clip}
                 zoom={zoom}
                 isSelected={selectedClipIds.has(clip.id)}
+                trimPreviewInfo={trimPreviewInfo?.clipId === clip.id ? trimPreviewInfo : undefined}
                 onMouseDown={handleClipMouseDown}
                 onClick={handleClipClick}
                 onContextMenu={handleClipContextMenu}
