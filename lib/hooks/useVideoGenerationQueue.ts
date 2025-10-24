@@ -11,6 +11,10 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 import { POLLING_CONFIG } from '@/lib/config';
+import { signedUrlCache } from '@/lib/signedUrlCache';
+import { ensureHttpsProtocol } from '@/lib/supabase';
+import { isSupabasePublicAssetUrl } from '@/lib/utils/assetUtils';
+import { SIGNED_URL_TTL_DEFAULT } from '@/lib/utils/videoUtils';
 import type {
   VideoQueueItemData,
   VideoGenerationFormState,
@@ -83,14 +87,71 @@ export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQu
               );
               toast.error(`Video generation failed: ${statusJson.error}`);
             } else if (statusJson.asset) {
-              // Video completed successfully
-              const videoUrl = statusJson.asset.metadata?.sourceUrl || '';
-              const thumbnailUrl = statusJson.asset.metadata?.thumbnail || '';
+              const asset = statusJson.asset as {
+                id?: string;
+                storage_url?: string;
+                metadata?: {
+                  sourceUrl?: string;
+                  thumbnail?: string | null;
+                } | null;
+              };
+
+              const assetId = typeof asset?.id === 'string' ? asset.id : undefined;
+              const storageUrl =
+                typeof asset?.storage_url === 'string' ? asset.storage_url : undefined;
+
+              let playbackUrl =
+                typeof asset?.metadata?.sourceUrl === 'string'
+                  ? ensureHttpsProtocol(asset.metadata.sourceUrl)
+                  : undefined;
+
+              if (playbackUrl && isSupabasePublicAssetUrl(playbackUrl)) {
+                playbackUrl = undefined;
+              }
+
+              if (!playbackUrl && storageUrl) {
+                try {
+                  playbackUrl = await signedUrlCache.get(
+                    assetId,
+                    storageUrl,
+                    SIGNED_URL_TTL_DEFAULT
+                  );
+                } catch (error) {
+                  browserLogger.error(
+                    { error, assetId, storageUrl, videoId, operationName },
+                    'Failed to resolve signed URL for generated video'
+                  );
+                }
+              }
+
+              if (
+                !playbackUrl &&
+                typeof statusJson.storageUrl === 'string' &&
+                !isSupabasePublicAssetUrl(statusJson.storageUrl)
+              ) {
+                playbackUrl = ensureHttpsProtocol(statusJson.storageUrl);
+              }
+
+              const thumbnailUrl =
+                typeof asset?.metadata?.thumbnail === 'string' ? asset.metadata.thumbnail : '';
+
+              if (!playbackUrl) {
+                toast.error(
+                  'Video generated, but playback link could not be created. Refresh the page to retry.'
+                );
+                setVideoQueue((prev) =>
+                  updateQueueItemStatus(prev, videoId, {
+                    status: 'failed',
+                    error: 'Playback link unavailable. Please refresh and try again.',
+                  })
+                );
+                return;
+              }
 
               setVideoQueue((prev) =>
                 updateQueueItemStatus(prev, videoId, {
                   status: 'completed',
-                  videoUrl,
+                  videoUrl: playbackUrl,
                   thumbnailUrl,
                 })
               );
