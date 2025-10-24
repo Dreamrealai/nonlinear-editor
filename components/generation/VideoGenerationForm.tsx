@@ -14,7 +14,7 @@ import Image from 'next/image';
 import type { ModelConfig } from '@/lib/config/models';
 import { VIDEO_MODELS } from '@/lib/config/models';
 import { NUMERIC_LIMITS } from '@/lib/config';
-import AssetLibraryModal from './AssetLibraryModal';
+import { AssetLibraryModal } from './AssetLibraryModal';
 import type { ImageAsset } from '@/lib/utils/videoGenerationUtils';
 
 interface VideoGenerationFormProps {
@@ -49,7 +49,7 @@ interface VideoGenerationFormProps {
 /**
  * Form component for video generation parameters
  */
-export default function VideoGenerationForm({
+export function VideoGenerationForm({
   prompt,
   model,
   aspectRatio,

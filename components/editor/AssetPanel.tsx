@@ -57,7 +57,7 @@ const extractFileName = (storageUrl: string) => {
   return segments[segments.length - 1] ?? normalized;
 };
 
-export default function AssetPanel({
+export function AssetPanel({
   assets,
   projectId,
   loadingAssets,
