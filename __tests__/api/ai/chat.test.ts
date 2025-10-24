@@ -64,8 +64,36 @@ jest.mock('@/lib/supabase', () => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
+// Mock API validation helpers - use actual implementation
+jest.mock('@/lib/api/validation', () => {
+  const actual = jest.requireActual('@/lib/api/validation');
+  return {
+    ...actual,
+  };
+});
+
 // Mock API response helpers
-jest.mock('@/lib/api/response');
+jest.mock('@/lib/api/response', () => {
+  const jsonResponse = (payload: unknown, init?: ResponseInit) =>
+    new Response(JSON.stringify(payload), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+      ...init,
+    });
+
+  return {
+    errorResponse: jest.fn((message: string, status: number) =>
+      jsonResponse({ error: message }, { status })
+    ),
+    validationError: jest.fn((message: string, field?: string) =>
+      jsonResponse({ error: message, field }, { status: 400 })
+    ),
+    successResponse: jest.fn((data: any) => jsonResponse(data, { status: 200 })),
+    serviceUnavailableResponse: jest.fn((message: string, details?: unknown) =>
+      jsonResponse({ error: message, details }, { status: 503 })
+    ),
+  };
+});
 
 // Mock server logger
 jest.mock('@/lib/serverLogger', () => ({
