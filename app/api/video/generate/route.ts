@@ -279,7 +279,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   ]);
 
   const validation = validationResult ?? { valid: true, errors: [] };
-  console.log('validation result', validation);
+  process.stdout.write(`validation result: ${JSON.stringify(validation)}\n`);
 
   if (!validation.valid) {
     const firstError = validation.errors[0];
