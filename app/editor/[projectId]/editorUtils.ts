@@ -434,7 +434,9 @@ export const audioBufferToWav = (buffer: AudioBuffer): ArrayBuffer => {
   while (pos < length) {
     for (let i = 0; i < numOfChan; i++) {
       // Clamp sample to [-1, 1] range and convert to 16-bit integer
-      let sample = Math.max(-1, Math.min(1, channels[i][offset]));
+      const channelData = channels[i];
+      if (!channelData) continue;
+      let sample = Math.max(-1, Math.min(1, channelData[offset] ?? 0));
       sample = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
       view.setInt16(pos, sample, true);
       pos += 2;

@@ -490,19 +490,12 @@ describe('ChatBox', () => {
 
   describe('Loading States', () => {
     it('should show loading indicator when sending message', async () => {
-      (global.fetch as jest.Mock).mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(
-              () =>
-                resolve({
-                  ok: true,
-                  json: async () => ({ response: 'AI response' }),
-                }),
-              1000
-            )
-          )
-      );
+      let resolvePromise: (value: any) => void;
+      const pendingPromise = new Promise((resolve) => {
+        resolvePromise = resolve;
+      });
+
+      (global.fetch as jest.Mock).mockImplementation(() => pendingPromise);
 
       const user = userEvent.setup();
       render(<ChatBox {...defaultProps} />);
@@ -530,6 +523,9 @@ describe('ChatBox', () => {
         },
         { timeout: 100 }
       );
+
+      // Cleanup: resolve the promise to prevent memory leak
+      resolvePromise!({ ok: true, json: async () => ({ response: 'AI response' }) });
     });
   });
 

@@ -49,7 +49,7 @@ export default async function HomePage() {
 
   let projectId: string;
 
-  if (projects && projects.length > 0) {
+  if (projects && projects.length > 0 && projects[0]) {
     // Use most recent project
     projectId = projects[0].id;
   } else {

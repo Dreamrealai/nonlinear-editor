@@ -106,6 +106,9 @@ export default function ExportModal({ isOpen, onClose, projectId, timeline }: Ex
 
     try {
       const preset = EXPORT_PRESETS[selectedPreset];
+      if (!preset) {
+        throw new Error('Invalid export preset selected');
+      }
 
       const response = await fetch('/api/export', {
         method: 'POST',
@@ -205,17 +208,17 @@ export default function ExportModal({ isOpen, onClose, projectId, timeline }: Ex
                 <div>
                   <div className="text-muted-foreground">Resolution</div>
                   <div className="font-mono">
-                    {EXPORT_PRESETS[selectedPreset].width}x{EXPORT_PRESETS[selectedPreset].height}
+                    {EXPORT_PRESETS[selectedPreset]?.width}x{EXPORT_PRESETS[selectedPreset]?.height}
                   </div>
                 </div>
                 <div>
                   <div className="text-muted-foreground">Frame Rate</div>
-                  <div className="font-mono">{EXPORT_PRESETS[selectedPreset].fps} fps</div>
+                  <div className="font-mono">{EXPORT_PRESETS[selectedPreset]?.fps} fps</div>
                 </div>
                 <div>
                   <div className="text-muted-foreground">Format</div>
                   <div className="font-mono">
-                    {EXPORT_PRESETS[selectedPreset].format.toUpperCase()}
+                    {EXPORT_PRESETS[selectedPreset]?.format.toUpperCase()}
                   </div>
                 </div>
               </div>

@@ -86,12 +86,36 @@ export function withAuth<TParams = Record<string, never>>(
   handler: AuthenticatedHandler<TParams>,
   options: AuthOptions
 ) {
-  return async (request: NextRequest, context: { params: Promise<TParams> }) => {
+  return async (request: NextRequest, context: { params?: Promise<TParams> | TParams } = {}) => {
     const startTime = Date.now();
     const { route, rateLimit } = options;
 
-    // Handle Next.js 15's async params
-    const params = (await context.params) as TParams;
+    // Handle Next.js 15's async params while staying compatible with legacy tests
+    let params: TParams = {} as TParams;
+    const rawParams = context?.params;
+
+    if (rawParams) {
+      try {
+        params = ((await Promise.resolve(rawParams)) ?? {}) as TParams;
+      } catch (error) {
+        serverLogger.warn(
+          {
+            event: 'api.params_resolution_failed',
+            route,
+            method: request.method,
+            error:
+              error instanceof Error
+                ? {
+                    name: error.name,
+                    message: error.message,
+                  }
+                : error,
+          },
+          'Failed to resolve route params, continuing with empty params'
+        );
+        params = {} as TParams;
+      }
+    }
 
     try {
       serverLogger.info(

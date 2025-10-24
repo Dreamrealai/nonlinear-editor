@@ -85,18 +85,9 @@ describe('ActivityHistory', () => {
     });
 
     it('should show loading state initially', () => {
+      // Use a pending promise instead of setTimeout for faster tests
       (global.fetch as jest.Mock).mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(
-              () =>
-                resolve({
-                  ok: true,
-                  json: async () => ({ history: [] }),
-                }),
-              1000
-            )
-          )
+        () => new Promise(() => {}) // Never resolves during this test
       );
 
       render(<ActivityHistory />);

@@ -9,65 +9,88 @@
  * - Cascading delete handled by database
  */
 
-import { NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { NextRequest } from 'next/server';
 import { serverLogger } from '@/lib/serverLogger';
-import { validateUUID, ValidationError } from '@/lib/validation';
+import { validateUUID, validateAll } from '@/lib/api/validation';
+import { errorResponse, successResponse, validationError } from '@/lib/api/response';
+import { withAuth, type AuthContext } from '@/lib/api/withAuth';
+import { RATE_LIMITS } from '@/lib/rateLimit';
+import { invalidateUserProjects } from '@/lib/cacheInvalidation';
 
-export async function DELETE(
-  _request: Request,
-  { params }: { params: Promise<{ projectId: string }> }
+async function handleProjectDelete(
+  _request: NextRequest,
+  context: AuthContext & { params?: { projectId: string } }
 ) {
-  try {
-    const { projectId } = await params;
+  const { user, supabase, params } = context;
+  const startTime = Date.now();
 
-    // Validate UUID format
-    try {
-      validateUUID(projectId, 'Project ID');
-    } catch (error) {
-      if (error instanceof ValidationError || (error as Error).name === 'ValidationError') {
-        return NextResponse.json({ error: (error as Error).message }, { status: 400 });
-      }
-      throw error;
-    }
-
-    // Create authenticated Supabase client (enforces RLS)
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      serverLogger.warn(
-        { projectId, event: 'project.delete.unauthorized' },
-        'Unauthorized delete attempt'
-      );
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Delete project (RLS ensures user owns this project)
-    const { error: deleteError } = await supabase.from('projects').delete().eq('id', projectId);
-
-    if (deleteError) {
-      serverLogger.error(
-        { error: deleteError, projectId, userId: user.id, event: 'project.delete.error' },
-        'Failed to delete project'
-      );
-      return NextResponse.json({ error: 'Failed to delete project' }, { status: 500 });
-    }
-
-    serverLogger.info(
-      { projectId, userId: user.id, event: 'project.delete.success' },
-      'Project deleted successfully'
-    );
-
-    return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error) {
-    serverLogger.error(
-      { error, event: 'project.delete.exception' },
-      'Unexpected error during project deletion'
-    );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  if (!params?.projectId) {
+    return validationError('Project ID is required', 'projectId');
   }
+
+  const { projectId } = params;
+
+  serverLogger.info(
+    {
+      event: 'projects.delete.request_started',
+      userId: user.id,
+      projectId,
+    },
+    'Project deletion request received'
+  );
+
+  // Validate UUID format
+  const validation = validateAll([validateUUID(projectId, 'projectId')]);
+
+  if (!validation.valid) {
+    const firstError = validation.errors[0];
+    serverLogger.warn(
+      {
+        event: 'projects.delete.validation_error',
+        userId: user.id,
+        projectId,
+        error: firstError?.message,
+      },
+      'Invalid project ID format'
+    );
+    return validationError(firstError?.message ?? 'Invalid project ID', firstError?.field);
+  }
+
+  // Delete project (RLS ensures user owns this project)
+  const { error: deleteError } = await supabase.from('projects').delete().eq('id', projectId);
+
+  if (deleteError) {
+    serverLogger.error(
+      {
+        event: 'projects.delete.error',
+        error: deleteError.message,
+        projectId,
+        userId: user.id,
+      },
+      'Failed to delete project'
+    );
+    return errorResponse('Failed to delete project', 500);
+  }
+
+  const duration = Date.now() - startTime;
+  serverLogger.info(
+    {
+      event: 'projects.delete.success',
+      projectId,
+      userId: user.id,
+      duration,
+    },
+    `Project deleted successfully in ${duration}ms`
+  );
+
+  // Invalidate user's projects cache after deletion
+  await invalidateUserProjects(user.id);
+
+  return successResponse({ success: true });
 }
+
+// Export with authentication middleware and rate limiting
+export const DELETE = withAuth(handleProjectDelete, {
+  route: '/api/projects/[projectId]',
+  rateLimit: RATE_LIMITS.tier2_resource_creation, // 10 requests per minute
+});

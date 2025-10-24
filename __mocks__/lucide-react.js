@@ -4,14 +4,14 @@ const React = require('react');
 
 // Create a mock component factory
 const createMockIcon = (name) => {
-  const MockIcon = React.forwardRef((props, ref) => {
+  // Return a simple function component instead of forwardRef to avoid issues
+  function MockIcon(props) {
     return React.createElement('svg', {
       ...props,
-      ref,
       'data-testid': `icon-${name}`,
       'data-lucide': name,
     });
-  });
+  }
   MockIcon.displayName = `${name}Icon`;
   return MockIcon;
 };
@@ -205,6 +205,9 @@ const icons = {
 
 // Export all icons as named exports
 module.exports = icons;
+
+// Mark as ES module
+module.exports.__esModule = true;
 
 // For modularized imports (import Icon from 'lucide-react/dist/esm/icons/icon-name')
 // We export a Proxy as default that creates icons on-demand

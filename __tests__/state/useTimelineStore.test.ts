@@ -6,6 +6,21 @@ import { CLIP_CONSTANTS } from '@/lib/constants';
 const { MIN_CLIP_DURATION } = CLIP_CONSTANTS;
 
 describe('useTimelineStore', () => {
+  // Clear store and mocks after each test
+  afterEach(() => {
+    // Reset the store to initial state
+    const { result } = renderHook(() => useTimelineStore());
+    act(() => {
+      result.current.setTimeline(null);
+    });
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
+
   // Helper to create a mock timeline
   const createMockTimeline = (overrides?: Partial<Timeline>): Timeline => ({
     projectId: 'test-project',

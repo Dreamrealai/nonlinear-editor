@@ -214,7 +214,7 @@ export function DragDropZone({
 
     // Revoke object URL to prevent memory leaks
     const file = selectedFiles[index];
-    if (file.preview) {
+    if (file?.preview) {
       URL.revokeObjectURL(file.preview);
     }
 

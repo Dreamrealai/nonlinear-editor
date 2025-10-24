@@ -46,6 +46,16 @@ describe('ExportModal', () => {
     (global.fetch as jest.Mock).mockClear();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+    (global.fetch as jest.Mock).mockClear();
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('Rendering', () => {
     it('should render the modal when isOpen is true', () => {
       render(<ExportModal {...defaultProps} />);
@@ -236,12 +246,12 @@ describe('ExportModal', () => {
     });
 
     it('should show loading state during export', async () => {
-      (global.fetch as jest.Mock).mockImplementationOnce(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve({ ok: true, json: async () => ({ jobId: 'job-123' }) }), 100)
-          )
-      );
+      let resolvePromise: (value: any) => void;
+      const pendingPromise = new Promise((resolve) => {
+        resolvePromise = resolve;
+      });
+
+      (global.fetch as jest.Mock).mockImplementationOnce(() => pendingPromise);
 
       render(<ExportModal {...defaultProps} />);
 
@@ -252,15 +262,18 @@ describe('ExportModal', () => {
       await waitFor(() => {
         expect(exportButton.querySelector('svg')).toBeInTheDocument();
       });
+
+      // Cleanup
+      resolvePromise!({ ok: true, json: async () => ({ jobId: 'job-123' }) });
     });
 
     it('should disable buttons during export', async () => {
-      (global.fetch as jest.Mock).mockImplementationOnce(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve({ ok: true, json: async () => ({ jobId: 'job-123' }) }), 100)
-          )
-      );
+      let resolvePromise: (value: any) => void;
+      const pendingPromise = new Promise((resolve) => {
+        resolvePromise = resolve;
+      });
+
+      (global.fetch as jest.Mock).mockImplementationOnce(() => pendingPromise);
 
       render(<ExportModal {...defaultProps} />);
 
@@ -273,6 +286,9 @@ describe('ExportModal', () => {
         expect(exportButton).toBeDisabled();
         expect(cancelButton).toBeDisabled();
       });
+
+      // Cleanup
+      resolvePromise!({ ok: true, json: async () => ({ jobId: 'job-123' }) });
     });
   });
 
@@ -288,12 +304,12 @@ describe('ExportModal', () => {
     });
 
     it('should not allow closing during export', async () => {
-      (global.fetch as jest.Mock).mockImplementationOnce(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve({ ok: true, json: async () => ({ jobId: 'job-123' }) }), 100)
-          )
-      );
+      let resolvePromise: (value: any) => void;
+      const pendingPromise = new Promise((resolve) => {
+        resolvePromise = resolve;
+      });
+
+      (global.fetch as jest.Mock).mockImplementationOnce(() => pendingPromise);
 
       render(<ExportModal {...defaultProps} />);
 
@@ -304,6 +320,9 @@ describe('ExportModal', () => {
       await waitFor(() => {
         expect(cancelButton).toBeDisabled();
       });
+
+      // Cleanup
+      resolvePromise!({ ok: true, json: async () => ({ jobId: 'job-123' }) });
     });
   });
 

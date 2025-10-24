@@ -11,6 +11,10 @@ const customJestConfig = {
   moduleNameMapper: {
     // Mock lucide-react FIRST to avoid ESM issues - this must be before @/ alias
     '^lucide-react$': '<rootDir>/__mocks__/lucide-react.js',
+    '^tailwind-merge$': '<rootDir>/__mocks__/tailwind-merge.js',
+    // Mock Next.js components
+    '^next/link$': '<rootDir>/__mocks__/next/link.tsx',
+    '^next/image$': '<rootDir>/__mocks__/next/image.tsx',
     // Handle module aliases
     '^@/(.*)$': '<rootDir>/$1',
   },
@@ -68,21 +72,21 @@ const customJestConfig = {
   ],
   modulePathIgnorePatterns: ['<rootDir>/.next/standalone'],
   // Memory and performance optimizations
-  maxWorkers: 3,
-  workerIdleMemoryLimit: '1024MB',
+  maxWorkers: 2, // Reduced from 3 to save memory
+  workerIdleMemoryLimit: '512MB', // Reduced from 1024MB - workers will restart more often but use less memory
   // Reduce memory by clearing caches
   clearMocks: true,
-  resetMocks: false,
-  restoreMocks: false,
+  resetMocks: true, // Enable to clear all mocks between tests
+  restoreMocks: true, // Enable to restore original implementations
   // Faster test execution
-  maxConcurrency: 5,
+  maxConcurrency: 3, // Reduced from 5 to prevent memory spikes
   // Detect memory leaks
-  detectLeaks: false,
-  detectOpenHandles: false,
+  detectLeaks: false, // Keep disabled - it's slow and memory intensive itself
+  detectOpenHandles: false, // Keep disabled in CI
   // Force exit to prevent hanging
   forceExit: true,
   // Timeout for tests
-  testTimeout: 10000,
+  testTimeout: 15000, // Increased from 10s to 15s to prevent timeouts during memory cleanup
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

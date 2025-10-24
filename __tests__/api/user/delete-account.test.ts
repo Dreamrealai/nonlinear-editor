@@ -65,6 +65,15 @@ describe('DELETE /api/user/delete-account', () => {
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
     createServiceSupabaseClient.mockReturnValue(mockAdminClient);
 
+    // Reset rate limit mock to default successful state
+    const { checkRateLimit } = require('@/lib/rateLimit');
+    checkRateLimit.mockResolvedValue({
+      success: true,
+      limit: 5,
+      remaining: 4,
+      resetAt: Date.now() + 60000,
+    });
+
     // Default storage mocks
     mockAdminClient.storage.from.mockReturnThis();
     mockAdminClient.storage.list = jest.fn();
@@ -136,7 +145,7 @@ describe('DELETE /api/user/delete-account', () => {
 
       expect(response.status).toBe(429);
       const data = await response.json();
-      expect(data.error).toContain('Too many requests');
+      expect(data.error).toBe('Rate limit exceeded');
     });
 
     it('should use user ID for rate limit identifier when authenticated', async () => {

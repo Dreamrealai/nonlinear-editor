@@ -19,28 +19,43 @@ jest.mock('@/lib/gemini', () => ({
 // Mock withAuth wrapper
 jest.mock('@/lib/api/withAuth', () => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
+    try {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
 
-    if (!supabase || !supabase.auth) {
-      return new Response(JSON.stringify({ error: 'Internal server error' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      if (!supabase || !supabase.auth) {
+        return new Response(JSON.stringify({ error: 'Internal server error' }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Await params if it's a Promise
+      const params =
+        context?.params instanceof Promise ? await context.params : context?.params || {};
+
+      return await handler(req, { user, supabase, params });
+    } catch (error) {
+      console.error('Error in withAuth mock:', error);
+      return new Response(
+        JSON.stringify({ error: 'Internal server error', details: error.message }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
     }
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    return handler(req, { user, supabase, params: context?.params || {} });
   }),
 }));
 
@@ -48,6 +63,9 @@ jest.mock('@/lib/api/withAuth', () => ({
 jest.mock('@/lib/supabase', () => ({
   createServerSupabaseClient: jest.fn(),
 }));
+
+// Mock API response helpers
+jest.mock('@/lib/api/response');
 
 // Mock server logger
 jest.mock('@/lib/serverLogger', () => ({

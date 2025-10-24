@@ -1,0 +1,683 @@
+
+> nonlinear-editor@0.1.0 test
+> NODE_OPTIONS='--max-old-space-size=4096' jest --maxWorkers=3 --workerIdleMemoryLimit=1024MB __tests__/integration --coverage --maxWorkers=2
+
+FAIL __tests__/integration/video-generation-flow.test.ts
+  ● Test suite failed to run
+
+    Jest encountered an unexpected token
+
+    Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
+
+    Out of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.
+
+    By default "node_modules" folder is ignored by transformers.
+
+    Here's what you can do:
+     • If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.
+     • If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript
+     • To have some of your "node_modules" files transformed, you can specify a custom "transformIgnorePatterns" in your config.
+     • If you need a custom transformation, specify a "transform" option in your config.
+     • If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the "moduleNameMapper" config option.
+
+    You'll find more details and examples of these config options in the docs:
+    https://jestjs.io/docs/configuration
+    For information about custom transformations, see:
+    https://jestjs.io/docs/code-transformation
+
+    Details:
+
+    /Users/davidchen/Projects/non-linear-editor/node_modules/uuid/dist-node/index.js:1
+    export { default as MAX } from './max.js';
+    ^^^^^^
+
+    SyntaxError: Unexpected token 'export'
+
+
+
+      at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1318:40)
+      at Object.<anonymous> (lib/services/videoService.ts:3409:26)
+      at Object.<anonymous> (__tests__/integration/video-generation-flow.test.ts:47:23)
+
+FAIL __tests__/integration/asset-management-workflow.test.ts
+  ● Test suite failed to run
+
+    Jest encountered an unexpected token
+
+    Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
+
+    Out of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.
+
+    By default "node_modules" folder is ignored by transformers.
+
+    Here's what you can do:
+     • If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.
+     • If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript
+     • To have some of your "node_modules" files transformed, you can specify a custom "transformIgnorePatterns" in your config.
+     • If you need a custom transformation, specify a "transform" option in your config.
+     • If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the "moduleNameMapper" config option.
+
+    You'll find more details and examples of these config options in the docs:
+    https://jestjs.io/docs/configuration
+    For information about custom transformations, see:
+    https://jestjs.io/docs/code-transformation
+
+    Details:
+
+    /Users/davidchen/Projects/non-linear-editor/node_modules/uuid/dist-node/index.js:1
+    export { default as MAX } from './max.js';
+    ^^^^^^
+
+    SyntaxError: Unexpected token 'export'
+
+
+
+      at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1318:40)
+      at Object.<anonymous> (lib/services/assetService.ts:2475:27)
+      at Object.<anonymous> (__tests__/integration/asset-management-workflow.test.ts:38:23)
+
+FAIL __tests__/integration/ai-generation-complete-workflow.test.ts
+  ● Test suite failed to run
+
+    Jest encountered an unexpected token
+
+    Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
+
+    Out of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.
+
+    By default "node_modules" folder is ignored by transformers.
+
+    Here's what you can do:
+     • If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.
+     • If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript
+     • To have some of your "node_modules" files transformed, you can specify a custom "transformIgnorePatterns" in your config.
+     • If you need a custom transformation, specify a "transform" option in your config.
+     • If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the "moduleNameMapper" config option.
+
+    You'll find more details and examples of these config options in the docs:
+    https://jestjs.io/docs/configuration
+    For information about custom transformations, see:
+    https://jestjs.io/docs/code-transformation
+
+    Details:
+
+    /Users/davidchen/Projects/non-linear-editor/node_modules/uuid/dist-node/index.js:1
+    export { default as MAX } from './max.js';
+    ^^^^^^
+
+    SyntaxError: Unexpected token 'export'
+
+
+
+      at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1318:40)
+      at Object.<anonymous> (lib/services/videoService.ts:3409:26)
+      at Object.<anonymous> (__tests__/integration/ai-generation-complete-workflow.test.ts:49:23)
+
+FAIL __tests__/integration/video-editor-workflow.test.ts
+  ● Test suite failed to run
+
+    Jest encountered an unexpected token
+
+    Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
+
+    Out of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.
+
+    By default "node_modules" folder is ignored by transformers.
+
+    Here's what you can do:
+     • If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.
+     • If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript
+     • To have some of your "node_modules" files transformed, you can specify a custom "transformIgnorePatterns" in your config.
+     • If you need a custom transformation, specify a "transform" option in your config.
+     • If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the "moduleNameMapper" config option.
+
+    You'll find more details and examples of these config options in the docs:
+    https://jestjs.io/docs/configuration
+    For information about custom transformations, see:
+    https://jestjs.io/docs/code-transformation
+
+    Details:
+
+    /Users/davidchen/Projects/non-linear-editor/node_modules/uuid/dist-node/index.js:1
+    export { default as MAX } from './max.js';
+    ^^^^^^
+
+    SyntaxError: Unexpected token 'export'
+
+
+
+      at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1318:40)
+      at Object.<anonymous> (lib/services/assetService.ts:2475:27)
+      at Object.<anonymous> (__tests__/integration/video-editor-workflow.test.ts:35:23)
+
+FAIL __tests__/integration/user-account-workflow.test.ts
+  ● Test suite failed to run
+
+    Jest encountered an unexpected token
+
+    Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
+
+    Out of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.
+
+    By default "node_modules" folder is ignored by transformers.
+
+    Here's what you can do:
+     • If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.
+     • If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript
+     • To have some of your "node_modules" files transformed, you can specify a custom "transformIgnorePatterns" in your config.
+     • If you need a custom transformation, specify a "transform" option in your config.
+     • If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the "moduleNameMapper" config option.
+
+    You'll find more details and examples of these config options in the docs:
+    https://jestjs.io/docs/configuration
+    For information about custom transformations, see:
+    https://jestjs.io/docs/code-transformation
+
+    Details:
+
+    /Users/davidchen/Projects/non-linear-editor/node_modules/uuid/dist-node/index.js:1
+    export { default as MAX } from './max.js';
+    ^^^^^^
+
+    SyntaxError: Unexpected token 'export'
+
+
+
+      at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1318:40)
+      at Object.<anonymous> (lib/services/assetService.ts:2475:27)
+      at Object.<anonymous> (__tests__/integration/user-account-workflow.test.ts:40:23)
+
+PASS __tests__/integration/memory-leak-prevention.test.ts
+FAIL __tests__/integration/asset-upload-flow.test.ts
+  ● Test suite failed to run
+
+    Jest encountered an unexpected token
+
+    Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
+
+    Out of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.
+
+    By default "node_modules" folder is ignored by transformers.
+
+    Here's what you can do:
+     • If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.
+     • If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript
+     • To have some of your "node_modules" files transformed, you can specify a custom "transformIgnorePatterns" in your config.
+     • If you need a custom transformation, specify a "transform" option in your config.
+     • If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the "moduleNameMapper" config option.
+
+    You'll find more details and examples of these config options in the docs:
+    https://jestjs.io/docs/configuration
+    For information about custom transformations, see:
+    https://jestjs.io/docs/code-transformation
+
+    Details:
+
+    /Users/davidchen/Projects/non-linear-editor/node_modules/uuid/dist-node/index.js:1
+    export { default as MAX } from './max.js';
+    ^^^^^^
+
+    SyntaxError: Unexpected token 'export'
+
+
+
+      at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1318:40)
+      at Object.<anonymous> (lib/services/assetService.ts:2475:27)
+      at Object.<anonymous> (__tests__/integration/asset-upload-flow.test.ts:29:23)
+
+FAIL __tests__/integration/project-workflow.test.ts
+  ● Test suite failed to run
+
+    Jest encountered an unexpected token
+
+    Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
+
+    Out of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.
+
+    By default "node_modules" folder is ignored by transformers.
+
+    Here's what you can do:
+     • If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.
+     • If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript
+     • To have some of your "node_modules" files transformed, you can specify a custom "transformIgnorePatterns" in your config.
+     • If you need a custom transformation, specify a "transform" option in your config.
+     • If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the "moduleNameMapper" config option.
+
+    You'll find more details and examples of these config options in the docs:
+    https://jestjs.io/docs/configuration
+    For information about custom transformations, see:
+    https://jestjs.io/docs/code-transformation
+
+    Details:
+
+    /Users/davidchen/Projects/non-linear-editor/node_modules/uuid/dist-node/index.js:1
+    export { default as MAX } from './max.js';
+    ^^^^^^
+
+    SyntaxError: Unexpected token 'export'
+
+
+
+      at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1318:40)
+      at Object.<anonymous> (lib/services/assetService.ts:2475:27)
+      at Object.<anonymous> (__tests__/integration/project-workflow.test.ts:34:23)
+
+FAIL __tests__/integration/helpers/integration-helpers.ts
+  ● Test suite failed to run
+
+    Your test suite must contain at least one test.
+
+      at onResult (node_modules/@jest/core/build/index.js:1057:18)
+      at node_modules/@jest/core/build/index.js:1127:165
+      at node_modules/emittery/index.js:363:13
+          at Array.map (<anonymous>)
+      at Emittery.emit (node_modules/emittery/index.js:361:23)
+
+FAIL __tests__/integration/auth-flow.test.ts
+  ● Integration: Authentication Flow › Account Deletion Flow › should delete user account and all associated data
+
+    TypeError: Cannot read properties of undefined (reading 'mockResolvedValueOnce')
+
+      260 |
+      261 |       // Mock storage listing
+    > 262 |       mockSupabase.storage.list.mockResolvedValueOnce({
+          |                                 ^
+      263 |         data: [{ name: 'file1.jpg' }, { name: 'file2.jpg' }],
+      264 |         error: null,
+      265 |       });
+
+      at Object.mockResolvedValueOnce (__tests__/integration/auth-flow.test.ts:262:33)
+
+  ● Integration: Authentication Flow › Account Deletion Flow › should continue deletion even if activity history fails
+
+    TypeError: Cannot read properties of undefined (reading 'mockResolvedValueOnce')
+
+      305 |
+      306 |       // Mock storage
+    > 307 |       mockSupabase.storage.list.mockResolvedValueOnce({
+          |                                 ^
+      308 |         data: [],
+      309 |         error: null,
+      310 |       });
+
+      at Object.mockResolvedValueOnce (__tests__/integration/auth-flow.test.ts:307:33)
+
+  ● Integration: Authentication Flow › Account Deletion Flow › should handle storage deletion errors gracefully
+
+    TypeError: Cannot read properties of undefined (reading 'mockResolvedValueOnce')
+
+      360 |
+      361 |       // Mock storage listing
+    > 362 |       mockSupabase.storage.list.mockResolvedValueOnce({
+          |                                 ^
+      363 |         data: [{ name: 'file1.jpg' }],
+      364 |         error: null,
+      365 |       });
+
+      at Object.mockResolvedValueOnce (__tests__/integration/auth-flow.test.ts:362:33)
+
+  ● Integration: Authentication Flow › Complete Auth Flow End-to-End › should complete account deletion workflow: authenticate → create data → delete account
+
+    TypeError: Cannot read properties of undefined (reading 'mockResolvedValueOnce')
+
+      480 |       mockSupabase.from.mockReturnValueOnce(mockProjectChain).mockReturnValueOnce(mockHistoryChain);
+      481 |
+    > 482 |       mockSupabase.storage.list.mockResolvedValueOnce({
+          |                                 ^
+      483 |         data: [{ name: 'project-file.jpg' }],
+      484 |         error: null,
+      485 |       });
+
+      at Object.mockResolvedValueOnce (__tests__/integration/auth-flow.test.ts:482:33)
+
+{"level":30,"time":1761301859478,"env":"test","service":"genai-video-production","event":"cache.initialized","type":"lru","maxSize":1000,"msg":"Cache initialized with LRU strategy (max 1000 entries)"}
+{"level":30,"time":1761301859479,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":1,"msg":"Cache cleared: 1 entries removed"}
+{"level":30,"time":1761301859480,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761301859489,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761301859490,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":1,"msg":"Cache cleared: 1 entries removed"}
+{"level":30,"time":1761301859491,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761301859491,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761301859496,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761301859497,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761301859498,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761301859498,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761301859500,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761301859503,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761301859504,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761301859505,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":1,"msg":"Cache cleared: 1 entries removed"}
+{"level":30,"time":1761301859505,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":0,"msg":"Cache cleared: 0 entries removed"}
+{"level":30,"time":1761301859506,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":1,"msg":"Cache cleared: 1 entries removed"}
+{"level":30,"time":1761301859506,"env":"test","service":"genai-video-production","event":"cache.cleared","entriesCleared":1,"msg":"Cache cleared: 1 entries removed"}
+A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
+--------------------------------------------|---------|----------|---------|---------|------------------------------------------------------------
+File                                        | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                          
+--------------------------------------------|---------|----------|---------|---------|------------------------------------------------------------
+All files                                   |    1.11 |     0.69 |    1.16 |    1.14 |                                                            
+ app                                        |       0 |        0 |       0 |       0 |                                                            
+  page.tsx                                  |       0 |        0 |       0 |       0 | 1-74                                                       
+ app/admin                                  |       0 |        0 |       0 |       0 |                                                            
+  page.tsx                                  |       0 |        0 |       0 |       0 | 3-275                                                      
+ app/api-docs                               |       0 |      100 |       0 |       0 |                                                            
+  page.tsx                                  |       0 |      100 |       0 |       0 | 3-6                                                        
+ app/api/admin/cache                        |       0 |      100 |       0 |       0 |                                                            
+  route.ts                                  |       0 |      100 |       0 |       0 | 6-90                                                       
+ app/api/admin/change-tier                  |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 6-161                                                      
+ app/api/admin/delete-user                  |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 6-112                                                      
+ app/api/ai/chat                            |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 2-131                                                      
+ app/api/assets                             |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 2-98                                                       
+ app/api/assets/sign                        |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-138                                                      
+ app/api/assets/upload                      |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 2-393                                                      
+ app/api/audio/elevenlabs/generate          |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-342                                                      
+ app/api/audio/elevenlabs/sfx               |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-207                                                      
+ app/api/audio/elevenlabs/voices            |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-70                                                       
+ app/api/audio/suno/generate                |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-226                                                      
+ app/api/audio/suno/status                  |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-86                                                       
+ app/api/auth/signout                       |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-85                                                       
+ app/api/docs                               |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 10-85                                                      
+ app/api/export                             |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-332                                                      
+ app/api/frames/[frameId]/edit              |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-337                                                      
+ app/api/health                             |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 5-22                                                       
+ app/api/history                            |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 2-169                                                      
+ app/api/image/generate                     |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-317                                                      
+ app/api/logs                               |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 2-135                                                      
+ app/api/projects                           |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 2-129                                                      
+ app/api/projects/[projectId]               |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 13-93                                                      
+ app/api/projects/[projectId]/chat          |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 13-137                                                     
+ app/api/projects/[projectId]/chat/messages |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 10-104                                                     
+ app/api/stripe/checkout                    |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 5-275                                                      
+ app/api/stripe/portal                      |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 6-115                                                      
+ app/api/stripe/webhook                     |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 5-632                                                      
+ app/api/user/delete-account                |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 2-173                                                      
+ app/api/video/generate                     |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-380                                                      
+ app/api/video/generate-audio               |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-187                                                      
+ app/api/video/generate-audio-status        |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-245                                                      
+ app/api/video/split-audio                  |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-113                                                      
+ app/api/video/split-scenes                 |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-385                                                      
+ app/api/video/status                       |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-476                                                      
+ app/api/video/upscale                      |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-192                                                      
+ app/api/video/upscale-status               |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-271                                                      
+ app/audio-gen                              |       0 |        0 |       0 |       0 |                                                            
+  page.tsx                                  |       0 |        0 |       0 |       0 | 3-404                                                      
+ app/auth/callback                          |       0 |        0 |       0 |       0 |                                                            
+  route.ts                                  |       0 |        0 |       0 |       0 | 1-20                                                       
+ app/docs                                   |       0 |      100 |       0 |       0 |                                                            
+  page.tsx                                  |       0 |      100 |       0 |       0 | 10-13                                                      
+ app/editor/[projectId]                     |       0 |        0 |       0 |       0 |                                                            
+  AssetPanel.tsx                            |       0 |        0 |       0 |       0 | 7-336                                                      
+  AudioGenerationModal.tsx                  |       0 |        0 |       0 |       0 | 24-165                                                     
+  BrowserEditorClient.tsx                   |       0 |        0 |       0 |       0 | 9-528                                                      
+  EditorErrorFallback.tsx                   |       0 |      100 |       0 |       0 | 3-7                                                        
+  VideoGenerationModal.tsx                  |       0 |        0 |       0 |       0 | 19-54                                                      
+  editorUtils.ts                            |       0 |        0 |       0 |       0 | 7-447                                                      
+  page.tsx                                  |       0 |        0 |       0 |       0 | 1-58                                                       
+  useEditorHandlers.ts                      |       0 |        0 |       0 |       0 | 7-984                                                      
+ app/editor/[projectId]/generate-audio      |       0 |        0 |       0 |       0 |                                                            
+  page.tsx                                  |       0 |        0 |       0 |       0 | 1-45                                                       
+ app/editor/[projectId]/keyframe            |       0 |        0 |       0 |       0 |                                                            
+  KeyframeErrorFallback.tsx                 |       0 |      100 |       0 |       0 | 3-7                                                        
+  KeyframePageClient.tsx                    |       0 |        0 |       0 |       0 | 3-63                                                       
+  page.tsx                                  |       0 |        0 |       0 |       0 | 1-61                                                       
+ app/editor/[projectId]/timeline            |       0 |        0 |       0 |       0 |                                                            
+  TimelineErrorFallback.tsx                 |       0 |      100 |       0 |       0 | 3-7                                                        
+  page.tsx                                  |       0 |        0 |       0 |       0 | 1-61                                                       
+ app/forgot-password                        |       0 |        0 |       0 |       0 |                                                            
+  page.tsx                                  |       0 |        0 |       0 |       0 | 3-95                                                       
+ app/image-gen                              |       0 |        0 |       0 |       0 |                                                            
+  page.tsx                                  |       0 |        0 |       0 |       0 | 3-517                                                      
+ app/logout                                 |       0 |        0 |       0 |       0 |                                                            
+  page.tsx                                  |       0 |        0 |       0 |       0 | 3-72                                                       
+ app/reset-password                         |       0 |        0 |       0 |       0 |                                                            
+  page.tsx                                  |       0 |        0 |       0 |       0 | 3-237                                                      
+ app/settings                               |       0 |        0 |       0 |       0 |                                                            
+  page.tsx                                  |       0 |        0 |       0 |       0 | 3-376                                                      
+ app/signin                                 |       0 |        0 |       0 |       0 |                                                            
+  page.tsx                                  |       0 |        0 |       0 |       0 | 12-193                                                     
+ app/signup                                 |       0 |        0 |       0 |       0 |                                                            
+  page.tsx                                  |       0 |        0 |       0 |       0 | 11-218                                                     
+ app/video-gen                              |       0 |        0 |       0 |       0 |                                                            
+  page.tsx                                  |       0 |        0 |       0 |       0 | 3-192                                                      
+ components                                 |       0 |        0 |       0 |       0 |                                                            
+  ActivityHistory.tsx                       |       0 |        0 |       0 |       0 | 3-233                                                      
+  AudioWaveform.tsx                         |       0 |        0 |       0 |       0 | 3-144                                                      
+  CreateProjectButton.tsx                   |       0 |        0 |       0 |       0 | 11-46                                                      
+  DeleteAccountModal.tsx                    |       0 |        0 |       0 |       0 | 3-347                                                      
+  EditorHeader.tsx                          |       0 |        0 |       0 |       0 | 3-242                                                      
+  ErrorBoundary.tsx                         |       0 |        0 |       0 |       0 | 3-106                                                      
+  ExportModal.tsx                           |       0 |        0 |       0 |       0 | 11-186                                                     
+  HomeHeader.tsx                            |       0 |      100 |       0 |       0 | 3-6                                                        
+  HorizontalTimeline.tsx                    |       0 |        0 |       0 |       0 | 14-383                                                     
+  KeyboardShortcutsHelp.tsx                 |       0 |        0 |       0 |       0 | 3-204                                                      
+  LazyComponents.tsx                        |       0 |        0 |       0 |       0 | 9-205                                                      
+  LoadingSpinner.tsx                        |       0 |        0 |       0 |       0 | 10-28                                                      
+  PreviewPlayer.tsx                         |       0 |        0 |       0 |       0 | 21-187                                                     
+  ProjectList.tsx                           |       0 |        0 |       0 |       0 | 11-114                                                     
+  SubscriptionManager.tsx                   |       0 |        0 |       0 |       0 | 3-574                                                      
+  TextOverlayEditor.tsx                     |       0 |        0 |       0 |       0 | 3-357                                                      
+  TextOverlayRenderer.tsx                   |       0 |        0 |       0 |       0 | 3-89                                                       
+  UserMenu.tsx                              |       0 |        0 |       0 |       0 | 12-145                                                     
+  VideoPlayerHoverMenu.tsx                  |       0 |        0 |       0 |       0 | 3-42                                                       
+  VirtualizedClipRenderer.tsx               |       0 |        0 |       0 |       0 | 9-120                                                      
+  WebVitals.tsx                             |       0 |      100 |       0 |       0 | 12-22                                                      
+ components/editor                          |       0 |        0 |       0 |       0 |                                                            
+  AssetPanel.tsx                            |       0 |        0 |       0 |       0 | 9-355                                                      
+  ChatBox.tsx                               |       0 |        0 |       0 |       0 | 3-544                                                      
+  ClipPropertiesPanel.tsx                   |       0 |        0 |       0 |       0 | 3-186                                                      
+  TimelineCorrectionsMenu.tsx               |       0 |        0 |       0 |       0 | 3-81                                                       
+ components/editor/corrections              |       0 |        0 |       0 |       0 |                                                            
+  AudioEffectsSection.tsx                   |       0 |        0 |       0 |       0 | 17-186                                                     
+  ColorCorrectionSection.tsx                |       0 |      100 |       0 |       0 | 14-160                                                     
+  SectionTabs.tsx                           |       0 |        0 |       0 |       0 | 9-37                                                       
+  TransformSection.tsx                      |       0 |      100 |       0 |       0 | 14-123                                                     
+  useCorrectionHandlers.ts                  |       0 |        0 |       0 |       0 | 1-198                                                      
+  useCorrectionSync.ts                      |       0 |        0 |       0 |       0 | 1-69                                                       
+ components/generation                      |       0 |        0 |       0 |       0 |                                                            
+  AssetLibraryModal.tsx                     |       0 |        0 |       0 |       0 | 9-165                                                      
+  GenerateAudioTab.tsx                      |       0 |        0 |       0 |       0 | 3-24                                                       
+  GenerateVideoTab.tsx                      |       0 |        0 |       0 |       0 | 3-179                                                      
+  VideoGenerationForm.tsx                   |       0 |        0 |       0 |       0 | 13-305                                                     
+  VideoGenerationQueue.tsx                  |       0 |        0 |       0 |       0 | 10-76                                                      
+  VideoGenerationSettings.tsx               |       0 |        0 |       0 |       0 | 10-236                                                     
+  VideoQueueItem.tsx                        |       0 |        0 |       0 |       0 | 10-193                                                     
+ components/generation/audio-generation     |       0 |        0 |       0 |       0 |                                                            
+  AudioTypeSelector.tsx                     |       0 |        0 |       0 |       0 | 6-33                                                       
+  MusicGenerationForm.tsx                   |       0 |        0 |       0 |       0 | 1-161                                                      
+  SFXGenerationForm.tsx                     |       0 |        0 |       0 |       0 | 10-82                                                      
+  VoiceGenerationForm.tsx                   |       0 |        0 |       0 |       0 | 1-40                                                       
+  VoiceSelector.tsx                         |       0 |        0 |       0 |       0 | 15-44                                                      
+  useAudioGeneration.ts                     |       0 |        0 |       0 |       0 | 1-300                                                      
+ components/keyframes                       |       0 |        0 |       0 |       0 |                                                            
+  KeyframeEditControls.tsx                  |       0 |        0 |       0 |       0 | 3-230                                                      
+  KeyframeEditorShell.tsx                   |       0 |        0 |       0 |       0 | 3-325                                                      
+  KeyframePreview.tsx                       |       0 |        0 |       0 |       0 | 3-34                                                       
+  KeyframeSidebar.tsx                       |       0 |        0 |       0 |       0 | 3-139                                                      
+  KeyframeVersions.tsx                      |       0 |        0 |       0 |       0 | 3-22                                                       
+  VideoPlayerModal.tsx                      |       0 |        0 |       0 |       0 | 12                                                         
+  utils.ts                                  |       0 |        0 |       0 |       0 | 6-27                                                       
+ components/keyframes/components            |       0 |        0 |       0 |       0 |                                                            
+  EditControls.tsx                          |       0 |        0 |       0 |       0 | 3-215                                                      
+  KeyframePreview.tsx                       |       0 |        0 |       0 |       0 | 3-49                                                       
+  KeyframeSidebar.tsx                       |       0 |        0 |       0 |       0 | 3-152                                                      
+  VersionsGallery.tsx                       |       0 |        0 |       0 |       0 | 3-30                                                       
+ components/keyframes/hooks                 |       0 |        0 |       0 |       0 |                                                            
+  useFrameEdits.ts                          |       0 |        0 |       0 |       0 | 1-53                                                       
+  useFramesData.ts                          |       0 |        0 |       0 |       0 | 1-152                                                      
+  useImageUpload.ts                         |       0 |        0 |       0 |       0 | 1-176                                                      
+  useKeyframeData.ts                        |       0 |        0 |       0 |       0 | 1-191                                                      
+  useKeyframeEditing.ts                     |       0 |        0 |       0 |       0 | 1-246                                                      
+  useKeyframeSelection.ts                   |       0 |        0 |       0 |       0 | 1-138                                                      
+  useReferenceImages.ts                     |       0 |        0 |       0 |       0 | 1-151                                                      
+  useStorageUrls.ts                         |       0 |        0 |       0 |       0 | 1-42                                                       
+  useVideoExtraction.ts                     |       0 |        0 |       0 |       0 | 1-131                                                      
+ components/preview                         |       0 |        0 |       0 |       0 |                                                            
+  PlaybackControls.tsx                      |       0 |        0 |       0 |       0 | 15-229                                                     
+ components/providers                       |       0 |        0 |       0 |       0 |                                                            
+  SupabaseProvider.tsx                      |       0 |        0 |       0 |       0 | 3-111                                                      
+ components/timeline                        |       0 |        0 |       0 |       0 |                                                            
+  TimelineClipRenderer.tsx                  |       0 |        0 |       0 |       0 | 2-138                                                      
+  TimelineContextMenu.tsx                   |       0 |        0 |       0 |       0 | 21-129                                                     
+  TimelineControls.tsx                      |       0 |        0 |       0 |       0 | 3-43                                                       
+  TimelinePlayhead.tsx                      |       0 |      100 |       0 |       0 | 3-15                                                       
+  TimelineRuler.tsx                         |       0 |      100 |       0 |       0 | 3-36                                                       
+  TimelineTextOverlayRenderer.tsx           |       0 |        0 |       0 |       0 | 3-72                                                       
+  TimelineTextOverlayTrack.tsx              |       0 |      100 |       0 |       0 | 3-21                                                       
+  TimelineTracks.tsx                        |       0 |        0 |       0 |       0 | 2-53                                                       
+ components/ui                              |       0 |        0 |       0 |       0 |                                                            
+  Alert.tsx                                 |       0 |      100 |     100 |       0 | 1-50                                                       
+  Button.tsx                                |       0 |      100 |       0 |       0 | 1-23                                                       
+  Card.tsx                                  |       0 |      100 |     100 |       0 | 1-56                                                       
+  Dialog.tsx                                |       0 |      100 |     100 |       0 | 3-103                                                      
+  DragDropZone.tsx                          |       0 |        0 |       0 |       0 | 3-346                                                      
+  EmptyState.tsx                            |       0 |        0 |       0 |       0 | 1-14                                                       
+  Input.tsx                                 |       0 |      100 |       0 |       0 | 1-23                                                       
+  LoadingSpinner.tsx                        |       0 |        0 |       0 |       0 | 2-9                                                        
+  ProgressBar.tsx                           |       0 |        0 |       0 |       0 | 1-126                                                      
+  button-variants.ts                        |       0 |      100 |     100 |       0 | 1-3                                                        
+ lib                                        |    4.82 |     3.29 |    5.31 |    4.78 |                                                            
+  auditLog.ts                               |       0 |        0 |       0 |       0 | 43-601                                                     
+  axiomTransport.ts                         |   56.36 |    43.58 |   44.44 |   61.22 | 34,41,56,69,85-104,110,116,126-131                         
+  browserLogger.ts                          |       0 |        0 |       0 |       0 | 40-533                                                     
+  cache.ts                                  |   42.39 |    27.27 |   37.03 |   40.44 | 71-115,137-139,156,174-203,222-242,291-298,312-321,331-336 
+  cacheInvalidation.ts                      |       0 |        0 |       0 |       0 | 22-344                                                     
+  cachedData.ts                             |       0 |        0 |       0 |       0 | 22-451                                                     
+  constants.ts                              |       0 |      100 |     100 |       0 | 8-46                                                       
+  errorTracking.ts                          |       0 |        0 |       0 |       0 | 26-235                                                     
+  fal-video.ts                              |       0 |        0 |       0 |       0 | 12-326                                                     
+  fetchWithTimeout.ts                       |       0 |        0 |       0 |       0 | 5-113                                                      
+  gemini.ts                                 |       0 |        0 |       0 |       0 | 26-272                                                     
+  imagen.ts                                 |       0 |        0 |       0 |       0 | 20-191                                                     
+  navigation.ts                             |       0 |        0 |       0 |       0 | 5-7                                                        
+  password-validation.ts                    |       0 |        0 |       0 |       0 | 11-85                                                      
+  performance.ts                            |       0 |        0 |       0 |       0 | 8-298                                                      
+  rateLimit.ts                              |       0 |        0 |       0 |       0 | 14-314                                                     
+  requestDeduplication.ts                   |       0 |        0 |       0 |       0 | 10-315                                                     
+  saveLoad.ts                               |       0 |        0 |       0 |       0 | 4-54                                                       
+  serverLogger.ts                           |     100 |     62.5 |     100 |     100 | 37-73                                                      
+  signedUrlCache.ts                         |       0 |        0 |       0 |       0 | 10-395                                                     
+  stripe.ts                                 |       0 |        0 |       0 |       0 | 5-166                                                      
+  supabase.ts                               |       0 |        0 |       0 |       0 | 34-301                                                     
+  utils.ts                                  |       0 |      100 |       0 |       0 | 1-5                                                        
+  validateEnv.ts                            |       0 |        0 |       0 |       0 | 43-508                                                     
+  validation.ts                             |       0 |        0 |       0 |       0 | 19-335                                                     
+  veo.ts                                    |       0 |        0 |       0 |       0 | 22-384                                                     
+  webVitals.ts                              |       0 |        0 |       0 |       0 | 8-181                                                      
+ lib/api                                    |       0 |        0 |       0 |       0 |                                                            
+  bodyLimits.ts                             |       0 |        0 |       0 |       0 | 10-238                                                     
+  cors.ts                                   |       0 |        0 |       0 |       0 | 15-272                                                     
+  errorResponse.ts                          |       0 |        0 |       0 |       0 | 14-137                                                     
+  openapi.ts                                |       0 |        0 |       0 |       0 | 220-474                                                    
+  project-verification.ts                   |       0 |        0 |       0 |       0 | 11-379                                                     
+  response.ts                               |       0 |        0 |       0 |       0 | 10-306                                                     
+  sanitization.ts                           |       0 |        0 |       0 |       0 | 21-457                                                     
+  validation.ts                             |       0 |        0 |       0 |       0 | 30-494                                                     
+  versioning.ts                             |       0 |        0 |       0 |       0 | 10-283                                                     
+  withAuth.ts                               |       0 |        0 |       0 |       0 | 25-448                                                     
+ lib/config                                 |       0 |        0 |       0 |       0 |                                                            
+  api.ts                                    |       0 |      100 |       0 |       0 | 9-145                                                      
+  index.ts                                  |       0 |      100 |       0 |       0 | 7-142                                                      
+  models.ts                                 |       0 |        0 |       0 |       0 | 9-183                                                      
+  rateLimit.ts                              |       0 |      100 |       0 |       0 | 38-152                                                     
+  validation.ts                             |       0 |        0 |       0 |       0 | 9-224                                                      
+ lib/constants                              |       0 |      100 |     100 |       0 |                                                            
+  assets.ts                                 |       0 |      100 |     100 |       0 | 11-31                                                      
+  editor.ts                                 |       0 |      100 |     100 |       0 | 11-27                                                      
+  index.ts                                  |       0 |      100 |     100 |       0 | 14-20                                                      
+  ui.ts                                     |       0 |      100 |     100 |       0 | 9-106                                                      
+ lib/errors                                 |       0 |        0 |       0 |       0 |                                                            
+  errorCodes.ts                             |       0 |        0 |       0 |       0 | 17-285                                                     
+ lib/hooks                                  |       0 |        0 |       0 |       0 |                                                            
+  useAssetDeletion.ts                       |       0 |        0 |       0 |       0 | 9-80                                                       
+  useAssetList.ts                           |       0 |        0 |       0 |       0 | 8-148                                                      
+  useAssetManager.ts                        |       0 |        0 |       0 |       0 | 12-116                                                     
+  useAssetThumbnails.ts                     |       0 |        0 |       0 |       0 | 8-244                                                      
+  useAssetUpload.ts                         |       0 |        0 |       0 |       0 | 9-134                                                      
+  useAutosave.ts                            |       0 |        0 |       0 |       0 | 3-61                                                       
+  useDebounce.ts                            |       0 |        0 |       0 |       0 | 1-75                                                       
+  useGlobalKeyboardShortcuts.ts             |       0 |        0 |       0 |       0 | 12-195                                                     
+  useImageInput.ts                          |       0 |        0 |       0 |       0 | 13-139                                                     
+  useKeyboardShortcuts.ts                   |       0 |        0 |       0 |       0 | 18-152                                                     
+  usePolling.ts                             |       0 |        0 |       0 |       0 | 12-318                                                     
+  useSceneDetection.ts                      |       0 |        0 |       0 |       0 | 9-110                                                      
+  useTimelineCalculations.ts                |       0 |        0 |       0 |       0 | 11-68                                                      
+  useTimelineDragging.ts                    |       0 |        0 |       0 |       0 | 13-297                                                     
+  useTimelineKeyboardShortcuts.ts           |       0 |        0 |       0 |       0 | 12-112                                                     
+  useVideoGeneration.ts                     |       0 |        0 |       0 |       0 | 9-125                                                      
+  useVideoGenerationQueue.ts                |       0 |        0 |       0 |       0 | 10-269                                                     
+  useVideoManager.ts                        |       0 |        0 |       0 |       0 | 8-303                                                      
+  useVideoPlayback.ts                       |       0 |        0 |       0 |       0 | 8-362                                                      
+ lib/security                               |       0 |        0 |       0 |       0 |                                                            
+  csp.ts                                    |       0 |        0 |       0 |       0 | 13-125                                                     
+  getNonce.ts                               |       0 |        0 |       0 |       0 | 7-27                                                       
+ lib/services                               |    9.18 |     5.83 |      14 |    9.34 |                                                            
+  assetService.ts                           |       0 |        0 |       0 |       0 | 23-470                                                     
+  audioService.ts                           |       0 |        0 |       0 |       0 | 24-494                                                     
+  authService.ts                            |   72.85 |    51.85 |    87.5 |   73.91 | 77-82,117-122,126,134-139,167,233-269                      
+  index.ts                                  |       0 |      100 |     100 |       0 | 20-40                                                      
+  projectService.ts                         |       0 |        0 |       0 |       0 | 24-406                                                     
+  userService.ts                            |       0 |        0 |       0 |       0 | 22-279                                                     
+  videoService.ts                           |       0 |        0 |       0 |       0 | 24-471                                                     
+ lib/utils                                  |       0 |        0 |       0 |       0 |                                                            
+  arrayUtils.ts                             |       0 |        0 |       0 |       0 | 21-199                                                     
+  assetUtils.ts                             |       0 |        0 |       0 |       0 | 9-218                                                      
+  frameUtils.ts                             |       0 |        0 |       0 |       0 | 9-251                                                      
+  timelineUtils.ts                          |       0 |        0 |       0 |       0 | 2-163                                                      
+  videoGenerationUtils.ts                   |       0 |        0 |       0 |       0 | 8-204                                                      
+  videoUtils.ts                             |       0 |        0 |       0 |       0 | 11-305                                                     
+ lib/validation                             |       0 |        0 |       0 |       0 |                                                            
+  email.ts                                  |       0 |        0 |       0 |       0 | 7-74                                                       
+  password.ts                               |       0 |        0 |       0 |       0 | 12-96                                                      
+ state                                      |       0 |        0 |       0 |       0 |                                                            
+  index.ts                                  |       0 |      100 |     100 |       0 | 27-35                                                      
+  selectors.ts                              |       0 |        0 |       0 |       0 | 8-105                                                      
+  useClipboardStore.ts                      |       0 |        0 |       0 |       0 | 21-65                                                      
+  useEditorActions.ts                       |       0 |        0 |       0 |       0 | 28-176                                                     
+  useEditorStore.ts                         |       0 |        0 |       0 |       0 | 23-607                                                     
+  useHistoryStore.ts                        |       0 |        0 |       0 |       0 | 22-139                                                     
+  usePlaybackStore.ts                       |       0 |      100 |       0 |       0 | 19-63                                                      
+  useSelectionStore.ts                      |       0 |        0 |       0 |       0 | 20-71                                                      
+  useTimelineStore.ts                       |       0 |        0 |       0 |       0 | 23-277                                                     
+--------------------------------------------|---------|----------|---------|---------|------------------------------------------------------------
+Jest: "global" coverage threshold for statements (70%) not met: 1.11%
+Jest: "global" coverage threshold for branches (70%) not met: 0.69%
+Jest: "global" coverage threshold for lines (70%) not met: 1.14%
+Jest: "global" coverage threshold for functions (70%) not met: 1.16%
+Test Suites: 9 failed, 1 passed, 10 total
+Tests:       4 failed, 33 passed, 37 total
+Snapshots:   0 total
+Time:        5.505 s
+Ran all test suites matching __tests__/integration.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

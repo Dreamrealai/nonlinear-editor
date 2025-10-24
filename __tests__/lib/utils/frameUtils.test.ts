@@ -16,7 +16,14 @@ import type { BaseAssetRow } from '@/types/assets';
 import * as frameUtils from '@/lib/utils/frameUtils';
 
 describe('frameUtils utilities', () => {
+  // Clear all mocks and free memory after each test
   afterEach(() => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+
+  // Clean up global state after all tests
+  afterAll(() => {
     jest.restoreAllMocks();
   });
 
@@ -102,7 +109,8 @@ describe('frameUtils utilities', () => {
       storage: { from: storageFromMock },
     } as unknown as SupabaseClient;
 
-    const blob = new Blob(['frame-bytes'], { type: 'image/png' });
+    // Use smaller blob to reduce memory usage
+    const blob = new Blob(['test'], { type: 'image/png' });
     const result = await frameUtils.uploadFrameBlob(
       supabase,
       'asset-9/custom/frame.png',
@@ -133,7 +141,8 @@ describe('frameUtils utilities', () => {
   it('extractVideoFrame captures a frame to canvas', async () => {
     const drawImage = jest.fn();
     const toBlob = jest.fn((callback: (blob: Blob | null) => void) => {
-      callback(new Blob(['frame'], { type: 'image/png' }));
+      // Use smaller blob to reduce memory
+      callback(new Blob(['x'], { type: 'image/png' }));
     });
 
     const canvas = {
@@ -192,7 +201,8 @@ describe('frameUtils utilities', () => {
     global.Image = MockImage;
 
     try {
-      const file = new File(['image'], 'frame.png', { type: 'image/png' });
+      // Use smaller file to reduce memory usage
+      const file = new File(['x'], 'frame.png', { type: 'image/png' });
       const result = await frameUtils.loadImageFromFile(file);
 
       expect(result.width).toBe(800);
@@ -237,7 +247,8 @@ describe('frameUtils utilities', () => {
       }),
     } as unknown as SupabaseClient;
 
-    const blob = new Blob(['frame'], { type: 'image/png' });
+    // Use smaller blob to reduce memory usage
+    const blob = new Blob(['x'], { type: 'image/png' });
     const drawImage = jest.fn();
     const toBlob = jest.fn((callback: (innerBlob: Blob | null) => void) => callback(blob));
     const canvas = {
@@ -264,28 +275,30 @@ describe('frameUtils utilities', () => {
       },
     ];
 
-    await frameUtils.extractAndSaveVideoFrame(supabase, video, canvas, 'asset-7', assets);
+    try {
+      await frameUtils.extractAndSaveVideoFrame(supabase, video, canvas, 'asset-7', assets);
 
-    expect(canvas.width).toBe(1280);
-    expect(canvas.height).toBe(720);
-    expect(drawImage).toHaveBeenCalledWith(video, 0, 0, 1280, 720);
-    expect(supabase.storage.from).toHaveBeenCalledWith('frames');
-    expect(uploadMock).toHaveBeenCalledWith('asset-7/custom/1000000-2500ms.png', blob, {
-      contentType: 'image/png',
-      upsert: false,
-    });
-    expect(insertMock).toHaveBeenCalledWith({
-      project_id: 'project-77',
-      asset_id: 'asset-7',
-      scene_id: null,
-      kind: 'custom',
-      t_ms: 2500,
-      storage_path: 'supabase://frames/asset-7/custom/1000000-2500ms.png',
-      width: 1280,
-      height: 720,
-    });
-
-    nowSpy.mockRestore();
+      expect(canvas.width).toBe(1280);
+      expect(canvas.height).toBe(720);
+      expect(drawImage).toHaveBeenCalledWith(video, 0, 0, 1280, 720);
+      expect(supabase.storage.from).toHaveBeenCalledWith('frames');
+      expect(uploadMock).toHaveBeenCalledWith('asset-7/custom/1000000-2500ms.png', blob, {
+        contentType: 'image/png',
+        upsert: false,
+      });
+      expect(insertMock).toHaveBeenCalledWith({
+        project_id: 'project-77',
+        asset_id: 'asset-7',
+        scene_id: null,
+        kind: 'custom',
+        t_ms: 2500,
+        storage_path: 'supabase://frames/asset-7/custom/1000000-2500ms.png',
+        width: 1280,
+        height: 720,
+      });
+    } finally {
+      nowSpy.mockRestore();
+    }
   });
 
   it('uploadAndSaveImageFrame uploads file and logs frame metadata', async () => {
@@ -338,7 +351,8 @@ describe('frameUtils utilities', () => {
     const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(2_000_000);
 
     try {
-      const mockFile = new File(['image-bytes'], 'still.png', { type: 'image/png' });
+      // Use smaller file to reduce memory usage
+      const mockFile = new File(['x'], 'still.png', { type: 'image/png' });
       const assets: BaseAssetRow[] = [
         {
           id: 'asset-3',

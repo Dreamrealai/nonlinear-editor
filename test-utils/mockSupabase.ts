@@ -1,127 +1,284 @@
 /**
- * Mock Supabase client utilities for testing
+ * Supabase testing utilities.
+ *
+ * Provides a configurable mock Supabase client with realistic chainable
+ * query behaviour, storage helpers, and authentication helpers so that
+ * tests can focus on business logic instead of plumbing.
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+type QueryResult<T = unknown> = {
+  data: T;
+  error: any;
+  count?: number | null;
+};
+
+type PendingValue = QueryResult | Promise<QueryResult>;
 
 export interface MockSupabaseChain {
+  // Core query builder methods
   from: jest.Mock;
   select: jest.Mock;
   insert: jest.Mock;
   update: jest.Mock;
+  upsert: jest.Mock;
   delete: jest.Mock;
   eq: jest.Mock;
   neq: jest.Mock;
-  single: jest.Mock;
-  maybeSingle: jest.Mock;
+  in: jest.Mock;
+  is: jest.Mock;
+  gte: jest.Mock;
+  lte: jest.Mock;
+  gt: jest.Mock;
+  lt: jest.Mock;
+  like: jest.Mock;
+  ilike: jest.Mock;
   order: jest.Mock;
   limit: jest.Mock;
-  channel: jest.Mock;
-  removeChannel: jest.Mock;
+  range: jest.Mock;
+  single: jest.Mock;
+  maybeSingle: jest.Mock;
+  mockResolvedValue: (value: QueryResult) => MockSupabaseChain;
+  mockRejectedValue: (error: unknown) => MockSupabaseChain;
+  // Storage API
   storage: {
     from: jest.Mock;
     upload: jest.Mock;
     getPublicUrl: jest.Mock;
     createSignedUrl: jest.Mock;
+    createSignedUrls: jest.Mock;
     remove: jest.Mock;
+    list: jest.Mock;
+    move: jest.Mock;
+    copy: jest.Mock;
   };
+  // Auth API
   auth: {
     getUser: jest.Mock;
+    getSession: jest.Mock;
     signOut: jest.Mock;
+    signInWithPassword: jest.Mock;
+    signUp: jest.Mock;
+    resetPasswordForEmail: jest.Mock;
+    updateUser: jest.Mock;
   };
+  channel: jest.Mock;
+  removeChannel: jest.Mock;
+}
+
+type MockSupabaseClient = jest.Mocked<SupabaseClient> & MockSupabaseChain;
+
+function createChainableMethod(builder: Record<string, unknown>) {
+  const fn = jest.fn(() => builder);
+  return fn;
 }
 
 /**
- * Creates a mock Supabase client with chainable methods
- *
- * IMPORTANT: The client is NOT thenable, but query builders ARE.
- * This prevents Promise.resolve() from trying to await the client itself.
+ * Creates a query builder that behaves like the Supabase client:
+ * - Chainable query/filter helpers
+ * - Thenable so it can be awaited directly
+ * - Helpers to control the eventual resolved/rejected value
  */
-export function createMockSupabaseClient(): jest.Mocked<SupabaseClient> & MockSupabaseChain {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mockClient: any = {};
+function createQueryBuilder() {
+  const builder: Record<string, any> = {};
 
-  // Create a separate query builder that IS thenable
-  // This is what from() returns and what can be chained and awaited
-  function createQueryBuilder() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const queryBuilder: any = {};
-    let promiseValue: { data: unknown; error: unknown } = { data: null, error: null };
+  let pending: PendingValue = Promise.resolve({
+    data: null,
+    error: null,
+    count: null,
+  });
 
-    // Make query builder thenable so it can be awaited
-    queryBuilder.then = function (onFulfilled: (value: unknown) => unknown) {
-      return Promise.resolve(promiseValue).then(onFulfilled);
-    };
+  const setPending = (value: PendingValue) => {
+    pending =
+      typeof (value as PromiseLike<unknown>).then === 'function'
+        ? (value as Promise<QueryResult>)
+        : Promise.resolve(value as QueryResult);
+    return builder;
+  };
 
-    // Helper to set the value returned when query builder is awaited
-    queryBuilder.mockResolvedValue = (value: { data: unknown; error: unknown }) => {
-      promiseValue = value;
-      return queryBuilder;
-    };
+  const chainableMethods = [
+    'select',
+    'insert',
+    'update',
+    'upsert',
+    'delete',
+    'eq',
+    'neq',
+    'in',
+    'is',
+    'gte',
+    'lte',
+    'gt',
+    'lt',
+    'like',
+    'ilike',
+    'order',
+    'limit',
+    'range',
+  ] as const;
 
-    // Chainable methods
-    queryBuilder.select = jest.fn(() => queryBuilder);
-    queryBuilder.insert = jest.fn(() => queryBuilder);
-    queryBuilder.update = jest.fn(() => queryBuilder);
-    queryBuilder.delete = jest.fn(() => queryBuilder);
-    queryBuilder.eq = jest.fn(() => queryBuilder);
-    queryBuilder.neq = jest.fn(() => queryBuilder);
-    queryBuilder.order = jest.fn(() => queryBuilder);
-    queryBuilder.limit = jest.fn(() => queryBuilder);
-    queryBuilder.range = jest.fn(() => queryBuilder);
+  chainableMethods.forEach((method) => {
+    builder[method] = createChainableMethod(builder);
+  });
 
-    // Terminal methods
-    queryBuilder.single = jest.fn();
-    queryBuilder.maybeSingle = jest.fn();
+  builder.single = jest.fn(() => pending);
+  builder.maybeSingle = jest.fn(() => pending);
 
-    return queryBuilder;
-  }
+  builder.then = (
+    onFulfilled: (value: QueryResult) => unknown,
+    onRejected?: (reason: unknown) => unknown
+  ) => pending.then(onFulfilled, onRejected);
+  builder.catch = (onRejected: (reason: unknown) => unknown) => pending.catch(onRejected);
+  builder.finally = (onFinally: () => unknown) => pending.finally(onFinally);
 
-  // Create a single query builder instance that will be reused
+  builder.mockResolvedValue = (value: QueryResult) => {
+    setPending(value);
+    builder.single.mockResolvedValue(value);
+    builder.maybeSingle.mockResolvedValue(value);
+    return builder;
+  };
+
+  builder.mockRejectedValue = (error: unknown) => {
+    const rejection =
+      error instanceof Error
+        ? error
+        : Object.assign(new Error('Mock query rejected'), { cause: error });
+    const rejectionPromise = Promise.reject(rejection);
+    pending = rejectionPromise as PendingValue;
+    builder.single.mockRejectedValue(rejection);
+    builder.maybeSingle.mockRejectedValue(rejection);
+    return builder;
+  };
+
+  return builder;
+}
+
+/**
+ * Factory for the shared mock Supabase client used across tests.
+ */
+export function createMockSupabaseClient(
+  overrides?: Partial<MockSupabaseChain>
+): MockSupabaseClient {
   const queryBuilder = createQueryBuilder();
 
-  // Client methods - from() returns the query builder
-  mockClient.from = jest.fn(() => queryBuilder);
-
-  // Direct access to query builder methods for test setup
-  mockClient.select = queryBuilder.select;
-  mockClient.insert = queryBuilder.insert;
-  mockClient.update = queryBuilder.update;
-  mockClient.delete = queryBuilder.delete;
-  mockClient.eq = queryBuilder.eq;
-  mockClient.neq = queryBuilder.neq;
-  mockClient.order = queryBuilder.order;
-  mockClient.limit = queryBuilder.limit;
-  mockClient.range = queryBuilder.range;
-  mockClient.single = queryBuilder.single;
-  mockClient.maybeSingle = queryBuilder.maybeSingle;
-  mockClient.mockResolvedValue = queryBuilder.mockResolvedValue;
-
-  // Other methods
-  mockClient.channel = jest.fn();
-  mockClient.removeChannel = jest.fn();
-
-  // Storage methods
-  mockClient.storage = {
-    from: jest.fn(() => mockClient.storage),
-    upload: jest.fn(),
-    getPublicUrl: jest.fn(),
-    createSignedUrl: jest.fn(),
-    remove: jest.fn(),
+  const client: Record<string, any> = {
+    from: jest.fn(() => queryBuilder),
+    channel: jest.fn(() => ({
+      on: jest.fn().mockReturnThis(),
+      subscribe: jest.fn().mockResolvedValue({ data: null, error: null }),
+      unsubscribe: jest.fn(),
+    })),
+    removeChannel: jest.fn(),
+    storage: {
+      from: jest.fn(() => client.storage),
+      upload: jest.fn().mockResolvedValue({ data: { path: 'mock/path' }, error: null }),
+      getPublicUrl: jest.fn().mockReturnValue({
+        data: { publicUrl: 'https://example.com/mock' },
+      }),
+      createSignedUrl: jest.fn().mockResolvedValue({
+        data: { signedUrl: 'https://example.com/signed/mock' },
+        error: null,
+      }),
+      createSignedUrls: jest.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+      remove: jest.fn().mockResolvedValue({ data: null, error: null }),
+      list: jest.fn().mockResolvedValue({ data: [], error: null }),
+      move: jest.fn().mockResolvedValue({ data: null, error: null }),
+      copy: jest.fn().mockResolvedValue({ data: null, error: null }),
+    },
+    auth: {
+      getUser: jest.fn().mockResolvedValue({
+        data: { user: null },
+        error: null,
+      }),
+      getSession: jest.fn().mockResolvedValue({
+        data: { session: null },
+        error: null,
+      }),
+      signOut: jest.fn().mockResolvedValue({ error: null }),
+      signInWithPassword: jest.fn().mockResolvedValue({
+        data: { user: null, session: null },
+        error: null,
+      }),
+      signUp: jest.fn().mockResolvedValue({
+        data: { user: null, session: null },
+        error: null,
+      }),
+      resetPasswordForEmail: jest.fn().mockResolvedValue({
+        data: {},
+        error: null,
+      }),
+      updateUser: jest.fn().mockResolvedValue({
+        data: { user: null },
+        error: null,
+      }),
+    },
   };
 
-  // Auth methods
-  mockClient.auth = {
-    getUser: jest.fn(),
-    signOut: jest.fn(),
+  const chainableKeys: (keyof MockSupabaseChain)[] = [
+    'select',
+    'insert',
+    'update',
+    'upsert',
+    'delete',
+    'eq',
+    'neq',
+    'in',
+    'is',
+    'gte',
+    'lte',
+    'gt',
+    'lt',
+    'like',
+    'ilike',
+    'order',
+    'limit',
+    'range',
+  ];
+
+  chainableKeys.forEach((key) => {
+    client[key] = queryBuilder[key];
+  });
+
+  client.single = queryBuilder.single;
+  client.maybeSingle = queryBuilder.maybeSingle;
+
+  client.mockResolvedValue = (value: QueryResult) => {
+    queryBuilder.mockResolvedValue(value);
+    return client as MockSupabaseClient;
   };
 
-  return mockClient as jest.Mocked<SupabaseClient> & MockSupabaseChain;
+  client.mockRejectedValue = (error: unknown) => {
+    queryBuilder.mockRejectedValue(error);
+    return client as MockSupabaseClient;
+  };
+
+  const baseClient = client as MockSupabaseClient;
+
+  if (overrides) {
+    const { storage, auth, ...rest } = overrides;
+    if (storage) {
+      Object.assign(baseClient.storage, storage);
+    }
+    if (auth) {
+      Object.assign(baseClient.auth, auth);
+    }
+    Object.assign(baseClient, rest);
+  }
+
+  // Ensure default resolved value is neutral
+  baseClient.mockResolvedValue({
+    data: null,
+    error: null,
+    count: null,
+  });
+
+  return baseClient;
 }
 
-/**
- * Creates a mock authenticated user
- */
 export function createMockUser(overrides?: Record<string, unknown>) {
   return {
     id: 'test-user-id',
@@ -129,14 +286,13 @@ export function createMockUser(overrides?: Record<string, unknown>) {
     app_metadata: {},
     user_metadata: {},
     aud: 'authenticated',
+    role: 'authenticated',
     created_at: '2025-01-01T00:00:00Z',
+    updated_at: '2025-01-01T00:00:00Z',
     ...overrides,
   };
 }
 
-/**
- * Creates a mock project
- */
 export function createMockProject(overrides?: Record<string, unknown>) {
   return {
     id: 'test-project-id',
@@ -149,9 +305,6 @@ export function createMockProject(overrides?: Record<string, unknown>) {
   };
 }
 
-/**
- * Creates a mock asset
- */
 export function createMockAsset(overrides?: Record<string, unknown>) {
   return {
     id: 'test-asset-id',
@@ -174,9 +327,6 @@ export function createMockAsset(overrides?: Record<string, unknown>) {
   };
 }
 
-/**
- * Creates a mock user profile
- */
 export function createMockUserProfile(overrides?: Record<string, unknown>) {
   return {
     id: 'test-user-id',
@@ -195,76 +345,71 @@ export function createMockUserProfile(overrides?: Record<string, unknown>) {
   };
 }
 
-/**
- * Helper to set up authenticated user mock
- */
 export function mockAuthenticatedUser(
   mockClient: MockSupabaseChain,
-  user?: Record<string, unknown>
+  userOverrides?: Record<string, unknown>
 ) {
-  const mockUser = user || createMockUser();
-  mockClient.auth.getUser.mockImplementation(() =>
-    Promise.resolve({
-      data: { user: mockUser },
-      error: null,
-    })
-  );
-  return mockUser;
-}
-
-/**
- * Helper to set up unauthenticated state
- */
-export function mockUnauthenticatedUser(mockClient: MockSupabaseChain) {
-  mockClient.auth.getUser.mockImplementation(() =>
-    Promise.resolve({
-      data: { user: null },
-      error: { message: 'Not authenticated' },
-    })
-  );
-}
-
-/**
- * Helper to mock database query response
- */
-export function mockQuerySuccess(
-  mockClient: MockSupabaseChain,
-  data: Record<string, unknown>,
-  method: 'single' | 'maybeSingle' | 'order' = 'single'
-) {
-  mockClient[method].mockResolvedValue({
-    data,
+  const user = createMockUser(userOverrides);
+  mockClient.auth.getUser.mockResolvedValue({
+    data: { user },
     error: null,
+  });
+  return user;
+}
+
+export function mockUnauthenticatedUser(
+  mockClient: MockSupabaseChain,
+  message = 'Not authenticated'
+) {
+  mockClient.auth.getUser.mockResolvedValue({
+    data: { user: null },
+    error: { message, status: 401, name: 'AuthError' },
   });
 }
 
-/**
- * Helper to mock database query error
- */
+export function mockQuerySuccess<T = unknown>(
+  mockClient: MockSupabaseChain,
+  data: T,
+  method: 'single' | 'maybeSingle' = 'single',
+  count: number | null = Array.isArray(data) ? data.length : null
+) {
+  const result: QueryResult<T> = {
+    data,
+    error: null,
+    count,
+  };
+  mockClient[method].mockResolvedValue(result);
+  mockClient.mockResolvedValue(result);
+  return result;
+}
+
 export function mockQueryError(
   mockClient: MockSupabaseChain,
   errorMessage: string,
-  method: 'single' | 'maybeSingle' | 'order' = 'single'
+  method: 'single' | 'maybeSingle' = 'single'
 ) {
-  mockClient[method].mockResolvedValue({
+  const errorResult = {
     data: null,
-    error: { message: errorMessage, code: 'DB_ERROR' },
-  });
+    error: {
+      message: errorMessage,
+      code: 'DB_ERROR',
+    },
+  };
+  mockClient[method].mockResolvedValue(errorResult);
+  mockClient.mockResolvedValue(errorResult);
+  return errorResult;
 }
 
-/**
- * Helper to mock storage upload success
- */
-export function mockStorageUploadSuccess(mockClient: MockSupabaseChain) {
+export function mockStorageUploadSuccess(
+  mockClient: MockSupabaseChain,
+  path: string = 'mock/path'
+) {
   mockClient.storage.upload.mockResolvedValue({
-    data: { path: 'test-path' },
+    data: { path },
     error: null,
   });
 }
 
-/**
- * Helper to mock storage upload error
- */
 export function mockStorageUploadError(mockClient: MockSupabaseChain, errorMessage: string) {
   mockClient.storage.upload.mockResolvedValue({
     data: null,
@@ -272,19 +417,24 @@ export function mockStorageUploadError(mockClient: MockSupabaseChain, errorMessa
   });
 }
 
-/**
- * Helper to reset all mocks
- */
 export function resetAllMocks(mockClient: MockSupabaseChain) {
-  Object.values(mockClient).forEach((value) => {
-    if (typeof value === 'object' && value !== null) {
-      Object.values(value).forEach((fn) => {
-        if (jest.isMockFunction(fn)) {
-          fn.mockClear();
-        }
-      });
-    } else if (jest.isMockFunction(value)) {
+  const reset = (value: unknown) => {
+    if (jest.isMockFunction(value)) {
       value.mockClear();
     }
+  };
+
+  Object.values(mockClient).forEach((value) => {
+    if (typeof value === 'object' && value !== null) {
+      Object.values(value).forEach(reset);
+    } else {
+      reset(value);
+    }
+  });
+
+  mockClient.mockResolvedValue({
+    data: null,
+    error: null,
+    count: null,
   });
 }

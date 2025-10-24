@@ -7,9 +7,11 @@
  * @route GET /api/docs
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { withErrorHandling, internalServerError } from '@/lib/api/response';
+import { serverLogger } from '@/lib/serverLogger';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,26 +21,50 @@ export const dynamic = 'force-dynamic';
  * Returns the OpenAPI specification in JSON or YAML format.
  * Add ?format=yaml query parameter to get YAML format.
  */
-export async function GET(request: Request) {
+export const GET = withErrorHandling(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const format = searchParams.get('format') || 'json';
 
+  serverLogger.debug(
+    {
+      event: 'docs.request',
+      format,
+    },
+    'API documentation requested'
+  );
+
+  // Read OpenAPI spec file
+  const specPath = join(process.cwd(), 'docs', 'api', 'openapi.yaml');
+  let yamlContent: string;
+
   try {
-    // Read OpenAPI spec file
-    const specPath = join(process.cwd(), 'docs', 'api', 'openapi.yaml');
-    const yamlContent = readFileSync(specPath, 'utf-8');
+    yamlContent = readFileSync(specPath, 'utf-8');
+  } catch (error) {
+    serverLogger.error(
+      {
+        event: 'docs.file_read_error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        specPath,
+      },
+      'Failed to read OpenAPI spec file'
+    );
+    return internalServerError('Failed to load API documentation', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
 
-    if (format === 'yaml') {
-      return new NextResponse(yamlContent, {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/x-yaml',
-          'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
-        },
-      });
-    }
+  if (format === 'yaml') {
+    return new NextResponse(yamlContent, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/x-yaml',
+        'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+      },
+    });
+  }
 
-    // Convert YAML to JSON for JSON format
+  // Convert YAML to JSON for JSON format
+  try {
     const yaml = await import('yaml');
     const jsonContent = yaml.parse(yamlContent);
 
@@ -49,12 +75,15 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    return NextResponse.json(
+    serverLogger.error(
       {
-        error: 'Failed to load API documentation',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        event: 'docs.yaml_parse_error',
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      'Failed to parse YAML spec'
     );
+    return internalServerError('Failed to parse API documentation', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
   }
-}
+});

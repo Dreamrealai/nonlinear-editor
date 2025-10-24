@@ -31,7 +31,7 @@ describe('PlaybackControls', () => {
   });
 
   afterEach(() => {
-    jest.runOnlyPendingTimers();
+    jest.clearAllTimers();
     jest.useRealTimers();
   });
 
@@ -248,17 +248,15 @@ describe('PlaybackControls', () => {
     });
 
     it('should hide controls after 3 seconds when playing', () => {
-      render(<PlaybackControls {...defaultProps} isPlaying={true} />);
+      const { container } = render(<PlaybackControls {...defaultProps} isPlaying={true} />);
 
       const button = screen.getByTitle('Pause (Space)');
       expect(button).toBeVisible();
 
-      // Fast-forward time by 3 seconds
-      jest.advanceTimersByTime(3000);
-
-      // Controls should be hidden (checking for the gradient overlay)
-      const { container } = render(<PlaybackControls {...defaultProps} isPlaying={true} />);
-      jest.advanceTimersByTime(3000);
+      // Fast-forward time by 3 seconds wrapped in act
+      act(() => {
+        jest.advanceTimersByTime(3000);
+      });
 
       // The show controls button should appear
       expect(screen.queryByTitle('Show controls')).toBeInTheDocument();
@@ -270,7 +268,9 @@ describe('PlaybackControls', () => {
       const button = screen.getByTitle('Play (Space)');
       expect(button).toBeVisible();
 
-      jest.advanceTimersByTime(5000);
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
 
       // Controls should still be visible
       expect(button).toBeVisible();
@@ -279,13 +279,19 @@ describe('PlaybackControls', () => {
     it('should reset hide timer on mouse move', () => {
       const { container } = render(<PlaybackControls {...defaultProps} isPlaying={true} />);
 
-      jest.advanceTimersByTime(2000);
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
 
       // Move mouse
       const wrapper = container.firstChild as HTMLElement;
-      fireEvent.mouseMove(wrapper);
+      act(() => {
+        fireEvent.mouseMove(wrapper);
+      });
 
-      jest.advanceTimersByTime(2000);
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
 
       // Controls should still be visible (timer was reset)
       const button = screen.getByTitle('Pause (Space)');
@@ -295,8 +301,10 @@ describe('PlaybackControls', () => {
     it('should show controls when show controls button is clicked', async () => {
       render(<PlaybackControls {...defaultProps} isPlaying={true} />);
 
-      // Fast-forward to hide controls
-      jest.advanceTimersByTime(3000);
+      // Fast-forward to hide controls wrapped in act
+      act(() => {
+        jest.advanceTimersByTime(3000);
+      });
 
       await waitFor(() => {
         const showButton = screen.queryByTitle('Show controls');
@@ -342,7 +350,8 @@ describe('PlaybackControls', () => {
     it('should handle zero duration', () => {
       render(<PlaybackControls {...defaultProps} currentTime={0} totalDuration={0} />);
 
-      expect(screen.getByText('00:00')).toBeInTheDocument();
+      const timecodes = screen.getAllByText('00:00');
+      expect(timecodes.length).toBeGreaterThan(0);
     });
 
     it('should clamp progress to 0-1 range', () => {

@@ -122,6 +122,14 @@ describe('POST /api/frames/[frameId]/edit', () => {
     const rateLimitModule = require('@/lib/rateLimit');
     mockCheckRateLimit = rateLimitModule.checkRateLimit;
 
+    // Reset rate limit mock to default successful state
+    mockCheckRateLimit.mockResolvedValue({
+      success: true,
+      limit: 10,
+      remaining: 9,
+      resetAt: Date.now() + 60000,
+    });
+
     // Set environment variable for Gemini API
     process.env.GEMINI_API_KEY = 'test-api-key';
 
@@ -519,23 +527,33 @@ describe('POST /api/frames/[frameId]/edit', () => {
     it('should create multiple variations when numVariations is specified', async () => {
       const frame = createMockFrame();
 
-      mockSupabase.single.mockResolvedValue({
-        data: frame,
-        error: null,
+      // Set up the mock to return frame on first call, then handle subsequent queries
+      let callCount = 0;
+      mockSupabase.single.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // Frame query with ownership
+          return Promise.resolve({ data: frame, error: null });
+        } else {
+          // Insert edit
+          return Promise.resolve({
+            data: {
+              id: `mock-uuid-${callCount}`,
+              frame_id: 'test-frame-id',
+              version: callCount - 1,
+              mode: 'global',
+              prompt: 'Make it brighter',
+            },
+            error: null,
+          });
+        }
       });
+
+      // Mock the queryBuilder for existing edits query (doesn't call .single())
+      mockSupabase.mockResolvedValue({ data: [], error: null });
 
       mockSupabase.storage.getPublicUrl.mockReturnValue({
         data: { publicUrl: 'https://example.com/test-frame.jpg' },
-      });
-
-      // Mock insert for multiple variations
-      mockSupabase.single.mockResolvedValue({
-        data: {
-          id: 'mock-uuid-123',
-          frame_id: 'test-frame-id',
-          version: 1,
-        },
-        error: null,
       });
 
       mockRequest = createFrameEditRequest('test-frame-id', {
@@ -547,6 +565,11 @@ describe('POST /api/frames/[frameId]/edit', () => {
         params: Promise.resolve({ frameId: 'test-frame-id' }),
       });
 
+      if (response.status !== HttpStatusCode.OK) {
+        const errorData = await response.json();
+        console.error('Test failed with status:', response.status, 'Error:', errorData);
+      }
+
       expect(response.status).toBe(HttpStatusCode.OK);
       const data = await response.json();
       expect(data.success).toBe(true);
@@ -557,22 +580,33 @@ describe('POST /api/frames/[frameId]/edit', () => {
     it('should limit variations to maximum of 8', async () => {
       const frame = createMockFrame();
 
-      mockSupabase.single.mockResolvedValue({
-        data: frame,
-        error: null,
+      // Set up the mock to return frame on first call, then handle subsequent queries
+      let callCount = 0;
+      mockSupabase.single.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // Frame query with ownership
+          return Promise.resolve({ data: frame, error: null });
+        } else {
+          // Insert edit
+          return Promise.resolve({
+            data: {
+              id: `mock-uuid-${callCount}`,
+              frame_id: 'test-frame-id',
+              version: callCount - 1,
+              mode: 'global',
+              prompt: 'Make it brighter',
+            },
+            error: null,
+          });
+        }
       });
+
+      // Mock the queryBuilder for existing edits query (doesn't call .single())
+      mockSupabase.mockResolvedValue({ data: [], error: null });
 
       mockSupabase.storage.getPublicUrl.mockReturnValue({
         data: { publicUrl: 'https://example.com/test-frame.jpg' },
-      });
-
-      mockSupabase.single.mockResolvedValue({
-        data: {
-          id: 'mock-uuid-123',
-          frame_id: 'test-frame-id',
-          version: 1,
-        },
-        error: null,
       });
 
       mockRequest = createFrameEditRequest('test-frame-id', {
@@ -594,18 +628,25 @@ describe('POST /api/frames/[frameId]/edit', () => {
     it('should log frame edit request at start', async () => {
       const frame = createMockFrame();
 
-      mockSupabase.single.mockResolvedValue({
-        data: frame,
-        error: null,
+      // Set up the mock properly
+      let callCount = 0;
+      mockSupabase.single.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({ data: frame, error: null });
+        } else {
+          return Promise.resolve({
+            data: { id: `mock-uuid-${callCount}` },
+            error: null,
+          });
+        }
       });
+
+      // Mock the queryBuilder for existing edits query
+      mockSupabase.mockResolvedValue({ data: [], error: null });
 
       mockSupabase.storage.getPublicUrl.mockReturnValue({
         data: { publicUrl: 'https://example.com/test-frame.jpg' },
-      });
-
-      mockSupabase.single.mockResolvedValue({
-        data: { id: 'mock-uuid-123' },
-        error: null,
       });
 
       mockRequest = createFrameEditRequest('test-frame-id', {
@@ -636,18 +677,29 @@ describe('POST /api/frames/[frameId]/edit', () => {
     it('should log completion with duration and metadata', async () => {
       const frame = createMockFrame();
 
-      mockSupabase.single.mockResolvedValue({
-        data: frame,
-        error: null,
+      // Set up the mock properly
+      let callCount = 0;
+      mockSupabase.single.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({ data: frame, error: null });
+        } else {
+          return Promise.resolve({
+            data: {
+              id: `mock-uuid-${callCount}`,
+              frame_id: 'test-frame-id',
+              version: callCount - 1,
+            },
+            error: null,
+          });
+        }
       });
+
+      // Mock the queryBuilder for existing edits query
+      mockSupabase.mockResolvedValue({ data: [], error: null });
 
       mockSupabase.storage.getPublicUrl.mockReturnValue({
         data: { publicUrl: 'https://example.com/test-frame.jpg' },
-      });
-
-      mockSupabase.single.mockResolvedValue({
-        data: { id: 'mock-uuid-123' },
-        error: null,
       });
 
       mockRequest = createFrameEditRequest('test-frame-id', {
@@ -681,18 +733,29 @@ describe('POST /api/frames/[frameId]/edit', () => {
     it('should handle reference images in the request', async () => {
       const frame = createMockFrame();
 
-      mockSupabase.single.mockResolvedValue({
-        data: frame,
-        error: null,
+      // Set up the mock properly
+      let callCount = 0;
+      mockSupabase.single.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({ data: frame, error: null });
+        } else {
+          return Promise.resolve({
+            data: {
+              id: `mock-uuid-${callCount}`,
+              frame_id: 'test-frame-id',
+              version: callCount - 1,
+            },
+            error: null,
+          });
+        }
       });
+
+      // Mock the queryBuilder for existing edits query
+      mockSupabase.mockResolvedValue({ data: [], error: null });
 
       mockSupabase.storage.getPublicUrl.mockReturnValue({
         data: { publicUrl: 'https://example.com/test-frame.jpg' },
-      });
-
-      mockSupabase.single.mockResolvedValue({
-        data: { id: 'mock-uuid-123' },
-        error: null,
       });
 
       mockRequest = createFrameEditRequest('test-frame-id', {
@@ -714,18 +777,29 @@ describe('POST /api/frames/[frameId]/edit', () => {
     it('should handle crop mode with coordinates', async () => {
       const frame = createMockFrame();
 
-      mockSupabase.single.mockResolvedValue({
-        data: frame,
-        error: null,
+      // Set up the mock properly
+      let callCount = 0;
+      mockSupabase.single.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({ data: frame, error: null });
+        } else {
+          return Promise.resolve({
+            data: {
+              id: `mock-uuid-${callCount}`,
+              frame_id: 'test-frame-id',
+              version: callCount - 1,
+            },
+            error: null,
+          });
+        }
       });
+
+      // Mock the queryBuilder for existing edits query
+      mockSupabase.mockResolvedValue({ data: [], error: null });
 
       mockSupabase.storage.getPublicUrl.mockReturnValue({
         data: { publicUrl: 'https://example.com/test-frame.jpg' },
-      });
-
-      mockSupabase.single.mockResolvedValue({
-        data: { id: 'mock-uuid-123' },
-        error: null,
       });
 
       mockRequest = createFrameEditRequest('test-frame-id', {

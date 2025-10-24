@@ -6,6 +6,7 @@ import VideoGenerationForm from './VideoGenerationForm';
 import VideoGenerationSettings from './VideoGenerationSettings';
 import VideoGenerationQueue from './VideoGenerationQueue';
 import { VIDEO_MODELS, VIDEO_MODEL_CONFIGS } from '@/lib/config/models';
+import type { ModelConfig } from '@/lib/config/models';
 import { useVideoGenerationQueue } from '@/lib/hooks/useVideoGenerationQueue';
 import { useImageInput } from '@/lib/hooks/useImageInput';
 import { adjustFormStateForModel } from '@/lib/utils/videoGenerationUtils';
@@ -42,8 +43,9 @@ export default function GenerateVideoTab({ projectId }: GenerateVideoTabProps) {
   // Asset library modal state
   const [showAssetLibrary, setShowAssetLibrary] = useState(false);
 
-  // Get current model config
-  const currentModelConfig = VIDEO_MODEL_CONFIGS[formState.model];
+  // Get current model config (with fallback to prevent undefined)
+  const currentModelConfig = (VIDEO_MODEL_CONFIGS[formState.model] ??
+    VIDEO_MODEL_CONFIGS['kling-v1.6']) as ModelConfig;
 
   // Image input hook
   const imageInput = useImageInput();

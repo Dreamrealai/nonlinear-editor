@@ -8,6 +8,7 @@ import { createServiceSupabaseClient } from '@/lib/supabase';
 import Stripe from 'stripe';
 import { serverLogger } from '@/lib/serverLogger';
 import { invalidateOnStripeWebhook } from '@/lib/cacheInvalidation';
+import { errorResponse, serviceUnavailableResponse } from '@/lib/api/response';
 
 // Disable body parser to handle raw body for webhook signature verification
 export const runtime = 'nodejs';
@@ -506,7 +507,7 @@ export async function POST(request: NextRequest) {
         },
         'Webhook request missing stripe-signature header'
       );
-      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+      return errorResponse('Invalid request', 400);
     }
 
     if (!process.env['STRIPE_WEBHOOK_SECRET']) {
@@ -518,7 +519,7 @@ export async function POST(request: NextRequest) {
         'CRITICAL: STRIPE_WEBHOOK_SECRET is not set - webhooks will fail'
       );
       // Don't reveal configuration state to potential attackers
-      return NextResponse.json({ error: 'Service temporarily unavailable' }, { status: 503 });
+      return serviceUnavailableResponse('Service temporarily unavailable');
     }
 
     // Verify webhook signature
@@ -543,7 +544,7 @@ export async function POST(request: NextRequest) {
         'Webhook signature verification failed'
       );
       // Don't reveal why verification failed
-      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+      return errorResponse('Invalid request', 400);
     }
 
     // Handle the event

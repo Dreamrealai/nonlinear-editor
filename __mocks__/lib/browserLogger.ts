@@ -1,12 +1,20 @@
 // Mock implementation of browserLogger for tests
-export const BrowserLogger = {
+const createMockLogger = () => ({
   log: jest.fn(),
   error: jest.fn(),
   warn: jest.fn(),
   info: jest.fn(),
   debug: jest.fn(),
-};
+  fatal: jest.fn(),
+  child: jest.fn(() => createMockLogger()),
+  setCorrelationId: jest.fn(),
+  clearCorrelationId: jest.fn(),
+});
 
-export const logger = BrowserLogger;
+export const browserLogger = createMockLogger();
 
-export default BrowserLogger;
+export const BrowserLogger = createMockLogger();
+
+export const logger = browserLogger;
+
+export default browserLogger;

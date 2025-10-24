@@ -51,26 +51,8 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
-jest.mock('@/lib/api/response', () => {
-  const jsonResponse = (payload: unknown, init?: ResponseInit) =>
-    new Response(JSON.stringify(payload), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-      ...init,
-    }) as any;
-
-  return {
-    jsonResponse,
-    unauthorizedResponse: jest.fn(() => jsonResponse({ error: 'Unauthorized' }, { status: 401 })),
-    validationError: jest.fn((message: string, field?: string) =>
-      jsonResponse({ error: message, field }, { status: 400 })
-    ),
-    rateLimitResponse: jest.fn((limit: number, resetAt: number) =>
-      jsonResponse({ error: 'Rate limit exceeded', limit, resetAt }, { status: 429 })
-    ),
-    withErrorHandling: jest.fn((handler: any) => handler),
-  };
-});
+// Mock API response helpers
+jest.mock('@/lib/api/response');
 
 jest.mock('uuid', () => ({
   v4: jest.fn(() => 'mock-uuid'),

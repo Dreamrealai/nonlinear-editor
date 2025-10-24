@@ -32,7 +32,26 @@ if (typeof global.MessagePort === 'undefined') {
   global.MessageChannel = MessageChannel;
 }
 
+// Polyfill Blob and File from buffer (Node.js 18+)
+if (typeof global.Blob === 'undefined') {
+  const { Blob } = require('buffer');
+  global.Blob = Blob;
+}
+
+// Create File polyfill if not available
+if (typeof global.File === 'undefined') {
+  class File extends global.Blob {
+    constructor(bits, name, options = {}) {
+      super(bits, options);
+      this.name = name;
+      this.lastModified = options.lastModified || Date.now();
+    }
+  }
+  global.File = File;
+}
+
 // Polyfill Request, Response, Headers, FormData from undici
+// Note: NextRequest extends Request and requires proper Web API implementation
 if (typeof global.Request === 'undefined') {
   const { Request, Response, Headers, FormData } = require('undici');
   global.Request = Request;

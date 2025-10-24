@@ -69,6 +69,15 @@ describe('HorizontalTimeline', () => {
     });
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
+
   it('should render timeline with clips', () => {
     render(<HorizontalTimeline />);
 

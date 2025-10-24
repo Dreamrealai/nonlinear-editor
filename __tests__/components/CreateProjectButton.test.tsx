@@ -111,19 +111,12 @@ describe('CreateProjectButton', () => {
     });
 
     it('should show loading state while creating', async () => {
-      (global.fetch as jest.Mock).mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(
-              () =>
-                resolve({
-                  ok: true,
-                  json: async () => ({ id: 'project-123' }),
-                }),
-              1000
-            )
-          )
-      );
+      let resolvePromise: (value: any) => void;
+      const pendingPromise = new Promise((resolve) => {
+        resolvePromise = resolve;
+      });
+
+      (global.fetch as jest.Mock).mockImplementation(() => pendingPromise);
 
       const user = userEvent.setup();
       render(<CreateProjectButton />);
@@ -138,22 +131,18 @@ describe('CreateProjectButton', () => {
         },
         { timeout: 100 }
       );
+
+      // Cleanup: resolve the promise to prevent memory leak
+      resolvePromise!({ ok: true, json: async () => ({ id: 'project-123' }) });
     });
 
     it('should disable button while creating', async () => {
-      (global.fetch as jest.Mock).mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(
-              () =>
-                resolve({
-                  ok: true,
-                  json: async () => ({ id: 'project-123' }),
-                }),
-              1000
-            )
-          )
-      );
+      let resolvePromise: (value: any) => void;
+      const pendingPromise = new Promise((resolve) => {
+        resolvePromise = resolve;
+      });
+
+      (global.fetch as jest.Mock).mockImplementation(() => pendingPromise);
 
       const user = userEvent.setup();
       render(<CreateProjectButton />);
@@ -168,6 +157,9 @@ describe('CreateProjectButton', () => {
         },
         { timeout: 100 }
       );
+
+      // Cleanup: resolve the promise to prevent memory leak
+      resolvePromise!({ ok: true, json: async () => ({ id: 'project-123' }) });
     });
 
     it('should navigate to editor on successful creation', async () => {

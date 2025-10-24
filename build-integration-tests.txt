@@ -1,0 +1,15 @@
+
+> nonlinear-editor@0.1.0 build
+> next build
+
+   ▲ Next.js 16.0.0 (Turbopack)
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+   Creating an optimized production build ...
+
+> Build error occurred
+Error: ENOENT: no such file or directory, open '/Users/davidchen/Projects/non-linear-editor/.next/static/3YL0z2lf9OpcdV7o5IGjh/_buildManifest.js.tmp.tg3gxc971n'
+    at ignore-listed frames

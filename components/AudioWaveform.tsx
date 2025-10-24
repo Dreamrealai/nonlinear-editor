@@ -73,7 +73,7 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
 
           // Average the block for this sample
           for (let j = 0; j < blockSize; j++) {
-            sum += Math.abs(rawData[start + j]);
+            sum += Math.abs(rawData[start + j] ?? 0);
           }
 
           filteredData[i] = sum / blockSize;
@@ -131,7 +131,7 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
     ctx.fillStyle = 'rgba(59, 130, 246, 0.6)'; // Blue with transparency
 
     for (let i = 0; i < waveformData.length; i++) {
-      const amplitude = waveformData[i];
+      const amplitude = waveformData[i] ?? 0;
       const barHeight = amplitude * height * 0.8; // Scale to 80% of height
       const barX = i * barWidth;
       const barY = middleY - barHeight / 2;

@@ -23,6 +23,7 @@ describe('usePolling', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.clearAllTimers();
   });
 
   describe('Basic Polling Behavior', () => {
@@ -617,6 +618,7 @@ describe('useSimplePolling', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.clearAllTimers();
   });
 
   it('should work as a simplified wrapper', async () => {
@@ -625,9 +627,7 @@ describe('useSimplePolling', () => {
     const isDone = jest.fn((result) => result.status === 'complete');
     const onComplete = jest.fn();
 
-    const { result } = renderHook(() =>
-      useSimplePolling(pollFn, isDone, onComplete)
-    );
+    const { result } = renderHook(() => useSimplePolling(pollFn, isDone, onComplete));
 
     act(() => {
       result.current.startPolling();
@@ -653,9 +653,7 @@ describe('useSimplePolling', () => {
     const isDone = jest.fn((result) => result.status === 'complete');
     const onComplete = jest.fn();
 
-    const { result } = renderHook(() =>
-      useSimplePolling(pollFn, isDone, onComplete)
-    );
+    const { result } = renderHook(() => useSimplePolling(pollFn, isDone, onComplete));
 
     act(() => {
       result.current.startPolling();
@@ -689,9 +687,7 @@ describe('useSimplePolling', () => {
     const onComplete = jest.fn();
     const onError = jest.fn();
 
-    const { result } = renderHook(() =>
-      useSimplePolling(pollFn, isDone, onComplete, onError)
-    );
+    const { result } = renderHook(() => useSimplePolling(pollFn, isDone, onComplete, onError));
 
     act(() => {
       result.current.startPolling();

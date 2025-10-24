@@ -2,7 +2,14 @@
  * Tests for error tracking
  */
 
-import { trackError, ErrorCategory, ErrorSeverity, withErrorTracking, trackPerformance, trackAction } from '@/lib/errorTracking';
+import {
+  trackError,
+  ErrorCategory,
+  ErrorSeverity,
+  withErrorTracking,
+  trackPerformance,
+  trackAction,
+} from '@/lib/errorTracking';
 import { browserLogger } from '@/lib/browserLogger';
 
 // Mock the browserLogger
@@ -18,6 +25,15 @@ jest.mock('@/lib/browserLogger', () => ({
 describe('Error Tracking', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
   });
 
   describe('trackError', () => {
