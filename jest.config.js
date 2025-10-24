@@ -7,17 +7,18 @@ const createJestConfig = nextJest({
 
 // Add any custom config to be passed to Jest
 const customJestConfig = {
+  // Must come first to override any Next.js defaults
+  moduleNameMapper: {
+    // Mock lucide-react FIRST to avoid ESM issues - this must be before @/ alias
+    '^lucide-react$': '<rootDir>/__mocks__/lucide-react.js',
+    // Handle module aliases
+    '^@/(.*)$': '<rootDir>/$1',
+  },
   // Add polyfills before any imports
   setupFiles: ['<rootDir>/jest.setup.js'],
   // Add more setup options before each test is run
   setupFilesAfterEnv: ['<rootDir>/jest.setup-after-env.js'],
   testEnvironment: 'jest-environment-jsdom',
-  moduleNameMapper: {
-    // Handle module aliases
-    '^@/(.*)$': '<rootDir>/$1',
-    // Mock lucide-react to avoid ESM issues
-    '^lucide-react$': '<rootDir>/test-utils/mocks/lucide-react.js',
-  },
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',
     'components/**/*.{js,jsx,ts,tsx}',
@@ -85,4 +86,18 @@ const customJestConfig = {
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
-module.exports = createJestConfig(customJestConfig);
+module.exports = async () => {
+  const nextJestConfig = await createJestConfig(customJestConfig)();
+
+  // Override/merge moduleNameMapper to ensure lucide-react mock is applied
+  return {
+    ...nextJestConfig,
+    moduleNameMapper: {
+      // Mock lucide-react and all its internal imports to avoid ESM issues
+      '^lucide-react$': '<rootDir>/__mocks__/lucide-react.js',
+      '^lucide-react/(.*)$': '<rootDir>/__mocks__/lucide-react.js',
+      // Then spread the rest of next's config
+      ...nextJestConfig.moduleNameMapper,
+    },
+  };
+};

@@ -1,5 +1,8 @@
 /* eslint-env node, jest */
 
+// Mock lucide-react before anything else
+jest.mock('lucide-react');
+
 // Polyfill structuredClone for Node.js < 17
 if (typeof global.structuredClone === 'undefined') {
   global.structuredClone = (obj) => {
