@@ -42,6 +42,21 @@ export type SnapInfo = {
   snapCandidates: number[];
 };
 
+export type TrimPreviewInfo = {
+  clipId: string;
+  handle: 'left' | 'right';
+  originalDuration: number;
+  newDuration: number;
+  originalStart: number;
+  originalEnd: number;
+  newStart: number;
+  newEnd: number;
+  position: {
+    x: number;
+    y: number;
+  };
+};
+
 type UseTimelineDraggingOptions = {
   containerRef: React.RefObject<HTMLDivElement | null>;
   timeline: Timeline | null;
@@ -62,6 +77,7 @@ export function useTimelineDragging({
   const [draggingClip, setDraggingClip] = useState<DraggingClip | null>(null);
   const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false);
   const [trimmingClip, setTrimmingClip] = useState<TrimmingClip | null>(null);
+  const [trimPreviewInfo, setTrimPreviewInfo] = useState<TrimPreviewInfo | null>(null);
   // @ts-expect-error - snapInfo is exposed in the API but not currently used internally
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [snapInfo, setSnapInfo] = useState<SnapInfo | null>(null);
@@ -189,6 +205,26 @@ export function useTimelineDragging({
             );
             const minDuration = SNAP_INTERVAL;
 
+            // Calculate new duration for preview
+            const newDuration = maxEnd - newStart;
+            const originalDuration = trimmingClip.originalEnd - trimmingClip.originalStart;
+
+            // Update trim preview info
+            setTrimPreviewInfo({
+              clipId: trimmingClip.id,
+              handle: 'left',
+              originalDuration,
+              newDuration,
+              originalStart: trimmingClip.originalStart,
+              originalEnd: trimmingClip.originalEnd,
+              newStart,
+              newEnd: maxEnd,
+              position: {
+                x: newPosition * zoom,
+                y: clip.trackIndex * TRACK_HEIGHT,
+              },
+            });
+
             if (
               maxEnd - newStart >= minDuration &&
               (Math.abs(newStart - clip.start) > 1e-4 ||
@@ -212,6 +248,26 @@ export function useTimelineDragging({
               clip.start + minDuration,
               typeof maxEnd === 'number' ? Math.min(newEnd, maxEnd) : newEnd
             );
+
+            // Calculate new duration for preview
+            const newDuration = boundedEnd - clip.start;
+            const originalDuration = trimmingClip.originalEnd - trimmingClip.originalStart;
+
+            // Update trim preview info
+            setTrimPreviewInfo({
+              clipId: trimmingClip.id,
+              handle: 'right',
+              originalDuration,
+              newDuration,
+              originalStart: trimmingClip.originalStart,
+              originalEnd: trimmingClip.originalEnd,
+              newStart: clip.start,
+              newEnd: boundedEnd,
+              position: {
+                x: (clip.timelinePosition + newDuration) * zoom,
+                y: clip.trackIndex * TRACK_HEIGHT,
+              },
+            });
 
             if (boundedEnd - clip.start >= minDuration && Math.abs(boundedEnd - clip.end) > 1e-4) {
               updateClip(trimmingClip.id, {
@@ -283,6 +339,7 @@ export function useTimelineDragging({
     setIsDraggingPlayhead(false);
     setDraggingClip(null);
     setTrimmingClip(null);
+    setTrimPreviewInfo(null);
   }, [draggingClip, timeline, computeSafePosition, updateClip]);
 
   // Attach/detach mouse event listeners
@@ -307,6 +364,7 @@ export function useTimelineDragging({
     draggingClip,
     isDraggingPlayhead,
     trimmingClip,
+    trimPreviewInfo,
     setDraggingClip,
     setIsDraggingPlayhead,
     setTrimmingClip,

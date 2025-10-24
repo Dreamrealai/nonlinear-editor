@@ -12,6 +12,7 @@ import {
   CaseSensitive,
   Wand2,
   Sparkles,
+  Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -25,6 +26,7 @@ type TimelineControlsProps = {
   clipAtPlayhead: boolean;
   sceneDetectPending?: boolean;
   upscaleVideoPending?: boolean;
+  timecodeDisplayMode?: 'duration' | 'timecode';
   onZoomIn: () => void;
   onZoomOut: () => void;
   onUndo: () => void;
@@ -34,6 +36,7 @@ type TimelineControlsProps = {
   onAddText?: () => void;
   onAddTransition?: () => void;
   onUpscaleVideo?: () => void;
+  onToggleTimecodeDisplay?: () => void;
 };
 
 /**
@@ -49,6 +52,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
   clipAtPlayhead,
   sceneDetectPending = false,
   upscaleVideoPending = false,
+  timecodeDisplayMode = 'duration',
   onZoomIn,
   onZoomOut,
   onUndo,
@@ -58,6 +62,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
   onAddText,
   onAddTransition,
   onUpscaleVideo,
+  onToggleTimecodeDisplay,
 }) {
   return (
     <div className="flex items-center justify-between rounded-lg bg-neutral-100 px-4 py-2">
@@ -203,6 +208,23 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
               ) : (
                 <Sparkles className="h-4 w-4" />
               )}
+            </Button>
+          </>
+        )}
+
+        {/* Timecode Display Toggle */}
+        {onToggleTimecodeDisplay && (
+          <>
+            <div className="h-4 w-px bg-neutral-300" />
+            <Button
+              onClick={onToggleTimecodeDisplay}
+              variant="outline"
+              size="icon"
+              className={timecodeDisplayMode === 'timecode' ? 'bg-blue-100' : ''}
+              title={`Toggle timecode display (current: ${timecodeDisplayMode === 'timecode' ? 'Timecode' : 'Duration'})`}
+              aria-label="Toggle timecode display mode"
+            >
+              <Clock className="h-4 w-4" />
             </Button>
           </>
         )}

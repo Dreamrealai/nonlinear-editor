@@ -70,6 +70,8 @@ type EditorStore = {
   history: Timeline[];
   /** Current position in history array */
   historyIndex: number;
+  /** Timecode display mode (duration or timecode) */
+  timecodeDisplayMode: 'duration' | 'timecode';
 
   // ===== Timeline Actions =====
   /** Replace entire timeline (initializes history) */
@@ -90,6 +92,18 @@ type EditorStore = {
   setCurrentTime: (time: number) => void;
   /** Set zoom level (clamped to 10-200 px/s) */
   setZoom: (zoom: number) => void;
+  /** Toggle timecode display mode */
+  toggleTimecodeDisplayMode: () => void;
+  /** Calculate zoom to fit entire timeline in viewport */
+  calculateFitToTimelineZoom: (viewportWidth: number) => number;
+  /** Calculate zoom to fit selected clips in viewport */
+  calculateFitToSelectionZoom: (viewportWidth: number) => number;
+  /** Apply zoom to fit entire timeline */
+  fitToTimeline: (viewportWidth: number) => void;
+  /** Apply zoom to fit selected clips */
+  fitToSelection: (viewportWidth: number) => void;
+  /** Set zoom to specific preset percentage */
+  setZoomPreset: (preset: 25 | 50 | 100 | 200 | 400) => void;
 
   // ===== Marker Actions =====
   /** Add a timeline marker */
@@ -120,6 +134,16 @@ type EditorStore = {
   selectClip: (id: string, multi?: boolean) => void;
   /** Clear all selections */
   clearSelection: () => void;
+  /** Select clips within a rectangular area (rubber-band selection) */
+  selectClipsInRange: (
+    startX: number,
+    startY: number,
+    endX: number,
+    endY: number,
+    zoom: number,
+    trackHeight: number,
+    multi?: boolean
+  ) => void;
 
   // ===== Clipboard Actions =====
   /** Copy selected clips to clipboard */
@@ -184,6 +208,7 @@ export const useEditorStore = create<EditorStore>()(
     copiedClips: [],
     history: [],
     historyIndex: -1,
+    timecodeDisplayMode: 'duration',
 
     setTimeline: (timeline) =>
       set((state) => {
@@ -380,6 +405,11 @@ export const useEditorStore = create<EditorStore>()(
       set((state) => {
         state.zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom));
       }),
+    toggleTimecodeDisplayMode: () =>
+      set((state) => {
+        state.timecodeDisplayMode =
+          state.timecodeDisplayMode === 'duration' ? 'timecode' : 'duration';
+      }),
     addMarker: (marker) =>
       set((state) => {
         if (!state.timeline) return;
@@ -523,6 +553,37 @@ export const useEditorStore = create<EditorStore>()(
       set((state) => {
         state.selectedClipIds.clear();
       }),
+    selectClipsInRange: (startX, startY, endX, endY, zoom, trackHeight, multi = false) =>
+      set((state) => {
+        if (!state.timeline) return;
+
+        // Calculate bounding box of selection rectangle
+        const minX = Math.min(startX, endX);
+        const maxX = Math.max(startX, endX);
+        const minY = Math.min(startY, endY);
+        const maxY = Math.max(startY, endY);
+
+        // Clear selection if not multi-select
+        if (!multi) {
+          state.selectedClipIds.clear();
+        }
+
+        // Check each clip for intersection with selection rectangle
+        state.timeline.clips.forEach((clip) => {
+          const clipLeft = clip.timelinePosition * zoom;
+          const clipRight = clipLeft + (clip.end - clip.start) * zoom;
+          const clipTop = clip.trackIndex * trackHeight + 8; // +8 for top offset
+          const clipBottom = clipTop + (trackHeight - 16); // -16 for top/bottom padding
+
+          // Check if clip intersects with selection rectangle
+          const intersects =
+            clipRight >= minX && clipLeft <= maxX && clipBottom >= minY && clipTop <= maxY;
+
+          if (intersects) {
+            state.selectedClipIds.add(clip.id);
+          }
+        });
+      }),
 
     // Copy selected clips to clipboard
     copyClips: () =>
@@ -605,6 +666,121 @@ export const useEditorStore = create<EditorStore>()(
     canRedo: () => {
       const state = get();
       return state.historyIndex < state.history.length - 1;
+    },
+
+    // ===== Zoom Preset Actions =====
+    /**
+     * Calculate zoom to fit entire timeline in viewport
+     * @param viewportWidth - Width of the timeline viewport in pixels
+     * @returns Calculated zoom level (clamped to MIN_ZOOM-MAX_ZOOM)
+     */
+    calculateFitToTimelineZoom: (viewportWidth: number) => {
+      const state = get();
+      if (!state.timeline || state.timeline.clips.length === 0 || viewportWidth <= 0) {
+        return DEFAULT_ZOOM;
+      }
+
+      // Calculate total timeline duration
+      const timelineDuration = Math.max(
+        ...state.timeline.clips.map((clip) => clip.timelinePosition + (clip.end - clip.start))
+      );
+
+      // Add 10% padding on each side for better visual spacing
+      const padding = 0.1;
+      const effectiveWidth = viewportWidth * (1 - 2 * padding);
+
+      // Calculate zoom: pixels per second needed to fit duration in viewport
+      const calculatedZoom = effectiveWidth / timelineDuration;
+
+      // Clamp to valid zoom range
+      return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, calculatedZoom));
+    },
+
+    /**
+     * Calculate zoom to fit selected clips in viewport
+     * @param viewportWidth - Width of the timeline viewport in pixels
+     * @returns Calculated zoom level (clamped to MIN_ZOOM-MAX_ZOOM)
+     */
+    calculateFitToSelectionZoom: (viewportWidth: number) => {
+      const state = get();
+      if (!state.timeline || state.selectedClipIds.size === 0 || viewportWidth <= 0) {
+        return state.zoom; // Return current zoom if no selection
+      }
+
+      // Get bounds of selected clips
+      const selectedClips = state.timeline.clips.filter((clip) =>
+        state.selectedClipIds.has(clip.id)
+      );
+
+      if (selectedClips.length === 0) {
+        return state.zoom;
+      }
+
+      // Find min and max positions
+      const minPosition = Math.min(...selectedClips.map((clip) => clip.timelinePosition));
+      const maxPosition = Math.max(
+        ...selectedClips.map((clip) => clip.timelinePosition + (clip.end - clip.start))
+      );
+
+      const selectionDuration = maxPosition - minPosition;
+
+      // Add 10% padding on each side
+      const padding = 0.1;
+      const effectiveWidth = viewportWidth * (1 - 2 * padding);
+
+      // Calculate zoom: pixels per second needed to fit selection in viewport
+      const calculatedZoom = effectiveWidth / selectionDuration;
+
+      // Clamp to valid zoom range
+      return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, calculatedZoom));
+    },
+
+    /**
+     * Apply zoom to fit entire timeline
+     * @param viewportWidth - Width of the timeline viewport in pixels
+     */
+    fitToTimeline: (viewportWidth: number) => {
+      const state = get();
+      const newZoom = state.calculateFitToTimelineZoom(viewportWidth);
+      set((s) => {
+        s.zoom = newZoom;
+      });
+    },
+
+    /**
+     * Apply zoom to fit selected clips
+     * @param viewportWidth - Width of the timeline viewport in pixels
+     */
+    fitToSelection: (viewportWidth: number) => {
+      const state = get();
+      const newZoom = state.calculateFitToSelectionZoom(viewportWidth);
+      set((s) => {
+        s.zoom = newZoom;
+      });
+    },
+
+    /**
+     * Set zoom to specific preset percentage
+     * Presets are based on DEFAULT_ZOOM (50 px/s)
+     * - 25% = 12.5 px/s
+     * - 50% = 25 px/s
+     * - 100% = 50 px/s (default)
+     * - 200% = 100 px/s
+     * - 400% = 200 px/s (max)
+     * @param preset - Preset percentage (25, 50, 100, 200, 400)
+     */
+    setZoomPreset: (preset: 25 | 50 | 100 | 200 | 400) => {
+      const zoomMap = {
+        25: DEFAULT_ZOOM * 0.25,
+        50: DEFAULT_ZOOM * 0.5,
+        100: DEFAULT_ZOOM,
+        200: DEFAULT_ZOOM * 2,
+        400: DEFAULT_ZOOM * 4,
+      };
+      const newZoom = zoomMap[preset];
+      set((state) => {
+        state.zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newZoom));
+      });
     },
   }))
 );

@@ -316,22 +316,50 @@ export function EditorHeader({ projectId, currentTab, onExport }: EditorHeaderPr
 
         {/* Export Video Button and User Menu */}
         <div className="flex items-center gap-3">
-          {onExport && currentTab === 'video-editor' && (
-            <button
-              onClick={onExport}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 transition-colors flex items-center gap-2"
-              title="Export/Render video"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+          {currentTab === 'video-editor' && (
+            <>
+              {/* Keyboard Shortcuts Help Button */}
+              <button
+                onClick={() => {
+                  // Trigger keyboard shortcuts modal via custom event
+                  window.dispatchEvent(new CustomEvent('show-shortcuts-help'));
+                }}
+                className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 shadow-sm hover:bg-neutral-50 transition-colors flex items-center gap-2"
+                title="View keyboard shortcuts (Cmd+?)"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                   strokeWidth={2}
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                />
-              </svg>
-              Export Video
-            </button>
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span className="hidden sm:inline">Shortcuts</span>
+              </button>
+              {onExport && (
+                <button
+                  onClick={onExport}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  title="Export/Render video (Cmd+E)"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  Export Video
+                </button>
+              )}
+            </>
           )}
           <UserMenu />
         </div>

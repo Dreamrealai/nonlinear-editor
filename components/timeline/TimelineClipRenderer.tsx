@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Clip } from '@/types/timeline';
 import { AudioWaveform } from '../AudioWaveform';
-import { getClipFileName } from '@/lib/utils/timelineUtils';
+import { getClipFileName, formatTimecode } from '@/lib/utils/timelineUtils';
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
 
 const { TRACK_HEIGHT } = TIMELINE_CONSTANTS;
@@ -13,6 +13,7 @@ type TimelineClipRendererProps = {
   clip: Clip;
   zoom: number;
   isSelected: boolean;
+  timecodeDisplayMode?: 'duration' | 'timecode';
   onMouseDown: (e: React.MouseEvent, clip: Clip) => void;
   onClick: (e: React.MouseEvent, clip: Clip) => void;
   onContextMenu: (e: React.MouseEvent, clip: Clip) => void;
@@ -29,17 +30,25 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
     clip,
     zoom,
     isSelected,
+    timecodeDisplayMode = 'duration',
     onMouseDown,
     onClick,
     onContextMenu,
     onTrimHandleMouseDown,
     onRemove,
   }) {
+    const [isHovered, setIsHovered] = React.useState(false);
     const clipDuration = clip.end - clip.start;
     const clipWidth = clipDuration * zoom;
     const clipLeft = clip.timelinePosition * zoom;
     const clipTop = clip.trackIndex * TRACK_HEIGHT;
     const thumbnail = clip.thumbnailUrl;
+
+    // Calculate timecode values
+    const inTimecode = formatTimecode(clip.start);
+    const outTimecode = formatTimecode(clip.end);
+    const clipStartTime = formatTimecode(clip.timelinePosition);
+    const clipEndTime = formatTimecode(clip.timelinePosition + clipDuration);
 
     return (
       <div
@@ -57,6 +66,8 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
         onMouseDown={(e) => onMouseDown(e, clip)}
         onClick={(e) => onClick(e, clip)}
         onContextMenu={(e) => onContextMenu(e, clip)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -137,7 +148,16 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
             <div className="flex items-start justify-between gap-1">
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-semibold">{getClipFileName(clip)}</p>
-                <p className="text-[10px] font-medium text-white/70">{clipDuration.toFixed(1)}s</p>
+                {timecodeDisplayMode === 'duration' ? (
+                  <p className="text-[10px] font-medium text-white/70">
+                    {clipDuration.toFixed(1)}s
+                  </p>
+                ) : (
+                  <div className="text-[9px] font-mono text-white/80 leading-tight">
+                    <div>In: {inTimecode}</div>
+                    <div>Out: {outTimecode}</div>
+                  </div>
+                )}
               </div>
               <button
                 onMouseDown={(e) => {
@@ -157,6 +177,42 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
                 </svg>
               </button>
             </div>
+
+            {/* Hover Timecode Display */}
+            {isHovered && (
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/90 rounded-lg px-3 py-2 shadow-xl border border-white/20 z-10 pointer-events-none">
+                <div className="text-[10px] font-mono text-white/60 mb-1 text-center">
+                  Timecodes
+                </div>
+                <div className="space-y-0.5 text-xs font-mono">
+                  <div className="flex justify-between gap-4">
+                    <span className="text-white/70">Start:</span>
+                    <span className="text-white font-semibold">{clipStartTime}</span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="text-white/70">End:</span>
+                    <span className="text-white font-semibold">{clipEndTime}</span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="text-white/70">Duration:</span>
+                    <span className="text-emerald-400 font-semibold">
+                      {clipDuration.toFixed(2)}s
+                    </span>
+                  </div>
+                  <div className="border-t border-white/20 pt-1 mt-1">
+                    <div className="flex justify-between gap-4">
+                      <span className="text-white/70">In:</span>
+                      <span className="text-blue-400 font-semibold">{inTimecode}</span>
+                    </div>
+                    <div className="flex justify-between gap-4">
+                      <span className="text-white/70">Out:</span>
+                      <span className="text-blue-400 font-semibold">{outTimecode}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {clip.transitionToNext && (
               <div className="text-[9px] font-medium text-white/80">
                 ⟿ {clip.transitionToNext.type}

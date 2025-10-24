@@ -49,11 +49,13 @@ type HorizontalTimelineProps = {
 };
 
 // Memoized selector to prevent re-renders when unrelated state changes
-const selectTimelineState = (state: ReturnType<typeof useEditorStore.getState>): {
+const selectTimelineState = (
+  state: ReturnType<typeof useEditorStore.getState>
+): {
   timeline: ReturnType<typeof useEditorStore.getState>['timeline'];
   currentTime: number;
   zoom: number;
-  selectedClipIds: string[];
+  selectedClipIds: Set<string>;
   setCurrentTime: (time: number) => void;
   setZoom: (zoom: number) => void;
   updateClip: (clipId: string, updates: Partial<Clip>) => void;
@@ -68,6 +70,7 @@ const selectTimelineState = (state: ReturnType<typeof useEditorStore.getState>):
   canUndo: boolean;
   canRedo: boolean;
   removeTextOverlay: (overlayId: string) => void;
+  updateTextOverlay: (id: string, patch: Partial<TextOverlay>) => void;
 } => ({
   timeline: state.timeline,
   currentTime: state.currentTime,
@@ -84,9 +87,10 @@ const selectTimelineState = (state: ReturnType<typeof useEditorStore.getState>):
   pasteClips: state.pasteClips,
   undo: state.undo,
   redo: state.redo,
-  canUndo: state.canUndo,
-  canRedo: state.canRedo,
+  canUndo: state.canUndo(),
+  canRedo: state.canRedo(),
   removeTextOverlay: state.removeTextOverlay,
+  updateTextOverlay: state.updateTextOverlay,
 });
 
 function HorizontalTimeline({
@@ -122,6 +126,7 @@ function HorizontalTimeline({
     canUndo,
     canRedo,
     removeTextOverlay,
+    updateTextOverlay,
   } = useEditorStore(selectTimelineState);
 
   // Local state
@@ -146,20 +151,21 @@ function HorizontalTimeline({
   });
 
   // Dragging state (clip, playhead, trim) and snap info
-  const { snapInfo, setDraggingClip, setIsDraggingPlayhead, setTrimmingClip } = useTimelineDraggingWithSnap({
-    containerRef,
-    timeline,
-    zoom,
-    numTracks,
-    setCurrentTime,
-    updateClip,
-  });
+  const { snapInfo, setDraggingClip, setIsDraggingPlayhead, setTrimmingClip } =
+    useTimelineDraggingWithSnap({
+      containerRef,
+      timeline,
+      zoom,
+      numTracks,
+      setCurrentTime,
+      updateClip,
+    });
 
   // Keyboard shortcuts
   useTimelineKeyboardShortcuts({
     timeline,
     currentTime,
-    selectedClipIds,
+    selectedClipIds: new Set(selectedClipIds),
     undo,
     redo,
     copyClips,
@@ -201,7 +207,11 @@ function HorizontalTimeline({
   };
 
   // Trim handle handlers
-  const handleTrimHandleMouseDown = (e: React.MouseEvent, clip: Clip, handle: 'left' | 'right'): void => {
+  const handleTrimHandleMouseDown = (
+    e: React.MouseEvent,
+    clip: Clip,
+    handle: 'left' | 'right'
+  ): void => {
     e.stopPropagation();
     e.preventDefault();
     selectClip(clip.id, e.metaKey || e.ctrlKey || e.shiftKey);
@@ -300,8 +310,8 @@ function HorizontalTimeline({
         zoom={zoom}
         currentTime={currentTime}
         timelineDuration={timelineDuration}
-        canUndo={canUndo()}
-        canRedo={canRedo()}
+        canUndo={canUndo}
+        canRedo={canRedo}
         clipAtPlayhead={!!clipAtPlayhead}
         sceneDetectPending={sceneDetectPending}
         upscaleVideoPending={upscaleVideoPending}
@@ -336,6 +346,7 @@ function HorizontalTimeline({
             onTextOverlayClick={handleTextOverlayClick}
             onRemoveTextOverlay={removeTextOverlay}
             onTimelineClick={handleTimelineClick}
+            onUpdateTextOverlay={updateTextOverlay}
           />
 
           {/* Tracks */}

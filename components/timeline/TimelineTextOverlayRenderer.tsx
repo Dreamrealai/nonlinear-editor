@@ -9,6 +9,8 @@ type TimelineTextOverlayRendererProps = {
   isSelected: boolean;
   onClick: (e: React.MouseEvent, overlay: TextOverlay) => void;
   onRemove: (id: string) => void;
+  onMouseDown?: (e: React.MouseEvent, overlay: TextOverlay) => void;
+  onTrimMouseDown?: (e: React.MouseEvent, overlay: TextOverlay, handle: 'left' | 'right') => void;
 };
 
 /**
@@ -16,7 +18,15 @@ type TimelineTextOverlayRendererProps = {
  * Renders text overlays with duration, position, and controls
  */
 export const TimelineTextOverlayRenderer = React.memo<TimelineTextOverlayRendererProps>(
-  function TimelineTextOverlayRenderer({ overlay, zoom, isSelected, onClick, onRemove }) {
+  function TimelineTextOverlayRenderer({
+    overlay,
+    zoom,
+    isSelected,
+    onClick,
+    onRemove,
+    onMouseDown,
+    onTrimMouseDown,
+  }) {
     const overlayWidth = overlay.duration * zoom;
     const overlayLeft = overlay.timelinePosition * zoom;
 
@@ -35,6 +45,7 @@ export const TimelineTextOverlayRenderer = React.memo<TimelineTextOverlayRendere
           backgroundColor: 'rgba(147, 51, 234, 0.15)', // purple with transparency
         }}
         onClick={(e) => onClick(e, overlay)}
+        onMouseDown={(e) => onMouseDown?.(e, overlay)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -89,6 +100,30 @@ export const TimelineTextOverlayRenderer = React.memo<TimelineTextOverlayRendere
               {overlay.duration.toFixed(1)}s
             </p>
           </div>
+
+          {/* Trim handles - only show when selected */}
+          {isSelected && onTrimMouseDown && (
+            <>
+              {/* Left trim handle */}
+              <div
+                className="absolute left-0 top-0 bottom-0 w-2 bg-purple-600 cursor-ew-resize hover:bg-purple-700 pointer-events-auto"
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  onTrimMouseDown(e, overlay, 'left');
+                }}
+                aria-label="Trim start"
+              />
+              {/* Right trim handle */}
+              <div
+                className="absolute right-0 top-0 bottom-0 w-2 bg-purple-600 cursor-ew-resize hover:bg-purple-700 pointer-events-auto"
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  onTrimMouseDown(e, overlay, 'right');
+                }}
+                aria-label="Trim end"
+              />
+            </>
+          )}
         </div>
       </div>
     );
