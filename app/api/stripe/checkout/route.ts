@@ -2,7 +2,7 @@
 // Stripe Checkout API Route
 // =============================================================================
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createCheckoutSession, getOrCreateStripeCustomer } from '@/lib/stripe';
 import { serverLogger } from '@/lib/serverLogger';
 import { RATE_LIMITS } from '@/lib/rateLimit';

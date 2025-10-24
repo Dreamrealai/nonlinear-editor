@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { VideoIntelligenceServiceClient, protos } from '@google-cloud/video-intelligence';
 import { Storage } from '@google-cloud/storage';
 import { serverLogger } from '@/lib/serverLogger';

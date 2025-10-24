@@ -2340,19 +2340,414 @@ modified: __tests__/components/keyframes/KeyframeEditControls.test.tsx
 
 ---
 
+## Deprecation Warnings & Outdated Patterns (2025-10-24)
+
+### Issue #142: Replace React.FC with explicit function type (React 19 Best Practice)
+
+- **Title:** Replace React.FC usage with explicit function declarations
+- **Location:** `/components/timeline/TimelineContextMenu.tsx:21`
+- **Reported In:** Deprecation Audit (2025-10-24)
+- **Status:** Open
+- **Priority:** P2 (Medium)
+- **Effort:** 1-2 hours
+- **Impact:** Low - No runtime impact, but React 19 best practices recommend explicit typing
+
+**Description:**
+React 19 best practices recommend against using `React.FC` due to issues with generics, children prop inference, and TypeScript complexity. Found 1 instance.
+
+**Evidence:**
+```typescript
+// Current (discouraged in React 19)
+export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({ ... }) => { ... }
+
+// Recommended
+export function TimelineContextMenu({ ... }: TimelineContextMenuProps) { ... }
+```
+
+**Action Required:**
+- Replace React.FC with explicit function declaration
+- Update component to use recommended pattern
+
+**Recommendation:** Address in Sprint 4 (code quality pass)
+
+---
+
+### Issue #143: Remove onFID from web-vitals (FID deprecated, replaced by INP)
+
+- **Title:** Update web-vitals monitoring to remove deprecated FID metric
+- **Location:** `/lib/browserLogger.ts:442,515`
+- **Reported In:** Deprecation Audit (2025-10-24)
+- **Status:** Open
+- **Priority:** P3 (Low)
+- **Effort:** 30 minutes
+- **Impact:** Low - Already using INP, just need to update comments
+
+**Description:**
+The FID (First Input Delay) metric has been deprecated by Chrome and replaced by INP (Interaction to Next Paint). Code already uses INP but comments still reference FID.
+
+**Evidence:**
+```typescript
+// Line 442 - Outdated comment
+* Reports Core Web Vitals (LCP, FID, CLS, FCP, TTFB) to Axiom
+
+// Line 515 - Correct implementation
+// Interaction to Next Paint (newer metric replacing FID)
+onINP((metric: WebVitalMetric) => { ... })
+```
+
+**Action Required:**
+- Update line 442 comment to replace "FID" with "INP"
+- Verify no usage of deprecated `onFID` function
+
+**Recommendation:** Quick fix in next code cleanup
+
+---
+
+### Issue #144: Replace deprecated code-level rate limit names
+
+- **Title:** Migrate from legacy rate limit names to tier-based naming
+- **Location:** Multiple files using `RATE_LIMITS.strict`, `RATE_LIMITS.expensive`, etc.
+- **Reported In:** Deprecation Audit (2025-10-24)
+- **Status:** In Progress (Legacy aliases exist for backward compatibility)
+- **Priority:** P3 (Low)
+- **Effort:** 2-3 hours
+- **Impact:** Low - Legacy names still work, but should migrate to tier system
+
+**Description:**
+Rate limiting system has migrated to tier-based naming (`TIER_1_AUTH_PAYMENT`, etc.) but legacy names (`strict`, `expensive`, etc.) still exist. Code marked as deprecated in `/lib/rateLimit.ts:364` and `/lib/config/rateLimit.ts:130`.
+
+**Evidence:**
+```typescript
+// /lib/rateLimit.ts:364
+// @deprecated Use tier-based limits instead
+strict: { max: 5, windowMs: 60 * 1000 },
+expensive: { max: 10, windowMs: 60 * 1000 },
+moderate: { max: 30, windowMs: 60 * 1000 },
+relaxed: { max: 60, windowMs: 60 * 1000 },
+
+// /lib/config/rateLimit.ts:130
+/**
+ * Legacy Rate Limit Presets (for backward compatibility)
+ * @deprecated Use RATE_LIMIT_TIERS instead
+ */
+export const LEGACY_RATE_LIMITS = {
+  strict: RATE_LIMIT_TIERS.TIER_1_AUTH_PAYMENT,
+  expensive: RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION,
+  moderate: RATE_LIMIT_TIERS.TIER_3_STATUS_READ,
+  relaxed: RATE_LIMIT_TIERS.TIER_4_GENERAL,
+} as const;
+```
+
+**Action Required:**
+- Search codebase for usage of legacy rate limit names
+- Replace with tier-based equivalents
+- Remove legacy aliases after migration complete
+
+**Recommendation:** Can defer until Sprint 4, low priority
+
+---
+
+### Issue #145: Replace deprecated validation wrapper with direct validation
+
+- **Title:** Complete migration from result-based to assertion-based validation
+- **Location:** `/lib/api/validation.ts` (deprecated wrapper), 15 routes pending migration
+- **Reported In:** Deprecation Audit (2025-10-24)
+- **Status:** In Progress (2/17 routes migrated - 12% complete)
+- **Priority:** P2 (Medium)
+- **Effort:** 6-8 hours (already tracked in Issue #6)
+- **Impact:** Medium - Reduces code duplication, improves consistency
+
+**Description:**
+Validation system has canonical implementation in `/lib/validation` but backward compatibility wrapper exists in `/lib/api/validation`. File is marked as deprecated with migration progress tracked.
+
+**Status from file header:**
+```typescript
+/**
+ * MIGRATION STATUS:
+ * - Canonical validation: @/lib/validation (assertion-based, throws ValidationError)
+ * - This wrapper: @/lib/api/validation (result-based, returns ValidationError | null)
+ * - Routes migrated: 2/17 (export, history)
+ * - Routes pending: 15/17
+ *
+ * RECOMMENDED: Migrate routes to use @/lib/validation directly with try-catch blocks.
+ *
+ * @module lib/api/validation
+ * @deprecated Use @/lib/validation directly for new code
+ */
+```
+
+**Action Required:**
+- Complete migration of 15 remaining routes
+- Remove deprecated wrapper file after migration
+
+**Recommendation:** Already tracked as Issue #6, continue Sprint 2 work
+
+---
+
+### Issue #146: Replace deprecated useRenderPerformance hook
+
+- **Title:** Remove or implement deprecated useRenderPerformance hook
+- **Location:** `/lib/performance.ts:214-219`
+- **Reported In:** Deprecation Audit (2025-10-24)
+- **Status:** Open
+- **Priority:** P3 (Low)
+- **Effort:** 2-3 hours (if implementing) or 10 minutes (if removing)
+- **Impact:** Low - Placeholder function not currently used
+
+**Description:**
+Performance monitoring has deprecated `useRenderPerformance` hook in favor of `measureComponentRender`. Current implementation is a no-op placeholder.
+
+**Evidence:**
+```typescript
+/**
+ * Hook for measuring render performance
+ * Note: This is a placeholder that should be implemented in a .tsx file
+ * @deprecated Use measureComponentRender instead
+ */
+export function useRenderPerformance() {
+  // Placeholder - actual implementation requires React hooks in a .tsx file
+  return;
+}
+```
+
+**Action Required:**
+- Check for any usage of `useRenderPerformance` in codebase
+- If unused, remove the function
+- If used, implement properly or migrate to `measureComponentRender`
+
+**Recommendation:** Quick cleanup in Sprint 4
+
+---
+
+### Issue #147: Replace deprecated editor constant exports
+
+- **Title:** Remove deprecated MIN_CLIP_DURATION and THUMBNAIL_WIDTH exports
+- **Location:** `/app/editor/[projectId]/editorUtils.ts:11-15`
+- **Reported In:** Deprecation Audit (2025-10-24)
+- **Status:** Open
+- **Priority:** P3 (Low)
+- **Effort:** 1-2 hours
+- **Impact:** Low - Constants re-exported for backward compatibility
+
+**Description:**
+Editor utilities have deprecated constant exports that duplicate values from `/lib/constants`. Search codebase for usage and migrate.
+
+**Evidence:**
+```typescript
+/** @deprecated Use CLIP_CONSTANTS.MIN_CLIP_DURATION instead */
+export const MIN_CLIP_DURATION = CLIP_CONSTANTS.MIN_CLIP_DURATION;
+
+/** @deprecated Use THUMBNAIL_CONSTANTS.THUMBNAIL_WIDTH instead */
+export const THUMBNAIL_WIDTH = THUMBNAIL_CONSTANTS.THUMBNAIL_WIDTH;
+```
+
+**Action Required:**
+- Search for usage of deprecated constants
+- Replace with canonical CLIP_CONSTANTS/THUMBNAIL_CONSTANTS
+- Remove deprecated exports
+
+**Recommendation:** Code cleanup in Sprint 4
+
+---
+
+### Issue #148: Replace deprecated checkRateLimitSync with async version
+
+- **Title:** Migrate synchronous rate limiting to async distributed version
+- **Location:** `/lib/rateLimit.ts:323-327`
+- **Reported In:** Deprecation Audit (2025-10-24)
+- **Status:** Open
+- **Priority:** P2 (Medium)
+- **Effort:** 3-4 hours
+- **Impact:** Medium - Sync version uses in-memory fallback, not distributed
+
+**Description:**
+Synchronous rate limit check is deprecated in favor of async distributed implementation using Upstash Redis.
+
+**Evidence:**
+```typescript
+/**
+ * Synchronous rate limit check (uses in-memory fallback)
+ * @deprecated Use async checkRateLimit instead for distributed rate limiting
+ */
+export function checkRateLimitSync(identifier: string, config: RateLimitConfig): RateLimitResult {
+  return checkRateLimitMemory(identifier, config);
+}
+```
+
+**Action Required:**
+- Search for usage of `checkRateLimitSync`
+- Migrate to async `checkRateLimit` with distributed Redis backend
+- Remove deprecated function
+
+**Recommendation:** Address in Sprint 2-3 (architecture improvements)
+
+---
+
+### Issue #149: Address Node.js punycode deprecation warning
+
+- **Title:** Replace deprecated punycode module usage
+- **Location:** Transitive dependency (not direct usage in our code)
+- **Reported In:** Deprecation Audit (2025-10-24)
+- **Status:** Open
+- **Priority:** P3 (Low)
+- **Effort:** 1-2 hours (investigation + dependency update)
+- **Impact:** Low - Warning only, no runtime impact yet
+
+**Description:**
+Node.js has deprecated the built-in `punycode` module. It's being pulled in by a transitive dependency (likely from URL parsing libraries). While our code doesn't use it directly, we should identify which dependency and update if possible.
+
+**Evidence:**
+```bash
+# From package-lock.json
+"punycode": {
+  "version": "2.3.1",
+  "resolved": "https://registry.npmjs.org/punycode/-/punycode-2.3.1.tgz"
+}
+```
+
+**Action Required:**
+1. Run `npm ls punycode` to identify which package requires it
+2. Check if dependency has newer version that uses modern URL APIs
+3. Update dependency or wait for upstream fix
+
+**Recommendation:** Monitor, low priority unless Node.js removes module
+
+---
+
+### Issue #150: Replace String.prototype.substr() with substring() or slice()
+
+- **Title:** Replace deprecated substr() method with modern alternatives
+- **Location:** 14 occurrences across codebase
+- **Reported In:** Deprecation Audit (2025-10-24)
+- **Status:** Open
+- **Priority:** P3 (Low)
+- **Effort:** 30 minutes
+- **Impact:** Low - substr() still works but is deprecated in ECMAScript
+
+**Description:**
+`String.prototype.substr()` is deprecated in favor of `substring()` or `slice()`. Found 1 actual usage (13 are already using `substring()`).
+
+**Evidence:**
+```typescript
+// /e2e/utils/helpers.ts:63 - Only actual substr() usage
+return `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+// Should be:
+return `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+```
+
+**Action Required:**
+- Replace `substr(2, 9)` with `substring(2, 11)` in helpers.ts
+- Verify no other substr() usage exists
+
+**Recommendation:** Quick fix in next code cleanup
+
+---
+
+### Issue #151: Update Next.js connection() API usage (experimental)
+
+- **Title:** Monitor connection() API for stable release
+- **Location:** `/app/layout.tsx:35`
+- **Reported In:** Deprecation Audit (2025-10-24)
+- **Status:** Monitor (Not yet deprecated, but experimental in Next.js 15)
+- **Priority:** P3 (Low - Monitoring only)
+- **Effort:** 0 hours (monitor only)
+- **Impact:** None - API is working as intended
+
+**Description:**
+Next.js 15 introduced `connection()` API for proper request handling in dynamic rendering. While experimental, it's the recommended approach. Monitor for stable release in Next.js 16+.
+
+**Evidence:**
+```typescript
+// /app/layout.tsx:34-35
+// Await connection to ensure proper request handling
+await connection();
+```
+
+**Action Required:**
+- Monitor Next.js release notes for stable API
+- No immediate action needed
+
+**Recommendation:** Monitor only, no action required
+
+---
+
+### Issue #152: Missing ESLint peer dependencies (low severity)
+
+- **Title:** Add missing ESLint peer dependencies to package.json
+- **Location:** `package.json` devDependencies
+- **Reported In:** Deprecation Audit (2025-10-24)
+- **Status:** Open
+- **Priority:** P3 (Low)
+- **Effort:** 30 minutes
+- **Impact:** Low - ESLint works but shows peer dependency warnings
+
+**Description:**
+Running `depcheck` shows ESLint configuration uses packages not declared in package.json. These are likely installed as transitive dependencies but should be explicit.
+
+**Evidence:**
+```
+Missing dependencies:
+* globals: ./eslint.config.mjs
+* @eslint/js: ./eslint.config.mjs
+* typescript-eslint: ./eslint.config.mjs
+* @next/eslint-plugin-next: ./eslint.config.mjs
+```
+
+**Action Required:**
+- Add missing packages to devDependencies:
+  ```bash
+  npm install -D globals @eslint/js typescript-eslint @next/eslint-plugin-next
+  ```
+
+**Recommendation:** Low priority, add in next dependency update
+
+---
+
+### ✅ No Critical Deprecations Found
+
+**Security:**
+- `npm audit` shows 0 vulnerabilities ✅
+- All dependencies up to date ✅
+
+**React 19 Compatibility:**
+- No usage of deprecated React lifecycle methods ✅
+- No usage of deprecated `componentWillMount`, `componentWillReceiveProps`, etc. ✅
+- No usage of deprecated `ReactDOM.render` ✅
+- No usage of deprecated `findDOMNode` ✅
+
+**Next.js 16 Compatibility:**
+- No usage of deprecated `getInitialProps` ✅
+- No usage of deprecated `withRouter` HOC ✅
+- No usage of deprecated `next/head` (uses `metadata` API) ✅
+
+**Node.js Compatibility:**
+- No usage of deprecated `new Buffer()` constructor ✅
+- No usage of deprecated `crypto.createCipher` ✅
+- No usage of deprecated `url.parse()` ✅
+- No usage of deprecated `domain` module ✅
+
+**Dependencies:**
+- React 19.2.0 (latest) ✅
+- Next.js 16.0.0 (latest) ✅
+- Node.js 22.16.0 (within supported range) ✅
+- All critical dependencies up to date ✅
+
+---
+
 ## Summary Statistics
 
 ### By Priority
 
 - **P0 Critical:** 6 issues (24-36 hours)
 - **P1 High:** 24 issues (96-136 hours) ← -1 (Issue #88 completed)
-- **P2 Medium:** 23 issues (143-199 hours)
-- **P3 Low:** 18 issues (47-71 hours) ← -6 (Issues #27-31 removed, Issue #33 fixed)
+- **P2 Medium:** 26 issues (153-211 hours) ← +3 (Deprecation issues #142, #145, #148)
+- **P3 Low:** 26 issues (56-81 hours) ← +8 (Deprecation issues #143, #144, #146, #147, #149, #150, #151, #152)
 - **Completed:** 6 issues ← +2 (Issues #33, #88)
 - **Invalid/Rejected:** 6 claims
 
-**Updated Total:** 141 issues tracked, 134 open, 6 completed, 1 in progress (Issue #6)
-**Validation Status:** 89 issues validated by 3-agent team (96% confirmed accurate)
+**Updated Total:** 152 issues tracked, 145 open, 6 completed, 1 in progress (Issue #6)
+**Validation Status:** 89 issues validated by 3-agent team, 11 new deprecation issues added (2025-10-24)
 
 ### By Category
 

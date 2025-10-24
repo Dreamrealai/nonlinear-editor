@@ -9,6 +9,7 @@ import {
 import { serverLogger } from '@/lib/serverLogger';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { withAuth } from '@/lib/api/withAuth';
+import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 import { createAssetWithCleanup } from '@/lib/api/statusCheckHandler';
 
 const normalizeStorageUrl = (bucket: string, path: string): string =>
@@ -84,7 +85,7 @@ const parseGcsUri = (uri: string): { bucket: string; objectPath: string } | null
  *   "progress": 0
  * }
  */
-const handleVideoStatus = async (req: Parameters<typeof withAuth>[0], { user, supabase }: { user: { id: string }, supabase: Parameters<typeof createAssetWithCleanup>[0] }) => {
+const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) => {
   const startTime = Date.now();
 
   serverLogger.info(

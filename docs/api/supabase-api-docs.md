@@ -1433,11 +1433,11 @@ if (error) {
 **Using @supabase/ssr (Recommended):**
 
 ```javascript
-// middleware.ts
+// proxy.ts
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 
-export async function middleware(request) {
+export async function proxy(request) {
   const response = NextResponse.next();
 
   const supabase = createServerClient(

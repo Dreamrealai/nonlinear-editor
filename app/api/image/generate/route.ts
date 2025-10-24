@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { generateImage } from '@/lib/imagen';
 import { ensureHttpsProtocol } from '@/lib/supabase';
 import { RATE_LIMITS } from '@/lib/rateLimit';

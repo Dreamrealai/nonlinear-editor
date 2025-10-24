@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { fetchWithTimeout } from '@/lib/fetchWithTimeout';
 import { validateUUID, validateAll } from '@/lib/api/validation';
 import {

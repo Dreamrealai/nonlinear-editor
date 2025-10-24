@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { serverLogger } from '@/lib/serverLogger';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
