@@ -46,8 +46,12 @@ interface Logger {
 // Conditional import of serverLogger for server-only contexts
 // Cannot use serverLogger in Edge Runtime or client components
 let serverLogger: Logger;
-if (typeof window === 'undefined' && typeof (globalThis as unknown as { EdgeRuntime?: string }).EdgeRuntime === 'undefined') {
+if (
+  typeof window === 'undefined' &&
+  typeof (globalThis as unknown as { EdgeRuntime?: string }).EdgeRuntime === 'undefined'
+) {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     serverLogger = require('./serverLogger').serverLogger;
   } catch {
     // Fallback to console if serverLogger is not available
@@ -83,7 +87,7 @@ const supabaseServiceRoleKey = (
  *
  * @returns true if URL and anon key are set
  */
-export function isSupabaseConfigured() {
+export function isSupabaseConfigured(): boolean {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
@@ -95,7 +99,7 @@ export function isSupabaseConfigured() {
  *
  * @returns true if URL and service role key are set
  */
-export function isSupabaseServiceConfigured() {
+export function isSupabaseServiceConfigured(): boolean {
   return Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
       (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_SECRET)
@@ -131,7 +135,7 @@ export function isSupabaseServiceConfigured() {
  *   const { data } = await supabase.from('projects').select('*');
  * }
  */
-export const createBrowserSupabaseClient = () => {
+export const createBrowserSupabaseClient = (): ReturnType<typeof createBrowserClient> => {
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(missingPublicConfigMessage);
   }
@@ -180,7 +184,9 @@ export const createBrowserSupabaseClient = () => {
  *   return NextResponse.json(data);
  * }
  */
-export const createServerSupabaseClient = async () => {
+export const createServerSupabaseClient = async (): Promise<
+  ReturnType<typeof createServerClient>
+> => {
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(missingPublicConfigMessage);
   }
@@ -193,12 +199,12 @@ export const createServerSupabaseClient = async () => {
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       // Read cookie value from Next.js cookie store
-      get(name: string) {
+      get(name: string): string | undefined {
         return cookieStore.get(name)?.value;
       },
 
       // Set cookie (may fail in Server Components - read-only context)
-      set(name: string, value: string, options: CookieOptions) {
+      set(name: string, value: string, options: CookieOptions): void {
         try {
           cookieStore.set({ name, value, ...options });
         } catch (error) {
@@ -212,7 +218,7 @@ export const createServerSupabaseClient = async () => {
       },
 
       // Remove cookie (may fail in Server Components - read-only context)
-      remove(name: string, options: CookieOptions) {
+      remove(name: string, options: CookieOptions): void {
         try {
           cookieStore.delete({ name, ...options });
         } catch (error) {
@@ -272,7 +278,7 @@ export const createServerSupabaseClient = async () => {
  * // Process background task with full database access
  * await supabase.from('renders').insert({ ... });
  */
-export const createServiceSupabaseClient = () => {
+export const createServiceSupabaseClient = (): ReturnType<typeof createClient> => {
   if (!supabaseUrl || !supabaseServiceRoleKey) {
     throw new Error(missingServiceConfigMessage);
   }
