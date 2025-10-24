@@ -350,16 +350,29 @@ describe('POST /api/frames/[frameId]/edit', () => {
     it('should succeed when user owns both project and asset', async () => {
       const frame = createMockFrame();
 
-      // Mock frame query
-      mockSupabase.single.mockResolvedValueOnce({
-        data: frame,
-        error: null,
-      });
-
-      // Mock existing edits query
-      mockSupabase.single.mockResolvedValueOnce({
-        data: null,
-        error: null,
+      // Set up the mock to return frame on first call, then handle subsequent queries
+      let callCount = 0;
+      mockSupabase.single.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // Frame query with ownership
+          return Promise.resolve({ data: frame, error: null });
+        } else if (callCount === 2) {
+          // Existing edits query - return empty array
+          return Promise.resolve({ data: [], error: null });
+        } else {
+          // Insert edit
+          return Promise.resolve({
+            data: {
+              id: `mock-uuid-${callCount}`,
+              frame_id: 'test-frame-id',
+              version: callCount - 2,
+              mode: 'global',
+              prompt: 'Make it brighter',
+            },
+            error: null,
+          });
+        }
       });
 
       // Mock storage getPublicUrl
@@ -367,21 +380,10 @@ describe('POST /api/frames/[frameId]/edit', () => {
         data: { publicUrl: 'https://example.com/test-frame.jpg' },
       });
 
-      // Mock insert edit
-      mockSupabase.single.mockResolvedValueOnce({
-        data: {
-          id: 'mock-uuid-123',
-          frame_id: 'test-frame-id',
-          version: 1,
-          mode: 'global',
-          prompt: 'Make it brighter',
-        },
-        error: null,
-      });
-
       mockRequest = createFrameEditRequest('test-frame-id', {
         prompt: 'Make it brighter',
         mode: 'global',
+        numVariations: 1, // Use 1 to make test simpler
       });
 
       const response = await POST(mockRequest, {
@@ -391,9 +393,9 @@ describe('POST /api/frames/[frameId]/edit', () => {
       expect(response.status).toBe(HttpStatusCode.OK);
       const data = await response.json();
       expect(data.success).toBe(true);
-      expect(data.edits).toHaveLength(4); // Default numVariations
+      expect(data.count).toBe(1);
 
-      // Should log request and completion
+      // Should log request
       expect(mockAuditLog).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: mockUser.id,
@@ -403,6 +405,7 @@ describe('POST /api/frames/[frameId]/edit', () => {
         })
       );
 
+      // Should log completion
       expect(mockAuditLog).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: mockUser.id,

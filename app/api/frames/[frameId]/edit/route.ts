@@ -1,24 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { safeArrayFirst } from '@/lib/utils/arrayUtils';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { v4 as uuid } from 'uuid';
 import { serverLogger } from '@/lib/serverLogger';
-import { withErrorHandling } from '@/lib/api/response';
+import { withAuth } from '@/lib/api/withAuth';
+import { RATE_LIMITS } from '@/lib/rateLimit';
+import { auditLog, auditSecurityEvent, AuditAction } from '@/lib/auditLog';
+import { HttpStatusCode } from '@/lib/errors/errorCodes';
 
-export const POST = withErrorHandling(
-  async (request: NextRequest, { params }: { params: Promise<{ frameId: string }> }) => {
-    // SECURITY: Verify user authentication
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+export const POST = withAuth<{ frameId: string }>(
+  async (request: NextRequest, { user, supabase, params }) => {
+    const startTime = Date.now();
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!params?.frameId) {
+      return NextResponse.json(
+        { error: 'Frame ID is required' },
+        { status: HttpStatusCode.BAD_REQUEST }
+      );
     }
 
-    const { frameId } = await params;
+    const { frameId } = params;
     const body = await request.json();
     const {
       prompt,
@@ -31,12 +32,39 @@ export const POST = withErrorHandling(
       numVariations = 4,
     } = body;
 
+    // Validate prompt
     if (!prompt || typeof prompt !== 'string') {
-      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
+      await auditLog({
+        userId: user.id,
+        action: AuditAction.FRAME_EDIT_FAILED,
+        resourceType: 'frame',
+        resourceId: frameId,
+        metadata: { error: 'Invalid prompt' },
+        request,
+        statusCode: HttpStatusCode.BAD_REQUEST,
+      });
+      return NextResponse.json(
+        { error: 'Prompt is required' },
+        { status: HttpStatusCode.BAD_REQUEST }
+      );
     }
 
     // Validate numVariations
     const variations = Math.max(1, Math.min(numVariations, 8)); // Limit between 1 and 8
+
+    // Audit log: Frame edit request started
+    await auditLog({
+      userId: user.id,
+      action: AuditAction.FRAME_EDIT_REQUEST,
+      resourceType: 'frame',
+      resourceId: frameId,
+      metadata: {
+        mode,
+        numVariations: variations,
+        hasReferenceImages: referenceImages.length > 0,
+      },
+      request,
+    });
 
     // Get the frame from database with project ownership check in one query
     // SECURITY FIX: Verify user owns BOTH the frame AND the project it belongs to
@@ -59,22 +87,65 @@ export const POST = withErrorHandling(
       .single();
 
     if (frameError || !frame) {
-      return NextResponse.json({ error: 'Frame not found' }, { status: 404 });
+      await auditLog({
+        userId: user.id,
+        action: AuditAction.FRAME_EDIT_FAILED,
+        resourceType: 'frame',
+        resourceId: frameId,
+        metadata: { error: 'Frame not found', dbError: frameError?.message },
+        request,
+        statusCode: HttpStatusCode.NOT_FOUND,
+      });
+      return NextResponse.json({ error: 'Frame not found' }, { status: HttpStatusCode.NOT_FOUND });
     }
 
     // Verify user owns the project
     if (!frame.project || frame.project.user_id !== user.id) {
+      serverLogger.warn(
+        {
+          event: 'frame.edit.unauthorized',
+          userId: user.id,
+          frameId,
+          projectId: frame.project_id,
+          actualOwnerId: frame.project?.user_id,
+        },
+        'Unauthorized frame edit attempt - project ownership mismatch'
+      );
+
+      await auditSecurityEvent(AuditAction.FRAME_EDIT_UNAUTHORIZED, user.id, request, {
+        frameId,
+        projectId: frame.project_id,
+        reason: 'project_ownership_mismatch',
+      });
+
       return NextResponse.json(
         { error: 'Unauthorized - you do not own this project' },
-        { status: 403 }
+        { status: HttpStatusCode.FORBIDDEN }
       );
     }
 
     // Verify user owns the asset
     if (!frame.asset || frame.asset.user_id !== user.id) {
+      serverLogger.warn(
+        {
+          event: 'frame.edit.unauthorized',
+          userId: user.id,
+          frameId,
+          assetId: frame.asset_id,
+          actualOwnerId: frame.asset?.user_id,
+        },
+        'Unauthorized frame edit attempt - asset ownership mismatch'
+      );
+
+      await auditSecurityEvent(AuditAction.FRAME_EDIT_UNAUTHORIZED, user.id, request, {
+        frameId,
+        assetId: frame.asset_id,
+        reason: 'asset_ownership_mismatch',
+      });
+
       return NextResponse.json(
         { error: 'Unauthorized - you do not own this asset' },
-        { status: 403 }
+        { status: HttpStatusCode.FORBIDDEN }
       );
     }
 
@@ -88,12 +159,21 @@ export const POST = withErrorHandling(
     // Initialize Gemini (check both AISTUDIO_API_KEY and GEMINI_API_KEY)
     const apiKey = process.env['AISTUDIO_API_KEY'] || process.env['GEMINI_API_KEY'];
     if (!apiKey) {
+      await auditLog({
+        userId: user.id,
+        action: AuditAction.FRAME_EDIT_FAILED,
+        resourceType: 'frame',
+        resourceId: frameId,
+        metadata: { error: 'Gemini API key not configured' },
+        request,
+        statusCode: HttpStatusCode.SERVICE_UNAVAILABLE,
+      });
       return NextResponse.json(
         {
           error:
             'Gemini API key not configured. Please set AISTUDIO_API_KEY or GEMINI_API_KEY environment variable.',
         },
-        { status: 503 }
+        { status: HttpStatusCode.SERVICE_UNAVAILABLE }
       );
     }
 
@@ -223,11 +303,46 @@ export const POST = withErrorHandling(
       nextVersion++;
     }
 
+    const duration = Date.now() - startTime;
+
+    // Audit log: Frame edit completed successfully
+    await auditLog({
+      userId: user.id,
+      action: AuditAction.FRAME_EDIT_COMPLETE,
+      resourceType: 'frame',
+      resourceId: frameId,
+      metadata: {
+        projectId: frame.project_id,
+        assetId: frame.asset_id,
+        numEditsCreated: edits.length,
+        mode,
+      },
+      request,
+      statusCode: HttpStatusCode.OK,
+      durationMs: duration,
+    });
+
+    serverLogger.info(
+      {
+        event: 'frame.edit.success',
+        userId: user.id,
+        frameId,
+        projectId: frame.project_id,
+        numEdits: edits.length,
+        duration,
+      },
+      `Frame edit completed successfully (${duration}ms)`
+    );
+
     return NextResponse.json({
       success: true,
       edits,
       count: edits.length,
       note: 'This is using Gemini 2.5 Flash for image analysis. For actual image generation, Imagen 3 or Gemini 2.5 Flash Image Preview would be used.',
     });
+  },
+  {
+    route: '/api/frames/[frameId]/edit',
+    rateLimit: RATE_LIMITS.tier2_resource_creation, // 10 requests per minute - expensive AI operation
   }
 );

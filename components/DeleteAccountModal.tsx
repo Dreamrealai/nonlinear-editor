@@ -288,6 +288,7 @@ export function DeleteAccountModal({
                     disabled={loading}
                     className="w-full rounded-lg border-2 border-neutral-300 bg-white px-4 py-3 text-sm font-mono font-semibold text-neutral-900 placeholder-neutral-400 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-100 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
                     autoComplete="off"
+                    // eslint-disable-next-line jsx-a11y/no-autofocus
                     autoFocus
                   />
 

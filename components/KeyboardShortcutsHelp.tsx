@@ -109,14 +109,21 @@ export function KeyboardShortcutsHelp({
   const groupedShortcuts = getShortcutsByCategory(shortcuts);
 
   return (
+    /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={handleClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="shortcuts-modal-title"
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          handleClose();
+        }
+      }}
+      role="presentation"
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="shortcuts-modal-title"
         className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >

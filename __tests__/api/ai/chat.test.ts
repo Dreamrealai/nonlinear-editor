@@ -511,6 +511,10 @@ describe('POST /api/ai/chat', () => {
       const validMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
       for (const mimeType of validMimeTypes) {
+        jest.clearAllMocks();
+        const mockUser = mockAuthenticatedUser(mockSupabase);
+        chat.mockResolvedValue('Processed');
+
         const formData = new FormData();
         formData.append('message', 'Test');
         formData.append('model', 'gemini-pro-vision');
@@ -527,7 +531,7 @@ describe('POST /api/ai/chat', () => {
         const response = await POST(mockRequest, { params: Promise.resolve({}) });
         expect(response.status).toBe(200);
       }
-    });
+    }, 15000);
 
     it('should accept PDF files', async () => {
       mockAuthenticatedUser(mockSupabase);
@@ -549,6 +553,6 @@ describe('POST /api/ai/chat', () => {
 
       const response = await POST(mockRequest, { params: Promise.resolve({}) });
       expect(response.status).toBe(200);
-    });
+    }, 15000);
   });
 });

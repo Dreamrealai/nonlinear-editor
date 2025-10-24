@@ -253,6 +253,12 @@ export function DragDropZone({
         onDragOver={handleDrag}
         onDrop={handleDrop}
         onClick={openFilePicker}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openFilePicker();
+          }
+        }}
         className={cn(
           'relative cursor-pointer rounded-lg border-2 border-dashed transition-all duration-200',
           isDragActive
@@ -320,6 +326,7 @@ export function DragDropZone({
                 className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3"
               >
                 {file.preview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={file.preview}
                     alt={file.name}

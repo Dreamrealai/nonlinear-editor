@@ -159,16 +159,18 @@ export function IndeterminateProgressBar({
         />
       </div>
 
-      <style jsx>{`
-        @keyframes indeterminate {
-          0% {
-            left: -33%;
+      <style>
+        {`
+          @keyframes indeterminate {
+            0% {
+              left: -33%;
+            }
+            100% {
+              left: 100%;
+            }
           }
-          100% {
-            left: 100%;
-          }
-        }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 }
