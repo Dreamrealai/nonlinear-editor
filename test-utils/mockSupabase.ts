@@ -37,6 +37,10 @@ export interface MockSupabaseChain {
   order: jest.Mock;
   limit: jest.Mock;
   range: jest.Mock;
+  filter: jest.Mock;
+  match: jest.Mock;
+  or: jest.Mock;
+  not: jest.Mock;
   single: jest.Mock;
   maybeSingle: jest.Mock;
   mockResolvedValue: (value: QueryResult) => MockSupabaseChain;
@@ -139,6 +143,10 @@ function createQueryBuilder(): any {
     'order',
     'limit',
     'range',
+    'filter',
+    'match',
+    'or',
+    'not',
   ] as const;
 
   chainableMethods.forEach((method) => {
@@ -235,6 +243,10 @@ export function createMockSupabaseClient(
     'order',
     'limit',
     'range',
+    'filter',
+    'match',
+    'or',
+    'not',
   ];
 
   chainableKeys.forEach((key) => {

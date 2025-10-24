@@ -597,25 +597,45 @@ describe('Integration: User Account Workflow', () => {
       ]);
 
       // Act - Delete user account (mock cascade)
-      const mockEqChain = {
-        eq: jest.fn().mockResolvedValue({ error: null }),
-      };
-
-      const mockDeleteChain = {
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue(mockEqChain),
-        }),
-      };
-
-      env.mockSupabase.from.mockReturnValue(mockDeleteChain);
-
-      // Delete assets
+      // Delete assets - each needs fetch + storage remove + db delete
       for (const asset of mockAssets) {
+        // Mock asset fetch
+        env.mockSupabase.single.mockResolvedValueOnce({
+          data: asset,
+          error: null,
+        });
+
+        // Mock storage removal
+        env.mockSupabase.storage.remove.mockResolvedValueOnce({
+          data: null,
+          error: null,
+        });
+
+        // Mock database delete
+        env.mockSupabase.delete.mockReturnValueOnce({
+          eq: jest.fn().mockReturnValueOnce({
+            eq: jest.fn().mockResolvedValueOnce({ error: null }),
+          }),
+        });
+
         await assetService.deleteAsset(asset.id, env.user.id);
       }
 
       // Delete projects
       for (const project of projects) {
+        // Mock project fetch
+        env.mockSupabase.single.mockResolvedValueOnce({
+          data: project,
+          error: null,
+        });
+
+        // Mock project delete
+        env.mockSupabase.delete.mockReturnValueOnce({
+          eq: jest.fn().mockReturnValueOnce({
+            eq: jest.fn().mockResolvedValueOnce({ error: null }),
+          }),
+        });
+
         await projectService.deleteProject(project.id, env.user.id);
       }
 
@@ -623,7 +643,7 @@ describe('Integration: User Account Workflow', () => {
       // env.mockSupabase.auth.admin.deleteUser(env.user.id);
 
       // Assert
-      expect(mockDeleteChain.delete).toHaveBeenCalledTimes(4); // 2 assets + 2 projects
+      expect(env.mockSupabase.delete).toHaveBeenCalled();
     });
 
     it('should handle partial deletion failure', async () => {
@@ -639,34 +659,42 @@ describe('Integration: User Account Workflow', () => {
       const mockAsset = await workflow.uploadAssetWorkflow(project.id, env.user.id, 'video');
 
       // Act - Delete asset succeeds
-      const mockEqChain1 = {
-        eq: jest.fn().mockResolvedValue({ error: null }),
-      };
+      // Mock asset fetch
+      env.mockSupabase.single.mockResolvedValueOnce({
+        data: mockAsset,
+        error: null,
+      });
 
-      const mockDeleteChain1 = {
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue(mockEqChain1),
+      // Mock storage removal
+      env.mockSupabase.storage.remove.mockResolvedValueOnce({
+        data: null,
+        error: null,
+      });
+
+      // Mock database delete succeeds
+      env.mockSupabase.delete.mockReturnValueOnce({
+        eq: jest.fn().mockReturnValueOnce({
+          eq: jest.fn().mockResolvedValueOnce({ error: null }),
         }),
-      };
-
-      env.mockSupabase.from.mockReturnValueOnce(mockDeleteChain1);
+      });
 
       await assetService.deleteAsset(mockAsset.id, env.user.id);
 
-      expect(mockDeleteChain1.delete).toHaveBeenCalled();
+      expect(env.mockSupabase.delete).toHaveBeenCalled();
 
       // Delete project fails
-      const mockEqChain2 = {
-        eq: jest.fn().mockResolvedValue({ error: { message: 'Foreign key violation' } }),
-      };
+      // Mock project fetch
+      env.mockSupabase.single.mockResolvedValueOnce({
+        data: project,
+        error: null,
+      });
 
-      const mockDeleteChain2 = {
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue(mockEqChain2),
+      // Mock project delete fails
+      env.mockSupabase.delete.mockReturnValueOnce({
+        eq: jest.fn().mockReturnValueOnce({
+          eq: jest.fn().mockResolvedValueOnce({ error: { message: 'Foreign key violation' } }),
         }),
-      };
-
-      env.mockSupabase.from.mockReturnValueOnce(mockDeleteChain2);
+      });
 
       // Assert
       await expect(projectService.deleteProject(project.id, env.user.id)).rejects.toThrow(

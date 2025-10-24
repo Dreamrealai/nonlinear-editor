@@ -554,8 +554,9 @@ describe('Integration: Asset Management Workflow', () => {
         title: 'Get Asset',
       });
 
+      const specificAssetId = '550e8400-e29b-41d4-a716-446655440050';
       const mockAsset = AssetFixtures.video(project.id, env.user.id, {
-        id: 'specific-asset',
+        id: specificAssetId,
       });
 
       env.mockSupabase.single.mockResolvedValueOnce({
@@ -564,12 +565,12 @@ describe('Integration: Asset Management Workflow', () => {
       });
 
       // Act
-      const asset = await assetService.getAssetById('specific-asset', env.user.id);
+      const asset = await assetService.getAssetById(specificAssetId, env.user.id);
 
       // Assert
       expect(asset).toBeDefined();
-      expect(asset?.id).toBe('specific-asset');
-      expect(env.mockSupabase.eq).toHaveBeenCalledWith('id', 'specific-asset');
+      expect(asset?.id).toBe(specificAssetId);
+      expect(env.mockSupabase.eq).toHaveBeenCalledWith('id', specificAssetId);
     });
   });
 
@@ -611,17 +612,25 @@ describe('Integration: Asset Management Workflow', () => {
       await projectService.updateProjectState(project.id, env.user.id, timeline);
 
       // Act - Delete asset
-      const mockEqChain = {
-        eq: jest.fn().mockResolvedValue({ error: null }),
-      };
+      // First call to .from() is for fetching the asset
+      env.mockSupabase.single.mockResolvedValueOnce({
+        data: mockAsset,
+        error: null,
+      });
 
-      const mockDeleteChain = {
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue(mockEqChain),
+      // Mock storage removal
+      env.mockSupabase.storage.remove.mockResolvedValueOnce({
+        data: null,
+        error: null,
+      });
+
+      // Second call to .from() is for deletion - mock the delete chain
+      const mockDeleteResult = { error: null };
+      env.mockSupabase.delete.mockReturnValueOnce({
+        eq: jest.fn().mockReturnValueOnce({
+          eq: jest.fn().mockResolvedValueOnce(mockDeleteResult),
         }),
-      };
-
-      env.mockSupabase.from.mockReturnValue(mockDeleteChain);
+      });
 
       await assetService.deleteAsset(videoAsset.id, env.user.id);
 
@@ -639,7 +648,8 @@ describe('Integration: Asset Management Workflow', () => {
       );
 
       // Assert
-      expect(mockDeleteChain.delete).toHaveBeenCalled();
+      expect(env.mockSupabase.delete).toHaveBeenCalled();
+      expect(env.mockSupabase.storage.remove).toHaveBeenCalled();
       expect(finalProject.timeline_state_jsonb.clips).toHaveLength(0);
     });
 
@@ -690,17 +700,25 @@ describe('Integration: Asset Management Workflow', () => {
       await projectService.updateProjectState(project.id, env.user.id, timeline);
 
       // Act - Delete asset
-      const mockEqChain = {
-        eq: jest.fn().mockResolvedValue({ error: null }),
-      };
+      // First call to .from() is for fetching the asset
+      env.mockSupabase.single.mockResolvedValueOnce({
+        data: mockAsset,
+        error: null,
+      });
 
-      const mockDeleteChain = {
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue(mockEqChain),
+      // Mock storage removal
+      env.mockSupabase.storage.remove.mockResolvedValueOnce({
+        data: null,
+        error: null,
+      });
+
+      // Second call to .from() is for deletion - mock the delete chain
+      const mockDeleteResult = { error: null };
+      env.mockSupabase.delete.mockReturnValueOnce({
+        eq: jest.fn().mockReturnValueOnce({
+          eq: jest.fn().mockResolvedValueOnce(mockDeleteResult),
         }),
-      };
-
-      env.mockSupabase.from.mockReturnValue(mockDeleteChain);
+      });
 
       await assetService.deleteAsset(mockAsset.id, env.user.id);
 
@@ -740,17 +758,11 @@ describe('Integration: Asset Management Workflow', () => {
       });
 
       // Act - Delete asset
-      const mockEqChain = {
-        eq: jest.fn().mockResolvedValue({ error: null }),
-      };
-
-      const mockDeleteChain = {
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue(mockEqChain),
-        }),
-      };
-
-      env.mockSupabase.from.mockReturnValue(mockDeleteChain);
+      // First call to .from() is for fetching the asset
+      env.mockSupabase.single.mockResolvedValueOnce({
+        data: mockAsset,
+        error: null,
+      });
 
       // Mock storage deletion
       env.mockSupabase.storage.remove.mockResolvedValueOnce({
@@ -758,10 +770,19 @@ describe('Integration: Asset Management Workflow', () => {
         error: null,
       });
 
+      // Second call to .from() is for deletion - mock the delete chain
+      const mockDeleteResult = { error: null };
+      env.mockSupabase.delete.mockReturnValueOnce({
+        eq: jest.fn().mockReturnValueOnce({
+          eq: jest.fn().mockResolvedValueOnce(mockDeleteResult),
+        }),
+      });
+
       await assetService.deleteAsset(videoAsset.id, env.user.id);
 
       // Assert
-      expect(mockDeleteChain.delete).toHaveBeenCalled();
+      expect(env.mockSupabase.delete).toHaveBeenCalled();
+      expect(env.mockSupabase.storage.remove).toHaveBeenCalled();
       // Note: Storage cleanup would be handled by database triggers or service layer
     });
   });
@@ -778,9 +799,10 @@ describe('Integration: Asset Management Workflow', () => {
       });
 
       // Create asset owned by different user
-      const otherUserId = 'other-user-123';
+      const otherUserId = '550e8400-e29b-41d4-a716-446655440099';
+      const otherAssetId = '550e8400-e29b-41d4-a716-446655440098';
       const mockAsset = AssetFixtures.video(project.id, otherUserId, {
-        id: 'other-asset',
+        id: otherAssetId,
       });
 
       env.mockSupabase.single.mockResolvedValueOnce({
@@ -789,7 +811,7 @@ describe('Integration: Asset Management Workflow', () => {
       });
 
       // Act & Assert - Should not be able to access
-      const asset = await assetService.getAssetById('other-asset', env.user.id);
+      const asset = await assetService.getAssetById(otherAssetId, env.user.id);
       expect(asset).toBeNull();
     });
 

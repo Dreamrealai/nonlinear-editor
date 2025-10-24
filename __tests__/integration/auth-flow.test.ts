@@ -68,7 +68,7 @@ describe('Integration: Authentication Flow', () => {
     it('should authenticate user and retrieve profile', async () => {
       // Arrange
       const mockUser = createMockUser({
-        id: 'auth-user-123',
+        id: '550e8400-e29b-41d4-a716-446655440020',
         email: 'test@example.com',
       });
 
@@ -386,7 +386,7 @@ describe('Integration: Authentication Flow', () => {
     it('should complete full auth workflow: authenticate → access → update profile → sign out', async () => {
       // Step 1: Authenticate user
       const mockUser = createMockUser({
-        id: 'e2e-user-123',
+        id: '550e8400-e29b-41d4-a716-446655440021',
         email: 'e2e@example.com',
       });
 
@@ -450,7 +450,7 @@ describe('Integration: Authentication Flow', () => {
     it('should complete account deletion workflow: authenticate → create data → delete account', async () => {
       // Step 1: Authenticate
       const mockUser = createMockUser({
-        id: 'delete-user-123',
+        id: '550e8400-e29b-41d4-a716-446655440022',
         email: 'delete@example.com',
       });
 
