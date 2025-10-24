@@ -1,7 +1,7 @@
 import { serverLogger } from '@/lib/serverLogger';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { errorResponse, validationError, successResponse } from '@/lib/api/response';
-import { validateInteger, validateAll, validateEnum } from '@/lib/api/validation';
+import { validateInteger, validateEnum, ValidationError } from '@/lib/validation';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 
@@ -15,14 +15,14 @@ const handleGetHistory: AuthenticatedHandler = async (request, { user, supabase 
   const offset = parseInt(searchParams.get('offset') || '0', 10);
 
   // Validate pagination parameters
-  const validation = validateAll([
-    validateInteger(limit, 'limit', { min: 1, max: 100 }),
-    validateInteger(offset, 'offset', { min: 0 }),
-  ]);
-
-  if (!validation.valid) {
-    const firstError = validation.errors[0];
-    return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
+  try {
+    validateInteger(limit, 'limit', { min: 1, max: 100 });
+    validateInteger(offset, 'offset', { min: 0 });
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return validationError(error.message, error.field);
+    }
+    throw error;
   }
 
   // Fetch activity history for the user
@@ -86,13 +86,13 @@ const handleAddHistory: AuthenticatedHandler = async (request, { user, supabase 
   const { project_id, activity_type, title, description, model, asset_id, metadata } = body;
 
   // Validate activity_type
-  const validation = validateAll([
-    validateEnum(activity_type, 'activity_type', VALID_ACTIVITY_TYPES, true),
-  ]);
-
-  if (!validation.valid) {
-    const firstError = validation.errors[0];
-    return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
+  try {
+    validateEnum(activity_type, 'activity_type', VALID_ACTIVITY_TYPES);
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return validationError(error.message, error.field);
+    }
+    throw error;
   }
 
   // Insert activity history entry

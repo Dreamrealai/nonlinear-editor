@@ -299,7 +299,7 @@ export function useVideoPlayback({
       playStartRef.current = getPerformance().now();
       globalTimeRef.current = start;
 
-      const loop = () => {
+      const loop = (): void => {
         if (!playingRef.current) {
           return;
         }
@@ -349,8 +349,8 @@ export function useVideoPlayback({
   }, [isPlaying, currentTime, stopPlayback, playAll]);
 
   // Cleanup on unmount
-  useEffect(() => {
-    return () => {
+  useEffect((): (() => void) => {
+    return (): void => {
       if (playbackRafRef.current !== null) {
         cancelAnimationFrame(playbackRafRef.current);
         playbackRafRef.current = null;

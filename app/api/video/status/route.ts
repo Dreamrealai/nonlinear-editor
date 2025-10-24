@@ -13,6 +13,7 @@ import {
 } from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
+import { createAssetWithCleanup } from '@/lib/api/statusCheckHandler';
 
 const normalizeStorageUrl = (bucket: string, path: string): string =>
   `supabase://${bucket}/${path}`;
@@ -196,9 +197,19 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
 
       const storageUrl = normalizeStorageUrl('assets', storagePath);
 
-      const { data: asset, error: assetError } = await supabase
-        .from('assets')
-        .insert({
+      // Use shared utility for asset creation with automatic cleanup
+      const asset = await createAssetWithCleanup<{
+        id: string;
+        user_id: string;
+        project_id: string;
+        type: string;
+        source: string;
+        storage_url: string;
+        metadata: Record<string, unknown>;
+        created_at?: string;
+      }>(
+        supabase,
+        {
           user_id: user.id,
           project_id: projectId,
           type: 'video',
@@ -210,28 +221,9 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
             // Note: sourceUrl removed - use storage_url with signed URLs instead
             generator: endpoint.includes('seedance') ? 'seedance-pro' : 'minimax-video-01-live',
           },
-        })
-        .select()
-        .single();
-
-      if (assetError) {
-        // Clean up uploaded file if database insert fails
-        const { error: cleanupError } = await supabase.storage.from('assets').remove([storagePath]);
-
-        if (cleanupError) {
-          serverLogger.error(
-            {
-              cleanupError,
-              storagePath,
-              projectId,
-              event: 'video.status.cleanup_failed',
-            },
-            'Failed to clean up storage after DB insert failure'
-          );
-        }
-
-        throw new Error(`Asset creation failed: ${assetError.message}`);
-      }
+        },
+        storagePath
+      );
 
       // Log to activity history
       await supabase.from('user_activity_history').insert({
@@ -377,9 +369,19 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
 
     const storageUrl = normalizeStorageUrl('assets', storagePath);
 
-    const { data: asset, error: assetError } = await supabase
-      .from('assets')
-      .insert({
+    // Use shared utility for asset creation with automatic cleanup
+    const asset = await createAssetWithCleanup<{
+      id: string;
+      user_id: string;
+      project_id: string;
+      type: string;
+      source: string;
+      storage_url: string;
+      metadata: Record<string, unknown>;
+      created_at?: string;
+    }>(
+      supabase,
+      {
         user_id: user.id,
         project_id: projectId,
         type: 'video',
@@ -391,33 +393,9 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
           // Note: sourceUrl removed - use storage_url with signed URLs instead
           generator: 'veo',
         },
-      })
-      .select()
-      .single();
-
-    if (assetError) {
-      // Clean up uploaded file if database insert fails
-      const { error: cleanupError } = await supabase.storage.from('assets').remove([storagePath]);
-
-      if (cleanupError) {
-        serverLogger.error(
-          {
-            cleanupError,
-            assetError,
-            storagePath,
-            projectId,
-            event: 'video.status.veo_cleanup_failed',
-          },
-          'Failed to clean up storage after DB insert failure'
-        );
-        // Return error with cleanup failure context
-        throw new Error(
-          `Asset creation failed: ${assetError.message}. Additionally, failed to clean up storage: ${cleanupError.message}`
-        );
-      }
-
-      throw new Error(`Asset creation failed: ${assetError.message}`);
-    }
+      },
+      storagePath
+    );
 
     // Log to activity history
     await supabase.from('user_activity_history').insert({

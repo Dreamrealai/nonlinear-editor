@@ -1,13 +1,13 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { KeyframeEditControls } from '@/components/keyframes/KeyframeEditControls';
+import { EditControls } from '@/components/keyframes/components/EditControls';
 import type { SceneFrameRow } from '@/components/keyframes/hooks/useFramesData';
 
 // Mock Next.js Image component
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: ({ src, alt, ...props }: { src: string; alt: string }) => {
+  default: ({ src, alt, ...props }: { src: string; alt: string }): JSX.Element => {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt={alt} {...props} />;
   },
@@ -15,51 +15,53 @@ jest.mock('next/image', () => ({
 
 // Mock LoadingSpinner
 jest.mock('@/components/LoadingSpinner', () => ({
-  LoadingSpinner: ({ size }: { size?: string }) => (
+  LoadingSpinner: ({ size }: { size?: string }): JSX.Element => (
     <div data-testid="loading-spinner" data-size={size}>
       Loading...
     </div>
   ),
 }));
 
-describe('KeyframeEditControls', () => {
-  const mockSetMode = jest.fn();
-  const mockSetCrop = jest.fn();
-  const mockSetFeather = jest.fn();
-  const mockSetPrompt = jest.fn();
+describe('EditControls', () => {
+  const mockOnModeChange = jest.fn();
+  const mockOnCropChange = jest.fn();
+  const mockOnFeatherChange = jest.fn();
+  const mockOnPromptChange = jest.fn();
   const mockOnAttachRefImages = jest.fn();
   const mockOnRemoveRefImage = jest.fn();
   const mockOnSubmit = jest.fn();
+  const mockOnClear = jest.fn();
   const mockClampCrop = jest.fn((crop) => crop);
 
   const mockSelectedFrame: SceneFrameRow = {
     id: 'frame-1',
-    sceneId: 'scene-1',
-    status: 'completed',
-    frameNumber: 1,
-    imageUrl: 'https://example.com/frame.jpg',
+    scene_id: 'scene-1',
+    kind: 'first' as const,
+    t_ms: 1000,
+    storage_path: 'frames/frame-1.jpg',
     width: 1024,
     height: 768,
-    createdAt: '2024-01-01T00:00:00Z',
   };
 
   const defaultProps = {
     mode: 'global' as const,
-    setMode: mockSetMode,
+    onModeChange: mockOnModeChange,
+    selectedFrame: mockSelectedFrame,
     crop: { x: 100, y: 100, size: 256 },
-    setCrop: mockSetCrop,
     feather: 32,
-    setFeather: mockSetFeather,
+    onCropChange: mockOnCropChange,
+    onFeatherChange: mockOnFeatherChange,
     prompt: '',
-    setPrompt: mockSetPrompt,
+    onPromptChange: mockOnPromptChange,
     refImages: [],
     onAttachRefImages: mockOnAttachRefImages,
     onRemoveRefImage: mockOnRemoveRefImage,
-    isSubmitting: false,
     submitError: null,
-    selectedFrame: mockSelectedFrame,
-    clampCrop: mockClampCrop,
+    isSubmitting: false,
+    onClear: mockOnClear,
     onSubmit: mockOnSubmit,
+    selectedFrameId: 'frame-1',
+    clampCrop: mockClampCrop,
   };
 
   beforeEach(() => {
@@ -68,93 +70,93 @@ describe('KeyframeEditControls', () => {
 
   describe('Mode Selection', () => {
     it('should render global and crop mode buttons', () => {
-      render(<KeyframeEditControls {...defaultProps} />);
+      render(<EditControls {...defaultProps} />);
 
       expect(screen.getByText('Global')).toBeInTheDocument();
       expect(screen.getByText('Crop')).toBeInTheDocument();
     });
 
     it('should highlight global button when global mode selected', () => {
-      render(<KeyframeEditControls {...defaultProps} mode="global" />);
+      render(<EditControls {...defaultProps} mode="global" />);
 
       const globalButton = screen.getByText('Global');
       expect(globalButton).toHaveClass('bg-neutral-900', 'text-white');
     });
 
     it('should highlight crop button when crop mode selected', () => {
-      render(<KeyframeEditControls {...defaultProps} mode="crop" />);
+      render(<EditControls {...defaultProps} mode="crop" />);
 
       const cropButton = screen.getByText('Crop');
       expect(cropButton).toHaveClass('bg-neutral-900', 'text-white');
     });
 
-    it('should call setMode when global button clicked', () => {
-      render(<KeyframeEditControls {...defaultProps} mode="crop" />);
+    it('should call onModeChange when global button clicked', () => {
+      render(<EditControls {...defaultProps} mode="crop" />);
 
       const globalButton = screen.getByText('Global');
       fireEvent.click(globalButton);
 
-      expect(mockSetMode).toHaveBeenCalledWith('global');
+      expect(mockOnModeChange).toHaveBeenCalledWith('global');
     });
 
-    it('should call setMode when crop button clicked', () => {
-      render(<KeyframeEditControls {...defaultProps} mode="global" />);
+    it('should call onModeChange when crop button clicked', () => {
+      render(<EditControls {...defaultProps} mode="global" />);
 
       const cropButton = screen.getByText('Crop');
       fireEvent.click(cropButton);
 
-      expect(mockSetMode).toHaveBeenCalledWith('crop');
+      expect(mockOnModeChange).toHaveBeenCalledWith('crop');
     });
   });
 
   describe('Crop Controls', () => {
     it('should show crop controls when crop mode active', () => {
-      render(<KeyframeEditControls {...defaultProps} mode="crop" />);
+      render(<EditControls {...defaultProps} mode="crop" />);
 
       expect(screen.getByLabelText('Crop size')).toBeInTheDocument();
       expect(screen.getByLabelText('Feather amount')).toBeInTheDocument();
     });
 
     it('should not show crop controls when global mode active', () => {
-      render(<KeyframeEditControls {...defaultProps} mode="global" />);
+      render(<EditControls {...defaultProps} mode="global" />);
 
       expect(screen.queryByLabelText('Crop size')).not.toBeInTheDocument();
       expect(screen.queryByLabelText('Feather amount')).not.toBeInTheDocument();
     });
 
     it('should display crop size value', () => {
-      render(<KeyframeEditControls {...defaultProps} mode="crop" crop={{ x: 0, y: 0, size: 512 }} />);
+      render(<EditControls {...defaultProps} mode="crop" crop={{ x: 0, y: 0, size: 512 }} />);
 
       expect(screen.getByText('512px')).toBeInTheDocument();
     });
 
     it('should display feather value', () => {
-      render(<KeyframeEditControls {...defaultProps} mode="crop" feather={64} />);
+      render(<EditControls {...defaultProps} mode="crop" feather={64} />);
 
       expect(screen.getByText('64px')).toBeInTheDocument();
     });
 
     it('should call setCrop when size slider changes', () => {
-      render(<KeyframeEditControls {...defaultProps} mode="crop" />);
+      render(<EditControls {...defaultProps} mode="crop" />);
 
       const sizeSlider = screen.getByLabelText('Crop size');
       fireEvent.change(sizeSlider, { target: { value: '384' } });
 
-      expect(mockSetCrop).toHaveBeenCalled();
+      expect(mockOnCropChange).toHaveBeenCalled();
       expect(mockClampCrop).toHaveBeenCalled();
     });
 
     it('should call setFeather when feather slider changes', () => {
-      render(<KeyframeEditControls {...defaultProps} mode="crop" />);
+      render(<EditControls {...defaultProps} mode="crop" />);
 
       const featherSlider = screen.getByLabelText('Feather amount');
       fireEvent.change(featherSlider, { target: { value: '96' } });
 
-      expect(mockSetFeather).toHaveBeenCalledWith(96);
+      expect(mockOnFeatherChange).toHaveBeenCalledWith(96);
     });
 
     it('should have proper range limits for size slider', () => {
-      render(<KeyframeEditControls {...defaultProps} mode="crop" />);
+      render(<EditControls {...defaultProps} mode="crop" />);
 
       const sizeSlider = screen.getByLabelText('Crop size') as HTMLInputElement;
       expect(sizeSlider).toHaveAttribute('min', '64');
@@ -163,7 +165,7 @@ describe('KeyframeEditControls', () => {
     });
 
     it('should have proper range limits for feather slider', () => {
-      render(<KeyframeEditControls {...defaultProps} mode="crop" />);
+      render(<EditControls {...defaultProps} mode="crop" />);
 
       const featherSlider = screen.getByLabelText('Feather amount') as HTMLInputElement;
       expect(featherSlider).toHaveAttribute('min', '0');
@@ -172,7 +174,7 @@ describe('KeyframeEditControls', () => {
     });
 
     it('should show instruction text for crop repositioning', () => {
-      render(<KeyframeEditControls {...defaultProps} mode="crop" />);
+      render(<EditControls {...defaultProps} mode="crop" />);
 
       expect(screen.getByText('Click image to reposition crop area')).toBeInTheDocument();
     });
@@ -180,30 +182,30 @@ describe('KeyframeEditControls', () => {
 
   describe('Prompt Input', () => {
     it('should render prompt textarea', () => {
-      render(<KeyframeEditControls {...defaultProps} />);
+      render(<EditControls {...defaultProps} />);
 
       const textarea = screen.getByLabelText('Edit Prompt');
       expect(textarea).toBeInTheDocument();
     });
 
     it('should display current prompt value', () => {
-      render(<KeyframeEditControls {...defaultProps} prompt="Add a sunset background" />);
+      render(<EditControls {...defaultProps} prompt="Add a sunset background" />);
 
       const textarea = screen.getByLabelText('Edit Prompt') as HTMLTextAreaElement;
       expect(textarea.value).toBe('Add a sunset background');
     });
 
     it('should call setPrompt when text changes', () => {
-      render(<KeyframeEditControls {...defaultProps} />);
+      render(<EditControls {...defaultProps} />);
 
       const textarea = screen.getByLabelText('Edit Prompt');
       fireEvent.change(textarea, { target: { value: 'New edit prompt' } });
 
-      expect(mockSetPrompt).toHaveBeenCalledWith('New edit prompt');
+      expect(mockOnPromptChange).toHaveBeenCalledWith('New edit prompt');
     });
 
     it('should have correct placeholder', () => {
-      render(<KeyframeEditControls {...defaultProps} />);
+      render(<EditControls {...defaultProps} />);
 
       const textarea = screen.getByLabelText('Edit Prompt');
       expect(textarea).toHaveAttribute(
@@ -213,7 +215,7 @@ describe('KeyframeEditControls', () => {
     });
 
     it('should have 3 rows', () => {
-      render(<KeyframeEditControls {...defaultProps} />);
+      render(<EditControls {...defaultProps} />);
 
       const textarea = screen.getByLabelText('Edit Prompt') as HTMLTextAreaElement;
       expect(textarea.rows).toBe(3);
@@ -238,13 +240,13 @@ describe('KeyframeEditControls', () => {
     ];
 
     it('should render attach button', () => {
-      render(<KeyframeEditControls {...defaultProps} />);
+      render(<EditControls {...defaultProps} />);
 
       expect(screen.getByText('Attach')).toBeInTheDocument();
     });
 
     it('should call onAttachRefImages when attach clicked', () => {
-      render(<KeyframeEditControls {...defaultProps} />);
+      render(<EditControls {...defaultProps} />);
 
       const attachButton = screen.getByText('Attach');
       fireEvent.click(attachButton);
@@ -253,30 +255,30 @@ describe('KeyframeEditControls', () => {
     });
 
     it('should disable attach button when submitting', () => {
-      render(<KeyframeEditControls {...defaultProps} isSubmitting={true} />);
+      render(<EditControls {...defaultProps} isSubmitting={true} />);
 
       const attachButton = screen.getByText('Attach');
       expect(attachButton).toBeDisabled();
     });
 
     it('should render reference image previews', () => {
-      render(<KeyframeEditControls {...defaultProps} refImages={mockRefImages} />);
+      render(<EditControls {...defaultProps} refImages={mockRefImages} />);
 
       const images = screen.getAllByAltText('Reference');
       expect(images).toHaveLength(2);
     });
 
     it('should show uploading state for images', () => {
-      render(<KeyframeEditControls {...defaultProps} refImages={mockRefImages} />);
+      render(<EditControls {...defaultProps} refImages={mockRefImages} />);
 
-      const spinners = screen.getAllByRole('img', { hidden: true }).filter((el) =>
-        el.querySelector('.animate-spin')
-      );
+      const spinners = screen
+        .getAllByRole('img', { hidden: true })
+        .filter((el) => el.querySelector('.animate-spin'));
       expect(spinners.length).toBeGreaterThanOrEqual(0);
     });
 
     it('should call onRemoveRefImage when remove clicked', () => {
-      render(<KeyframeEditControls {...defaultProps} refImages={mockRefImages} />);
+      render(<EditControls {...defaultProps} refImages={mockRefImages} />);
 
       const removeButtons = screen.getAllByRole('button').filter((btn) => {
         const svg = btn.querySelector('svg');
@@ -290,7 +292,7 @@ describe('KeyframeEditControls', () => {
     });
 
     it('should disable remove button for uploading images', () => {
-      render(<KeyframeEditControls {...defaultProps} refImages={mockRefImages} />);
+      render(<EditControls {...defaultProps} refImages={mockRefImages} />);
 
       const removeButtons = screen.getAllByRole('button').filter((btn) => {
         const svg = btn.querySelector('svg');
@@ -306,41 +308,41 @@ describe('KeyframeEditControls', () => {
 
   describe('Submit Controls', () => {
     it('should render clear button', () => {
-      render(<KeyframeEditControls {...defaultProps} />);
+      render(<EditControls {...defaultProps} />);
 
       expect(screen.getByText('Clear')).toBeInTheDocument();
     });
 
-    it('should call setPrompt with empty string when clear clicked', () => {
-      render(<KeyframeEditControls {...defaultProps} prompt="Some text" />);
+    it('should call onClear when clear clicked', () => {
+      render(<EditControls {...defaultProps} prompt="Some text" />);
 
       const clearButton = screen.getByText('Clear');
       fireEvent.click(clearButton);
 
-      expect(mockSetPrompt).toHaveBeenCalledWith('');
+      expect(mockOnClear).toHaveBeenCalledTimes(1);
     });
 
     it('should disable clear button when submitting', () => {
-      render(<KeyframeEditControls {...defaultProps} isSubmitting={true} />);
+      render(<EditControls {...defaultProps} isSubmitting={true} />);
 
       const clearButton = screen.getByText('Clear');
       expect(clearButton).toBeDisabled();
     });
 
     it('should render generate button', () => {
-      render(<KeyframeEditControls {...defaultProps} />);
+      render(<EditControls {...defaultProps} />);
 
       expect(screen.getByText('Generate 4 Edits')).toBeInTheDocument();
     });
 
     it('should show generating text when submitting', () => {
-      render(<KeyframeEditControls {...defaultProps} isSubmitting={true} />);
+      render(<EditControls {...defaultProps} isSubmitting={true} />);
 
       expect(screen.getByText('Generating 4 Variations…')).toBeInTheDocument();
     });
 
     it('should call onSubmit when generate clicked', () => {
-      render(<KeyframeEditControls {...defaultProps} />);
+      render(<EditControls {...defaultProps} />);
 
       const generateButton = screen.getByText('Generate 4 Edits');
       fireEvent.click(generateButton);
@@ -349,21 +351,21 @@ describe('KeyframeEditControls', () => {
     });
 
     it('should disable generate button when submitting', () => {
-      render(<KeyframeEditControls {...defaultProps} isSubmitting={true} />);
+      render(<EditControls {...defaultProps} isSubmitting={true} />);
 
       const generateButton = screen.getByText('Generating 4 Variations…');
       expect(generateButton).toBeDisabled();
     });
 
     it('should disable generate button when no frame selected', () => {
-      render(<KeyframeEditControls {...defaultProps} selectedFrame={null} />);
+      render(<EditControls {...defaultProps} selectedFrame={null} selectedFrameId={null} />);
 
       const generateButton = screen.getByText('Generate 4 Edits');
       expect(generateButton).toBeDisabled();
     });
 
     it('should show loading spinner when submitting', () => {
-      render(<KeyframeEditControls {...defaultProps} isSubmitting={true} />);
+      render(<EditControls {...defaultProps} isSubmitting={true} />);
 
       expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
     });
@@ -371,20 +373,20 @@ describe('KeyframeEditControls', () => {
 
   describe('Error Display', () => {
     it('should not show error by default', () => {
-      render(<KeyframeEditControls {...defaultProps} />);
+      render(<EditControls {...defaultProps} />);
 
       const errorText = screen.queryByText(/error/i);
       expect(errorText).not.toBeInTheDocument();
     });
 
     it('should display error message when present', () => {
-      render(<KeyframeEditControls {...defaultProps} submitError="Generation failed" />);
+      render(<EditControls {...defaultProps} submitError="Generation failed" />);
 
       expect(screen.getByText('Generation failed')).toBeInTheDocument();
     });
 
     it('should style error message in red', () => {
-      render(<KeyframeEditControls {...defaultProps} submitError="Generation failed" />);
+      render(<EditControls {...defaultProps} submitError="Generation failed" />);
 
       const errorMessage = screen.getByText('Generation failed');
       expect(errorMessage).toHaveClass('text-red-600');
@@ -393,35 +395,42 @@ describe('KeyframeEditControls', () => {
 
   describe('Layout and Styling', () => {
     it('should have proper container styling', () => {
-      const { container } = render(<KeyframeEditControls {...defaultProps} />);
+      const { container } = render(<EditControls {...defaultProps} />);
 
       const wrapper = container.firstChild as HTMLElement;
       expect(wrapper).toHaveClass('border-b', 'border-neutral-200', 'bg-white', 'p-6');
     });
 
     it('should have gap between mode buttons', () => {
-      const { container } = render(<KeyframeEditControls {...defaultProps} />);
+      const { container } = render(<EditControls {...defaultProps} />);
 
       const buttonContainer = container.querySelector('.flex.items-center.gap-2');
       expect(buttonContainer).toBeInTheDocument();
     });
 
     it('should have proper button styling', () => {
-      render(<KeyframeEditControls {...defaultProps} />);
+      render(<EditControls {...defaultProps} />);
 
       const buttons = screen.getAllByRole('button').filter((btn) => {
         return btn.textContent === 'Global' || btn.textContent === 'Crop';
       });
 
       buttons.forEach((button) => {
-        expect(button).toHaveClass('rounded', 'px-3', 'py-1.5', 'text-xs', 'font-medium', 'transition-all');
+        expect(button).toHaveClass(
+          'rounded',
+          'px-3',
+          'py-1.5',
+          'text-xs',
+          'font-medium',
+          'transition-all'
+        );
       });
     });
   });
 
   describe('Accessibility', () => {
     it('should have proper label associations', () => {
-      render(<KeyframeEditControls {...defaultProps} mode="crop" />);
+      render(<EditControls {...defaultProps} mode="crop" />);
 
       const sizeSlider = screen.getByLabelText('Crop size');
       const featherSlider = screen.getByLabelText('Feather amount');
@@ -433,7 +442,7 @@ describe('KeyframeEditControls', () => {
     });
 
     it('should have button type attributes', () => {
-      render(<KeyframeEditControls {...defaultProps} />);
+      render(<EditControls {...defaultProps} />);
 
       const buttons = screen.getAllByRole('button');
       buttons.forEach((button) => {
@@ -442,7 +451,7 @@ describe('KeyframeEditControls', () => {
     });
 
     it('should have disabled states for all interactive elements when submitting', () => {
-      render(<KeyframeEditControls {...defaultProps} isSubmitting={true} mode="crop" />);
+      render(<EditControls {...defaultProps} isSubmitting={true} mode="crop" />);
 
       const textarea = screen.getByLabelText('Edit Prompt');
       const clearButton = screen.getByText('Clear');
@@ -456,14 +465,14 @@ describe('KeyframeEditControls', () => {
 
   describe('Edge Cases', () => {
     it('should handle missing selectedFrame gracefully', () => {
-      render(<KeyframeEditControls {...defaultProps} selectedFrame={null} />);
+      render(<EditControls {...defaultProps} selectedFrame={null} />);
 
       // Should still render the component
       expect(screen.getByText('Global')).toBeInTheDocument();
     });
 
     it('should handle empty prompt', () => {
-      render(<KeyframeEditControls {...defaultProps} prompt="" />);
+      render(<EditControls {...defaultProps} prompt="" />);
 
       const textarea = screen.getByLabelText('Edit Prompt') as HTMLTextAreaElement;
       expect(textarea.value).toBe('');
@@ -471,7 +480,7 @@ describe('KeyframeEditControls', () => {
 
     it('should handle very long prompt', () => {
       const longPrompt = 'A'.repeat(1000);
-      render(<KeyframeEditControls {...defaultProps} prompt={longPrompt} />);
+      render(<EditControls {...defaultProps} prompt={longPrompt} />);
 
       const textarea = screen.getByLabelText('Edit Prompt') as HTMLTextAreaElement;
       expect(textarea.value).toBe(longPrompt);
@@ -485,14 +494,14 @@ describe('KeyframeEditControls', () => {
         uploading: false,
       }));
 
-      render(<KeyframeEditControls {...defaultProps} refImages={manyImages} />);
+      render(<EditControls {...defaultProps} refImages={manyImages} />);
 
       const images = screen.getAllByAltText('Reference');
       expect(images).toHaveLength(10);
     });
 
     it('should clamp crop size to frame dimensions', () => {
-      render(<KeyframeEditControls {...defaultProps} mode="crop" />);
+      render(<EditControls {...defaultProps} mode="crop" />);
 
       const sizeSlider = screen.getByLabelText('Crop size');
       fireEvent.change(sizeSlider, { target: { value: '2000' } });
@@ -503,33 +512,33 @@ describe('KeyframeEditControls', () => {
 
   describe('Component Updates', () => {
     it('should update when mode changes', () => {
-      const { rerender } = render(<KeyframeEditControls {...defaultProps} mode="global" />);
+      const { rerender } = render(<EditControls {...defaultProps} mode="global" />);
 
       expect(screen.queryByLabelText('Crop size')).not.toBeInTheDocument();
 
-      rerender(<KeyframeEditControls {...defaultProps} mode="crop" />);
+      rerender(<EditControls {...defaultProps} mode="crop" />);
 
       expect(screen.getByLabelText('Crop size')).toBeInTheDocument();
     });
 
     it('should update when prompt changes', () => {
-      const { rerender } = render(<KeyframeEditControls {...defaultProps} prompt="First" />);
+      const { rerender } = render(<EditControls {...defaultProps} prompt="First" />);
 
       let textarea = screen.getByLabelText('Edit Prompt') as HTMLTextAreaElement;
       expect(textarea.value).toBe('First');
 
-      rerender(<KeyframeEditControls {...defaultProps} prompt="Second" />);
+      rerender(<EditControls {...defaultProps} prompt="Second" />);
 
       textarea = screen.getByLabelText('Edit Prompt') as HTMLTextAreaElement;
       expect(textarea.value).toBe('Second');
     });
 
     it('should update when isSubmitting changes', () => {
-      const { rerender } = render(<KeyframeEditControls {...defaultProps} isSubmitting={false} />);
+      const { rerender } = render(<EditControls {...defaultProps} isSubmitting={false} />);
 
       expect(screen.getByText('Generate 4 Edits')).toBeInTheDocument();
 
-      rerender(<KeyframeEditControls {...defaultProps} isSubmitting={true} />);
+      rerender(<EditControls {...defaultProps} isSubmitting={true} />);
 
       expect(screen.getByText('Generating 4 Variations…')).toBeInTheDocument();
     });

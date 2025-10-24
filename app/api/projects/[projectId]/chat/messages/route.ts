@@ -7,13 +7,10 @@
  * - RLS enforces project ownership
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateString, validateUUID, validateEnum, validateAll } from '@/lib/api/validation';
-import {
-  validationError,
-  errorResponse,
-} from '@/lib/api/response';
+import { validationError, errorResponse, successResponse } from '@/lib/api/response';
 import { withAuth, type AuthContext } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 
@@ -22,7 +19,7 @@ const VALID_ROLES = ['user', 'assistant'] as const;
 async function handleChatMessagePost(
   request: NextRequest,
   context: AuthContext & { params?: { projectId: string } }
-) {
+): Promise<Response> {
   const { user, supabase, params } = context;
   const projectId = params?.projectId;
 
@@ -88,7 +85,7 @@ async function handleChatMessagePost(
       project_id: projectId,
       role: validatedRole,
       content: validatedContent,
-      model: (typeof model === 'string' ? model : null),
+      model: typeof model === 'string' ? model : null,
       attachments: attachments || null,
     })
     .select()
@@ -107,7 +104,7 @@ async function handleChatMessagePost(
     'Chat message saved'
   );
 
-  return NextResponse.json({ message: data }, { status: 201 });
+  return successResponse({ message: data }, undefined, 201);
 }
 
 // Export with authentication middleware and rate limiting

@@ -68,6 +68,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     const yaml = await import('yaml');
     const jsonContent = yaml.parse(yamlContent);
 
+    // Special case: return raw JSON for OpenAPI spec (not wrapped in success response)
     return NextResponse.json(jsonContent, {
       status: 200,
       headers: {

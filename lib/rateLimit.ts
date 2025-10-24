@@ -32,7 +32,7 @@ let fallbackInUse = false;
  * Starts cleanup interval only when fallback is actually used.
  * Prevents memory leak from unnecessary interval when Supabase is available.
  */
-function startCleanupIfNeeded() {
+function startCleanupIfNeeded(): void {
   if (!fallbackInUse) {
     fallbackInUse = true;
   }
@@ -57,7 +57,7 @@ function startCleanupIfNeeded() {
  * Stops cleanup interval and clears fallback store.
  * Call this during shutdown to prevent memory leaks.
  */
-export function cleanupRateLimit() {
+export function cleanupRateLimit(): void {
   if (cleanupInterval) {
     clearInterval(cleanupInterval);
     cleanupInterval = null;
@@ -91,14 +91,50 @@ if (typeof process !== 'undefined' && process.on) {
 // Service role is required because rate_limits table has RLS enabled
 let supabaseClient: SupabaseClient | null = null;
 
-function getSupabaseClient() {
+function getSupabaseClient(): SupabaseClient | null {
   if (!supabaseClient) {
-    if (typeof isSupabaseServiceConfigured !== 'function' || !isSupabaseServiceConfigured()) {
+    let serviceConfigured = false;
+
+    if (typeof isSupabaseServiceConfigured === 'function') {
+      try {
+        serviceConfigured = isSupabaseServiceConfigured();
+      } catch (error) {
+        serverLogger.warn(
+          {
+            event: 'rateLimit.supabase_check_failed',
+            error,
+          },
+          'Failed to determine Supabase service configuration, using in-memory rate limiting fallback'
+        );
+        serviceConfigured = false;
+      }
+    } else {
+      serverLogger.warn(
+        {
+          event: 'rateLimit.supabase_helper_missing',
+          helper: 'isSupabaseServiceConfigured',
+        },
+        'Supabase service configuration helper missing, using in-memory rate limiting fallback'
+      );
+    }
+
+    if (!serviceConfigured) {
       serverLogger.warn(
         {
           event: 'rateLimit.supabase_unavailable',
         },
         'Supabase service role not configured, using in-memory rate limiting fallback'
+      );
+      return null;
+    }
+
+    if (typeof createServiceSupabaseClient !== 'function') {
+      serverLogger.warn(
+        {
+          event: 'rateLimit.supabase_helper_missing',
+          helper: 'createServiceSupabaseClient',
+        },
+        'Supabase service client factory missing, using in-memory rate limiting fallback'
       );
       return null;
     }

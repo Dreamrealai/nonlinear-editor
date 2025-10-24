@@ -2,7 +2,7 @@
 // Admin API: Change User Tier
 // =============================================================================
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createServiceSupabaseClient } from '@/lib/supabase';
 import type { UserTier } from '@/lib/types/subscription';
 import { serverLogger } from '@/lib/serverLogger';
@@ -16,7 +16,10 @@ import {
 import { validateUUID, validateEnum, validateAll } from '@/lib/api/validation';
 import { invalidateUserProfile } from '@/lib/cacheInvalidation';
 
-async function handleChangeTier(request: NextRequest, context: AdminAuthContext) {
+async function handleChangeTier(
+  request: NextRequest,
+  context: AdminAuthContext
+): Promise<NextResponse> {
   const { user } = context;
   const startTime = Date.now();
 

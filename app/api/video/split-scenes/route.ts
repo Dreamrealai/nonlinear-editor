@@ -3,9 +3,15 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 import { VideoIntelligenceServiceClient, protos } from '@google-cloud/video-intelligence';
 import { Storage } from '@google-cloud/storage';
 import { serverLogger } from '@/lib/serverLogger';
-import { withErrorHandling } from '@/lib/api/response';
+import {
+  withErrorHandling,
+  unauthorizedResponse,
+  validationError,
+  forbiddenResponse,
+  successResponse,
+} from '@/lib/api/response';
 
-const parseStorageUrl = (storageUrl: string) => {
+const parseStorageUrl = (storageUrl: string): { bucket: string; path: string } | null => {
   // SECURITY: Validate input format
   if (!storageUrl || typeof storageUrl !== 'string') {
     return null;
@@ -43,7 +49,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
 
   if (authError || !user) {
     serverLogger.warn({ authError }, 'Unauthorized scene detection attempt');
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorizedResponse();
   }
 
   serverLogger.info({ userId: user.id }, 'User authenticated for scene detection');
@@ -53,21 +59,21 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
 
   // Validate assetId format (UUID)
   if (!assetId) {
-    return NextResponse.json({ error: 'Asset ID is required' }, { status: 400 });
+    return validationError('Asset ID is required', 'assetId');
   }
 
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (!uuidRegex.test(assetId)) {
-    return NextResponse.json({ error: 'Invalid asset ID format' }, { status: 400 });
+    return validationError('Invalid asset ID format', 'assetId');
   }
 
   // Validate projectId format (UUID)
   if (!projectId) {
-    return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
+    return validationError('Project ID is required', 'projectId');
   }
 
   if (!uuidRegex.test(projectId)) {
-    return NextResponse.json({ error: 'Invalid project ID format' }, { status: 400 });
+    return validationError('Invalid project ID format', 'projectId');
   }
 
   // Get the video asset
@@ -79,11 +85,11 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     .single();
 
   if (assetError || !asset) {
-    return NextResponse.json({ error: 'Asset not found or access denied' }, { status: 403 });
+    return forbiddenResponse('Asset not found or access denied');
   }
 
   if (asset.type !== 'video') {
-    return NextResponse.json({ error: 'Asset must be a video' }, { status: 400 });
+    return validationError('Asset must be a video', 'assetId');
   }
 
   // Check if scenes already exist for this asset
@@ -93,7 +99,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     .eq('asset_id', assetId);
 
   if (existingScenes && existingScenes.length > 0) {
-    return NextResponse.json({
+    return successResponse({
       message: 'Scenes already detected',
       scenes: existingScenes,
       count: existingScenes.length,

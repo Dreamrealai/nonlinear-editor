@@ -22,6 +22,7 @@ import {
   withErrorHandling,
 } from '@/lib/api/response';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
+import { HttpStatusCode } from '@/lib/errors/errorCodes';
 
 /**
  * Generate images from a text prompt using Google Imagen 3.
@@ -213,7 +214,16 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   // Verify user owns the project using centralized verification
   const projectVerification = await verifyProjectOwnership(supabase, projectId, user.id);
   if (!projectVerification.hasAccess) {
-    return errorResponse(projectVerification.error!, projectVerification.status!);
+    const parsedStatus = Number(projectVerification.status);
+    const errorText =
+      typeof projectVerification.error === 'string' ? projectVerification.error.toLowerCase() : '';
+    const status = Number.isFinite(parsedStatus)
+      ? parsedStatus
+      : errorText.includes('not')
+        ? HttpStatusCode.NOT_FOUND
+        : HttpStatusCode.FORBIDDEN;
+
+    return errorResponse(projectVerification.error ?? 'Project access denied', status);
   }
 
   // Generate images with Imagen
@@ -319,6 +329,6 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       assets,
       message: `Generated ${assets.length} image(s) successfully`,
     },
-    { status: 200 }
+    { status: HttpStatusCode.OK }
   );
 });

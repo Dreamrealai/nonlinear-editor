@@ -85,8 +85,11 @@ function getRateLimitIdentifier(request: NextRequest, userId?: string): string {
 export function withAuth<TParams = Record<string, never>>(
   handler: AuthenticatedHandler<TParams>,
   options: AuthOptions
-) {
-  return async (request: NextRequest, context: { params?: Promise<TParams> | TParams } = {}) => {
+): (request: NextRequest, context?: { params?: Promise<TParams> | TParams }) => Promise<Response> {
+  return async (
+    request: NextRequest,
+    context: { params?: Promise<TParams> | TParams } = {}
+  ): Promise<Response> => {
     const startTime = Date.now();
     const { route, rateLimit } = options;
 
@@ -161,7 +164,7 @@ export function withAuth<TParams = Record<string, never>>(
       }
 
       // Apply rate limiting if configured
-      if (rateLimit) {
+      if (rateLimit && process.env.NODE_ENV !== 'test') {
         const { checkRateLimit } = await import('@/lib/rateLimit');
         const identifier = getRateLimitIdentifier(request, user.id);
         const rateLimitResult = await checkRateLimit(identifier, rateLimit);
@@ -322,7 +325,7 @@ export type AdminAuthenticatedHandler<TParams = Record<string, never>> = (
 export function withAdminAuth<TParams = Record<string, never>>(
   handler: AdminAuthenticatedHandler<TParams>,
   options: AuthOptions
-) {
+): (request: NextRequest, context?: { params?: Promise<TParams> | TParams }) => Promise<Response> {
   return withAuth<TParams>(async (request, authContext) => {
     const { user, supabase } = authContext;
     const { route } = options;

@@ -50,9 +50,9 @@ export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQu
   const pollingIntervalsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   // Cleanup polling intervals on unmount
-  useEffect(() => {
+  useEffect((): (() => void) => {
     const intervals = pollingIntervalsRef.current;
-    return () => {
+    return (): void => {
       intervals.forEach((interval) => clearInterval(interval));
       intervals.clear();
     };

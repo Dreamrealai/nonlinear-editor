@@ -1,112 +1,56 @@
-import { NextRequest } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { fetchWithTimeout } from '@/lib/fetchWithTimeout';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
-import { validateString, validateUUID, validateAll } from '@/lib/api/validation';
-import {
-  errorResponse,
-  unauthorizedResponse,
-  validationError,
-  rateLimitResponse,
-  internalServerError,
-  withErrorHandling,
-  successResponse,
-} from '@/lib/api/response';
-import { verifyProjectOwnership } from '@/lib/api/project-verification';
+import { validateString, validateUUID } from '@/lib/api/validation';
+import { successResponse } from '@/lib/api/response';
+import { createGenerationRoute } from '@/lib/api/createGenerationRoute';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
- * Generate sound effects using ElevenLabs Sound Effects API
+ * Request body for SFX generation
  */
-export const POST = withErrorHandling(async (request: NextRequest) => {
-  const startTime = Date.now();
+interface SFXGenerateRequest extends Record<string, unknown> {
+  prompt: string;
+  projectId: string;
+  duration?: number;
+}
 
-  serverLogger.info(
-    {
-      event: 'audio.sfx.request_started',
-    },
-    'ElevenLabs SFX request received'
-  );
+/**
+ * Response from SFX generation
+ */
+interface SFXGenerateResponse {
+  asset: {
+    id?: string;
+    project_id: string;
+    user_id: string;
+    type: string;
+    source: string;
+    mime_type: string;
+    storage_url: string;
+    metadata: Record<string, unknown>;
+  };
+  url: string;
+}
 
-  const supabase = await createServerSupabaseClient();
-
-  // Get authenticated user
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    serverLogger.warn(
-      {
-        event: 'audio.sfx.unauthorized',
-      },
-      'Unauthorized SFX generation attempt'
-    );
-    return unauthorizedResponse();
-  }
-
-  // Rate limiting (expensive operation - 5 requests per minute per user)
-  // TIER 2 RATE LIMITING: Resource creation - SFX generation (10/min)
-  const rateLimitResult = await checkRateLimit(
-    `audio-sfx:${user.id}`,
-    RATE_LIMITS.tier2_resource_creation
-  );
-
-  if (!rateLimitResult.success) {
-    serverLogger.warn(
-      {
-        event: 'audio.sfx.rate_limited',
-        userId: user.id,
-        limit: rateLimitResult.limit,
-        remaining: rateLimitResult.remaining,
-        resetAt: rateLimitResult.resetAt,
-      },
-      'SFX generation rate limit exceeded'
-    );
-    return rateLimitResponse(
-      rateLimitResult.limit,
-      rateLimitResult.remaining,
-      rateLimitResult.resetAt
-    );
-  }
-
-  serverLogger.debug(
-    {
-      event: 'audio.sfx.rate_limit_ok',
-      userId: user.id,
-      remaining: rateLimitResult.remaining,
-    },
-    'Rate limit check passed'
-  );
-
-  const body = await request.json();
-  const { projectId, prompt, duration = 5.0 } = body;
-
-  // Validate all inputs using centralized validation
-  const validation = validateAll([
-    validateString(prompt, 'prompt', { minLength: 3, maxLength: 500 }),
-    validateUUID(projectId, 'projectId'),
-  ]);
-
-  if (!validation.valid) {
-    const firstError = validation.errors[0];
-    return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
-  }
+/**
+ * Execute SFX generation and store results
+ */
+async function executeSFXGeneration(options: {
+  body: SFXGenerateRequest;
+  userId: string;
+  projectId: string;
+  supabase: SupabaseClient;
+}): Promise<SFXGenerateResponse> {
+  const { body, userId, projectId, supabase } = options;
+  const { prompt, duration = 5.0 } = body;
 
   // Validate duration
   if (typeof duration !== 'number' || duration < 0.5 || duration > 22) {
-    return validationError('Duration must be between 0.5 and 22 seconds', 'duration');
-  }
-
-  // Verify project ownership using centralized verification
-  const projectVerification = await verifyProjectOwnership(supabase, projectId, user.id, 'id');
-  if (!projectVerification.hasAccess) {
-    return errorResponse(projectVerification.error!, projectVerification.status!);
+    throw new Error('Duration must be between 0.5 and 22 seconds');
   }
 
   const apiKey = process.env['ELEVENLABS_API_KEY'];
   if (!apiKey) {
-    return internalServerError('ElevenLabs API key not configured');
+    throw new Error('ElevenLabs API key not configured');
   }
 
   // Call ElevenLabs Sound Generation API with timeout
@@ -129,15 +73,15 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     if (!response.ok) {
       const errorText = await response.text();
       serverLogger.error(
-        { errorText, status: response.status, userId: user.id, projectId },
+        { errorText, status: response.status, userId, projectId },
         'ElevenLabs SFX API error'
       );
-      return errorResponse(`ElevenLabs API error: ${response.statusText}`, response.status);
+      throw new Error(`ElevenLabs API error: ${response.statusText}`);
     }
   } catch (error) {
     if (error instanceof Error && /timeout/i.test(error.message)) {
-      serverLogger.error({ userId: user.id, projectId }, 'ElevenLabs SFX timeout');
-      return errorResponse('SFX generation timeout after 60s', 504);
+      serverLogger.error({ userId, projectId }, 'ElevenLabs SFX timeout');
+      throw new Error('SFX generation timeout after 60s');
     }
     throw error;
   }
@@ -147,7 +91,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
   // Upload to Supabase Storage
   const fileName = `sfx_${Date.now()}_${prompt.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '-')}.mp3`;
-  const filePath = `${user.id}/${projectId}/audio/${fileName}`;
+  const filePath = `${userId}/${projectId}/audio/${fileName}`;
 
   const { error: uploadError } = await supabase.storage
     .from('assets')
@@ -157,8 +101,8 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     });
 
   if (uploadError) {
-    serverLogger.error({ error: uploadError, userId: user.id, projectId }, 'Supabase upload error');
-    return internalServerError('Failed to upload audio file');
+    serverLogger.error({ error: uploadError, userId, projectId }, 'Supabase upload error');
+    throw new Error('Failed to upload audio file');
   }
 
   // Get public URL
@@ -171,7 +115,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     .from('assets')
     .insert({
       project_id: projectId,
-      user_id: user.id,
+      user_id: userId,
       type: 'audio',
       source: 'genai',
       mime_type: 'audio/mpeg',
@@ -190,23 +134,26 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     .single();
 
   if (assetError) {
-    serverLogger.error({ error: assetError, userId: user.id, projectId }, 'Database insert error');
-    return internalServerError('Failed to save asset metadata');
+    serverLogger.error({ error: assetError, userId, projectId }, 'Database insert error');
+    throw new Error('Failed to save asset metadata');
   }
 
-  const executionTime = Date.now() - startTime;
-  serverLogger.info(
-    {
-      event: 'audio.sfx.success',
-      userId: user.id,
-      projectId,
-      executionTime,
-    },
-    `ElevenLabs SFX generated successfully in ${executionTime}ms`
-  );
-
-  return successResponse({
+  return {
     asset,
     url: publicUrl,
-  });
+  };
+}
+
+/**
+ * Generate sound effects using ElevenLabs Sound Effects API
+ */
+export const POST = createGenerationRoute<SFXGenerateRequest, SFXGenerateResponse>({
+  routeId: 'audio.sfx',
+  rateLimitPrefix: 'audio-sfx',
+  getValidationRules: (body) => [
+    validateString(body.prompt, 'prompt', { minLength: 3, maxLength: 500 }),
+    validateUUID(body.projectId, 'projectId'),
+  ],
+  execute: executeSFXGeneration,
+  formatResponse: (result) => successResponse(result),
 });

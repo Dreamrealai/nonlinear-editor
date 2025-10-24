@@ -7,7 +7,11 @@ import type { Timeline } from '@/types/timeline';
 
 type SaveFn = (projectId: string, timeline: Timeline) => Promise<void> | void;
 
-export function useAutosave(projectId: string, delay = 2000, saveFn?: SaveFn) {
+export function useAutosave(
+  projectId: string,
+  delay = 2000,
+  saveFn?: SaveFn
+): { saveError: string | null } {
   const timeline = useEditorStore((state) => state.timeline);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -45,7 +49,7 @@ export function useAutosave(projectId: string, delay = 2000, saveFn?: SaveFn) {
       }
     }, delay);
 
-    return () => {
+    return (): void => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;

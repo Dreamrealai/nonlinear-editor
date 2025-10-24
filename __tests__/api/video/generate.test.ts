@@ -23,7 +23,7 @@ jest.mock('@/lib/supabase', () => {
   return {
     createServerSupabaseClient: jest.fn(async () => mockClient),
     ensureHttpsProtocol: jest.fn((url) => url),
-    __getMockClient: () => mockClient,
+    __getMockClient: (): typeof mockClient => mockClient,
   };
 });
 
@@ -526,7 +526,9 @@ describe('POST /api/video/generate', () => {
 
       const response = await POST(mockRequest, { params: Promise.resolve({}) });
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data.error).toBe('Invalid JSON body');
     });
   });
 

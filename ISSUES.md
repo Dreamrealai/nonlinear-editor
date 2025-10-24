@@ -275,6 +275,169 @@ return NextResponse.json(jsonContent, { ... });
 
 ## Priority 1: High Priority Issues
 
+### Code Duplication - Duplicate/Orphaned Code Cleanup
+
+#### Issue #83: Duplicate Password Validation Files
+
+- **Issue:** Two separate password validation implementations with overlapping logic (184 LOC total)
+- **Location:**
+  - `/lib/validation/password.ts` (98 LOC) - Used by settings page
+  - `/lib/password-validation.ts` (86 LOC) - Used by signup/reset-password
+- **Reported In:** Agent 1 - Duplicate Functions Analysis (2025-10-24)
+- **Status:** Open
+- **Priority:** P1 (High)
+- **Effort:** 1-2 hours
+- **Impact:** High - Code duplication, inconsistent password validation rules
+
+**Current Usage:**
+
+- `lib/validation/password.ts` → `app/settings/page.tsx`
+- `lib/password-validation.ts` → `app/signup/page.tsx`, `app/reset-password/page.tsx`
+
+**Duplication:**
+Both files implement similar password validation logic:
+
+- Minimum length checks
+- Complexity requirements (uppercase, lowercase, numbers, special chars)
+- Strength scoring
+- User feedback messages
+
+**Recommendation:** Consolidate into single canonical implementation at `lib/validation/password.ts`, migrate signup/reset pages
+
+---
+
+#### Issue #84: Orphaned Component Files - Safe to Remove
+
+- **Issue:** Three orphaned component files with no imports found in codebase (300+ LOC)
+- **Location:**
+  - `/components/keyframes/VideoPlayerModal.tsx` - No imports found
+  - `/components/keyframes/KeyframeVersions.tsx` - No imports found
+  - `/components/VideoPlayerHoverMenu.tsx` - No imports found
+- **Reported In:** Agent 2 - Orphaned Components Analysis (2025-10-24)
+- **Status:** Open
+- **Priority:** P1 (High)
+- **Effort:** 30 minutes
+- **Impact:** Medium - Code cleanup, reduces bundle size
+
+**Validation:**
+
+- Searched entire codebase for imports - 0 results for all three
+- Components appear to be legacy/replaced implementations
+- Safe to delete
+
+**Note:** `/components/timeline/TimelineTextOverlayRenderer.tsx` also has no imports but appears to be work-in-progress (see Issue #58)
+
+**Recommendation:** Delete all three files and corresponding test files if any
+
+---
+
+#### Issue #85: GenerationProgress Component Only Used in Tests
+
+- **Issue:** GenerationProgress component only imported in its own test file
+- **Location:**
+  - `/components/ui/GenerationProgress.tsx` - Component file
+  - `/__tests__/components/ui/GenerationProgress.test.tsx` - Only import
+- **Reported In:** Agent 2 - Orphaned Components Analysis (2025-10-24)
+- **Status:** Open
+- **Priority:** P1 (High)
+- **Effort:** 15 minutes
+- **Impact:** Low - Code cleanup decision needed
+
+**Options:**
+
+1. Remove component and test if not planned for use
+2. Integrate into video/audio generation UI if feature is planned
+3. Mark as "planned feature" in documentation
+
+**Recommendation:** Review with product team - remove if not on roadmap, otherwise document planned usage
+
+---
+
+#### Issue #86: Request Deduplication Utility - Keep as General Purpose
+
+- **Issue:** Request deduplication utility only used internally by signedUrlCache (316 LOC)
+- **Location:**
+  - `/lib/requestDeduplication.ts` (316 LOC) - Request deduplication manager
+  - Only used by: `/lib/signedUrlCache.ts`
+- **Reported In:** Agent 4 - Orphaned Utilities Analysis (2025-10-24)
+- **Status:** Open (Validated - Keep)
+- **Priority:** P1 (High)
+- **Effort:** 0 hours (No action needed, consider wider adoption)
+- **Impact:** Low - Well-designed utility with potential for wider use
+
+**Current Usage:**
+
+- `requestDeduplication.ts` exports `deduplicatedFetchJSON()`
+- Only caller: `signedUrlCache.ts` (line 11 import)
+- Has comprehensive test coverage: `__tests__/lib/requestDeduplication.test.ts`
+
+**Options:**
+
+1. **Keep as utility** - General-purpose request deduplication, could be used elsewhere ✅ RECOMMENDED
+2. **Inline into signedUrlCache** - If only used there, consolidate
+3. **Promote usage** - Apply to other fetch calls to prevent duplicate requests
+
+**Recommendation:** Keep as utility - well-designed abstraction with value for preventing duplicate API calls. Consider wider adoption in hooks like `useVideoGeneration`.
+
+---
+
+#### Issue #87: Sanitization Utility Not Imported by API Routes
+
+- **Issue:** Comprehensive sanitization module (464 LOC) exists but API routes implement inline sanitization
+- **Location:**
+  - `/lib/api/sanitization.ts` (464 LOC) - Canonical sanitization module
+  - Inline implementations in:
+    - `app/api/assets/upload/route.ts`
+    - `lib/hooks/useAssetUpload.ts`
+- **Reported In:** Agent 4 - Orphaned Utilities Analysis (2025-10-24)
+- **Status:** Open
+- **Priority:** P1 (High)
+- **Effort:** 2-3 hours
+- **Impact:** High - Security consistency, code duplication
+
+**Sanitization Module Functions:**
+
+- `sanitizeString()`, `sanitizeEmail()`, `sanitizeUrl()`, `sanitizeUUID()`
+- `sanitizeInteger()`, `sanitizeNumber()`, `sanitizeBoolean()`, `sanitizeObject()`
+- `removeSQLPatterns()`, `sanitizeFilename()`
+
+**Current State:**
+
+- Module exists with comprehensive functions
+- API routes don't import/use it
+- Duplicate sanitization logic scattered across routes
+
+**Recommendation:** Audit all API routes for inline sanitization, migrate to use canonical module
+
+---
+
+#### Issue #88: Duplicate Keyframe Components Already Marked for Deletion
+
+- **Issue:** Duplicate keyframe components already staged for deletion in git
+- **Location:**
+  - `components/keyframes/KeyframeEditControls.tsx` - DELETED in git
+  - `components/keyframes/KeyframePreview.tsx` - DELETED in git
+  - `components/keyframes/KeyframeSidebar.tsx` - DELETED in git
+- **Reported In:** Agent 2 - Orphaned Components Analysis (2025-10-24), Git Status
+- **Status:** In Progress (Files staged for deletion)
+- **Priority:** P1 (High)
+- **Effort:** 5 minutes (commit and push)
+- **Impact:** High - Cleanup already done, just needs commit
+
+**Git Status:**
+
+```
+deleted:    components/keyframes/KeyframeEditControls.tsx
+deleted:    components/keyframes/KeyframePreview.tsx
+deleted:    components/keyframes/KeyframeSidebar.tsx
+```
+
+**Action Required:** Commit the deletions as part of next git commit
+
+**Recommendation:** Include in next commit, closes Issue #8 from existing tracker
+
+---
+
 ### Timeline Editor UI/UX
 
 #### Issue #49: No Undo/Redo Visual Feedback or History Panel

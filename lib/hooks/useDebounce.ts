@@ -27,7 +27,7 @@ export function useDebounce<T>(value: T, delay: number = 300): T {
     }, delay);
 
     // Cleanup timeout if value changes before delay
-    return () => {
+    return (): void => {
       clearTimeout(handler);
     };
   }, [value, delay]);
@@ -55,22 +55,25 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
 ): T {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    return () => {
+  useEffect((): (() => void) => {
+    return (): void => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
     };
   }, []); // Only cleanup on unmount
 
-  const debouncedCallback = useCallback(((...args: Parameters<T>) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    timeoutRef.current = setTimeout(() => {
-      callback(...args);
-    }, delay);
-  }) as T, [callback, delay]);
+  const debouncedCallback = useCallback(
+    ((...args: Parameters<T>) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    }) as T,
+    [callback, delay]
+  );
 
   return debouncedCallback;
 }

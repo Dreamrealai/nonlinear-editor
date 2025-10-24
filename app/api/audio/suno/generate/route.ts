@@ -1,20 +1,13 @@
-import { NextRequest } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
-import { validateString, validateUUID, validateAll, validateBoolean } from '@/lib/api/validation';
-import {
-  errorResponse,
-  unauthorizedResponse,
-  validationError,
-  rateLimitResponse,
-  internalServerError,
-  withErrorHandling,
-  successResponse,
-} from '@/lib/api/response';
-import { verifyProjectOwnership } from '@/lib/api/project-verification';
+import { validateString, validateUUID, validateBoolean } from '@/lib/api/validation';
+import { successResponse } from '@/lib/api/response';
+import { createGenerationRoute } from '@/lib/api/createGenerationRoute';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-interface SunoGenerateRequest {
+/**
+ * Request body for Suno music generation
+ */
+interface SunoGenerateRequest extends Record<string, unknown> {
   prompt: string;
   style?: string;
   title?: string;
@@ -23,12 +16,12 @@ interface SunoGenerateRequest {
   projectId: string;
 }
 
-interface SunoTaskResponse {
-  code: number;
-  msg: string;
-  data: {
-    taskId: string;
-  };
+/**
+ * Response from Suno music generation
+ */
+interface SunoGenerateResponse {
+  taskId: string;
+  message: string;
 }
 
 interface SunoPayload {
@@ -40,105 +33,29 @@ interface SunoPayload {
   make_instrumental?: boolean;
 }
 
-export const POST = withErrorHandling(async (req: NextRequest) => {
-  const startTime = Date.now();
+interface SunoTaskResponse {
+  code: number;
+  msg: string;
+  data: {
+    taskId: string;
+  };
+}
 
-  serverLogger.info(
-    {
-      event: 'audio.music.request_started',
-    },
-    'Suno music generation request received'
-  );
+/**
+ * Execute Suno music generation
+ */
+async function executeSunoGeneration(options: {
+  body: SunoGenerateRequest;
+  userId: string;
+  projectId: string;
+  supabase: SupabaseClient;
+}): Promise<SunoGenerateResponse> {
+  const { body } = options;
+  const { prompt, style, title, customMode = false, instrumental = false } = body;
+
   const apiKey = process.env['COMET_API_KEY'];
-
   if (!apiKey) {
-    return internalServerError('Comet API key not configured');
-  }
-
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    serverLogger.warn(
-      {
-        event: 'audio.music.unauthorized',
-        error: authError?.message,
-      },
-      'Unauthorized music generation attempt'
-    );
-    return unauthorizedResponse();
-  }
-
-  // Rate limiting (expensive operation - 5 requests per minute per user)
-  // TIER 2 RATE LIMITING: Resource creation - music generation (10/min)
-  const rateLimitResult = await checkRateLimit(
-    `audio-music:${user.id}`,
-    RATE_LIMITS.tier2_resource_creation
-  );
-
-  if (!rateLimitResult.success) {
-    serverLogger.warn(
-      {
-        event: 'audio.music.rate_limited',
-        userId: user.id,
-        limit: rateLimitResult.limit,
-        remaining: rateLimitResult.remaining,
-        resetAt: rateLimitResult.resetAt,
-      },
-      'Music generation rate limit exceeded'
-    );
-    return rateLimitResponse(
-      rateLimitResult.limit,
-      rateLimitResult.remaining,
-      rateLimitResult.resetAt
-    );
-  }
-
-  serverLogger.debug(
-    {
-      event: 'audio.music.rate_limit_ok',
-      userId: user.id,
-      remaining: rateLimitResult.remaining,
-    },
-    'Rate limit check passed'
-  );
-
-  const body: SunoGenerateRequest = await req.json();
-  const { prompt, style, title, customMode = false, instrumental = false, projectId } = body;
-
-  // Validate all inputs using centralized validation utilities
-  const validationResults = [
-    validateUUID(projectId, 'projectId'),
-    validateBoolean(customMode, 'customMode'),
-    validateBoolean(instrumental, 'instrumental'),
-  ];
-
-  if (!customMode) {
-    validationResults.push(validateString(prompt, 'prompt', { minLength: 3, maxLength: 1000 }));
-  }
-
-  if (customMode) {
-    validationResults.push(validateString(style, 'style', { minLength: 2, maxLength: 200, required: true }));
-  }
-
-  if (title) {
-    validationResults.push(validateString(title, 'title', { required: false, maxLength: 100 }));
-  }
-
-  const validation = validateAll(validationResults);
-
-  if (!validation.valid) {
-    const firstError = validation.errors[0];
-    return validationError(firstError?.message ?? 'Invalid input', firstError?.field);
-  }
-
-  // Verify project ownership using centralized verification
-  const projectVerification = await verifyProjectOwnership(supabase, projectId, user.id, 'user_id');
-  if (!projectVerification.hasAccess) {
-    return errorResponse(projectVerification.error!, projectVerification.status!);
+    throw new Error('Comet API key not configured');
   }
 
   // Prepare request payload for Suno V5 (chirp-crow)
@@ -182,9 +99,8 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
         },
         'Suno API error'
       );
-      return errorResponse(
-        'Unable to generate music with Suno AI. The service may be temporarily unavailable or experiencing high demand. Please try again in a few moments.',
-        response.status
+      throw new Error(
+        'Unable to generate music with Suno AI. The service may be temporarily unavailable or experiencing high demand. Please try again in a few moments.'
       );
     }
   } catch (error) {
@@ -196,7 +112,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
         },
         'Suno music generation timeout'
       );
-      return errorResponse('Music generation timeout after 60s', 504);
+      throw new Error('Music generation timeout after 60s');
     }
     throw error;
   }
@@ -204,27 +120,50 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   const result: SunoTaskResponse = await response.json();
 
   if (result.code !== 200) {
-    return errorResponse(
+    throw new Error(
       result.msg ||
-        'Music generation failed. Please check your input and try again. If the problem persists, contact support.',
-      400
+        'Music generation failed. Please check your input and try again. If the problem persists, contact support.'
     );
   }
 
-  const duration = Date.now() - startTime;
-  serverLogger.info(
-    {
-      event: 'audio.music.success',
-      userId: user.id,
-      projectId,
-      taskId: result.data.taskId,
-      duration,
-    },
-    `Suno music generation started successfully in ${duration}ms`
-  );
-
-  return successResponse({
+  return {
     taskId: result.data.taskId,
     message: 'Audio generation started',
-  });
+  };
+}
+
+/**
+ * Generate music using Suno AI
+ */
+export const POST = createGenerationRoute<SunoGenerateRequest, SunoGenerateResponse>({
+  routeId: 'audio.music',
+  rateLimitPrefix: 'audio-music',
+  getValidationRules: (body) => {
+    const rules = [
+      validateUUID(body.projectId, 'projectId'),
+      validateBoolean(body.customMode, 'customMode'),
+      validateBoolean(body.instrumental, 'instrumental'),
+    ];
+
+    // Validate prompt if not in custom mode
+    if (!body.customMode) {
+      rules.push(validateString(body.prompt, 'prompt', { minLength: 3, maxLength: 1000 }));
+    }
+
+    // Validate style if in custom mode
+    if (body.customMode) {
+      rules.push(
+        validateString(body.style, 'style', { minLength: 2, maxLength: 200, required: true })
+      );
+    }
+
+    // Validate title if provided
+    if (body.title) {
+      rules.push(validateString(body.title, 'title', { required: false, maxLength: 100 }));
+    }
+
+    return rules;
+  },
+  execute: executeSunoGeneration,
+  formatResponse: (result) => successResponse(result),
 });

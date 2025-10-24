@@ -75,7 +75,7 @@ export function useVideoManager({
     } else {
       video.remove(); // Destroy if pool is full
     }
-  }, []);
+  }, []) satisfies UseVideoManagerReturn['cleanupVideo'];
 
   /**
    * Locates the video source URL for a clip.
@@ -140,7 +140,7 @@ export function useVideoManager({
 
         let pending = videoPromisesRef.current.get(clip.id);
         if (!pending) {
-          pending = (async () => {
+          pending = (async (): Promise<HTMLVideoElement> => {
             try {
               const container = containerRef.current;
               if (!container) {
@@ -271,13 +271,13 @@ export function useVideoManager({
   }, [timeline, cleanupVideo]);
 
   // Component unmount cleanup
-  useEffect(() => {
+  useEffect((): (() => void) => {
     const videoMap = videoMapRef.current;
     const videoPromises = videoPromisesRef.current;
     const errorHandlers = videoErrorHandlersRef.current;
     const videoPool = videoPoolRef.current;
 
-    return () => {
+    return (): void => {
       // Clean up all active video elements (will return to pool or destroy)
       videoMap.forEach((video, clipId) => {
         cleanupVideo(clipId, video);

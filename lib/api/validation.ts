@@ -1,11 +1,58 @@
 /**
- * API Validation Utilities
+ * API Validation Utilities (Backward Compatibility Wrapper)
  *
- * Centralized validation functions for API routes to eliminate code duplication.
- * Provides consistent validation logic with proper error messages.
+ * This file provides backward compatibility for routes still using the old validation API.
+ * It wraps the canonical validation functions from @/lib/validation with a result-based API.
+ *
+ * MIGRATION STATUS:
+ * - Canonical validation: @/lib/validation (assertion-based, throws ValidationError)
+ * - This wrapper: @/lib/api/validation (result-based, returns ValidationError | null)
+ * - Routes migrated: 2/17 (export, history)
+ * - Routes pending: 15/17
+ *
+ * RECOMMENDED: Migrate routes to use @/lib/validation directly with try-catch blocks.
  *
  * @module lib/api/validation
+ * @deprecated Use @/lib/validation directly for new code
  */
+
+import {
+  ValidationError as CanonicalValidationError,
+  validateUUID as canonicalValidateUUID,
+  validateEnum as canonicalValidateEnum,
+  validateInteger as canonicalValidateInteger,
+  validateNumber as canonicalValidateNumber,
+  validateBoolean as canonicalValidateBoolean,
+  validateUrl as canonicalValidateUrl,
+  validateAspectRatio as canonicalValidateAspectRatio,
+  validateDuration as canonicalValidateDuration,
+  validateSeed as canonicalValidateSeed,
+  validateSampleCount as canonicalValidateSampleCount,
+  validateSafetyFilterLevel as canonicalValidateSafetyFilterLevel,
+  validatePersonGeneration as canonicalValidatePersonGeneration,
+  validateString as canonicalValidateString,
+  VALID_ASPECT_RATIOS,
+  VALID_DURATIONS,
+  VALID_SAFETY_LEVELS,
+  VALID_PERSON_GENERATION,
+  URL_REGEX,
+} from '@/lib/validation';
+
+/**
+ * Re-export constants
+ */
+export {
+  VALID_ASPECT_RATIOS,
+  VALID_DURATIONS,
+  VALID_SAFETY_LEVELS,
+  VALID_PERSON_GENERATION,
+  URL_REGEX,
+};
+
+/**
+ * UUID v4 regex pattern
+ */
+export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
  * Validation error type with field-specific information
@@ -25,9 +72,22 @@ export interface ValidationResult {
 }
 
 /**
- * UUID v4 regex pattern
+ * Wrapper helper to convert assertion-based validation to result-based
  */
-export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+function wrapValidation(validationFn: () => void): ValidationError | null {
+  try {
+    validationFn();
+    return null;
+  } catch (error) {
+    if (error instanceof CanonicalValidationError) {
+      return {
+        field: error.field ?? 'unknown',
+        message: error.message,
+      };
+    }
+    throw error;
+  }
+}
 
 /**
  * Validates a UUID format
@@ -35,32 +95,9 @@ export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{
  * @param value - Value to validate
  * @param fieldName - Name of the field for error messages
  * @returns Validation error if invalid, null if valid
- *
- * @example
- * const error = validateUUID(projectId, 'projectId');
- * if (error) return errorResponse(error.message, 400);
  */
 export function validateUUID(value: unknown, fieldName: string = 'id'): ValidationError | null {
-  if (!value || typeof value !== 'string') {
-    return {
-      field: fieldName,
-      message: `${fieldName} is required`,
-    };
-  }
-
-  if (process.env.NODE_ENV === 'test') {
-    return null;
-  }
-
-  if (!UUID_REGEX.test(value)) {
-    return {
-      field: fieldName,
-      message: `Invalid ${fieldName} format`,
-      value,
-    };
-  }
-
-  return null;
+  return wrapValidation(() => canonicalValidateUUID(value, fieldName));
 }
 
 /**
@@ -70,10 +107,6 @@ export function validateUUID(value: unknown, fieldName: string = 'id'): Validati
  * @param fieldName - Name of the field for error messages
  * @param options - Validation options
  * @returns Validation error if invalid, null if valid
- *
- * @example
- * const error = validateString(prompt, 'prompt', { minLength: 3, maxLength: 1000 });
- * if (error) return errorResponse(error.message, 400);
  */
 export function validateString(
   value: unknown,
@@ -84,35 +117,7 @@ export function validateString(
     maxLength?: number;
   } = {}
 ): ValidationError | null {
-  const { required = true, minLength, maxLength } = options;
-
-  if (!value || typeof value !== 'string') {
-    if (required) {
-      return {
-        field: fieldName,
-        message: `${fieldName} is required`,
-      };
-    }
-    return null;
-  }
-
-  if (minLength !== undefined && value.length < minLength) {
-    return {
-      field: fieldName,
-      message: `${fieldName} must be at least ${minLength} characters`,
-      value: value.length,
-    };
-  }
-
-  if (maxLength !== undefined && value.length > maxLength) {
-    return {
-      field: fieldName,
-      message: `${fieldName} must not exceed ${maxLength} characters`,
-      value: value.length,
-    };
-  }
-
-  return null;
+  return wrapValidation(() => canonicalValidateString(value, fieldName, options));
 }
 
 /**
@@ -122,10 +127,6 @@ export function validateString(
  * @param fieldName - Name of the field for error messages
  * @param options - Validation options
  * @returns Validation error if invalid, null if valid
- *
- * @example
- * const error = validateInteger(seed, 'seed', { min: 0, max: 4294967295 });
- * if (error) return errorResponse(error.message, 400);
  */
 export function validateInteger(
   value: unknown,
@@ -136,43 +137,7 @@ export function validateInteger(
     max?: number;
   } = {}
 ): ValidationError | null {
-  const { required = false, min, max } = options;
-
-  if (value === undefined || value === null) {
-    if (required) {
-      return {
-        field: fieldName,
-        message: `${fieldName} is required`,
-      };
-    }
-    return null;
-  }
-
-  if (!Number.isInteger(value)) {
-    return {
-      field: fieldName,
-      message: `${fieldName} must be an integer`,
-      value,
-    };
-  }
-
-  if (min !== undefined && (value as number) < min) {
-    return {
-      field: fieldName,
-      message: `${fieldName} must be at least ${min}`,
-      value,
-    };
-  }
-
-  if (max !== undefined && (value as number) > max) {
-    return {
-      field: fieldName,
-      message: `${fieldName} must not exceed ${max}`,
-      value,
-    };
-  }
-
-  return null;
+  return wrapValidation(() => canonicalValidateInteger(value, fieldName, options));
 }
 
 /**
@@ -183,10 +148,6 @@ export function validateInteger(
  * @param allowedValues - Array of allowed values
  * @param required - Whether the field is required
  * @returns Validation error if invalid, null if valid
- *
- * @example
- * const error = validateEnum(aspectRatio, 'aspectRatio', ['16:9', '9:16', '1:1']);
- * if (error) return errorResponse(error.message, 400);
  */
 export function validateEnum(
   value: unknown,
@@ -194,31 +155,11 @@ export function validateEnum(
   allowedValues: readonly string[],
   required: boolean = false
 ): ValidationError | null {
-  if (!value || typeof value !== 'string') {
-    if (required) {
-      return {
-        field: fieldName,
-        message: `${fieldName} is required`,
-      };
-    }
+  if (!required && (value === undefined || value === null || value === '')) {
     return null;
   }
-
-  if (!allowedValues.includes(value)) {
-    return {
-      field: fieldName,
-      message: `Invalid ${fieldName}. Must be one of: ${allowedValues.join(', ')}`,
-      value,
-    };
-  }
-
-  return null;
+  return wrapValidation(() => canonicalValidateEnum(value, fieldName, allowedValues));
 }
-
-/**
- * Common aspect ratio validation
- */
-export const VALID_ASPECT_RATIOS = ['16:9', '9:16', '1:1', '4:3', '3:4'] as const;
 
 /**
  * Validates aspect ratio
@@ -227,13 +168,11 @@ export const VALID_ASPECT_RATIOS = ['16:9', '9:16', '1:1', '4:3', '3:4'] as cons
  * @returns Validation error if invalid, null if valid
  */
 export function validateAspectRatio(aspectRatio: unknown): ValidationError | null {
-  return validateEnum(aspectRatio, 'aspectRatio', VALID_ASPECT_RATIOS, false);
+  if (aspectRatio === undefined || aspectRatio === null) {
+    return null;
+  }
+  return wrapValidation(() => canonicalValidateAspectRatio(aspectRatio));
 }
-
-/**
- * Common video duration validation
- */
-export const VALID_DURATIONS = [4, 5, 6, 8, 10] as const;
 
 /**
  * Validates video duration
@@ -245,19 +184,7 @@ export function validateDuration(duration: unknown): ValidationError | null {
   if (duration === undefined || duration === null) {
     return null;
   }
-
-  if (
-    typeof duration !== 'number' ||
-    !VALID_DURATIONS.includes(duration as (typeof VALID_DURATIONS)[number])
-  ) {
-    return {
-      field: 'duration',
-      message: `Invalid duration. Must be ${VALID_DURATIONS.join(', ')} seconds`,
-      value: duration,
-    };
-  }
-
-  return null;
+  return wrapValidation(() => canonicalValidateDuration(duration));
 }
 
 /**
@@ -267,7 +194,10 @@ export function validateDuration(duration: unknown): ValidationError | null {
  * @returns Validation error if invalid, null if valid
  */
 export function validateSeed(seed: unknown): ValidationError | null {
-  return validateInteger(seed, 'seed', { min: 0, max: 4294967295 });
+  if (seed === undefined || seed === null) {
+    return null;
+  }
+  return wrapValidation(() => canonicalValidateSeed(seed));
 }
 
 /**
@@ -278,13 +208,11 @@ export function validateSeed(seed: unknown): ValidationError | null {
  * @returns Validation error if invalid, null if valid
  */
 export function validateSampleCount(sampleCount: unknown, max: number = 8): ValidationError | null {
-  return validateInteger(sampleCount, 'sampleCount', { min: 1, max });
+  if (sampleCount === undefined || sampleCount === null) {
+    return null;
+  }
+  return wrapValidation(() => canonicalValidateSampleCount(sampleCount, max));
 }
-
-/**
- * Common safety filter levels for AI generation
- */
-export const VALID_SAFETY_LEVELS = ['block_none', 'block_few', 'block_some', 'block_most'] as const;
 
 /**
  * Validates safety filter level
@@ -293,13 +221,11 @@ export const VALID_SAFETY_LEVELS = ['block_none', 'block_few', 'block_some', 'bl
  * @returns Validation error if invalid, null if valid
  */
 export function validateSafetyFilterLevel(safetyFilterLevel: unknown): ValidationError | null {
-  return validateEnum(safetyFilterLevel, 'safetyFilterLevel', VALID_SAFETY_LEVELS, false);
+  if (safetyFilterLevel === undefined || safetyFilterLevel === null) {
+    return null;
+  }
+  return wrapValidation(() => canonicalValidateSafetyFilterLevel(safetyFilterLevel));
 }
-
-/**
- * Common person generation options
- */
-export const VALID_PERSON_GENERATION = ['dont_allow', 'allow_adult', 'allow_all'] as const;
 
 /**
  * Validates person generation option
@@ -308,14 +234,11 @@ export const VALID_PERSON_GENERATION = ['dont_allow', 'allow_adult', 'allow_all'
  * @returns Validation error if invalid, null if valid
  */
 export function validatePersonGeneration(personGeneration: unknown): ValidationError | null {
-  return validateEnum(personGeneration, 'personGeneration', VALID_PERSON_GENERATION, false);
+  if (personGeneration === undefined || personGeneration === null) {
+    return null;
+  }
+  return wrapValidation(() => canonicalValidatePersonGeneration(personGeneration));
 }
-
-/**
- * URL regex pattern for validation
- */
-export const URL_REGEX =
-  /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/;
 
 /**
  * Validates a URL format
@@ -324,10 +247,6 @@ export const URL_REGEX =
  * @param fieldName - Name of the field for error messages
  * @param options - Validation options
  * @returns Validation error if invalid, null if valid
- *
- * @example
- * const error = validateUrl(imageUrl, 'imageUrl', { httpsOnly: true });
- * if (error) return errorResponse(error.message, 400);
  */
 export function validateUrl(
   value: unknown,
@@ -338,43 +257,11 @@ export function validateUrl(
     maxLength?: number;
   } = {}
 ): ValidationError | null {
-  const { required = false, httpsOnly = false, maxLength = 2048 } = options;
-
-  if (!value || typeof value !== 'string') {
-    if (required) {
-      return {
-        field: fieldName,
-        message: `${fieldName} is required`,
-      };
-    }
+  const { required = false } = options;
+  if (!required && (value === undefined || value === null || value === '')) {
     return null;
   }
-
-  if (value.length > maxLength) {
-    return {
-      field: fieldName,
-      message: `${fieldName} must not exceed ${maxLength} characters`,
-      value: value.length,
-    };
-  }
-
-  if (!URL_REGEX.test(value)) {
-    return {
-      field: fieldName,
-      message: `Invalid ${fieldName} format`,
-      value,
-    };
-  }
-
-  if (httpsOnly && !value.startsWith('https://')) {
-    return {
-      field: fieldName,
-      message: `${fieldName} must use HTTPS protocol`,
-      value,
-    };
-  }
-
-  return null;
+  return wrapValidation(() => canonicalValidateUrl(value, fieldName, options));
 }
 
 /**
@@ -384,10 +271,6 @@ export function validateUrl(
  * @param fieldName - Name of the field for error messages
  * @param options - Validation options
  * @returns Validation error if invalid, null if valid
- *
- * @example
- * const error = validateNumber(stability, 'stability', { min: 0, max: 1 });
- * if (error) return errorResponse(error.message, 400);
  */
 export function validateNumber(
   value: unknown,
@@ -398,43 +281,11 @@ export function validateNumber(
     max?: number;
   } = {}
 ): ValidationError | null {
-  const { required = false, min, max } = options;
-
-  if (value === undefined || value === null) {
-    if (required) {
-      return {
-        field: fieldName,
-        message: `${fieldName} is required`,
-      };
-    }
+  const { required = false } = options;
+  if (!required && (value === undefined || value === null)) {
     return null;
   }
-
-  if (typeof value !== 'number' || isNaN(value)) {
-    return {
-      field: fieldName,
-      message: `${fieldName} must be a number`,
-      value,
-    };
-  }
-
-  if (min !== undefined && value < min) {
-    return {
-      field: fieldName,
-      message: `${fieldName} must be at least ${min}`,
-      value,
-    };
-  }
-
-  if (max !== undefined && value > max) {
-    return {
-      field: fieldName,
-      message: `${fieldName} must not exceed ${max}`,
-      value,
-    };
-  }
-
-  return null;
+  return wrapValidation(() => canonicalValidateNumber(value, fieldName, options.min, options.max));
 }
 
 /**
@@ -444,35 +295,16 @@ export function validateNumber(
  * @param fieldName - Name of the field for error messages
  * @param required - Whether the field is required
  * @returns Validation error if invalid, null if valid
- *
- * @example
- * const error = validateBoolean(instrumental, 'instrumental', false);
- * if (error) return errorResponse(error.message, 400);
  */
 export function validateBoolean(
   value: unknown,
   fieldName: string,
   required: boolean = false
 ): ValidationError | null {
-  if (value === undefined || value === null) {
-    if (required) {
-      return {
-        field: fieldName,
-        message: `${fieldName} is required`,
-      };
-    }
+  if (!required && (value === undefined || value === null)) {
     return null;
   }
-
-  if (typeof value !== 'boolean') {
-    return {
-      field: fieldName,
-      message: `${fieldName} must be a boolean`,
-      value,
-    };
-  }
-
-  return null;
+  return wrapValidation(() => canonicalValidateBoolean(value, fieldName));
 }
 
 /**
@@ -481,18 +313,19 @@ export function validateBoolean(
  *
  * @param validations - Array of validation functions that return ValidationError | null
  * @returns ValidationResult with all errors
- *
- * @example
- * const result = validateAll([
- *   validateString(prompt, 'prompt', { minLength: 3, maxLength: 1000 }),
- *   validateUUID(projectId, 'projectId'),
- *   validateAspectRatio(aspectRatio),
- * ]);
- * if (!result.valid) {
- *   return errorResponse(result.errors[0].message, 400);
- * }
  */
-export function validateAll(validations: (ValidationError | null | { valid: boolean; field?: string; message?: string; errors?: { field?: string; message?: string }[] })[]): ValidationResult {
+export function validateAll(
+  validations: (
+    | ValidationError
+    | null
+    | {
+        valid: boolean;
+        field?: string;
+        message?: string;
+        errors?: { field?: string; message?: string }[];
+      }
+  )[]
+): ValidationResult {
   const errors: ValidationError[] = [];
 
   for (const result of validations) {

@@ -19,6 +19,7 @@ import {
   rateLimitResponse,
   validationError,
   withErrorHandling,
+  successResponse,
 } from '@/lib/api/response';
 import { HttpStatusCode } from '@/lib/errors/errorCodes';
 import { verifyProjectOwnership, verifyAssetOwnership } from '@/lib/api/project-verification';
@@ -32,6 +33,7 @@ const MODEL_DEFINITIONS = {
 } as const;
 
 type SupportedVideoModel = keyof typeof MODEL_DEFINITIONS;
+const DEFAULT_VIDEO_MODEL: SupportedVideoModel = 'veo-3.1-generate-preview';
 
 /**
  * Generate a video from a text prompt using AI models (Google Veo, FAL.ai Seedance, or MiniMax).
@@ -203,8 +205,17 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   let body: Record<string, unknown>;
   try {
     body = await req.json();
-  } catch {
-    return errorResponse('Invalid request body', HttpStatusCode.INTERNAL_SERVER_ERROR);
+  } catch (error) {
+    serverLogger.warn(
+      {
+        event: 'video.generate.invalid_json',
+        error: error instanceof Error ? error.message : error,
+      },
+      'Invalid JSON body for video generation request'
+    );
+    return ensureResponse(validationError('Invalid JSON body'), () =>
+      NextResponse.json({ error: 'Invalid JSON body' }, { status: HttpStatusCode.BAD_REQUEST })
+    );
   }
   const {
     prompt,
@@ -223,10 +234,36 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     imageAssetId,
   } = body;
 
-  const selectedModel =
-    typeof model === 'string' && model.length > 0
-      ? (model as SupportedVideoModel)
-      : ('veo-3.1-generate-preview' satisfies SupportedVideoModel);
+  const requestedModel =
+    typeof model === 'string' && model.trim().length > 0 ? model.trim() : undefined;
+
+  if (requestedModel && !Object.prototype.hasOwnProperty.call(MODEL_DEFINITIONS, requestedModel)) {
+    serverLogger.warn(
+      {
+        event: 'video.generate.unsupported_model',
+        userId: user.id,
+        model: requestedModel,
+      },
+      'Unsupported video generation model requested'
+    );
+
+    return ensureResponse(
+      validationError(
+        `The video model '${requestedModel}' is not supported. Please use one of: ${Object.keys(MODEL_DEFINITIONS).join(', ')}`,
+        'model'
+      ),
+      () =>
+        NextResponse.json(
+          {
+            error: `The video model '${requestedModel}' is not supported. Please use one of: ${Object.keys(MODEL_DEFINITIONS).join(', ')}`,
+            field: 'model',
+          },
+          { status: HttpStatusCode.BAD_REQUEST }
+        )
+    );
+  }
+
+  const selectedModel = (requestedModel ?? DEFAULT_VIDEO_MODEL) as SupportedVideoModel;
   const modelConfig = MODEL_DEFINITIONS[selectedModel];
 
   serverLogger.debug(
@@ -245,27 +282,17 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   );
 
   if (!modelConfig) {
-    serverLogger.warn(
+    serverLogger.error(
       {
-        event: 'video.generate.unsupported_model',
+        event: 'video.generate.model_lookup_failed',
         userId: user.id,
         model: selectedModel,
       },
-      'Unsupported video generation model requested'
+      'Model definition missing after validation checks'
     );
-    return ensureResponse(
-      validationError(
-        `The video model '${selectedModel}' is not supported. Please use one of: ${Object.keys(MODEL_DEFINITIONS).join(', ')}`,
-        'model'
-      ),
-      () =>
-        NextResponse.json(
-          {
-            error: `The video model '${selectedModel}' is not supported. Please use one of: ${Object.keys(MODEL_DEFINITIONS).join(', ')}`,
-            field: 'model',
-          },
-          { status: 400 }
-        )
+    return errorResponse(
+      'The requested model configuration is unavailable.',
+      HttpStatusCode.INTERNAL_SERVER_ERROR
     );
   }
 
@@ -309,15 +336,15 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   // Type assertions after validation succeeds
   const validatedPrompt = prompt as string;
   const validatedProjectId = projectId as string;
-  const validatedAspectRatio = aspectRatio as "16:9" | "9:16" | "1:1" | undefined;
+  const validatedAspectRatio = aspectRatio as '16:9' | '9:16' | '1:1' | undefined;
   const validatedDuration = duration as number | undefined;
-  const validatedResolution = resolution as "720p" | "1080p" | undefined;
+  const validatedResolution = resolution as '720p' | '1080p' | undefined;
   const validatedNegativePrompt = negativePrompt as string | undefined;
-  const validatedPersonGeneration = personGeneration as "dont_allow" | "allow_adult" | undefined;
+  const validatedPersonGeneration = personGeneration as 'dont_allow' | 'allow_adult' | undefined;
   const validatedEnhancePrompt = enhancePrompt as boolean | undefined;
   const validatedSeed = seed as number | undefined;
   const validatedSampleCount = sampleCount as number | undefined;
-  const validatedCompressionQuality = compressionQuality as "optimized" | "lossless" | undefined;
+  const validatedCompressionQuality = compressionQuality as 'optimized' | 'lossless' | undefined;
   const validatedImageAssetId = imageAssetId as string | undefined;
 
   // Verify user owns the project using centralized verification
@@ -338,15 +365,14 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       serverLogger.debug({ projectVerification }, 'Project verification fallback');
     }
     const parsedStatus = Number(projectVerification.status);
+    const projectErrorText =
+      typeof projectVerification.error === 'string' ? projectVerification.error.toLowerCase() : '';
     const status = Number.isFinite(parsedStatus)
       ? parsedStatus
-      : projectVerification.error?.toLowerCase().includes('not')
+      : projectErrorText.includes('not')
         ? HttpStatusCode.NOT_FOUND
         : HttpStatusCode.FORBIDDEN;
-    return NextResponse.json(
-      { error: projectVerification.error ?? 'Project access denied' },
-      { status }
-    );
+    return errorResponse(projectVerification.error ?? 'Project access denied', status);
   }
 
   // Fetch image URL if imageAssetId is provided
@@ -358,15 +384,14 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
         serverLogger.debug({ assetVerification }, 'Asset verification fallback');
       }
       const parsedAssetStatus = Number(assetVerification.status);
+      const assetErrorText =
+        typeof assetVerification.error === 'string' ? assetVerification.error.toLowerCase() : '';
       const status = Number.isFinite(parsedAssetStatus)
         ? parsedAssetStatus
-        : assetVerification.error?.toLowerCase().includes('not')
+        : assetErrorText.includes('not')
           ? HttpStatusCode.NOT_FOUND
           : HttpStatusCode.FORBIDDEN;
-      return NextResponse.json(
-        { error: assetVerification.error ?? 'Asset access denied' },
-        { status }
-      );
+      return errorResponse(assetVerification.error ?? 'Asset access denied', status);
     }
 
     const imageAsset = assetVerification.asset!;
@@ -434,7 +459,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
         `FAL video generation initiated in ${duration_ms}ms`
       );
 
-      return NextResponse.json({
+      return successResponse({
         operationName: `fal:${result.endpoint}:${result.requestId}`,
         status: 'processing',
         message: 'Video generation started. Use the operation name to check status.',
@@ -485,7 +510,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
         `Veo video generation initiated in ${duration_ms}ms`
       );
 
-      return NextResponse.json({
+      return successResponse({
         operationName: result.name,
         status: 'processing',
         message: 'Video generation started. Use the operation name to check status.',
