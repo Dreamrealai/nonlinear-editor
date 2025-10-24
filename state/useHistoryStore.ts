@@ -102,7 +102,9 @@ export const useHistoryStore = create<HistoryStore>()((set, get) => ({
       const previousState = state.history[newIndex];
       if (previousState) {
         set(() => ({ historyIndex: newIndex }));
-        return cloneTimeline(previousState);
+        // OPTIMIZATION: No need to clone on restore - the timeline is immutable
+        // Cloning only happens when saving to history (line 82)
+        return previousState;
       }
     }
     return null;
@@ -115,7 +117,9 @@ export const useHistoryStore = create<HistoryStore>()((set, get) => ({
       const nextState = state.history[newIndex];
       if (nextState) {
         set(() => ({ historyIndex: newIndex }));
-        return cloneTimeline(nextState);
+        // OPTIMIZATION: No need to clone on restore - the timeline is immutable
+        // Cloning only happens when saving to history (line 82)
+        return nextState;
       }
     }
     return null;

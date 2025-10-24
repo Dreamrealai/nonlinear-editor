@@ -10,6 +10,7 @@ type SaveFn = (projectId: string, timeline: Timeline) => Promise<void> | void;
 export function useAutosave(projectId: string, delay = 2000, saveFn?: SaveFn) {
   const timeline = useEditorStore((state) => state.timeline);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,8 +31,16 @@ export function useAutosave(projectId: string, delay = 2000, saveFn?: SaveFn) {
           browserLogger.error({ error, projectId }, 'Autosave failed');
           setSaveError(error instanceof Error ? error.message : 'Failed to save timeline');
 
-          // Clear error after 5 seconds
-          setTimeout(() => setSaveError(null), 5000);
+          // Clear any existing error timeout
+          if (errorTimeoutRef.current) {
+            clearTimeout(errorTimeoutRef.current);
+          }
+
+          // Clear error after 5 seconds with proper cleanup tracking
+          errorTimeoutRef.current = setTimeout(() => {
+            setSaveError(null);
+            errorTimeoutRef.current = null;
+          }, 5000);
         });
       }
     }, delay);
@@ -39,6 +48,12 @@ export function useAutosave(projectId: string, delay = 2000, saveFn?: SaveFn) {
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      // Clean up error timeout on unmount
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = null;
       }
     };
   }, [projectId, timeline, delay, saveFn]);

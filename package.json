@@ -93,5 +93,8 @@
     "*.{json,md,yml,yaml,css}": [
       "prettier --write"
     ]
+  },
+  "overrides": {
+    "prismjs": "^1.30.0"
   }
 }

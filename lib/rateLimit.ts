@@ -39,14 +39,17 @@ function startCleanupIfNeeded() {
 
   // Only start interval if not already running
   if (!cleanupInterval) {
-    cleanupInterval = setInterval(() => {
-      const now = Date.now();
-      for (const [key, value] of fallbackStore.entries()) {
-        if (value.resetAt < now) {
-          fallbackStore.delete(key);
+    cleanupInterval = setInterval(
+      () => {
+        const now = Date.now();
+        for (const [key, value] of fallbackStore.entries()) {
+          if (value.resetAt < now) {
+            fallbackStore.delete(key);
+          }
         }
-      }
-    }, 5 * 60 * 1000); // Clean up expired entries every 5 minutes
+      },
+      5 * 60 * 1000
+    ); // Clean up expired entries every 5 minutes
   }
 }
 
@@ -63,6 +66,21 @@ export function cleanupRateLimit() {
   fallbackInUse = false;
 }
 
+// Automatic cleanup on process termination (for serverless/edge environments)
+if (typeof process !== 'undefined' && process.on) {
+  // Clean up on graceful shutdown
+  process.on('beforeExit', cleanupRateLimit);
+  process.on('SIGTERM', cleanupRateLimit);
+  process.on('SIGINT', cleanupRateLimit);
+
+  // Clean up on HMR (Hot Module Replacement) during development
+  // @ts-expect-error - module.hot is available in development but not typed
+  if (process.env.NODE_ENV === 'development' && typeof module !== 'undefined' && module.hot) {
+    // @ts-expect-error - module.hot.dispose is available in development but not typed
+    module.hot.dispose(cleanupRateLimit);
+  }
+}
+
 // Initialize Supabase client with service role key for rate limiting
 // Service role is required because rate_limits table has RLS enabled
 let supabaseClient: SupabaseClient | null = null;
@@ -70,19 +88,25 @@ let supabaseClient: SupabaseClient | null = null;
 function getSupabaseClient() {
   if (!supabaseClient) {
     if (!isSupabaseServiceConfigured()) {
-      serverLogger.warn({
-        event: 'rateLimit.supabase_unavailable',
-      }, 'Supabase service role not configured, using in-memory rate limiting fallback');
+      serverLogger.warn(
+        {
+          event: 'rateLimit.supabase_unavailable',
+        },
+        'Supabase service role not configured, using in-memory rate limiting fallback'
+      );
       return null;
     }
 
     try {
       supabaseClient = createServiceSupabaseClient();
     } catch (error) {
-      serverLogger.warn({
-        event: 'rateLimit.supabase_init_failed',
-        error,
-      }, 'Failed to initialize Supabase client, using in-memory rate limiting fallback');
+      serverLogger.warn(
+        {
+          event: 'rateLimit.supabase_init_failed',
+          error,
+        },
+        'Failed to initialize Supabase client, using in-memory rate limiting fallback'
+      );
       return null;
     }
   }
@@ -107,10 +131,7 @@ export interface RateLimitResult {
 /**
  * Fallback in-memory rate limit check
  */
-function checkRateLimitMemory(
-  identifier: string,
-  config: RateLimitConfig
-): RateLimitResult {
+function checkRateLimitMemory(identifier: string, config: RateLimitConfig): RateLimitResult {
   // Start cleanup interval when fallback is first used
   startCleanupIfNeeded();
 
@@ -175,38 +196,47 @@ export async function checkRateLimit(
     // IMPORTANT: The database function increments AFTER checking, preventing race conditions.
     // The returned current_count is the count AFTER incrementing.
     // Note: We use 'as unknown' to bypass Supabase's strict typing for custom RPC functions
-    const { data: rawData, error } = await client.rpc(
-      'increment_rate_limit',
-      { rate_key: identifier, window_seconds: windowSeconds } as unknown as never
-    );
+    const { data: rawData, error } = await client.rpc('increment_rate_limit', {
+      rate_key: identifier,
+      window_seconds: windowSeconds,
+    } as unknown as never);
 
     if (error) {
-      serverLogger.error({
-        event: 'rateLimit.check_failed',
-        identifier,
-        error: error.message,
-        code: error.code,
-      }, 'Rate limit check failed, using in-memory fallback');
+      serverLogger.error(
+        {
+          event: 'rateLimit.check_failed',
+          identifier,
+          error: error.message,
+          code: error.code,
+        },
+        'Rate limit check failed, using in-memory fallback'
+      );
       return checkRateLimitMemory(identifier, config);
     }
 
     const data = rawData as unknown as Array<{ current_count: number; reset_time: string }>;
 
     if (!data || data.length === 0) {
-      serverLogger.error({
-        event: 'rateLimit.no_data',
-        identifier,
-      }, 'Rate limit function returned no data, using in-memory fallback');
+      serverLogger.error(
+        {
+          event: 'rateLimit.no_data',
+          identifier,
+        },
+        'Rate limit function returned no data, using in-memory fallback'
+      );
       return checkRateLimitMemory(identifier, config);
     }
 
     // Safely get first result
     const result = safeArrayFirst(data);
     if (!result) {
-      serverLogger.error({
-        event: 'rateLimit.invalid_data',
-        identifier,
-      }, 'Rate limit function returned invalid data, using in-memory fallback');
+      serverLogger.error(
+        {
+          event: 'rateLimit.invalid_data',
+          identifier,
+        },
+        'Rate limit function returned invalid data, using in-memory fallback'
+      );
       return checkRateLimitMemory(identifier, config);
     }
 
@@ -225,11 +255,14 @@ export async function checkRateLimit(
       resetAt: resetTime,
     };
   } catch (err) {
-    serverLogger.error({
-      event: 'rateLimit.unexpected_error',
-      identifier,
-      error: err,
-    }, 'Unexpected error in rate limit check, using in-memory fallback');
+    serverLogger.error(
+      {
+        event: 'rateLimit.unexpected_error',
+        identifier,
+        error: err,
+      },
+      'Unexpected error in rate limit check, using in-memory fallback'
+    );
     return checkRateLimitMemory(identifier, config);
   }
 }
@@ -247,10 +280,7 @@ export function createRateLimiter(config: RateLimitConfig) {
  * Synchronous rate limit check (uses in-memory fallback)
  * @deprecated Use async checkRateLimit instead for distributed rate limiting
  */
-export function checkRateLimitSync(
-  identifier: string,
-  config: RateLimitConfig
-): RateLimitResult {
+export function checkRateLimitSync(identifier: string, config: RateLimitConfig): RateLimitResult {
   return checkRateLimitMemory(identifier, config);
 }
 

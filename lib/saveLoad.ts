@@ -27,40 +27,29 @@ export async function loadTimeline(projectId: string): Promise<Timeline | null> 
   }
 }
 
-export async function saveTimeline(
-  projectId: string,
-  timeline: Timeline,
-): Promise<void> {
+export async function saveTimeline(projectId: string, timeline: Timeline): Promise<void> {
   try {
     const supabase = createBrowserSupabaseClient();
-    const { error } = await supabase
-      .from('timelines')
-      .upsert(
-        {
-          project_id: projectId,
-          timeline_data: timeline,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'project_id' }
-      );
+    const { error } = await supabase.from('timelines').upsert(
+      {
+        project_id: projectId,
+        timeline_data: timeline,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'project_id' }
+    );
 
     if (error) {
       browserLogger.error({ error, projectId }, 'Failed to save timeline');
       return;
     }
 
-    // Also update the project's timeline_state_jsonb for backward compatibility
-    const { error: projectError } = await supabase
-      .from('projects')
-      .update({
-        timeline_state_jsonb: timeline,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', projectId);
+    // NOTE: Double write to projects.timeline_state_jsonb removed (2025-10-23)
+    // Analysis showed no code reads from this column - all reads use timelines table
+    // The column remains in schema for true backward compatibility but is no longer updated
+    // TODO: Create migration to deprecate timeline_state_jsonb column in projects table
 
-    if (projectError) {
-      browserLogger.error({ error: projectError, projectId }, 'Failed to update project timeline');
-    }
+    browserLogger.info({ projectId }, 'Timeline saved successfully');
   } catch (error) {
     browserLogger.error({ error, projectId }, 'Unexpected error saving timeline');
   }
