@@ -6,11 +6,11 @@ exports[`LoadingSpinner Snapshot Consistency should maintain structure with all 
 >
   <div
     aria-label="Loading"
-    class="animate-spin rounded-full border-gray-300 border-t-blue-600 w-8 h-8 border-3"
+    class="animate-spin rounded-full motion-reduce:animate-none motion-reduce:border-t-4 border-gray-300 border-t-blue-600 dark:border-gray-700 dark:border-t-blue-400 w-8 h-8 border-3"
     role="status"
   />
   <span
-    class="text-sm text-gray-600"
+    class="text-sm text-gray-600 dark:text-gray-400"
   >
     Loading data...
   </span>
@@ -23,7 +23,7 @@ exports[`LoadingSpinner Snapshot Consistency should maintain structure with defa
 >
   <div
     aria-label="Loading"
-    class="animate-spin rounded-full border-gray-300 border-t-blue-600 w-6 h-6 border-2"
+    class="animate-spin rounded-full motion-reduce:animate-none motion-reduce:border-t-4 border-gray-300 border-t-blue-600 dark:border-gray-700 dark:border-t-blue-400 w-6 h-6 border-2"
     role="status"
   />
 </div>

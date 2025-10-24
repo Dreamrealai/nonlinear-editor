@@ -1,7 +1,7 @@
 # Codebase Issues Tracker
 
 **Last Updated:** 2025-10-24
-**Status:** ✅ **All Critical Bugs Fixed!** (0 open bugs, 66 issues resolved)
+**Status:** ✅ **All Critical Bugs Fixed!** (0 open bugs, 68 issues resolved)
 **Priority Breakdown:** P0: 0 | P1: 0 | P2: 0 | P3: 0
 
 ---
@@ -37,8 +37,9 @@ For future feature requests and enhancements, see **[FEATURES_BACKLOG.md](./FEAT
 
 - ✅ Added explicit TypeScript return types to 100% of production functions
 - ✅ Migrated all API routes to assertion-based input validation (45 routes)
-- ✅ Improved test pass rate from 18% to 67% (+19 tests fixed)
+- ✅ Improved test pass rate from 18% to 67% (+21 tests fixed)
 - ✅ Zero console warnings - all console calls migrated to structured logging
+- ✅ Fixed 2 snapshot tests (LoadingSpinner dark mode + a11y updates)
 
 **Security & Infrastructure (P1):**
 
@@ -100,13 +101,22 @@ For future feature requests and enhancements, see **[FEATURES_BACKLOG.md](./FEAT
 
 ## Testing Status
 
-### Unit Tests: 67% Pass Rate (26/39 tests passing)
+### Unit Tests: 69% Pass Rate (28/41 tests passing)
 
 **Passing Suites:**
 
 - ✅ `audio/suno-generate.test.ts` - 30/30 tests (100%)
+- ✅ `components/LoadingSpinner.test.tsx` - 29/29 tests (100%) - 2 snapshot tests fixed
 - ⚠️ `video/status.test.ts` - 25/26 tests (96%) - 1 GCS auth test remaining
 - ⚠️ `frames/frameId-edit.test.ts` - 1/13 tests (8%) - Environment config issue
+
+**Recent Fixes (Agent 16):**
+
+- ✅ Fixed 2 LoadingSpinner snapshot tests
+  - **Issue:** Snapshots outdated after dark mode + accessibility enhancements
+  - **Resolution:** Updated snapshots to include `dark:*` and `motion-reduce:*` classes
+  - **Validation:** Component enhancements were intentional and improve UX/a11y
+  - **Documentation:** Created snapshot testing best practices guide
 
 **Remaining Work:**
 
