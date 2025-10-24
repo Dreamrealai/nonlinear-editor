@@ -134,7 +134,11 @@ export function validateInteger(
     max?: number;
   } = {}
 ): asserts value is number {
-  const { required = false, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_SAFE_INTEGER } = options;
+  const {
+    required = false,
+    min = Number.MIN_SAFE_INTEGER,
+    max = Number.MAX_SAFE_INTEGER,
+  } = options;
 
   // Handle required validation
   if (required && (value === null || value === undefined)) {
@@ -293,7 +297,18 @@ export function validateNumber(
 /**
  * Validate boolean
  */
-export function validateBoolean(value: unknown, fieldName: string): asserts value is boolean {
+export function validateBoolean(
+  value: unknown,
+  fieldName: string,
+  options: { required?: boolean } = {}
+): asserts value is boolean {
+  const { required = false } = options;
+
+  // Allow undefined/null for optional booleans
+  if (!required && (value === undefined || value === null)) {
+    return;
+  }
+
   if (typeof value !== 'boolean') {
     throw new ValidationError(`${fieldName} must be a boolean`, fieldName, 'INVALID_TYPE');
   }
@@ -322,7 +337,10 @@ export const VALID_PERSON_GENERATION = ['dont_allow', 'allow_adult', 'allow_all'
 /**
  * Validates aspect ratio
  */
-export function validateAspectRatio(aspectRatio: unknown, fieldName: string = 'Aspect ratio'): void {
+export function validateAspectRatio(
+  aspectRatio: unknown,
+  fieldName: string = 'Aspect ratio'
+): void {
   if (aspectRatio === undefined || aspectRatio === null) {
     return;
   }

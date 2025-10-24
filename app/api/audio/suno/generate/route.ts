@@ -142,23 +142,27 @@ export const POST = createGenerationRoute<SunoGenerateRequest, SunoGenerateRespo
   routeId: 'audio.music',
   rateLimitPrefix: 'audio-music',
   validateRequest: (body: Record<string, unknown>) => {
-    validateUUID(body.projectId as string, 'projectId');
-    validateBoolean(body.customMode as boolean, 'customMode');
-    validateBoolean(body.instrumental as boolean, 'instrumental');
+    validateUUID(body.projectId as string, 'Project ID');
+    validateBoolean(body.customMode as boolean, 'Custom mode', { required: false });
+    validateBoolean(body.instrumental as boolean, 'Instrumental', { required: false });
 
     // Validate prompt if not in custom mode
     if (!body.customMode) {
-      validateString(body.prompt as string, 'prompt', { minLength: 3, maxLength: 1000 });
+      validateString(body.prompt as string, 'Prompt', { minLength: 3, maxLength: 1000 });
     }
 
     // Validate style if in custom mode
     if (body.customMode) {
-      validateString(body.style as string, 'style', { minLength: 2, maxLength: 200, required: true });
+      validateString(body.style as string, 'Style', {
+        minLength: 2,
+        maxLength: 200,
+        required: true,
+      });
     }
 
     // Validate title if provided
     if (body.title) {
-      validateString(body.title as string, 'title', { required: false, maxLength: 100 });
+      validateString(body.title as string, 'Title', { required: false, maxLength: 100 });
     }
   },
   execute: executeSunoGeneration,

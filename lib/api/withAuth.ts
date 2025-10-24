@@ -289,6 +289,16 @@ export function withAuth<TParams = Record<string, never>>(
         `${request.method} ${route} - Exception (${duration}ms)`
       );
 
+      // Check if this is an HttpError with a specific status code
+      if (error instanceof Error) {
+        const httpError = error as { status?: number };
+        if (typeof httpError.status === 'number') {
+          const isDevelopment = process?.env?.NODE_ENV !== 'production';
+          const publicMessage = isDevelopment ? error.message : 'Internal server error';
+          return NextResponse.json({ error: publicMessage }, { status: httpError.status });
+        }
+      }
+
       return NextResponse.json(
         { error: 'Internal server error' },
         { status: HttpStatusCode.INTERNAL_SERVER_ERROR }

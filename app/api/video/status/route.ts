@@ -2,16 +2,14 @@ import { checkOperationStatus } from '@/lib/veo';
 import { checkFalVideoStatus } from '@/lib/fal-video';
 import { v4 as uuidv4 } from 'uuid';
 import { GoogleAuth } from 'google-auth-library';
-import {
-  validationError,
-  successResponse,
-} from '@/lib/api/response';
+import { validationError, successResponse } from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 import { createAssetWithCleanup } from '@/lib/api/statusCheckHandler';
 import { validateUUID, validateString, ValidationError } from '@/lib/validation';
+import { HttpError } from '@/lib/errors/HttpError';
 
 const normalizeStorageUrl = (bucket: string, path: string): string =>
   `supabase://${bucket}/${path}`;
@@ -145,7 +143,7 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
 
       const videoResponse = await fetch(videoUrl);
       if (!videoResponse.ok) {
-        throw new Error(`Failed to download FAL video: ${videoResponse.status}`);
+        throw new HttpError(`Failed to download FAL video: ${videoResponse.status}`, 500);
       }
 
       const videoBinary = Buffer.from(await videoResponse.arrayBuffer());
@@ -160,7 +158,7 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
         });
 
       if (uploadError) {
-        throw new Error(`Storage upload failed: ${uploadError.message}`);
+        throw new HttpError(`Storage upload failed: ${uploadError.message}`, 500);
       }
 
       const storageUrl = normalizeStorageUrl('assets', storagePath);
@@ -276,13 +274,14 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
     if (!videoBinary && gcsUri) {
       const parsed = parseGcsUri(gcsUri);
       if (!parsed) {
-        throw new Error('Invalid GCS URI returned by Veo');
+        throw new HttpError('Invalid GCS URI returned by Veo', 500);
       }
 
       const serviceAccountJson = process.env['GOOGLE_SERVICE_ACCOUNT'];
       if (!serviceAccountJson) {
-        throw new Error(
-          'GOOGLE_SERVICE_ACCOUNT environment variable is required to download Veo output'
+        throw new HttpError(
+          'GOOGLE_SERVICE_ACCOUNT environment variable is required to download Veo output',
+          500
         );
       }
 
@@ -296,7 +295,7 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
       const { token } = await client.getAccessToken();
 
       if (!token) {
-        throw new Error('Failed to obtain Google access token');
+        throw new HttpError('Failed to obtain Google access token', 500);
       }
 
       const downloadUrl = `https://storage.googleapis.com/storage/v1/b/${encodeURIComponent(parsed.bucket)}/o/${encodeURIComponent(parsed.objectPath)}?alt=media`;
@@ -308,8 +307,9 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
 
       if (!downloadResponse.ok) {
         const detail = await downloadResponse.text().catch(() => '');
-        throw new Error(
-          `Failed to download Veo video: ${downloadResponse.status} ${detail}`.trim()
+        throw new HttpError(
+          `Failed to download Veo video: ${downloadResponse.status} ${detail}`.trim(),
+          500
         );
       }
 
@@ -318,7 +318,7 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
     }
 
     if (!videoBinary) {
-      throw new Error('No downloadable video returned by Veo operation');
+      throw new HttpError('No downloadable video returned by Veo operation', 500);
     }
 
     const fileName = `${uuidv4()}.mp4`;
@@ -332,7 +332,7 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
       });
 
     if (uploadError) {
-      throw new Error(`Storage upload failed: ${uploadError.message}`);
+      throw new HttpError(`Storage upload failed: ${uploadError.message}`, 500);
     }
 
     const storageUrl = normalizeStorageUrl('assets', storagePath);

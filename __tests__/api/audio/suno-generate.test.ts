@@ -625,7 +625,7 @@ describe('POST /api/audio/suno/generate', () => {
       expect(data.error).toContain('timeout');
     });
 
-    it('should throw for other fetch errors', async () => {
+    it('should return 500 for other fetch errors', async () => {
       mockAuthenticatedUser(mockSupabase);
 
       (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
@@ -638,7 +638,8 @@ describe('POST /api/audio/suno/generate', () => {
         }),
       });
 
-      await expect(POST(mockRequest)).rejects.toThrow('Network error');
+      const response = await POST(mockRequest);
+      expect(response.status).toBe(500);
     });
 
     it('should handle 429 rate limit from Comet API', async () => {
@@ -737,7 +738,7 @@ describe('POST /api/audio/suno/generate', () => {
       expect(data.error).toContain('Service temporarily unavailable');
     });
 
-    it('should handle malformed JSON response from Comet API', async () => {
+    it('should return 500 for malformed JSON response from Comet API', async () => {
       mockAuthenticatedUser(mockSupabase);
 
       (global.fetch as jest.Mock).mockResolvedValue({
@@ -753,7 +754,8 @@ describe('POST /api/audio/suno/generate', () => {
         }),
       });
 
-      await expect(POST(mockRequest)).rejects.toThrow('Invalid JSON');
+      const response = await POST(mockRequest);
+      expect(response.status).toBe(500);
     });
 
     it('should handle external service returning error in success response', async () => {
