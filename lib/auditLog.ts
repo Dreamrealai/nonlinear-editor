@@ -109,6 +109,12 @@ export enum AuditAction {
   IMAGE_GENERATE_REQUEST = 'image.generate.request',
   AUDIO_GENERATE_REQUEST = 'audio.generate.request',
 
+  // Frame Operations
+  FRAME_EDIT_REQUEST = 'frame.edit.request',
+  FRAME_EDIT_COMPLETE = 'frame.edit.complete',
+  FRAME_EDIT_FAILED = 'frame.edit.failed',
+  FRAME_EDIT_UNAUTHORIZED = 'frame.edit.unauthorized',
+
   // Security Events
   SECURITY_UNAUTHORIZED_ACCESS = 'security.unauthorized_access',
   SECURITY_CSRF_BLOCKED = 'security.csrf_blocked',
@@ -130,6 +136,7 @@ export type AuditResourceType =
   | 'video'
   | 'image'
   | 'audio'
+  | 'frame'
   | 'settings'
   | 'cache';
 
