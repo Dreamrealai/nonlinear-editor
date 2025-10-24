@@ -102,9 +102,16 @@ describe('POST /api/video/generate', () => {
   let mockRequest: NextRequest;
 
   beforeEach(() => {
-    mockSupabase = createMockSupabaseClient();
+    jest.clearAllMocks();
+
     const { __getMockClient } = require('@/lib/supabase');
     mockSupabase = __getMockClient();
+
+    // Setup default auth mock (needs to be reset after clearAllMocks)
+    mockSupabase.auth.getUser.mockResolvedValue({
+      data: { user: { id: 'test-user-id', email: 'test@example.com' } },
+      error: null,
+    });
 
     checkRateLimit.mockResolvedValue({
       success: true,
@@ -112,8 +119,6 @@ describe('POST /api/video/generate', () => {
       remaining: 4,
       resetAt: Date.now() + 60000,
     });
-
-    jest.clearAllMocks();
   });
 
   afterEach(() => {

@@ -78,6 +78,10 @@ jest.mock('@/lib/api/project-verification', () => ({
   verifyAssetOwnership: jest.fn(),
 }));
 
+const { checkRateLimit } = require('@/lib/rateLimit');
+const { verifyAssetOwnership } = require('@/lib/api/project-verification');
+const { fetchWithTimeout } = require('@/lib/fetchWithTimeout');
+
 describe('POST /api/video/upscale', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
