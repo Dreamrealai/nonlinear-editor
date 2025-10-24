@@ -9,6 +9,7 @@ import type { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { errorResponse, successResponse, validationError } from '@/lib/api/response';
+import type { ErrorResponse, SuccessResponse } from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateString, validateInteger, ValidationError } from '@/lib/validation';
 import type { ExportPreset, CreateExportPresetInput } from '@/types/export';

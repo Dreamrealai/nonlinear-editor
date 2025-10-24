@@ -129,5 +129,5 @@ const handleGetVersionHistory: AuthenticatedHandler<{ assetId: string }> = async
 
 export const GET = withAuth(handleGetVersionHistory, {
   route: '/api/assets/[assetId]/versions',
-  rateLimit: RATE_LIMITS.tier1_data_reads,
+  rateLimit: RATE_LIMITS.tier3_status_read,
 });

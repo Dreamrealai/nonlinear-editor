@@ -6,6 +6,7 @@ import { badRequestResponse, errorResponse, successResponse } from '@/lib/api/re
 import { validateUUID, validateEnum, ValidationError } from '@/lib/validation';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
+import type { AssetMetadata } from '@/types/assets';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 
 const VALID_ASSET_TYPES = ['image', 'video', 'audio'] as const;

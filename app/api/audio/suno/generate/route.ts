@@ -1,6 +1,8 @@
+import { NextResponse } from 'next/server';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateString, validateUUID, validateBoolean } from '@/lib/validation';
 import { successResponse } from '@/lib/api/response';
+import type { SuccessResponse } from '@/lib/api/response';
 import { createGenerationRoute } from '@/lib/api/createGenerationRoute';
 import { HttpError } from '@/lib/errors/HttpError';
 import type { SupabaseClient } from '@supabase/supabase-js';

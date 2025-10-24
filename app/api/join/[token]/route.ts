@@ -90,7 +90,7 @@ export const POST = withAuth<{ token: string }>(
   },
   {
     route: '/api/join/[token]',
-    rateLimit: RATE_LIMITS.tier2_ai_video_upload,
+    rateLimit: RATE_LIMITS.tier2_resource_creation,
   }
 );
 
@@ -175,6 +175,6 @@ export const GET = withAuth<{ token: string }>(
   },
   {
     route: '/api/join/[token]',
-    rateLimit: RATE_LIMITS.tier3_read,
+    rateLimit: RATE_LIMITS.tier3_status_read,
   }
 );

@@ -9,6 +9,7 @@
 import type { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { errorResponse, successResponse, validationError } from '@/lib/api/response';
+import type { ErrorResponse, SuccessResponse } from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateUUID, validateString, validateInteger, ValidationError } from '@/lib/validation';
 import type { ExportPreset, UpdateExportPresetInput } from '@/types/export';
@@ -51,7 +52,7 @@ export const GET = withAuth<{ presetId: string }>(async (req, { user, supabase }
   }
 }, {
   route: '/api/export-presets/[presetId]',
-  rateLimit: RATE_LIMITS.tier2_read,
+  rateLimit: RATE_LIMITS.tier3_status_read,
 });
 
 /**
@@ -146,7 +147,7 @@ export const PATCH = withAuth<{ presetId: string }>(async (req, { user, supabase
   }
 }, {
   route: '/api/export-presets/[presetId]',
-  rateLimit: RATE_LIMITS.tier2_write,
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
 });
 
 /**
@@ -207,5 +208,5 @@ export const DELETE = withAuth<{ presetId: string }>(async (req, { user, supabas
   }
 }, {
   route: '/api/export-presets/[presetId]',
-  rateLimit: RATE_LIMITS.tier2_write,
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
 });

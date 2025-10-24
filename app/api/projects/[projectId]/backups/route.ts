@@ -61,7 +61,7 @@ async function handleListBackups(
 
 export const GET = withAuth(handleListBackups, {
   route: '/api/projects/[projectId]/backups',
-  rateLimit: RATE_LIMITS.tier3_status_reads
+  rateLimit: RATE_LIMITS.tier3_status_read
 });
 
 /**

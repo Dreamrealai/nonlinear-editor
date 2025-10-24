@@ -7,7 +7,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateEnum, validateUUID, ValidationError } from '@/lib/validation';
 import { validationError } from '@/lib/api/response';
@@ -19,16 +18,15 @@ import type { UpdateCollaboratorRequest } from '@/types/collaboration';
 export const PATCH = withAuth<{ projectId: string; collaboratorId: string }>(
   async (
     req: NextRequest,
-    { params }: { params: Promise<{ projectId: string; collaboratorId: string }> }
+    { user, supabase },
+    routeContext
   ): Promise<NextResponse<{ error: string; }> | NextResponse<{ collaborator: any; }>> => {
-    const { projectId, collaboratorId } = await params;
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const params = await routeContext?.params;
+    const projectId = params?.projectId;
+    const collaboratorId = params?.collaboratorId;
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!projectId || !collaboratorId) {
+      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
     try {
@@ -91,7 +89,10 @@ export const PATCH = withAuth<{ projectId: string; collaboratorId: string }>(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  RATE_LIMITS.tier2_ai_video_upload
+  {
+    route: '/api/projects/[projectId]/collaborators/[collaboratorId]',
+    rateLimit: RATE_LIMITS.tier2_resource_creation
+  }
 );
 
 /**
@@ -100,16 +101,15 @@ export const PATCH = withAuth<{ projectId: string; collaboratorId: string }>(
 export const DELETE = withAuth<{ projectId: string; collaboratorId: string }>(
   async (
     req: NextRequest,
-    { params }: { params: Promise<{ projectId: string; collaboratorId: string }> }
+    { user, supabase },
+    routeContext
   ): Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; }>> => {
-    const { projectId, collaboratorId } = await params;
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const params = await routeContext?.params;
+    const projectId = params?.projectId;
+    const collaboratorId = params?.collaboratorId;
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!projectId || !collaboratorId) {
+      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
     try {
@@ -175,5 +175,8 @@ export const DELETE = withAuth<{ projectId: string; collaboratorId: string }>(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  RATE_LIMITS.tier2_ai_video_upload
+  {
+    route: '/api/projects/[projectId]/collaborators/[collaboratorId]',
+    rateLimit: RATE_LIMITS.tier2_resource_creation
+  }
 );

@@ -72,7 +72,7 @@ async function handleGetBackup(
     }
 }
 
-export const GET = withAuth<{ projectId: string; backupId: string }>(handleGetBackup, { rateLimit: RATE_LIMITS.STANDARD });
+export const GET = withAuth<{ projectId: string; backupId: string }>(handleGetBackup, { rateLimit: RATE_LIMITS.tier3_status_read });
 
 /**
  * DELETE /api/projects/[projectId]/backups/[backupId]
@@ -128,4 +128,4 @@ async function handleDeleteBackup(
     }
 }
 
-export const DELETE = withAuth<{ projectId: string; backupId: string }>(handleDeleteBackup, { rateLimit: RATE_LIMITS.STANDARD });
+export const DELETE = withAuth<{ projectId: string; backupId: string }>(handleDeleteBackup, { rateLimit: RATE_LIMITS.tier2_resource_creation });

@@ -7,7 +7,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateInteger, ValidationError } from '@/lib/validation';
 
@@ -15,15 +14,12 @@ import { validateInteger, ValidationError } from '@/lib/validation';
  * GET - Get activity log for a project
  */
 export const GET = withAuth<{ projectId: string }>(
-  async (req: NextRequest, { params }: { params: Promise<{ projectId: string }> }): Promise<NextResponse<{ error: string; }> | NextResponse<{ activities: any[]; total: number; limit: number; offset: number; }>> => {
-    const { projectId } = await params;
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  async (req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ activities: any[]; total: number; limit: number; offset: number; }>> => {
+    const params = await routeContext?.params;
+    const projectId = params?.projectId;
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!projectId) {
+      return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
     }
 
     try {
@@ -33,7 +29,7 @@ export const GET = withAuth<{ projectId: string }>(
       const offsetParam = searchParams.get('offset') || '0';
 
       let limit = parseInt(limitParam, 10);
-      let offset = parseInt(offsetParam, 10);
+      const offset = parseInt(offsetParam, 10);
 
       // Validate pagination parameters
       try {
@@ -99,5 +95,8 @@ export const GET = withAuth<{ projectId: string }>(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  RATE_LIMITS.tier3_read
+  {
+    route: '/api/projects/[projectId]/activity',
+    rateLimit: RATE_LIMITS.tier3_status_read
+  }
 );

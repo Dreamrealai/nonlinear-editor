@@ -1,7 +1,9 @@
+import { NextResponse } from 'next/server';
 import { fetchWithTimeout } from '@/lib/fetchWithTimeout';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateString, validateUUID } from '@/lib/validation';
 import { successResponse } from '@/lib/api/response';
+import type { SuccessResponse } from '@/lib/api/response';
 import { createGenerationRoute } from '@/lib/api/createGenerationRoute';
 import type { SupabaseClient } from '@supabase/supabase-js';
 

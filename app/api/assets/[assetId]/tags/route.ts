@@ -8,6 +8,7 @@ import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { errorResponse, ErrorResponses } from '@/lib/api/errorResponse';
+import type { ErrorResponse } from '@/lib/api/response';
 import { HttpStatusCode } from '@/lib/errors/errorCodes';
 import { validateUUID, ValidationError } from '@/lib/validation';
 
@@ -20,7 +21,7 @@ interface TagsUpdateBody {
  * PUT /api/assets/[assetId]/tags
  */
 export const PUT = withAuth<{ assetId: string }>(
-  async (request, { user, supabase }, routeContext): Promise<NextResponse<ErrorResponse> | NextResponse<{ success: boolean; tags: string[]; }>> => {
+  async (request, { user, supabase }, routeContext): Promise<Response> => {
     try {
       const params = await routeContext!.params;
       const { assetId } = params;
@@ -112,7 +113,7 @@ export const PUT = withAuth<{ assetId: string }>(
  * POST /api/assets/[assetId]/favorite
  */
 export const POST = withAuth<{ assetId: string }>(
-  async (request, { user, supabase }, routeContext): Promise<NextResponse<ErrorResponse> | NextResponse<{ success: boolean; is_favorite: boolean; }>> => {
+  async (request, { user, supabase }, routeContext): Promise<Response> => {
     try {
       const params = await routeContext!.params;
       const { assetId } = params;

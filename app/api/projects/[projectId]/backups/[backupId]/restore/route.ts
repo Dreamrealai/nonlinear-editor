@@ -10,7 +10,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { BackupService } from '@/lib/services/backupService';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { errorResponse } from '@/lib/api/response';
 import { validateUUID } from '@/lib/validation';
 import { RATE_LIMITS } from '@/lib/rateLimit';
@@ -22,13 +21,16 @@ import { RATE_LIMITS } from '@/lib/rateLimit';
 export const POST = withAuth<{ projectId: string; backupId: string }>(
   async (
     _request: NextRequest,
-    context: { params: Promise<{ projectId: string; backupId: string }> }
+    { user, supabase },
+    routeContext
   ): Promise<NextResponse> => {
-    const { projectId, backupId } = await context.params;
+    const params = await routeContext?.params;
+    const projectId = params?.projectId;
+    const backupId = params?.backupId;
+
     validateUUID(projectId, 'projectId');
     validateUUID(backupId, 'backupId');
 
-    const supabase = createServerSupabaseClient();
     const backupService = new BackupService(supabase);
 
     try {
