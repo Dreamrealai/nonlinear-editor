@@ -9,7 +9,7 @@
 'use client';
 
 import { useEffect, useCallback, useState, useRef } from 'react';
-import { useToast } from '@/lib/hooks/useToast';
+import toast from 'react-hot-toast';
 
 // Konami Code sequence: ↑ ↑ ↓ ↓ ← → ← → B A
 const KONAMI_CODE = [
@@ -45,11 +45,9 @@ interface EasterEgg {
 interface UseEasterEggsOptions {
   /** Enable all easter eggs */
   enabled?: boolean;
-  /** Custom toast hook (optional) */
-  showToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
-export function useEasterEggs({ enabled = true, showToast }: UseEasterEggsOptions = {}): {
+export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
   easterEggsTriggered: string[];
   resetEasterEggs: () => void;
 } {
@@ -58,16 +56,16 @@ export function useEasterEggs({ enabled = true, showToast }: UseEasterEggsOption
   const keyPressTracker = useRef<Record<string, number>>({});
   const lastKeyTime = useRef<number>(0);
 
-  // Toast fallback
-  const toast = showToast || (() => {});
-
   // Konami Code effect
   const activateKonamiCode = useCallback(() => {
     // Add triggered easter egg
     setEasterEggsTriggered((prev) => [...prev, 'konami']);
 
     // Show success message
-    toast('Konami Code activated! You found a secret!', 'success');
+    toast.success('Konami Code activated! You found a secret!', {
+      duration: 5000,
+      icon: '🎮',
+    });
 
     // Apply rainbow effect to body
     document.body.classList.add('konami-active');
@@ -82,12 +80,15 @@ export function useEasterEggs({ enabled = true, showToast }: UseEasterEggsOption
     setTimeout(() => {
       document.body.classList.remove('konami-active');
     }, 5000);
-  }, [toast]);
+  }, []);
 
   // Secret developer mode
   const activateDeveloperMode = useCallback(() => {
     setEasterEggsTriggered((prev) => [...prev, 'devmode']);
-    toast('Developer mode activated! Advanced features unlocked.', 'info');
+    toast('Developer mode activated! Advanced features unlocked.', {
+      duration: 4000,
+      icon: '👨‍💻',
+    });
 
     // Store in localStorage
     localStorage.setItem('secretDevMode', 'true');
@@ -112,12 +113,15 @@ export function useEasterEggs({ enabled = true, showToast }: UseEasterEggsOption
       animation: pulse 2s infinite;
     `;
     document.body.appendChild(indicator);
-  }, [toast]);
+  }, []);
 
   // Secret matrix mode
   const activateMatrixMode = useCallback(() => {
     setEasterEggsTriggered((prev) => [...prev, 'matrix']);
-    toast('The Matrix has you...', 'info');
+    toast('The Matrix has you...', {
+      duration: 3000,
+      icon: '🕶️',
+    });
 
     // Create matrix rain effect
     createMatrixRain();
@@ -129,12 +133,15 @@ export function useEasterEggs({ enabled = true, showToast }: UseEasterEggsOption
         canvas.remove();
       }
     }, 10000);
-  }, [toast]);
+  }, []);
 
   // Secret disco mode (flashing colors)
   const activateDiscoMode = useCallback(() => {
     setEasterEggsTriggered((prev) => [...prev, 'disco']);
-    toast('Disco time!', 'success');
+    toast('Disco time!', {
+      duration: 3000,
+      icon: '🕺',
+    });
 
     let interval: NodeJS.Timeout;
     const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#ffd93d', '#6bcf7f', '#a77bca'];
@@ -150,12 +157,15 @@ export function useEasterEggs({ enabled = true, showToast }: UseEasterEggsOption
       clearInterval(interval);
       document.body.style.background = '';
     }, 5000);
-  }, [toast]);
+  }, []);
 
   // Secret gravity mode (elements fall)
   const activateGravityMode = useCallback(() => {
     setEasterEggsTriggered((prev) => [...prev, 'gravity']);
-    toast('Gravity reversed!', 'info');
+    toast('Gravity reversed!', {
+      duration: 3000,
+      icon: '🌍',
+    });
 
     // Apply gravity animation to random elements
     const elements = document.querySelectorAll('button, .card, img');
@@ -170,7 +180,7 @@ export function useEasterEggs({ enabled = true, showToast }: UseEasterEggsOption
         }, 2000);
       }
     });
-  }, [toast]);
+  }, []);
 
   // Easter eggs configuration
   const easterEggs: EasterEgg[] = [

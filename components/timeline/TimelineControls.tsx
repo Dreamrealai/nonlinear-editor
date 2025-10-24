@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { TimelineGridSettings } from './TimelineGridSettings';
 
 type TimelineControlsProps = {
   zoom: number;
@@ -291,6 +292,11 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
             )}
           </div>
         </div>
+
+        <div className="h-4 w-px bg-neutral-300" />
+
+        {/* Grid Settings */}
+        <TimelineGridSettings className="hidden sm:block" />
 
         <div className="h-4 w-px bg-neutral-300" />
 
