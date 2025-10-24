@@ -175,32 +175,19 @@ describe('VideoQueueItem', () => {
       expect(screen.getByText('Failed to load video')).toBeInTheDocument();
     });
 
-    it('should log video events to console', () => {
-      const { container } = render(<VideoQueueItem {...completedProps} />);
-      const video = container.querySelector('video');
-
-      fireEvent.loadStart(video!);
-      expect(console.log).toHaveBeenCalledWith('Video loading started:', completedProps.videoUrl);
-
-      fireEvent.loadedData(video!);
-      expect(console.log).toHaveBeenCalledWith('Video data loaded:', completedProps.videoUrl);
-
-      fireEvent.canPlay(video!);
-      expect(console.log).toHaveBeenCalledWith('Video can play:', completedProps.videoUrl);
-    });
-
-    it('should log errors to console', () => {
+    it('should report video load errors with browserLogger', async () => {
       const { container } = render(<VideoQueueItem {...completedProps} />);
       const video = container.querySelector('video');
 
       const errorEvent = new Event('error');
       fireEvent(video!, errorEvent);
 
-      expect(console.error).toHaveBeenCalledWith(
-        'Video load error for:',
-        completedProps.videoUrl,
-        errorEvent
-      );
+      await waitFor(() => {
+        expect(browserLogger.error).toHaveBeenCalledWith(
+          { videoUrl: completedProps.videoUrl, errorEvent: 'error' },
+          'Video load error'
+        );
+      });
     });
   });
 
@@ -227,15 +214,18 @@ describe('VideoQueueItem', () => {
     });
 
     it('should display error message when provided', () => {
-      render(<VideoQueueItem {...baseProps} status="failed" error="Generation timeout" />);
-      expect(screen.getByText('Generation timeout')).toBeInTheDocument();
+      const { container } = render(
+        <VideoQueueItem {...baseProps} status="failed" error="Generation timeout" />
+      );
+      const errorParagraph = container.querySelector('p.text-red-600.mb-2');
+      expect(errorParagraph).toBeInTheDocument();
+      expect(errorParagraph).toHaveTextContent('Generation timeout');
     });
 
     it('should not display error message when not provided', () => {
       const { container } = render(<VideoQueueItem {...baseProps} status="failed" />);
-      const errorText = container.querySelector('.text-red-600');
-      // Should only show "Failed" in the badge, not in separate error text
-      expect(errorText).not.toBeInTheDocument();
+      const errorParagraph = container.querySelector('p.text-red-600.mb-2');
+      expect(errorParagraph).not.toBeInTheDocument();
     });
   });
 

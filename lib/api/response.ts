@@ -275,9 +275,9 @@ export function withErrorHandling<T extends unknown[]>(
       if (typeof process !== 'undefined' && process.env) {
         const { serverLogger } = await import('../serverLogger');
         serverLogger.error({ error }, 'Handler error');
-      } else {
-        console.error('Handler error:', error);
       }
+      // Note: If this somehow runs in browser (shouldn't happen), error will be caught
+      // by global error handlers in browserLogger
 
       if (error instanceof Error) {
         const isDevelopment = process?.env?.NODE_ENV !== 'production';

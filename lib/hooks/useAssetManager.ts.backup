@@ -376,10 +376,7 @@ export interface UseAssetManagerReturn {
 /**
  * Hook to manage assets for a project.
  */
-export function useAssetManager(
-  projectId: string,
-  pageSize: number = DEFAULT_PAGE_SIZE
-): UseAssetManagerReturn {
+export function useAssetManager(projectId: string, pageSize: number = DEFAULT_PAGE_SIZE): UseAssetManagerReturn {
   const supabase = createBrowserSupabaseClient();
   const [assets, setAssets] = useState<AssetRow[]>([]);
   const [loadingAssets, setLoadingAssets] = useState(false);

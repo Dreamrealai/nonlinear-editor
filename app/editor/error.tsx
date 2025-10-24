@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { browserLogger } from '@/lib/browserLogger';
 
 export default function EditorError({
   error,
@@ -10,7 +11,7 @@ export default function EditorError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Editor error:', error);
+    browserLogger.error({ error, digest: error.digest }, 'Editor error');
   }, [error]);
 
   return (
@@ -32,9 +33,7 @@ export default function EditorError({
               />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-neutral-900">
-            Editor Error
-          </h2>
+          <h2 className="text-2xl font-bold text-neutral-900">Editor Error</h2>
           <p className="mt-2 text-sm text-neutral-600">
             The video editor encountered an unexpected error.
           </p>
@@ -48,7 +47,7 @@ export default function EditorError({
             Reload editor
           </button>
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={() => (window.location.href = '/')}
             className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 shadow hover:bg-neutral-50"
           >
             Back to projects
@@ -57,9 +56,7 @@ export default function EditorError({
 
         {process.env.NODE_ENV === 'development' && error.message && (
           <div className="mt-4 rounded-lg bg-red-50 p-4">
-            <p className="text-xs font-mono text-red-800 break-words">
-              {error.message}
-            </p>
+            <p className="text-xs font-mono text-red-800 break-words">{error.message}</p>
           </div>
         )}
       </div>

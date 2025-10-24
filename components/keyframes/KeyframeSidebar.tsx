@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
+import Image from 'next/image';
 import clsx from 'clsx';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import type { SceneRow, SceneFrameRow } from './hooks/useFramesData';
@@ -90,10 +90,12 @@ export function KeyframeSidebar({
                   )}
                 >
                   {frameUrls[frame.id] ? (
-                    <img
+                    <Image
                       src={frameUrls[frame.id] ?? ''}
                       alt="Custom frame"
-                      className="h-full w-full object-cover"
+                      fill
+                      className="object-cover"
+                      sizes="120px"
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center bg-neutral-100">
@@ -143,10 +145,12 @@ export function KeyframeSidebar({
                       )}
                     >
                       {frameUrls[frame.id] ? (
-                        <img
+                        <Image
                           src={frameUrls[frame.id] ?? ''}
                           alt={`${frame.kind} frame`}
-                          className="h-full w-full object-cover"
+                          fill
+                          className="object-cover"
+                          sizes="80px"
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center bg-neutral-100 text-[9px] text-neutral-400">

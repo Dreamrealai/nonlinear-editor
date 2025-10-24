@@ -16,7 +16,7 @@ const mockClip: Clip = {
   start: 0,
   end: 10,
   filePath: 'test.mp4',
-  thumbnailUrl: 'thumbnail.jpg',
+  thumbnailUrl: 'https://example.com/thumbnail.jpg',
   speed: 1.0,
   volume: 1.0,
   opacity: 1.0,
@@ -108,7 +108,7 @@ describe('HorizontalTimeline', () => {
   it('should handle zoom in', () => {
     render(<HorizontalTimeline />);
 
-    const zoomInButton = screen.getByText('+');
+    const zoomInButton = screen.getByRole('button', { name: 'Zoom in' });
     fireEvent.click(zoomInButton);
 
     expect(mockSetZoom).toHaveBeenCalledWith(60); // 50 * 1.2
@@ -117,7 +117,7 @@ describe('HorizontalTimeline', () => {
   it('should handle zoom out', () => {
     render(<HorizontalTimeline />);
 
-    const zoomOutButton = screen.getByText('−');
+    const zoomOutButton = screen.getByRole('button', { name: 'Zoom out' });
     fireEvent.click(zoomOutButton);
 
     expect(mockSetZoom).toHaveBeenCalledWith(50 / 1.2);
@@ -214,17 +214,6 @@ describe('HorizontalTimeline', () => {
     expect(splitButton).toBeDisabled();
   });
 
-  it('should render Export Video button when onExport is provided', () => {
-    const mockOnExport = jest.fn();
-    render(<HorizontalTimeline onExport={mockOnExport} />);
-
-    const exportButton = screen.getByTitle('Export/Render video');
-    expect(exportButton).toBeInTheDocument();
-
-    fireEvent.click(exportButton);
-    expect(mockOnExport).toHaveBeenCalled();
-  });
-
   it('should render Add Text button when onAddText is provided', () => {
     const mockOnAddText = jest.fn();
     render(<HorizontalTimeline onAddText={mockOnAddText} />);
@@ -251,7 +240,7 @@ describe('HorizontalTimeline', () => {
     const mockOnDetectScenes = jest.fn();
     render(<HorizontalTimeline onDetectScenes={mockOnDetectScenes} />);
 
-    const detectScenesButton = screen.getByTitle('Detect scenes in video');
+    const detectScenesButton = screen.getByRole('button', { name: 'Detect scenes in video' });
     expect(detectScenesButton).toBeInTheDocument();
 
     fireEvent.click(detectScenesButton);
@@ -262,7 +251,33 @@ describe('HorizontalTimeline', () => {
     const mockOnDetectScenes = jest.fn();
     render(<HorizontalTimeline onDetectScenes={mockOnDetectScenes} sceneDetectPending={true} />);
 
-    expect(screen.getByText('Detecting...')).toBeInTheDocument();
+    expect(screen.getByText('Detecting scenes...')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Detecting scenes...' })).toBeDisabled();
+  });
+
+  it('should render upscale button when onUpscaleVideo is provided', () => {
+    const mockOnUpscale = jest.fn();
+    render(<HorizontalTimeline onUpscaleVideo={mockOnUpscale} />);
+
+    const upscaleButton = screen.getByRole('button', {
+      name: 'Upscale selected video clip using Topaz AI',
+    });
+    expect(upscaleButton).toBeInTheDocument();
+
+    fireEvent.click(upscaleButton);
+    expect(mockOnUpscale).toHaveBeenCalled();
+  });
+
+  it('should disable upscale button when upscaling is pending', () => {
+    render(<HorizontalTimeline onUpscaleVideo={jest.fn()} upscaleVideoPending={true} />);
+
+    const upscaleButton = screen.getByRole('button', {
+      name: 'Upscaling selected video clip using Topaz AI',
+    });
+    expect(upscaleButton).toBeDisabled();
+
+    const spinner = upscaleButton.querySelector('.animate-spin');
+    expect(spinner).toBeInTheDocument();
   });
 
   it('should display current time and timeline duration', () => {

@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
+import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import type { SceneRow, SceneFrameRow } from './hooks/useFramesData';
 
@@ -24,7 +24,9 @@ export function KeyframePreview({
   return (
     <div className="border-b border-neutral-200 bg-white p-6">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-[10px] font-medium uppercase tracking-wider text-neutral-500">Preview</h2>
+        <h2 className="text-[10px] font-medium uppercase tracking-wider text-neutral-500">
+          Preview
+        </h2>
         {selectedFrame && (
           <span className="text-[10px] text-neutral-400">
             {selectedFrame.kind === 'custom'
@@ -35,12 +37,16 @@ export function KeyframePreview({
       </div>
       {selectedFrame && selectedFrameUrl ? (
         <div className="relative overflow-hidden rounded border border-neutral-200 bg-neutral-50">
-          <img
-            src={selectedFrameUrl}
-            alt="Selected frame"
-            className="w-full"
-            onClick={onImageClick}
-          />
+          <div className="relative w-full" style={{ aspectRatio: '4/3' }}>
+            <Image
+              src={selectedFrameUrl}
+              alt="Selected frame"
+              fill
+              className="object-contain cursor-pointer"
+              sizes="(max-width: 768px) 100vw, 800px"
+              onClick={onImageClick}
+            />
+          </div>
           {mode === 'crop' && cropOverlayStyle && (
             <div
               className="absolute border-2 border-neutral-900/50 bg-neutral-900/10"

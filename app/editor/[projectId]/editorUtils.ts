@@ -5,12 +5,16 @@
 
 import type { Timeline as TimelineType, Clip } from '@/types/timeline';
 import { safeArrayGet, safeArrayLast } from '@/lib/utils/arrayUtils';
+import { CLIP_CONSTANTS, THUMBNAIL_CONSTANTS } from '@/lib/constants';
 
-/** Minimum duration for a clip in seconds (prevents zero-length clips) */
-export const MIN_CLIP_DURATION = 0.1;
+/** @deprecated Use CLIP_CONSTANTS.MIN_CLIP_DURATION instead */
+export const MIN_CLIP_DURATION = CLIP_CONSTANTS.MIN_CLIP_DURATION;
 
-/** Maximum width for generated thumbnails in pixels */
-export const THUMBNAIL_WIDTH = 320;
+/** @deprecated Use THUMBNAIL_CONSTANTS.THUMBNAIL_WIDTH instead */
+export const THUMBNAIL_WIDTH = THUMBNAIL_CONSTANTS.THUMBNAIL_WIDTH;
+
+const { MIN_CLIP_DURATION: MIN_DURATION } = CLIP_CONSTANTS;
+const { THUMBNAIL_WIDTH: THUMB_WIDTH, THUMBNAIL_QUALITY } = THUMBNAIL_CONSTANTS;
 
 /**
  * Metadata associated with media assets.
@@ -119,7 +123,7 @@ export const enrichTimelineWithSourceDurations = (
       for (const candidate of durationCandidates) {
         const coerced = coerceDuration(candidate);
         if (coerced !== null) {
-          duration = Math.max(coerced, MIN_CLIP_DURATION);
+          duration = Math.max(coerced, MIN_DURATION);
           break;
         }
       }
@@ -134,7 +138,7 @@ export const enrichTimelineWithSourceDurations = (
       : (clip.sourceDuration ?? null);
     const normalizedDuration =
       typeof assetDuration === 'number' && Number.isFinite(assetDuration)
-        ? Math.max(assetDuration, MIN_CLIP_DURATION)
+        ? Math.max(assetDuration, MIN_DURATION)
         : null;
 
     const next: Clip = {
@@ -144,16 +148,16 @@ export const enrichTimelineWithSourceDurations = (
 
     // Ensure trim points (start/end) are within valid bounds
     if (typeof next.sourceDuration === 'number') {
-      const maxDuration = Math.max(next.sourceDuration, MIN_CLIP_DURATION);
-      // Clamp start to [0, maxDuration - MIN_CLIP_DURATION]
-      next.start = Math.min(Math.max(next.start, 0), Math.max(0, maxDuration - MIN_CLIP_DURATION));
-      // Clamp end to [start + MIN_CLIP_DURATION, maxDuration]
-      next.end = Math.min(Math.max(next.end, next.start + MIN_CLIP_DURATION), maxDuration);
+      const maxDuration = Math.max(next.sourceDuration, MIN_DURATION);
+      // Clamp start to [0, maxDuration - MIN_DURATION]
+      next.start = Math.min(Math.max(next.start, 0), Math.max(0, maxDuration - MIN_DURATION));
+      // Clamp end to [start + MIN_DURATION, maxDuration]
+      next.end = Math.min(Math.max(next.end, next.start + MIN_DURATION), maxDuration);
     } else {
       // No known duration - still ensure valid positive values
       next.sourceDuration = null;
       next.start = Math.max(next.start, 0);
-      next.end = Math.max(next.end, next.start + MIN_CLIP_DURATION);
+      next.end = Math.max(next.end, next.start + MIN_DURATION);
     }
 
     // Ensure timeline position is non-negative
@@ -266,7 +270,7 @@ export const parseAssetMetadata = (
   for (const candidate of durationCandidates) {
     const coerced = coerceDuration(candidate);
     if (coerced !== null) {
-      result.durationSeconds = Math.max(coerced, MIN_CLIP_DURATION);
+      result.durationSeconds = Math.max(coerced, MIN_DURATION);
       break;
     }
   }
@@ -319,7 +323,7 @@ export const createImageThumbnail = (blob: Blob): Promise<string | null> =>
     img.onload = () => {
       try {
         const canvas = document.createElement('canvas');
-        const scale = Math.min(1, THUMBNAIL_WIDTH / Math.max(1, img.width));
+        const scale = Math.min(1, THUMB_WIDTH / Math.max(1, img.width));
         const width = Math.max(1, Math.round(img.width * scale));
         const height = Math.max(1, Math.round(img.height * scale));
         canvas.width = width;
@@ -330,7 +334,7 @@ export const createImageThumbnail = (blob: Blob): Promise<string | null> =>
           return;
         }
         ctx.drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        const dataUrl = canvas.toDataURL('image/jpeg', THUMBNAIL_QUALITY);
         resolve(dataUrl);
       } catch {
         resolve(null);
@@ -374,7 +378,7 @@ export const createVideoThumbnail = (blob: Blob): Promise<string | null> =>
           return;
         }
         const canvas = document.createElement('canvas');
-        const scale = Math.min(1, THUMBNAIL_WIDTH / Math.max(1, video.videoWidth));
+        const scale = Math.min(1, THUMB_WIDTH / Math.max(1, video.videoWidth));
         const width = Math.max(1, Math.round(video.videoWidth * scale));
         const height = Math.max(1, Math.round(video.videoHeight * scale));
         canvas.width = width;
@@ -385,7 +389,7 @@ export const createVideoThumbnail = (blob: Blob): Promise<string | null> =>
           return;
         }
         ctx.drawImage(video, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        const dataUrl = canvas.toDataURL('image/jpeg', THUMBNAIL_QUALITY);
         cleanup(dataUrl);
       } catch {
         cleanup(null);

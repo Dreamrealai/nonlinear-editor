@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { browserLogger } from '@/lib/browserLogger';
 
 export default function Error({
   error,
@@ -11,7 +12,7 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log the error to an error reporting service
-    console.error('Application error:', error);
+    browserLogger.error({ error, digest: error.digest }, 'Application error');
   }, [error]);
 
   return (
@@ -33,9 +34,7 @@ export default function Error({
               />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-neutral-900">
-            Something went wrong!
-          </h2>
+          <h2 className="text-2xl font-bold text-neutral-900">Something went wrong!</h2>
           <p className="mt-2 text-sm text-neutral-600">
             An unexpected error occurred. Please try again.
           </p>
@@ -49,7 +48,7 @@ export default function Error({
             Try again
           </button>
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={() => (window.location.href = '/')}
             className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 shadow hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           >
             Go home
@@ -58,9 +57,7 @@ export default function Error({
 
         {process.env.NODE_ENV === 'development' && error.message && (
           <div className="mt-4 rounded-lg bg-red-50 p-4">
-            <p className="text-xs font-mono text-red-800 break-words">
-              {error.message}
-            </p>
+            <p className="text-xs font-mono text-red-800 break-words">{error.message}</p>
           </div>
         )}
       </div>

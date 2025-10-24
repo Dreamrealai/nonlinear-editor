@@ -16,6 +16,8 @@ export interface MockSupabaseChain {
   maybeSingle: jest.Mock;
   order: jest.Mock;
   limit: jest.Mock;
+  channel: jest.Mock;
+  removeChannel: jest.Mock;
   storage: {
     from: jest.Mock;
     upload: jest.Mock;
@@ -45,6 +47,8 @@ export function createMockSupabaseClient(): jest.Mocked<SupabaseClient> & MockSu
     maybeSingle: jest.fn(),
     order: jest.fn().mockReturnThis(),
     limit: jest.fn().mockReturnThis(),
+    channel: jest.fn(),
+    removeChannel: jest.fn(),
     storage: {
       from: jest.fn().mockReturnThis(),
       upload: jest.fn(),

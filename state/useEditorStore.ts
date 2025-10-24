@@ -24,15 +24,11 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { enableMapSet } from 'immer';
 import type { Timeline, Clip, Marker, Track, TextOverlay, TransitionType } from '@/types/timeline';
+import { EDITOR_CONSTANTS, CLIP_CONSTANTS, ZOOM_CONSTANTS } from '@/lib/constants';
 
-/** Maximum number of undo/redo states to keep in history */
-const MAX_HISTORY = 50;
-
-/** Minimum duration for a clip in seconds (prevents zero-length clips) */
-const MIN_CLIP_DURATION = 0.1;
-
-/** Debounce delay for history saves in milliseconds */
-const HISTORY_DEBOUNCE_MS = 300;
+const { MAX_HISTORY, HISTORY_DEBOUNCE_MS } = EDITOR_CONSTANTS;
+const { MIN_CLIP_DURATION } = CLIP_CONSTANTS;
+const { MIN_ZOOM, MAX_ZOOM, DEFAULT_ZOOM } = ZOOM_CONSTANTS;
 
 // Enable Immer to proxy Map/Set instances (required for selectedClipIds Set)
 enableMapSet();
@@ -183,7 +179,7 @@ export const useEditorStore = create<EditorStore>()(
   immer((set, get) => ({
     timeline: null,
     currentTime: 0,
-    zoom: 50, // 50 pixels per second default
+    zoom: DEFAULT_ZOOM,
     selectedClipIds: new Set<string>(),
     copiedClips: [],
     history: [],
@@ -382,7 +378,7 @@ export const useEditorStore = create<EditorStore>()(
       }),
     setZoom: (zoom) =>
       set((state) => {
-        state.zoom = Math.max(10, Math.min(200, zoom)); // Clamp between 10-200 px/s
+        state.zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom));
       }),
     addMarker: (marker) =>
       set((state) => {

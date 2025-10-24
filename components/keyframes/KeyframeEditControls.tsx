@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
+import Image from 'next/image';
 import clsx from 'clsx';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import type { SceneFrameRow } from './hooks/useFramesData';
@@ -156,10 +156,12 @@ export function KeyframeEditControls({
                 key={img.id}
                 className="group relative h-14 w-14 overflow-hidden rounded border border-neutral-200 bg-neutral-50"
               >
-                <img
+                <Image
                   src={img.previewUrl}
                   alt="Reference"
-                  className="h-full w-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="56px"
                 />
                 {img.uploading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-white/80">
@@ -190,8 +192,18 @@ export function KeyframeEditControls({
                   className="absolute -right-1 -top-1 h-4 w-4 rounded-full border border-neutral-200 bg-white text-neutral-600 opacity-0 transition-opacity hover:bg-neutral-100 group-hover:opacity-100"
                   disabled={img.uploading}
                 >
-                  <svg className="h-full w-full p-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="h-full w-full p-0.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>

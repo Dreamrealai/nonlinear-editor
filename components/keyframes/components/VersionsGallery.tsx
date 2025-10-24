@@ -1,5 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
+
+import Image from 'next/image';
 
 interface FrameEditRow {
   id: string;
@@ -18,16 +19,24 @@ export function VersionsGallery({ edits }: VersionsGalleryProps) {
   return (
     <div className="bg-white p-6">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-[10px] font-medium uppercase tracking-wider text-neutral-500">Versions</h2>
+        <h2 className="text-[10px] font-medium uppercase tracking-wider text-neutral-500">
+          Versions
+        </h2>
         <span className="text-[10px] text-neutral-400">{edits.length}</span>
       </div>
       {edits.length ? (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
           {edits.map((edit) => (
             <div key={edit.id} className="space-y-1.5">
-              <div className="aspect-[4/3] overflow-hidden rounded border border-neutral-200 bg-neutral-50">
+              <div className="relative aspect-[4/3] overflow-hidden rounded border border-neutral-200 bg-neutral-50">
                 {edit.url ? (
-                  <img src={edit.url} alt={`Version ${edit.version}`} className="h-full w-full object-cover" />
+                  <Image
+                    src={edit.url}
+                    alt={`Version ${edit.version}`}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  />
                 ) : (
                   <div className="flex h-full items-center justify-center text-[9px] text-neutral-400">
                     ...

@@ -3,13 +3,16 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import ChatBox from '@/components/editor/ChatBox';
+import { createMockSupabaseClient } from '@/test-utils/mockSupabase';
 
 // Mock the SupabaseProvider
-const mockSupabaseClient = {
-  from: jest.fn(),
-  channel: jest.fn(),
-  removeChannel: jest.fn(),
+const mockChannel = {
+  on: jest.fn().mockReturnThis(),
+  subscribe: jest.fn(),
+  unsubscribe: jest.fn(),
 };
+
+const mockSupabaseClient = createMockSupabaseClient();
 
 jest.mock('@/components/providers/SupabaseProvider', () => ({
   useSupabase: () => ({
@@ -43,6 +46,7 @@ const mockMessages = [
     content: 'Hello, can you help me?',
     created_at: '2024-01-01T10:00:00Z',
     model: 'gemini-flash-latest',
+    attachments: null,
   },
   {
     id: 'msg-2',
@@ -50,6 +54,7 @@ const mockMessages = [
     content: 'Of course! How can I assist you today?',
     created_at: '2024-01-01T10:00:05Z',
     model: 'gemini-flash-latest',
+    attachments: null,
   },
 ];
 
@@ -59,50 +64,104 @@ describe('ChatBox', () => {
     collapsed: false,
   };
 
+  const scrollIntoViewMock = jest.fn();
+  const originalScrollIntoView = HTMLElement.prototype.scrollIntoView;
+  const mockCreateObjectURL = jest.fn(() => 'blob:mock-url');
+  const mockRevokeObjectURL = jest.fn();
+  const originalCreateObjectURL = (
+    URL as unknown as { createObjectURL?: typeof URL.createObjectURL }
+  ).createObjectURL;
+  const originalRevokeObjectURL = (
+    URL as unknown as { revokeObjectURL?: typeof URL.revokeObjectURL }
+  ).revokeObjectURL;
+
   beforeEach(() => {
     jest.clearAllMocks();
 
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoViewMock,
+    });
+
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      writable: true,
+      value: mockCreateObjectURL,
+    });
+
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      writable: true,
+      value: mockRevokeObjectURL,
+    });
+
     // Mock Supabase query responses
-    const mockSelect = jest.fn().mockReturnThis();
-    const mockEq = jest.fn().mockReturnThis();
-    const mockOrder = jest.fn().mockResolvedValue({ data: mockMessages, error: null });
-    const mockInsert = jest.fn().mockReturnThis();
-    const mockSingle = jest.fn().mockResolvedValue({ data: mockMessages[0], error: null });
-    const mockDelete = jest.fn().mockReturnThis();
+    let lastOperation: 'select' | 'insert' | 'delete' | null = null;
 
-    mockSupabaseClient.from.mockReturnValue({
-      select: mockSelect,
-      insert: mockInsert,
-      delete: mockDelete,
-    });
+    mockChannel.on.mockReturnThis();
+    mockChannel.on.mockClear();
+    mockChannel.subscribe.mockClear();
+    mockChannel.unsubscribe.mockClear();
 
-    mockSelect.mockReturnValue({
-      eq: mockEq,
+    mockSupabaseClient.from.mockImplementation(() => mockSupabaseClient);
+    mockSupabaseClient.select.mockImplementation(() => {
+      lastOperation = 'select';
+      return mockSupabaseClient;
     });
-
-    mockEq.mockReturnValue({
-      order: mockOrder,
-      eq: mockEq,
+    mockSupabaseClient.insert.mockImplementation(() => {
+      lastOperation = 'insert';
+      return mockSupabaseClient;
     });
-
-    mockInsert.mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      single: mockSingle,
+    mockSupabaseClient.delete.mockImplementation(() => {
+      lastOperation = 'delete';
+      return mockSupabaseClient;
     });
-
-    mockDelete.mockReturnValue({
-      eq: mockEq,
+    mockSupabaseClient.eq.mockImplementation(() => {
+      if (lastOperation === 'delete') {
+        return Promise.resolve({ data: null, error: null });
+      }
+      return mockSupabaseClient;
     });
+    mockSupabaseClient.order.mockResolvedValue({ data: mockMessages, error: null });
+    mockSupabaseClient.single.mockResolvedValue({ data: mockMessages[0], error: null });
+    mockSupabaseClient.channel.mockReturnValue(mockChannel);
 
     // Mock Supabase realtime channel
-    const mockChannel = {
-      on: jest.fn().mockReturnThis(),
-      subscribe: jest.fn(),
-    };
-    mockSupabaseClient.channel.mockReturnValue(mockChannel);
+    mockChannel.subscribe.mockImplementation(() => ({ data: null }));
 
     // Reset fetch mock
     (global.fetch as jest.Mock).mockReset();
+  });
+
+  afterEach(() => {
+    mockCreateObjectURL.mockClear();
+    mockRevokeObjectURL.mockClear();
+    scrollIntoViewMock.mockClear();
+  });
+
+  afterAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: originalScrollIntoView,
+    });
+    if (originalCreateObjectURL) {
+      Object.defineProperty(URL, 'createObjectURL', {
+        configurable: true,
+        writable: true,
+        value: originalCreateObjectURL,
+      });
+    } else {
+      delete (URL as unknown as { createObjectURL?: unknown }).createObjectURL;
+    }
+    if (originalRevokeObjectURL) {
+      Object.defineProperty(URL, 'revokeObjectURL', {
+        configurable: true,
+        writable: true,
+        value: originalRevokeObjectURL,
+      });
+    } else {
+      delete (URL as unknown as { revokeObjectURL?: unknown }).revokeObjectURL;
+    }
   });
 
   describe('Rendering', () => {
@@ -142,17 +201,14 @@ describe('ChatBox', () => {
     it('should render send button', async () => {
       render(<ChatBox {...defaultProps} />);
       await waitFor(() => {
-        const buttons = screen.getAllByRole('button');
-        const sendButton = buttons.find(btn => btn.querySelector('svg'));
-        expect(sendButton).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Send message' })).toBeInTheDocument();
       });
     });
 
     it('should render attach file button', async () => {
       render(<ChatBox {...defaultProps} />);
       await waitFor(() => {
-        const buttons = screen.getAllByRole('button');
-        expect(buttons.length).toBeGreaterThan(1);
+        expect(screen.getByRole('button', { name: 'Attach files' })).toBeInTheDocument();
       });
     });
   });
@@ -172,17 +228,7 @@ describe('ChatBox', () => {
     });
 
     it('should display empty state when no messages', async () => {
-      const mockEq = jest.fn().mockReturnThis();
-      const mockOrder = jest.fn().mockResolvedValue({ data: [], error: null });
-      const mockSelect = jest.fn().mockReturnValue({
-        eq: mockEq,
-      });
-      mockEq.mockReturnValue({
-        order: mockOrder,
-      });
-      mockSupabaseClient.from.mockReturnValue({
-        select: mockSelect,
-      });
+      mockSupabaseClient.order.mockResolvedValueOnce({ data: [], error: null });
 
       render(<ChatBox {...defaultProps} />);
       await waitFor(() => {
@@ -246,12 +292,7 @@ describe('ChatBox', () => {
     it('should disable send button when input is empty', async () => {
       render(<ChatBox {...defaultProps} />);
       await waitFor(() => {
-        const buttons = screen.getAllByRole('button');
-        const sendButton = buttons.find(btn => {
-          const svg = btn.querySelector('svg');
-          return svg && svg.querySelector('path[d*="M12 19l9 2"]');
-        });
-        expect(sendButton).toBeDisabled();
+        expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
       });
     });
 
@@ -266,12 +307,9 @@ describe('ChatBox', () => {
       const input = screen.getByPlaceholderText('Ask about your video project...');
       await user.type(input, 'Test message');
 
-      const buttons = screen.getAllByRole('button');
-      const sendButton = buttons.find(btn => {
-        const svg = btn.querySelector('svg');
-        return svg && svg.querySelector('path[d*="M12 19l9 2"]');
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Send message' })).not.toBeDisabled();
       });
-      expect(sendButton).not.toBeDisabled();
     });
 
     it('should send message on button click', async () => {
@@ -290,18 +328,11 @@ describe('ChatBox', () => {
       const input = screen.getByPlaceholderText('Ask about your video project...');
       await user.type(input, 'Test message');
 
-      const buttons = screen.getAllByRole('button');
-      const sendButton = buttons.find(btn => {
-        const svg = btn.querySelector('svg');
-        return svg && svg.querySelector('path[d*="M12 19l9 2"]');
+      const sendButton = screen.getByRole('button', { name: 'Send message' });
+      await user.click(sendButton);
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith('/api/ai/chat', expect.any(Object));
       });
-
-      if (sendButton) {
-        await user.click(sendButton);
-        await waitFor(() => {
-          expect(global.fetch).toHaveBeenCalledWith('/api/ai/chat', expect.any(Object));
-        });
-      }
     });
 
     it('should send message on Enter key press', async () => {
@@ -361,6 +392,59 @@ describe('ChatBox', () => {
         expect(fileInput).toHaveAttribute('accept', 'image/*,.pdf,.doc,.docx,.txt');
       });
     });
+
+    it('should create blob URLs when files are attached', async () => {
+      const { container } = render(<ChatBox {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(container.querySelector('input[type="file"]')).not.toBeNull();
+      });
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+      const testFile = new File(['test'], 'test.png', { type: 'image/png' });
+
+      fireEvent.change(fileInput as HTMLInputElement, {
+        target: { files: [testFile] },
+      });
+
+      expect(mockCreateObjectURL).toHaveBeenCalledWith(testFile);
+      await waitFor(() => {
+        expect(screen.getByText('test.png')).toBeInTheDocument();
+      });
+    });
+
+    it('should revoke blob URLs after sending message', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ response: 'AI response' }),
+      });
+
+      const user = userEvent.setup();
+      const { container } = render(<ChatBox {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(container.querySelector('input[type="file"]')).not.toBeNull();
+      });
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+      const testFile = new File(['test'], 'test.png', { type: 'image/png' });
+
+      fireEvent.change(fileInput as HTMLInputElement, {
+        target: { files: [testFile] },
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('test.png')).toBeInTheDocument();
+      });
+
+      const input = screen.getByPlaceholderText('Ask about your video project...');
+      await user.type(input, 'Attachment test');
+
+      const sendButton = screen.getByRole('button', { name: 'Send message' });
+      await user.click(sendButton);
+
+      await waitFor(() => {
+        expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
+      });
+    });
   });
 
   describe('Clear Chat', () => {
@@ -406,11 +490,18 @@ describe('ChatBox', () => {
 
   describe('Loading States', () => {
     it('should show loading indicator when sending message', async () => {
-      (global.fetch as jest.Mock).mockImplementation(() =>
-        new Promise(resolve => setTimeout(() => resolve({
-          ok: true,
-          json: async () => ({ response: 'AI response' }),
-        }), 1000))
+      (global.fetch as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  ok: true,
+                  json: async () => ({ response: 'AI response' }),
+                }),
+              1000
+            )
+          )
       );
 
       const user = userEvent.setup();
@@ -423,23 +514,22 @@ describe('ChatBox', () => {
       const input = screen.getByPlaceholderText('Ask about your video project...');
       await user.type(input, 'Test message');
 
-      const buttons = screen.getAllByRole('button');
-      const sendButton = buttons.find(btn => {
-        const svg = btn.querySelector('svg');
-        return svg && svg.querySelector('path[d*="M12 19l9 2"]');
-      });
+      const sendButton = screen.getByRole('button', { name: 'Send message' });
+      await user.click(sendButton);
 
-      if (sendButton) {
-        await user.click(sendButton);
-
-        // Should show loading dots
-        await waitFor(() => {
-          const loadingDots = screen.getByText((content, element) => {
-            return element?.className.includes('animate-bounce') ?? false;
-          }, { selector: 'div' });
+      // Should show loading dots
+      await waitFor(
+        () => {
+          const loadingDots = screen.getByText(
+            (content, element) => {
+              return element?.className.includes('animate-bounce') ?? false;
+            },
+            { selector: 'div' }
+          );
           expect(loadingDots).toBeInTheDocument();
-        }, { timeout: 100 });
-      }
+        },
+        { timeout: 100 }
+      );
     });
   });
 
@@ -460,19 +550,14 @@ describe('ChatBox', () => {
       const input = screen.getByPlaceholderText('Ask about your video project...');
       await user.type(input, 'Test message');
 
-      const buttons = screen.getAllByRole('button');
-      const sendButton = buttons.find(btn => {
-        const svg = btn.querySelector('svg');
-        return svg && svg.querySelector('path[d*="M12 19l9 2"]');
+      const sendButton = screen.getByRole('button', { name: 'Send message' });
+      await user.click(sendButton);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Sorry, I encountered an error processing your request.')
+        ).toBeInTheDocument();
       });
-
-      if (sendButton) {
-        await user.click(sendButton);
-
-        await waitFor(() => {
-          expect(screen.getByText('Sorry, I encountered an error processing your request.')).toBeInTheDocument();
-        });
-      }
     });
   });
 });

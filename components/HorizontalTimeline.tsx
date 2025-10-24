@@ -1,7 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import React, { useCallback, useRef, useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip, TextOverlay } from '@/types/timeline';
 import { AudioWaveform } from './AudioWaveform';
@@ -164,15 +164,18 @@ const ClipRenderer = React.memo<ClipRendererProps>(function ClipRenderer({
     >
       <div className="relative h-full w-full select-none">
         {thumbnail ? (
-          <img
-            src={thumbnail}
-            alt={`${getClipFileName(clip)} thumbnail`}
-            className="pointer-events-none h-full w-full object-cover"
-            loading="lazy"
-            onError={(event) => {
-              (event.currentTarget as HTMLImageElement).style.display = 'none';
-            }}
-          />
+          <div className="relative h-full w-full">
+            <Image
+              src={thumbnail}
+              alt={`${getClipFileName(clip)} thumbnail`}
+              fill
+              className="pointer-events-none object-cover"
+              sizes="(max-width: 768px) 100vw, 200px"
+              onError={(event) => {
+                (event.currentTarget as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          </div>
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-blue-200 via-blue-100 to-blue-200" />
         )}
@@ -851,6 +854,8 @@ export default function HorizontalTimeline({
             <button
               onClick={handleZoomOut}
               className="rounded px-2 py-1 text-xs font-semibold bg-white border border-neutral-300 hover:bg-neutral-50"
+              title="Zoom out"
+              aria-label="Zoom out"
             >
               −
             </button>
@@ -858,6 +863,8 @@ export default function HorizontalTimeline({
             <button
               onClick={handleZoomIn}
               className="rounded px-2 py-1 text-xs font-semibold bg-white border border-neutral-300 hover:bg-neutral-50"
+              title="Zoom in"
+              aria-label="Zoom in"
             >
               +
             </button>
@@ -886,23 +893,27 @@ export default function HorizontalTimeline({
                 disabled={sceneDetectPending}
                 className="rounded px-2 py-1 bg-white border border-neutral-300 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Detect scenes in video"
+                aria-label={sceneDetectPending ? 'Detecting scenes...' : 'Detect scenes in video'}
               >
                 {sceneDetectPending ? (
-                  <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
+                  <span className="flex items-center gap-2 text-xs font-medium text-neutral-700">
+                    <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    <span>Detecting scenes...</span>
+                  </span>
                 ) : (
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -962,6 +973,11 @@ export default function HorizontalTimeline({
                 disabled={upscaleVideoPending}
                 className="rounded px-2 py-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Upscale selected video clip using Topaz AI"
+                aria-label={
+                  upscaleVideoPending
+                    ? 'Upscaling selected video clip using Topaz AI'
+                    : 'Upscale selected video clip using Topaz AI'
+                }
               >
                 {upscaleVideoPending ? (
                   <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">

@@ -34,6 +34,7 @@
 import { createBrowserClient, createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import type { CookieOptions } from '@supabase/ssr';
+import { serverLogger } from './serverLogger';
 
 const missingPublicConfigMessage =
   'Missing Supabase env vars. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to enable Supabase-backed features.';
@@ -48,7 +49,9 @@ const missingServiceConfigMessage =
  */
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
-const supabaseServiceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_SECRET)?.trim();
+const supabaseServiceRoleKey = (
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_SECRET
+)?.trim();
 
 /**
  * Checks if public Supabase configuration is available
@@ -71,7 +74,10 @@ export function isSupabaseConfigured() {
  * @returns true if URL and service role key are set
  */
 export function isSupabaseServiceConfigured() {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_SECRET));
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_SECRET)
+  );
 }
 
 /**
@@ -176,7 +182,10 @@ export const createServerSupabaseClient = async () => {
         } catch (error) {
           // Server Components can't mutate cookies, but Route Handlers can
           // Log warning for debugging but don't crash
-          console.warn('Failed to set cookie in server component context', error);
+          serverLogger.warn(
+            { error, cookieName: name },
+            'Failed to set cookie in server component context'
+          );
         }
       },
 
@@ -186,7 +195,10 @@ export const createServerSupabaseClient = async () => {
           cookieStore.delete({ name, ...options });
         } catch (error) {
           // Log warning but continue (same rationale as set)
-          console.warn('Failed to remove cookie in server component context', error);
+          serverLogger.warn(
+            { error, cookieName: name },
+            'Failed to remove cookie in server component context'
+          );
         }
       },
     },

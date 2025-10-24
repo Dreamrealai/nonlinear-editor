@@ -127,7 +127,7 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
 
     const userMessageContent = input;
     const attachmentUrls: string[] = [];
-    const userAttachments = attachments.map(file => {
+    const userAttachments = attachments.map((file) => {
       // Reuse existing blob URL or create new one
       let url = attachmentBlobUrlsRef.current.get(file);
       if (!url) {
@@ -190,26 +190,21 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
       }
 
       // Save assistant response
-      await supabase
-        .from('chat_messages')
-        .insert({
-          project_id: projectId,
-          role: 'assistant',
-          content: data.response || 'No response from AI',
-          model: selectedModel,
-        });
-
+      await supabase.from('chat_messages').insert({
+        project_id: projectId,
+        role: 'assistant',
+        content: data.response || 'No response from AI',
+        model: selectedModel,
+      });
     } catch (error) {
       browserLogger.error({ error, projectId, model: selectedModel }, 'Chat error');
 
-      await supabase
-        .from('chat_messages')
-        .insert({
-          project_id: projectId,
-          role: 'assistant',
-          content: 'Sorry, I encountered an error processing your request.',
-          model: selectedModel,
-        });
+      await supabase.from('chat_messages').insert({
+        project_id: projectId,
+        role: 'assistant',
+        content: 'Sorry, I encountered an error processing your request.',
+        model: selectedModel,
+      });
     } finally {
       setIsLoading(false);
 
@@ -228,11 +223,11 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    setAttachments(prev => [...prev, ...files]);
+    setAttachments((prev) => [...prev, ...files]);
   };
 
   const removeAttachment = (index: number) => {
-    setAttachments(prev => {
+    setAttachments((prev) => {
       // CRITICAL FIX: Revoke blob URL when attachment is removed
       const fileToRemove = prev[index];
       if (fileToRemove) {
@@ -254,10 +249,7 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
     if (!supabase) return;
 
     try {
-      const { error } = await supabase
-        .from('chat_messages')
-        .delete()
-        .eq('project_id', projectId);
+      const { error } = await supabase.from('chat_messages').delete().eq('project_id', projectId);
 
       if (error) {
         browserLogger.error({ error, projectId }, 'Failed to clear chat');
@@ -288,8 +280,18 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
       <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-3">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
-            <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            <svg
+              className="h-4 w-4 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+              />
             </svg>
           </div>
           <div className="text-sm font-semibold text-neutral-900">DreamReal Assistant</div>
@@ -304,7 +306,7 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
             onChange={(e) => setSelectedModel(e.target.value)}
             className="flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           >
-            {GEMINI_MODELS.map(model => (
+            {GEMINI_MODELS.map((model) => (
               <option key={model.id} value={model.id}>
                 {model.name}
               </option>
@@ -314,9 +316,15 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
             onClick={clearChat}
             className="rounded-lg border border-neutral-300 bg-white p-2 text-neutral-600 hover:bg-neutral-50 hover:text-red-600 transition-colors"
             title="Clear chat history"
+            aria-label="Clear chat history"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
             </svg>
           </button>
         </div>
@@ -328,8 +336,19 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
           <div className="flex items-center justify-center py-8">
             <div className="flex items-center gap-2 text-sm text-neutral-500">
               <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
               </svg>
               Loading...
             </div>
@@ -337,12 +356,24 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-purple-100">
-              <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <svg
+                className="h-6 w-6 text-blue-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
               </svg>
             </div>
             <p className="text-sm font-medium text-neutral-900">Start a conversation</p>
-            <p className="mt-1 text-xs text-neutral-500">Ask me anything about your video project</p>
+            <p className="mt-1 text-xs text-neutral-500">
+              Ask me anything about your video project
+            </p>
           </div>
         ) : (
           messages.map((message) => (
@@ -390,8 +421,18 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
                             />
                           ) : (
                             <>
-                              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                              <svg
+                                className="h-3 w-3"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                                />
                               </svg>
                               <span className="truncate text-xs">{attachment.name}</span>
                             </>
@@ -401,8 +442,16 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
                     })}
                   </div>
                 )}
-                <div className={clsx('mt-1 text-xs', message.role === 'user' ? 'text-blue-200' : 'text-neutral-500')}>
-                  {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                <div
+                  className={clsx(
+                    'mt-1 text-xs',
+                    message.role === 'user' ? 'text-blue-200' : 'text-neutral-500'
+                  )}
+                >
+                  {new Date(message.created_at).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
                 </div>
               </div>
             </div>
@@ -412,9 +461,18 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
           <div className="flex justify-start">
             <div className="rounded-xl bg-neutral-100 px-4 py-2.5">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 animate-bounce rounded-full bg-neutral-400" style={{ animationDelay: '0ms' }} />
-                <div className="h-2 w-2 animate-bounce rounded-full bg-neutral-400" style={{ animationDelay: '150ms' }} />
-                <div className="h-2 w-2 animate-bounce rounded-full bg-neutral-400" style={{ animationDelay: '300ms' }} />
+                <div
+                  className="h-2 w-2 animate-bounce rounded-full bg-neutral-400"
+                  style={{ animationDelay: '0ms' }}
+                />
+                <div
+                  className="h-2 w-2 animate-bounce rounded-full bg-neutral-400"
+                  style={{ animationDelay: '150ms' }}
+                />
+                <div
+                  className="h-2 w-2 animate-bounce rounded-full bg-neutral-400"
+                  style={{ animationDelay: '300ms' }}
+                />
               </div>
             </div>
           </div>
@@ -437,7 +495,12 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
                   className="text-neutral-400 hover:text-red-600"
                 >
                   <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -467,17 +530,31 @@ export default function ChatBox({ projectId, collapsed }: ChatBoxProps) {
               onClick={handleSend}
               disabled={isLoading || (!input.trim() && attachments.length === 0)}
               className="rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 p-2 text-white hover:from-blue-700 hover:to-blue-800 disabled:opacity-50"
+              aria-label="Send message"
+              title="Send message"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                />
               </svg>
             </button>
             <button
               onClick={() => fileInputRef.current?.click()}
               className="rounded-lg border border-neutral-300 bg-white p-2 text-neutral-600 hover:bg-neutral-50"
+              aria-label="Attach files"
+              title="Attach files"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                />
               </svg>
             </button>
           </div>

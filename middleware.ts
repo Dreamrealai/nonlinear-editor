@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { validateEnv } from './lib/validateEnv';
+import { serverLogger } from './lib/serverLogger';
 
 // Validate environment variables on startup (development only)
 // This runs once when the middleware module is first loaded
@@ -8,7 +9,7 @@ if (process.env.NODE_ENV === 'development') {
   try {
     validateEnv({ throwOnError: false, mode: 'development' });
   } catch (error) {
-    console.error('Environment validation failed:', error);
+    serverLogger.error({ error }, 'Environment validation failed');
   }
 }
 
@@ -19,7 +20,7 @@ export async function middleware(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn('Supabase not configured - skipping auth middleware');
+    serverLogger.warn('Supabase not configured - skipping auth middleware');
     return NextResponse.next({
       request: {
         headers: request.headers,
@@ -33,53 +34,51 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, options) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-        },
-        remove(name: string, options) {
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
-        },
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return request.cookies.get(name)?.value;
       },
-    }
-  );
+      set(name: string, value: string, options) {
+        request.cookies.set({
+          name,
+          value,
+          ...options,
+        });
+        response = NextResponse.next({
+          request: {
+            headers: request.headers,
+          },
+        });
+        response.cookies.set({
+          name,
+          value,
+          ...options,
+        });
+      },
+      remove(name: string, options) {
+        request.cookies.set({
+          name,
+          value: '',
+          ...options,
+        });
+        response = NextResponse.next({
+          request: {
+            headers: request.headers,
+          },
+        });
+        response.cookies.set({
+          name,
+          value: '',
+          ...options,
+        });
+      },
+    },
+  });
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Protect /editor routes
   if (request.nextUrl.pathname.startsWith('/editor') && !user) {

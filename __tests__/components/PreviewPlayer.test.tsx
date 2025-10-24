@@ -170,7 +170,7 @@ describe('PreviewPlayer', () => {
     });
   });
 
-  it('should show pause button when playing', () => {
+  it('should show pause button when playing', async () => {
     render(<PreviewPlayer />);
 
     const playButton = screen.getByTitle('Play (Space)');
@@ -287,7 +287,7 @@ describe('PreviewPlayer', () => {
     expect(playButtons.length).toBeGreaterThan(0);
   });
 
-  it('should hide controls when hide button is clicked', () => {
+  it('should hide controls when hide button is clicked', async () => {
     const { container } = render(<PreviewPlayer />);
 
     const hideButton = screen.getByTitle('Hide controls');
