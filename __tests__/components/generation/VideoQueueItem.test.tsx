@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import VideoQueueItem from '@/components/generation/VideoQueueItem';
+import { VideoQueueItem } from '@/components/generation/VideoQueueItem';
 import { browserLogger } from '@/lib/browserLogger';
 
 jest.mock('@/lib/browserLogger', () => ({

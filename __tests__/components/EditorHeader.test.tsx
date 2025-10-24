@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useRouter } from 'next/navigation';
-import EditorHeader from '@/components/EditorHeader';
+import { EditorHeader } from '@/components/EditorHeader';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import toast from 'react-hot-toast';
 
@@ -19,6 +19,13 @@ jest.mock('@/components/UserMenu', () => ({
   UserMenu: function MockUserMenu() {
     return <div data-testid="user-menu">User Menu</div>;
   },
+}));
+
+jest.mock('@/components/ui/Tooltip', () => ({
+  TooltipProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Tooltip: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  TooltipTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  TooltipContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 jest.mock('react-hot-toast', () => ({

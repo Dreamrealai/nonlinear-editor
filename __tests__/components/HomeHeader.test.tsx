@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import HomeHeader from '@/components/HomeHeader';
+import { HomeHeader } from '@/components/HomeHeader';
 
 // Mock child components
 jest.mock('@/components/UserMenu', () => ({
