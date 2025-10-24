@@ -19,11 +19,11 @@ export const TimelinePlayhead = React.memo<TimelinePlayheadProps>(function Timel
 }) {
   return (
     <div
-      className="absolute top-0 bottom-0 w-0.5 bg-red-500 cursor-ew-resize z-20 pointer-events-none"
+      className="absolute top-0 bottom-0 w-0.5 bg-red-500 cursor-ew-resize z-40 pointer-events-none"
       style={{ left: currentTime * zoom }}
     >
       <div
-        className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-red-500 rounded-full pointer-events-auto cursor-grab active:cursor-grabbing"
+        className="absolute -top-1 left-1/2 -translate-x-1/2 w-7 h-7 bg-red-500 rounded-full pointer-events-auto cursor-grab active:cursor-grabbing hover:w-8 hover:h-8 transition-all"
         onMouseDown={onMouseDown}
         role="slider"
         tabIndex={0}
