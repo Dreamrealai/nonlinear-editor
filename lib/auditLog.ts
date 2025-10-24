@@ -299,7 +299,9 @@ export async function auditLog(entry: AuditLogEntry): Promise<void> {
     };
 
     // Insert audit log (non-blocking, fire-and-forget)
-    const { error } = await supabase.from('audit_logs').insert(auditRecord);
+    // Note: Type assertion needed because Supabase types are not generated for this project
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await supabase.from('audit_logs').insert(auditRecord as any);
 
     if (error) {
       // Log error but don't throw to avoid disrupting application flow

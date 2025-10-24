@@ -35,6 +35,7 @@ import { errorResponse, successResponse } from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
 import { createServiceSupabaseClient } from '@/lib/supabase';
 import { RATE_LIMITS } from '@/lib/rateLimit';
+import { auditLog, AuditAction } from '@/lib/auditLog';
 
 /**
  * Deletes files from a storage bucket for a user
@@ -119,7 +120,7 @@ async function deleteStorageFiles(
 /**
  * Main handler for account deletion
  */
-async function handleDeleteAccount(_request: NextRequest, context: AuthContext): Promise<Response> {
+async function handleDeleteAccount(request: NextRequest, context: AuthContext): Promise<Response> {
   const { user } = context;
   const userId = user.id;
 
@@ -137,41 +138,18 @@ async function handleDeleteAccount(_request: NextRequest, context: AuthContext):
     const adminClient = createServiceSupabaseClient();
 
     // Step 1: Audit log the deletion event BEFORE deleting data
-    try {
-      const { error: auditError } = await adminClient.from('audit_logs').insert({
-        user_id: userId,
-        action: 'user.delete_account',
-        resource_type: 'user',
-        resource_id: userId,
-        http_method: 'DELETE',
-        request_path: '/api/user/delete-account',
-        status_code: 200,
-        metadata: {
-          email: user.email,
-          deletedAt: new Date().toISOString(),
-        },
-      });
-
-      if (auditError) {
-        serverLogger.warn(
-          {
-            event: 'user.delete_account.audit_log_error',
-            userId,
-            error: auditError.message,
-          },
-          'Failed to create audit log entry'
-        );
-      }
-    } catch (auditError) {
-      serverLogger.warn(
-        {
-          event: 'user.delete_account.audit_log_exception',
-          userId,
-          error: auditError,
-        },
-        'Exception creating audit log'
-      );
-    }
+    await auditLog({
+      userId,
+      action: AuditAction.USER_ACCOUNT_DELETE,
+      resourceType: 'user',
+      resourceId: userId,
+      metadata: {
+        email: user.email,
+        deletedAt: new Date().toISOString(),
+      },
+      request,
+      statusCode: 200,
+    });
 
     // Step 2: Delete storage files (assets and frames buckets)
     serverLogger.info(
