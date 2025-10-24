@@ -52,7 +52,6 @@ export function useTimelineDraggingWithSnap(options: UseTimelineDraggingWithSnap
       return;
     }
 
-    const duration = Math.max(SNAP_INTERVAL, clip.end - clip.start);
     const position = clip.timelinePosition;
 
     // Build snap candidates
