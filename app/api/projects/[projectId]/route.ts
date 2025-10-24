@@ -21,7 +21,7 @@ async function handleProjectDelete(
   _request: NextRequest,
   context: AuthContext,
   routeContext?: { params: Promise<{ projectId: string }> }
-) {
+): Promise<Response> {
   const { user, supabase } = context;
   const startTime = Date.now();
   const resolvedParams = await routeContext?.params;

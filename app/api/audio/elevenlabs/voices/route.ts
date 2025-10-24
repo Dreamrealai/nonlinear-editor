@@ -16,7 +16,7 @@ interface VoicesResponse {
   voices: Voice[];
 }
 
-async function handleGetVoices() {
+async function handleGetVoices(): Promise<Response> {
   try {
     const apiKey = process.env['ELEVENLABS_API_KEY'];
 
@@ -26,7 +26,7 @@ async function handleGetVoices() {
 
     // Call ElevenLabs API to get available voices with timeout
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+    const timeout = setTimeout((): void => controller.abort(), 60000); // 60 second timeout
 
     try {
       const response = await fetch('https://api.elevenlabs.io/v1/voices', {

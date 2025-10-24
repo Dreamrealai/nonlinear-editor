@@ -13,13 +13,11 @@ import { serverLogger } from '@/lib/serverLogger';
 /**
  * DELETE - Revoke an invite
  */
-export const DELETE = withAuth(
-  async (req: NextRequest, { params }: { params: Promise<{ projectId: string; inviteId: string }> }) => {
-    const { projectId, inviteId } = await params;
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+export const DELETE = withAuth<{ projectId: string; inviteId: string }>(
+  async (req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; }>> => {
+    const params = await routeContext?.params;
+    const projectId = params?.projectId;
+    const inviteId = params?.inviteId;
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

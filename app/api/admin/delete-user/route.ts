@@ -10,7 +10,10 @@ import { validationError, errorResponse, successResponse } from '@/lib/api/respo
 import { validateUUID, ValidationError } from '@/lib/validation';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 
-async function handleDeleteUser(request: NextRequest, context: AdminAuthContext) {
+async function handleDeleteUser(
+  request: NextRequest,
+  context: AdminAuthContext
+): Promise<Response> {
   const { user } = context;
   try {
     // Get request body

@@ -76,11 +76,9 @@ async function deleteStorageFiles(
     }
 
     if (files && files.length > 0) {
-      const filePaths = files.map((file) => `${userId}/${file.name}`);
+      const filePaths = files.map((file): string => `${userId}/${file.name}`);
 
-      const { error: removeError } = await adminClient.storage
-        .from(bucketName)
-        .remove(filePaths);
+      const { error: removeError } = await adminClient.storage.from(bucketName).remove(filePaths);
 
       if (removeError) {
         serverLogger.warn(
@@ -121,7 +119,7 @@ async function deleteStorageFiles(
 /**
  * Main handler for account deletion
  */
-async function handleDeleteAccount(_request: NextRequest, context: AuthContext) {
+async function handleDeleteAccount(_request: NextRequest, context: AuthContext): Promise<Response> {
   const { user } = context;
   const userId = user.id;
 

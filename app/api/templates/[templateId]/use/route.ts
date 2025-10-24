@@ -4,27 +4,31 @@
  * POST /api/templates/[templateId]/use - Increment usage count when template is used
  */
 
-import { NextRequest } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
-import { createServiceSupabaseClient } from '@/lib/supabase';
-import { errorResponse, successResponse } from '@/lib/api/response';
+import { errorResponse, successResponse, validationError } from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
+import { RATE_LIMITS } from '@/lib/rateLimit';
+import { validateUUID, ValidationError } from '@/lib/validation';
 
 /**
  * POST /api/templates/[templateId]/use
  *
  * Increment template usage count
  */
-export const POST = withAuth(async (req, context) => {
+export const POST = withAuth<{ templateId: string }>(async (req, { user, supabase }, routeContext) => {
   try {
-    const { userId, params } = context;
-    const templateId = (await params).templateId;
+    const params = await routeContext?.params;
+    const templateId = params?.templateId;
 
-    if (!templateId) {
-      return errorResponse('Template ID is required', 400);
+    // Validate templateId
+    try {
+      validateUUID(templateId, 'templateId');
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return validationError(error.message, error.field);
+      }
+      throw error;
     }
-
-    const supabase = await createServerSupabaseClient();
 
     // Verify template exists and is accessible
     const { data: template, error: fetchError } = await supabase
@@ -38,7 +42,7 @@ export const POST = withAuth(async (req, context) => {
     }
 
     // Check access: must be public or user's own template
-    if (!template.is_public && template.user_id !== userId) {
+    if (!template.is_public && template.user_id !== user.id) {
       return errorResponse('Access denied', 403);
     }
 
@@ -48,14 +52,17 @@ export const POST = withAuth(async (req, context) => {
     });
 
     if (updateError) {
-      serverLogger.error({ error: updateError, userId, templateId }, 'Failed to increment template usage');
+      serverLogger.error({ error: updateError, userId: user.id, templateId }, 'Failed to increment template usage');
       return errorResponse('Failed to increment template usage', 500);
     }
 
-    serverLogger.info({ userId, templateId, previousCount: template.usage_count }, 'Template usage incremented');
+    serverLogger.info({ userId: user.id, templateId, previousCount: template.usage_count }, 'Template usage incremented');
     return successResponse({ message: 'Template usage incremented', usage_count: (template.usage_count || 0) + 1 });
   } catch (error) {
     serverLogger.error({ error }, 'Unexpected error incrementing template usage');
     return errorResponse('Internal server error', 500);
   }
+}, {
+  route: '/api/templates/[templateId]/use',
+  rateLimit: RATE_LIMITS.tier2_write,
 });

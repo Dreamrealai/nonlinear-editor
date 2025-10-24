@@ -86,39 +86,37 @@ function getRateLimitIdentifier(request: NextRequest, userId?: string): string {
 export function withAuth<TParams = Record<string, never>>(
   handler: AuthenticatedHandler<TParams>,
   options: AuthOptions
-): (request: NextRequest, context?: { params?: Promise<TParams> | TParams }) => Promise<Response> {
+): (request: NextRequest, context: { params: Promise<TParams> }) => Promise<Response> {
   return async (
     request: NextRequest,
-    context: { params?: Promise<TParams> | TParams } = {}
+    context: { params: Promise<TParams> }
   ): Promise<Response> => {
     const startTime = Date.now();
     const { route, rateLimit } = options;
 
-    // Handle Next.js 15's async params while staying compatible with legacy tests
+    // Handle Next.js 16's async params
     let params: TParams = {} as TParams;
-    const rawParams = context?.params;
+    const rawParams = context.params;
 
-    if (rawParams) {
-      try {
-        params = ((await Promise.resolve(rawParams)) ?? {}) as TParams;
-      } catch (error) {
-        serverLogger.warn(
-          {
-            event: 'api.params_resolution_failed',
-            route,
-            method: request.method,
-            error:
-              error instanceof Error
-                ? {
-                    name: error.name,
-                    message: error.message,
-                  }
-                : error,
-          },
-          'Failed to resolve route params, continuing with empty params'
-        );
-        params = {} as TParams;
-      }
+    try {
+      params = ((await rawParams) ?? {}) as TParams;
+    } catch (error) {
+      serverLogger.warn(
+        {
+          event: 'api.params_resolution_failed',
+          route,
+          method: request.method,
+          error:
+            error instanceof Error
+              ? {
+                  name: error.name,
+                  message: error.message,
+                }
+              : error,
+        },
+        'Failed to resolve route params, continuing with empty params'
+      );
+      params = {} as TParams;
     }
 
     try {
@@ -232,7 +230,7 @@ export function withAuth<TParams = Record<string, never>>(
       };
 
       // Pass params as a separate routeContext parameter
-      const routeContext = rawParams ? { params: Promise.resolve(params) } : undefined;
+      const routeContext = { params: Promise.resolve(params) };
 
       const response = await handler(request, authContext, routeContext);
 
@@ -299,8 +297,13 @@ export function withAuth<TParams = Record<string, never>>(
         }
       }
 
+      // In non-production environments, return detailed error messages for debugging
+      const isDevelopment = process?.env?.NODE_ENV !== 'production';
+      const errorMessage =
+        isDevelopment && error instanceof Error ? error.message : 'Internal server error';
+
       return NextResponse.json(
-        { error: 'Internal server error' },
+        { error: errorMessage },
         { status: HttpStatusCode.INTERNAL_SERVER_ERROR }
       );
     }
@@ -338,8 +341,8 @@ export type AdminAuthenticatedHandler<TParams = Record<string, never>> = (
 export function withAdminAuth<TParams = Record<string, never>>(
   handler: AdminAuthenticatedHandler<TParams>,
   options: AuthOptions
-): (request: NextRequest, context?: { params?: Promise<TParams> | TParams }) => Promise<Response> {
-  return withAuth<TParams>(async (request, authContext) => {
+): (request: NextRequest, context: { params: Promise<TParams> }) => Promise<Response> {
+  return withAuth<TParams>(async (request, authContext): Promise<Response> => {
     const { user, supabase } = authContext;
     const { route } = options;
 

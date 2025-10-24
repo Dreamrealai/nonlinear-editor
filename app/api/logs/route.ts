@@ -20,7 +20,7 @@ const MAX_LOG_ENTRY_SIZE = 10 * 1024;
 // Maximum total request size (100KB)
 const MAX_REQUEST_SIZE = 100 * 1024;
 
-async function handleLogsPost(request: NextRequest, context: AuthContext) {
+async function handleLogsPost(request: NextRequest, context: AuthContext): Promise<Response> {
   const { user } = context;
   try {
     const { logs } = (await request.json()) as { logs: LogEntry[] };
@@ -65,7 +65,7 @@ async function handleLogsPost(request: NextRequest, context: AuthContext) {
     const axiomDataset = process.env['AXIOM_DATASET'];
 
     // Add user ID to all logs for tracking
-    const enrichedLogs = logs.map((log) => ({
+    const enrichedLogs = logs.map((log): { userId: string; level: string; timestamp: string; message: string; data?: Record<string, unknown>; userAgent?: string; url?: string; } => ({
       ...log,
       userId: user.id,
     }));
@@ -73,7 +73,7 @@ async function handleLogsPost(request: NextRequest, context: AuthContext) {
     if (!axiomToken || !axiomDataset) {
       // In development or if Axiom not configured, just log to console
       if (process.env['NODE_ENV'] === 'development') {
-        enrichedLogs.forEach((log) => {
+        enrichedLogs.forEach((log): void => {
           const level = log.level;
           if (level === 'error') {
             serverLogger.error(
@@ -109,7 +109,7 @@ async function handleLogsPost(request: NextRequest, context: AuthContext) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(
-        enrichedLogs.map((log) => ({
+        enrichedLogs.map((log): { _time: string; source: string; userId: string; level: string; timestamp: string; message: string; data?: Record<string, unknown>; userAgent?: string; url?: string; } => ({
           ...log,
           _time: log.timestamp,
           source: 'browser',

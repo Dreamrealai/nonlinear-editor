@@ -7,28 +7,26 @@
  * POST /api/templates/[templateId]/use - Increment usage count
  */
 
-import { NextRequest } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
-import { createServiceSupabaseClient } from '@/lib/supabase';
-import { errorResponse, successResponse } from '@/lib/api/response';
+import { errorResponse, successResponse, validationError } from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
+import { validateUUID, validateString, ValidationError } from '@/lib/validation';
 import type { ProjectTemplate, UpdateTemplateInput } from '@/types/template';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
 /**
  * GET /api/templates/[templateId]
  *
  * Get a single template
  */
-export const GET = withAuth(async (req, context) => {
+export const GET = withAuth<{ templateId: string }>(async (req, { user, supabase }, routeContext) => {
   try {
-    const { userId, params } = context;
-    const templateId = (await params).templateId;
+    const params = await routeContext?.params;
+    const templateId = params?.templateId;
 
     if (!templateId) {
       return errorResponse('Template ID is required', 400);
     }
-
-    const supabase = await createServerSupabaseClient();
 
     const { data: template, error } = await supabase
       .from('project_templates')
@@ -37,12 +35,12 @@ export const GET = withAuth(async (req, context) => {
       .single();
 
     if (error || !template) {
-      serverLogger.warn({ error, userId, templateId }, 'Template not found');
+      serverLogger.warn({ error, userId: user.id, templateId }, 'Template not found');
       return errorResponse('Template not found', 404);
     }
 
     // Check access: must be public or user's own template
-    if (!template.is_public && template.user_id !== userId) {
+    if (!template.is_public && template.user_id !== user.id) {
       return errorResponse('Access denied', 403);
     }
 
@@ -51,6 +49,9 @@ export const GET = withAuth(async (req, context) => {
     serverLogger.error({ error }, 'Unexpected error fetching template');
     return errorResponse('Internal server error', 500);
   }
+}, {
+  route: '/api/templates/[templateId]',
+  rateLimit: RATE_LIMITS.tier2_read,
 });
 
 /**
@@ -58,17 +59,36 @@ export const GET = withAuth(async (req, context) => {
  *
  * Update a template (only owner can update)
  */
-export const PATCH = withAuth(async (req, context) => {
+export const PATCH = withAuth<{ templateId: string }>(async (req, { user, supabase }, routeContext) => {
   try {
-    const { userId, params } = context;
-    const templateId = (await params).templateId;
+    const params = await routeContext?.params;
+    const templateId = params?.templateId;
+
+    // Validate template ID
+    validateUUID(templateId, 'templateId');
+
     const body: UpdateTemplateInput = await req.json();
 
-    if (!templateId) {
-      return errorResponse('Template ID is required', 400);
+    // Validate optional fields
+    if (body.name !== undefined) {
+      validateString(body.name, 'name', { minLength: 1, maxLength: 100 });
     }
 
-    const supabase = await createServerSupabaseClient();
+    if (body.category !== undefined) {
+      validateString(body.category, 'category', { minLength: 1, maxLength: 50 });
+    }
+
+    if (body.description !== undefined && body.description !== null) {
+      validateString(body.description, 'description', { required: false, maxLength: 1000 });
+    }
+
+    if (body.thumbnail_url !== undefined && body.thumbnail_url !== null) {
+      validateString(body.thumbnail_url, 'thumbnail_url', { required: false, maxLength: 2048 });
+    }
+
+    if (body.timeline_data !== undefined && (typeof body.timeline_data !== 'object' || body.timeline_data === null)) {
+      throw new ValidationError('timeline_data must be an object', 'timeline_data', 'INVALID_TYPE');
+    }
 
     // Verify template exists and is owned by user
     const { data: existingTemplate, error: fetchError } = await supabase
@@ -81,7 +101,7 @@ export const PATCH = withAuth(async (req, context) => {
       return errorResponse('Template not found', 404);
     }
 
-    if (existingTemplate.user_id !== userId) {
+    if (existingTemplate.user_id !== user.id) {
       return errorResponse('Access denied', 403);
     }
 
@@ -96,7 +116,7 @@ export const PATCH = withAuth(async (req, context) => {
 
       // Recalculate duration
       if (body.timeline_data.clips && body.timeline_data.clips.length > 0) {
-        const durationSeconds = body.timeline_data.clips.reduce((max, clip) => {
+        const durationSeconds = body.timeline_data.clips.reduce((max, clip): number => {
           const clipEnd = clip.timelinePosition + (clip.end - clip.start);
           return Math.max(max, clipEnd);
         }, 0);
@@ -114,16 +134,22 @@ export const PATCH = withAuth(async (req, context) => {
       .single();
 
     if (updateError) {
-      serverLogger.error({ error: updateError, userId, templateId }, 'Failed to update template');
+      serverLogger.error({ error: updateError, userId: user.id, templateId }, 'Failed to update template');
       return errorResponse('Failed to update template', 500);
     }
 
-    serverLogger.info({ userId, templateId }, 'Template updated');
+    serverLogger.info({ userId: user.id, templateId }, 'Template updated');
     return successResponse({ template: updatedTemplate as ProjectTemplate });
   } catch (error) {
+    if (error instanceof ValidationError) {
+      return validationError(error.message);
+    }
     serverLogger.error({ error }, 'Unexpected error updating template');
     return errorResponse('Internal server error', 500);
   }
+}, {
+  route: '/api/templates/[templateId]',
+  rateLimit: RATE_LIMITS.tier2_write,
 });
 
 /**
@@ -131,16 +157,13 @@ export const PATCH = withAuth(async (req, context) => {
  *
  * Delete a template (only owner can delete)
  */
-export const DELETE = withAuth(async (req, context) => {
+export const DELETE = withAuth<{ templateId: string }>(async (req, { user, supabase }, routeContext) => {
   try {
-    const { userId, params } = context;
-    const templateId = (await params).templateId;
+    const params = await routeContext?.params;
+    const templateId = params?.templateId;
 
-    if (!templateId) {
-      return errorResponse('Template ID is required', 400);
-    }
-
-    const supabase = await createServerSupabaseClient();
+    // Validate template ID
+    validateUUID(templateId, 'templateId');
 
     // Verify template exists and is owned by user
     const { data: existingTemplate, error: fetchError } = await supabase
@@ -153,7 +176,7 @@ export const DELETE = withAuth(async (req, context) => {
       return errorResponse('Template not found', 404);
     }
 
-    if (existingTemplate.user_id !== userId) {
+    if (existingTemplate.user_id !== user.id) {
       return errorResponse('Access denied', 403);
     }
 
@@ -164,14 +187,20 @@ export const DELETE = withAuth(async (req, context) => {
       .eq('id', templateId);
 
     if (deleteError) {
-      serverLogger.error({ error: deleteError, userId, templateId }, 'Failed to delete template');
+      serverLogger.error({ error: deleteError, userId: user.id, templateId }, 'Failed to delete template');
       return errorResponse('Failed to delete template', 500);
     }
 
-    serverLogger.info({ userId, templateId }, 'Template deleted');
+    serverLogger.info({ userId: user.id, templateId }, 'Template deleted');
     return successResponse({ message: 'Template deleted successfully' });
   } catch (error) {
+    if (error instanceof ValidationError) {
+      return validationError(error.message);
+    }
     serverLogger.error({ error }, 'Unexpected error deleting template');
     return errorResponse('Internal server error', 500);
   }
+}, {
+  route: '/api/templates/[templateId]',
+  rateLimit: RATE_LIMITS.tier2_write,
 });
