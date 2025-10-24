@@ -29,55 +29,85 @@ jest.mock('@/lib/hooks/useVideoPlayback', () => ({
   },
 }));
 
-// Mock child components
+// Mock child components with named exports
 jest.mock('@/components/TextOverlayRenderer', () => {
-  return function MockTextOverlayRenderer() {
-    return <div data-testid="text-overlay-renderer">Text Overlays</div>;
+  return {
+    TextOverlayRenderer: function MockTextOverlayRenderer() {
+      return <div data-testid="text-overlay-renderer">Text Overlays</div>;
+    },
   };
 });
 
 jest.mock('@/components/TextOverlayEditor', () => {
-  return function MockTextOverlayEditor() {
-    return <div data-testid="text-overlay-editor">Text Overlay Editor</div>;
+  return {
+    TextOverlayEditor: function MockTextOverlayEditor() {
+      return <div data-testid="text-overlay-editor">Text Overlay Editor</div>;
+    },
   };
 });
 
 jest.mock('@/components/preview/PlaybackControls', () => {
   const React = require('react');
-  return function MockPlaybackControls({
-    isPlaying,
-    hasClips,
-    onPlayPause,
-  }: {
-    isPlaying: boolean;
-    hasClips: boolean;
-    onPlayPause: () => void;
-  }) {
-    const [controlsHidden, setControlsHidden] = React.useState(false);
+  const { formatTimecode } = require('@/lib/utils/videoUtils');
 
-    return (
-      <div data-testid="playback-controls">
-        {!controlsHidden ? (
-          <>
-            <button
-              title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
-              disabled={!hasClips}
-              onClick={onPlayPause}
-            >
-              {isPlaying ? 'Pause' : 'Play'}
+  return {
+    PlaybackControls: function MockPlaybackControls({
+      isPlaying,
+      hasClips,
+      currentTime,
+      totalDuration,
+      isFullscreen,
+      onPlayPause,
+      onSeek,
+      onToggleFullscreen,
+    }: {
+      isPlaying: boolean;
+      hasClips: boolean;
+      currentTime: number;
+      totalDuration: number;
+      isFullscreen: boolean;
+      onPlayPause: () => void;
+      onSeek: (time: number) => void;
+      onToggleFullscreen: () => void;
+    }) {
+      const [controlsHidden, setControlsHidden] = React.useState(false);
+      const progress = totalDuration > 0 ? (currentTime / totalDuration) * 100 : 0;
+
+      return (
+        <div data-testid="playback-controls">
+          {!controlsHidden ? (
+            <>
+              <button
+                title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
+                disabled={!hasClips}
+                onClick={onPlayPause}
+              >
+                {isPlaying ? 'Pause' : 'Play'}
+              </button>
+              <div className="bg-white/30" onClick={() => onSeek && onSeek(currentTime)}>
+                <div className="bg-white transition-all" style={{ width: `${progress}%` }} />
+              </div>
+              <div>
+                {formatTimecode(currentTime)} / {formatTimecode(totalDuration)}
+              </div>
+              <button
+                title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                onClick={onToggleFullscreen}
+              >
+                Fullscreen
+              </button>
+              <button title="Hide controls" onClick={() => setControlsHidden(true)}>
+                Hide
+              </button>
+            </>
+          ) : (
+            <button title="Show controls" onClick={() => setControlsHidden(false)}>
+              Show
             </button>
-            <button title="Enter fullscreen">Fullscreen</button>
-            <button title="Hide controls" onClick={() => setControlsHidden(true)}>
-              Hide
-            </button>
-          </>
-        ) : (
-          <button title="Show controls" onClick={() => setControlsHidden(false)}>
-            Show
-          </button>
-        )}
-      </div>
-    );
+          )}
+        </div>
+      );
+    },
   };
 });
 
