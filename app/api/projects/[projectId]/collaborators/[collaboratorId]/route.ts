@@ -10,7 +10,7 @@ import { RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateEnum, validateUUID, ValidationError } from '@/lib/validation';
 import { validationError } from '@/lib/api/response';
-import type { UpdateCollaboratorRequest } from '@/types/collaboration';
+import type { UpdateCollaboratorRequest, ProjectCollaborator } from '@/types/collaboration';
 
 /**
  * PATCH - Update a collaborator's role
@@ -20,7 +20,9 @@ export const PATCH = withAuth<{ projectId: string; collaboratorId: string }>(
     req: NextRequest,
     { user, supabase },
     routeContext
-  ): Promise<NextResponse<{ error: string; }> | NextResponse<{ collaborator: any; }>> => {
+  ): Promise<
+    NextResponse<{ error: string }> | NextResponse<{ collaborator: ProjectCollaborator }>
+  > => {
     const params = await routeContext?.params;
     const projectId = params?.projectId;
     const collaboratorId = params?.collaboratorId;
@@ -65,7 +67,10 @@ export const PATCH = withAuth<{ projectId: string; collaboratorId: string }>(
         .single();
 
       if (updateError || !collaborator) {
-        serverLogger.error({ error: updateError, collaboratorId, projectId }, 'Failed to update collaborator');
+        serverLogger.error(
+          { error: updateError, collaboratorId, projectId },
+          'Failed to update collaborator'
+        );
         return NextResponse.json({ error: 'Failed to update collaborator' }, { status: 500 });
       }
 
@@ -91,7 +96,7 @@ export const PATCH = withAuth<{ projectId: string; collaboratorId: string }>(
   },
   {
     route: '/api/projects/[projectId]/collaborators/[collaboratorId]',
-    rateLimit: RATE_LIMITS.tier2_resource_creation
+    rateLimit: RATE_LIMITS.tier2_resource_creation,
   }
 );
 
@@ -100,10 +105,10 @@ export const PATCH = withAuth<{ projectId: string; collaboratorId: string }>(
  */
 export const DELETE = withAuth<{ projectId: string; collaboratorId: string }>(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { user, supabase },
     routeContext
-  ): Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; }>> => {
+  ): Promise<NextResponse<{ error: string }> | NextResponse<{ success: boolean }>> => {
     const params = await routeContext?.params;
     const projectId = params?.projectId;
     const collaboratorId = params?.collaboratorId;
@@ -148,7 +153,10 @@ export const DELETE = withAuth<{ projectId: string; collaboratorId: string }>(
         .eq('project_id', projectId);
 
       if (deleteError) {
-        serverLogger.error({ error: deleteError, collaboratorId, projectId }, 'Failed to remove collaborator');
+        serverLogger.error(
+          { error: deleteError, collaboratorId, projectId },
+          'Failed to remove collaborator'
+        );
         return NextResponse.json({ error: 'Failed to remove collaborator' }, { status: 500 });
       }
 
@@ -177,6 +185,6 @@ export const DELETE = withAuth<{ projectId: string; collaboratorId: string }>(
   },
   {
     route: '/api/projects/[projectId]/collaborators/[collaboratorId]',
-    rateLimit: RATE_LIMITS.tier2_resource_creation
+    rateLimit: RATE_LIMITS.tier2_resource_creation,
   }
 );
