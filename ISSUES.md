@@ -306,17 +306,29 @@ Comprehensive performance optimization suite for timeline rendering with 100+ cl
 
 ### Issue #91: No Collaborative Editing Support
 
-- **Status:** Open
+- **Status:** Phase 1 Complete (2025-10-24)
 - **Priority:** P1
-- **Effort:** 40-60 hours
-- **Impact:** Cannot collaborate in real-time
+- **Effort:** 40-60 hours (Phase 1: 20 hours completed)
+- **Impact:** Basic real-time collaboration now available
+- **Fixed:** 2025-10-24
+- **Agent:** Agent 10
 
-**Needed:**
+**Phase 1 Implementation (Completed):**
 
-- WebSocket infrastructure
-- Operational Transform or CRDT
-- User presence indicators
-- Conflict resolution
+- Database schema for project collaborators with presence tracking
+- Supabase Realtime integration for live presence updates
+- `useProjectPresence` hook for tracking active users
+- `PresenceIndicator` component showing who's viewing/editing
+- RPC function for updating user presence status
+- Automatic presence heartbeat every 30 seconds
+- Cleanup on component unmount
+
+**Remaining Phases (Future Work):**
+
+- **Phase 2:** Operational Transform or CRDT for conflict-free editing
+- **Phase 3:** Real-time timeline synchronization
+- **Phase 4:** Collaborative cursor tracking
+- **Phase 5:** Conflict resolution UI
 
 ---
 
@@ -355,33 +367,83 @@ Comprehensive performance optimization suite for timeline rendering with 100+ cl
 
 ### Issue #94: Missing Export Presets
 
-- **Status:** Open
+- **Status:** Fixed (2025-10-24)
 - **Priority:** P1
-- **Effort:** 8-12 hours
-- **Impact:** Users must manually configure every export
+- **Effort:** 8-12 hours (Completed: ~8 hours)
+- **Impact:** Users can now use platform-specific and custom export presets
+- **Fixed:** 2025-10-24
+- **Agent:** Agent 10
 
-**Needed:**
+**Implementation:**
 
-- Preset system (YouTube, Instagram, etc)
-- Custom preset creation
-- Preset sharing/importing
-- Smart defaults based on content
+- Database table `export_presets` with platform and custom preset support
+- TypeScript types in `/types/export.ts` for export presets
+- Platform-specific presets seeded in migration:
+  - YouTube: 1080p, 4K, Shorts
+  - Instagram: Feed (square), Story, Reel
+  - TikTok, Twitter, Facebook, LinkedIn
+- API endpoints:
+  - `GET /api/export-presets` - List all presets
+  - `POST /api/export-presets` - Create custom preset
+  - `GET /api/export-presets/[id]` - Get single preset
+  - `PATCH /api/export-presets/[id]` - Update custom preset
+  - `DELETE /api/export-presets/[id]` - Delete custom preset
+- Enhanced `ExportModal` component:
+  - Platform preset grid with icons
+  - Custom preset management
+  - Delete custom presets
+  - Live settings preview
+- Export settings: resolution, fps, bitrate, format, codec
+
+**Files Created/Modified:**
+
+- `/supabase/migrations/20251025200000_add_export_presets.sql`
+- `/types/export.ts`
+- `/app/api/export-presets/route.ts`
+- `/app/api/export-presets/[presetId]/route.ts`
+- `/components/ExportModal.tsx` (enhanced)
 
 ---
 
 ### Issue #95: No Project Templates
 
-- **Status:** Open
+- **Status:** Fixed (2025-10-24)
 - **Priority:** P1
-- **Effort:** 12-16 hours
-- **Impact:** Users start from scratch every time
+- **Effort:** 12-16 hours (Completed: ~12 hours)
+- **Impact:** Users can now browse and use project templates
+- **Fixed:** 2025-10-24
+- **Agent:** Agent 10
 
-**Needed:**
+**Implementation:**
 
-- Template creation from existing projects
-- Template library (intros, outros, transitions)
-- Template marketplace
-- Template preview and search
+- Database table `project_templates` with full-text search
+- TypeScript types in `/types/template.ts`
+- Template categories: intro, outro, transition, title, social_media, commercial, tutorial, slideshow, lower_third, custom
+- API endpoints:
+  - `GET /api/templates` - List templates with filters (category, search, pagination)
+  - `POST /api/templates` - Create new template
+  - `GET /api/templates/[id]` - Get single template
+  - `PATCH /api/templates/[id]` - Update template
+  - `DELETE /api/templates/[id]` - Delete template
+  - `POST /api/templates/[id]/use` - Increment usage count
+- `TemplateLibrary` component:
+  - Category filter with icons
+  - Search functionality
+  - Featured templates
+  - Template preview with thumbnail
+  - Usage count tracking
+  - Pagination support
+  - Public/private template visibility
+- Template metadata: name, description, category, thumbnail, tags, duration
+
+**Files Created/Modified:**
+
+- `/supabase/migrations/20251025210000_add_project_templates.sql`
+- `/types/template.ts`
+- `/app/api/templates/route.ts`
+- `/app/api/templates/[templateId]/route.ts`
+- `/app/api/templates/[templateId]/use/route.ts`
+- `/components/TemplateLibrary.tsx`
 
 ---
 
@@ -511,16 +573,64 @@ Comprehensive performance optimization suite for timeline rendering with 100+ cl
 
 - Created consolidated time formatting utilities module at `/lib/utils/timeFormatting.ts`
 - Consolidated 5 duplicate `formatTime()` implementations into single module
-- Consolidated 2 duplicate `formatTimecode()` implementations
-- Added comprehensive formatting functions:
-  - `formatTimeMMSSCS()` - MM:SS.CS format for timeline displays
-  - `formatTimecode()` - Professional timecode HH:MM:SS.MS format
-  - `formatTimecodeFrames()` - Frame-based MM:SS:FF format (30fps)
-  - `formatTimeSeconds()` - Simple X.XXs format
-  - `formatDuration()` - Human-readable duration (Xs, Xm Ys, Xh Ym)
-  - `formatTimeRemaining()` - Approximate duration with ~ prefix
-- Updated 7 files to use consolidated utilities:
-  - `/lib/utils/timelineUtils.ts` - Re-exports for backward compatibility
+### Issue #15: Missing Loading States
+
+- **Status:** Fixed (2025-10-24)
+- **Priority:** P2
+- **Effort:** 8-12 hours (completed: 4 hours)
+- **Impact:** Improved UX during async operations
+- **Fixed Date:** 2025-10-24
+- **Commit:** 45e282a
+
+**Implementation:**
+
+Added comprehensive loading states to all major async operations in the video editor:
+
+1. **Project/Timeline Loading (BrowserEditorClient)**:
+   - Added comprehensive loading skeleton with branded purple spinners
+   - Shows skeleton for assets panel, preview player, and timeline during initial load
+   - Displays during timeline bootstrap and asset loading
+   - Uses SkeletonTimeline and SkeletonCard components for visual feedback
+
+2. **Asset Operations (AssetPanel)**:
+   - Enhanced loading state with branded purple spinner and message
+   - Shows skeleton cards while assets are loading
+   - Improved visual feedback with branded color scheme
+   - Better accessibility with aria-live announcements
+
+3. **Export Operations (ExportModal)**:
+   - Added loading message with spinner in export button
+   - Shows "Starting export..." with spinner during export initiation
+   - Better visual feedback for async export operations
+
+4. **Scene Detection (Timeline Controls)**:
+   - Already had loading spinner implemented and working
+   - Scene detection button shows spinner when processing
+
+5. **AI Generation Operations**:
+   - Already had GenerationProgress component for video/audio generation
+   - Upload operations use UploadProgressList component
+   - Both components provide comprehensive progress tracking
+
+**Features:**
+- All loading states use branded LoadingSpinner and Skeleton components
+- Consistent purple gradient design matching app identity
+- Proper accessibility with aria-live, aria-label, and role attributes
+- Smooth transitions and animations
+- Dark mode support across all loading states
+
+**Files Modified:**
+- /app/editor/[projectId]/BrowserEditorClient.tsx - Added project loading skeleton
+- /components/editor/AssetPanel.tsx - Enhanced asset loading states
+- /components/ExportModal.tsx - Improved export button loading state
+
+**Verification:**
+- Scene detection already has loading spinner (verified in TimelineControls)
+- AI generation already has GenerationProgress component (verified)
+- Asset uploads already have UploadProgressList (verified)
+- All new loading states follow existing patterns and use existing components
+
+---
   - `/lib/utils/videoUtils.ts` - Re-exports formatTimecodeFrames
   - `/components/ProgressModal.tsx` - Uses formatDuration
   - `/components/ui/ProgressBar.tsx` - Uses formatDuration
