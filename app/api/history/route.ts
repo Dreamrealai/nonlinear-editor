@@ -77,7 +77,10 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
 
   if (error) {
     serverLogger.error({ error, userId: user.id }, 'Error fetching activity history');
-    return errorResponse('Failed to fetch activity history', 500);
+    return errorResponse(
+      'Unable to load your activity history. Please refresh the page and try again.',
+      500
+    );
   }
 
   return successResponse({ history, count: history?.length || 0 });
@@ -102,7 +105,10 @@ export const DELETE = withErrorHandling(async () => {
 
   if (error) {
     serverLogger.error({ error, userId: user.id }, 'Error clearing activity history');
-    return errorResponse('Failed to clear activity history', 500);
+    return errorResponse(
+      'Unable to clear your activity history. Please try again or contact support if the problem persists.',
+      500
+    );
   }
 
   return successResponse(null, 'Activity history cleared');
@@ -163,7 +169,10 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
   if (error) {
     serverLogger.error({ error, userId: user.id }, 'Error adding activity history entry');
-    return errorResponse('Failed to add activity history entry', 500);
+    return errorResponse(
+      'Unable to record this activity in your history. The activity was completed successfully, but logging failed.',
+      500
+    );
   }
 
   return successResponse({ success: true, activity: data });

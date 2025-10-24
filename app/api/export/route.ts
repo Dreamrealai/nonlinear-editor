@@ -255,7 +255,13 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       { error: jobError, userId: user.id, projectId: body.projectId },
       'Failed to create export job'
     );
-    return NextResponse.json({ error: 'Failed to create export job' }, { status: 500 });
+    return NextResponse.json(
+      {
+        error:
+          'Unable to create your video export job. Please check your timeline and try again. If the problem persists, contact support.',
+      },
+      { status: 500 }
+    );
   }
 
   const response: ExportResponse = {

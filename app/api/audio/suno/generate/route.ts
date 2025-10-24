@@ -189,7 +189,10 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
         },
         'Suno API error'
       );
-      return errorResponse('Failed to generate audio with Suno', response.status);
+      return errorResponse(
+        'Unable to generate music with Suno AI. The service may be temporarily unavailable or experiencing high demand. Please try again in a few moments.',
+        response.status
+      );
     }
   } catch (error) {
     clearTimeout(timeout);
@@ -208,7 +211,11 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   const result: SunoTaskResponse = await response.json();
 
   if (result.code !== 200) {
-    return errorResponse(result.msg || 'Failed to generate audio', 400);
+    return errorResponse(
+      result.msg ||
+        'Music generation failed. Please check your input and try again. If the problem persists, contact support.',
+      400
+    );
   }
 
   const duration = Date.now() - startTime;

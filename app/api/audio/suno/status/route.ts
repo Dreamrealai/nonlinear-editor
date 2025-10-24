@@ -74,13 +74,20 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
       { error, status: response.status, taskId, userId: user.id },
       'Suno API error'
     );
-    return errorResponse('Failed to check status', response.status);
+    return errorResponse(
+      'Unable to check music generation status. The service may be temporarily unavailable. Please try again.',
+      response.status
+    );
   }
 
   const result: SunoStatusResponse = await response.json();
 
   if (result.code !== 200) {
-    return errorResponse(result.msg || 'Failed to check status', 400);
+    return errorResponse(
+      result.msg ||
+        'Cannot retrieve music generation status. Please verify your operation ID and try again.',
+      400
+    );
   }
 
   return NextResponse.json({
