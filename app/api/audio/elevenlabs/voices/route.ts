@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { withAuth, type AuthContext } from '@/lib/api/withAuth';
+import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { errorResponse, internalServerError } from '@/lib/api/response';
 import { serverLogger } from '@/lib/serverLogger';
@@ -17,12 +17,7 @@ interface VoicesResponse {
   voices: Voice[];
 }
 
-async function handleGetVoices(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _request: NextRequest,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _context: AuthContext & { params?: Record<string, never> }
-) {
+async function handleGetVoices() {
   try {
     const apiKey = process.env['ELEVENLABS_API_KEY'];
 

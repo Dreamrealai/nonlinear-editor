@@ -9,10 +9,14 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit",
+    "validate": "npm run type-check && npm run lint && npm run format:check",
     "validate:env": "tsx scripts/validate-env.ts",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -20,6 +24,11 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
+    "test:e2e:headed": "playwright test --headed",
+    "test:all": "npm run test && npm run test:e2e",
+    "clean": "rm -rf .next out coverage playwright-report test-results .turbo",
+    "clean:deps": "rm -rf node_modules package-lock.json && npm install",
+    "postinstall": "npm run validate:env || echo 'Warning: Environment validation failed'",
     "prepare": "husky"
   },
   "dependencies": {

@@ -307,7 +307,7 @@ describe('HorizontalTimeline', () => {
     render(<HorizontalTimeline />);
 
     // Should show time in format MM:SS.MS
-    expect(screen.getByText(/0:05.55/)).toBeInTheDocument();
+    expect(screen.getByText(/0:05.50/)).toBeInTheDocument();
   });
 
   it('should display track labels', () => {

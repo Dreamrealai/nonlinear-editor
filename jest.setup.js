@@ -62,8 +62,28 @@ if (typeof global === 'object' && typeof global.performance === 'undefined') {
   global.performance = globalThis.performance;
 }
 
-// Note: Request/Response are not polyfilled globally to avoid conflicts with Next.js
-// API route tests should mock NextRequest/NextResponse individually if needed
+// Polyfill Request for API route tests
+if (typeof globalThis.Request === 'undefined') {
+  class PolyfilledRequest {
+    constructor(input, init = {}) {
+      this.url = typeof input === 'string' ? input : input.url;
+      this.method = init?.method ?? 'GET';
+      this.headers = new Map(Object.entries(init?.headers ?? {}));
+      this.body = init?.body;
+      this._bodyInit = init?.body;
+    }
+
+    async json() {
+      return typeof this._bodyInit === 'string' ? JSON.parse(this._bodyInit) : this._bodyInit;
+    }
+
+    async text() {
+      return typeof this._bodyInit === 'string' ? this._bodyInit : JSON.stringify(this._bodyInit);
+    }
+  }
+
+  globalThis.Request = PolyfilledRequest;
+}
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {

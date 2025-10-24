@@ -1,16 +1,24 @@
+/**
+ * CreateProjectButton Component
+ *
+ * Button component for creating new projects
+ * - Handles project creation with loading state
+ * - Shows success/error feedback via toast
+ * - Redirects to editor on success
+ */
 'use client';
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { browserLogger } from '@/lib/browserLogger';
 import toast from 'react-hot-toast';
+import { browserLogger } from '@/lib/browserLogger';
 
 export function CreateProjectButton() {
   const router = useRouter();
-  const [isCreating, setIsCreating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleCreateProject = async () => {
-    setIsCreating(true);
+    setIsLoading(true);
     try {
       const response = await fetch('/api/projects', {
         method: 'POST',
@@ -30,19 +38,20 @@ export function CreateProjectButton() {
       toast.success('Project created successfully');
       router.push(`/editor/${project.id}`);
     } catch (error) {
-      browserLogger.error({ error }, 'Error creating project');
+      browserLogger.error({ error }, 'Failed to create project');
       toast.error('Failed to create project. Please try again.');
-      setIsCreating(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <button
       onClick={handleCreateProject}
-      disabled={isCreating}
-      className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-neutral-800 disabled:opacity-50"
+      disabled={isLoading}
+      className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
     >
-      {isCreating ? 'Creating...' : 'New Project'}
+      {isLoading ? 'Creating...' : 'New Project'}
     </button>
   );
 }
