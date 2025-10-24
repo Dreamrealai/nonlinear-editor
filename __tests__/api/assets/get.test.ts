@@ -94,7 +94,7 @@ describe('GET /api/assets', () => {
         createMockAsset({ id: 'asset-2', type: 'image' }),
       ];
 
-      mockSupabase.range.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: mockAssets,
         error: null,
         count: mockAssets.length,
@@ -112,10 +112,10 @@ describe('GET /api/assets', () => {
 
     it('should filter assets by projectId', async () => {
       mockAuthenticatedUser(mockSupabase);
-      const projectId = '123e4567-e89b-12d3-a456-426614174000';
+      const projectId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'; // valid UUID v4
       const mockAssets = [createMockAsset({ project_id: projectId })];
 
-      mockSupabase.range.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: mockAssets,
         error: null,
         count: 1,
@@ -133,7 +133,7 @@ describe('GET /api/assets', () => {
       mockAuthenticatedUser(mockSupabase);
       const mockAssets = [createMockAsset({ type: 'video' })];
 
-      mockSupabase.range.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: mockAssets,
         error: null,
         count: 1,
@@ -149,7 +149,7 @@ describe('GET /api/assets', () => {
 
     it('should support pagination', async () => {
       mockAuthenticatedUser(mockSupabase);
-      mockSupabase.range.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: [],
         error: null,
         count: 100,
@@ -205,7 +205,7 @@ describe('GET /api/assets', () => {
   describe('Error Handling', () => {
     it('should return 500 on database error', async () => {
       mockAuthenticatedUser(mockSupabase);
-      mockSupabase.range.mockResolvedValue({
+      mockSupabase.mockResolvedValue({
         data: null,
         error: { message: 'Database error', code: 'DB_ERROR' },
         count: null,

@@ -262,7 +262,9 @@ describe('timelineUtils', () => {
     it('should respect target track index', () => {
       const clips = [createClip('clip-1', 0, 0, 10), createClip('clip-2', 1, 0, 10)];
       const result = computeSafeClipPosition('clip-1', 5, clips, 1, 0.1, 1);
-      expect(result).toBe(5);
+      // Moving clip-1 (duration 10) to position 5 on track 1 where clip-2 (0-10) exists
+      // would create overlap, so it should be pushed to position 10
+      expect(result).toBe(10);
     });
 
     it('should handle tight space between clips', () => {

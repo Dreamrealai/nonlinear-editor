@@ -37,6 +37,19 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
+// Mock rate limiting - always allow requests to pass
+jest.mock('@/lib/rateLimit', () => ({
+  checkRateLimit: jest.fn().mockResolvedValue({
+    success: true,
+    limit: 5,
+    remaining: 4,
+    resetAt: Date.now() + 60000,
+  }),
+  RATE_LIMITS: {
+    tier1_auth_payment: { limit: 5, windowMs: 60000 },
+  },
+}));
+
 describe('POST /api/stripe/checkout', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   let mockRequest: NextRequest;
@@ -201,11 +214,6 @@ describe('POST /api/stripe/checkout', () => {
       });
 
       const response = await POST(mockRequest, { params: Promise.resolve({}) });
-
-      if (response.status !== 200) {
-        const errorData = await response.json();
-        console.error('Checkout error:', errorData, 'Status:', response.status);
-      }
 
       expect(getOrCreateStripeCustomer).toHaveBeenCalledWith({
         userId: mockUser.id,

@@ -86,13 +86,8 @@ export function computeSafeClipPosition(
     .filter((clip) => clip.trackIndex === trackIndex && clip.id !== clipId)
     .sort((a, b) => a.timelinePosition - b.timelinePosition);
 
-  const previous = trackClips
-    .filter((clip) => {
-      const clipEnd = clip.timelinePosition + Math.max(snapInterval, clip.end - clip.start);
-      return clipEnd <= position;
-    })
-    .pop();
-  const next = trackClips.find((clip) => clip.timelinePosition >= position);
+  const previous = trackClips.filter((clip) => clip.timelinePosition < position).pop();
+  const next = trackClips.find((clip) => clip.timelinePosition > position);
 
   let minStart = 0;
   if (previous) {

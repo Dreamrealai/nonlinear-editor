@@ -15,13 +15,11 @@ import {
 // Mock dependencies
 jest.mock('@/lib/supabase', () => {
   const { createMockSupabaseClient } = jest.requireActual('@/test-utils/mockSupabase');
-  let mockClient = createMockSupabaseClient();
+  const mockClient = createMockSupabaseClient();
 
   return {
     createServerSupabaseClient: jest.fn(async () => mockClient),
-    __setMockClient: (client: ReturnType<typeof createMockSupabaseClient>) => {
-      mockClient = client;
-    },
+    __getMockClient: () => mockClient,
   };
 });
 
@@ -84,9 +82,8 @@ describe('POST /api/video/upscale', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
   beforeEach(() => {
-    mockSupabase = createMockSupabaseClient();
-    const { __setMockClient } = require('@/lib/supabase');
-    __setMockClient(mockSupabase);
+    const { __getMockClient } = require('@/lib/supabase');
+    mockSupabase = __getMockClient();
 
     checkRateLimit.mockResolvedValue({ success: true, remaining: 9 });
 

@@ -18,14 +18,12 @@ import {
 // Mock modules
 jest.mock('@/lib/supabase', () => {
   const { createMockSupabaseClient } = jest.requireActual('@/test-utils/mockSupabase');
-  let mockClient = createMockSupabaseClient();
+  const mockClient = createMockSupabaseClient();
 
   return {
     createServerSupabaseClient: jest.fn(async () => mockClient),
     ensureHttpsProtocol: jest.fn((url) => url),
-    __setMockClient: (client: ReturnType<typeof createMockSupabaseClient>) => {
-      mockClient = client;
-    },
+    __getMockClient: () => mockClient,
   };
 });
 
@@ -93,14 +91,20 @@ jest.mock('@/lib/api/project-verification', () => ({
   verifyAssetOwnership: jest.fn(),
 }));
 
+const { checkRateLimit, RATE_LIMITS } = require('@/lib/rateLimit');
+const { verifyProjectOwnership, verifyAssetOwnership } = require('@/lib/api/project-verification');
+const { generateVideo } = require('@/lib/veo');
+const { generateFalVideo } = require('@/lib/fal-video');
+const { validateAll } = require('@/lib/api/validation');
+
 describe('POST /api/video/generate', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   let mockRequest: NextRequest;
 
   beforeEach(() => {
     mockSupabase = createMockSupabaseClient();
-    const { __setMockClient } = require('@/lib/supabase');
-    __setMockClient(mockSupabase);
+    const { __getMockClient } = require('@/lib/supabase');
+    mockSupabase = __getMockClient();
 
     checkRateLimit.mockResolvedValue({
       success: true,

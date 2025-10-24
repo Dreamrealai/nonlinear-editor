@@ -162,8 +162,9 @@ describe('useClipboardStore', () => {
       });
 
       // Act
-      const pastedClips = act(() => {
-        return result.current.pasteClips(10);
+      let pastedClips: Clip[] = [];
+      act(() => {
+        pastedClips = result.current.pasteClips(10);
       });
 
       // Assert
@@ -183,8 +184,9 @@ describe('useClipboardStore', () => {
       });
 
       // Act
-      const pastedClips = act(() => {
-        return result.current.pasteClips(20);
+      let pastedClips: Clip[] = [];
+      act(() => {
+        pastedClips = result.current.pasteClips(20);
       });
 
       // Assert
@@ -204,8 +206,9 @@ describe('useClipboardStore', () => {
       });
 
       // Act
-      const pastedClips = act(() => {
-        return result.current.pasteClips(10);
+      let pastedClips: Clip[] = [];
+      act(() => {
+        pastedClips = result.current.pasteClips(10);
       });
 
       // Assert
@@ -218,8 +221,9 @@ describe('useClipboardStore', () => {
       const { result } = renderHook(() => useClipboardStore());
 
       // Act
-      const pastedClips = act(() => {
-        return result.current.pasteClips(10);
+      let pastedClips: Clip[] = [];
+      act(() => {
+        pastedClips = result.current.pasteClips(10);
       });
 
       // Assert
@@ -244,8 +248,9 @@ describe('useClipboardStore', () => {
       });
 
       // Act
-      const pastedClips = act(() => {
-        return result.current.pasteClips(10);
+      let pastedClips: Clip[] = [];
+      act(() => {
+        pastedClips = result.current.pasteClips(10);
       });
 
       // Assert
@@ -267,8 +272,9 @@ describe('useClipboardStore', () => {
       });
 
       // Act
-      const pastedClips = act(() => {
-        return result.current.pasteClips(0);
+      let pastedClips: Clip[] = [];
+      act(() => {
+        pastedClips = result.current.pasteClips(0);
       });
 
       // Assert
@@ -285,11 +291,13 @@ describe('useClipboardStore', () => {
       });
 
       // Act
-      const pastedClips1 = act(() => {
-        return result.current.pasteClips(10);
+      let pastedClips1: Clip[] = [];
+      let pastedClips2: Clip[] = [];
+      act(() => {
+        pastedClips1 = result.current.pasteClips(10);
       });
-      const pastedClips2 = act(() => {
-        return result.current.pasteClips(20);
+      act(() => {
+        pastedClips2 = result.current.pasteClips(20);
       });
 
       // Assert
@@ -312,8 +320,9 @@ describe('useClipboardStore', () => {
       const originalClipboardSize = result.current.copiedClips.length;
 
       // Act
+      let pastedClips: Clip[] = [];
       act(() => {
-        result.current.pasteClips(10);
+        pastedClips = result.current.pasteClips(10);
       });
 
       // Assert
@@ -390,8 +399,9 @@ describe('useClipboardStore', () => {
       });
 
       // Act
-      const pastedClips = act(() => {
-        return result.current.pasteClips(10);
+      let pastedClips: Clip[] = [];
+      act(() => {
+        pastedClips = result.current.pasteClips(10);
       });
 
       // Assert - Should preserve relative positions
@@ -410,8 +420,9 @@ describe('useClipboardStore', () => {
       });
 
       // Act
-      const pastedClips = act(() => {
-        return result.current.pasteClips(10);
+      let pastedClips: Clip[] = [];
+      act(() => {
+        pastedClips = result.current.pasteClips(10);
       });
 
       // Assert
@@ -429,8 +440,9 @@ describe('useClipboardStore', () => {
       });
 
       // Act
-      const pastedClips = act(() => {
-        return result.current.pasteClips(999999);
+      let pastedClips: Clip[] = [];
+      act(() => {
+        pastedClips = result.current.pasteClips(999999);
       });
 
       // Assert
@@ -447,8 +459,9 @@ describe('useClipboardStore', () => {
       });
 
       // Act
-      const pastedClips = act(() => {
-        return result.current.pasteClips(10.5);
+      let pastedClips: Clip[] = [];
+      act(() => {
+        pastedClips = result.current.pasteClips(10.5);
       });
 
       // Assert
@@ -474,8 +487,9 @@ describe('useClipboardStore', () => {
       });
 
       // Act
-      const pastedClips = act(() => {
-        return result.current.pasteClips(10);
+      let pastedClips: Clip[] = [];
+      act(() => {
+        pastedClips = result.current.pasteClips(10);
       });
 
       // Assert
@@ -501,12 +515,13 @@ describe('useClipboardStore', () => {
         result.current.copyClips([clip1, clip2]);
       });
 
-      const paste1 = act(() => {
-        return result.current.pasteClips(10);
+      let paste1: Clip[] = [];
+      let paste2: Clip[] = [];
+      act(() => {
+        paste1 = result.current.pasteClips(10);
       });
-
-      const paste2 = act(() => {
-        return result.current.pasteClips(20);
+      act(() => {
+        paste2 = result.current.pasteClips(20);
       });
 
       // Assert
@@ -529,8 +544,9 @@ describe('useClipboardStore', () => {
         result.current.clearClipboard();
       });
 
-      const pastedClips = act(() => {
-        return result.current.pasteClips(10);
+      let pastedClips: Clip[] = [];
+      act(() => {
+        pastedClips = result.current.pasteClips(10);
       });
 
       // Assert
@@ -549,8 +565,9 @@ describe('useClipboardStore', () => {
         result.current.copyClips([clip2]);
       });
 
-      const pastedClips = act(() => {
-        return result.current.pasteClips(10);
+      let pastedClips: Clip[] = [];
+      act(() => {
+        pastedClips = result.current.pasteClips(10);
       });
 
       // Assert
@@ -571,8 +588,9 @@ describe('useClipboardStore', () => {
       originalClip.timelinePosition = 100;
       originalClip.volume = 0.1;
 
-      const pastedClips = act(() => {
-        return result.current.pasteClips(10);
+      let pastedClips: Clip[] = [];
+      act(() => {
+        pastedClips = result.current.pasteClips(10);
       });
 
       // Assert - Pasted clip should not reflect external changes
@@ -594,8 +612,9 @@ describe('useClipboardStore', () => {
       });
 
       // Act
-      const pastedClips = act(() => {
-        return result.current.pasteClips(0);
+      let pastedClips: Clip[] = [];
+      act(() => {
+        pastedClips = result.current.pasteClips(0);
       });
 
       // Assert - min is 10, so offsets are 0, 5, 15
@@ -616,8 +635,9 @@ describe('useClipboardStore', () => {
       });
 
       // Act
-      const pastedClips = act(() => {
-        return result.current.pasteClips(100);
+      let pastedClips: Clip[] = [];
+      act(() => {
+        pastedClips = result.current.pasteClips(100);
       });
 
       // Assert - Spacing should be preserved (10 and 20 unit gaps)

@@ -14,14 +14,12 @@ import {
 // Mock modules
 jest.mock('@/lib/supabase', () => {
   const { createMockSupabaseClient } = jest.requireActual('@/test-utils/mockSupabase');
-  let mockClient = createMockSupabaseClient();
+  const mockClient = createMockSupabaseClient();
 
   return {
     createServerSupabaseClient: jest.fn(async () => mockClient),
     ensureHttpsProtocol: jest.fn((url) => url),
-    __setMockClient: (client: ReturnType<typeof createMockSupabaseClient>) => {
-      mockClient = client;
-    },
+    __getMockClient: () => mockClient,
   };
 });
 
@@ -70,9 +68,8 @@ describe('GET /api/video/status', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockSupabase = createMockSupabaseClient();
-    const { __setMockClient } = require('@/lib/supabase');
-    __setMockClient(mockSupabase);
+    const { __getMockClient } = require('@/lib/supabase');
+    mockSupabase = __getMockClient();
 
     // Setup default storage mocks
     mockSupabase.storage.from.mockReturnThis();
