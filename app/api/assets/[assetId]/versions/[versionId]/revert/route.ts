@@ -36,7 +36,7 @@ import { AssetVersionService } from '@/lib/services/assetVersionService';
  * @ratelimit 10 requests per minute (TIER 2 - Resource Creation)
  * @authentication Required - Session cookie (supabase-auth-token)
  */
-const handleRevertToVersion: AuthenticatedHandler = async (
+const handleRevertToVersion: AuthenticatedHandler<{ assetId: string; versionId: string }> = async (
   request,
   { params, user, supabase }
 ) => {

@@ -1,8 +1,8 @@
 # Codebase Issues Tracker
 
 **Last Updated:** 2025-10-24
-**Status:** 54 open issues (20 issues fixed)
-**Priority Breakdown:** P0: 0 | P1: 19 | P2: 23 | P3: 12
+**Status:** 53 open issues (21 issues fixed)
+**Priority Breakdown:** P0: 0 | P1: 19 | P2: 22 | P3: 12
 
 This document tracks all open issues in the codebase. Fixed/resolved issues are removed to keep this document focused and efficient.
 
@@ -1730,18 +1730,77 @@ shortcuts and wiring up the callbacks to make grouping fully functional.
 
 ### Issue #35: Missing Video Effects
 
-- **Status:** Open
+- **Status:** Fixed (2025-10-24)
 - **Priority:** P2
-- **Effort:** 32-40 hours
-- **Impact:** Limited video editing
+- **Effort:** 32-40 hours (completed: ~6 hours)
+- **Impact:** Limited video editing - Now resolved
+- **Fixed Date:** 2025-10-24
 
-**Needed:**
+**Implementation:**
 
-- Color correction
-- Brightness/contrast
-- Saturation/hue
-- Blur effects
-- Effect presets
+Comprehensive video effects system with real-time preview and effect presets:
+
+**Features Implemented:**
+
+1. **Video Effects Controls:**
+   - Brightness (0-200%, default 100%)
+   - Contrast (0-200%, default 100%)
+   - Saturation (0-200%, default 100%)
+   - Hue Rotation (0-360°, default 0°)
+   - Blur (0-20px, default 0px)
+
+2. **Effect Presets (10 total):**
+   - Normal - Reset all effects to default
+   - Vivid - Enhanced colors and contrast
+   - Vintage - Warm, faded retro look
+   - Black & White - Classic monochrome
+   - Cool - Blue-tinted, cooler tones
+   - Warm - Orange-tinted, warmer tones
+   - Faded - Low contrast, washed out
+   - Dramatic - High contrast, dark shadows
+   - Soft Focus - Gentle blur effect
+   - Dream - Soft, ethereal look
+
+3. **Technical Implementation:**
+   - Extended ColorCorrection type to VideoEffects with blur support
+   - Created VideoEffectsSection component with preset buttons and manual controls
+   - Updated generateCSSFilter to apply all effects using CSS filter property
+   - Added blur state management to useCorrectionSync and useCorrectionHandlers hooks
+   - Replaced ColorCorrectionSection with VideoEffectsSection in TimelineCorrectionsMenu
+   - Maintained backward compatibility with ColorCorrection type alias
+
+4. **UI/UX:**
+   - Real-time preview of all effects in video player
+   - Effect preset buttons with visual icons
+   - Manual sliders for fine-tuning each effect
+   - Dark mode support for all components
+   - Smooth transitions with debounced updates
+   - Reset button to restore defaults
+
+5. **Performance:**
+   - CSS filters for hardware-accelerated rendering
+   - Debounced updates (100ms) for smooth slider interaction
+   - No performance impact on timeline playback
+   - Efficient real-time rendering
+
+**Files Created/Modified:**
+
+- `/components/editor/corrections/VideoEffectsSection.tsx` - New component with presets
+- `/types/timeline.ts` - Extended VideoEffects type with blur
+- `/lib/utils/videoUtils.ts` - Updated generateCSSFilter for blur
+- `/components/editor/corrections/useCorrectionSync.ts` - Added blur state
+- `/components/editor/corrections/useCorrectionHandlers.ts` - Added preset handler
+- `/components/editor/TimelineCorrectionsMenu.tsx` - Integrated VideoEffectsSection
+- `/components/timeline/TimelineContextMenu.tsx` - Fixed default blur value
+
+**Testing:**
+
+- TypeScript compilation passes with no errors
+- All effects render correctly in real-time during playback
+- Effect presets apply instantly
+- Manual controls provide smooth interaction
+- No performance degradation
+- Backward compatible with existing clips
 
 ---
 
