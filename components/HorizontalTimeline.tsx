@@ -110,7 +110,7 @@ function HorizontalTimeline({
   splitScenesPending = false,
 }: HorizontalTimelineProps = {}): React.JSX.Element {
   // Optimized store subscriptions - separate selectors to minimize re-renders
-  const { clips, textOverlays } = useEditorStore(selectTimelineData);
+  const { timeline, clips, textOverlays } = useEditorStore(selectTimelineData);
   const { currentTime, zoom, autoScrollEnabled } = useEditorStore(selectPlaybackState);
   const { selectedClipIds } = useEditorStore(selectSelectionState);
   const { canUndo, canRedo } = useEditorStore(selectHistoryState);

@@ -49,6 +49,9 @@ function generateTestTimeline(durationSeconds: number, numClips: number): Timeli
     clips.push({
       id: `clip-${i}`,
       assetId: `asset-${i % 10}`, // Reuse 10 assets
+      filePath: `/path/to/clip-${i}.mp4`,
+      mime: 'video/mp4',
+      crop: null,
       timelinePosition: currentPosition,
       trackIndex,
       start: 0,
