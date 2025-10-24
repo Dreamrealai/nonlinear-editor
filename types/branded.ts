@@ -62,11 +62,7 @@ export type Percentage = Brand<number, 'Percentage'>;
  * Type guard to check if a value is branded
  * Note: This is only for documentation; brands don't exist at runtime
  */
-export function isBranded<T extends string>(
-  value: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _brand: T
-): value is Brand<string, T> {
+export function isBranded<T extends string>(value: string, _brand: T): value is Brand<string, T> {
   return typeof value === 'string';
 }
 

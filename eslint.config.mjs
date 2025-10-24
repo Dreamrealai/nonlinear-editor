@@ -6,6 +6,7 @@ import tseslint from 'typescript-eslint';
 import pluginReact from 'eslint-plugin-react';
 import nextPlugin from '@next/eslint-plugin-next';
 import jestPlugin from 'eslint-plugin-jest';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -17,6 +18,7 @@ export default [
   ...tseslint.configs.recommended,
   pluginReact.configs.flat.recommended,
   pluginReact.configs.flat['jsx-runtime'],
+  jsxA11y.flatConfigs.recommended,
   {
     settings: {
       react: {
@@ -31,6 +33,16 @@ export default [
         'error',
         { argsIgnorePattern: '^_', ignoreRestSiblings: true, varsIgnorePattern: '^React$' },
       ],
+      // Disable accessibility rules that require significant refactoring
+      // These can be re-enabled incrementally as components are updated
+      'jsx-a11y/click-events-have-key-events': 'warn',
+      'jsx-a11y/no-static-element-interactions': 'warn',
+      'jsx-a11y/label-has-associated-control': 'warn',
+      'jsx-a11y/no-autofocus': 'warn',
+      'jsx-a11y/media-has-caption': 'warn',
+      // Regex warnings - these are intentional for sanitization
+      'no-control-regex': 'off',
+      'no-useless-escape': 'off',
     },
   },
   {

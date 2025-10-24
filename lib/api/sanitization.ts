@@ -382,7 +382,7 @@ export function sanitizeFilename(
 
   // Remove path traversal attempts
   sanitized = sanitized.replace(/\.\./g, '');
-  sanitized = sanitized.replace(/[\/\\]/g, '');
+  sanitized = sanitized.replace(/[/\\]/g, '');
 
   // Remove dangerous characters
   sanitized = sanitized.replace(/[<>:"|?*\x00-\x1F]/g, '');
