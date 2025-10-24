@@ -23,11 +23,14 @@ import {
   FlipHorizontal,
   FlipVertical,
   Maximize2,
+  Tag,
+  X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
-import type { Clip } from '@/types/timeline';
+import type { Clip, Timeline } from '@/types/timeline';
 import { formatTimeMMSSCS } from '@/lib/utils/timeFormatting';
+import { CLIP_COLORS } from '@/lib/constants/clipColors';
 
 type TimelineContextMenuProps = {
   clipId: string;
@@ -68,14 +71,16 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
   onAddTransition,
   onSelectAllInTrack,
   onClose,
-}) => {
+}): JSX.Element => {
   const [showProperties, setShowProperties] = useState(false);
-  const toggleClipLock = useEditorStore((state) => state.toggleClipLock);
-  const groupSelectedClips = useEditorStore((state) => state.groupSelectedClips);
-  const ungroupClips = useEditorStore((state) => state.ungroupClips);
-  const getClipGroupId = useEditorStore((state) => state.getClipGroupId);
-  const selectedClipIds = useEditorStore((state) => state.selectedClipIds);
-  const updateClip = useEditorStore((state) => state.updateClip);
+  const [showColorSubmenu, setShowColorSubmenu] = useState(false);
+  const toggleClipLock = useEditorStore((state): (id: string) => void => state.toggleClipLock);
+  const groupSelectedClips = useEditorStore((state): (name?: string) => void => state.groupSelectedClips);
+  const ungroupClips = useEditorStore((state): (groupId: string) => void => state.ungroupClips);
+  const getClipGroupId = useEditorStore((state): (clipId: string) => string | null => state.getClipGroupId);
+  const selectedClipIds = useEditorStore((state): Set<string> => state.selectedClipIds);
+  const updateClip = useEditorStore((state): (id: string, patch: Partial<Clip>) => void => state.updateClip);
+  const updateClipColor = useEditorStore((state): (id: string, color: string | null) => void => state.updateClipColor);
   const clip = useClipData(clipId);
   const isLocked = clip?.locked ?? false;
   const groupId = getClipGroupId(clipId);
@@ -83,6 +88,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
   const canGroup = selectedClipIds.size >= 2;
   const isMuted = clip?.muted ?? false;
   const hasAudio = clip?.hasAudio ?? false;
+  const currentColor = clip?.color;
 
   // Detect if Mac for keyboard shortcuts
   const isMac =
@@ -94,8 +100,8 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
       <div
         className="fixed z-50 rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-lg py-1 min-w-[220px] max-h-[80vh] overflow-y-auto"
         style={{ left: x, top: y }}
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => {
+        onClick={(e): void => e.stopPropagation()}
+        onKeyDown={(e): void => {
           if (e.key === 'Escape') {
             onClose();
           }
@@ -109,7 +115,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
           icon={<Copy className="h-4 w-4" />}
           label="Copy"
           shortcut={`${cmdKey}C`}
-          onClick={() => {
+          onClick={(): void => {
             onCopy();
             onClose();
           }}
@@ -118,7 +124,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
           icon={<Clipboard className="h-4 w-4" />}
           label="Paste"
           shortcut={`${cmdKey}V`}
-          onClick={() => {
+          onClick={(): void => {
             onPaste();
             onClose();
           }}
@@ -128,7 +134,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
             icon={<Files className="h-4 w-4" />}
             label="Duplicate"
             shortcut={`${cmdKey}D`}
-            onClick={() => {
+            onClick={(): void => {
               onDuplicate(clipId);
               onClose();
             }}
@@ -139,7 +145,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
             icon={<Trash2 className="h-4 w-4" />}
             label="Delete"
             shortcut="Del"
-            onClick={() => {
+            onClick={(): void => {
               onDelete(clipId);
               onClose();
             }}
@@ -153,7 +159,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
           <MenuButton
             icon={<Volume2 className="h-4 w-4" />}
             label="Split Audio"
-            onClick={() => {
+            onClick={(): void => {
               onSplitAudio(clipId);
               onClose();
             }}
@@ -164,7 +170,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
           <MenuButton
             icon={<Film className="h-4 w-4" />}
             label="Split Scenes"
-            onClick={() => {
+            onClick={(): void => {
               onSplitScenes(clipId);
               onClose();
             }}
@@ -179,7 +185,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
             <MenuButton
               icon={<Music className="h-4 w-4" />}
               label="Generate Audio"
-              onClick={() => {
+              onClick={(): void => {
                 onGenerateAudio(clipId);
                 onClose();
               }}
@@ -195,7 +201,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
               icon={<Zap className="h-4 w-4" />}
               label="Add Transition"
               shortcut="T"
-              onClick={() => {
+              onClick={(): void => {
                 onAddTransition(clipId);
                 onClose();
               }}
@@ -209,7 +215,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
         <MenuButton
           icon={<Palette className="h-4 w-4" />}
           label="Color Correction"
-          onClick={() => {
+          onClick={(): void => {
             // Reset to default color correction
             updateClip(clipId, {
               colorCorrection: {
@@ -226,7 +232,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
         <MenuButton
           icon={<RotateCw className="h-4 w-4" />}
           label="Reset Transform"
-          onClick={() => {
+          onClick={(): void => {
             // Reset rotation and scale
             updateClip(clipId, {
               transform: {
@@ -242,7 +248,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
         <MenuButton
           icon={<FlipHorizontal className="h-4 w-4" />}
           label="Flip Horizontal"
-          onClick={() => {
+          onClick={(): void => {
             const currentTransform = clip?.transform ?? {
               rotation: 0,
               flipHorizontal: false,
@@ -261,7 +267,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
         <MenuButton
           icon={<FlipVertical className="h-4 w-4" />}
           label="Flip Vertical"
-          onClick={() => {
+          onClick={(): void => {
             const currentTransform = clip?.transform ?? {
               rotation: 0,
               flipHorizontal: false,
@@ -284,7 +290,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
         <MenuButton
           icon={<FastForward className="h-4 w-4" />}
           label="0.5x Speed"
-          onClick={() => {
+          onClick={(): void => {
             updateClip(clipId, { speed: 0.5 });
             onClose();
           }}
@@ -292,7 +298,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
         <MenuButton
           icon={<FastForward className="h-4 w-4" />}
           label="1.0x Speed (Normal)"
-          onClick={() => {
+          onClick={(): void => {
             updateClip(clipId, { speed: 1.0 });
             onClose();
           }}
@@ -300,7 +306,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
         <MenuButton
           icon={<FastForward className="h-4 w-4" />}
           label="2.0x Speed"
-          onClick={() => {
+          onClick={(): void => {
             updateClip(clipId, { speed: 2.0 });
             onClose();
           }}
@@ -315,7 +321,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
               icon={isMuted ? <Volume1 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
               label={isMuted ? 'Unmute' : 'Mute'}
               shortcut="M"
-              onClick={() => {
+              onClick={(): void => {
                 updateClip(clipId, { muted: !isMuted });
                 onClose();
               }}
@@ -323,7 +329,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
             <MenuButton
               icon={<Volume2 className="h-4 w-4" />}
               label="Reset Volume"
-              onClick={() => {
+              onClick={(): void => {
                 updateClip(clipId, { volume: 1.0 });
                 onClose();
               }}
@@ -331,7 +337,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
             <MenuButton
               icon={<Gauge className="h-4 w-4" />}
               label="Reset Audio Effects"
-              onClick={() => {
+              onClick={(): void => {
                 updateClip(clipId, {
                   audioEffects: {
                     volume: 1.0,
@@ -357,7 +363,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
         <MenuButton
           icon={<Maximize2 className="h-4 w-4" />}
           label="Fit to Frame"
-          onClick={() => {
+          onClick={(): void => {
             updateClip(clipId, {
               transform: {
                 ...(clip?.transform ?? {
@@ -375,7 +381,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
         <MenuButton
           icon={<Maximize2 className="h-4 w-4" />}
           label="Scale 1.5x"
-          onClick={() => {
+          onClick={(): void => {
             updateClip(clipId, {
               transform: {
                 ...(clip?.transform ?? {
@@ -397,7 +403,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
           icon={isLocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
           label={isLocked ? 'Unlock Clip' : 'Lock Clip'}
           shortcut="L"
-          onClick={() => {
+          onClick={(): void => {
             toggleClipLock(clipId);
             onClose();
           }}
@@ -410,7 +416,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
             icon={<Users className="h-4 w-4" />}
             label="Group Selected Clips"
             shortcut="G"
-            onClick={() => {
+            onClick={(): void => {
               groupSelectedClips();
               onClose();
             }}
@@ -421,12 +427,65 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
             icon={<Ungroup className="h-4 w-4" />}
             label="Ungroup"
             shortcut="Shift+G"
-            onClick={() => {
+            onClick={(): void => {
               ungroupClips(groupId);
               onClose();
             }}
           />
         )}
+
+        {/* Color Label */}
+        <MenuDivider />
+        <MenuSectionHeader label="Color Label" />
+        <div className="relative">
+          <MenuButton
+            icon={<Tag className="h-4 w-4" />}
+            label={currentColor ? 'Change Color' : 'Set Color'}
+            onClick={(): void => {
+              setShowColorSubmenu(!showColorSubmenu);
+            }}
+          />
+          {showColorSubmenu && (
+            <div className="absolute left-full top-0 ml-1 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md shadow-lg p-2 min-w-[180px] z-50">
+              <div className="grid grid-cols-4 gap-2 mb-2">
+                {Object.entries(CLIP_COLORS).map(([name, hex]) => (
+                  <button
+                    key={name}
+                    className={`w-10 h-10 rounded border-2 transition-all hover:scale-110 ${
+                      currentColor === hex
+                        ? 'border-white ring-2 ring-offset-2 ring-offset-neutral-100 dark:ring-offset-neutral-800 ring-blue-500'
+                        : 'border-neutral-300 dark:border-neutral-600'
+                    }`}
+                    style={{ backgroundColor: hex }}
+                    onClick={(): void => {
+                      updateClipColor(clipId, hex);
+                      setShowColorSubmenu(false);
+                      onClose();
+                    }}
+                    title={name.charAt(0).toUpperCase() + name.slice(1)}
+                    aria-label={`Set color to ${name}`}
+                  />
+                ))}
+              </div>
+              {currentColor && (
+                <>
+                  <div className="my-2 h-px bg-neutral-200 dark:bg-neutral-700" />
+                  <button
+                    className="w-full px-3 py-2 text-left text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 rounded transition-colors flex items-center gap-2"
+                    onClick={(): void => {
+                      updateClipColor(clipId, null);
+                      setShowColorSubmenu(false);
+                      onClose();
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                    <span>Clear Color</span>
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Selection */}
         {onSelectAllInTrack && clip && (
@@ -435,7 +494,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
             <MenuButton
               icon={<Users className="h-4 w-4" />}
               label={`Select All in Track ${clip.trackIndex + 1}`}
-              onClick={() => {
+              onClick={(): void => {
                 onSelectAllInTrack(clip.trackIndex);
                 onClose();
               }}
@@ -448,7 +507,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
         <MenuButton
           icon={<Info className="h-4 w-4" />}
           label="Properties"
-          onClick={() => {
+          onClick={(): void => {
             setShowProperties(true);
           }}
         />
@@ -458,7 +517,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
       {showProperties && (
         <ClipPropertiesModal
           clipId={clipId}
-          onClose={() => {
+          onClose={(): void => {
             setShowProperties(false);
             onClose();
           }}
@@ -487,7 +546,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   onClick,
   disabled = false,
   variant = 'default',
-}) => {
+}): JSX.Element => {
   const variantClasses =
     variant === 'danger'
       ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950'
@@ -513,7 +572,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
 /**
  * Menu divider component
  */
-const MenuDivider: React.FC = () => (
+const MenuDivider: React.FC = (): JSX.Element => (
   <div className="my-1 h-px bg-neutral-200 dark:bg-neutral-700" />
 );
 
@@ -525,7 +584,7 @@ type MenuSectionHeaderProps = {
   label: string;
 };
 
-const MenuSectionHeader: React.FC<MenuSectionHeaderProps> = ({ label }) => (
+const MenuSectionHeader: React.FC<MenuSectionHeaderProps> = ({ label }): JSX.Element => (
   <div className="px-4 py-1.5 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
     {label}
   </div>
@@ -540,7 +599,7 @@ type ClipPropertiesModalProps = {
   onClose: () => void;
 };
 
-const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClose }) => {
+const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClose }): JSX.Element | null => {
   // Get clip data from store
   const clip = useClipData(clipId);
 
@@ -557,7 +616,7 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClo
     >
       <div
         className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e): void => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-neutral-900">Clip Properties</h2>
@@ -673,7 +732,7 @@ type PropertyRowProps = {
   value: string;
 };
 
-const PropertyRow: React.FC<PropertyRowProps> = ({ label, value }) => (
+const PropertyRow: React.FC<PropertyRowProps> = ({ label, value }): JSX.Element => (
   <div className="flex justify-between">
     <span className="text-neutral-500 dark:text-neutral-400">{label}:</span>
     <span className="text-neutral-900 dark:text-neutral-100 font-medium">{value}</span>
@@ -684,6 +743,6 @@ const PropertyRow: React.FC<PropertyRowProps> = ({ label, value }) => (
  * Hook to get clip data from store
  */
 function useClipData(clipId: string): Clip | null {
-  const timeline = useEditorStore((state) => state.timeline);
-  return timeline?.clips?.find((clip) => clip.id === clipId) ?? null;
+  const timeline = useEditorStore((state): Timeline | null => state.timeline);
+  return timeline?.clips?.find((clip): boolean => clip.id === clipId) ?? null;
 }

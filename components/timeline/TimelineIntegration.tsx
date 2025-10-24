@@ -8,8 +8,21 @@
 
 import { useEditorStore } from '@/state/useEditorStore';
 import { useCallback } from 'react';
+import type { Marker } from '@/types/timeline';
 
-export function useTimelineIntegration() {
+export function useTimelineIntegration(): {
+  handleAddMarker: () => void;
+  handleMarkerClick: (markerId: string) => void;
+  handleMarkerDelete: (markerId: string) => void;
+  handleMarkerUpdate: (markerId: string, updates: Partial<Marker>) => void;
+  handleAddGuide: () => void;
+  handleGuideUpdate: (guideId: string, time: number) => void;
+  handleGuideDelete: (guideId: string) => void;
+  handleZoomPreset: (preset: 25 | 50 | 100 | 200 | 400) => void;
+  handleFitToTimeline: (viewportWidth: number) => void;
+  handleFitToSelection: (viewportWidth: number) => void;
+  hasSelection: boolean;
+} {
   // Get store actions
   const {
     addMarker,
@@ -40,7 +53,7 @@ export function useTimelineIntegration() {
   }));
 
   // Add marker at current playhead position
-  const handleAddMarker = useCallback(() => {
+  const handleAddMarker = useCallback((): void => {
     const markerId = `marker-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     addMarker({
       id: markerId,
@@ -51,20 +64,20 @@ export function useTimelineIntegration() {
   }, [addMarker, currentTime]);
 
   // Add guide at current playhead position
-  const handleAddGuide = useCallback(() => {
+  const handleAddGuide = useCallback((): void => {
     addGuide(currentTime);
   }, [addGuide, currentTime]);
 
   // Zoom preset handlers
-  const handleZoomPreset = useCallback((preset: 25 | 50 | 100 | 200 | 400) => {
+  const handleZoomPreset = useCallback((preset: 25 | 50 | 100 | 200 | 400): void => {
     setZoomPreset(preset);
   }, [setZoomPreset]);
 
-  const handleFitToTimeline = useCallback((viewportWidth: number) => {
+  const handleFitToTimeline = useCallback((viewportWidth: number): void => {
     fitToTimeline(viewportWidth);
   }, [fitToTimeline]);
 
-  const handleFitToSelection = useCallback((viewportWidth: number) => {
+  const handleFitToSelection = useCallback((viewportWidth: number): void => {
     fitToSelection(viewportWidth);
   }, [fitToSelection]);
 
