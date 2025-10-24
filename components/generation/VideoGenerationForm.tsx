@@ -31,7 +31,7 @@ interface VideoGenerationFormProps {
   queueLength: number;
   /** Image input state */
   imagePreviewUrl: string | null;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   showAssetLibrary: boolean;
   /** Callbacks */
   onPromptChange: (value: string) => void;
