@@ -5,14 +5,23 @@
  */
 
 import { serverLogger } from '@/lib/serverLogger';
-import { successResponse, errorResponse, notFoundResponse, validationError } from '@/lib/api/response';
+import {
+  successResponse,
+  errorResponse,
+  notFoundResponse,
+  validationError,
+} from '@/lib/api/response';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { validateUUID, validateInteger, ValidationError } from '@/lib/validation';
 
-const handleUpdatePriority: AuthenticatedHandler<{ jobId: string }> = async (request, { user, supabase, params }) => {
-  const { jobId } = await params;
+const handleUpdatePriority: AuthenticatedHandler<{ jobId: string }> = async (
+  request,
+  { user, supabase },
+  routeContext
+) => {
+  const { jobId } = await routeContext!.params;
 
   // Validate jobId
   try {
@@ -109,10 +118,7 @@ const handleUpdatePriority: AuthenticatedHandler<{ jobId: string }> = async (req
       priority: partialBody.priority,
     });
   } catch (error) {
-    serverLogger.error(
-      { error, jobId, userId: user.id },
-      'Unexpected error updating job priority'
-    );
+    serverLogger.error({ error, jobId, userId: user.id }, 'Unexpected error updating job priority');
     return errorResponse('An unexpected error occurred', 500);
   }
 };

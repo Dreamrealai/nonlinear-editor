@@ -138,11 +138,14 @@ async function handleDeleteAccount(_request: NextRequest, context: AuthContext):
 
     // Step 1: Audit log the deletion event BEFORE deleting data
     try {
-      const { error: auditError } = await adminClient.from('user_activity_history').insert({
+      const { error: auditError } = await adminClient.from('audit_logs').insert({
         user_id: userId,
-        activity_type: 'account_deleted',
-        title: 'Account Deleted',
-        description: `User ${user.email} deleted their account`,
+        action: 'user.delete_account',
+        resource_type: 'user',
+        resource_id: userId,
+        http_method: 'DELETE',
+        request_path: '/api/user/delete-account',
+        status_code: 200,
         metadata: {
           email: user.email,
           deletedAt: new Date().toISOString(),

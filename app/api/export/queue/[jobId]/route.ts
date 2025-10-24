@@ -5,14 +5,23 @@
  */
 
 import { serverLogger } from '@/lib/serverLogger';
-import { successResponse, errorResponse, notFoundResponse, validationError } from '@/lib/api/response';
+import {
+  successResponse,
+  errorResponse,
+  notFoundResponse,
+  validationError,
+} from '@/lib/api/response';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { validateUUID, ValidationError } from '@/lib/validation';
 
-const handleCancelJob: AuthenticatedHandler<{ jobId: string }> = async (request, { user, supabase, params }) => {
-  const { jobId } = await params;
+const handleCancelJob: AuthenticatedHandler<{ jobId: string }> = async (
+  _request,
+  { user, supabase },
+  routeContext
+) => {
+  const { jobId } = await routeContext!.params;
 
   // Validate jobId
   try {
@@ -56,10 +65,7 @@ const handleCancelJob: AuthenticatedHandler<{ jobId: string }> = async (request,
       .eq('id', jobId);
 
     if (updateError) {
-      serverLogger.error(
-        { error: updateError, jobId, userId: user.id },
-        'Failed to cancel job'
-      );
+      serverLogger.error({ error: updateError, jobId, userId: user.id }, 'Failed to cancel job');
       return errorResponse('Failed to cancel job', 500);
     }
 
@@ -73,10 +79,7 @@ const handleCancelJob: AuthenticatedHandler<{ jobId: string }> = async (request,
       jobId,
     });
   } catch (error) {
-    serverLogger.error(
-      { error, jobId, userId: user.id },
-      'Unexpected error cancelling job'
-    );
+    serverLogger.error({ error, jobId, userId: user.id }, 'Unexpected error cancelling job');
     return errorResponse('An unexpected error occurred', 500);
   }
 };

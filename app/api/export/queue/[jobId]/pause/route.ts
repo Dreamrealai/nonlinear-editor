@@ -5,14 +5,23 @@
  */
 
 import { serverLogger } from '@/lib/serverLogger';
-import { successResponse, errorResponse, notFoundResponse, validationError } from '@/lib/api/response';
+import {
+  successResponse,
+  errorResponse,
+  notFoundResponse,
+  validationError,
+} from '@/lib/api/response';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { validateUUID, ValidationError } from '@/lib/validation';
 
-const handlePauseJob: AuthenticatedHandler<{ jobId: string }> = async (request, { user, supabase, params }) => {
-  const { jobId } = await params;
+const handlePauseJob: AuthenticatedHandler<{ jobId: string }> = async (
+  _request,
+  { user, supabase },
+  routeContext
+) => {
+  const { jobId } = await routeContext!.params;
 
   // Validate jobId
   try {
@@ -55,27 +64,18 @@ const handlePauseJob: AuthenticatedHandler<{ jobId: string }> = async (request, 
       .eq('id', jobId);
 
     if (updateError) {
-      serverLogger.error(
-        { error: updateError, jobId, userId: user.id },
-        'Failed to pause job'
-      );
+      serverLogger.error({ error: updateError, jobId, userId: user.id }, 'Failed to pause job');
       return errorResponse('Failed to pause job', 500);
     }
 
-    serverLogger.info(
-      { jobId, userId: user.id, projectId: job.project_id },
-      'Export job paused'
-    );
+    serverLogger.info({ jobId, userId: user.id, projectId: job.project_id }, 'Export job paused');
 
     return successResponse({
       message: 'Export job paused successfully',
       jobId,
     });
   } catch (error) {
-    serverLogger.error(
-      { error, jobId, userId: user.id },
-      'Unexpected error pausing job'
-    );
+    serverLogger.error({ error, jobId, userId: user.id }, 'Unexpected error pausing job');
     return errorResponse('An unexpected error occurred', 500);
   }
 };

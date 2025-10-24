@@ -278,9 +278,7 @@ const handleAssetUpload: AuthenticatedHandler = async (request, { user, supabase
   let optimizedMetadata: Partial<AssetMetadata> = {};
 
   try {
-    const { AssetOptimizationService } = await import(
-      '@/lib/services/assetOptimizationService'
-    );
+    const { AssetOptimizationService } = await import('@/lib/services/assetOptimizationService');
     const optimizationService = new AssetOptimizationService();
 
     if (type === 'image') {
@@ -303,7 +301,7 @@ const handleAssetUpload: AuthenticatedHandler = async (request, { user, supabase
         format: 'jpeg',
       });
 
-      optimizedBuffer = optimized.buffer;
+      optimizedBuffer = Buffer.from(optimized.buffer);
       optimizedMetadata = optimized.metadata;
 
       // Generate thumbnail for optimized image

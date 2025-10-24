@@ -5,14 +5,23 @@
  */
 
 import { serverLogger } from '@/lib/serverLogger';
-import { successResponse, errorResponse, notFoundResponse, validationError } from '@/lib/api/response';
+import {
+  successResponse,
+  errorResponse,
+  notFoundResponse,
+  validationError,
+} from '@/lib/api/response';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { validateUUID, ValidationError } from '@/lib/validation';
 
-const handleResumeJob: AuthenticatedHandler<{ jobId: string }> = async (request, { user, supabase, params }) => {
-  const { jobId } = await params;
+const handleResumeJob: AuthenticatedHandler<{ jobId: string }> = async (
+  _request,
+  { user, supabase },
+  routeContext
+) => {
+  const { jobId } = await routeContext!.params;
 
   // Validate jobId
   try {
@@ -55,27 +64,18 @@ const handleResumeJob: AuthenticatedHandler<{ jobId: string }> = async (request,
       .eq('id', jobId);
 
     if (updateError) {
-      serverLogger.error(
-        { error: updateError, jobId, userId: user.id },
-        'Failed to resume job'
-      );
+      serverLogger.error({ error: updateError, jobId, userId: user.id }, 'Failed to resume job');
       return errorResponse('Failed to resume job', 500);
     }
 
-    serverLogger.info(
-      { jobId, userId: user.id, projectId: job.project_id },
-      'Export job resumed'
-    );
+    serverLogger.info({ jobId, userId: user.id, projectId: job.project_id }, 'Export job resumed');
 
     return successResponse({
       message: 'Export job resumed successfully',
       jobId,
     });
   } catch (error) {
-    serverLogger.error(
-      { error, jobId, userId: user.id },
-      'Unexpected error resuming job'
-    );
+    serverLogger.error({ error, jobId, userId: user.id }, 'Unexpected error resuming job');
     return errorResponse('An unexpected error occurred', 500);
   }
 };

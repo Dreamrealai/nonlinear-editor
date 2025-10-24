@@ -30,7 +30,7 @@ async function handleListBackups(
   const resolvedParams = await routeContext?.params;
 
   if (!resolvedParams?.projectId) {
-    return errorResponse('Project ID is required', {}, 400);
+    return errorResponse('Project ID is required', 400);
   }
 
   const { projectId } = resolvedParams;
@@ -39,7 +39,7 @@ async function handleListBackups(
     validateString(projectId, 'projectId');
   } catch (error) {
     if (error instanceof ValidationError) {
-      return errorResponse(error.message, { projectId }, 400);
+      return errorResponse(error.message, 400, error.field, { projectId });
     }
     throw error;
   }
@@ -55,13 +55,13 @@ async function handleListBackups(
       count: backups.length,
     });
   } catch (error) {
-    return errorResponse('Failed to list backups', { error, projectId });
+    return errorResponse('Failed to list backups', 500, undefined, { error, projectId });
   }
 }
 
 export const GET = withAuth(handleListBackups, {
   route: '/api/projects/[projectId]/backups',
-  rateLimit: RATE_LIMITS.tier3_status_read
+  rateLimit: RATE_LIMITS.tier3_status_read,
 });
 
 /**
@@ -81,7 +81,7 @@ async function handleCreateBackup(
   const resolvedParams = await routeContext?.params;
 
   if (!resolvedParams?.projectId) {
-    return errorResponse('Project ID is required', {}, 400);
+    return errorResponse('Project ID is required', 400);
   }
 
   const { projectId } = resolvedParams;
@@ -90,7 +90,7 @@ async function handleCreateBackup(
     validateString(projectId, 'projectId');
   } catch (error) {
     if (error instanceof ValidationError) {
-      return errorResponse(error.message, { projectId }, 400);
+      return errorResponse(error.message, 400, error.field, { projectId });
     }
     throw error;
   }
@@ -101,7 +101,7 @@ async function handleCreateBackup(
 
   // Validate backup type
   if (backupType !== 'auto' && backupType !== 'manual') {
-    return errorResponse('Invalid backup type', { backupType }, 400);
+    return errorResponse('Invalid backup type', 400, undefined, { backupType });
   }
 
   const backupService = new BackupService(supabase);
@@ -115,7 +115,7 @@ async function handleCreateBackup(
       .single();
 
     if (projectError || !project) {
-      return errorResponse('Project not found', { projectId }, 404);
+      return errorResponse('Project not found', 404, undefined, { projectId });
     }
 
     // Get timeline data
@@ -126,7 +126,7 @@ async function handleCreateBackup(
       .single();
 
     if (timelineError || !timelineRow) {
-      return errorResponse('Timeline not found', { projectId }, 404);
+      return errorResponse('Timeline not found', 404, undefined, { projectId });
     }
 
     // Get assets
@@ -136,7 +136,7 @@ async function handleCreateBackup(
       .eq('project_id', projectId);
 
     if (assetsError) {
-      return errorResponse('Failed to fetch assets', { projectId }, 500);
+      return errorResponse('Failed to fetch assets', 500, undefined, { projectId });
     }
 
     // Create backup
@@ -161,11 +161,11 @@ async function handleCreateBackup(
       message: `${backupType === 'auto' ? 'Auto' : 'Manual'} backup created successfully`,
     });
   } catch (error) {
-    return errorResponse('Failed to create backup', { error, projectId });
+    return errorResponse('Failed to create backup', 500, undefined, { error, projectId });
   }
 }
 
 export const POST = withAuth(handleCreateBackup, {
   route: '/api/projects/[projectId]/backups',
-  rateLimit: RATE_LIMITS.tier2_resource_creation
+  rateLimit: RATE_LIMITS.tier2_resource_creation,
 });

@@ -30,8 +30,12 @@ import { AssetVersionService } from '@/lib/services/assetVersionService';
  * @ratelimit 60 requests per minute (TIER 1 - Data Reads)
  * @authentication Required - Session cookie (supabase-auth-token)
  */
-const handleGetVersionHistory: AuthenticatedHandler<{ assetId: string }> = async (request, { params, user, supabase }) => {
-  const { assetId } = await params;
+const handleGetVersionHistory: AuthenticatedHandler<{ assetId: string }> = async (
+  _request,
+  { user, supabase },
+  routeContext
+) => {
+  const { assetId } = await routeContext!.params;
 
   serverLogger.debug(
     {

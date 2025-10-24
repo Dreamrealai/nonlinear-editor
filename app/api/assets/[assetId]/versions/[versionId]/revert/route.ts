@@ -37,11 +37,12 @@ import { AssetVersionService } from '@/lib/services/assetVersionService';
  * @authentication Required - Session cookie (supabase-auth-token)
  */
 const handleRevertToVersion: AuthenticatedHandler<{ assetId: string; versionId: string }> = async (
-  request,
-  { params, user, supabase }
+  _request,
+  { user, supabase },
+  routeContext
 ) => {
   const startTime = Date.now();
-  const { assetId, versionId } = await params;
+  const { assetId, versionId } = await routeContext!.params;
 
   serverLogger.info(
     {
@@ -179,10 +180,7 @@ const handleRevertToVersion: AuthenticatedHandler<{ assetId: string; versionId: 
       },
       'Failed to revert asset to version'
     );
-    return errorResponse(
-      error instanceof Error ? error.message : 'Failed to revert asset',
-      500
-    );
+    return errorResponse(error instanceof Error ? error.message : 'Failed to revert asset', 500);
   }
 };
 

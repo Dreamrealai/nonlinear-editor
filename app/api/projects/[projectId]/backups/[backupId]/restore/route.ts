@@ -19,11 +19,7 @@ import { RATE_LIMITS } from '@/lib/rateLimit';
  * Restore a project from a backup
  */
 export const POST = withAuth<{ projectId: string; backupId: string }>(
-  async (
-    _request: NextRequest,
-    { user, supabase },
-    routeContext
-  ): Promise<NextResponse> => {
+  async (_request: NextRequest, { user: _user, supabase }, routeContext): Promise<NextResponse> => {
     const params = await routeContext?.params;
     const projectId = params?.projectId;
     const backupId = params?.backupId;
@@ -45,11 +41,15 @@ export const POST = withAuth<{ projectId: string; backupId: string }>(
         message: 'Project restored successfully from backup',
       });
     } catch (error) {
-      return errorResponse('Failed to restore backup', { error, backupId, projectId });
+      return errorResponse('Failed to restore backup', 500, undefined, {
+        error,
+        backupId,
+        projectId,
+      });
     }
   },
   {
     route: '/api/projects/[projectId]/backups/[backupId]/restore',
-    rateLimit: RATE_LIMITS.tier2_resource_creation
+    rateLimit: RATE_LIMITS.tier2_resource_creation,
   }
 );

@@ -16,7 +16,7 @@ import { validationError } from '@/lib/api/response';
  * POST - Accept a share link or invite
  */
 export const POST = withAuth<{ token: string }>(
-  async (req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; project_id: any; role: any; type: string; message: any; }> | NextResponse<{ success: boolean; error: any; }>> => {
+  async (_req: NextRequest, { user, supabase }, routeContext): Promise<Response> => {
     const params = await routeContext?.params;
     const token = params?.token;
 
@@ -32,9 +32,12 @@ export const POST = withAuth<{ token: string }>(
 
     try {
       // Try to use as share link first
-      const { data: shareLinkResult, error: shareLinkError } = await supabase.rpc('use_share_link', {
-        p_token: token,
-      });
+      const { data: shareLinkResult, error: shareLinkError } = await supabase.rpc(
+        'use_share_link',
+        {
+          p_token: token,
+        }
+      );
 
       if (!shareLinkError && shareLinkResult && shareLinkResult.length > 0) {
         const result = shareLinkResult[0];
@@ -50,9 +53,12 @@ export const POST = withAuth<{ token: string }>(
       }
 
       // Try to use as invite
-      const { data: inviteResult, error: inviteError } = await supabase.rpc('accept_project_invite', {
-        p_token: token,
-      });
+      const { data: inviteResult, error: inviteError } = await supabase.rpc(
+        'accept_project_invite',
+        {
+          p_token: token,
+        }
+      );
 
       if (!inviteError && inviteResult && inviteResult.length > 0) {
         const result = inviteResult[0];
@@ -98,7 +104,7 @@ export const POST = withAuth<{ token: string }>(
  * GET - Get info about a share link or invite (without accepting)
  */
 export const GET = withAuth<{ token: string }>(
-  async (req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ type: string; project_name: any; role: any; expires_at: any; is_valid: boolean; }>> => {
+  async (_req: NextRequest, { user: _user, supabase }, routeContext): Promise<Response> => {
     const params = await routeContext?.params;
     const token = params?.token;
 

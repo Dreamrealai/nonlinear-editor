@@ -13,7 +13,11 @@ import { serverLogger } from '@/lib/serverLogger';
  * DELETE - Revoke an invite
  */
 export const DELETE = withAuth<{ projectId: string; inviteId: string }>(
-  async (req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; }>> => {
+  async (
+    _req: NextRequest,
+    { user, supabase },
+    routeContext
+  ): Promise<NextResponse<{ error: string }> | NextResponse<{ success: boolean }>> => {
     const params = await routeContext?.params;
     const projectId = params?.projectId;
     const inviteId = params?.inviteId;
@@ -66,6 +70,6 @@ export const DELETE = withAuth<{ projectId: string; inviteId: string }>(
   },
   {
     route: '/api/projects/[projectId]/invites/[inviteId]',
-    rateLimit: RATE_LIMITS.tier2_ai_video_upload,
+    rateLimit: RATE_LIMITS.tier2_resource_creation,
   }
 );
