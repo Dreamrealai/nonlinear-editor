@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
@@ -10,6 +10,7 @@ import {
   rateLimitResponse,
   internalServerError,
   withErrorHandling,
+  successResponse,
 } from '@/lib/api/response';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
 
@@ -339,9 +340,10 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     `ElevenLabs TTS generated successfully in ${duration}ms`
   );
 
-  return NextResponse.json({
-    success: true,
-    asset: assetData,
-    message: 'Audio generated successfully',
-  });
+  return successResponse(
+    {
+      asset: assetData,
+    },
+    'Audio generated successfully'
+  );
 });
