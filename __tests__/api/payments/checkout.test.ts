@@ -6,15 +6,41 @@ import { NextRequest } from 'next/server';
 import { POST } from '@/app/api/stripe/checkout/route';
 import {
   createMockSupabaseClient,
-  createMockUser,
-  createMockUserProfile,
   mockAuthenticatedUser,
   mockUnauthenticatedUser,
   mockQuerySuccess,
   mockQueryError,
-  resetAllMocks,
-} from '@/test-utils/mockSupabase';
+} from '@/__tests__/helpers/apiMocks';
+import { createMockUser, createMockUserProfile } from '@/test-utils/mockSupabase';
 import { createMockCheckoutSession, createMockStripeClient } from '@/test-utils/mockStripe';
+
+// Mock withAuth wrapper
+jest.mock('@/lib/api/withAuth', () => ({
+  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+    const { createServerSupabaseClient } = require('@/lib/supabase');
+    const supabase = await createServerSupabaseClient();
+
+    if (!supabase || !supabase.auth) {
+      return new Response(JSON.stringify({ error: 'Internal server error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    return handler(req, { user, supabase, params: context?.params || {} });
+  }),
+}));
 
 // Mock Stripe
 jest.mock('@/lib/stripe', () => ({
@@ -23,8 +49,8 @@ jest.mock('@/lib/stripe', () => ({
 }));
 
 // Mock Supabase
-jest.mock('@supabase/ssr', () => ({
-  createServerClient: jest.fn(),
+jest.mock('@/lib/supabase', () => ({
+  createServerSupabaseClient: jest.fn(),
 }));
 
 // Mock server logger
@@ -55,18 +81,17 @@ describe('POST /api/stripe/checkout', () => {
   let mockRequest: NextRequest;
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
     mockSupabase = createMockSupabaseClient();
-    const { createServerClient } = require('@supabase/ssr');
-    createServerClient.mockReturnValue(mockSupabase);
+    const { createServerSupabaseClient } = require('@/lib/supabase');
+    createServerSupabaseClient.mockResolvedValue(mockSupabase);
 
     process.env.STRIPE_PREMIUM_PRICE_ID = 'price_test_premium';
     process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3000';
-
-    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    resetAllMocks(mockSupabase);
     delete process.env.STRIPE_PREMIUM_PRICE_ID;
     delete process.env.NEXT_PUBLIC_BASE_URL;
   });
