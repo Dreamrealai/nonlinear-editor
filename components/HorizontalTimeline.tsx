@@ -324,6 +324,15 @@ export default function HorizontalTimeline({
             className="relative"
             style={{ minWidth: timelineWidth, height: numTracks * TRACK_HEIGHT }}
             onClick={handleTimelineClick}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleTimelineClick(e as unknown as React.MouseEvent<HTMLDivElement>);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Timeline workspace"
           >
             {/* Track backgrounds */}
             <TimelineTracks

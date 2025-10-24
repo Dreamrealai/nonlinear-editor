@@ -1,6 +1,5 @@
 'use client';
 
-
 type TimelineContextMenuProps = {
   clipId: string;
   x: number;
@@ -37,6 +36,14 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
       className="fixed z-50 rounded-md border border-neutral-200 bg-white shadow-lg py-1"
       style={{ left: x, top: y }}
       onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      }}
+      role="menu"
+      tabIndex={0}
+      aria-label="Timeline context menu"
     >
       <button
         onClick={() => {

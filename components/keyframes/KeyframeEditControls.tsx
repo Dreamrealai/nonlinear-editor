@@ -88,8 +88,11 @@ export function KeyframeEditControls({
       {mode === 'crop' && (
         <div className="mt-4 space-y-3">
           <div className="flex items-center gap-3">
-            <label className="w-16 text-xs text-neutral-600">Size</label>
+            <label htmlFor="crop-size" className="w-16 text-xs text-neutral-600">
+              Size
+            </label>
             <input
+              id="crop-size"
               type="range"
               min={64}
               max={Math.min(1024, selectedFrame?.width ?? 1024)}
@@ -107,12 +110,16 @@ export function KeyframeEditControls({
                 )
               }
               className="flex-1"
+              aria-label="Crop size"
             />
             <span className="w-12 text-right text-[10px] text-neutral-500">{crop.size}px</span>
           </div>
           <div className="flex items-center gap-3">
-            <label className="w-16 text-xs text-neutral-600">Feather</label>
+            <label htmlFor="crop-feather" className="w-16 text-xs text-neutral-600">
+              Feather
+            </label>
             <input
+              id="crop-feather"
               type="range"
               min={0}
               max={128}
@@ -120,6 +127,7 @@ export function KeyframeEditControls({
               value={feather}
               onChange={(event) => setFeather(Number(event.target.value))}
               className="flex-1"
+              aria-label="Feather amount"
             />
             <span className="w-12 text-right text-[10px] text-neutral-500">{feather}px</span>
           </div>
@@ -129,7 +137,9 @@ export function KeyframeEditControls({
 
       <div className="mt-4">
         <div className="mb-2 flex items-center justify-between">
-          <label className="text-xs font-medium text-neutral-700">Edit Prompt</label>
+          <label htmlFor="edit-prompt" className="text-xs font-medium text-neutral-700">
+            Edit Prompt
+          </label>
           <div className="flex items-center gap-2">
             <span className="text-[10px] text-neutral-400">Paste images here</span>
             <button
@@ -143,6 +153,7 @@ export function KeyframeEditControls({
           </div>
         </div>
         <textarea
+          id="edit-prompt"
           className="w-full rounded border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-800 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
           rows={3}
           value={prompt}

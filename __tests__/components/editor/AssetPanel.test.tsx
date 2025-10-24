@@ -2,7 +2,8 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import AssetPanel, { type AssetRow } from '@/components/editor/AssetPanel';
+import AssetPanel from '@/components/editor/AssetPanel';
+import type { AssetRow } from '@/types/assets';
 
 // Mock Next.js Image component
 jest.mock('next/image', () => ({

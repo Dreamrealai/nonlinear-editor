@@ -73,7 +73,7 @@ export default function SFXGenerationForm({
 
       {/* Common Sound Effects Presets */}
       <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-        <label className="block text-sm font-semibold text-neutral-900 mb-3">Quick Presets</label>
+        <h3 className="block text-sm font-semibold text-neutral-900 mb-3">Quick Presets</h3>
         <div className="grid grid-cols-2 gap-2">
           {SFX_PRESETS.map((preset) => (
             <button

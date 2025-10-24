@@ -98,12 +98,13 @@ export default function MusicGenerationForm({
           <div className="border-t border-neutral-200 p-6 space-y-4">
             {/* Mode Selection */}
             <div>
-              <label className="block text-xs font-medium text-neutral-700 mb-2">
+              <span className="block text-xs font-medium text-neutral-700 mb-2">
                 Generation Mode
-              </label>
+              </span>
               <div className="flex gap-4">
-                <label className="flex items-center gap-2">
+                <label htmlFor="music-mode-standard" className="flex items-center gap-2">
                   <input
+                    id="music-mode-standard"
                     type="radio"
                     checked={!customMode}
                     onChange={() => setCustomMode(false)}
@@ -112,8 +113,9 @@ export default function MusicGenerationForm({
                   />
                   <span className="text-sm text-neutral-700">Simple Mode</span>
                 </label>
-                <label className="flex items-center gap-2">
+                <label htmlFor="music-mode-custom" className="flex items-center gap-2">
                   <input
+                    id="music-mode-custom"
                     type="radio"
                     checked={customMode}
                     onChange={() => setCustomMode(true)}

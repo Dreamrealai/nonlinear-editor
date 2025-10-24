@@ -12,7 +12,7 @@ import { useEditorStore } from '@/state/useEditorStore';
 import { browserLogger } from '@/lib/browserLogger';
 import { safeArrayMax } from '@/lib/utils/arrayUtils';
 import type { Clip, Timeline as TimelineType } from '@/types/timeline';
-import type { AssetRow } from './editorUtils';
+import type { AssetRow } from '@/types/assets';
 import { extractStorageLocation, audioBufferToWav, mapAssetRow } from './editorUtils';
 
 type UseEditorHandlersProps = {

@@ -10,7 +10,7 @@ import { useState, useCallback } from 'react';
 import { v4 as uuid } from 'uuid';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
-import type { AssetRow } from '@/components/editor/AssetPanel';
+import type { AssetRow } from '@/types/assets';
 import type { Clip, Timeline } from '@/types/timeline';
 
 export interface UseSceneDetectionReturn {

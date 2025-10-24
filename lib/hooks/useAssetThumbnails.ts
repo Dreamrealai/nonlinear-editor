@@ -10,7 +10,7 @@ import { browserLogger } from '@/lib/browserLogger';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { safeArrayFirst } from '@/lib/utils/arrayUtils';
 import { THUMBNAIL_CONSTANTS } from '@/lib/constants';
-import type { AssetRow } from '@/components/editor/AssetPanel';
+import type { AssetRow } from '@/types/assets';
 
 const { THUMBNAIL_WIDTH, THUMBNAIL_QUALITY } = THUMBNAIL_CONSTANTS;
 

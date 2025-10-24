@@ -246,7 +246,10 @@ function KeyframeEditorContent({
               controls
               className="w-full rounded border border-neutral-200 bg-black"
               style={{ maxHeight: '280px' }}
-            />
+              aria-label="Video preview"
+            >
+              <track kind="captions" />
+            </video>
             <button
               type="button"
               className="w-full rounded bg-neutral-900 py-2 text-xs font-medium text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"

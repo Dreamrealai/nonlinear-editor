@@ -208,15 +208,17 @@ export default function VideoGenerationForm({
                   <div className="flex flex-col items-center gap-2">
                     <span className="text-sm font-medium text-neutral-700">
                       Click to upload, paste (Ctrl+V), or{' '}
-                      <span
-                        className="text-blue-600 hover:text-blue-700 cursor-pointer"
+                      <button
+                        type="button"
+                        className="text-blue-600 hover:text-blue-700 cursor-pointer underline"
                         onClick={(e) => {
                           e.stopPropagation();
                           onShowAssetLibrary(true);
                         }}
+                        aria-label="Select image from library"
                       >
                         select from library
-                      </span>
+                      </button>
                     </span>
                     <span className="text-xs text-neutral-500">
                       Upload, paste, or select an image from your library to use as a reference

@@ -129,7 +129,7 @@ export default function EditorHeader({ projectId, currentTab, onExport }: Editor
                     if (e.key === 'Escape') setIsRenaming(false);
                   }}
                   className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 focus:border-neutral-500 focus:outline-none"
-                  autoFocus
+                  aria-label="Rename project"
                 />
                 <button
                   onClick={() => void handleRenameSubmit()}
@@ -181,7 +181,16 @@ export default function EditorHeader({ projectId, currentTab, onExport }: Editor
 
             {isDropdownOpen && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setIsDropdownOpen(false)} />
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setIsDropdownOpen(false)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setIsDropdownOpen(false);
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Close dropdown"
+                />
                 <div className="absolute left-0 top-full z-20 mt-2 w-64 rounded-lg border border-neutral-200 bg-white shadow-lg">
                   <div className="max-h-64 overflow-y-auto py-1">
                     {projects.length === 0 ? (

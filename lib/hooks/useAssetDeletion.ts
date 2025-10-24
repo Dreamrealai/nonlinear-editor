@@ -10,7 +10,7 @@ import { useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { browserLogger } from '@/lib/browserLogger';
-import type { AssetRow } from '@/components/editor/AssetPanel';
+import type { AssetRow } from '@/types/assets';
 
 export interface UseAssetDeletionReturn {
   /** Delete an asset with confirmation */

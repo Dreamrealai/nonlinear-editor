@@ -177,13 +177,15 @@ export function AudioEffectsSection({
         {/* Normalize */}
         <div className="rounded-lg border border-neutral-200 bg-white p-4">
           <h4 className="mb-3 text-xs font-semibold text-neutral-900">Normalization</h4>
-          <label className="flex items-center gap-3 cursor-pointer group">
+          <label htmlFor="audio-normalize" className="flex items-center gap-3 cursor-pointer group">
             <div className="relative">
               <input
+                id="audio-normalize"
                 type="checkbox"
                 checked={normalize}
                 onChange={(e) => onAudioUpdate({ normalize: e.target.checked })}
                 className="peer sr-only"
+                aria-label="Auto-normalize audio"
               />
               <div className="h-6 w-11 rounded-full bg-neutral-300 peer-checked:bg-green-600 transition"></div>
               <div className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition peer-checked:translate-x-5"></div>

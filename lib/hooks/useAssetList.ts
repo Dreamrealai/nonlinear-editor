@@ -10,7 +10,7 @@ import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { browserLogger } from '@/lib/browserLogger';
 import { mapAssetRow } from '@/lib/utils/assetUtils';
 import { ASSET_PAGINATION_CONSTANTS } from '@/lib/constants';
-import type { AssetRow } from '@/components/editor/AssetPanel';
+import type { AssetRow } from '@/types/assets';
 
 const { DEFAULT_PAGE_SIZE } = ASSET_PAGINATION_CONSTANTS;
 

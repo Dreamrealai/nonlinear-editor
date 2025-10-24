@@ -12,8 +12,13 @@ export interface AssetMetadata {
   filename?: string;
   mimeType?: string;
   thumbnail?: string;
+  sourceUrl?: string;
+  /** Legacy snake_case support */
+  source_url?: string;
   duration?: number;
   durationSeconds?: number;
+  /** Legacy snake_case support */
+  duration_seconds?: number;
   width?: number;
   height?: number;
   originalName?: string;
@@ -21,8 +26,15 @@ export interface AssetMetadata {
   generatedBy?: string;
   prompt?: string;
   model?: string;
+  format?: string;
+  videoCodec?: string;
+  audioCodec?: string;
+  bitrate?: number;
+  project_id?: string;
   [key: string]: unknown; // Allow additional fields for extensibility
 }
+
+export type RawAssetMetadata = Record<string, unknown>;
 
 /**
  * Base asset row from database
@@ -32,7 +44,7 @@ export interface BaseAssetRow {
   id: string;
   title?: string | null;
   storage_url: string;
-  metadata: AssetMetadata | null;
+  metadata: RawAssetMetadata | null;
 }
 
 /**
@@ -44,7 +56,7 @@ export interface AssetRow {
   storage_url: string;
   duration_seconds: number | null;
   metadata: AssetMetadata | null;
-  rawMetadata: AssetMetadata | null;
+  rawMetadata: RawAssetMetadata | null;
   created_at: string | null;
   type: 'video' | 'audio' | 'image';
   title?: string | null;
@@ -89,7 +101,7 @@ export function baseAssetToAssetRow(
     id: base.id,
     storage_url: base.storage_url,
     duration_seconds: durationSeconds ?? null,
-    metadata: base.metadata as AssetMetadata | null,
+    metadata: (base.metadata as AssetMetadata | null) ?? null,
     rawMetadata: base.metadata,
     created_at: createdAt ?? null,
     type,

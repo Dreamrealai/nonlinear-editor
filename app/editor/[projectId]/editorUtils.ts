@@ -6,6 +6,7 @@
 import type { Timeline as TimelineType, Clip } from '@/types/timeline';
 import { safeArrayGet, safeArrayLast } from '@/lib/utils/arrayUtils';
 import { CLIP_CONSTANTS, THUMBNAIL_CONSTANTS } from '@/lib/constants';
+import type { AssetMetadata, AssetRow } from '@/types/assets';
 
 /** @deprecated Use CLIP_CONSTANTS.MIN_CLIP_DURATION instead */
 export const MIN_CLIP_DURATION = CLIP_CONSTANTS.MIN_CLIP_DURATION;
@@ -15,50 +16,6 @@ export const THUMBNAIL_WIDTH = THUMBNAIL_CONSTANTS.THUMBNAIL_WIDTH;
 
 const { MIN_CLIP_DURATION: MIN_DURATION } = CLIP_CONSTANTS;
 const { THUMBNAIL_WIDTH: THUMB_WIDTH, THUMBNAIL_QUALITY } = THUMBNAIL_CONSTANTS;
-
-/**
- * Metadata associated with media assets.
- * Contains file information, codec details, and generated thumbnails.
- */
-export type AssetMetadata = {
-  filename?: string;
-  mimeType?: string;
-  /** Base64-encoded thumbnail image for preview */
-  thumbnail?: string;
-  /** Public URL for accessing the asset */
-  sourceUrl?: string;
-  /** Duration of the media in seconds */
-  durationSeconds?: number | null;
-  /** File format (e.g., mp4, webm) */
-  format?: string;
-  /** Video codec (e.g., h264, vp9) for playback diagnostics */
-  videoCodec?: string;
-  /** Audio codec (e.g., aac, opus) for playback diagnostics */
-  audioCodec?: string;
-  /** Bitrate in kbps */
-  bitrate?: number;
-};
-
-/**
- * Represents a media asset stored in the database.
- * Assets can be videos, audio files, or images.
- */
-export type AssetRow = {
-  /** Unique identifier for the asset */
-  id: string;
-  /** Supabase storage URL (format: supabase://bucket/path) */
-  storage_url: string;
-  /** Duration in seconds (null for images) */
-  duration_seconds: number | null;
-  /** Parsed metadata from the database */
-  metadata: AssetMetadata | null;
-  /** Raw metadata object for debugging */
-  rawMetadata: Record<string, unknown> | null;
-  /** Timestamp when asset was created */
-  created_at: string | null;
-  /** Type of media asset */
-  type: 'video' | 'audio' | 'image';
-};
 
 /**
  * Type guard to check if a value is a valid asset type.
@@ -295,10 +252,8 @@ export const mapAssetRow = (row: Record<string, unknown>): AssetRow | null => {
     return null;
   }
 
-  const parsedMetadata = parseAssetMetadata(
-    (row.metadata ?? null) as Record<string, unknown> | null
-  );
-  const rawMetadata = (row.rawMetadata ?? null) as Record<string, unknown> | null;
+  const rawMetadata = (row.rawMetadata ?? row.metadata ?? null) as Record<string, unknown> | null;
+  const parsedMetadata = parseAssetMetadata(rawMetadata);
   const metadataDuration = parsedMetadata?.durationSeconds ?? null;
   return {
     id,

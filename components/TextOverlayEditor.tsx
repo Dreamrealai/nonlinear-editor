@@ -189,7 +189,9 @@ export default function TextOverlayEditor({
   }, [selectedOverlay, removeTextOverlay]);
 
   // Deselect when clicking outside
-  const handleContainerClick = useCallback(() => {
+  const handleContainerClick = useCallback((e?: React.MouseEvent<HTMLDivElement>) => {
+    // Only deselect if clicking on the container itself, not its children
+    if (e && e.target !== e.currentTarget) return;
     setSelectedOverlayId(null);
     setIsEditingText(false);
   }, []);
@@ -214,7 +216,18 @@ export default function TextOverlayEditor({
   return (
     <>
       {/* Text Overlays Layer */}
-      <div className="absolute inset-0 z-20" onClick={handleContainerClick}>
+      <div
+        className="absolute inset-0 z-20"
+        onClick={handleContainerClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            handleContainerClick(e as unknown as React.MouseEvent<HTMLDivElement>);
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label="Text overlay workspace"
+      >
         {visibleOverlays.map((overlay) => {
           const isSelected = overlay.id === selectedOverlayId;
           const opacity = calculateOpacity(overlay);
@@ -244,6 +257,14 @@ export default function TextOverlayEditor({
               }}
               onClick={(e) => handleOverlayClick(e, overlay.id)}
               onDoubleClick={(e) => handleOverlayDoubleClick(e, overlay.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleOverlayClick(e as unknown as React.MouseEvent<HTMLDivElement>, overlay.id);
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label={`Text overlay: ${overlay.text}`}
               onMouseDown={(e) => handleMouseDown(e, overlay.id)}
             >
               {isSelected && isEditingText ? (

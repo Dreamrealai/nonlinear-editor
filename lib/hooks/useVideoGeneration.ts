@@ -10,7 +10,8 @@ import { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
 import { usePolling } from '@/lib/hooks/usePolling';
-import type { AssetRow } from '@/components/editor/AssetPanel';
+import type { AssetRow } from '@/types/assets';
+import { mapAssetRow } from '@/lib/utils/assetUtils';
 
 interface VideoGenerationParams {
   prompt: string;
@@ -37,20 +38,12 @@ export function useVideoGeneration(
   const [videoGenPending, setVideoGenPending] = useState(false);
   const [videoOperationName, setVideoOperationName] = useState<string | null>(null);
 
-  const mapAssetRow = useCallback((row: Record<string, unknown>): AssetRow | null => {
-    const id = typeof row.id === 'string' ? row.id : null;
-    const storageUrl = typeof row.storage_url === 'string' ? row.storage_url : null;
-    const type = row.type === 'video' || row.type === 'audio' || row.type === 'image' ? row.type : null;
-
-    if (!id || !storageUrl || !type) {
-      return null;
-    }
-
-    return row as AssetRow;
-  }, []);
-
   // Centralized polling hook for video status checks
-  const { startPolling: startVideoPolling, stopPolling: stopVideoPolling } = usePolling<{ done: boolean; error?: string; asset?: Record<string, unknown> }>({
+  const { startPolling: startVideoPolling, stopPolling: stopVideoPolling } = usePolling<{
+    done: boolean;
+    error?: string;
+    asset?: Record<string, unknown>;
+  }>({
     interval: 10000, // 10 seconds
     maxRetries: 100, // ~16 minutes max
     pollFn: async () => {
@@ -87,40 +80,47 @@ export function useVideoGeneration(
     logContext: { projectId, operation: 'video-generation' },
   });
 
-  const handleGenerateVideo = useCallback(async (params: VideoGenerationParams) => {
-    // Stop any existing polling
-    stopVideoPolling();
+  const handleGenerateVideo = useCallback(
+    async (params: VideoGenerationParams) => {
+      // Stop any existing polling
+      stopVideoPolling();
 
-    setVideoGenPending(true);
-    toast.loading('Generating video with Veo 3.1...', { id: 'generate-video' });
+      setVideoGenPending(true);
+      toast.loading('Generating video with Veo 3.1...', { id: 'generate-video' });
 
-    try {
-      const res = await fetch('/api/video/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...params,
-          projectId,
-        }),
-      });
+      try {
+        const res = await fetch('/api/video/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...params,
+            projectId,
+          }),
+        });
 
-      const json = await res.json();
+        const json = await res.json();
 
-      if (!res.ok) {
-        throw new Error(json.error || 'Video generation failed');
+        if (!res.ok) {
+          throw new Error(json.error || 'Video generation failed');
+        }
+
+        setVideoOperationName(json.operationName);
+        toast.loading('Video generation in progress... This may take several minutes.', {
+          id: 'generate-video',
+        });
+
+        // Start polling using centralized hook
+        startVideoPolling();
+      } catch (error) {
+        browserLogger.error({ error, projectId }, 'Video generation failed');
+        toast.error(error instanceof Error ? error.message : 'Video generation failed', {
+          id: 'generate-video',
+        });
+        setVideoGenPending(false);
       }
-
-      setVideoOperationName(json.operationName);
-      toast.loading('Video generation in progress... This may take several minutes.', { id: 'generate-video' });
-
-      // Start polling using centralized hook
-      startVideoPolling();
-    } catch (error) {
-      browserLogger.error({ error, projectId }, 'Video generation failed');
-      toast.error(error instanceof Error ? error.message : 'Video generation failed', { id: 'generate-video' });
-      setVideoGenPending(false);
-    }
-  }, [projectId, startVideoPolling, stopVideoPolling]);
+    },
+    [projectId, startVideoPolling, stopVideoPolling]
+  );
 
   return {
     videoGenPending,

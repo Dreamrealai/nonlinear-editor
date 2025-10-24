@@ -15,7 +15,7 @@ import { useAssetUpload } from './useAssetUpload';
 import { useAssetDeletion } from './useAssetDeletion';
 import { useAssetThumbnails } from './useAssetThumbnails';
 import { ASSET_PAGINATION_CONSTANTS } from '@/lib/constants';
-import type { AssetRow } from '@/components/editor/AssetPanel';
+import type { AssetRow } from '@/types/assets';
 
 const { DEFAULT_PAGE_SIZE } = ASSET_PAGINATION_CONSTANTS;
 

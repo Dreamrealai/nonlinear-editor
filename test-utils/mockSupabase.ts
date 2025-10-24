@@ -35,31 +35,41 @@ export interface MockSupabaseChain {
  * Creates a mock Supabase client with chainable methods
  */
 export function createMockSupabaseClient(): jest.Mocked<SupabaseClient> & MockSupabaseChain {
-  const mockClient = {
-    from: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    insert: jest.fn().mockReturnThis(),
-    update: jest.fn().mockReturnThis(),
-    delete: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    neq: jest.fn().mockReturnThis(),
-    single: jest.fn(),
-    maybeSingle: jest.fn(),
-    order: jest.fn().mockReturnThis(),
-    limit: jest.fn().mockReturnThis(),
-    channel: jest.fn(),
-    removeChannel: jest.fn(),
-    storage: {
-      from: jest.fn().mockReturnThis(),
-      upload: jest.fn(),
-      getPublicUrl: jest.fn(),
-      createSignedUrl: jest.fn(),
-      remove: jest.fn(),
-    },
-    auth: {
-      getUser: jest.fn(),
-      signOut: jest.fn(),
-    },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockClient: any = {};
+
+  // Create chainable methods that return mockClient
+  mockClient.from = jest.fn(() => mockClient);
+  mockClient.select = jest.fn(() => mockClient);
+  mockClient.insert = jest.fn(() => mockClient);
+  mockClient.update = jest.fn(() => mockClient);
+  mockClient.delete = jest.fn(() => mockClient);
+  mockClient.eq = jest.fn(() => mockClient);
+  mockClient.neq = jest.fn(() => mockClient);
+  mockClient.order = jest.fn(() => mockClient);
+  mockClient.limit = jest.fn(() => mockClient);
+
+  // Terminal methods that return promises
+  mockClient.single = jest.fn();
+  mockClient.maybeSingle = jest.fn();
+
+  // Other methods
+  mockClient.channel = jest.fn();
+  mockClient.removeChannel = jest.fn();
+
+  // Storage methods
+  mockClient.storage = {
+    from: jest.fn(() => mockClient.storage),
+    upload: jest.fn(),
+    getPublicUrl: jest.fn(),
+    createSignedUrl: jest.fn(),
+    remove: jest.fn(),
+  };
+
+  // Auth methods
+  mockClient.auth = {
+    getUser: jest.fn(),
+    signOut: jest.fn(),
   };
 
   return mockClient as jest.Mocked<SupabaseClient> & MockSupabaseChain;

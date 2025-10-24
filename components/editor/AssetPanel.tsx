@@ -9,34 +9,7 @@
 import { type ChangeEvent, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-
-/**
- * Metadata associated with media assets.
- */
-export type AssetMetadata = {
-  filename?: string;
-  mimeType?: string;
-  thumbnail?: string;
-  sourceUrl?: string;
-  durationSeconds?: number | null;
-  format?: string;
-  videoCodec?: string;
-  audioCodec?: string;
-  bitrate?: number;
-};
-
-/**
- * Represents a media asset stored in the database.
- */
-export type AssetRow = {
-  id: string;
-  storage_url: string;
-  duration_seconds: number | null;
-  metadata: AssetMetadata | null;
-  rawMetadata: Record<string, unknown> | null;
-  created_at: string | null;
-  type: 'video' | 'audio' | 'image';
-};
+import type { AssetRow } from '@/types/assets';
 
 interface AssetPanelProps {
   /** List of all assets */

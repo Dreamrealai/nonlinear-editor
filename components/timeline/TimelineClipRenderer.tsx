@@ -57,6 +57,15 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
         onMouseDown={(e) => onMouseDown(e, clip)}
         onClick={(e) => onClick(e, clip)}
         onContextMenu={(e) => onContextMenu(e, clip)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick(e as unknown as React.MouseEvent<HTMLDivElement>, clip);
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`Timeline clip: ${getClipFileName(clip)}`}
       >
         <div className="relative h-full w-full select-none">
           {thumbnail ? (
@@ -96,11 +105,23 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
           <div
             className="absolute left-0 top-0 bottom-0 w-2 bg-white/30 hover:bg-white/50 cursor-ew-resize pointer-events-auto"
             onMouseDown={(e) => onTrimHandleMouseDown(e, clip, 'left')}
+            role="slider"
+            tabIndex={0}
+            aria-label="Trim clip start"
+            aria-valuenow={clip.trimStart || 0}
+            aria-valuemin={0}
+            aria-valuemax={clip.duration}
             title="Trim start"
           />
           <div
             className="absolute right-0 top-0 bottom-0 w-2 bg-white/30 hover:bg-white/50 cursor-ew-resize pointer-events-auto"
             onMouseDown={(e) => onTrimHandleMouseDown(e, clip, 'right')}
+            role="slider"
+            tabIndex={0}
+            aria-label="Trim clip end"
+            aria-valuenow={clip.trimEnd || clip.duration}
+            aria-valuemin={0}
+            aria-valuemax={clip.duration}
             title="Trim end"
           />
 

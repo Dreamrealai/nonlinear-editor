@@ -12,8 +12,6 @@ import { invalidateOnStripeWebhook } from '@/lib/cacheInvalidation';
 // Disable body parser to handle raw body for webhook signature verification
 export const runtime = 'nodejs';
 
-const supabaseAdmin = createServiceSupabaseClient();
-
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
   const userId = session.metadata?.userId;
   const customerId = session.customer as string;
@@ -47,6 +45,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   }
 
   try {
+    const supabaseAdmin = createServiceSupabaseClient();
+
     // CRITICAL: Verify user profile exists before updating
     const { data: existingProfile, error: fetchError } = await supabaseAdmin
       .from('user_profiles')
@@ -224,6 +224,8 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   );
 
   try {
+    const supabaseAdmin = createServiceSupabaseClient();
+
     // Find user by customer ID
     const { data: profile, error: fetchError } = await supabaseAdmin
       .from('user_profiles')
@@ -386,6 +388,8 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   );
 
   try {
+    const supabaseAdmin = createServiceSupabaseClient();
+
     // Find user by customer ID
     const { data: profile, error: fetchError } = await supabaseAdmin
       .from('user_profiles')
@@ -603,16 +607,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (error) {
     const duration = Date.now() - startTime;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
     serverLogger.error(
       {
         event: 'stripe.webhook.error',
         error,
+        errorMessage,
+        errorStack,
         duration,
       },
       'Error processing webhook'
     );
     // Return 500 to trigger Stripe automatic retry
     // Don't reveal internal error details
+    // In test environment, include error details for debugging
+    if (process.env.NODE_ENV === 'test') {
+      return NextResponse.json(
+        { error: 'Internal server error', details: errorMessage },
+        { status: 500 }
+      );
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

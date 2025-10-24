@@ -5,7 +5,7 @@
  * type checking, and data transformation.
  */
 
-import type { AssetMetadata, AssetRow } from '@/components/editor/AssetPanel';
+import type { AssetMetadata, AssetRow } from '@/types/assets';
 import { ensureHttpsProtocol } from '@/lib/supabase';
 import { CLIP_CONSTANTS, THUMBNAIL_CONSTANTS } from '@/lib/constants';
 
@@ -117,6 +117,51 @@ export const parseAssetMetadata = (
     }
   }
 
+  if (typeof typed.format === 'string' && typed.format.trim().length > 0) {
+    result.format = typed.format.trim();
+  }
+
+  if (typeof typed.videoCodec === 'string' && typed.videoCodec.trim().length > 0) {
+    result.videoCodec = typed.videoCodec.trim();
+  }
+
+  if (typeof typed.audioCodec === 'string' && typed.audioCodec.trim().length > 0) {
+    result.audioCodec = typed.audioCodec.trim();
+  }
+
+  const numericProps: Array<'bitrate' | 'width' | 'height' | 'fileSize'> = [
+    'bitrate',
+    'width',
+    'height',
+    'fileSize',
+  ];
+  for (const prop of numericProps) {
+    const value = typed[prop];
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      result[prop] = value;
+    }
+  }
+
+  if (typeof typed.originalName === 'string' && typed.originalName.trim().length > 0) {
+    result.originalName = typed.originalName.trim();
+  }
+
+  if (typeof typed.generatedBy === 'string' && typed.generatedBy.trim().length > 0) {
+    result.generatedBy = typed.generatedBy.trim();
+  }
+
+  if (typeof typed.prompt === 'string' && typed.prompt.trim().length > 0) {
+    result.prompt = typed.prompt.trim();
+  }
+
+  if (typeof typed.model === 'string' && typed.model.trim().length > 0) {
+    result.model = typed.model.trim();
+  }
+
+  if (typeof typed.project_id === 'string' && typed.project_id.trim().length > 0) {
+    result.project_id = typed.project_id.trim();
+  }
+
   return Object.keys(result).length > 0 ? result : null;
 };
 
@@ -137,10 +182,8 @@ export const mapAssetRow = (row: Record<string, unknown>): AssetRow | null => {
     return null;
   }
 
-  const parsedMetadata = parseAssetMetadata(
-    (row.metadata ?? null) as Record<string, unknown> | null
-  );
-  const rawMetadata = (row.rawMetadata ?? null) as Record<string, unknown> | null;
+  const rawMetadata = (row.rawMetadata ?? row.metadata ?? null) as Record<string, unknown> | null;
+  const parsedMetadata = parseAssetMetadata(rawMetadata);
   const metadataDuration = parsedMetadata?.durationSeconds ?? null;
 
   return {

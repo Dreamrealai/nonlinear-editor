@@ -25,6 +25,13 @@ export const TimelinePlayhead = React.memo<TimelinePlayheadProps>(function Timel
       <div
         className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-red-500 rounded-full pointer-events-auto cursor-grab active:cursor-grabbing"
         onMouseDown={onMouseDown}
+        role="slider"
+        tabIndex={0}
+        aria-label="Timeline playhead"
+        aria-valuenow={Math.round(currentTime * 100)}
+        aria-valuemin={0}
+        aria-valuemax={10000}
+        aria-valuetext={`Current time: ${currentTime.toFixed(2)} seconds`}
       />
     </div>
   );

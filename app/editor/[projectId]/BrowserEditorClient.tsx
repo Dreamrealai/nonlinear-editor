@@ -29,8 +29,8 @@ import { AssetPanel } from './AssetPanel';
 import { AudioGenerationModal } from './AudioGenerationModal';
 import { VideoGenerationModal } from './VideoGenerationModal';
 import { useEditorHandlers } from './useEditorHandlers';
+import type { AssetRow } from '@/types/assets';
 import {
-  type AssetRow,
   enrichTimelineWithSourceDurations,
   createEmptyTimeline,
   parseAssetMetadata,

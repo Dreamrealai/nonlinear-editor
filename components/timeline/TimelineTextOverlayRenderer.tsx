@@ -35,6 +35,15 @@ export const TimelineTextOverlayRenderer = React.memo<TimelineTextOverlayRendere
           backgroundColor: 'rgba(147, 51, 234, 0.15)', // purple with transparency
         }}
         onClick={(e) => onClick(e, overlay)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick(e as unknown as React.MouseEvent<HTMLDivElement>, overlay);
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`Text overlay: ${overlay.text}`}
       >
         <div className="relative h-full w-full select-none">
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-purple-300/30 via-purple-200/20 to-purple-300/30" />

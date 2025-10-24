@@ -17,7 +17,7 @@ import {
   getAssetTypeFromMimeType,
 } from '@/lib/utils/assetUtils';
 import { createImageThumbnail, createVideoThumbnail } from './useAssetThumbnails';
-import type { AssetMetadata, AssetRow } from '@/components/editor/AssetPanel';
+import type { AssetMetadata, AssetRow } from '@/types/assets';
 
 /**
  * Uploads a media file to Supabase storage and creates a database record.
