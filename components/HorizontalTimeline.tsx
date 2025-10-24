@@ -54,6 +54,9 @@ type HorizontalTimelineProps = {
 // This prevents re-renders when clip properties change (handled by React.memo in TimelineClipRenderer)
 const selectTimelineData = (state: ReturnType<typeof useEditorStore.getState>) => ({
   timeline: state.timeline,
+  clips: state.timeline?.clips ?? [],
+  textOverlays: state.timeline?.textOverlays ?? [],
+  groups: state.timeline?.groups ?? [],
 });
 
 // Separate selector for frequently changing values to minimize re-renders
@@ -107,7 +110,7 @@ function HorizontalTimeline({
   splitScenesPending = false,
 }: HorizontalTimelineProps = {}): React.JSX.Element {
   // Optimized store subscriptions - separate selectors to minimize re-renders
-  const { clips, textOverlays, timelineId } = useEditorStore(selectTimelineData);
+  const { clips, textOverlays } = useEditorStore(selectTimelineData);
   const { currentTime, zoom, autoScrollEnabled } = useEditorStore(selectPlaybackState);
   const { selectedClipIds } = useEditorStore(selectSelectionState);
   const { canUndo, canRedo } = useEditorStore(selectHistoryState);
@@ -128,12 +131,6 @@ function HorizontalTimeline({
     toggleClipLock,
     toggleAutoScroll,
   } = useEditorStore(selectActions);
-
-  // Reconstruct timeline object for hooks that need it
-  const timeline = React.useMemo(
-    () => (timelineId ? ({ id: timelineId, clips, textOverlays } as Timeline) : null),
-    [timelineId, clips, textOverlays]
-  );
 
   // Playback state for auto-scroll
   const isPlaying = usePlaybackStore((state) => state.isPlaying);
