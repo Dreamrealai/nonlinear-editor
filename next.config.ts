@@ -1,12 +1,15 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   // Production optimizations
   compiler: {
     // Remove console.log in production but keep warnings and errors
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn'],
-    } : false,
+    removeConsole:
+      process.env.NODE_ENV === 'production'
+        ? {
+            exclude: ['error', 'warn'],
+          }
+        : false,
   },
 
   // Image optimization
@@ -87,7 +90,7 @@ const nextConfig: NextConfig = {
               // Prevent all framing (stronger than X-Frame-Options)
               "frame-ancestors 'none'",
               // Force HTTPS for all resources
-              "upgrade-insecure-requests",
+              'upgrade-insecure-requests',
             ].join('; '),
           },
         ],
@@ -98,8 +101,6 @@ const nextConfig: NextConfig = {
   // Optimize bundle and performance
   experimental: {
     optimizePackageImports: ['@supabase/supabase-js', 'zustand', 'clsx', 'lucide-react'],
-    // Enable CSS chunking for better cache efficiency
-    optimizeCss: true,
   },
 
   // Production-only optimizations
