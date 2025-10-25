@@ -110,7 +110,18 @@ test.describe('Easter Eggs', () => {
 
     test('should show rainbow background effect', async ({ page }) => {
       // Activate Konami Code
-      const keys = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+      const keys = [
+        'ArrowUp',
+        'ArrowUp',
+        'ArrowDown',
+        'ArrowDown',
+        'ArrowLeft',
+        'ArrowRight',
+        'ArrowLeft',
+        'ArrowRight',
+        'b',
+        'a',
+      ];
       for (const key of keys) {
         await page.keyboard.press(key);
       }
@@ -133,7 +144,18 @@ test.describe('Easter Eggs', () => {
 
     test('should remove effect after 5 seconds', async ({ page }) => {
       // Activate Konami Code
-      const keys = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+      const keys = [
+        'ArrowUp',
+        'ArrowUp',
+        'ArrowDown',
+        'ArrowDown',
+        'ArrowLeft',
+        'ArrowRight',
+        'ArrowLeft',
+        'ArrowRight',
+        'b',
+        'a',
+      ];
       for (const key of keys) {
         await page.keyboard.press(key);
       }
@@ -419,7 +441,18 @@ test.describe('Easter Eggs', () => {
 
     test('should not break app functionality', async ({ page }) => {
       // Activate Konami Code
-      const keys = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+      const keys = [
+        'ArrowUp',
+        'ArrowUp',
+        'ArrowDown',
+        'ArrowDown',
+        'ArrowLeft',
+        'ArrowRight',
+        'ArrowLeft',
+        'ArrowRight',
+        'b',
+        'a',
+      ];
       for (const key of keys) {
         await page.keyboard.press(key);
       }

@@ -10,7 +10,12 @@
  */
 
 import { NextRequest } from 'next/server';
-import { createMockSupabaseClient, mockAuthenticatedUser, mockUnauthenticatedUser, type MockSupabaseChain } from '@/test-utils';
+import {
+  createMockSupabaseClient,
+  mockAuthenticatedUser,
+  mockUnauthenticatedUser,
+  type MockSupabaseChain,
+} from '@/test-utils';
 
 // TODO: Import your API route handlers
 // import { GET, POST, PUT, DELETE } from '@/app/api/your-route/route';
@@ -46,9 +51,7 @@ describe('TODO: API Route Name', () => {
 
       // TODO: Configure mock database response
       mockSupabase.mockResolvedValue({
-        data: [
-          { id: '1', title: 'Test Item' }
-        ],
+        data: [{ id: '1', title: 'Test Item' }],
         error: null,
         count: 1,
       });
@@ -145,7 +148,9 @@ describe('TODO: API Route Name', () => {
       const request = new NextRequest('http://localhost:3000/api/your-route', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ /* invalid data */ }),
+        body: JSON.stringify({
+          /* invalid data */
+        }),
       });
 
       // Act

@@ -15,7 +15,7 @@ import type { Database } from '@/types/supabase';
 export const runtime = 'nodejs';
 
 type UserProfileRow = Database['public']['Tables']['user_profiles']['Row'];
- 
+
 type UserProfileUpdate = Database['public']['Tables']['user_profiles']['Update'];
 type UserProfileTier = Pick<UserProfileRow, 'id' | 'tier'>;
 type UserProfileWithSubscription = Pick<UserProfileRow, 'id' | 'tier' | 'stripe_subscription_id'>;

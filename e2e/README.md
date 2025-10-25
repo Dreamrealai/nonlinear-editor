@@ -47,31 +47,37 @@ Tests use the following credentials (defined in CLAUDE.md):
 ## Running Tests
 
 ### Run all tests
+
 ```bash
 npm run test:e2e
 ```
 
 ### Run tests in UI mode (interactive)
+
 ```bash
 npm run test:e2e:ui
 ```
 
 ### Run tests in debug mode
+
 ```bash
 npm run test:e2e:debug
 ```
 
 ### Run specific test file
+
 ```bash
 npx playwright test e2e/auth.spec.ts
 ```
 
 ### Run tests for specific browser
+
 ```bash
 npx playwright test --project=chromium
 ```
 
 ### Run tests in headed mode
+
 ```bash
 npx playwright test --headed
 ```
@@ -79,6 +85,7 @@ npx playwright test --headed
 ## Test Coverage
 
 ### Authentication Tests (`auth.spec.ts`)
+
 - ✓ Display sign in form correctly
 - ✓ Sign in with valid credentials
 - ✓ Show error with invalid credentials
@@ -96,6 +103,7 @@ npx playwright test --headed
 - ✓ Show error when email already exists
 
 ### Project Management Tests (`projects.spec.ts`)
+
 - ✓ Redirect to editor after sign in
 - ✓ Create default project on first sign in
 - ✓ Load editor page successfully
@@ -106,6 +114,7 @@ npx playwright test --headed
 - ✓ Handle project deletion
 
 ### Video Generation Tests (`video-generation.spec.ts`)
+
 - ✓ Display video generation form correctly
 - ✓ Require prompt field
 - ✓ Allow selecting different aspect ratios
@@ -120,6 +129,7 @@ npx playwright test --headed
 - ✓ Preserve form values when returning from error
 
 ### Timeline Editing Tests (`timeline-editing.spec.ts`)
+
 - ✓ Display timeline correctly
 - ✓ Display video preview area
 - ✓ Display project title
@@ -135,6 +145,7 @@ npx playwright test --headed
 - ✓ Handle unauthorized access gracefully
 
 ### Asset Management Tests (`asset-management.spec.ts`)
+
 - ✓ Display asset upload capability
 - ✓ Accept file input element for uploads
 - ✓ Navigate to asset management pages
@@ -167,6 +178,7 @@ test('should sign in', async ({ page }) => {
 ## Fixtures
 
 ### Authentication Fixture
+
 Provides authenticated session for tests that require a logged-in user:
 
 ```typescript
@@ -179,6 +191,7 @@ test('authenticated test', async ({ page }) => {
 ```
 
 ### Project Fixture
+
 Provides project creation and cleanup:
 
 ```typescript
@@ -206,11 +219,13 @@ The tests are configured to run in CI/CD environments:
 Tests run on multiple browsers and devices:
 
 ### Desktop Browsers
+
 - Chrome
 - Firefox
 - Safari (WebKit)
 
 ### Mobile Browsers
+
 - iPhone 13
 - iPhone 13 Pro
 - iPhone SE
@@ -221,6 +236,7 @@ Tests run on multiple browsers and devices:
 - Galaxy Tab S4
 
 ### Custom Viewports
+
 - Desktop 1080p (1920×1080)
 - Desktop 4K (3840×2160)
 - Mobile Portrait (390×844)
@@ -238,21 +254,25 @@ Tests run on multiple browsers and devices:
 ## Debugging Tests
 
 ### Debug a specific test
+
 ```bash
 npx playwright test --debug e2e/auth.spec.ts
 ```
 
 ### Generate trace
+
 ```bash
 npx playwright test --trace on
 ```
 
 ### View trace
+
 ```bash
 npx playwright show-trace trace.zip
 ```
 
 ### Show test report
+
 ```bash
 npx playwright show-report
 ```
@@ -270,16 +290,19 @@ When adding new tests:
 ## Common Issues
 
 ### Tests fail with "Timeout waiting for..."
+
 - Increase timeout in test or use proper wait conditions
 - Check if the application is running (`npm run dev`)
 - Verify network conditions
 
 ### Authentication fails
+
 - Ensure test credentials exist in database
 - Check Supabase configuration
 - Verify environment variables
 
 ### Tests pass locally but fail in CI
+
 - Check CI environment configuration
 - Verify all dependencies are installed
 - Review CI logs for specific errors

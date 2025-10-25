@@ -15,14 +15,17 @@ import {
 } from '@/lib/utils/assetUtils';
 
 // Mock the supabase module
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  ensureHttpsProtocol: jest.fn((url: string) => {
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      return `https://${url}`;
-    }
-    return url;
-  }),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    ensureHttpsProtocol: jest.fn((url: string) => {
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        return `https://${url}`;
+      }
+      return url;
+    }),
+  })
+);
 
 describe('assetUtils', () => {
   describe('Constants', () => {

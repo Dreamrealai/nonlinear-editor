@@ -80,7 +80,7 @@ export function KeyboardShortcutsHelp({
   });
 
   // Close on Escape key
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     const handleEscape = (e: KeyboardEvent): void => {
       if (e.key === 'Escape' && isOpen) {
         handleClose();
@@ -92,7 +92,7 @@ export function KeyboardShortcutsHelp({
   }, [isOpen, handleClose]);
 
   // Prevent body scroll when modal is open
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -144,30 +144,34 @@ export function KeyboardShortcutsHelp({
 
         {/* Content */}
         <div className="overflow-y-auto max-h-[calc(90vh-80px)] px-6 py-4">
-          {Object.entries(groupedShortcuts).map(([category, categoryShortcuts]): React.ReactElement | null => {
-            if (categoryShortcuts.length === 0) return null;
+          {Object.entries(groupedShortcuts).map(
+            ([category, categoryShortcuts]): React.ReactElement | null => {
+              if (categoryShortcuts.length === 0) return null;
 
-            return (
-              <div key={category} className="mb-6 last:mb-0">
-                <h3 className="text-sm font-semibold text-neutral-700 uppercase tracking-wider mb-3">
-                  {categoryLabels[category] || category}
-                </h3>
-                <div className="space-y-2">
-                  {categoryShortcuts.map((shortcut): React.ReactElement => (
-                    <div
-                      key={shortcut.id}
-                      className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-neutral-50 transition-colors"
-                    >
-                      <span className="text-sm text-neutral-700">{shortcut.description}</span>
-                      <kbd className="flex items-center gap-1 rounded bg-neutral-100 px-3 py-1.5 text-xs font-mono font-semibold text-neutral-700 border border-neutral-300 shadow-sm">
-                        {formatShortcut(shortcut.keys)}
-                      </kbd>
-                    </div>
-                  ))}
+              return (
+                <div key={category} className="mb-6 last:mb-0">
+                  <h3 className="text-sm font-semibold text-neutral-700 uppercase tracking-wider mb-3">
+                    {categoryLabels[category] || category}
+                  </h3>
+                  <div className="space-y-2">
+                    {categoryShortcuts.map(
+                      (shortcut): React.ReactElement => (
+                        <div
+                          key={shortcut.id}
+                          className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-neutral-50 transition-colors"
+                        >
+                          <span className="text-sm text-neutral-700">{shortcut.description}</span>
+                          <kbd className="flex items-center gap-1 rounded bg-neutral-100 px-3 py-1.5 text-xs font-mono font-semibold text-neutral-700 border border-neutral-300 shadow-sm">
+                            {formatShortcut(shortcut.keys)}
+                          </kbd>
+                        </div>
+                      )
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            }
+          )}
 
           {Object.values(groupedShortcuts).every((arr): boolean => arr.length === 0) && (
             <div className="text-center py-12">
@@ -194,7 +198,12 @@ export function KeyboardShortcutsHelp({
 /**
  * Hook to manage keyboard shortcuts help modal
  */
-export function useKeyboardShortcutsHelp(): { isOpen: boolean; open: () => void; close: () => void; toggle: () => void } {
+export function useKeyboardShortcutsHelp(): {
+  isOpen: boolean;
+  open: () => void;
+  close: () => void;
+  toggle: () => void;
+} {
   const [isOpen, setIsOpen] = useState(false);
 
   const open = (): void => setIsOpen(true);

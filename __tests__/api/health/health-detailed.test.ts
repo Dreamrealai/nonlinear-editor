@@ -5,25 +5,31 @@
 import { GET } from '@/app/api/health/detailed/route';
 
 // Mock createClient from Supabase
-jest.mock('@supabase/supabase-js', (): Record<string, unknown> => ({
-  createClient: jest.fn(() => ({
-    from: jest.fn(() => ({
-      select: jest.fn(() => ({
-        limit: jest.fn(() => ({
-          single: jest.fn().mockResolvedValue({ data: null, error: null }),
+jest.mock(
+  '@supabase/supabase-js',
+  (): Record<string, unknown> => ({
+    createClient: jest.fn(() => ({
+      from: jest.fn(() => ({
+        select: jest.fn(() => ({
+          limit: jest.fn(() => ({
+            single: jest.fn().mockResolvedValue({ data: null, error: null }),
+          })),
         })),
       })),
     })),
-  })),
-}));
+  })
+);
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 describe('GET /api/health/detailed', () => {
   beforeEach((): void => {

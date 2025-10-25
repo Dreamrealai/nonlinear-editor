@@ -90,7 +90,7 @@ export function mockWithAuth(handler: any, options: any) {
       return new Response(
         JSON.stringify({
           error: 'Internal server error',
-          details: (error as Error).message
+          details: (error as Error).message,
         }),
         {
           status: 500,

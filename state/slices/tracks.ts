@@ -17,7 +17,9 @@ export interface TracksSliceState {
   timeline: Timeline | null;
 }
 
-export const createTracksSlice = (set: (fn: (state: TracksSliceState) => void) => void): TracksSlice => ({
+export const createTracksSlice = (
+  set: (fn: (state: TracksSliceState) => void) => void
+): TracksSlice => ({
   updateTrack: (trackIndex: number, patch: Partial<Track>): void =>
     set((state: TracksSliceState): void => {
       if (!state.timeline) return;

@@ -40,26 +40,32 @@ import {
 import { cache } from '@/lib/cache';
 
 // Mock error tracking
-jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
-  trackError: jest.fn(),
-  ErrorCategory: {
-    DATABASE: 'database',
-    EXTERNAL_SERVICE: 'external_service',
-    AUTH: 'auth',
-  },
-  ErrorSeverity: {
-    HIGH: 'high',
-    MEDIUM: 'medium',
-    LOW: 'low',
-  },
-}));
+jest.mock(
+  '@/lib/errorTracking',
+  (): Record<string, unknown> => ({
+    trackError: jest.fn(),
+    ErrorCategory: {
+      DATABASE: 'database',
+      EXTERNAL_SERVICE: 'external_service',
+      AUTH: 'auth',
+    },
+    ErrorSeverity: {
+      HIGH: 'high',
+      MEDIUM: 'medium',
+      LOW: 'low',
+    },
+  })
+);
 
 // Mock cache invalidation
-jest.mock('@/lib/cacheInvalidation', (): Record<string, unknown> => ({
-  invalidateProjectCache: jest.fn(),
-  invalidateUserProjects: jest.fn(),
-  invalidateUserProfile: jest.fn(),
-}));
+jest.mock(
+  '@/lib/cacheInvalidation',
+  (): Record<string, unknown> => ({
+    invalidateProjectCache: jest.fn(),
+    invalidateUserProjects: jest.fn(),
+    invalidateUserProfile: jest.fn(),
+  })
+);
 
 describe('Integration: User Account Workflow', () => {
   let env: ReturnType<typeof createTestEnvironment>;

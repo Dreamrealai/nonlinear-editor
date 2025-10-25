@@ -32,11 +32,13 @@ async function createBucket() {
       location: 'US',
       storageClass: 'STANDARD',
       lifecycle: {
-        rule: [{
-          action: { type: 'Delete' },
-          condition: { age: 7 } // Auto-delete temporary files older than 7 days
-        }]
-      }
+        rule: [
+          {
+            action: { type: 'Delete' },
+            condition: { age: 7 }, // Auto-delete temporary files older than 7 days
+          },
+        ],
+      },
     });
 
     console.log(`✅ Bucket ${bucket.name} created successfully!`);
@@ -44,7 +46,6 @@ async function createBucket() {
     console.log(`💾 Storage Class: ${bucket.metadata.storageClass}`);
     console.log(`🗑️  Lifecycle: Auto-delete files older than 7 days`);
     console.log(`\n🔗 Bucket URL: gs://${bucketName}`);
-
   } catch (error) {
     if (error.code === 409) {
       console.log(`✅ Bucket ${bucketName} already exists`);
@@ -55,7 +56,6 @@ async function createBucket() {
       console.log(`📍 Location: ${metadata.location}`);
       console.log(`💾 Storage Class: ${metadata.storageClass}`);
       console.log(`\n🔗 Bucket URL: gs://${bucketName}`);
-
     } else {
       console.error('❌ Error creating bucket:', error.message);
       process.exit(1);

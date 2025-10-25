@@ -284,5 +284,8 @@ export const POST = createGenerationRoute<ElevenLabsGenerateRequest, ElevenLabsG
     validateUUID(body.projectId, 'projectId');
   },
   execute: executeElevenLabsGeneration,
-  formatResponse: (result): NextResponse<ElevenLabsGenerateResponse | SuccessResponse<ElevenLabsGenerateResponse>> => successResponse(result, 'Audio generated successfully'),
+  formatResponse: (
+    result
+  ): NextResponse<ElevenLabsGenerateResponse | SuccessResponse<ElevenLabsGenerateResponse>> =>
+    successResponse(result, 'Audio generated successfully'),
 });

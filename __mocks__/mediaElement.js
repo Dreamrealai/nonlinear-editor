@@ -51,10 +51,18 @@ function setupMediaErrorMock() {
         this.code = code;
       }
 
-      static get MEDIA_ERR_ABORTED() { return 1; }
-      static get MEDIA_ERR_NETWORK() { return 2; }
-      static get MEDIA_ERR_DECODE() { return 3; }
-      static get MEDIA_ERR_SRC_NOT_SUPPORTED() { return 4; }
+      static get MEDIA_ERR_ABORTED() {
+        return 1;
+      }
+      static get MEDIA_ERR_NETWORK() {
+        return 2;
+      }
+      static get MEDIA_ERR_DECODE() {
+        return 3;
+      }
+      static get MEDIA_ERR_SRC_NOT_SUPPORTED() {
+        return 4;
+      }
     };
   }
 }

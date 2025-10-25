@@ -32,9 +32,9 @@ test.describe('Loading States', () => {
       await page.click('button:has-text("Create")');
 
       // Should show loading state briefly
-      const spinner = page.locator('[data-testid="loading-spinner"]').or(
-        page.locator('.spinner').or(page.locator('.loading'))
-      );
+      const spinner = page
+        .locator('[data-testid="loading-spinner"]')
+        .or(page.locator('.spinner').or(page.locator('.loading')));
 
       // May briefly see spinner (timing dependent)
       await page.waitForTimeout(200);
@@ -58,9 +58,10 @@ test.describe('Loading States', () => {
       await page.waitForTimeout(1000);
 
       // Find and delete project
-      const deleteButton = page.locator('button[aria-label*="delete" i]').or(
-        page.locator('button:has-text("Delete")')
-      ).first();
+      const deleteButton = page
+        .locator('button[aria-label*="delete" i]')
+        .or(page.locator('button:has-text("Delete")'))
+        .first();
 
       const deleteCount = await deleteButton.count();
       if (deleteCount > 0) {
@@ -68,18 +69,19 @@ test.describe('Loading States', () => {
         await page.waitForTimeout(300);
 
         // Confirm deletion
-        const confirmButton = page.locator('button:has-text("Delete")').or(
-          page.locator('button:has-text("Confirm")')
-        ).last();
+        const confirmButton = page
+          .locator('button:has-text("Delete")')
+          .or(page.locator('button:has-text("Confirm")'))
+          .last();
 
         const confirmCount = await confirmButton.count();
         if (confirmCount > 0) {
           await confirmButton.click();
 
           // Should show loading spinner
-          const spinner = page.locator('[data-testid="loading-spinner"]').or(
-            page.locator('.spinner')
-          );
+          const spinner = page
+            .locator('[data-testid="loading-spinner"]')
+            .or(page.locator('.spinner'));
 
           const spinnerCount = await spinner.count();
           expect(spinnerCount).toBeGreaterThanOrEqual(0);
@@ -89,18 +91,19 @@ test.describe('Loading States', () => {
 
     test('should show loading state when opening project', async ({ page }) => {
       // Click on a project to open it
-      const projectCard = page.locator('[data-testid="project-card"]').or(
-        page.locator('.project-card')
-      ).first();
+      const projectCard = page
+        .locator('[data-testid="project-card"]')
+        .or(page.locator('.project-card'))
+        .first();
 
       const cardCount = await projectCard.count();
       if (cardCount > 0) {
         await projectCard.click();
 
         // Should show loading state
-        const spinner = page.locator('[data-testid="loading-spinner"]').or(
-          page.locator('.spinner')
-        );
+        const spinner = page
+          .locator('[data-testid="loading-spinner"]')
+          .or(page.locator('.spinner'));
 
         await page.waitForTimeout(200);
         const spinnerCount = await spinner.count();
@@ -126,16 +129,14 @@ test.describe('Loading States', () => {
 
     test('should show upload progress indicator', async ({ page }) => {
       // Look for upload button
-      const uploadButton = page.locator('button:has-text("Upload")').or(
-        page.locator('input[type="file"]')
-      );
+      const uploadButton = page
+        .locator('button:has-text("Upload")')
+        .or(page.locator('input[type="file"]'));
 
       const count = await uploadButton.count();
       if (count > 0) {
         // Upload progress UI should be visible during upload
-        const progressBar = page.locator('[role="progressbar"]').or(
-          page.locator('.progress-bar')
-        );
+        const progressBar = page.locator('[role="progressbar"]').or(page.locator('.progress-bar'));
 
         // Progress bar may not be visible unless actively uploading
         const progressCount = await progressBar.count();
@@ -162,9 +163,9 @@ test.describe('Loading States', () => {
 
     test('should allow canceling upload', async ({ page }) => {
       // Look for cancel button during upload
-      const cancelButton = page.locator('button:has-text("Cancel")').or(
-        page.locator('button[aria-label*="cancel" i]')
-      );
+      const cancelButton = page
+        .locator('button:has-text("Cancel")')
+        .or(page.locator('button[aria-label*="cancel" i]'));
 
       const count = await cancelButton.count();
       expect(count).toBeGreaterThanOrEqual(0);
@@ -186,9 +187,9 @@ test.describe('Loading States', () => {
 
     test('should show export progress', async ({ page }) => {
       // Look for export button
-      const exportButton = page.locator('button:has-text("Export")').or(
-        page.locator('button[aria-label*="export" i]')
-      );
+      const exportButton = page
+        .locator('button:has-text("Export")')
+        .or(page.locator('button[aria-label*="export" i]'));
 
       const count = await exportButton.count();
       if (count > 0) {
@@ -196,9 +197,9 @@ test.describe('Loading States', () => {
         await page.waitForTimeout(500);
 
         // Should show export modal or progress
-        const exportProgress = page.locator('text=/Exporting|Export progress/i').or(
-          page.locator('[role="progressbar"]')
-        );
+        const exportProgress = page
+          .locator('text=/Exporting|Export progress/i')
+          .or(page.locator('[role="progressbar"]'));
 
         const progressCount = await exportProgress.count();
         expect(progressCount).toBeGreaterThanOrEqual(0);
@@ -214,9 +215,10 @@ test.describe('Loading States', () => {
         await page.waitForTimeout(500);
 
         // Start export if modal appears
-        const startExport = page.locator('button:has-text("Start Export")').or(
-          page.locator('button:has-text("Export")')
-        ).last();
+        const startExport = page
+          .locator('button:has-text("Start Export")')
+          .or(page.locator('button:has-text("Export")'))
+          .last();
 
         const startCount = await startExport.count();
         if (startCount > 0) {
@@ -241,9 +243,9 @@ test.describe('Loading States', () => {
         await page.waitForTimeout(500);
 
         // Look for cancel button
-        const cancelButton = page.locator('button:has-text("Cancel")').or(
-          page.locator('button:has-text("Cancel Export")')
-        );
+        const cancelButton = page
+          .locator('button:has-text("Cancel")')
+          .or(page.locator('button:has-text("Cancel Export")'));
 
         const cancelCount = await cancelButton.count();
         expect(cancelCount).toBeGreaterThanOrEqual(0);
@@ -266,9 +268,9 @@ test.describe('Loading States', () => {
 
     test('should show AI generation progress', async ({ page }) => {
       // Look for AI generation button
-      const generateButton = page.locator('button:has-text("Generate")').or(
-        page.locator('button:has-text("AI Generate")')
-      );
+      const generateButton = page
+        .locator('button:has-text("Generate")')
+        .or(page.locator('button:has-text("AI Generate")'));
 
       const count = await generateButton.count();
       if (count > 0) {
@@ -292,9 +294,9 @@ test.describe('Loading States', () => {
         await page.waitForTimeout(500);
 
         // Should show spinner or loading animation
-        const spinner = page.locator('[data-testid="loading-spinner"]').or(
-          page.locator('.spinner')
-        );
+        const spinner = page
+          .locator('[data-testid="loading-spinner"]')
+          .or(page.locator('.spinner'));
 
         const spinnerCount = await spinner.count();
         expect(spinnerCount).toBeGreaterThanOrEqual(0);
@@ -328,9 +330,7 @@ test.describe('Loading States', () => {
       await page.waitForTimeout(200);
 
       // Look for spinner with ARIA attributes
-      const spinner = page.locator('[role="status"]').or(
-        page.locator('[aria-label*="loading" i]')
-      );
+      const spinner = page.locator('[role="status"]').or(page.locator('[aria-label*="loading" i]'));
 
       const count = await spinner.count();
       expect(count).toBeGreaterThanOrEqual(0);
@@ -355,9 +355,7 @@ test.describe('Loading States', () => {
 
     test('should announce loading states to screen readers', async ({ page }) => {
       // Spinners should have aria-live or role=status
-      const liveRegion = page.locator('[aria-live="polite"]').or(
-        page.locator('[role="status"]')
-      );
+      const liveRegion = page.locator('[aria-live="polite"]').or(page.locator('[role="status"]'));
 
       const count = await liveRegion.count();
       expect(count).toBeGreaterThanOrEqual(0);

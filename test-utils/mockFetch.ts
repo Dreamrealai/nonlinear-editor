@@ -137,10 +137,7 @@ export function mockFetch(): jest.Mock {
 /**
  * Mock a successful fetch response
  */
-export function mockFetchSuccess(
-  data: any,
-  options: Partial<MockFetchResponse> = {}
-): jest.Mock {
+export function mockFetchSuccess(data: any, options: Partial<MockFetchResponse> = {}): jest.Mock {
   const mockFn = mockFetch();
 
   mockFn.mockResolvedValue(
@@ -220,7 +217,10 @@ export function mockFetchSequence(responses: MockFetchResponse[]): jest.Mock {
  * Mock fetch conditionally based on URL
  */
 export function mockFetchByUrl(
-  urlPatterns: Record<string, MockFetchResponse | ((url: string, init?: RequestInit) => MockFetchResponse)>
+  urlPatterns: Record<
+    string,
+    MockFetchResponse | ((url: string, init?: RequestInit) => MockFetchResponse)
+  >
 ): jest.Mock {
   const mockFn = mockFetch();
 
@@ -230,9 +230,8 @@ export function mockFetchByUrl(
     for (const [pattern, response] of Object.entries(urlPatterns)) {
       const regex = new RegExp(pattern);
       if (regex.test(urlString)) {
-        const responseConfig = typeof response === 'function'
-          ? response(urlString, init)
-          : response;
+        const responseConfig =
+          typeof response === 'function' ? response(urlString, init) : response;
         return createMockResponse(responseConfig);
       }
     }

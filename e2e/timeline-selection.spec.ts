@@ -42,7 +42,9 @@ test.describe('Timeline Selection', () => {
       await expect(timeline).toBeVisible();
 
       // Get initial clip count
-      const clips = page.locator('[data-testid="timeline-clip"]').or(page.locator('.timeline-clip'));
+      const clips = page
+        .locator('[data-testid="timeline-clip"]')
+        .or(page.locator('.timeline-clip'));
       const clipCount = await clips.count();
 
       if (clipCount > 1) {
@@ -64,9 +66,9 @@ test.describe('Timeline Selection', () => {
 
           // Should show selection rectangle during drag
           // Should have selected clips highlighted
-          const selectedClips = page.locator('[data-selected="true"]').or(
-            page.locator('.selected')
-          );
+          const selectedClips = page
+            .locator('[data-selected="true"]')
+            .or(page.locator('.selected'));
           const selectedCount = await selectedClips.count();
 
           expect(selectedCount).toBeGreaterThanOrEqual(0);
@@ -89,9 +91,9 @@ test.describe('Timeline Selection', () => {
         await page.waitForTimeout(100);
 
         // Look for selection rectangle
-        const selectionRect = page.locator('[data-testid="selection-rectangle"]').or(
-          page.locator('.selection-rectangle')
-        );
+        const selectionRect = page
+          .locator('[data-testid="selection-rectangle"]')
+          .or(page.locator('.selection-rectangle'));
 
         // May or may not be visible depending on implementation
         const rectCount = await selectionRect.count();
@@ -103,7 +105,9 @@ test.describe('Timeline Selection', () => {
 
     test('should select clips within selection area', async ({ page }) => {
       // This test requires clips to be present
-      const clips = page.locator('[data-testid="timeline-clip"]').or(page.locator('.timeline-clip'));
+      const clips = page
+        .locator('[data-testid="timeline-clip"]')
+        .or(page.locator('.timeline-clip'));
       const clipCount = await clips.count();
 
       if (clipCount >= 2) {
@@ -129,9 +133,9 @@ test.describe('Timeline Selection', () => {
           await page.waitForTimeout(300);
 
           // Both clips should be selected
-          const selectedClips = page.locator('[data-selected="true"]').or(
-            page.locator('.selected')
-          );
+          const selectedClips = page
+            .locator('[data-selected="true"]')
+            .or(page.locator('.selected'));
           const selectedCount = await selectedClips.count();
 
           expect(selectedCount).toBeGreaterThanOrEqual(1);
@@ -142,7 +146,9 @@ test.describe('Timeline Selection', () => {
 
   test.describe('Shift+Click Selection', () => {
     test('should extend selection with shift+click', async ({ page }) => {
-      const clips = page.locator('[data-testid="timeline-clip"]').or(page.locator('.timeline-clip'));
+      const clips = page
+        .locator('[data-testid="timeline-clip"]')
+        .or(page.locator('.timeline-clip'));
       const clipCount = await clips.count();
 
       if (clipCount >= 2) {
@@ -155,9 +161,7 @@ test.describe('Timeline Selection', () => {
         await page.waitForTimeout(200);
 
         // Both should be selected
-        const selectedClips = page.locator('[data-selected="true"]').or(
-          page.locator('.selected')
-        );
+        const selectedClips = page.locator('[data-selected="true"]').or(page.locator('.selected'));
         const selectedCount = await selectedClips.count();
 
         expect(selectedCount).toBeGreaterThanOrEqual(2);
@@ -165,7 +169,9 @@ test.describe('Timeline Selection', () => {
     });
 
     test('should select range between first and shift-clicked clip', async ({ page }) => {
-      const clips = page.locator('[data-testid="timeline-clip"]').or(page.locator('.timeline-clip'));
+      const clips = page
+        .locator('[data-testid="timeline-clip"]')
+        .or(page.locator('.timeline-clip'));
       const clipCount = await clips.count();
 
       if (clipCount >= 3) {
@@ -177,9 +183,7 @@ test.describe('Timeline Selection', () => {
         await clips.nth(2).click({ modifiers: ['Shift'] });
         await page.waitForTimeout(200);
 
-        const selectedClips = page.locator('[data-selected="true"]').or(
-          page.locator('.selected')
-        );
+        const selectedClips = page.locator('[data-selected="true"]').or(page.locator('.selected'));
         const selectedCount = await selectedClips.count();
 
         expect(selectedCount).toBeGreaterThanOrEqual(3);
@@ -190,7 +194,9 @@ test.describe('Timeline Selection', () => {
   test.describe('Select All', () => {
     test('should select all clips with Cmd+A on Mac', async ({ page, browserName }) => {
       if (browserName === 'webkit') {
-        const clips = page.locator('[data-testid="timeline-clip"]').or(page.locator('.timeline-clip'));
+        const clips = page
+          .locator('[data-testid="timeline-clip"]')
+          .or(page.locator('.timeline-clip'));
         const totalClips = await clips.count();
 
         if (totalClips > 0) {
@@ -198,9 +204,9 @@ test.describe('Timeline Selection', () => {
           await page.keyboard.press('Meta+A');
           await page.waitForTimeout(300);
 
-          const selectedClips = page.locator('[data-selected="true"]').or(
-            page.locator('.selected')
-          );
+          const selectedClips = page
+            .locator('[data-selected="true"]')
+            .or(page.locator('.selected'));
           const selectedCount = await selectedClips.count();
 
           expect(selectedCount).toBe(totalClips);
@@ -210,7 +216,9 @@ test.describe('Timeline Selection', () => {
 
     test('should select all clips with Ctrl+A on Windows/Linux', async ({ page, browserName }) => {
       if (browserName !== 'webkit') {
-        const clips = page.locator('[data-testid="timeline-clip"]').or(page.locator('.timeline-clip'));
+        const clips = page
+          .locator('[data-testid="timeline-clip"]')
+          .or(page.locator('.timeline-clip'));
         const totalClips = await clips.count();
 
         if (totalClips > 0) {
@@ -218,9 +226,9 @@ test.describe('Timeline Selection', () => {
           await page.keyboard.press('Control+A');
           await page.waitForTimeout(300);
 
-          const selectedClips = page.locator('[data-selected="true"]').or(
-            page.locator('.selected')
-          );
+          const selectedClips = page
+            .locator('[data-selected="true"]')
+            .or(page.locator('.selected'));
           const selectedCount = await selectedClips.count();
 
           expect(selectedCount).toBe(totalClips);
@@ -231,7 +239,9 @@ test.describe('Timeline Selection', () => {
 
   test.describe('Context Menu Selection', () => {
     test('should show "Select all in track" in context menu', async ({ page }) => {
-      const clips = page.locator('[data-testid="timeline-clip"]').or(page.locator('.timeline-clip'));
+      const clips = page
+        .locator('[data-testid="timeline-clip"]')
+        .or(page.locator('.timeline-clip'));
       const clipCount = await clips.count();
 
       if (clipCount > 0) {
@@ -252,7 +262,9 @@ test.describe('Timeline Selection', () => {
     });
 
     test('should select all clips in track from context menu', async ({ page }) => {
-      const clips = page.locator('[data-testid="timeline-clip"]').or(page.locator('.timeline-clip'));
+      const clips = page
+        .locator('[data-testid="timeline-clip"]')
+        .or(page.locator('.timeline-clip'));
       const clipCount = await clips.count();
 
       if (clipCount > 0) {
@@ -269,9 +281,9 @@ test.describe('Timeline Selection', () => {
           await page.waitForTimeout(300);
 
           // All clips in that track should be selected
-          const selectedClips = page.locator('[data-selected="true"]').or(
-            page.locator('.selected')
-          );
+          const selectedClips = page
+            .locator('[data-selected="true"]')
+            .or(page.locator('.selected'));
           const selectedCount = await selectedClips.count();
 
           expect(selectedCount).toBeGreaterThanOrEqual(1);
@@ -282,7 +294,9 @@ test.describe('Timeline Selection', () => {
 
   test.describe('Multi-Track Selection', () => {
     test('should allow selecting clips across multiple tracks', async ({ page }) => {
-      const clips = page.locator('[data-testid="timeline-clip"]').or(page.locator('.timeline-clip'));
+      const clips = page
+        .locator('[data-testid="timeline-clip"]')
+        .or(page.locator('.timeline-clip'));
       const clipCount = await clips.count();
 
       if (clipCount >= 2) {
@@ -293,9 +307,7 @@ test.describe('Timeline Selection', () => {
         await clips.nth(1).click({ modifiers: ['Shift'] });
         await page.waitForTimeout(200);
 
-        const selectedClips = page.locator('[data-selected="true"]').or(
-          page.locator('.selected')
-        );
+        const selectedClips = page.locator('[data-selected="true"]').or(page.locator('.selected'));
         const selectedCount = await selectedClips.count();
 
         expect(selectedCount).toBeGreaterThanOrEqual(2);
@@ -305,14 +317,16 @@ test.describe('Timeline Selection', () => {
 
   test.describe('Locked Clips', () => {
     test('should not select locked clips', async ({ page }) => {
-      const clips = page.locator('[data-testid="timeline-clip"]').or(page.locator('.timeline-clip'));
+      const clips = page
+        .locator('[data-testid="timeline-clip"]')
+        .or(page.locator('.timeline-clip'));
       const clipCount = await clips.count();
 
       if (clipCount > 0) {
         // Look for lock functionality
-        const lockButton = page.locator('button[aria-label*="lock" i]').or(
-          page.locator('button:has-text("Lock")')
-        );
+        const lockButton = page
+          .locator('button[aria-label*="lock" i]')
+          .or(page.locator('button:has-text("Lock")'));
 
         const lockCount = await lockButton.count();
         // If lock feature exists, test it
@@ -322,9 +336,7 @@ test.describe('Timeline Selection', () => {
 
     test('should show visual indicator for locked clips', async ({ page }) => {
       // Look for locked clip indicators
-      const lockedClips = page.locator('[data-locked="true"]').or(
-        page.locator('.locked')
-      );
+      const lockedClips = page.locator('[data-locked="true"]').or(page.locator('.locked'));
 
       const lockedCount = await lockedClips.count();
       expect(lockedCount).toBeGreaterThanOrEqual(0);
@@ -333,7 +345,9 @@ test.describe('Timeline Selection', () => {
 
   test.describe('Selection Visual Feedback', () => {
     test('should highlight selected clips', async ({ page }) => {
-      const clips = page.locator('[data-testid="timeline-clip"]').or(page.locator('.timeline-clip'));
+      const clips = page
+        .locator('[data-testid="timeline-clip"]')
+        .or(page.locator('.timeline-clip'));
       const clipCount = await clips.count();
 
       if (clipCount > 0) {
@@ -350,7 +364,9 @@ test.describe('Timeline Selection', () => {
     });
 
     test('should show selection count', async ({ page }) => {
-      const clips = page.locator('[data-testid="timeline-clip"]').or(page.locator('.timeline-clip'));
+      const clips = page
+        .locator('[data-testid="timeline-clip"]')
+        .or(page.locator('.timeline-clip'));
       const clipCount = await clips.count();
 
       if (clipCount >= 2) {
@@ -368,7 +384,9 @@ test.describe('Timeline Selection', () => {
     });
 
     test('should clear selection on empty area click', async ({ page }) => {
-      const clips = page.locator('[data-testid="timeline-clip"]').or(page.locator('.timeline-clip'));
+      const clips = page
+        .locator('[data-testid="timeline-clip"]')
+        .or(page.locator('.timeline-clip'));
       const clipCount = await clips.count();
 
       if (clipCount > 0) {
@@ -386,9 +404,9 @@ test.describe('Timeline Selection', () => {
           await page.waitForTimeout(200);
 
           // Selection should be cleared
-          const selectedClips = page.locator('[data-selected="true"]').or(
-            page.locator('.selected')
-          );
+          const selectedClips = page
+            .locator('[data-selected="true"]')
+            .or(page.locator('.selected'));
           const selectedCount = await selectedClips.count();
 
           expect(selectedCount).toBe(0);
@@ -399,7 +417,9 @@ test.describe('Timeline Selection', () => {
 
   test.describe('Selection Persistence', () => {
     test('should maintain selection when zooming timeline', async ({ page }) => {
-      const clips = page.locator('[data-testid="timeline-clip"]').or(page.locator('.timeline-clip'));
+      const clips = page
+        .locator('[data-testid="timeline-clip"]')
+        .or(page.locator('.timeline-clip'));
       const clipCount = await clips.count();
 
       if (clipCount > 0) {
@@ -412,9 +432,7 @@ test.describe('Timeline Selection', () => {
         await page.waitForTimeout(300);
 
         // Selection should persist
-        const selectedClips = page.locator('[data-selected="true"]').or(
-          page.locator('.selected')
-        );
+        const selectedClips = page.locator('[data-selected="true"]').or(page.locator('.selected'));
         const selectedCount = await selectedClips.count();
 
         expect(selectedCount).toBeGreaterThanOrEqual(1);
@@ -422,7 +440,9 @@ test.describe('Timeline Selection', () => {
     });
 
     test('should maintain selection when scrolling timeline', async ({ page }) => {
-      const clips = page.locator('[data-testid="timeline-clip"]').or(page.locator('.timeline-clip'));
+      const clips = page
+        .locator('[data-testid="timeline-clip"]')
+        .or(page.locator('.timeline-clip'));
       const clipCount = await clips.count();
 
       if (clipCount > 0) {
@@ -437,9 +457,7 @@ test.describe('Timeline Selection', () => {
         await page.waitForTimeout(300);
 
         // Selection should persist
-        const selectedClips = page.locator('[data-selected="true"]').or(
-          page.locator('.selected')
-        );
+        const selectedClips = page.locator('[data-selected="true"]').or(page.locator('.selected'));
         const selectedCount = await selectedClips.count();
 
         expect(selectedCount).toBeGreaterThanOrEqual(1);

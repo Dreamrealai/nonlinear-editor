@@ -84,7 +84,12 @@ export default [
     ],
   },
   {
-    files: ['__tests__/**/*.{ts,tsx,js,jsx}', 'test-utils/**/*.{ts,tsx,js,jsx}', 'jest.setup.js', 'jest.setup-after-env.js'],
+    files: [
+      '__tests__/**/*.{ts,tsx,js,jsx}',
+      'test-utils/**/*.{ts,tsx,js,jsx}',
+      'jest.setup.js',
+      'jest.setup-after-env.js',
+    ],
     ...jestPlugin.configs['flat/recommended'],
     languageOptions: {
       globals: {

@@ -11,9 +11,12 @@ import {
 } from '@/test-utils/mockSupabase';
 
 // Mock the Supabase module
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+  })
+);
 
 // Create a generic mock handler for testing
 let globalMockSupabase: ReturnType<typeof createMockSupabaseClient>;

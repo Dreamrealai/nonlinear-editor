@@ -12,50 +12,68 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    return handler(req, { user, supabase, params: context?.params || {} });
-  }),
-}));
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return handler(req, { user, supabase, params: context?.params || {} });
+    }),
+  })
+);
 
 // Mock fetchWithTimeout
-jest.mock('@/lib/fetchWithTimeout', (): Record<string, unknown> => ({
-  fetchWithTimeout: jest.fn(),
-}));
+jest.mock(
+  '@/lib/fetchWithTimeout',
+  (): Record<string, unknown> => ({
+    fetchWithTimeout: jest.fn(),
+  })
+);
 
 // Mock rate limiting
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  checkRateLimit: jest.fn(),
-  RATE_LIMITS: {
-    tier2_resource_creation: { max: 10, windowMs: 60000 },
-  },
-}));
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    checkRateLimit: jest.fn(),
+    RATE_LIMITS: {
+      tier2_resource_creation: { max: 10, windowMs: 60000 },
+    },
+  })
+);
 
 // Mock project verification
-jest.mock('@/lib/api/project-verification', (): Record<string, unknown> => ({
-  verifyProjectOwnership: jest.fn(),
-}));
+jest.mock(
+  '@/lib/api/project-verification',
+  (): Record<string, unknown> => ({
+    verifyProjectOwnership: jest.fn(),
+  })
+);
 
 // Mock the Supabase module
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+  })
+);
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 // Mock validation
 jest.mock('@/lib/api/validation', () => {

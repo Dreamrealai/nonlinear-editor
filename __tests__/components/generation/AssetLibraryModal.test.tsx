@@ -4,38 +4,47 @@ import '@testing-library/jest-dom';
 import { AssetLibraryModal } from '@/components/generation/AssetLibraryModal';
 
 // Mock Next.js Image component
-jest.mock('next/image', (): Record<string, unknown> => ({
-  __esModule: true,
-  default: ({
-    src,
-    alt,
-    ...props
-  }: {
-    src: string;
-    alt: string;
-    fill?: boolean;
-    className?: string;
-  }) => {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={src} alt={alt} {...props} />;
-  },
-}));
+jest.mock(
+  'next/image',
+  (): Record<string, unknown> => ({
+    __esModule: true,
+    default: ({
+      src,
+      alt,
+      ...props
+    }: {
+      src: string;
+      alt: string;
+      fill?: boolean;
+      className?: string;
+    }) => {
+      // eslint-disable-next-line @next/next/no-img-element
+      return <img src={src} alt={alt} {...props} />;
+    },
+  })
+);
 
 // Mock LoadingSpinner
-jest.mock('@/components/LoadingSpinner', (): Record<string, unknown> => ({
-  LoadingSpinner: ({ size }: { size?: string }) => (
-    <div data-testid="loading-spinner" data-size={size}>
-      Loading...
-    </div>
-  ),
-}));
+jest.mock(
+  '@/components/LoadingSpinner',
+  (): Record<string, unknown> => ({
+    LoadingSpinner: ({ size }: { size?: string }) => (
+      <div data-testid="loading-spinner" data-size={size}>
+        Loading...
+      </div>
+    ),
+  })
+);
 
 // Mock browserLogger
-jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
-  browserLogger: {
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/browserLogger',
+  (): Record<string, unknown> => ({
+    browserLogger: {
+      error: jest.fn(),
+    },
+  })
+);
 
 describe('AssetLibraryModal', () => {
   const mockOnSelect = jest.fn();
@@ -174,12 +183,8 @@ describe('AssetLibraryModal', () => {
       });
 
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith(
-          expect.stringContaining('page=0')
-        );
-        expect(mockFetch).toHaveBeenCalledWith(
-          expect.stringContaining('pageSize=20')
-        );
+        expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('page=0'));
+        expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('pageSize=20'));
       });
     });
 
@@ -195,9 +200,7 @@ describe('AssetLibraryModal', () => {
       });
 
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith(
-          expect.stringContaining('type=image')
-        );
+        expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('type=image'));
       });
     });
 
@@ -421,9 +424,9 @@ describe('AssetLibraryModal', () => {
       });
 
       await waitFor(() => {
-        const assetButtons = screen.getAllByRole('button').filter(
-          (btn) => btn.querySelector('img[alt="Asset"]')
-        );
+        const assetButtons = screen
+          .getAllByRole('button')
+          .filter((btn) => btn.querySelector('img[alt="Asset"]'));
         fireEvent.click(assetButtons[0]);
       });
 
@@ -442,9 +445,9 @@ describe('AssetLibraryModal', () => {
       });
 
       await waitFor(() => {
-        const assetButtons = screen.getAllByRole('button').filter(
-          (btn) => btn.querySelector('img[alt="Asset"]')
-        );
+        const assetButtons = screen
+          .getAllByRole('button')
+          .filter((btn) => btn.querySelector('img[alt="Asset"]'));
         fireEvent.click(assetButtons[1]);
       });
 
@@ -546,9 +549,7 @@ describe('AssetLibraryModal', () => {
       });
 
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith(
-          expect.stringContaining('page=0')
-        );
+        expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('page=0'));
       });
 
       await act(async () => {
@@ -557,9 +558,7 @@ describe('AssetLibraryModal', () => {
       });
 
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith(
-          expect.stringContaining('page=1')
-        );
+        expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('page=1'));
       });
     });
 
@@ -743,9 +742,9 @@ describe('AssetLibraryModal', () => {
       });
 
       await waitFor(() => {
-        const assetButtons = screen.getAllByRole('button').filter(
-          (btn) => btn.querySelector('img[alt="Asset"]')
-        );
+        const assetButtons = screen
+          .getAllByRole('button')
+          .filter((btn) => btn.querySelector('img[alt="Asset"]'));
         expect(assetButtons.length).toBeGreaterThan(0);
       });
     });

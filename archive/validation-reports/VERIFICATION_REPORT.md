@@ -20,6 +20,7 @@ Verified implementation of 8 critical fixes identified in the comprehensive eval
 ### ✅ 1. Memory Leaks from Polling Operations - VERIFIED
 
 **Files Checked:**
+
 - `/Users/davidchen/Projects/non-linear-editor/app/video-gen/page.tsx`
 - `/Users/davidchen/Projects/non-linear-editor/app/audio-gen/page.tsx`
 - `/Users/davidchen/Projects/non-linear-editor/app/editor/[projectId]/BrowserEditorClient.tsx`
@@ -29,6 +30,7 @@ Verified implementation of 8 critical fixes identified in the comprehensive eval
 **Evidence:**
 
 **video-gen/page.tsx:**
+
 ```typescript
 // Lines 9-10: Maximum polling attempts defined
 const MAX_POLLING_ATTEMPTS = 60;
@@ -61,6 +63,7 @@ if (pollingAttemptsRef.current > MAX_POLLING_ATTEMPTS) {
 ```
 
 **audio-gen/page.tsx:**
+
 ```typescript
 // Lines 19-33: Similar cleanup implementation
 const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -83,6 +86,7 @@ if (!isMountedRef.current) {
 ```
 
 **BrowserEditorClient.tsx:**
+
 ```typescript
 // Lines 617-638: Centralized cleanup tracking for ALL polling operations
 const pollingTimeoutsRef = useRef<Set<NodeJS.Timeout>>(new Set());
@@ -123,6 +127,7 @@ pollingTimeoutsRef.current.add(timeout);
 ### ⚠️ 2. Missing Admin Audit Log Table - VERIFIED WITH ISSUE
 
 **Files Checked:**
+
 - `/Users/davidchen/Projects/non-linear-editor/supabase/migrations/20251023200000_add_admin_audit_log.sql`
 - `/Users/davidchen/Projects/non-linear-editor/lib/api/withAuth.ts`
 
@@ -131,6 +136,7 @@ pollingTimeoutsRef.current.add(timeout);
 **Evidence:**
 
 **Migration File Created:** ✅
+
 ```sql
 -- Line 6-17: Table structure
 CREATE TABLE IF NOT EXISTS admin_audit_log (
@@ -161,12 +167,13 @@ CREATE POLICY "Admins can insert audit logs"...
 
 The migration uses different column names than the code:
 
-| Code (withAuth.ts:335-340) | Migration (line 8, 13) | Status |
-|------------------------------|------------------------|--------|
-| `admin_id`                   | `admin_user_id`        | ❌ MISMATCH |
-| `details`                    | `metadata`             | ❌ MISMATCH |
+| Code (withAuth.ts:335-340) | Migration (line 8, 13) | Status      |
+| -------------------------- | ---------------------- | ----------- |
+| `admin_id`                 | `admin_user_id`        | ❌ MISMATCH |
+| `details`                  | `metadata`             | ❌ MISMATCH |
 
 **Code attempting to insert:**
+
 ```typescript
 // lib/api/withAuth.ts:335-340
 .insert({
@@ -183,6 +190,7 @@ The migration uses different column names than the code:
 **Note:** This is a **pre-existing issue** in the codebase (from commit d53da80), not introduced by the fix. The fix correctly created the missing table, but there was already a mismatch in the existing code.
 
 **Recommendation:**
+
 1. **Option A (Preferred):** Update migration to use `admin_id` and `details` to match existing code
 2. **Option B:** Update withAuth.ts to use `admin_user_id` and `metadata` to match migration
 3. Run migration AFTER fixing the mismatch
@@ -196,6 +204,7 @@ The migration uses different column names than the code:
 ### ✅ 3. Incomplete Account Deletion - VERIFIED
 
 **Files Checked:**
+
 - `/Users/davidchen/Projects/non-linear-editor/app/api/user/delete-account/route.ts`
 - `/Users/davidchen/Projects/non-linear-editor/app/settings/page.tsx`
 
@@ -204,6 +213,7 @@ The migration uses different column names than the code:
 **Evidence:**
 
 **New API Endpoint Created:** ✅
+
 ```typescript
 // app/api/user/delete-account/route.ts:21-156
 
@@ -243,6 +253,7 @@ const { error: deleteUserError } = await adminClient.auth.admin.deleteUser(userI
 ```
 
 **Settings Page Updated:** ✅
+
 ```typescript
 // app/settings/page.tsx:72-120
 
@@ -278,6 +289,7 @@ setTimeout(() => {
 ### ✅ 4. Authorization Vulnerability in Frame Edit - VERIFIED
 
 **Files Checked:**
+
 - `/Users/davidchen/Projects/non-linear-editor/app/api/frames/[frameId]/edit/route.ts`
 
 **Fix Quality: EXCELLENT**
@@ -288,13 +300,15 @@ setTimeout(() => {
 Only checked project ownership, didn't verify frame or asset ownership.
 
 **After (Secure):**
+
 ```typescript
 // Lines 32-60: Triple ownership verification in single query
 
 // Lines 32-46: Join with project AND asset tables
 const { data: frame, error: frameError } = await supabase
   .from('scene_frames')
-  .select(`
+  .select(
+    `
     *,
     project:projects!inner(
       id,
@@ -304,26 +318,34 @@ const { data: frame, error: frameError } = await supabase
       id,
       user_id
     )
-  `)
+  `
+  )
   .eq('id', frameId)
   .single();
 
 // Lines 52-55: Verify project ownership
 if (!frame.project || frame.project.user_id !== user.id) {
-  return NextResponse.json({
-    error: 'Unauthorized - you do not own this project'
-  }, { status: 403 });
+  return NextResponse.json(
+    {
+      error: 'Unauthorized - you do not own this project',
+    },
+    { status: 403 }
+  );
 }
 
 // Lines 57-60: Verify asset ownership
 if (!frame.asset || frame.asset.user_id !== user.id) {
-  return NextResponse.json({
-    error: 'Unauthorized - you do not own this asset'
-  }, { status: 403 });
+  return NextResponse.json(
+    {
+      error: 'Unauthorized - you do not own this asset',
+    },
+    { status: 403 }
+  );
 }
 ```
 
 **Security Analysis:**
+
 - ✅ **Efficient:** Single query with joins instead of multiple queries
 - ✅ **Defense in depth:** Checks BOTH project AND asset ownership
 - ✅ **Clear errors:** Specific error messages for debugging
@@ -341,6 +363,7 @@ if (!frame.asset || frame.asset.user_id !== user.id) {
 ### ✅ 5. Resource Cleanup Failures - VERIFIED
 
 **Files Checked:**
+
 - `/Users/davidchen/Projects/non-linear-editor/app/api/video/status/route.ts`
 - `/Users/davidchen/Projects/non-linear-editor/app/api/video/upscale-status/route.ts`
 
@@ -349,21 +372,20 @@ if (!frame.asset || frame.asset.user_id !== user.id) {
 **Evidence:**
 
 **video/status/route.ts:**
+
 ```typescript
 // Lines 254-267: Proper error handling with cleanup context
 
 if (assetError) {
   // Clean up uploaded file if database insert fails
-  const { error: cleanupError } = await supabase.storage
-    .from('assets')
-    .remove([storagePath]);
+  const { error: cleanupError } = await supabase.storage.from('assets').remove([storagePath]);
 
   if (cleanupError) {
     console.error('Failed to clean up storage after DB insert failure:', cleanupError);
     // Return error with cleanup failure context
     throw new Error(
       `Asset creation failed: ${assetError.message}. ` +
-      `Additionally, failed to clean up storage: ${cleanupError.message}`
+        `Additionally, failed to clean up storage: ${cleanupError.message}`
     );
   }
 
@@ -372,6 +394,7 @@ if (assetError) {
 ```
 
 **video/upscale-status/route.ts:**
+
 ```typescript
 // Lines 222-242: Similar cleanup with detailed error messages
 
@@ -379,15 +402,16 @@ if (assetError) {
   console.error('Asset creation error:', assetError);
 
   // CRITICAL FIX: Clean up uploaded file if database insert fails
-  const { error: cleanupError } = await supabase.storage
-    .from('assets')
-    .remove([storagePath]);
+  const { error: cleanupError } = await supabase.storage.from('assets').remove([storagePath]);
 
   if (cleanupError) {
     console.error('Failed to clean up storage after DB insert failure:', cleanupError);
     return NextResponse.json(
-      { error: `Failed to create asset record: ${assetError.message}. ` +
-               `Additionally, failed to clean up storage: ${cleanupError.message}` },
+      {
+        error:
+          `Failed to create asset record: ${assetError.message}. ` +
+          `Additionally, failed to clean up storage: ${cleanupError.message}`,
+      },
       { status: 500 }
     );
   }
@@ -401,6 +425,7 @@ if (assetError) {
 
 **Before:** Cleanup errors logged but not handled, orphaned files accumulated
 **After:**
+
 - ✅ Cleanup attempted when DB insert fails
 - ✅ Cleanup errors reported with context
 - ✅ Combined error messages for debugging
@@ -417,6 +442,7 @@ if (assetError) {
 ### ✅ 6. Memory Leak in Chat Attachments - VERIFIED
 
 **Files Checked:**
+
 - `/Users/davidchen/Projects/non-linear-editor/components/editor/ChatBox.tsx`
 
 **Fix Quality: EXCELLENT**
@@ -439,7 +465,7 @@ useEffect(() => {
 }, []);
 
 // Lines 128-140: Reuse existing blob URLs
-const userAttachments = attachments.map(file => {
+const userAttachments = attachments.map((file) => {
   // Reuse existing blob URL or create new one
   let url = attachmentBlobUrlsRef.current.get(file);
   if (!url) {
@@ -459,7 +485,7 @@ if (userError) {
 
 // Lines 235-241: Revoke when attachment removed
 const removeAttachment = (index: number) => {
-  setAttachments(prev => {
+  setAttachments((prev) => {
     const fileToRemove = prev[index];
     const url = attachmentBlobUrlsRef.current.get(fileToRemove);
     if (url) {
@@ -472,6 +498,7 @@ const removeAttachment = (index: number) => {
 ```
 
 **Memory Management:**
+
 - ✅ **Tracking:** Map stores File → blob URL associations
 - ✅ **Reuse:** Existing blob URLs reused instead of creating duplicates
 - ✅ **Cleanup on unmount:** All blob URLs revoked
@@ -491,6 +518,7 @@ const removeAttachment = (index: number) => {
 ### ✅ 7. Duplicate Upload Logic - VERIFIED
 
 **Files Checked:**
+
 - `/Users/davidchen/Projects/non-linear-editor/app/editor/[projectId]/BrowserEditorClient.tsx`
 - `/Users/davidchen/Projects/non-linear-editor/app/api/assets/upload/route.ts`
 
@@ -501,6 +529,7 @@ const removeAttachment = (index: number) => {
 **Before:** ~75 lines of duplicate upload logic in client and server
 
 **After:**
+
 ```typescript
 // Lines 519-561: Centralized upload function using API
 
@@ -567,16 +596,18 @@ const handleAssetUpload = useCallback(
       toast.error('Failed to upload asset');
     }
   },
-  [projectId],
+  [projectId]
 );
 ```
 
 **Code Reduction:**
+
 - **Before:** ~75 lines duplicated × 2 locations = ~150 lines
 - **After:** ~43 lines (single implementation)
 - **Saved:** ~107 lines of duplicate code
 
 **Benefits:**
+
 - ✅ Single source of truth
 - ✅ Consistent validation
 - ✅ Better security (server-side)
@@ -629,6 +660,7 @@ Status: Pushed to main branch
 ```
 
 **Files Modified in Fix:**
+
 1. ✅ COMPREHENSIVE_EVALUATION_REPORT.md (new)
 2. ✅ app/api/frames/[frameId]/edit/route.ts
 3. ✅ app/api/user/delete-account/route.ts (new)
@@ -651,16 +683,16 @@ Status: Pushed to main branch
 
 ### Critical Issues Addressed
 
-| # | Issue | Status | Quality |
-|---|-------|--------|---------|
-| 1 | Memory Leaks from Polling | ✅ VERIFIED | Excellent |
-| 2 | Admin Audit Log Table | ⚠️ ISSUE FOUND | Good (schema mismatch) |
-| 3 | Incomplete Account Deletion | ✅ VERIFIED | Excellent |
-| 4 | Frame Edit Authorization | ✅ VERIFIED | Excellent |
-| 5 | Resource Cleanup Failures | ✅ VERIFIED | Excellent |
-| 6 | Chat Attachments Memory Leak | ✅ VERIFIED | Excellent |
-| 7 | Duplicate Upload Logic | ✅ VERIFIED | Excellent |
-| 8 | Build and Commit | ✅ VERIFIED | Excellent |
+| #   | Issue                        | Status         | Quality                |
+| --- | ---------------------------- | -------------- | ---------------------- |
+| 1   | Memory Leaks from Polling    | ✅ VERIFIED    | Excellent              |
+| 2   | Admin Audit Log Table        | ⚠️ ISSUE FOUND | Good (schema mismatch) |
+| 3   | Incomplete Account Deletion  | ✅ VERIFIED    | Excellent              |
+| 4   | Frame Edit Authorization     | ✅ VERIFIED    | Excellent              |
+| 5   | Resource Cleanup Failures    | ✅ VERIFIED    | Excellent              |
+| 6   | Chat Attachments Memory Leak | ✅ VERIFIED    | Excellent              |
+| 7   | Duplicate Upload Logic       | ✅ VERIFIED    | Excellent              |
+| 8   | Build and Commit             | ✅ VERIFIED    | Excellent              |
 
 ### Code Quality Metrics
 
@@ -694,9 +726,11 @@ The schema mismatch in Issue #2 existed in the codebase BEFORE the fix commit. T
 ## Production Readiness Assessment
 
 ### Before Fixes
+
 **Score: 6.5/10**
 
 Critical blockers:
+
 - ❌ Memory leaks causing crashes
 - ❌ Missing database table
 - ❌ GDPR violations
@@ -704,9 +738,11 @@ Critical blockers:
 - ❌ Code duplication
 
 ### After Fixes
+
 **Score: 9.0/10** (9.5/10 after schema fix)
 
 Remaining issues:
+
 - ⚠️ Admin audit log schema mismatch (easy fix)
 - Minor linting warnings (non-critical)
 
@@ -721,6 +757,7 @@ Remaining issues:
 **1. Fix Admin Audit Log Schema Mismatch**
 
 **Option A (Recommended):** Update migration to match existing code
+
 ```sql
 -- Change these lines in 20251023200000_add_admin_audit_log.sql:
 admin_user_id → admin_id
@@ -728,6 +765,7 @@ metadata → details
 ```
 
 **Option B:** Update code to match migration
+
 ```typescript
 // Change these lines in lib/api/withAuth.ts:335-339:
 admin_id → admin_user_id
@@ -737,6 +775,7 @@ details → metadata
 **Why Option A is better:** The code in withAuth.ts was written first and may already be used elsewhere. Changing the migration is less risky.
 
 **Steps:**
+
 1. Edit migration file with correct column names
 2. Drop table if already applied: `DROP TABLE IF EXISTS admin_audit_log CASCADE;`
 3. Re-run migration: `supabase db push` or `supabase migration up`
@@ -755,6 +794,7 @@ details → metadata
 ### Manual Testing Checklist
 
 **Before Deployment:**
+
 - [ ] Test video generation with navigation away (verify cleanup)
 - [ ] Test audio generation with navigation away (verify cleanup)
 - [ ] Test account deletion end-to-end (verify GDPR compliance)
@@ -764,6 +804,7 @@ details → metadata
 - [ ] Verify admin audit log inserts work (AFTER schema fix)
 
 **Post-Deployment:**
+
 - [ ] Monitor browser memory usage during polling
 - [ ] Monitor storage bucket for orphaned files
 - [ ] Check admin audit log for proper logging
@@ -772,12 +813,14 @@ details → metadata
 ### Automated Testing Recommendations
 
 **High Priority:**
+
 1. Add E2E test for account deletion flow
 2. Add unit tests for polling cleanup logic
 3. Add integration test for frame edit authorization
 4. Add memory leak test for chat attachments
 
 **Medium Priority:**
+
 1. Add tests for storage cleanup on failures
 2. Add tests for upload consolidation
 3. Add tests for admin audit logging
@@ -787,6 +830,7 @@ details → metadata
 ## Performance Impact
 
 **Positive Impacts:**
+
 - ✅ Reduced memory leaks → Better browser performance
 - ✅ Single query for frame edit → Reduced latency
 - ✅ Consolidated upload logic → Smaller bundle size
@@ -799,6 +843,7 @@ details → metadata
 ## Security Impact
 
 **Security Improvements:**
+
 - ✅ Frame edit authorization vulnerability closed
 - ✅ Account deletion properly implemented (GDPR)
 - ✅ Admin audit trail established (compliance)
@@ -811,14 +856,17 @@ details → metadata
 ## Compliance Impact
 
 **GDPR:**
+
 - ✅ Right to be forgotten: Fully implemented
 - ✅ Data deletion: Complete (DB + Storage + Auth)
 - ⚠️ Audit logging: Implemented (pending schema fix)
 
 **Accessibility:**
+
 - ✅ No changes affecting accessibility
 
 **Security Compliance:**
+
 - ✅ Authorization properly enforced
 - ✅ Audit trail established
 
@@ -827,6 +875,7 @@ details → metadata
 ## Code Snippets - Best Practices Demonstrated
 
 ### 1. Proper Cleanup Pattern
+
 ```typescript
 // Centralized cleanup tracking
 const pollingTimeoutsRef = useRef<Set<NodeJS.Timeout>>(new Set());
@@ -840,6 +889,7 @@ useEffect(() => {
 ```
 
 ### 2. Defense in Depth Security
+
 ```typescript
 // Single query with multiple ownership checks
 .select(`*, project:projects!inner(user_id), asset:assets!inner(user_id)`)
@@ -849,11 +899,12 @@ if (frame.asset.user_id !== user.id) return 403;
 ```
 
 ### 3. Comprehensive Error Handling
+
 ```typescript
 if (cleanupError) {
   throw new Error(
     `Primary error: ${primaryError.message}. ` +
-    `Additionally, cleanup failed: ${cleanupError.message}`
+      `Additionally, cleanup failed: ${cleanupError.message}`
   );
 }
 ```
@@ -869,6 +920,7 @@ if (cleanupError) {
    - Test admin action logging works
 
 2. **Run migration on production** (5 minutes)
+
    ```bash
    supabase db push
    ```

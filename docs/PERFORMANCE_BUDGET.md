@@ -45,6 +45,7 @@ CLS measures visual stability. It quantifies how much unexpected layout shift oc
 **Total Budget: < 500KB (gzipped)**
 
 Current breakdown:
+
 - Main bundle: < 300KB
 - Vendor bundle: < 150KB
 - Runtime: < 50KB
@@ -54,6 +55,7 @@ Current breakdown:
 **Target: < 3s (on 3G connection)**
 
 Milestones:
+
 - Time to First Byte (TTFB): < 600ms
 - First Contentful Paint (FCP): < 1.0s
 - Time to Interactive (TTI): < 3.0s
@@ -71,6 +73,7 @@ Milestones:
 **Target: >= 60 FPS (16.67ms per frame)**
 
 Critical operations that must maintain 60 FPS:
+
 - Timeline scrolling
 - Playhead dragging
 - Clip dragging
@@ -80,12 +83,14 @@ Critical operations that must maintain 60 FPS:
 ### Timeline Performance
 
 **Timeline with 100 clips:**
+
 - Initial render: < 2.0s
 - Re-render (zoom/scroll): < 100ms
 - Clip drag start: < 16ms
 - Playhead update: < 16ms
 
 **Timeline with 200 clips:**
+
 - Initial render: < 4.0s
 - Re-render (zoom/scroll): < 200ms
 - Clip drag start: < 16ms
@@ -94,6 +99,7 @@ Critical operations that must maintain 60 FPS:
 ### Asset Panel Performance
 
 **1000 assets loaded:**
+
 - Initial load: < 2.0s
 - Search query response: < 300ms
 - Filter application: < 200ms
@@ -103,29 +109,34 @@ Critical operations that must maintain 60 FPS:
 ### Feature-Specific Budgets
 
 #### Onboarding System
+
 - Initialization: < 1.0s
 - Step transition: < 100ms
 - Tooltip positioning: < 50ms
 - Complete flow (7 steps): < 5.0s
 
 #### Easter Eggs
+
 - Key detection: < 10ms
 - Activation animation: < 100ms
 - Confetti generation: < 50ms
 - Matrix rain (startup): < 100ms
 
 #### Timeline Grid
+
 - Grid line calculation: < 50ms
 - Snap point generation: < 30ms
 - Grid render: < 100ms
 
 #### Timeline Minimap
+
 - Initial render (100 clips): < 300ms
 - Initial render (200 clips): < 500ms
 - Update on scroll: < 50ms
 - Click/drag response: < 16ms
 
 #### Auto-Save
+
 - Serialize timeline (100 clips): < 500ms
 - Serialize timeline (200 clips): < 1.0s
 - Complete save operation: < 2.0s
@@ -156,18 +167,21 @@ Critical operations that must maintain 60 FPS:
 ## API Response Times
 
 ### Asset Operations
+
 - List assets: < 500ms
 - Upload asset: < 5.0s (per MB)
 - Delete asset: < 300ms
 - Get asset metadata: < 200ms
 
 ### Project Operations
+
 - Load project: < 1.0s
 - Save project: < 2.0s
 - List projects: < 500ms
 - Create project: < 300ms
 
 ### Timeline Operations
+
 - Load timeline: < 800ms
 - Save timeline: < 2.0s
 - Add clip: < 100ms
@@ -209,6 +223,7 @@ Critical operations that must maintain 60 FPS:
 ### Performance Monitoring
 
 We use the following tools:
+
 - **Web Vitals**: Track Core Web Vitals in production
 - **PostHog**: Custom performance metrics and user analytics
 - **Browser DevTools**: Performance profiling during development
@@ -217,6 +232,7 @@ We use the following tools:
 ### Alert Thresholds
 
 Trigger alerts when:
+
 - LCP > 3.0s (75th percentile)
 - FID/INP > 150ms (75th percentile)
 - CLS > 0.15 (75th percentile)
@@ -228,6 +244,7 @@ Trigger alerts when:
 ### Performance Testing
 
 Run performance tests:
+
 - On every pull request (automated)
 - Weekly performance audit (manual)
 - Before major releases (comprehensive)
@@ -272,6 +289,7 @@ Run performance tests:
 ## Performance Budget Review
 
 Review and update performance budgets:
+
 - **Monthly**: Review metrics and adjust if needed
 - **Quarterly**: Comprehensive performance audit
 - **Annually**: Major performance budget revision
@@ -279,11 +297,13 @@ Review and update performance budgets:
 ### When to Adjust Budgets
 
 Increase budgets when:
+
 - New critical features require more resources
 - Technology improvements allow better performance
 - User feedback indicates performance is acceptable
 
 Decrease budgets when:
+
 - Performance degradation is detected
 - Optimization techniques improve baseline performance
 - Competition sets higher standards
@@ -300,6 +320,7 @@ Decrease budgets when:
 ### Benchmarking
 
 Run benchmarks with:
+
 ```bash
 # Run comprehensive benchmark suite
 npm run benchmark

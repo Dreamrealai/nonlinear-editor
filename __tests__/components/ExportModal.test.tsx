@@ -7,12 +7,15 @@ import type { Timeline } from '@/types/timeline';
 
 // Mock dependencies
 jest.mock('react-hot-toast');
-jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
-  browserLogger: {
-    info: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/browserLogger',
+  (): Record<string, unknown> => ({
+    browserLogger: {
+      info: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 // Mock fetch
 global.fetch = jest.fn();

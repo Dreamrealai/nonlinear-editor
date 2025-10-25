@@ -1,6 +1,6 @@
 'use client';
 
-import React, {  createContext, useContext, useEffect, useState  } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { SupabaseClient, User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { createBrowserSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 import { browserLogger } from '@/lib/browserLogger';
@@ -25,7 +25,11 @@ interface SupabaseProviderProps {
   enabled?: boolean;
 }
 
-export function SupabaseProvider({ children, session: initialSession, enabled = true }: SupabaseProviderProps): React.ReactElement {
+export function SupabaseProvider({
+  children,
+  session: initialSession,
+  enabled = true,
+}: SupabaseProviderProps): React.ReactElement {
   const [supabaseClient] = useState(() => {
     // Don't create client if disabled or not configured
     if (!enabled || !isSupabaseConfigured()) {
@@ -66,11 +70,13 @@ export function SupabaseProvider({ children, session: initialSession, enabled = 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
+    } = supabaseClient.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+      }
+    );
 
     return (): void => {
       subscription.unsubscribe();
@@ -88,11 +94,7 @@ export function SupabaseProvider({ children, session: initialSession, enabled = 
     return <>{children}</>;
   }
 
-  return (
-    <Context.Provider value={value}>
-      {children}
-    </Context.Provider>
-  );
+  return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 
 /**

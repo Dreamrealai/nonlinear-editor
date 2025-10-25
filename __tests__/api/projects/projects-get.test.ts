@@ -12,29 +12,48 @@ import {
   resetAllMocks,
 } from '@/__tests__/helpers/apiMocks';
 
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    return handler(req, { user, supabase, params: context?.params || {} });
-  }),
-}));
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return handler(req, { user, supabase, params: context?.params || {} });
+    }),
+  })
+);
 
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({ createServerSupabaseClient: jest.fn() }));
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({ serverLogger: { info: jest.fn(), error: jest.fn() } }));
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({ RATE_LIMITS: { tier1_data_read: { requests: 60, window: 60 } } }));
-jest.mock('@/lib/services/projectService', (): Record<string, unknown> => ({
-  ProjectService: jest.fn().mockImplementation(() => ({
-    listProjects: jest.fn().mockResolvedValue([
-      createMockProject({ id: 'project-1', title: 'Project 1' }),
-      createMockProject({ id: 'project-2', title: 'Project 2' }),
-    ]),
-  })),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({ createServerSupabaseClient: jest.fn() })
+);
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({ serverLogger: { info: jest.fn(), error: jest.fn() } })
+);
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    RATE_LIMITS: { tier1_data_read: { requests: 60, window: 60 } },
+  })
+);
+jest.mock(
+  '@/lib/services/projectService',
+  (): Record<string, unknown> => ({
+    ProjectService: jest.fn().mockImplementation(() => ({
+      listProjects: jest
+        .fn()
+        .mockResolvedValue([
+          createMockProject({ id: 'project-1', title: 'Project 1' }),
+          createMockProject({ id: 'project-2', title: 'Project 2' }),
+        ]),
+    })),
+  })
+);
 
 describe('GET /api/projects', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
@@ -50,13 +69,19 @@ describe('GET /api/projects', () => {
 
   it('should return 401 when not authenticated', async () => {
     mockUnauthenticatedUser(mockSupabase);
-    const response = await GET(new NextRequest('http://localhost/api/projects', { method: 'GET' }), { params: Promise.resolve({}) });
+    const response = await GET(
+      new NextRequest('http://localhost/api/projects', { method: 'GET' }),
+      { params: Promise.resolve({}) }
+    );
     expect(response.status).toBe(401);
   });
 
   it('should list user projects', async () => {
     mockAuthenticatedUser(mockSupabase);
-    const response = await GET(new NextRequest('http://localhost/api/projects', { method: 'GET' }), { params: Promise.resolve({}) });
+    const response = await GET(
+      new NextRequest('http://localhost/api/projects', { method: 'GET' }),
+      { params: Promise.resolve({}) }
+    );
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data).toHaveLength(2);
@@ -71,7 +96,10 @@ describe('GET /api/projects', () => {
       listProjects: jest.fn().mockResolvedValue([]),
     }));
 
-    const response = await GET(new NextRequest('http://localhost/api/projects', { method: 'GET' }), { params: Promise.resolve({}) });
+    const response = await GET(
+      new NextRequest('http://localhost/api/projects', { method: 'GET' }),
+      { params: Promise.resolve({}) }
+    );
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data).toEqual([]);
@@ -84,7 +112,10 @@ describe('GET /api/projects', () => {
       listProjects: jest.fn().mockRejectedValue(new Error('Database error')),
     }));
 
-    const response = await GET(new NextRequest('http://localhost/api/projects', { method: 'GET' }), { params: Promise.resolve({}) });
+    const response = await GET(
+      new NextRequest('http://localhost/api/projects', { method: 'GET' }),
+      { params: Promise.resolve({}) }
+    );
     expect(response.status).toBe(500);
   });
 });

@@ -17,13 +17,16 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { DEFAULT_KEYBOARD_SHORTCUTS, KeyboardShortcutConfig } from '@/types/userPreferences';
 
 // Mock browser logger
-jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
-  browserLogger: {
-    error: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/browserLogger',
+  (): Record<string, unknown> => ({
+    browserLogger: {
+      error: jest.fn(),
+      info: jest.fn(),
+      warn: jest.fn(),
+    },
+  })
+);
 
 describe('UserPreferencesService', () => {
   let mockSupabase: jest.Mocked<SupabaseClient>;

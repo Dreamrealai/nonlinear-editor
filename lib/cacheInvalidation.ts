@@ -38,17 +38,23 @@ export async function invalidateUserCache(userId: string): Promise<void> {
     ]);
 
     const duration = Date.now() - startTime;
-    serverLogger.info({
-      event: 'cache.invalidate_user',
-      userId,
-      duration,
-    }, `Invalidated cache for user ${userId} (${duration}ms)`);
+    serverLogger.info(
+      {
+        event: 'cache.invalidate_user',
+        userId,
+        duration,
+      },
+      `Invalidated cache for user ${userId} (${duration}ms)`
+    );
   } catch (error) {
-    serverLogger.error({
-      event: 'cache.invalidate_user_error',
-      userId,
-      error,
-    }, 'Error invalidating user cache');
+    serverLogger.error(
+      {
+        event: 'cache.invalidate_user_error',
+        userId,
+        error,
+      },
+      'Error invalidating user cache'
+    );
   }
 }
 
@@ -59,16 +65,22 @@ export async function invalidateUserProfile(userId: string): Promise<void> {
   try {
     await cache.del(CacheKeys.userProfile(userId));
 
-    serverLogger.debug({
-      event: 'cache.invalidate_user_profile',
-      userId,
-    }, `Invalidated user profile cache for ${userId}`);
+    serverLogger.debug(
+      {
+        event: 'cache.invalidate_user_profile',
+        userId,
+      },
+      `Invalidated user profile cache for ${userId}`
+    );
   } catch (error) {
-    serverLogger.error({
-      event: 'cache.invalidate_user_profile_error',
-      userId,
-      error,
-    }, 'Error invalidating user profile cache');
+    serverLogger.error(
+      {
+        event: 'cache.invalidate_user_profile_error',
+        userId,
+        error,
+      },
+      'Error invalidating user profile cache'
+    );
   }
 }
 
@@ -79,16 +91,22 @@ export async function invalidateUserSubscription(userId: string): Promise<void> 
   try {
     await cache.del(CacheKeys.userSubscription(userId));
 
-    serverLogger.debug({
-      event: 'cache.invalidate_user_subscription',
-      userId,
-    }, `Invalidated user subscription cache for ${userId}`);
+    serverLogger.debug(
+      {
+        event: 'cache.invalidate_user_subscription',
+        userId,
+      },
+      `Invalidated user subscription cache for ${userId}`
+    );
   } catch (error) {
-    serverLogger.error({
-      event: 'cache.invalidate_user_subscription_error',
-      userId,
-      error,
-    }, 'Error invalidating user subscription cache');
+    serverLogger.error(
+      {
+        event: 'cache.invalidate_user_subscription_error',
+        userId,
+        error,
+      },
+      'Error invalidating user subscription cache'
+    );
   }
 }
 
@@ -99,26 +117,29 @@ export async function invalidateUserSettings(userId: string): Promise<void> {
   try {
     await cache.del(CacheKeys.userSettings(userId));
 
-    serverLogger.debug({
-      event: 'cache.invalidate_user_settings',
-      userId,
-    }, `Invalidated user settings cache for ${userId}`);
+    serverLogger.debug(
+      {
+        event: 'cache.invalidate_user_settings',
+        userId,
+      },
+      `Invalidated user settings cache for ${userId}`
+    );
   } catch (error) {
-    serverLogger.error({
-      event: 'cache.invalidate_user_settings_error',
-      userId,
-      error,
-    }, 'Error invalidating user settings cache');
+    serverLogger.error(
+      {
+        event: 'cache.invalidate_user_settings_error',
+        userId,
+        error,
+      },
+      'Error invalidating user settings cache'
+    );
   }
 }
 
 /**
  * Invalidate project cache
  */
-export async function invalidateProjectCache(
-  projectId: string,
-  userId?: string
-): Promise<void> {
+export async function invalidateProjectCache(projectId: string, userId?: string): Promise<void> {
   try {
     const startTime = Date.now();
 
@@ -131,19 +152,25 @@ export async function invalidateProjectCache(
     }
 
     const duration = Date.now() - startTime;
-    serverLogger.debug({
-      event: 'cache.invalidate_project',
-      projectId,
-      userId,
-      duration,
-    }, `Invalidated project cache for ${projectId} (${duration}ms)`);
+    serverLogger.debug(
+      {
+        event: 'cache.invalidate_project',
+        projectId,
+        userId,
+        duration,
+      },
+      `Invalidated project cache for ${projectId} (${duration}ms)`
+    );
   } catch (error) {
-    serverLogger.error({
-      event: 'cache.invalidate_project_error',
-      projectId,
-      userId,
-      error,
-    }, 'Error invalidating project cache');
+    serverLogger.error(
+      {
+        event: 'cache.invalidate_project_error',
+        projectId,
+        userId,
+        error,
+      },
+      'Error invalidating project cache'
+    );
   }
 }
 
@@ -154,16 +181,22 @@ export async function invalidateUserProjects(userId: string): Promise<void> {
   try {
     await cache.del(CacheKeys.userProjects(userId));
 
-    serverLogger.debug({
-      event: 'cache.invalidate_user_projects',
-      userId,
-    }, `Invalidated user projects list cache for ${userId}`);
+    serverLogger.debug(
+      {
+        event: 'cache.invalidate_user_projects',
+        userId,
+      },
+      `Invalidated user projects list cache for ${userId}`
+    );
   } catch (error) {
-    serverLogger.error({
-      event: 'cache.invalidate_user_projects_error',
-      userId,
-      error,
-    }, 'Error invalidating user projects cache');
+    serverLogger.error(
+      {
+        event: 'cache.invalidate_user_projects_error',
+        userId,
+        error,
+      },
+      'Error invalidating user projects cache'
+    );
   }
 }
 
@@ -187,19 +220,25 @@ export async function invalidateAssetCache(
     }
 
     const duration = Date.now() - startTime;
-    serverLogger.debug({
-      event: 'cache.invalidate_asset',
-      assetId,
-      userId,
-      projectId,
-      duration,
-    }, `Invalidated asset cache for ${assetId} (${duration}ms)`);
+    serverLogger.debug(
+      {
+        event: 'cache.invalidate_asset',
+        assetId,
+        userId,
+        projectId,
+        duration,
+      },
+      `Invalidated asset cache for ${assetId} (${duration}ms)`
+    );
   } catch (error) {
-    serverLogger.error({
-      event: 'cache.invalidate_asset_error',
-      assetId,
-      error,
-    }, 'Error invalidating asset cache');
+    serverLogger.error(
+      {
+        event: 'cache.invalidate_asset_error',
+        assetId,
+        error,
+      },
+      'Error invalidating asset cache'
+    );
   }
 }
 
@@ -218,52 +257,58 @@ export async function invalidateAllProjectCaches(userId: string): Promise<void> 
     ]);
 
     const duration = Date.now() - startTime;
-    serverLogger.info({
-      event: 'cache.invalidate_all_projects',
-      userId,
-      duration,
-    }, `Invalidated all project caches for user ${userId} (${duration}ms)`);
+    serverLogger.info(
+      {
+        event: 'cache.invalidate_all_projects',
+        userId,
+        duration,
+      },
+      `Invalidated all project caches for user ${userId} (${duration}ms)`
+    );
   } catch (error) {
-    serverLogger.error({
-      event: 'cache.invalidate_all_projects_error',
-      userId,
-      error,
-    }, 'Error invalidating all project caches');
+    serverLogger.error(
+      {
+        event: 'cache.invalidate_all_projects_error',
+        userId,
+        error,
+      },
+      'Error invalidating all project caches'
+    );
   }
 }
 
 /**
  * Invalidate all user assets for a project
  */
-export async function invalidateProjectAssets(
-  userId: string,
-  projectId: string
-): Promise<void> {
+export async function invalidateProjectAssets(userId: string, projectId: string): Promise<void> {
   try {
     await cache.del(CacheKeys.userAssets(userId, projectId));
 
-    serverLogger.debug({
-      event: 'cache.invalidate_project_assets',
-      userId,
-      projectId,
-    }, `Invalidated project assets cache for ${projectId}`);
+    serverLogger.debug(
+      {
+        event: 'cache.invalidate_project_assets',
+        userId,
+        projectId,
+      },
+      `Invalidated project assets cache for ${projectId}`
+    );
   } catch (error) {
-    serverLogger.error({
-      event: 'cache.invalidate_project_assets_error',
-      userId,
-      projectId,
-      error,
-    }, 'Error invalidating project assets cache');
+    serverLogger.error(
+      {
+        event: 'cache.invalidate_project_assets_error',
+        userId,
+        projectId,
+        error,
+      },
+      'Error invalidating project assets cache'
+    );
   }
 }
 
 /**
  * Webhook handler: Invalidate cache after Stripe events
  */
-export async function invalidateOnStripeWebhook(
-  userId: string,
-  eventType: string
-): Promise<void> {
+export async function invalidateOnStripeWebhook(userId: string, eventType: string): Promise<void> {
   try {
     const startTime = Date.now();
 
@@ -280,19 +325,25 @@ export async function invalidateOnStripeWebhook(
     }
 
     const duration = Date.now() - startTime;
-    serverLogger.info({
-      event: 'cache.invalidate_stripe_webhook',
-      userId,
-      eventType,
-      duration,
-    }, `Cache invalidated for Stripe webhook ${eventType} (${duration}ms)`);
+    serverLogger.info(
+      {
+        event: 'cache.invalidate_stripe_webhook',
+        userId,
+        eventType,
+        duration,
+      },
+      `Cache invalidated for Stripe webhook ${eventType} (${duration}ms)`
+    );
   } catch (error) {
-    serverLogger.error({
-      event: 'cache.invalidate_stripe_webhook_error',
-      userId,
-      eventType,
-      error,
-    }, 'Error invalidating cache for Stripe webhook');
+    serverLogger.error(
+      {
+        event: 'cache.invalidate_stripe_webhook_error',
+        userId,
+        eventType,
+        error,
+      },
+      'Error invalidating cache for Stripe webhook'
+    );
   }
 }
 
@@ -300,9 +351,7 @@ export async function invalidateOnStripeWebhook(
  * Bulk invalidation: Clear all caches for multiple users
  * Useful for admin operations or system maintenance
  */
-export async function invalidateMultipleUsers(
-  userIds: string[]
-): Promise<void> {
+export async function invalidateMultipleUsers(userIds: string[]): Promise<void> {
   try {
     const startTime = Date.now();
 
@@ -310,17 +359,23 @@ export async function invalidateMultipleUsers(
     await Promise.all(userIds.map((userId): Promise<void> => invalidateUserCache(userId)));
 
     const duration = Date.now() - startTime;
-    serverLogger.info({
-      event: 'cache.invalidate_multiple_users',
-      count: userIds.length,
-      duration,
-    }, `Invalidated cache for ${userIds.length} users (${duration}ms)`);
+    serverLogger.info(
+      {
+        event: 'cache.invalidate_multiple_users',
+        count: userIds.length,
+        duration,
+      },
+      `Invalidated cache for ${userIds.length} users (${duration}ms)`
+    );
   } catch (error) {
-    serverLogger.error({
-      event: 'cache.invalidate_multiple_users_error',
-      count: userIds.length,
-      error,
-    }, 'Error invalidating cache for multiple users');
+    serverLogger.error(
+      {
+        event: 'cache.invalidate_multiple_users_error',
+        count: userIds.length,
+        error,
+      },
+      'Error invalidating cache for multiple users'
+    );
   }
 }
 
@@ -337,13 +392,19 @@ export function getCacheStats(): CacheStats {
 export async function clearAllCaches(): Promise<void> {
   try {
     await cache.clear();
-    serverLogger.warn({
-      event: 'cache.clear_all',
-    }, 'All caches cleared');
+    serverLogger.warn(
+      {
+        event: 'cache.clear_all',
+      },
+      'All caches cleared'
+    );
   } catch (error) {
-    serverLogger.error({
-      event: 'cache.clear_all_error',
-      error,
-    }, 'Error clearing all caches');
+    serverLogger.error(
+      {
+        event: 'cache.clear_all_error',
+        error,
+      },
+      'Error clearing all caches'
+    );
   }
 }

@@ -129,11 +129,13 @@ class MockAudioContext {
     this.createMediaStreamSource = jest.fn(() => new MockAudioNode());
 
     this.decodeAudioData = jest.fn(() => {
-      return Promise.resolve(new MockAudioBuffer({
-        numberOfChannels: 2,
-        length: 44100,
-        sampleRate: 44100,
-      }));
+      return Promise.resolve(
+        new MockAudioBuffer({
+          numberOfChannels: 2,
+          length: 44100,
+          sampleRate: 44100,
+        })
+      );
     });
 
     this.suspend = jest.fn(() => {
@@ -231,7 +233,12 @@ class MockCanvasRenderingContext2D {
     this.transform = jest.fn();
     this.setTransform = jest.fn();
     this.getTransform = jest.fn(() => ({
-      a: 1, b: 0, c: 0, d: 1, e: 0, f: 0,
+      a: 1,
+      b: 0,
+      c: 0,
+      d: 1,
+      e: 0,
+      f: 0,
       is2D: true,
       isIdentity: true,
     }));
@@ -324,15 +331,44 @@ class MockIntersectionObserver {
     this.observedElements = new Set();
     this.root = options.root || null;
     this.rootMargin = options.rootMargin || '0px';
-    this.thresholds = Array.isArray(options.threshold) ? options.threshold : [options.threshold || 0];
+    this.thresholds = Array.isArray(options.threshold)
+      ? options.threshold
+      : [options.threshold || 0];
 
     this.observe = jest.fn((target) => {
       this.observedElements.add(target);
       const entry = {
         target,
-        boundingClientRect: { x: 0, y: 0, width: 100, height: 100, top: 0, right: 100, bottom: 100, left: 0 },
-        intersectionRect: { x: 0, y: 0, width: 100, height: 100, top: 0, right: 100, bottom: 100, left: 0 },
-        rootBounds: { x: 0, y: 0, width: 1024, height: 768, top: 0, right: 1024, bottom: 768, left: 0 },
+        boundingClientRect: {
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          top: 0,
+          right: 100,
+          bottom: 100,
+          left: 0,
+        },
+        intersectionRect: {
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          top: 0,
+          right: 100,
+          bottom: 100,
+          left: 0,
+        },
+        rootBounds: {
+          x: 0,
+          y: 0,
+          width: 1024,
+          height: 768,
+          top: 0,
+          right: 1024,
+          bottom: 768,
+          left: 0,
+        },
         isIntersecting: true,
         intersectionRatio: 1,
         time: Date.now(),
@@ -405,7 +441,7 @@ function setupAudioContextMock() {
 
 function setupCanvasMock() {
   if (typeof HTMLCanvasElement !== 'undefined') {
-    HTMLCanvasElement.prototype.getContext = jest.fn(function(contextType) {
+    HTMLCanvasElement.prototype.getContext = jest.fn(function (contextType) {
       if (contextType === '2d') {
         return new MockCanvasRenderingContext2D(this);
       }
@@ -508,11 +544,11 @@ function setupPerformanceMock() {
     performance.getEntries = jest.fn(() => [...entries]);
 
     performance.getEntriesByType = jest.fn((type) => {
-      return entries.filter(e => e.entryType === type);
+      return entries.filter((e) => e.entryType === type);
     });
 
     performance.getEntriesByName = jest.fn((name, type) => {
-      return entries.filter(e => e.name === name && (type ? e.entryType === type : true));
+      return entries.filter((e) => e.name === name && (type ? e.entryType === type : true));
     });
   }
 }

@@ -3,9 +3,12 @@ import { render } from '@testing-library/react';
 import { WebVitals } from '@/components/WebVitals';
 
 // Mock the webVitals module
-jest.mock('@/lib/webVitals', (): Record<string, unknown> => ({
-  initWebVitals: jest.fn(),
-}));
+jest.mock(
+  '@/lib/webVitals',
+  (): Record<string, unknown> => ({
+    initWebVitals: jest.fn(),
+  })
+);
 
 // Get the mock after it's been created by jest.mock
 const { initWebVitals: mockInitWebVitals } = jest.requireMock('@/lib/webVitals');

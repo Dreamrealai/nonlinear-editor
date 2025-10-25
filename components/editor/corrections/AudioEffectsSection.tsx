@@ -201,9 +201,7 @@ export function AudioEffectsSection({
             className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-neutral-300 to-green-600"
             style={{ accentColor: '#16a34a' }}
           />
-          <p className="mt-2 text-[10px] text-neutral-600">
-            Gradual volume increase at start
-          </p>
+          <p className="mt-2 text-[10px] text-neutral-600">Gradual volume increase at start</p>
         </div>
 
         {/* Fade Out */}
@@ -239,9 +237,7 @@ export function AudioEffectsSection({
             className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-red-600 to-neutral-300"
             style={{ accentColor: '#dc2626' }}
           />
-          <p className="mt-2 text-[10px] text-neutral-600">
-            Gradual volume decrease at end
-          </p>
+          <p className="mt-2 text-[10px] text-neutral-600">Gradual volume decrease at end</p>
         </div>
       </div>
       {/* Equalizer */}

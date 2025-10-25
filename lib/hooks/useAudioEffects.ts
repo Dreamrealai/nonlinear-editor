@@ -217,7 +217,11 @@ export function useAudioEffects(): UseAudioEffectsReturn {
       // 2. Apply EQ (bass, mid, treble)
       audioNode.bassFilter.gain.setTargetAtTime(effectsWithDefaults.bassGain, currentTime, 0.01);
       audioNode.midFilter.gain.setTargetAtTime(effectsWithDefaults.midGain, currentTime, 0.01);
-      audioNode.trebleFilter.gain.setTargetAtTime(effectsWithDefaults.trebleGain, currentTime, 0.01);
+      audioNode.trebleFilter.gain.setTargetAtTime(
+        effectsWithDefaults.trebleGain,
+        currentTime,
+        0.01
+      );
 
       // 3. Apply compression
       // Map 0-100 to compression ratio 1:1 to 20:1
@@ -266,7 +270,7 @@ export function useAudioEffects(): UseAudioEffectsReturn {
   /**
    * Clean up all audio resources on unmount
    */
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     return (): void => {
       // Disconnect all audio nodes
       audioNodesRef.current.forEach((_, clipId): void => {

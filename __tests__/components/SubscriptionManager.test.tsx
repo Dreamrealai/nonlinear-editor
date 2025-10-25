@@ -14,24 +14,33 @@ const mockSupabaseClient = {
   from: jest.fn(),
 };
 
-jest.mock('@/lib/navigation', (): Record<string, unknown> => ({
-  redirectToUrl: jest.fn(),
-}));
+jest.mock(
+  '@/lib/navigation',
+  (): Record<string, unknown> => ({
+    redirectToUrl: jest.fn(),
+  })
+);
 
-jest.mock('@/components/providers/SupabaseProvider', (): Record<string, unknown> => ({
-  useSupabase: (): Record<string, unknown> => ({
-    supabaseClient: mockSupabaseClient,
-  }),
-}));
+jest.mock(
+  '@/components/providers/SupabaseProvider',
+  (): Record<string, unknown> => ({
+    useSupabase: (): Record<string, unknown> => ({
+      supabaseClient: mockSupabaseClient,
+    }),
+  })
+);
 
 // Mock react-hot-toast
-jest.mock('react-hot-toast', (): Record<string, unknown> => ({
-  __esModule: true,
-  default: {
-    error: jest.fn(),
-    success: jest.fn(),
-  },
-}));
+jest.mock(
+  'react-hot-toast',
+  (): Record<string, unknown> => ({
+    __esModule: true,
+    default: {
+      error: jest.fn(),
+      success: jest.fn(),
+    },
+  })
+);
 
 // Mock fetch
 global.fetch = jest.fn();

@@ -8,56 +8,62 @@ import { useEditorStore } from '@/state/useEditorStore';
 jest.mock('@/state/useEditorStore');
 
 // Mock the correction hooks
-jest.mock('@/components/editor/corrections/useCorrectionSync', (): Record<string, unknown> => ({
-  useCorrectionSync: (): Record<string, unknown> => ({
-    local: {
-      brightness: 100,
-      contrast: 100,
-      saturation: 100,
-      hue: 0,
-      rotation: 0,
-      scale: 1.0,
-      bassGain: 0,
-      midGain: 0,
-      trebleGain: 0,
-      compression: 0,
-    },
-    setters: {
-      setBrightness: jest.fn(),
-      setContrast: jest.fn(),
-      setSaturation: jest.fn(),
-      setHue: jest.fn(),
-      setRotation: jest.fn(),
-      setScale: jest.fn(),
-      setBassGain: jest.fn(),
-      setMidGain: jest.fn(),
-      setTrebleGain: jest.fn(),
-      setCompression: jest.fn(),
-    },
-    debounced: {
-      brightness: 100,
-      contrast: 100,
-      saturation: 100,
-      hue: 0,
-      rotation: 0,
-      scale: 1.0,
-      bassGain: 0,
-      midGain: 0,
-      trebleGain: 0,
-      compression: 0,
-    },
-  }),
-}));
+jest.mock(
+  '@/components/editor/corrections/useCorrectionSync',
+  (): Record<string, unknown> => ({
+    useCorrectionSync: (): Record<string, unknown> => ({
+      local: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        hue: 0,
+        rotation: 0,
+        scale: 1.0,
+        bassGain: 0,
+        midGain: 0,
+        trebleGain: 0,
+        compression: 0,
+      },
+      setters: {
+        setBrightness: jest.fn(),
+        setContrast: jest.fn(),
+        setSaturation: jest.fn(),
+        setHue: jest.fn(),
+        setRotation: jest.fn(),
+        setScale: jest.fn(),
+        setBassGain: jest.fn(),
+        setMidGain: jest.fn(),
+        setTrebleGain: jest.fn(),
+        setCompression: jest.fn(),
+      },
+      debounced: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        hue: 0,
+        rotation: 0,
+        scale: 1.0,
+        bassGain: 0,
+        midGain: 0,
+        trebleGain: 0,
+        compression: 0,
+      },
+    }),
+  })
+);
 
-jest.mock('@/components/editor/corrections/useCorrectionHandlers', (): Record<string, unknown> => ({
-  useCorrectionHandlers: (): Record<string, unknown> => ({
-    updateTransform: jest.fn(),
-    updateAudioEffects: jest.fn(),
-    resetColorCorrection: jest.fn(),
-    resetTransform: jest.fn(),
-    resetAudioEffects: jest.fn(),
-  }),
-}));
+jest.mock(
+  '@/components/editor/corrections/useCorrectionHandlers',
+  (): Record<string, unknown> => ({
+    useCorrectionHandlers: (): Record<string, unknown> => ({
+      updateTransform: jest.fn(),
+      updateAudioEffects: jest.fn(),
+      resetColorCorrection: jest.fn(),
+      resetTransform: jest.fn(),
+      resetAudioEffects: jest.fn(),
+    }),
+  })
+);
 
 const mockUseEditorStore = useEditorStore as jest.MockedFunction<typeof useEditorStore>;
 

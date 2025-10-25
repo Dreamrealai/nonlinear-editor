@@ -37,7 +37,10 @@ export async function POST(request: Request) {
 
   try {
     // 1. Authenticate user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       // Track unauthorized access attempt
@@ -47,10 +50,7 @@ export async function POST(request: Request) {
         level: 'warning',
       });
 
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // 2. Parse and validate request
@@ -105,7 +105,6 @@ export async function POST(request: Request) {
     // This prevents blocking the API response
 
     return NextResponse.json({ video: result });
-
   } catch (error) {
     const duration = Date.now() - startTime;
 
@@ -136,10 +135,7 @@ export async function POST(request: Request) {
     });
 
     // Return user-friendly error
-    return NextResponse.json(
-      { error: 'Failed to generate video' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to generate video' }, { status: 500 });
   }
 }
 ```
@@ -280,7 +276,13 @@ Complete AI generation flow with monitoring:
 
 ```typescript
 // lib/services/videoGenerationService.ts
-import { captureError, addBreadcrumb, BreadcrumbCategory, setContext, startTransaction } from '@/lib/sentry';
+import {
+  captureError,
+  addBreadcrumb,
+  BreadcrumbCategory,
+  setContext,
+  startTransaction,
+} from '@/lib/sentry';
 import { analyticsService, AnalyticsEvents } from '@/lib/services/analyticsService';
 
 export async function generateVideoWithMonitoring(params: {
@@ -361,16 +363,16 @@ export async function generateVideoWithMonitoring(params: {
         provider: 'fal',
       },
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
 
     // Determine error type
-    const errorType = error instanceof TimeoutError
-      ? 'timeout'
-      : error instanceof RateLimitError
-      ? 'rate_limit'
-      : 'generation_failed';
+    const errorType =
+      error instanceof TimeoutError
+        ? 'timeout'
+        : error instanceof RateLimitError
+          ? 'rate_limit'
+          : 'generation_failed';
 
     // Track error
     captureError(error, {
@@ -391,7 +393,6 @@ export async function generateVideoWithMonitoring(params: {
     transaction?.setStatus('error');
 
     throw error;
-
   } finally {
     transaction?.finish();
   }
@@ -969,7 +970,6 @@ export async function monitoredVideoGeneration(params: VideoGenerationParams) {
     });
 
     return { video, duration };
-
   } catch (error) {
     monitor.fail(error);
     throw error;
@@ -1011,13 +1011,14 @@ export function handleError(
   }
 ) {
   // Determine error type
-  const errorType = error instanceof ApplicationError
-    ? error.code
-    : error instanceof TypeError
-    ? 'type_error'
-    : error instanceof SyntaxError
-    ? 'syntax_error'
-    : 'unknown_error';
+  const errorType =
+    error instanceof ApplicationError
+      ? error.code
+      : error instanceof TypeError
+        ? 'type_error'
+        : error instanceof SyntaxError
+          ? 'syntax_error'
+          : 'unknown_error';
 
   const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
@@ -1032,17 +1033,16 @@ export function handleError(
       ...context.metadata,
       userId: context.userId,
     },
-    level: error instanceof ApplicationError && error.statusCode < 500
-      ? 'warning'
-      : 'error',
+    level: error instanceof ApplicationError && error.statusCode < 500 ? 'warning' : 'error',
   });
 
   // Track in error tracking service
   trackError(error, {
     category: ErrorCategory.CLIENT,
-    severity: error instanceof ApplicationError && error.statusCode < 500
-      ? ErrorSeverity.MEDIUM
-      : ErrorSeverity.HIGH,
+    severity:
+      error instanceof ApplicationError && error.statusCode < 500
+        ? ErrorSeverity.MEDIUM
+        : ErrorSeverity.HIGH,
     userId: context.userId,
     context: context.metadata,
   });

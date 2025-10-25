@@ -18,19 +18,25 @@ import {
 } from '@/test-utils/mockSupabase';
 
 // Mock modules
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-  createServiceSupabaseClient: jest.fn(),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+    createServiceSupabaseClient: jest.fn(),
+  })
+);
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 jest.mock('@/lib/api/response', () => {
   const actual = jest.requireActual('@/lib/api/response');
@@ -40,17 +46,20 @@ jest.mock('@/lib/api/response', () => {
   };
 });
 
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  checkRateLimit: jest.fn().mockResolvedValue({
-    success: true,
-    limit: 5,
-    remaining: 4,
-    resetAt: Date.now() + 60000,
-  }),
-  RATE_LIMITS: {
-    tier1_auth_payment: { requests: 5, window: 60 },
-  },
-}));
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    checkRateLimit: jest.fn().mockResolvedValue({
+      success: true,
+      limit: 5,
+      remaining: 4,
+      resetAt: Date.now() + 60000,
+    }),
+    RATE_LIMITS: {
+      tier1_auth_payment: { requests: 5, window: 60 },
+    },
+  })
+);
 
 describe('Account Deletion Security Tests (NEW-MED-002)', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;

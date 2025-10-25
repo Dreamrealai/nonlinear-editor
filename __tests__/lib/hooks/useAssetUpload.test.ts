@@ -12,13 +12,19 @@ import { browserLogger } from '@/lib/browserLogger';
 jest.mock('react-hot-toast');
 jest.mock('@/lib/supabase');
 jest.mock('@/lib/browserLogger');
-jest.mock('uuid', (): Record<string, unknown> => ({
-  v4: jest.fn(() => 'mock-uuid'),
-}));
-jest.mock('@/lib/hooks/useAssetThumbnails', (): Record<string, unknown> => ({
-  createImageThumbnail: jest.fn(),
-  createVideoThumbnail: jest.fn(),
-}));
+jest.mock(
+  'uuid',
+  (): Record<string, unknown> => ({
+    v4: jest.fn(() => 'mock-uuid'),
+  })
+);
+jest.mock(
+  '@/lib/hooks/useAssetThumbnails',
+  (): Record<string, unknown> => ({
+    createImageThumbnail: jest.fn(),
+    createVideoThumbnail: jest.fn(),
+  })
+);
 
 const mockToast = toast as jest.Mocked<typeof toast>;
 const mockCreateBrowserSupabaseClient = createBrowserSupabaseClient as jest.MockedFunction<

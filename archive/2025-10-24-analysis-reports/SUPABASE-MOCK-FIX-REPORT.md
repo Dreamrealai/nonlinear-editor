@@ -7,6 +7,7 @@ Successfully fixed Supabase client mock being cleared by `jest.clearAllMocks()` 
 ## Problem Diagnosis
 
 When `jest.clearAllMocks()` is called in `beforeEach()`, it clears ALL mock implementations including the Supabase client mock setup. This caused ~100-150 test failures with errors like:
+
 - "Cannot read property 'from' of undefined"
 - "Cannot read property 'auth' of undefined"
 - Database query mocks not being called correctly
@@ -67,12 +68,14 @@ The following 20 files already had the correct pattern and required no changes:
 ## Test Results
 
 ### Before Fix
+
 ```
 Test Suites: 88 failed, 56 passed, 144 total
 Tests:       977 failed, 2 skipped, 2623 passed, 3602 total
 ```
 
 ### After Fix
+
 ```
 Test Suites: 102 failed, 61 passed, 163 total
 Tests:       956 failed, 2 skipped, 3040 passed, 3998 total
@@ -81,6 +84,7 @@ Tests:       956 failed, 2 skipped, 3040 passed, 3998 total
 ### Impact Analysis
 
 **Positive Changes:**
+
 - ✅ **+417 tests now passing** (3040 vs 2623)
 - ✅ **-21 test failures** (956 vs 977)
 - ✅ **+5 more test suites passing** (61 vs 56)
@@ -93,25 +97,27 @@ The total number of test suites increased from 144 to 163 (+19 suites). This is 
 
 Individual test runs of the fixed files:
 
-| File | Status | Passing | Total | Notes |
-|------|--------|---------|-------|-------|
-| `frames/edit.test.ts` | Partial | 3 | 23 | Supabase mock working; remaining failures are test-specific |
-| `image/generate.test.ts` | ✅ PASS | 3 | 3 | **Fully passing!** |
-| `video/generate.test.ts` | Partial | 10 | 16 | Supabase mock working; remaining failures are test-specific |
-| `video/status.test.ts` | Partial | 9 | 26 | Supabase mock working; remaining failures are test-specific |
-| `video/upscale.test.ts` | Partial | 3 | 8 | Supabase mock working; remaining failures are test-specific |
-| `frame-authorization-security.test.ts` | Partial | 2 | 16 | Supabase mock working; remaining failures are test-specific |
+| File                                   | Status  | Passing | Total | Notes                                                       |
+| -------------------------------------- | ------- | ------- | ----- | ----------------------------------------------------------- |
+| `frames/edit.test.ts`                  | Partial | 3       | 23    | Supabase mock working; remaining failures are test-specific |
+| `image/generate.test.ts`               | ✅ PASS | 3       | 3     | **Fully passing!**                                          |
+| `video/generate.test.ts`               | Partial | 10      | 16    | Supabase mock working; remaining failures are test-specific |
+| `video/status.test.ts`                 | Partial | 9       | 26    | Supabase mock working; remaining failures are test-specific |
+| `video/upscale.test.ts`                | Partial | 3       | 8     | Supabase mock working; remaining failures are test-specific |
+| `frame-authorization-security.test.ts` | Partial | 2       | 16    | Supabase mock working; remaining failures are test-specific |
 
 **Key Finding:** None of the remaining failures in the fixed files show Supabase-related errors like "Cannot read property 'from' of undefined". All failures are test-specific assertion errors, confirming that the Supabase mock configuration is now working correctly.
 
 ## Expected Impact
 
 Based on the results, the fix has already improved test stability by:
+
 - Eliminating Supabase mock-related failures
 - Increasing passing tests by 417 (+15.9%)
 - Reducing failures by 21 tests
 
 The remaining test failures are due to:
+
 1. Test-specific assertion issues (not mock configuration)
 2. Component rendering issues (memory/worker crashes)
 3. Unrelated test logic problems
@@ -148,6 +154,7 @@ describe('My Test Suite', () => {
 ## Conclusion
 
 The Supabase mock configuration fix has been successfully applied to all 6 files that needed it. The fix is working correctly as evidenced by:
+
 - Elimination of Supabase-related errors
 - Significant increase in passing tests (+417)
 - One test file now fully passing (image/generate.test.ts)

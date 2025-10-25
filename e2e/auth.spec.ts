@@ -54,7 +54,9 @@ test.describe('Authentication', () => {
       await signInPage.signInButton.click();
 
       // HTML5 validation should prevent submission
-      const emailValidity = await signInPage.emailInput.evaluate((el: HTMLInputElement) => el.validity.valid);
+      const emailValidity = await signInPage.emailInput.evaluate(
+        (el: HTMLInputElement) => el.validity.valid
+      );
       expect(emailValidity).toBe(false);
     });
 
@@ -179,7 +181,9 @@ test.describe('Authentication', () => {
       await signUpPage.signUpButton.click();
 
       // HTML5 validation should prevent submission
-      const emailValidity = await signUpPage.emailInput.evaluate((el: HTMLInputElement) => el.validity.valid);
+      const emailValidity = await signUpPage.emailInput.evaluate(
+        (el: HTMLInputElement) => el.validity.valid
+      );
       expect(emailValidity).toBe(false);
     });
 

@@ -168,5 +168,8 @@ export const POST = createGenerationRoute<SunoGenerateRequest, SunoGenerateRespo
     }
   },
   execute: executeSunoGeneration,
-  formatResponse: (result): NextResponse<SunoGenerateResponse | SuccessResponse<SunoGenerateResponse>> => successResponse(result),
+  formatResponse: (
+    result
+  ): NextResponse<SunoGenerateResponse | SuccessResponse<SunoGenerateResponse>> =>
+    successResponse(result),
 });

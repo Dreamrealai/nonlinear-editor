@@ -47,7 +47,10 @@ const iconSizes = {
  * @param className - Additional CSS classes
  * @param size - Button size variant
  */
-export function ThemeToggle({ className = '', size = 'md' }: ThemeToggleProps): React.ReactElement | null {
+export function ThemeToggle({
+  className = '',
+  size = 'md',
+}: ThemeToggleProps): React.ReactElement | null {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
@@ -88,7 +91,7 @@ export function ThemeToggle({ className = '', size = 'md' }: ThemeToggleProps): 
     }
   };
 
-  const getTooltipText = (): "Light mode" | "Dark mode" | "System theme" | "Toggle theme" => {
+  const getTooltipText = (): 'Light mode' | 'Dark mode' | 'System theme' | 'Toggle theme' => {
     switch (theme) {
       case 'light':
         return 'Light mode';

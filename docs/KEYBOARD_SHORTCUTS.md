@@ -138,7 +138,7 @@ const editorShortcuts: KeyboardShortcut[] = [
 // Register shortcuts
 useGlobalKeyboardShortcuts({
   shortcuts: editorShortcuts,
-  enabled: !showModal,  // Disable when modal is open
+  enabled: !showModal, // Disable when modal is open
   disableInInputs: true,
 });
 ```
@@ -146,11 +146,13 @@ useGlobalKeyboardShortcuts({
 ### Integration Points
 
 **Main Editor**: `/app/editor/[projectId]/BrowserEditorClient.tsx`
+
 - Defines all editor shortcuts with categories
 - Integrates KeyboardShortcutsHelp modal
 - Manages shortcut state (enabled/disabled based on context)
 
 **Keyboard Shortcuts Infrastructure**:
+
 - Primary hook: `useGlobalKeyboardShortcuts` (centralized, priority-based)
 - Legacy hook: `useKeyboardShortcuts` (simpler, specific actions)
 - Help modal: `KeyboardShortcutsHelp` component with category grouping
@@ -175,6 +177,7 @@ Key files implementing keyboard shortcuts:
 To add a new shortcut to the editor:
 
 1. Define a handler function in BrowserEditorClient.tsx:
+
 ```typescript
 const handleMyAction = useCallback(() => {
   // Your action logic here
@@ -182,6 +185,7 @@ const handleMyAction = useCallback(() => {
 ```
 
 2. Add the shortcut to the `editorShortcuts` array:
+
 ```typescript
 {
   id: 'my-action',
@@ -194,6 +198,7 @@ const handleMyAction = useCallback(() => {
 ```
 
 3. Add the handler to the dependencies array:
+
 ```typescript
 [handleUndo, handleRedo, ..., handleMyAction]
 ```

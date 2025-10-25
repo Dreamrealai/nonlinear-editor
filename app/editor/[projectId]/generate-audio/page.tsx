@@ -21,7 +21,7 @@ export default async function GenerateAudioPage({
   params,
 }: {
   params: Promise<{ projectId: string }>;
-}) {
+}): Promise<JSX.Element> {
   // Redirect to home if Supabase not configured
   if (!isSupabaseConfigured()) {
     redirect('/');

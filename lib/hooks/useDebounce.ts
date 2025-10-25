@@ -20,7 +20,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 export function useDebounce<T>(value: T, delay: number = 300): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     // Set debounced value after delay
     const handler = setTimeout((): void => {
       setDebouncedValue(value);

@@ -20,6 +20,7 @@ Assets are the building blocks of your video projects - videos, audio files, ima
 ### What Are Assets?
 
 **Supported Asset Types**:
+
 - **Video Files** - MP4, MOV, AVI, WebM, MKV
 - **Audio Files** - MP3, WAV, AAC, M4A, FLAC
 - **Image Files** - JPG, PNG, GIF, WebP, SVG
@@ -49,6 +50,7 @@ The Asset Panel is your media library, located on the left side of the editor.
 ```
 
 **Key Features**:
+
 - Visual thumbnails for video and images
 - File name and duration display
 - Type icons for quick identification
@@ -68,11 +70,13 @@ The fastest way to upload multiple files:
 5. Wait for upload to complete
 
 **Benefits**:
+
 - Upload multiple files at once
 - Visual feedback during upload
 - No clicking required
 
 **Tips**:
+
 - You can drag entire folders
 - Upload progress shows for each file
 - Continue editing while uploads happen in background
@@ -88,6 +92,7 @@ Select files through a dialog:
 5. Wait for upload to complete
 
 **Benefits**:
+
 - Familiar interface
 - Can browse multiple folders
 - Preview files before uploading
@@ -103,12 +108,14 @@ Uploading: video-clip.mp4
 ```
 
 **Progress Indicators**:
+
 - Progress bar shows completion percentage
 - File size uploaded / total size
 - Estimated time remaining
 - Ability to cancel upload
 
 **Multiple Uploads**:
+
 - Each file shows individual progress
 - Uploads happen in parallel (up to 3 at once)
 - Failed uploads can be retried
@@ -116,6 +123,7 @@ Uploading: video-clip.mp4
 ### Supported Formats
 
 #### Video Formats
+
 - **MP4** - Most common, best compatibility
 - **MOV** - Apple format, high quality
 - **AVI** - Windows format, larger files
@@ -125,6 +133,7 @@ Uploading: video-clip.mp4
 **Recommended**: MP4 (H.264) for best compatibility and quality
 
 #### Audio Formats
+
 - **MP3** - Universal compatibility, compressed
 - **WAV** - Uncompressed, high quality, large files
 - **AAC** - Better compression than MP3
@@ -134,6 +143,7 @@ Uploading: video-clip.mp4
 **Recommended**: MP3 or AAC for balance of quality and size
 
 #### Image Formats
+
 - **JPG** - Photographs, compressed
 - **PNG** - Graphics, supports transparency
 - **GIF** - Animated images
@@ -145,18 +155,22 @@ Uploading: video-clip.mp4
 ### File Size Limits
 
 **Free Plan**:
+
 - Maximum file size: 500 MB per file
 - Total storage: 5 GB
 
 **Pro Plan**:
+
 - Maximum file size: 5 GB per file
 - Total storage: 100 GB
 
 **Enterprise Plan**:
+
 - Maximum file size: 10 GB per file
 - Total storage: Unlimited
 
 **Tips for Large Files**:
+
 - Compress video before uploading
 - Use appropriate codecs (H.264 for video)
 - Consider breaking long videos into segments
@@ -167,12 +181,14 @@ Uploading: video-clip.mp4
 #### Upload Failed
 
 **Common Causes**:
+
 - File too large
 - Unsupported format
 - Poor internet connection
 - Storage limit reached
 
 **Solutions**:
+
 1. Check file size and format
 2. Try uploading again
 3. Compress the file
@@ -181,6 +197,7 @@ Uploading: video-clip.mp4
 #### Upload Stuck
 
 **Solutions**:
+
 1. Check internet connection
 2. Refresh the page
 3. Cancel and retry upload
@@ -190,6 +207,7 @@ Uploading: video-clip.mp4
 #### File Not Appearing
 
 **Solutions**:
+
 1. Wait a few seconds for processing
 2. Refresh the Asset Panel
 3. Check if upload completed
@@ -209,12 +227,14 @@ The search box at the top of the Asset Panel:
 4. Clear search to see all assets
 
 **Search Tips**:
+
 - Search is case-insensitive
 - Searches file name and tags
 - Use specific keywords for better results
 - Use quotation marks for exact phrases
 
 **Examples**:
+
 - `interview` - Finds "interview-1.mp4", "interview-final.mp4"
 - `"take 2"` - Finds exact phrase "take 2"
 - `background` - Finds all assets with "background" in name or tags
@@ -224,6 +244,7 @@ The search box at the top of the Asset Panel:
 Show only specific asset types:
 
 **Available Filters**:
+
 - **All** - Show everything (default)
 - **Videos** - Video files only
 - **Audio** - Audio files only
@@ -231,12 +252,14 @@ Show only specific asset types:
 - **Documents** - PDF and document files
 
 **How to Filter**:
+
 1. Click the **"Filter"** dropdown
 2. Select desired type
 3. Asset Panel updates instantly
 4. Click "All" to clear filter
 
 **Use Cases**:
+
 - Finding background music (Audio filter)
 - Selecting B-roll footage (Videos filter)
 - Choosing graphics and logos (Images filter)
@@ -246,17 +269,20 @@ Show only specific asset types:
 See which assets are used in your project:
 
 **Usage Filters**:
+
 - **All Assets** - Everything in library
 - **Used in Project** - Assets currently on timeline
 - **Unused** - Assets not yet used
 - **Recently Added** - Last 7 days
 
 **How to Use**:
+
 1. Click **"Usage"** dropdown
 2. Select filter option
 3. View filtered results
 
 **Use Cases**:
+
 - Finding unused assets to remove: "Unused"
 - Seeing what's already in use: "Used in Project"
 - Working with new uploads: "Recently Added"
@@ -271,6 +297,7 @@ Organize with custom tags:
 4. Click multiple tags to filter by all
 
 **Tag Examples**:
+
 - `B-roll` - Alternative footage
 - `Interview` - Talking head footage
 - `Music` - Audio tracks
@@ -283,16 +310,19 @@ Organize with custom tags:
 Use multiple filters simultaneously:
 
 **Example 1**: Find unused B-roll footage
+
 - Type: Videos
 - Usage: Unused
 - Tags: B-roll
 
 **Example 2**: Find recent music additions
+
 - Type: Audio
 - Usage: Recently Added
 - Tags: Music
 
 **Example 3**: Find used graphics
+
 - Type: Images
 - Usage: Used in Project
 - Tags: Graphics
@@ -302,6 +332,7 @@ Use multiple filters simultaneously:
 Change the order assets are displayed:
 
 **Sort By**:
+
 - **Name (A-Z)** - Alphabetical
 - **Name (Z-A)** - Reverse alphabetical
 - **Date Added (Newest)** - Most recent first
@@ -312,11 +343,13 @@ Change the order assets are displayed:
 - **Duration (Shortest)** - Shortest clips first
 
 **How to Sort**:
+
 1. Click the **"Sort"** dropdown
 2. Select sort option
 3. Assets reorder instantly
 
 **Use Cases**:
+
 - Finding large files to delete: "File Size (Largest)"
 - Organizing by import date: "Date Added"
 - Finding short clips for transitions: "Duration (Shortest)"
@@ -328,6 +361,7 @@ Change the order assets are displayed:
 Tags help categorize and find assets quickly:
 
 **Method 1: Single Asset**
+
 1. Right-click on asset
 2. Select **"Edit Tags"**
 3. Type tag name (or select existing)
@@ -335,18 +369,21 @@ Tags help categorize and find assets quickly:
 5. Add multiple tags as needed
 
 **Method 2: Bulk Tagging**
+
 1. Select multiple assets (Shift+Click)
 2. Right-click on selection
 3. Choose **"Add Tags"**
 4. Enter tags to apply to all
 
 **Tag Best Practices**:
+
 - Use consistent naming (lowercase, no spaces)
 - Create a tag system before starting
 - Common tags: scene, type, quality, location
 - Don't over-tag - keep it simple
 
 **Example Tag System**:
+
 ```
 Type:
 - video
@@ -381,6 +418,7 @@ Give assets descriptive names:
 4. Press Enter to save
 
 **Naming Best Practices**:
+
 - Use descriptive names: "interview-john-doe.mp4"
 - Include dates: "footage-2025-10-24.mp4"
 - Use consistent format: "project-scene-take.mp4"
@@ -388,12 +426,14 @@ Give assets descriptive names:
 - Keep names concise but meaningful
 
 **Bad Names**:
+
 - `IMG_1234.jpg`
 - `video.mp4`
 - `untitled.mov`
 - `asdf.mp3`
 
 **Good Names**:
+
 - `product-demo-take3.mp4`
 - `background-music-upbeat.mp3`
 - `logo-transparent-white.png`
@@ -404,17 +444,20 @@ Give assets descriptive names:
 Remove assets from your library:
 
 **Delete Single Asset**:
+
 1. Right-click on asset
 2. Choose **"Delete"**
 3. Confirm deletion
 
 **Delete Multiple Assets**:
+
 1. Select multiple assets
 2. Right-click on selection
 3. Choose **"Delete Selected"**
 4. Confirm deletion
 
 **Important Notes**:
+
 - Deleted assets go to Trash (recoverable for 30 days)
 - Assets used in projects are marked with warning
 - Deleting doesn't remove from timeline (clips remain)
@@ -422,6 +465,7 @@ Remove assets from your library:
 
 **Safety Check**:
 Before deleting, the system warns you:
+
 ```
 ⚠️ This asset is used in 2 projects:
 - Summer Vacation Video
@@ -440,12 +484,14 @@ Group related assets together (Pro feature):
 4. Collections appear in sidebar
 
 **Use Cases**:
+
 - Organizing by project
 - Grouping by shoot day
 - Separating client assets
 - Creating reusable asset packs
 
 **Example Collections**:
+
 - "Intro Templates"
 - "Background Music"
 - "Client Logo Variations"
@@ -460,6 +506,7 @@ View detailed information about any asset:
 3. View all metadata
 
 **Property Information**:
+
 - **File Name** - Original file name
 - **Type** - Video, Audio, Image
 - **Format** - MP4, MP3, PNG, etc.
@@ -473,6 +520,7 @@ View detailed information about any asset:
 - **Custom Metadata** - User-defined fields
 
 **Editing Properties**:
+
 - Click edit icon next to any field
 - Modify and save
 - Properties sync across all uses
@@ -490,6 +538,7 @@ Track changes to assets over time (Pro feature):
 5. Restore previous version if needed
 
 **Version History Shows**:
+
 - Upload date and time
 - User who uploaded
 - File size and format
@@ -497,6 +546,7 @@ Track changes to assets over time (Pro feature):
 - Notes or comments
 
 **Example Timeline**:
+
 ```
 v3 - Oct 24, 2025 2:30 PM - Current
     Final color correction applied
@@ -519,6 +569,7 @@ Update an asset while keeping history:
 5. New version becomes current
 
 **Benefits**:
+
 - Keep all versions in one place
 - Easy rollback if needed
 - Track changes over time
@@ -541,26 +592,31 @@ Made a mistake? Restore an older version:
 ### Asset Organization Strategy
 
 **1. Name Assets Before Uploading**
+
 - Rename files on your computer first
 - Use consistent naming convention
 - Include project name, scene, take number
 
 **2. Tag Immediately**
+
 - Tag assets as you upload them
 - Don't let untagged assets pile up
 - Create tag system before starting project
 
 **3. Delete Unused Assets Regularly**
+
 - Review unused assets weekly
 - Keep library lean and organized
 - Archive old projects
 
 **4. Use Collections for Projects**
+
 - One collection per project
 - Easier to find project-specific assets
 - Can share collections with team
 
 **5. Regular Maintenance**
+
 - Weekly: Delete unused assets
 - Monthly: Review and reorganize tags
 - Quarterly: Archive completed projects
@@ -575,6 +631,7 @@ Made a mistake? Restore an older version:
 4. **Upgrade Plan**: Get more storage if needed
 
 **Storage Tips**:
+
 - Videos: Use H.264 compression
 - Audio: Use MP3 or AAC, not WAV
 - Images: Use JPG for photos, PNG only when transparency needed
@@ -618,6 +675,7 @@ AI-powered search of video content:
 4. Results show matching frames
 
 **Example Searches**:
+
 - "blue car" - Finds clips with blue cars
 - "person talking" - Finds interview segments
 - "outdoor sunset" - Finds sunset scenes
@@ -632,6 +690,7 @@ Automatically tag assets based on content:
 4. Accept or modify suggestions
 
 **Auto-Detected Tags**:
+
 - Objects and scenes
 - Colors and lighting
 - Audio characteristics
@@ -642,6 +701,7 @@ Automatically tag assets based on content:
 Perform actions on multiple assets:
 
 **Available Batch Operations**:
+
 - Add tags to multiple assets
 - Remove tags from multiple assets
 - Move to collection
@@ -650,6 +710,7 @@ Perform actions on multiple assets:
 - Change metadata
 
 **How to Use**:
+
 1. Select multiple assets (Shift+Click or Cmd+A)
 2. Right-click on selection
 3. Choose batch operation
@@ -660,6 +721,7 @@ Perform actions on multiple assets:
 Track asset usage and performance:
 
 **Metrics Available**:
+
 - Times used in projects
 - Total views in previews
 - Storage used
@@ -667,6 +729,7 @@ Track asset usage and performance:
 - Most/least used assets
 
 **Use Cases**:
+
 - Identify frequently used assets
 - Find orphaned assets to delete
 - Optimize storage usage
@@ -677,6 +740,7 @@ Track asset usage and performance:
 ### Can't Find Asset
 
 **Solutions**:
+
 1. Clear all filters (click "All")
 2. Clear search box
 3. Check if asset is in different project
@@ -686,6 +750,7 @@ Track asset usage and performance:
 ### Asset Won't Upload
 
 **Solutions**:
+
 1. Check file size limit
 2. Verify file format is supported
 3. Check internet connection
@@ -695,6 +760,7 @@ Track asset usage and performance:
 ### Asset Shows Error
 
 **Solutions**:
+
 1. Re-upload the file
 2. Check file isn't corrupted
 3. Convert to different format
@@ -703,6 +769,7 @@ Track asset usage and performance:
 ### Asset Deleted by Mistake
 
 **Solutions**:
+
 1. Open Trash folder
 2. Find deleted asset
 3. Click "Restore"
@@ -713,6 +780,7 @@ Track asset usage and performance:
 ## Quick Reference
 
 ### Keyboard Shortcuts
+
 - **Cmd/Ctrl+U** - Upload assets
 - **Cmd/Ctrl+F** - Focus search box
 - **Delete** - Delete selected asset
@@ -739,6 +807,7 @@ Click thumbnail → Space to play
 ## Next Steps
 
 Master asset management and explore:
+
 - **Timeline Editing** - Use your organized assets efficiently
 - **Project Collaboration** - Share asset libraries with team
 - **Export Settings** - Output your finished videos

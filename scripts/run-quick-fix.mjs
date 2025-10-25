@@ -27,8 +27,8 @@ console.log('');
 const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: {
     autoRefreshToken: false,
-    persistSession: false
-  }
+    persistSession: false,
+  },
 });
 
 // Read the quick fix SQL
@@ -42,12 +42,13 @@ try {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'apikey': serviceRoleKey,
-      'Authorization': `Bearer ${serviceRoleKey}`
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
     },
     body: JSON.stringify({
-      query: 'ALTER TABLE project_backups ADD COLUMN IF NOT EXISTS assets_snapshot jsonb DEFAULT \'[]\'::jsonb;'
-    })
+      query:
+        "ALTER TABLE project_backups ADD COLUMN IF NOT EXISTS assets_snapshot jsonb DEFAULT '[]'::jsonb;",
+    }),
   });
 
   if (!alterResponse.ok) {
@@ -76,7 +77,7 @@ try {
     console.log('2. Run this SQL:');
     console.log('');
     console.log('   ALTER TABLE project_backups');
-    console.log('   ADD COLUMN IF NOT EXISTS assets_snapshot jsonb DEFAULT \'[]\'::jsonb;');
+    console.log("   ADD COLUMN IF NOT EXISTS assets_snapshot jsonb DEFAULT '[]'::jsonb;");
     console.log('');
     process.exit(1);
   }
@@ -95,7 +96,6 @@ try {
   console.log('1. Verify backups work: POST /api/projects/[id]/backups');
   console.log('2. Check Axiom for zero 500 errors');
   console.log('3. Test production timeline loading');
-
 } catch (err) {
   console.error('❌ Error:', err.message);
   console.log('');
@@ -104,6 +104,6 @@ try {
   console.log('');
   console.log('SQL to run:');
   console.log('ALTER TABLE project_backups');
-  console.log('ADD COLUMN IF NOT EXISTS assets_snapshot jsonb DEFAULT \'[]\'::jsonb;');
+  console.log("ADD COLUMN IF NOT EXISTS assets_snapshot jsonb DEFAULT '[]'::jsonb;");
   process.exit(1);
 }

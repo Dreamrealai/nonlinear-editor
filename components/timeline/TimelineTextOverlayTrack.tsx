@@ -168,18 +168,20 @@ export const TimelineTextOverlayTrack = React.memo(function TimelineTextOverlayT
       </div>
 
       {/* Render text overlay clips */}
-      {textOverlays.map((overlay): React.ReactElement => (
-        <TimelineTextOverlayRenderer
-          key={overlay.id}
-          overlay={overlay}
-          zoom={zoom}
-          isSelected={selectedTextOverlayId === overlay.id}
-          onClick={onTextOverlayClick}
-          onRemove={onRemoveTextOverlay}
-          onMouseDown={handleOverlayMouseDown}
-          onTrimMouseDown={handleTrimMouseDown}
-        />
-      ))}
+      {textOverlays.map(
+        (overlay): React.ReactElement => (
+          <TimelineTextOverlayRenderer
+            key={overlay.id}
+            overlay={overlay}
+            zoom={zoom}
+            isSelected={selectedTextOverlayId === overlay.id}
+            onClick={onTextOverlayClick}
+            onRemove={onRemoveTextOverlay}
+            onMouseDown={handleOverlayMouseDown}
+            onTrimMouseDown={handleTrimMouseDown}
+          />
+        )
+      )}
     </div>
   );
 });

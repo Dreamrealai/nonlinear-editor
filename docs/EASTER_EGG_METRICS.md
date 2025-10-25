@@ -17,6 +17,7 @@ We have implemented 5 hidden easter eggs in the application:
 ### Discovery Metrics
 
 #### Overall Discovery Rate
+
 ```sql
 -- Percentage of users who discovered at least one easter egg
 SELECT
@@ -25,6 +26,7 @@ FROM easter_egg_achievements;
 ```
 
 #### Discovery Rate by Egg
+
 ```sql
 -- PostHog Insight: Trends
 -- Event: easter_egg_discovered
@@ -35,6 +37,7 @@ FROM easter_egg_achievements;
 ```
 
 #### Time to First Discovery
+
 ```sql
 -- PostHog Insight: Trends
 -- Event: easter_egg_discovered
@@ -43,6 +46,7 @@ FROM easter_egg_achievements;
 ```
 
 #### Master Achievement Rate
+
 ```sql
 -- Percentage of users who discovered all 5 eggs
 SELECT
@@ -58,6 +62,7 @@ FROM (
 ### Engagement Metrics
 
 #### Activation Frequency
+
 ```sql
 -- PostHog Insight: Trends
 -- Event: easter_egg_activated
@@ -66,6 +71,7 @@ FROM (
 ```
 
 #### Average Session Duration During Easter Egg
+
 ```sql
 -- PostHog SQL Query
 SELECT
@@ -77,6 +83,7 @@ GROUP BY properties.egg_id;
 ```
 
 #### User Engagement After Discovery
+
 ```sql
 -- PostHog Funnel
 -- Step 1: easter_egg_discovered
@@ -87,6 +94,7 @@ GROUP BY properties.egg_id;
 ### Social Sharing Metrics
 
 #### Share Conversion Rate
+
 ```sql
 -- PostHog Insight: Trends
 -- Event: easter_egg_shared
@@ -95,6 +103,7 @@ GROUP BY properties.egg_id;
 ```
 
 #### Share by Platform
+
 ```sql
 -- PostHog SQL Query
 SELECT
@@ -109,6 +118,7 @@ ORDER BY share_count DESC;
 ### Feedback Metrics
 
 #### Feedback Submission Rate
+
 ```sql
 -- Percentage of Master users who submitted feedback
 SELECT
@@ -123,6 +133,7 @@ RIGHT JOIN (
 ```
 
 #### Average Rating
+
 ```sql
 -- PostHog SQL Query
 SELECT
@@ -133,6 +144,7 @@ WHERE event = 'easter_egg_feedback_submitted';
 ```
 
 #### Favorite Easter Egg
+
 ```sql
 -- PostHog SQL Query
 SELECT
@@ -150,6 +162,7 @@ ORDER BY vote_count DESC;
 ### Retention Impact
 
 #### User Retention After Easter Egg Discovery
+
 ```sql
 -- PostHog Retention Table
 -- Cohort: Users who discovered their first easter egg
@@ -159,6 +172,7 @@ ORDER BY vote_count DESC;
 ```
 
 #### Feature Adoption After Discovery
+
 ```sql
 -- PostHog Funnel
 -- Step 1: easter_egg_discovered
@@ -244,13 +258,13 @@ ORDER BY vote_count DESC;
 
 ### Success Metrics
 
-| Metric | Target | Actual | Status |
-|--------|--------|--------|--------|
-| Discovery Rate (30d) | >10% | TBD | ⏳ |
-| Master Rate (90d) | >2% | TBD | ⏳ |
-| Average Rating | >4.0 | TBD | ⏳ |
-| Share Conversion | >5% | TBD | ⏳ |
-| Retention Lift | +10% | TBD | ⏳ |
+| Metric               | Target | Actual | Status |
+| -------------------- | ------ | ------ | ------ |
+| Discovery Rate (30d) | >10%   | TBD    | ⏳     |
+| Master Rate (90d)    | >2%    | TBD    | ⏳     |
+| Average Rating       | >4.0   | TBD    | ⏳     |
+| Share Conversion     | >5%    | TBD    | ⏳     |
+| Retention Lift       | +10%   | TBD    | ⏳     |
 
 ### Analysis Schedule
 
@@ -434,33 +448,39 @@ ORDER BY unique_discoverers DESC;
 **Week of [DATE]**
 
 **Discovery Metrics:**
+
 - New discoverers: [X]
 - Total Master users: [X]
 - Discovery rate: [X]%
 
 **Engagement Metrics:**
+
 - Total activations: [X]
 - Avg activations per user: [X]
 - Most popular egg: [EGG_NAME]
 
 **Social Metrics:**
+
 - Total shares: [X]
 - Share conversion: [X]%
 - New users from shares: [X]
 
 **Feedback:**
+
 - Feedback submissions: [X]
 - Average rating: [X]/5
 - Top suggestion: [SUGGESTION]
 
 **Key Insights:**
+
 - [INSIGHT 1]
 - [INSIGHT 2]
 
 **Action Items:**
+
 - [ACTION 1]
 - [ACTION 2]
 
 ---
 
-*This dashboard is a living document. Update metrics targets and queries as needed based on product evolution.*
+_This dashboard is a living document. Update metrics targets and queries as needed based on product evolution._

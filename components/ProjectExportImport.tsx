@@ -24,9 +24,12 @@ interface ProjectExportImportProps {
  * Provides UI for exporting and importing projects as JSON
  * Allows users to backup projects locally or transfer between systems
  */
-export function ProjectExportImport({ projectId, projectName }: ProjectExportImportProps): React.ReactElement {
+export function ProjectExportImport({
+  projectId,
+  projectName,
+}: ProjectExportImportProps): React.ReactElement {
   const timeline = useEditorStore((state): Timeline | null => state.timeline);
-  const setTimeline = useEditorStore((state): (timeline: Timeline) => void => state.setTimeline);
+  const setTimeline = useEditorStore((state): ((timeline: Timeline) => void) => state.setTimeline);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isImporting, setIsImporting] = useState(false);
@@ -56,35 +59,38 @@ export function ProjectExportImport({ projectId, projectName }: ProjectExportImp
   }, []);
 
   // Handle file selection
-  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    setIsImporting(true);
+      setIsImporting(true);
 
-    try {
-      const result = await importProjectFromFile(file);
+      try {
+        const result = await importProjectFromFile(file);
 
-      if (!result.success || !result.project) {
-        toast.error(result.error || 'Failed to import project');
+        if (!result.success || !result.project) {
+          toast.error(result.error || 'Failed to import project');
+          setIsImporting(false);
+          return;
+        }
+
+        // Show import preview/confirmation
+        setImportPreview(result.project);
+        setShowImportModal(true);
+      } catch (error) {
+        console.error('Import error:', error);
+        toast.error('Failed to import project: ' + (error as Error).message);
+      } finally {
         setIsImporting(false);
-        return;
+        // Reset file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       }
-
-      // Show import preview/confirmation
-      setImportPreview(result.project);
-      setShowImportModal(true);
-    } catch (error) {
-      console.error('Import error:', error);
-      toast.error('Failed to import project: ' + (error as Error).message);
-    } finally {
-      setIsImporting(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  }, []);
+    },
+    []
+  );
 
   // Confirm import (replace timeline)
   const handleConfirmImport = useCallback(
@@ -172,9 +178,7 @@ export function ProjectExportImport({ projectId, projectName }: ProjectExportImp
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             {/* Header */}
             <div className="border-b border-gray-200 dark:border-gray-700 p-6">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Import Project
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Import Project</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Review project details before importing
               </p>

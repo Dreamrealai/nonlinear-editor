@@ -18,12 +18,15 @@ if (!supabaseUrl || !serviceRoleKey) {
 const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: {
     autoRefreshToken: false,
-    persistSession: false
-  }
+    persistSession: false,
+  },
 });
 
 // Read the migration file
-const migrationPath = path.join(__dirname, '../supabase/migrations/20251025140000_critical_production_fix.sql');
+const migrationPath = path.join(
+  __dirname,
+  '../supabase/migrations/20251025140000_critical_production_fix.sql'
+);
 const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
 
 console.log('🚀 Running production database migration...');
@@ -34,8 +37,8 @@ console.log('');
 // Split SQL into individual statements (handle DO blocks and other complex SQL)
 const statements = migrationSQL
   .split(';')
-  .map(s => s.trim())
-  .filter(s => s.length > 0 && !s.startsWith('--'));
+  .map((s) => s.trim())
+  .filter((s) => s.length > 0 && !s.startsWith('--'));
 
 let successCount = 0;
 let failureCount = 0;

@@ -12,32 +12,44 @@ import {
 } from '@/test-utils/mockSupabase';
 
 // Mock rate limiting
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  checkRateLimit: jest.fn(),
-  RATE_LIMITS: {
-    tier2_resource_creation: { max: 10, windowMs: 60000 },
-  },
-}));
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    checkRateLimit: jest.fn(),
+    RATE_LIMITS: {
+      tier2_resource_creation: { max: 10, windowMs: 60000 },
+    },
+  })
+);
 
 // Mock project verification
-jest.mock('@/lib/api/project-verification', (): Record<string, unknown> => ({
-  verifyProjectOwnership: jest.fn(),
-}));
+jest.mock(
+  '@/lib/api/project-verification',
+  (): Record<string, unknown> => ({
+    verifyProjectOwnership: jest.fn(),
+  })
+);
 
 // Mock the Supabase module
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+  })
+);
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 // Import the real ValidationError class for use in mocks
 const { ValidationError } = jest.requireActual('@/lib/validation');

@@ -296,14 +296,17 @@ it('displays error message on failure', async () => {
 ### Pattern 5: Testing Integration Workflows
 
 ```typescript
-import { createTestEnvironment, IntegrationWorkflow } from '@/__tests__/integration/helpers/integration-helpers';
+import {
+  createTestEnvironment,
+  IntegrationWorkflow,
+} from '@/__tests__/integration/helpers/integration-helpers';
 
 it('completes full workflow', async () => {
   const { mockSupabase, user, workflow } = createTestEnvironment('proTierUser');
 
   // Create project
   const project = await workflow.createProjectWorkflow(user.id, {
-    title: 'My Video'
+    title: 'My Video',
   });
 
   // Upload asset
@@ -383,7 +386,7 @@ mockFetchError('Not found', 404);
 // Sequential responses
 mockFetchSequence([
   { ok: true, json: { id: '1' } },
-  { ok: false, json: { error: 'Failed' } }
+  { ok: false, json: { error: 'Failed' } },
 ]);
 ```
 
@@ -394,17 +397,19 @@ mockFetchSequence([
 ### Issue 1: "Cannot find module '@/test-utils'"
 
 **Solution:**
+
 ```typescript
 // Use correct import path
-import { render } from '@/test-utils';  // ✅ Correct
+import { render } from '@/test-utils'; // ✅ Correct
 
 // Not this:
-import { render } from '../../../test-utils';  // ❌ Avoid
+import { render } from '../../../test-utils'; // ❌ Avoid
 ```
 
 ### Issue 2: "TypeError: Cannot read property 'from' of undefined"
 
 **Solution:**
+
 ```typescript
 // Mock Supabase before using it
 const mockSupabase = createMockSupabaseClient();
@@ -417,6 +422,7 @@ mockSupabase.mockResolvedValue({ data: [], error: null });
 ### Issue 3: "Test timeout exceeded"
 
 **Solution:**
+
 ```typescript
 // 1. Ensure async operations are awaited
 await waitFor(() => {
@@ -429,12 +435,13 @@ it('long operation', async () => {
 }, 15000); // 15 second timeout
 
 // 3. Mock slow operations
-mockSupabase.mockResolvedValue({ data: [], error: null });  // Instant response
+mockSupabase.mockResolvedValue({ data: [], error: null }); // Instant response
 ```
 
 ### Issue 4: "Act warnings"
 
 **Solution:**
+
 ```typescript
 // Wrap state updates in waitFor
 await waitFor(() => {
@@ -443,12 +450,13 @@ await waitFor(() => {
 
 // Use userEvent instead of fireEvent
 const user = userEvent.setup();
-await user.click(button);  // ✅ Handles act() automatically
+await user.click(button); // ✅ Handles act() automatically
 ```
 
 ### Issue 5: "withAuth mock not working"
 
 **Solution:**
+
 ```typescript
 // Use the correct pattern - mock BEFORE importing route
 jest.mock('@/lib/api/withAuth', () => ({
@@ -466,6 +474,7 @@ import { GET } from '@/app/api/my-route/route';
 ### Issue 6: "Query chain not working"
 
 **Solution:**
+
 ```typescript
 // createMockSupabaseClient handles chaining automatically
 const mockSupabase = createMockSupabaseClient();
@@ -474,7 +483,7 @@ const mockSupabase = createMockSupabaseClient();
 mockSupabase.mockResolvedValue({ data: [], error: null });
 
 // Chain works correctly
-await mockSupabase.from('table').select('*').eq('id', '1');  // ✅
+await mockSupabase.from('table').select('*').eq('id', '1'); // ✅
 ```
 
 ---
@@ -577,6 +586,7 @@ findBy...   // Async, waits for element (async operations)
 ### Example Tests
 
 Look at existing tests for examples:
+
 - **Service tests**: `__tests__/services/projectService.test.ts`
 - **Component tests**: `__tests__/components/ui/Button.test.tsx`
 - **API tests**: `__tests__/api/projects/route.test.ts`

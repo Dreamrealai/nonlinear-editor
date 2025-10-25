@@ -12,50 +12,68 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    return handler(req, { user, supabase, params: context?.params || {} });
-  }),
-}));
-
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-}));
-
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
-
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  RATE_LIMITS: { tier2_resource_creation: { requests: 10, window: 60 } },
-}));
-
-jest.mock('@/lib/api/project-verification', (): Record<string, unknown> => ({
-  verifyProjectOwnership: jest.fn().mockResolvedValue({ hasAccess: true }),
-}));
-
-jest.mock('@/lib/services/assetVersionService', (): Record<string, unknown> => ({
-  AssetVersionService: jest.fn().mockImplementation(() => ({
-    revertToVersion: jest.fn().mockResolvedValue({
-      success: true,
-      assetId: '123e4567-e89b-12d3-a456-426614174000',
-      newStorageUrl: 'supabase://assets/reverted.jpg',
-      revertedToVersion: 1,
-      backupVersion: 3,
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return handler(req, { user, supabase, params: context?.params || {} });
     }),
-  })),
-}));
+  })
+);
+
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+  })
+);
+
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
+
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    RATE_LIMITS: { tier2_resource_creation: { requests: 10, window: 60 } },
+  })
+);
+
+jest.mock(
+  '@/lib/api/project-verification',
+  (): Record<string, unknown> => ({
+    verifyProjectOwnership: jest.fn().mockResolvedValue({ hasAccess: true }),
+  })
+);
+
+jest.mock(
+  '@/lib/services/assetVersionService',
+  (): Record<string, unknown> => ({
+    AssetVersionService: jest.fn().mockImplementation(() => ({
+      revertToVersion: jest.fn().mockResolvedValue({
+        success: true,
+        assetId: '123e4567-e89b-12d3-a456-426614174000',
+        newStorageUrl: 'supabase://assets/reverted.jpg',
+        revertedToVersion: 1,
+        backupVersion: 3,
+      }),
+    })),
+  })
+);
 
 describe('POST /api/assets/[assetId]/versions/[versionId]/revert', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
@@ -78,9 +96,12 @@ describe('POST /api/assets/[assetId]/versions/[versionId]/revert', () => {
       mockUnauthenticatedUser(mockSupabase);
 
       const response = await POST(
-        new NextRequest(`http://localhost/api/assets/${validAssetId}/versions/${validVersionId}/revert`, {
-          method: 'POST',
-        }),
+        new NextRequest(
+          `http://localhost/api/assets/${validAssetId}/versions/${validVersionId}/revert`,
+          {
+            method: 'POST',
+          }
+        ),
         { params: Promise.resolve({ assetId: validAssetId, versionId: validVersionId }) }
       );
 
@@ -126,9 +147,12 @@ describe('POST /api/assets/[assetId]/versions/[versionId]/revert', () => {
       mockSupabase.single.mockResolvedValue({ data: null, error: { message: 'Not found' } });
 
       const response = await POST(
-        new NextRequest(`http://localhost/api/assets/${validAssetId}/versions/${validVersionId}/revert`, {
-          method: 'POST',
-        }),
+        new NextRequest(
+          `http://localhost/api/assets/${validAssetId}/versions/${validVersionId}/revert`,
+          {
+            method: 'POST',
+          }
+        ),
         { params: Promise.resolve({ assetId: validAssetId, versionId: validVersionId }) }
       );
 
@@ -146,9 +170,12 @@ describe('POST /api/assets/[assetId]/versions/[versionId]/revert', () => {
       verifyProjectOwnership.mockResolvedValueOnce({ hasAccess: false });
 
       const response = await POST(
-        new NextRequest(`http://localhost/api/assets/${validAssetId}/versions/${validVersionId}/revert`, {
-          method: 'POST',
-        }),
+        new NextRequest(
+          `http://localhost/api/assets/${validAssetId}/versions/${validVersionId}/revert`,
+          {
+            method: 'POST',
+          }
+        ),
         { params: Promise.resolve({ assetId: validAssetId, versionId: validVersionId }) }
       );
 
@@ -165,9 +192,12 @@ describe('POST /api/assets/[assetId]/versions/[versionId]/revert', () => {
       });
 
       const response = await POST(
-        new NextRequest(`http://localhost/api/assets/${validAssetId}/versions/${validVersionId}/revert`, {
-          method: 'POST',
-        }),
+        new NextRequest(
+          `http://localhost/api/assets/${validAssetId}/versions/${validVersionId}/revert`,
+          {
+            method: 'POST',
+          }
+        ),
         { params: Promise.resolve({ assetId: validAssetId, versionId: validVersionId }) }
       );
 
@@ -195,9 +225,12 @@ describe('POST /api/assets/[assetId]/versions/[versionId]/revert', () => {
       }));
 
       const response = await POST(
-        new NextRequest(`http://localhost/api/assets/${validAssetId}/versions/${validVersionId}/revert`, {
-          method: 'POST',
-        }),
+        new NextRequest(
+          `http://localhost/api/assets/${validAssetId}/versions/${validVersionId}/revert`,
+          {
+            method: 'POST',
+          }
+        ),
         { params: Promise.resolve({ assetId: validAssetId, versionId: validVersionId }) }
       );
 

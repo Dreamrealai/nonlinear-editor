@@ -75,10 +75,7 @@ export function TimelineMinimap({
   const viewportTime = scrollLeft / zoom;
   const viewportDuration = viewportWidth / zoom;
   const minimapViewportLeft = (viewportTime / timelineDuration) * minimapWidth;
-  const minimapViewportWidth = Math.max(
-    10,
-    (viewportDuration / timelineDuration) * minimapWidth
-  );
+  const minimapViewportWidth = Math.max(10, (viewportDuration / timelineDuration) * minimapWidth);
 
   // Handle click on minimap to jump to position
   const handleMinimapClick = useCallback(
@@ -139,20 +136,12 @@ export function TimelineMinimap({
       const clipWidth = Math.max(2, (clipDuration / timelineDuration) * minimapWidth);
       const clipTop =
         MINIMAP_PADDING + (clip.trackIndex / numTracks) * (MINIMAP_HEIGHT - 2 * MINIMAP_PADDING);
-      const clipHeight = Math.max(
-        2,
-        (1 / numTracks) * (MINIMAP_HEIGHT - 2 * MINIMAP_PADDING) - 1
-      );
+      const clipHeight = Math.max(2, (1 / numTracks) * (MINIMAP_HEIGHT - 2 * MINIMAP_PADDING) - 1);
 
       // Color based on clip type (determined from mime)
       const isVideo = clip.mime?.startsWith('video/');
       const isAudio = clip.mime?.startsWith('audio/');
-      const clipColor =
-        isVideo
-          ? 'bg-blue-500'
-          : isAudio
-            ? 'bg-green-500'
-            : 'bg-purple-500';
+      const clipColor = isVideo ? 'bg-blue-500' : isAudio ? 'bg-green-500' : 'bg-purple-500';
 
       return (
         <div
@@ -226,7 +215,8 @@ export function TimelineMinimap({
       <div className="flex justify-between text-xs text-neutral-500 dark:text-neutral-500">
         <span>0:00</span>
         <span>
-          {Math.floor(timelineDuration / 60)}:{String(Math.floor(timelineDuration % 60)).padStart(2, '0')}
+          {Math.floor(timelineDuration / 60)}:
+          {String(Math.floor(timelineDuration % 60)).padStart(2, '0')}
         </span>
       </div>
     </div>

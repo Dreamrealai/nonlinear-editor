@@ -136,12 +136,12 @@ async function handler(request: NextRequest, context: AuthContext): Promise<Resp
 
 ### Test Infrastructure (2025-10-24)
 
-**✅ Issue #70:** withAuth Mock Failures - Pattern documented in TEST_ARCHITECTURE.md
+**✅ Issue #70:** withAuth Mock Failures - Pattern documented in TEST*ARCHITECTURE.md
 **✅ Issue #83:** Legacy Test Utilities - Fully removed (2,490 lines deleted)
 **✅ Issue #84:** Test Documentation - Updated with comprehensive guides
 **✅ Issue #85:** Google Cloud Storage Mock - Implemented comprehensive mocking
 **✅ Issue #86:** Health Endpoint Auth - Added withAdminAuth middleware
-**✅ Issue #89:** Supabase Types - Generated types/supabase.ts (1,413 lines) _[Not yet integrated]_
+**✅ Issue #89:** Supabase Types - Generated types/supabase.ts (1,413 lines) *[Not yet integrated]\_
 **✅ Issue #92:** ESLint **mocks** Exclusion - Already excluded (line 80)
 
 ---

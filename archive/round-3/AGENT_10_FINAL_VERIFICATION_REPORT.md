@@ -723,6 +723,7 @@ git add . && git commit  # Commit if correct
    - **Fix:** Clear .next cache or check for circular dependencies
 
 2. **share-links/[linkId]/route.ts Line 152:**
+
    ```
    Type error: Argument of type '{ readonly max: 10; readonly windowMs: number; }'
    is not assignable to parameter of type 'AuthOptions'

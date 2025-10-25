@@ -9,11 +9,13 @@
 ## TL;DR
 
 **The report is mostly accurate.** Out of 35+ claims:
+
 - ✅ **25 claims CONFIRMED** (71%) - These need fixing
 - ⚠️ **5 claims PARTIAL** (14%) - Some truth, but nuanced
 - ❌ **5 claims INVALID** (14%) - Ignore these
 
 **Main Issues CONFIRMED:**
+
 1. Duplicate error response systems (2 incompatible versions)
 2. Mixed middleware patterns (23+ routes need manual auth)
 3. Inconsistent API responses (123 direct vs 33 wrapped)
@@ -23,6 +25,7 @@
 7. 728 missing return types
 
 **Work Required:** 48-70 hours total
+
 - P0 (Critical): 18-26 hours
 - P1 (High): 17-25 hours
 - P2 (Medium): 12-17 hours
@@ -35,17 +38,20 @@
 ### ✅ TRUST THESE FINDINGS (Verified as Accurate)
 
 **Priority 0 - Fix Immediately:**
+
 1. Duplicate error response systems in `lib/api/response.ts` and `lib/api/errorResponse.ts`
 2. Mixed middleware: 9 routes use `withAuth`, 23+ use `withErrorHandling` with manual auth
 3. Inconsistent API response formats across routes
 
 **Priority 1 - Fix This Sprint:**
+
 1. 40 occurrences of `any` type (violates strict mode)
 2. Duplicate AssetPanel components (352 + 367 = 719 lines)
 3. Duplicate validation in `lib/validation.ts` and `lib/api/validation.ts`
 4. 728 missing return type warnings
 
 **Priority 3 - Quick Wins:**
+
 1. Remove unused types: `LegacyAPIResponse`, `GenericAPIError`
 2. Remove unused hook: `useAssetManager`
 3. Remove unused functions: `isBaseAssetRow()`, `baseAssetToAssetRow()`
@@ -70,6 +76,7 @@
 ### ✅ COMPLETED (No Action Needed)
 
 **Database Migration TODO:**
+
 - Report claimed TODO exists to deprecate `timeline_state_jsonb` column
 - **VERIFIED:** Migration already created at `/supabase/migrations/20251025100000_deprecate_timeline_state_jsonb.sql`
 - **Action:** Update TODO comment in `lib/saveLoad.ts:47-52` to mark as DONE
@@ -85,6 +92,7 @@
 **Accuracy:** 99% (7 issue difference)
 
 **Breakdown:**
+
 - 40 `any` type errors (report: 38) ✅
 - 728 missing return types (report: 710) ✅
 - 58 total errors (report: 52) ⚠️
@@ -95,12 +103,14 @@
 **Overall Grade:** B+ (85/100)
 
 **Strengths:**
+
 - Modern architecture (hooks, TypeScript, service layer)
 - Comprehensive tests
 - Excellent documentation
 - No deprecated patterns (except required ErrorBoundary)
 
 **Weaknesses:**
+
 - Duplicate systems (2 error handlers, 2 validators, 2 AssetPanels)
 - Inconsistent patterns (middleware, responses, validation)
 - Type safety gaps (40 `any` usages, 728 missing return types)
@@ -110,17 +120,20 @@
 ## Recommended Action Plan
 
 ### Phase 1: Critical Fixes (Week 1) - 18-26 hours
+
 1. Consolidate error response systems → Choose one, migrate all code
 2. Standardize middleware → Migrate 23+ routes to `withAuth`
 3. Unify API responses → Use `successResponse()` everywhere
 
 ### Phase 2: Code Quality (Week 2) - 17-25 hours
+
 1. Fix 40 `any` type usages → Replace with proper interfaces
 2. Remove duplicate AssetPanel → Use `components/editor/AssetPanel.tsx`
 3. Consolidate validation → Choose assertion-based or result-based
 4. Add return types → Fix 728 warnings
 
 ### Phase 3: Cleanup (Week 3) - 13-19 hours
+
 1. Extract shared status check logic
 2. Enforce service layer usage
 3. Remove unused code (quick win)
@@ -152,11 +165,13 @@
 ## Files Requiring Immediate Attention
 
 ### High Priority (P0)
+
 - `/Users/davidchen/Projects/non-linear-editor/lib/api/response.ts`
 - `/Users/davidchen/Projects/non-linear-editor/lib/api/errorResponse.ts`
 - 23+ API routes using `withErrorHandling` (need migration to `withAuth`)
 
 ### Medium Priority (P1)
+
 - `/Users/davidchen/Projects/non-linear-editor/lib/validation.ts`
 - `/Users/davidchen/Projects/non-linear-editor/lib/api/validation.ts`
 - `/Users/davidchen/Projects/non-linear-editor/app/editor/[projectId]/AssetPanel.tsx` (delete)
@@ -165,6 +180,7 @@
 - Files missing return types (728 warnings)
 
 ### Low Priority (P3)
+
 - `/Users/davidchen/Projects/non-linear-editor/types/api.ts` (remove unused types)
 - `/Users/davidchen/Projects/non-linear-editor/lib/hooks/useAssetManager.ts` (remove if unused)
 - `/Users/davidchen/Projects/non-linear-editor/types/assets.ts` (remove unused functions)
@@ -184,6 +200,7 @@
 6. **Test claims** - Verified each specific line number and claim
 
 **Tools Used:**
+
 - Read tool (file content verification)
 - Grep tool (usage pattern search)
 - Bash/ESLint (error validation)
@@ -198,12 +215,14 @@
 ### For Developers
 
 **DO:**
+
 - Trust the P0 and P1 findings - they're accurate
 - Start with quick wins (3-5 hours)
 - Follow the 4-week action plan
 - Use VERIFIED_ISSUES_TO_FIX.md as your task list
 
 **DON'T:**
+
 - Waste time fixing "ensureResponse" or "import errors" - they don't exist
 - Look for unused variables in lines that don't exist
 - Worry about ErrorBoundary "build errors" - no errors found
@@ -211,12 +230,14 @@
 ### For Project Managers
 
 **Scope:**
+
 - 48-70 hours of work identified
 - 1 sprint to complete all P0 and P1 items
 - High ROI on fixing duplicate systems
 - Low risk - most changes are consolidations
 
 **Benefits:**
+
 - Cleaner codebase
 - Better type safety
 - Consistent patterns

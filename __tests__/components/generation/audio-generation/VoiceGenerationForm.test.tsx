@@ -4,41 +4,44 @@ import '@testing-library/jest-dom';
 import { VoiceGenerationForm } from '@/components/generation/audio-generation/VoiceGenerationForm';
 
 // Mock VoiceSelector component
-jest.mock('@/components/generation/audio-generation/VoiceSelector', (): Record<string, unknown> => ({
-  VoiceSelector: ({
-    voices,
-    selectedVoice,
-    onVoiceChange,
-    loadingVoices,
-    disabled,
-  }: {
-    voices: Array<{ voice_id: string; name: string; category?: string }>;
-    selectedVoice: string;
-    onVoiceChange: (id: string) => void;
-    loadingVoices: boolean;
-    disabled?: boolean;
-  }) => (
-    <div data-testid="voice-selector">
-      <label htmlFor="voice-select">Voice Selection</label>
-      {loadingVoices ? (
-        <div>Loading voices...</div>
-      ) : (
-        <select
-          id="voice-select"
-          value={selectedVoice}
-          onChange={(e) => onVoiceChange(e.target.value)}
-          disabled={disabled}
-        >
-          {voices.map((voice) => (
-            <option key={voice.voice_id} value={voice.voice_id}>
-              {voice.name}
-            </option>
-          ))}
-        </select>
-      )}
-    </div>
-  ),
-}));
+jest.mock(
+  '@/components/generation/audio-generation/VoiceSelector',
+  (): Record<string, unknown> => ({
+    VoiceSelector: ({
+      voices,
+      selectedVoice,
+      onVoiceChange,
+      loadingVoices,
+      disabled,
+    }: {
+      voices: Array<{ voice_id: string; name: string; category?: string }>;
+      selectedVoice: string;
+      onVoiceChange: (id: string) => void;
+      loadingVoices: boolean;
+      disabled?: boolean;
+    }) => (
+      <div data-testid="voice-selector">
+        <label htmlFor="voice-select">Voice Selection</label>
+        {loadingVoices ? (
+          <div>Loading voices...</div>
+        ) : (
+          <select
+            id="voice-select"
+            value={selectedVoice}
+            onChange={(e) => onVoiceChange(e.target.value)}
+            disabled={disabled}
+          >
+            {voices.map((voice) => (
+              <option key={voice.voice_id} value={voice.voice_id}>
+                {voice.name}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+    ),
+  })
+);
 
 describe('VoiceGenerationForm', () => {
   const mockSetVoiceText = jest.fn();
@@ -272,7 +275,9 @@ describe('VoiceGenerationForm', () => {
     it('should show progress message when generating', () => {
       render(<VoiceGenerationForm {...defaultProps} generating={true} />);
 
-      expect(screen.getByText('Generating voice... This should take just a few seconds.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Generating voice... This should take just a few seconds.')
+      ).toBeInTheDocument();
     });
 
     it('should inform about expected duration', () => {
@@ -498,9 +503,7 @@ describe('VoiceGenerationForm', () => {
       let voiceOptions = screen.getAllByRole('option');
       expect(voiceOptions).toHaveLength(2);
 
-      const newVoices = [
-        { voice_id: 'voice-3', name: 'Emma', category: 'Female' },
-      ];
+      const newVoices = [{ voice_id: 'voice-3', name: 'Emma', category: 'Female' }];
 
       rerender(<VoiceGenerationForm {...defaultProps} voices={newVoices} />);
 
@@ -538,11 +541,7 @@ describe('VoiceGenerationForm', () => {
 
       // Update props to reflect state changes
       rerender(
-        <VoiceGenerationForm
-          {...defaultProps}
-          voiceText="Test speech"
-          selectedVoice="voice-2"
-        />
+        <VoiceGenerationForm {...defaultProps} voiceText="Test speech" selectedVoice="voice-2" />
       );
 
       // Submit form

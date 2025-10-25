@@ -45,7 +45,19 @@ export interface ExportRequest {
       timelinePosition: number;
       trackIndex: number;
       transitionToNext?: {
-        type: 'none' | 'crossfade' | 'fade-in' | 'fade-out' | 'slide-left' | 'slide-right' | 'slide-up' | 'slide-down' | 'wipe-left' | 'wipe-right' | 'zoom-in' | 'zoom-out';
+        type:
+          | 'none'
+          | 'crossfade'
+          | 'fade-in'
+          | 'fade-out'
+          | 'slide-left'
+          | 'slide-right'
+          | 'slide-up'
+          | 'slide-down'
+          | 'wipe-left'
+          | 'wipe-right'
+          | 'zoom-in'
+          | 'zoom-out';
         duration: number;
       };
       volume?: number;

@@ -63,11 +63,7 @@ test.describe('Asset Management', () => {
 
   test('should navigate to asset management pages', async ({ page }) => {
     // Check if there are dedicated pages for assets
-    const assetPages = [
-      '/image-gen',
-      '/audio-gen',
-      '/video-gen',
-    ];
+    const assetPages = ['/image-gen', '/audio-gen', '/video-gen'];
 
     for (const assetPage of assetPages) {
       const response = await page.goto(assetPage + '?projectId=' + projectId);
@@ -105,11 +101,7 @@ test.describe('Asset Management', () => {
   });
 
   test('should have link back to editor from asset pages', async ({ page }) => {
-    const assetPages = [
-      '/image-gen',
-      '/audio-gen',
-      '/video-gen',
-    ];
+    const assetPages = ['/image-gen', '/audio-gen', '/video-gen'];
 
     for (const assetPage of assetPages) {
       await page.goto(assetPage + '?projectId=' + projectId);

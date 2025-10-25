@@ -13,68 +13,83 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    return handler(req, { user, supabase, params: context?.params || {} });
-  }),
-}));
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return handler(req, { user, supabase, params: context?.params || {} });
+    }),
+  })
+);
 
 // Mock modules
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-  ensureHttpsProtocol: jest.fn((url) => url),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+    ensureHttpsProtocol: jest.fn((url) => url),
+  })
+);
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  checkRateLimit: jest.fn().mockResolvedValue({
-    success: true,
-    limit: 5,
-    remaining: 4,
-    resetAt: Date.now() + 60000,
-  }),
-  RATE_LIMITS: {
-    tier2_resource_creation: { requests: 5, window: 60 },
-  },
-}));
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    checkRateLimit: jest.fn().mockResolvedValue({
+      success: true,
+      limit: 5,
+      remaining: 4,
+      resetAt: Date.now() + 60000,
+    }),
+    RATE_LIMITS: {
+      tier2_resource_creation: { requests: 5, window: 60 },
+    },
+  })
+);
 
 // Mock ThumbnailService
-jest.mock('@/lib/services/thumbnailService', (): Record<string, unknown> => ({
-  ThumbnailService: jest.fn().mockImplementation(() => ({
-    generateVideoThumbnail: jest.fn().mockResolvedValue({
-      buffer: Buffer.from('fake-video-thumbnail'),
-      metadata: {
-        width: 320,
-        height: 180,
-        format: 'jpeg',
-        size: 12345,
-      },
-    }),
-    generateImageThumbnail: jest.fn().mockResolvedValue({
-      buffer: Buffer.from('fake-image-thumbnail'),
-      metadata: {
-        width: 320,
-        height: 240,
-        format: 'jpeg',
-        size: 10000,
-      },
-    }),
-  })),
-}));
+jest.mock(
+  '@/lib/services/thumbnailService',
+  (): Record<string, unknown> => ({
+    ThumbnailService: jest.fn().mockImplementation(() => ({
+      generateVideoThumbnail: jest.fn().mockResolvedValue({
+        buffer: Buffer.from('fake-video-thumbnail'),
+        metadata: {
+          width: 320,
+          height: 180,
+          format: 'jpeg',
+          size: 12345,
+        },
+      }),
+      generateImageThumbnail: jest.fn().mockResolvedValue({
+        buffer: Buffer.from('fake-image-thumbnail'),
+        metadata: {
+          width: 320,
+          height: 240,
+          format: 'jpeg',
+          size: 10000,
+        },
+      }),
+    })),
+  })
+);
 
 // Mock fetch
 global.fetch = jest.fn() as jest.Mock;

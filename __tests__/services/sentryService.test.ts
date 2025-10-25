@@ -24,24 +24,27 @@ import {
 import * as Sentry from '@sentry/nextjs';
 
 // Mock Sentry SDK
-jest.mock('@sentry/nextjs', (): Record<string, unknown> => ({
-  captureException: jest.fn(),
-  captureMessage: jest.fn(),
-  addBreadcrumb: jest.fn(),
-  setUser: jest.fn(),
-  setTag: jest.fn(),
-  setContext: jest.fn(),
-  startSpan: jest.fn((options, callback) => callback()),
-  withScope: jest.fn((callback) => {
-    const scope = {
-      setUser: jest.fn(),
-      setTag: jest.fn(),
-      setContext: jest.fn(),
-      setLevel: jest.fn(),
-    };
-    callback(scope);
-  }),
-}));
+jest.mock(
+  '@sentry/nextjs',
+  (): Record<string, unknown> => ({
+    captureException: jest.fn(),
+    captureMessage: jest.fn(),
+    addBreadcrumb: jest.fn(),
+    setUser: jest.fn(),
+    setTag: jest.fn(),
+    setContext: jest.fn(),
+    startSpan: jest.fn((options, callback) => callback()),
+    withScope: jest.fn((callback) => {
+      const scope = {
+        setUser: jest.fn(),
+        setTag: jest.fn(),
+        setContext: jest.fn(),
+        setLevel: jest.fn(),
+      };
+      callback(scope);
+    }),
+  })
+);
 
 // Helper function to get fresh module imports (fixes Sentry mock scope issues)
 async function getModules() {

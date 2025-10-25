@@ -27,7 +27,7 @@ export const options = {
   ],
   thresholds: {
     http_req_duration: ['p(95)<10000'], // 95% under 10s
-    http_req_failed: ['rate<0.15'],     // Error rate under 15%
+    http_req_failed: ['rate<0.15'], // Error rate under 15%
   },
 };
 
@@ -36,12 +36,16 @@ const TEST_EMAIL = __ENV.TEST_EMAIL || 'david@dreamreal.ai';
 const TEST_PASSWORD = __ENV.TEST_PASSWORD || 'sc3p4sses';
 
 export function setup() {
-  const loginRes = http.post(`${BASE_URL}/auth/signin`, JSON.stringify({
-    email: TEST_EMAIL,
-    password: TEST_PASSWORD,
-  }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
+  const loginRes = http.post(
+    `${BASE_URL}/auth/signin`,
+    JSON.stringify({
+      email: TEST_EMAIL,
+      password: TEST_PASSWORD,
+    }),
+    {
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
 
   let authCookie = '';
   for (let cookieName in loginRes.cookies) {
@@ -49,32 +53,36 @@ export function setup() {
   }
 
   const projectsRes = http.get(`${BASE_URL}/api/projects`, {
-    headers: { 'Cookie': authCookie },
+    headers: { Cookie: authCookie },
   });
 
   let projectId;
   if (projectsRes.json().length > 0) {
     projectId = projectsRes.json()[0].id;
   } else {
-    const createRes = http.post(`${BASE_URL}/api/projects`, JSON.stringify({
-      title: 'k6 Audio Load Test',
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Cookie': authCookie,
-      },
-    });
+    const createRes = http.post(
+      `${BASE_URL}/api/projects`,
+      JSON.stringify({
+        title: 'k6 Audio Load Test',
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: authCookie,
+        },
+      }
+    );
     projectId = createRes.json().id;
   }
 
   return { authCookie, projectId };
 }
 
-export default function(data) {
+export default function (data) {
   const { authCookie, projectId } = data;
   const headers = {
     'Content-Type': 'application/json',
-    'Cookie': authCookie,
+    Cookie: authCookie,
   };
 
   // Randomly choose between ElevenLabs and Suno
@@ -92,10 +100,14 @@ export default function(data) {
     const text = texts[Math.floor(Math.random() * texts.length)];
 
     const startTime = Date.now();
-    const res = http.post(`${BASE_URL}/api/audio/elevenlabs/generate`, JSON.stringify({
-      text,
-      projectId,
-    }), { headers });
+    const res = http.post(
+      `${BASE_URL}/api/audio/elevenlabs/generate`,
+      JSON.stringify({
+        text,
+        projectId,
+      }),
+      { headers }
+    );
 
     elevenLabsResponseTime.add(Date.now() - startTime);
 
@@ -115,7 +127,6 @@ export default function(data) {
     } else {
       elevenLabsFailed.add(1);
     }
-
   } else {
     // Test Suno music generation
     const prompts = [
@@ -128,11 +139,15 @@ export default function(data) {
     const prompt = prompts[Math.floor(Math.random() * prompts.length)];
 
     const startTime = Date.now();
-    const res = http.post(`${BASE_URL}/api/audio/suno/generate`, JSON.stringify({
-      prompt,
-      projectId,
-      duration: 30, // Short duration for tests
-    }), { headers });
+    const res = http.post(
+      `${BASE_URL}/api/audio/suno/generate`,
+      JSON.stringify({
+        prompt,
+        projectId,
+        duration: 30, // Short duration for tests
+      }),
+      { headers }
+    );
 
     sunoResponseTime.add(Date.now() - startTime);
 

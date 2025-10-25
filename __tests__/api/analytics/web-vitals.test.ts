@@ -6,14 +6,17 @@ import { NextRequest } from 'next/server';
 import { POST, GET } from '@/app/api/analytics/web-vitals/route';
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 describe('POST /api/analytics/web-vitals', () => {
   let mockRequest: NextRequest;

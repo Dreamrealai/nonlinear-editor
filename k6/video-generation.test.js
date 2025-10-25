@@ -26,16 +26,16 @@ const statusCheckTime = new Trend('status_check_response_time');
 // Test configuration
 export const options = {
   stages: [
-    { duration: '30s', target: 5 },   // Ramp up to 5 users over 30s
-    { duration: '1m', target: 5 },    // Stay at 5 users for 1 minute
-    { duration: '30s', target: 10 },  // Ramp up to 10 users
-    { duration: '1m', target: 10 },   // Stay at 10 users for 1 minute
-    { duration: '30s', target: 0 },   // Ramp down to 0 users
+    { duration: '30s', target: 5 }, // Ramp up to 5 users over 30s
+    { duration: '1m', target: 5 }, // Stay at 5 users for 1 minute
+    { duration: '30s', target: 10 }, // Ramp up to 10 users
+    { duration: '1m', target: 10 }, // Stay at 10 users for 1 minute
+    { duration: '30s', target: 0 }, // Ramp down to 0 users
   ],
   thresholds: {
     http_req_duration: ['p(95)<5000'], // 95% of requests should be below 5s
-    http_req_failed: ['rate<0.1'],     // Error rate should be below 10%
-    'rate_limit_hits': ['count<50'],   // Should not hit rate limits too often
+    http_req_failed: ['rate<0.1'], // Error rate should be below 10%
+    rate_limit_hits: ['count<50'], // Should not hit rate limits too often
   },
 };
 
@@ -55,12 +55,16 @@ let projectId = '';
  */
 export function setup() {
   // Sign in
-  const loginRes = http.post(`${BASE_URL}/auth/signin`, JSON.stringify({
-    email: TEST_EMAIL,
-    password: TEST_PASSWORD,
-  }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
+  const loginRes = http.post(
+    `${BASE_URL}/auth/signin`,
+    JSON.stringify({
+      email: TEST_EMAIL,
+      password: TEST_PASSWORD,
+    }),
+    {
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
 
   const cookies = loginRes.cookies;
   let authCookie = '';
@@ -71,21 +75,25 @@ export function setup() {
 
   // Get or create a test project
   const projectsRes = http.get(`${BASE_URL}/api/projects`, {
-    headers: { 'Cookie': authCookie },
+    headers: { Cookie: authCookie },
   });
 
   let projectId;
   if (projectsRes.json().length > 0) {
     projectId = projectsRes.json()[0].id;
   } else {
-    const createRes = http.post(`${BASE_URL}/api/projects`, JSON.stringify({
-      title: 'k6 Load Test Project',
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Cookie': authCookie,
-      },
-    });
+    const createRes = http.post(
+      `${BASE_URL}/api/projects`,
+      JSON.stringify({
+        title: 'k6 Load Test Project',
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: authCookie,
+        },
+      }
+    );
     projectId = createRes.json().id;
   }
 
@@ -95,12 +103,12 @@ export function setup() {
 /**
  * Main test function - runs for each VU iteration
  */
-export default function(data) {
+export default function (data) {
   const { authCookie, projectId } = data;
 
   const headers = {
     'Content-Type': 'application/json',
-    'Cookie': authCookie,
+    Cookie: authCookie,
   };
 
   // Test 1: Generate video
@@ -118,7 +126,7 @@ export default function(data) {
     prompt,
     projectId,
     provider: 'fal-ai', // Use faster provider for load tests
-    duration: 5,        // Short duration for faster tests
+    duration: 5, // Short duration for faster tests
   });
 
   const startTime = Date.now();
@@ -168,10 +176,9 @@ export default function(data) {
           sleep(2); // Wait 2 seconds between status checks
 
           const statusStart = Date.now();
-          const statusRes = http.get(
-            `${BASE_URL}/api/video/status?jobId=${body.jobId}`,
-            { headers }
-          );
+          const statusRes = http.get(`${BASE_URL}/api/video/status?jobId=${body.jobId}`, {
+            headers,
+          });
           statusCheckTime.add(Date.now() - statusStart);
 
           check(statusRes, {

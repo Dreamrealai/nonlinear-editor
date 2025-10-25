@@ -22,20 +22,26 @@ import {
 } from '@/test-utils/formDataHelpers';
 
 // Mock external services only
-jest.mock('@/lib/gemini', (): Record<string, unknown> => ({
-  chat: jest.fn(),
-}));
+jest.mock(
+  '@/lib/gemini',
+  (): Record<string, unknown> => ({
+    chat: jest.fn(),
+  })
+);
 
 // serverLogger is mocked globally in __mocks__/lib/serverLogger.ts
 
 // Mock audit log
-jest.mock('@/lib/auditLog', (): Record<string, unknown> => ({
-  auditSecurityEvent: jest.fn(),
-  auditRateLimitViolation: jest.fn(),
-  AuditAction: {
-    SECURITY_UNAUTHORIZED_ACCESS: 'SECURITY_UNAUTHORIZED_ACCESS',
-  },
-}));
+jest.mock(
+  '@/lib/auditLog',
+  (): Record<string, unknown> => ({
+    auditSecurityEvent: jest.fn(),
+    auditRateLimitViolation: jest.fn(),
+    AuditAction: {
+      SECURITY_UNAUTHORIZED_ACCESS: 'SECURITY_UNAUTHORIZED_ACCESS',
+    },
+  })
+);
 
 // Store current test user globally for Supabase client mock to access
 let currentTestUser: ReturnType<typeof createTestUser> | null = null;

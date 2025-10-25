@@ -35,17 +35,22 @@ supabase start
 ## Migration Files
 
 ### `20250101000000_init_schema.sql`
+
 Initial database schema including:
+
 - Core tables (projects, assets, scenes, timelines)
 - Keyframe editor tables (scene_frames, frame_edits)
 - Chat assistant tables
 - Storage buckets and RLS policies
 
 ### `20251022000000_fix_projects_rls.sql`
+
 Fixes for Row Level Security policies on projects table.
 
 ### `20250123000000_add_processing_jobs.sql`
+
 **NEW** - Processing jobs table for tracking async operations:
+
 - Tracks video generation, upscaling, audio generation, etc.
 - Job status tracking (pending, processing, completed, failed)
 - Provider integration (Google Veo, fal.ai, ElevenLabs, Suno)
@@ -57,6 +62,7 @@ Fixes for Row Level Security policies on projects table.
 ## Migration Order
 
 Migrations should be applied in chronological order (by filename timestamp):
+
 1. `20250101000000_init_schema.sql`
 2. `20251022000000_fix_projects_rls.sql`
 3. `20250123000000_add_processing_jobs.sql`

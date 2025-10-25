@@ -16,14 +16,17 @@ import { AssetVersionService, type AssetVersion } from '@/lib/services/assetVers
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 // Mock serverLogger
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      error: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+    },
+  })
+);
 
 describe('AssetVersionService', () => {
   let service: AssetVersionService;
@@ -139,9 +142,9 @@ describe('AssetVersionService', () => {
       });
 
       // Act & Assert
-      await expect(
-        service.createVersion('invalid-asset', 'user-456')
-      ).rejects.toThrow('Asset not found');
+      await expect(service.createVersion('invalid-asset', 'user-456')).rejects.toThrow(
+        'Asset not found'
+      );
     });
 
     it('should throw error if getting version number fails', async () => {
@@ -157,9 +160,9 @@ describe('AssetVersionService', () => {
       });
 
       // Act & Assert
-      await expect(
-        service.createVersion('asset-123', 'user-456')
-      ).rejects.toThrow('Failed to get version number');
+      await expect(service.createVersion('asset-123', 'user-456')).rejects.toThrow(
+        'Failed to get version number'
+      );
     });
 
     it('should throw error if storage copy fails', async () => {
@@ -179,9 +182,9 @@ describe('AssetVersionService', () => {
       });
 
       // Act & Assert
-      await expect(
-        service.createVersion('asset-123', 'user-456')
-      ).rejects.toThrow('Failed to copy asset file');
+      await expect(service.createVersion('asset-123', 'user-456')).rejects.toThrow(
+        'Failed to copy asset file'
+      );
     });
 
     it('should clean up storage on insert failure', async () => {
@@ -210,9 +213,9 @@ describe('AssetVersionService', () => {
       });
 
       // Act & Assert
-      await expect(
-        service.createVersion('asset-123', 'user-456')
-      ).rejects.toThrow('Failed to create version record');
+      await expect(service.createVersion('asset-123', 'user-456')).rejects.toThrow(
+        'Failed to create version record'
+      );
 
       expect(mockSupabase.storage.remove).toHaveBeenCalled();
     });
@@ -321,9 +324,9 @@ describe('AssetVersionService', () => {
       });
 
       // Act & Assert
-      await expect(
-        service.getVersionHistory('asset-123')
-      ).rejects.toThrow('Failed to fetch version history');
+      await expect(service.getVersionHistory('asset-123')).rejects.toThrow(
+        'Failed to fetch version history'
+      );
     });
   });
 
@@ -455,9 +458,9 @@ describe('AssetVersionService', () => {
       });
 
       // Act & Assert
-      await expect(
-        service.revertToVersion('asset-123', 'version-123', 'user-456')
-      ).rejects.toThrow('Asset not found');
+      await expect(service.revertToVersion('asset-123', 'version-123', 'user-456')).rejects.toThrow(
+        'Asset not found'
+      );
     });
 
     it('should throw error if copy fails during revert', async () => {
@@ -490,9 +493,9 @@ describe('AssetVersionService', () => {
         });
 
       // Act & Assert
-      await expect(
-        service.revertToVersion('asset-123', 'version-123', 'user-456')
-      ).rejects.toThrow('Failed to copy version file');
+      await expect(service.revertToVersion('asset-123', 'version-123', 'user-456')).rejects.toThrow(
+        'Failed to copy version file'
+      );
     });
 
     it('should throw error if update fails during revert', async () => {
@@ -529,9 +532,9 @@ describe('AssetVersionService', () => {
       });
 
       // Act & Assert
-      await expect(
-        service.revertToVersion('asset-123', 'version-123', 'user-456')
-      ).rejects.toThrow('Failed to update asset');
+      await expect(service.revertToVersion('asset-123', 'version-123', 'user-456')).rejects.toThrow(
+        'Failed to update asset'
+      );
     });
   });
 
@@ -589,9 +592,9 @@ describe('AssetVersionService', () => {
       });
 
       // Act & Assert
-      await expect(
-        service.getVersionDownloadUrl('invalid-version')
-      ).rejects.toThrow('Version not found');
+      await expect(service.getVersionDownloadUrl('invalid-version')).rejects.toThrow(
+        'Version not found'
+      );
     });
 
     it('should throw error if signed URL creation fails', async () => {
@@ -607,9 +610,9 @@ describe('AssetVersionService', () => {
       });
 
       // Act & Assert
-      await expect(
-        service.getVersionDownloadUrl('version-123')
-      ).rejects.toThrow('Failed to create signed URL');
+      await expect(service.getVersionDownloadUrl('version-123')).rejects.toThrow(
+        'Failed to create signed URL'
+      );
     });
   });
 
@@ -651,9 +654,7 @@ describe('AssetVersionService', () => {
       });
 
       // Act & Assert
-      await expect(
-        service.deleteVersion('invalid-version')
-      ).rejects.toThrow('Version not found');
+      await expect(service.deleteVersion('invalid-version')).rejects.toThrow('Version not found');
     });
 
     it('should continue with DB delete if storage delete fails', async () => {
@@ -701,9 +702,9 @@ describe('AssetVersionService', () => {
       });
 
       // Act & Assert
-      await expect(
-        service.deleteVersion('version-123')
-      ).rejects.toThrow('Failed to delete version');
+      await expect(service.deleteVersion('version-123')).rejects.toThrow(
+        'Failed to delete version'
+      );
     });
   });
 
@@ -746,9 +747,9 @@ describe('AssetVersionService', () => {
       });
 
       // Act & Assert
-      await expect(
-        service.getCurrentVersionNumber('invalid-asset')
-      ).rejects.toThrow('Asset not found');
+      await expect(service.getCurrentVersionNumber('invalid-asset')).rejects.toThrow(
+        'Asset not found'
+      );
     });
   });
 

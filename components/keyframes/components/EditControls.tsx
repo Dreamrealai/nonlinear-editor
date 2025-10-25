@@ -231,63 +231,65 @@ export function EditControls({
         />
         {refImages.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
-            {refImages.map((img): React.ReactElement => (
-              <div
-                key={img.id}
-                className="group relative h-14 w-14 overflow-hidden rounded border border-neutral-200 bg-neutral-50"
-              >
-                <Image
-                  src={img.previewUrl}
-                  alt="Reference"
-                  fill
-                  className="object-cover"
-                  sizes="56px"
-                />
-                {img.uploading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+            {refImages.map(
+              (img): React.ReactElement => (
+                <div
+                  key={img.id}
+                  className="group relative h-14 w-14 overflow-hidden rounded border border-neutral-200 bg-neutral-50"
+                >
+                  <Image
+                    src={img.previewUrl}
+                    alt="Reference"
+                    fill
+                    className="object-cover"
+                    sizes="56px"
+                  />
+                  {img.uploading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+                      <svg
+                        className="h-4 w-4 animate-spin text-neutral-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={(): void => onRemoveRefImage(img.id)}
+                    className="absolute -right-1 -top-1 h-4 w-4 rounded-full border border-neutral-200 bg-white text-neutral-600 opacity-0 transition-opacity hover:bg-neutral-100 group-hover:opacity-100"
+                    disabled={img.uploading}
+                  >
                     <svg
-                      className="h-4 w-4 animate-spin text-neutral-600"
+                      className="h-full w-full p-0.5"
                       fill="none"
                       viewBox="0 0 24 24"
+                      stroke="currentColor"
                     >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
                       <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
                       />
                     </svg>
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={(): void => onRemoveRefImage(img.id)}
-                  className="absolute -right-1 -top-1 h-4 w-4 rounded-full border border-neutral-200 bg-white text-neutral-600 opacity-0 transition-opacity hover:bg-neutral-100 group-hover:opacity-100"
-                  disabled={img.uploading}
-                >
-                  <svg
-                    className="h-full w-full p-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-            ))}
+                  </button>
+                </div>
+              )
+            )}
           </div>
         )}
       </div>

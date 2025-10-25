@@ -12,52 +12,70 @@ import {
 } from '@/test-utils/mockSupabase';
 
 // Mock the Supabase module
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+  })
+);
 
-jest.mock('@google/generative-ai', (): Record<string, unknown> => ({
-  GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
-    getGenerativeModel: jest.fn().mockReturnValue({
-      generateContent: jest.fn(),
+jest.mock(
+  '@google/generative-ai',
+  (): Record<string, unknown> => ({
+    GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
+      getGenerativeModel: jest.fn().mockReturnValue({
+        generateContent: jest.fn(),
+      }),
+    })),
+  })
+);
+
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    checkRateLimit: jest.fn().mockResolvedValue({
+      success: true,
+      limit: 10,
+      remaining: 9,
+      resetAt: Date.now() + 60_000,
     }),
-  })),
-}));
+    RATE_LIMITS: {
+      tier2_resource_creation: { max: 10, windowMs: 60_000 },
+    },
+  })
+);
 
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  checkRateLimit: jest.fn().mockResolvedValue({
-    success: true,
-    limit: 10,
-    remaining: 9,
-    resetAt: Date.now() + 60_000,
-  }),
-  RATE_LIMITS: {
-    tier2_resource_creation: { max: 10, windowMs: 60_000 },
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+    },
+  })
+);
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/auditLog',
+  (): Record<string, unknown> => ({
+    auditLog: jest.fn().mockResolvedValue(undefined),
+    auditSecurityEvent: jest.fn().mockResolvedValue(undefined),
+    AuditAction: {
+      FRAME_EDIT_REQUEST: 'frame_edit_request',
+      FRAME_EDIT_COMPLETE: 'frame_edit_complete',
+      FRAME_EDIT_FAILED: 'frame_edit_failed',
+      FRAME_EDIT_UNAUTHORIZED: 'frame_edit_unauthorized',
+    },
+  })
+);
 
-jest.mock('@/lib/auditLog', (): Record<string, unknown> => ({
-  auditLog: jest.fn().mockResolvedValue(undefined),
-  auditSecurityEvent: jest.fn().mockResolvedValue(undefined),
-  AuditAction: {
-    FRAME_EDIT_REQUEST: 'frame_edit_request',
-    FRAME_EDIT_COMPLETE: 'frame_edit_complete',
-    FRAME_EDIT_FAILED: 'frame_edit_failed',
-    FRAME_EDIT_UNAUTHORIZED: 'frame_edit_unauthorized',
-  },
-}));
-
-jest.mock('uuid', (): Record<string, unknown> => ({
-  v4: jest.fn(() => 'mock-edit-id'),
-}));
+jest.mock(
+  'uuid',
+  (): Record<string, unknown> => ({
+    v4: jest.fn(() => 'mock-edit-id'),
+  })
+);
 
 jest.mock('@/lib/api/withAuth', () => {
   const { mockWithAuth } = require('@/test-utils/mockWithAuth');
@@ -952,9 +970,7 @@ describe('POST /api/frames/[frameId]/edit', () => {
         error: null,
       });
 
-      mockSupabase.from
-        .mockReturnValueOnce(frameBuilder)
-        .mockReturnValueOnce(editsBuilder);
+      mockSupabase.from.mockReturnValueOnce(frameBuilder).mockReturnValueOnce(editsBuilder);
 
       mockGenerateContent.mockRejectedValue(new Error('Gemini API error'));
 

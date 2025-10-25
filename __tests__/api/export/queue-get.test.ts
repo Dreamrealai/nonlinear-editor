@@ -11,32 +11,44 @@ import {
   resetAllMocks,
 } from '@/__tests__/helpers/apiMocks';
 
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    return handler(req, { user, supabase, params: context?.params || {} });
-  }),
-}));
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return handler(req, { user, supabase, params: context?.params || {} });
+    }),
+  })
+);
 
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+  })
+);
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  RATE_LIMITS: { tier3_status_read: { requests: 60, window: 60 } },
-}));
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    RATE_LIMITS: { tier3_status_read: { requests: 60, window: 60 } },
+  })
+);
 
 describe('GET /api/export/queue', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
@@ -118,14 +130,32 @@ describe('GET /api/export/queue', () => {
       mockAuthenticatedUser(mockSupabase);
       mockSupabase.select.mockResolvedValue({
         data: [
-          { id: 'job-1', status: 'processing', progress_percentage: 50, priority: 10, config: {}, metadata: {}, created_at: '2024-01-01' },
-          { id: 'job-2', status: 'completed', progress_percentage: 100, priority: 5, config: {}, metadata: {}, created_at: '2024-01-01' },
+          {
+            id: 'job-1',
+            status: 'processing',
+            progress_percentage: 50,
+            priority: 10,
+            config: {},
+            metadata: {},
+            created_at: '2024-01-01',
+          },
+          {
+            id: 'job-2',
+            status: 'completed',
+            progress_percentage: 100,
+            priority: 5,
+            config: {},
+            metadata: {},
+            created_at: '2024-01-01',
+          },
         ],
         error: null,
       });
 
       const response = await GET(
-        new NextRequest('http://localhost/api/export/queue?includeCompleted=true', { method: 'GET' }),
+        new NextRequest('http://localhost/api/export/queue?includeCompleted=true', {
+          method: 'GET',
+        }),
         { params: Promise.resolve({}) }
       );
 

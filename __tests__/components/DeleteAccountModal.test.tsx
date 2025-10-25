@@ -27,7 +27,6 @@ jest.mock(
       open: boolean;
       onOpenChange: (open: boolean) => void;
     }) =>
-       
       open ? (
         <div
           data-testid="dialog"

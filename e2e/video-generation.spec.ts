@@ -246,12 +246,7 @@ test.describe('Video Generation Workflow', () => {
     await videoGenPage.durationSelect.selectOption('5');
 
     // Mock API error
-    await mockAPIResponse(
-      page,
-      '**/api/video/generate',
-      { error: 'Test error' },
-      500
-    );
+    await mockAPIResponse(page, '**/api/video/generate', { error: 'Test error' }, 500);
 
     // Attempt to generate
     await videoGenPage.generateButton.click();

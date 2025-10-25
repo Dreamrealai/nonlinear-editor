@@ -99,12 +99,7 @@ export function safeArrayLast<T>(array: T[] | readonly T[]): T | undefined {
  * isValidArrayIndex(arr, -1); // false
  */
 export function isValidArrayIndex<T>(array: T[] | readonly T[], index: number): boolean {
-  return (
-    Array.isArray(array) &&
-    Number.isInteger(index) &&
-    index >= 0 &&
-    index < array.length
-  );
+  return Array.isArray(array) && Number.isInteger(index) && index >= 0 && index < array.length;
 }
 
 /**
@@ -121,11 +116,7 @@ export function isValidArrayIndex<T>(array: T[] | readonly T[], index: number): 
  * safeArraySlice(arr, 1, 3); // [2, 3]
  * safeArraySlice(arr, -10, 100); // [1, 2, 3, 4, 5]
  */
-export function safeArraySlice<T>(
-  array: T[] | readonly T[],
-  start: number = 0,
-  end?: number
-): T[] {
+export function safeArraySlice<T>(array: T[] | readonly T[], start: number = 0, end?: number): T[] {
   if (!Array.isArray(array)) {
     return [];
   }
@@ -168,7 +159,7 @@ export function safeArrayMax(array: number[], defaultValue: number = 0): number 
     return defaultValue;
   }
 
-  const validNumbers = array.filter(n => typeof n === 'number' && Number.isFinite(n));
+  const validNumbers = array.filter((n) => typeof n === 'number' && Number.isFinite(n));
 
   if (validNumbers.length === 0) {
     return defaultValue;
@@ -190,7 +181,7 @@ export function safeArrayMin(array: number[], defaultValue: number = 0): number 
     return defaultValue;
   }
 
-  const validNumbers = array.filter(n => typeof n === 'number' && Number.isFinite(n));
+  const validNumbers = array.filter((n) => typeof n === 'number' && Number.isFinite(n));
 
   if (validNumbers.length === 0) {
     return defaultValue;

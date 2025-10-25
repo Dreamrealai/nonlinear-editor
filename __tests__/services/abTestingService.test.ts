@@ -22,13 +22,16 @@ import {
 import { analyticsService } from '@/lib/services/analyticsService';
 
 // Mock analytics service
-jest.mock('@/lib/services/analyticsService', (): Record<string, unknown> => ({
-  analyticsService: {
-    getFeatureFlag: jest.fn(),
-    isFeatureEnabled: jest.fn(),
-    track: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/services/analyticsService',
+  (): Record<string, unknown> => ({
+    analyticsService: {
+      getFeatureFlag: jest.fn(),
+      isFeatureEnabled: jest.fn(),
+      track: jest.fn(),
+    },
+  })
+);
 
 describe('ABTestingService', () => {
   let mockGetFeatureFlag: jest.MockedFunction<typeof analyticsService.getFeatureFlag>;

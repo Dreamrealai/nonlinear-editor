@@ -34,7 +34,11 @@ interface SectionTabsProps {
   onSectionChange: (section: SectionType) => void;
 }
 
-export function SectionTabs({ activeSection, hasAudio, onSectionChange }: SectionTabsProps): React.ReactElement {
+export function SectionTabs({
+  activeSection,
+  hasAudio,
+  onSectionChange,
+}: SectionTabsProps): React.ReactElement {
   return (
     <div className="mb-4 flex gap-2">
       <button

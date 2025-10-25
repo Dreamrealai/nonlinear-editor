@@ -302,6 +302,7 @@ TypeError: (0 , _requestDeduplication.deduplicatedFetch) is not a function
    - Test locally before committing
 
 3. **Run coverage report (30 minutes)**
+
    ```bash
    npm test -- --coverage
    ```

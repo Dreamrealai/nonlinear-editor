@@ -74,7 +74,7 @@ export function useImageInput(): UseImageInputReturn {
   }, []);
 
   // Handle paste events for images
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     const handlePaste = (e: ClipboardEvent): void => {
       const items = e.clipboardData?.items;
       if (!items) return;

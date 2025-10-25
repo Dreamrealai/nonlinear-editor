@@ -481,13 +481,20 @@ export function validateEnv(
 /**
  * Gets a list of all environment variables and their status
  */
-export function getEnvStatus(): { name: string; required: boolean; configured: boolean; description: string; }[] {
-  return ENV_VARS.map((config): { name: string; required: boolean; configured: boolean; description: string; } => ({
-    name: config.name,
-    required: config.required,
-    configured: !!process.env[config.name]?.trim(),
-    description: config.description,
-  }));
+export function getEnvStatus(): {
+  name: string;
+  required: boolean;
+  configured: boolean;
+  description: string;
+}[] {
+  return ENV_VARS.map(
+    (config): { name: string; required: boolean; configured: boolean; description: string } => ({
+      name: config.name,
+      required: config.required,
+      configured: !!process.env[config.name]?.trim(),
+      description: config.description,
+    })
+  );
 }
 
 /**

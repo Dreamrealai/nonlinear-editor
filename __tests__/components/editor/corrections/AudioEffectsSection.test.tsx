@@ -40,7 +40,7 @@ describe('AudioEffectsSection', () => {
     cleanup();
     // Wait for any pending async operations to complete
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     });
   });
 

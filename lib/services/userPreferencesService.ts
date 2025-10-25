@@ -80,12 +80,10 @@ export class UserPreferencesService {
         if (error) throw error;
       } else {
         // Insert new preferences
-        const { error } = await this.supabase
-          .from('user_preferences')
-          .insert({
-            user_id: userId,
-            keyboard_shortcuts: shortcuts,
-          });
+        const { error } = await this.supabase.from('user_preferences').insert({
+          user_id: userId,
+          keyboard_shortcuts: shortcuts,
+        });
 
         if (error) throw error;
       }

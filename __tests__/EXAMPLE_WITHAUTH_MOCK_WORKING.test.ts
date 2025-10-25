@@ -18,93 +18,113 @@ import { NextRequest } from 'next/server';
  * - 2-param: handler(request, authContext) - for static routes
  * - 3-param: handler(request, authContext, routeContext) - for dynamic routes
  */
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: (handler: any) => async (req: any, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: (handler: any) => async (req: any, context: any) => {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    }
+      if (!user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      }
 
-    const authContext = { user, supabase };
+      const authContext = { user, supabase };
 
-    // Determine handler signature based on presence of params
-    if (context?.params !== undefined) {
-      // 3-param: dynamic route like /api/projects/[projectId]
-      const routeContext = { params: context.params };
-      return handler(req, authContext, routeContext);
-    } else {
-      // 2-param: static route like /api/projects
-      return handler(req, authContext);
-    }
-  },
-}));
+      // Determine handler signature based on presence of params
+      if (context?.params !== undefined) {
+        // 3-param: dynamic route like /api/projects/[projectId]
+        const routeContext = { params: context.params };
+        return handler(req, authContext, routeContext);
+      } else {
+        // 2-param: static route like /api/projects
+        return handler(req, authContext);
+      }
+    },
+  })
+);
 
 /**
  * Mock Supabase - will be configured in beforeEach
  */
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+  })
+);
 
 /**
  * Mock serverLogger - inline definition
  */
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-    child: jest.fn((): Record<string, unknown> => ({
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
       info: jest.fn(),
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
-    })),
-  },
-}));
+      child: jest.fn(
+        (): Record<string, unknown> => ({
+          info: jest.fn(),
+          error: jest.fn(),
+          warn: jest.fn(),
+          debug: jest.fn(),
+        })
+      ),
+    },
+  })
+);
 
 /**
  * Mock rate limiting
  */
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  RATE_LIMITS: {
-    tier3_status_read: { requests: 60, window: 60 },
-    tier2_resource_creation: { requests: 10, window: 60 },
-  },
-}));
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    RATE_LIMITS: {
+      tier3_status_read: { requests: 60, window: 60 },
+      tier2_resource_creation: { requests: 10, window: 60 },
+    },
+  })
+);
 
 /**
  * Mock audit log
  */
-jest.mock('@/lib/auditLog', (): Record<string, unknown> => ({
-  auditSecurityEvent: jest.fn().mockResolvedValue(undefined),
-  auditRateLimitViolation: jest.fn().mockResolvedValue(undefined),
-  AuditAction: { SECURITY_UNAUTHORIZED_ACCESS: 'security.unauthorized_access' },
-}));
+jest.mock(
+  '@/lib/auditLog',
+  (): Record<string, unknown> => ({
+    auditSecurityEvent: jest.fn().mockResolvedValue(undefined),
+    auditRateLimitViolation: jest.fn().mockResolvedValue(undefined),
+    AuditAction: { SECURITY_UNAUTHORIZED_ACCESS: 'security.unauthorized_access' },
+  })
+);
 
 /**
  * Mock BackupService (example)
  */
-jest.mock('@/lib/services/backupService', (): Record<string, unknown> => ({
-  BackupService: jest.fn().mockImplementation(() => ({
-    listBackups: jest.fn().mockResolvedValue([
-      {
-        id: 'backup-1',
-        created_at: '2024-01-01',
-        backup_type: 'manual',
-        backup_name: 'Test Backup',
-      },
-    ]),
-    createBackup: jest.fn().mockResolvedValue({ id: 'new-backup', created_at: '2024-01-02' }),
-  })),
-}));
+jest.mock(
+  '@/lib/services/backupService',
+  (): Record<string, unknown> => ({
+    BackupService: jest.fn().mockImplementation(() => ({
+      listBackups: jest.fn().mockResolvedValue([
+        {
+          id: 'backup-1',
+          created_at: '2024-01-01',
+          backup_type: 'manual',
+          backup_name: 'Test Backup',
+        },
+      ]),
+      createBackup: jest.fn().mockResolvedValue({ id: 'new-backup', created_at: '2024-01-02' }),
+    })),
+  })
+);
 
 // Import routes AFTER all mocks (Jest hoists mocks anyway, but this is clearer)
 import { GET } from '@/app/api/projects/[projectId]/backups/route';

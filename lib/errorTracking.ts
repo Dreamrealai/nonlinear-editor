@@ -73,10 +73,7 @@ export interface ErrorContext {
 /**
  * Track an error to Axiom with context
  */
-export function trackError(
-  error: unknown,
-  options: ErrorContext = {}
-): void {
+export function trackError(error: unknown, options: ErrorContext = {}): void {
   const {
     category = ErrorCategory.UNKNOWN,
     severity = ErrorSeverity.MEDIUM,
@@ -226,10 +223,7 @@ export function trackPerformance(
 /**
  * Browser-only: Track user actions for analytics
  */
-export function trackAction(
-  action: string,
-  context: Record<string, unknown> = {}
-): void {
+export function trackAction(action: string, context: Record<string, unknown> = {}): void {
   if (typeof window === 'undefined') return;
 
   browserLogger.info(

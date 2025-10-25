@@ -11,12 +11,12 @@ This report documents the verification of **173 unique URLs** across 11 API docu
 
 ### Overall Statistics
 
-| Category | Count | Status |
-|----------|-------|--------|
-| ✅ Valid URLs (200 OK) | 68 | All working correctly |
-| 🔀 Redirected URLs (3xx) | 49 | Need updating to final URLs |
-| ❌ Broken URLs (4xx/5xx) | 53 | Need fixing or removal |
-| ⚠️  Timeout/Connection Errors | 3 | Example URLs (expected) |
+| Category                     | Count | Status                      |
+| ---------------------------- | ----- | --------------------------- |
+| ✅ Valid URLs (200 OK)       | 68    | All working correctly       |
+| 🔀 Redirected URLs (3xx)     | 49    | Need updating to final URLs |
+| ❌ Broken URLs (4xx/5xx)     | 53    | Need fixing or removal      |
+| ⚠️ Timeout/Connection Errors | 3     | Example URLs (expected)     |
 
 **Health Score:** 39% of links are valid without redirects
 **Action Required:** 59% of links need updating or fixing
@@ -29,13 +29,13 @@ This report documents the verification of **173 unique URLs** across 11 API docu
 
 These are base API URLs referenced throughout documentation that return errors:
 
-| URL | Status | Issue | Fix |
-|-----|--------|-------|-----|
-| `https://api.axiom.co` | 404 | Base URL not found | API moved or documentation outdated |
-| `https://api.eu.axiom.co` | 404 | EU endpoint not found | Verify correct EU region URL |
-| `https://api.elevenlabs.io/v1` | 404 | Version endpoint | This is expected - endpoints need paths |
-| `https://queue.fal.run` | 404 | Queue base URL | This is expected - needs model path |
-| `https://fal.run` | 404 | Sync API base | This is expected - needs model path |
+| URL                            | Status | Issue                 | Fix                                     |
+| ------------------------------ | ------ | --------------------- | --------------------------------------- |
+| `https://api.axiom.co`         | 404    | Base URL not found    | API moved or documentation outdated     |
+| `https://api.eu.axiom.co`      | 404    | EU endpoint not found | Verify correct EU region URL            |
+| `https://api.elevenlabs.io/v1` | 404    | Version endpoint      | This is expected - endpoints need paths |
+| `https://queue.fal.run`        | 404    | Queue base URL        | This is expected - needs model path     |
+| `https://fal.run`              | 404    | Sync API base         | This is expected - needs model path     |
 
 **Analysis:** Most "broken" API URLs are actually endpoints that require authentication or additional path segments. These are correctly documented as base URLs for API endpoint construction.
 
@@ -43,13 +43,13 @@ These are base API URLs referenced throughout documentation that return errors:
 
 These documentation URLs are actually broken and need fixing:
 
-| URL | Status | Issue | Recommended Fix |
-|-----|--------|-------|-----------------|
-| `https://resend.com/dashboard` | 404 | Page not found | Update to `https://resend.com/login` (redirects to dashboard after auth) |
-| `https://fal.ai/models/fal-ai/bytedance/seedance` | 404 | Model page not found | Model may have been renamed or removed - verify current URL |
-| `https://fal.ai/models/fal-ai/minimax/hailuo-0` | 404 | Incomplete URL | Should be `https://fal.ai/models/fal-ai/minimax/hailuo-02/standard/image-to-video` |
-| `https://github.com/supabase/supabase/tree/master/examples/auth/react-auth` | 404 | Repo path changed | Verify current examples path in Supabase repo |
-| `https://generativelanguage.googleapis.com/v1beta/*` | 404 | API endpoint | These are template URLs - correct for documentation |
+| URL                                                                         | Status | Issue                | Recommended Fix                                                                    |
+| --------------------------------------------------------------------------- | ------ | -------------------- | ---------------------------------------------------------------------------------- |
+| `https://resend.com/dashboard`                                              | 404    | Page not found       | Update to `https://resend.com/login` (redirects to dashboard after auth)           |
+| `https://fal.ai/models/fal-ai/bytedance/seedance`                           | 404    | Model page not found | Model may have been renamed or removed - verify current URL                        |
+| `https://fal.ai/models/fal-ai/minimax/hailuo-0`                             | 404    | Incomplete URL       | Should be `https://fal.ai/models/fal-ai/minimax/hailuo-02/standard/image-to-video` |
+| `https://github.com/supabase/supabase/tree/master/examples/auth/react-auth` | 404    | Repo path changed    | Verify current examples path in Supabase repo                                      |
+| `https://generativelanguage.googleapis.com/v1beta/*`                        | 404    | API endpoint         | These are template URLs - correct for documentation                                |
 
 ### 3. Google Vertex AI Template URLs (Expected)
 
@@ -69,17 +69,17 @@ These contain placeholders like `PROJECT_ID`, `LOCATION`, `MODEL_ID` and are exp
 
 These documentation links redirect and should be updated to their final destinations:
 
-| Original URL | → | Final URL | Priority |
-|--------------|---|-----------|----------|
-| `https://stripe.com/docs/api` | → | `https://docs.stripe.com/api` | High |
-| `https://stripe.com/docs/libraries` | → | `https://docs.stripe.com/sdks` | High |
-| `https://stripe.com/docs/stripe-cli` | → | `https://docs.stripe.com/stripe-cli` | High |
-| `https://stripe.com/docs/testing` | → | `https://docs.stripe.com/testing` | High |
-| `https://api.vercel.com` | → | `https://vercel.com/docs/rest-api/reference` | High |
-| `https://fal.ai/models` | → | `https://fal.ai/explore` | High |
-| `https://docs.fal.ai/errors/#error_type` | → | `https://docs.fal.ai/model-apis/errors` | Medium |
-| `https://twitter.com/supabase` | → | `https://x.com/supabase` | Low (brand change) |
-| `https://vercel.com/support` | → | `https://vercel.com/help` | Medium |
+| Original URL                             | →   | Final URL                                    | Priority           |
+| ---------------------------------------- | --- | -------------------------------------------- | ------------------ |
+| `https://stripe.com/docs/api`            | →   | `https://docs.stripe.com/api`                | High               |
+| `https://stripe.com/docs/libraries`      | →   | `https://docs.stripe.com/sdks`               | High               |
+| `https://stripe.com/docs/stripe-cli`     | →   | `https://docs.stripe.com/stripe-cli`         | High               |
+| `https://stripe.com/docs/testing`        | →   | `https://docs.stripe.com/testing`            | High               |
+| `https://api.vercel.com`                 | →   | `https://vercel.com/docs/rest-api/reference` | High               |
+| `https://fal.ai/models`                  | →   | `https://fal.ai/explore`                     | High               |
+| `https://docs.fal.ai/errors/#error_type` | →   | `https://docs.fal.ai/model-apis/errors`      | Medium             |
+| `https://twitter.com/supabase`           | →   | `https://x.com/supabase`                     | Low (brand change) |
+| `https://vercel.com/support`             | →   | `https://vercel.com/help`                    | Medium             |
 
 ### Authentication Redirects (Expected)
 
@@ -136,6 +136,7 @@ These endpoints correctly require authentication and return 401/403:
 - ✅ Webhook documentation is accurate
 
 **Action Items:**
+
 1. Update 4 documentation URLs to new docs.stripe.com domain
 2. Verify checkout session examples still work
 
@@ -149,6 +150,7 @@ These endpoints correctly require authentication and return 401/403:
 - ✅ All connection string examples are valid
 
 **Action Items:**
+
 1. Update social media links
 2. Update docs URLs to canonical paths
 
@@ -162,6 +164,7 @@ These endpoints correctly require authentication and return 401/403:
 - ✅ Error handling URLs are valid (after redirect)
 
 **Action Items:**
+
 1. Update models page URL to /explore
 2. Verify all model page URLs are current
 3. Update error docs URL to remove anchor
@@ -185,6 +188,7 @@ These endpoints correctly require authentication and return 401/403:
 - ✅ All documentation redirects work
 
 **Action Items:**
+
 1. Remove broken dashboard URL
 2. Document that dashboard requires authentication
 
@@ -197,6 +201,7 @@ These endpoints correctly require authentication and return 401/403:
 - ✅ Documentation URLs work correctly
 
 **Action Items:**
+
 1. Add note that API base URLs require endpoint paths
 2. Verify EU region URL is still correct
 
@@ -209,6 +214,7 @@ These endpoints correctly require authentication and return 401/403:
 - ✅ Documentation URLs work
 
 **Action Items:**
+
 1. Update API base URL reference to documentation
 
 ### Google Vertex AI
@@ -289,12 +295,13 @@ These endpoints correctly require authentication and return 401/403:
 ### ✅ Valid URLs (68 total)
 
 **Documentation Sites:**
+
 - ai.google.dev (5 URLs)
 - axiom.co/docs (3 URLs)
 - apidoc.cometapi.com (4 URLs)
 - cloud.google.com (5 URLs)
 - elevenlabs.io/docs (3 URLs)
-- github.com/* (7 URLs)
+- github.com/\* (7 URLs)
 - resend.com/docs (3 URLs)
 - supabase.com/docs (3 URLs)
 - And 35+ more documentation URLs
@@ -304,17 +311,21 @@ These endpoints correctly require authentication and return 401/403:
 ### 🔀 Redirected URLs (49 total)
 
 **Type 1: Domain Changes** (Stripe - 4 URLs)
-- All stripe.com/docs/* now at docs.stripe.com/*
+
+- All stripe.com/docs/_ now at docs.stripe.com/_
 
 **Type 2: Path Updates** (8 URLs)
+
 - Supabase docs restructured
 - FAL.AI models → explore
 - Vercel API → docs
 
 **Type 3: Authentication Required** (20 URLs)
+
 - Dashboard/admin pages redirect to login
 
 **Type 4: Minor URL Changes** (17 URLs)
+
 - Trailing slashes added
 - Anchors updated
 - Canonical paths enforced
@@ -322,17 +333,20 @@ These endpoints correctly require authentication and return 401/403:
 ### ❌ Broken URLs (53 total)
 
 **Category 1: Expected API Errors** (38 URLs)
+
 - 405 Method Not Allowed (POST/GET required)
 - 401 Unauthorized (API key required)
 - 403 Forbidden (auth required)
 - Template URLs with placeholders
 
 **Category 2: Actual Issues** (10 URLs)
+
 - 404 on documentation pages
 - Broken model URLs
 - Outdated repo paths
 
 **Category 3: Base URLs** (5 URLs)
+
 - API base URLs that require paths
 
 ---
@@ -340,12 +354,14 @@ These endpoints correctly require authentication and return 401/403:
 ## Testing Methodology
 
 ### Tools Used
+
 - `curl` with follow redirects (`-L`)
 - 10-second timeout per URL
 - User-Agent header for compatibility
 - Rate limiting (50ms delay between requests)
 
 ### URL Categories Tested
+
 1. **Documentation URLs** - Primary focus
 2. **API Base URLs** - Endpoint accessibility
 3. **Dashboard URLs** - Admin interface links
@@ -353,6 +369,7 @@ These endpoints correctly require authentication and return 401/403:
 5. **Social Media URLs** - Community links
 
 ### Exclusions
+
 - Template URLs with `{placeholders}`
 - Example URLs (example.com, etc.)
 - Variables like `$LOCATION`, `PROJECT_ID`

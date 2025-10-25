@@ -17,34 +17,46 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    return handler(req, { user, supabase, params: context?.params || {} });
-  }),
-}));
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return handler(req, { user, supabase, params: context?.params || {} });
+    }),
+  })
+);
 
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+  })
+);
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  RATE_LIMITS: { tier2_resource_creation: { requests: 10, window: 60 } },
-}));
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    RATE_LIMITS: { tier2_resource_creation: { requests: 10, window: 60 } },
+  })
+);
 
 describe('POST /api/export/queue/[jobId]/pause', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
@@ -66,7 +78,9 @@ describe('POST /api/export/queue/[jobId]/pause', () => {
       mockUnauthenticatedUser(mockSupabase);
 
       const response = await pauseJob(
-        new NextRequest(`http://localhost/api/export/queue/${validJobId}/pause`, { method: 'POST' }),
+        new NextRequest(`http://localhost/api/export/queue/${validJobId}/pause`, {
+          method: 'POST',
+        }),
         { params: Promise.resolve({ jobId: validJobId }) }
       );
 
@@ -95,7 +109,9 @@ describe('POST /api/export/queue/[jobId]/pause', () => {
       mockSupabase.single.mockResolvedValue({ data: null, error: { message: 'Not found' } });
 
       const response = await pauseJob(
-        new NextRequest(`http://localhost/api/export/queue/${validJobId}/pause`, { method: 'POST' }),
+        new NextRequest(`http://localhost/api/export/queue/${validJobId}/pause`, {
+          method: 'POST',
+        }),
         { params: Promise.resolve({ jobId: validJobId }) }
       );
 
@@ -107,7 +123,9 @@ describe('POST /api/export/queue/[jobId]/pause', () => {
       mockSupabase.single.mockResolvedValue({ data: null, error: null });
 
       const response = await pauseJob(
-        new NextRequest(`http://localhost/api/export/queue/${validJobId}/pause`, { method: 'POST' }),
+        new NextRequest(`http://localhost/api/export/queue/${validJobId}/pause`, {
+          method: 'POST',
+        }),
         { params: Promise.resolve({ jobId: validJobId }) }
       );
 
@@ -130,7 +148,9 @@ describe('POST /api/export/queue/[jobId]/pause', () => {
       });
 
       const response = await pauseJob(
-        new NextRequest(`http://localhost/api/export/queue/${validJobId}/pause`, { method: 'POST' }),
+        new NextRequest(`http://localhost/api/export/queue/${validJobId}/pause`, {
+          method: 'POST',
+        }),
         { params: Promise.resolve({ jobId: validJobId }) }
       );
 
@@ -155,7 +175,9 @@ describe('POST /api/export/queue/[jobId]/pause', () => {
       mockSupabase.eq.mockResolvedValue({ error: null });
 
       const response = await pauseJob(
-        new NextRequest(`http://localhost/api/export/queue/${validJobId}/pause`, { method: 'POST' }),
+        new NextRequest(`http://localhost/api/export/queue/${validJobId}/pause`, {
+          method: 'POST',
+        }),
         { params: Promise.resolve({ jobId: validJobId }) }
       );
 
@@ -180,7 +202,9 @@ describe('POST /api/export/queue/[jobId]/pause', () => {
       mockSupabase.eq.mockResolvedValue({ error: { message: 'Update failed' } });
 
       const response = await pauseJob(
-        new NextRequest(`http://localhost/api/export/queue/${validJobId}/pause`, { method: 'POST' }),
+        new NextRequest(`http://localhost/api/export/queue/${validJobId}/pause`, {
+          method: 'POST',
+        }),
         { params: Promise.resolve({ jobId: validJobId }) }
       );
 
@@ -209,7 +233,9 @@ describe('POST /api/export/queue/[jobId]/resume', () => {
       mockUnauthenticatedUser(mockSupabase);
 
       const response = await resumeJob(
-        new NextRequest(`http://localhost/api/export/queue/${validJobId}/resume`, { method: 'POST' }),
+        new NextRequest(`http://localhost/api/export/queue/${validJobId}/resume`, {
+          method: 'POST',
+        }),
         { params: Promise.resolve({ jobId: validJobId }) }
       );
 
@@ -231,7 +257,9 @@ describe('POST /api/export/queue/[jobId]/resume', () => {
       });
 
       const response = await resumeJob(
-        new NextRequest(`http://localhost/api/export/queue/${validJobId}/resume`, { method: 'POST' }),
+        new NextRequest(`http://localhost/api/export/queue/${validJobId}/resume`, {
+          method: 'POST',
+        }),
         { params: Promise.resolve({ jobId: validJobId }) }
       );
 
@@ -255,7 +283,9 @@ describe('POST /api/export/queue/[jobId]/resume', () => {
       mockSupabase.eq.mockResolvedValue({ error: null });
 
       const response = await resumeJob(
-        new NextRequest(`http://localhost/api/export/queue/${validJobId}/resume`, { method: 'POST' }),
+        new NextRequest(`http://localhost/api/export/queue/${validJobId}/resume`, {
+          method: 'POST',
+        }),
         { params: Promise.resolve({ jobId: validJobId }) }
       );
 

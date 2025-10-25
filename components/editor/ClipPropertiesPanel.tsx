@@ -1,6 +1,6 @@
 'use client';
 
-import React, {  useState, useEffect, useCallback  } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 import type { Clip } from '@/types/timeline';
@@ -23,7 +23,9 @@ const EMPTY_CLIPS_ARRAY: Clip[] = [];
 export function ClipPropertiesPanel(): React.ReactElement {
   const selectedClips = useEditorStore((state): Set<string> => state.selectedClipIds);
   const clips = useEditorStore((state): Clip[] => state.timeline?.clips ?? EMPTY_CLIPS_ARRAY);
-  const updateClipStore = useEditorStore((state): (id: string, patch: Partial<Clip>) => void => state.updateClip);
+  const updateClipStore = useEditorStore(
+    (state): ((id: string, patch: Partial<Clip>) => void) => state.updateClip
+  );
 
   // Stable reference for updateClip
   const updateClip = useCallback(
@@ -34,7 +36,8 @@ export function ClipPropertiesPanel(): React.ReactElement {
   );
 
   // Get first selected clip
-  const selectedClip = selectedClips.size > 0 ? clips.find((c): boolean => selectedClips.has(c.id)) : null;
+  const selectedClip =
+    selectedClips.size > 0 ? clips.find((c): boolean => selectedClips.has(c.id)) : null;
 
   // Local state for slider values (immediate feedback)
   const [localBrightness, setLocalBrightness] = useState(100);
@@ -298,25 +301,30 @@ export function ClipPropertiesPanel(): React.ReactElement {
                 { name: 'Pink', value: '#ec4899', color: '#ec4899' },
                 { name: 'Teal', value: '#14b8a6', color: '#14b8a6' },
                 { name: 'Indigo', value: '#6366f1', color: '#6366f1' },
-              ].map((preset): React.ReactElement => (
-                <button
-                  key={preset.name}
-                  type="button"
-                  onClick={(): void => { if (preset.value) updateClip(selectedClip.id, { color: preset.value }); }}
-                  className={`h-8 rounded border-2 transition-all hover:scale-110 ${
-                    selectedClip.color === preset.value
-                      ? 'border-white ring-2 ring-white/50'
-                      : 'border-gray-600 hover:border-gray-400'
-                  } ${preset.value === undefined ? 'border-dashed' : ''}`}
-                  style={{
-                    backgroundColor: preset.color,
-                    backgroundImage: preset.value === undefined
-                      ? 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)'
-                      : undefined
-                  }}
-                  title={preset.name}
-                />
-              ))}
+              ].map(
+                (preset): React.ReactElement => (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={(): void => {
+                      if (preset.value) updateClip(selectedClip.id, { color: preset.value });
+                    }}
+                    className={`h-8 rounded border-2 transition-all hover:scale-110 ${
+                      selectedClip.color === preset.value
+                        ? 'border-white ring-2 ring-white/50'
+                        : 'border-gray-600 hover:border-gray-400'
+                    } ${preset.value === undefined ? 'border-dashed' : ''}`}
+                    style={{
+                      backgroundColor: preset.color,
+                      backgroundImage:
+                        preset.value === undefined
+                          ? 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)'
+                          : undefined,
+                    }}
+                    title={preset.name}
+                  />
+                )
+              )}
             </div>
           </div>
 
@@ -354,7 +362,7 @@ export function ClipPropertiesPanel(): React.ReactElement {
                 className="h-12 rounded border-2 border-gray-600 flex items-center justify-center text-xs text-white font-medium shadow-inner"
                 style={{
                   backgroundColor: selectedClip.color,
-                  backgroundImage: `linear-gradient(135deg, ${selectedClip.color}dd 0%, ${selectedClip.color} 100%)`
+                  backgroundImage: `linear-gradient(135deg, ${selectedClip.color}dd 0%, ${selectedClip.color} 100%)`,
                 }}
               >
                 Clip Color Label

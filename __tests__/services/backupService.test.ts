@@ -243,9 +243,7 @@ describe('BackupService', () => {
       });
 
       // Act & Assert
-      await expect(
-        service.listBackups('project-123')
-      ).rejects.toThrow(HttpError);
+      await expect(service.listBackups('project-123')).rejects.toThrow(HttpError);
     });
   });
 
@@ -274,9 +272,7 @@ describe('BackupService', () => {
       });
 
       // Act & Assert
-      await expect(
-        service.getBackup('invalid-backup')
-      ).rejects.toThrow(HttpError);
+      await expect(service.getBackup('invalid-backup')).rejects.toThrow(HttpError);
     });
   });
 
@@ -414,9 +410,7 @@ describe('BackupService', () => {
       });
 
       // Act & Assert
-      await expect(
-        service.deleteBackup('backup-123')
-      ).rejects.toThrow(HttpError);
+      await expect(service.deleteBackup('backup-123')).rejects.toThrow(HttpError);
     });
   });
 
@@ -696,7 +690,9 @@ describe('BackupService', () => {
 
       // Assert
       const insertCall = mockSupabase.insert.mock.calls[0][0];
-      expect(insertCall.backup_name).toMatch(/^Manual Backup - \d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}$/);
+      expect(insertCall.backup_name).toMatch(
+        /^Manual Backup - \d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}$/
+      );
     });
   });
 });

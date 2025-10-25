@@ -38,23 +38,29 @@ import {
 import { cache } from '@/lib/cache';
 
 // Mock error tracking
-jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
-  trackError: jest.fn(),
-  ErrorCategory: {
-    DATABASE: 'database',
-    EXTERNAL_SERVICE: 'external_service',
-  },
-  ErrorSeverity: {
-    HIGH: 'high',
-    MEDIUM: 'medium',
-  },
-}));
+jest.mock(
+  '@/lib/errorTracking',
+  (): Record<string, unknown> => ({
+    trackError: jest.fn(),
+    ErrorCategory: {
+      DATABASE: 'database',
+      EXTERNAL_SERVICE: 'external_service',
+    },
+    ErrorSeverity: {
+      HIGH: 'high',
+      MEDIUM: 'medium',
+    },
+  })
+);
 
 // Mock cache invalidation
-jest.mock('@/lib/cacheInvalidation', (): Record<string, unknown> => ({
-  invalidateProjectCache: jest.fn(),
-  invalidateUserProjects: jest.fn(),
-}));
+jest.mock(
+  '@/lib/cacheInvalidation',
+  (): Record<string, unknown> => ({
+    invalidateProjectCache: jest.fn(),
+    invalidateUserProjects: jest.fn(),
+  })
+);
 
 describe('Integration: Video Editor Workflow', () => {
   let env: ReturnType<typeof createTestEnvironment>;

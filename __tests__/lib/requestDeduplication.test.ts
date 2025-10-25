@@ -14,12 +14,15 @@ import {
 } from '@/lib/requestDeduplication';
 
 // Mock browserLogger
-jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
-  browserLogger: {
-    debug: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/browserLogger',
+  (): Record<string, unknown> => ({
+    browserLogger: {
+      debug: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 // Mock global fetch
 global.fetch = jest.fn();

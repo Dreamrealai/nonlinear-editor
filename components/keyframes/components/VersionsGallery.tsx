@@ -55,32 +55,34 @@ export function VersionsGallery({ edits }: VersionsGalleryProps): React.ReactEle
       </div>
       {edits.length ? (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-          {edits.map((edit): React.ReactElement => (
-            <div key={edit.id} className="space-y-1.5">
-              <div className="relative aspect-[4/3] overflow-hidden rounded border border-neutral-200 bg-neutral-50">
-                {edit.url ? (
-                  <Image
-                    src={edit.url}
-                    alt={`Version ${edit.version}`}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-[9px] text-neutral-400">
-                    ...
-                  </div>
-                )}
+          {edits.map(
+            (edit): React.ReactElement => (
+              <div key={edit.id} className="space-y-1.5">
+                <div className="relative aspect-[4/3] overflow-hidden rounded border border-neutral-200 bg-neutral-50">
+                  {edit.url ? (
+                    <Image
+                      src={edit.url}
+                      alt={`Version ${edit.version}`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-[9px] text-neutral-400">
+                      ...
+                    </div>
+                  )}
+                </div>
+                <p className="text-[10px] font-medium text-neutral-900">v{edit.version}</p>
+                <p className="truncate text-[9px] text-neutral-500" title={edit.prompt}>
+                  {edit.prompt}
+                </p>
+                <p className="text-[9px] text-neutral-400">
+                  {new Date(edit.created_at).toLocaleDateString()}
+                </p>
               </div>
-              <p className="text-[10px] font-medium text-neutral-900">v{edit.version}</p>
-              <p className="truncate text-[9px] text-neutral-500" title={edit.prompt}>
-                {edit.prompt}
-              </p>
-              <p className="text-[9px] text-neutral-400">
-                {new Date(edit.created_at).toLocaleDateString()}
-              </p>
-            </div>
-          ))}
+            )
+          )}
         </div>
       ) : (
         <div className="rounded border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center">

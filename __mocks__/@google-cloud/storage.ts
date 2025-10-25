@@ -17,9 +17,7 @@ export class Storage {
     // Mock constructor
   }
 
-  bucket(
-    _name: string
-  ): {
+  bucket(_name: string): {
     file: (_filename: string) => unknown;
     upload: typeof mockUpload;
     getFiles: jest.Mock;

@@ -21,15 +21,26 @@ function fixFile(filePath) {
     let line = lines[i];
 
     // Pattern 1: withErrorHandling: (handler: any) => handler
-    if (line.includes('withErrorHandling:') && line.includes('(handler:') && line.includes(') =>') && !line.includes(': (handler:')) {
-      line = line.replace(/withErrorHandling:\s*\(handler:\s*any\)\s*=>/g, 'withErrorHandling: (handler: any): any =>');
+    if (
+      line.includes('withErrorHandling:') &&
+      line.includes('(handler:') &&
+      line.includes(') =>') &&
+      !line.includes(': (handler:')
+    ) {
+      line = line.replace(
+        /withErrorHandling:\s*\(handler:\s*any\)\s*=>/g,
+        'withErrorHandling: (handler: any): any =>'
+      );
       modified = true;
     }
 
     // Pattern 2: Mock child functions like child: jest.fn(() => ({
     // Match: child: jest.fn(() => ({
     if (line.match(/^\s+child:\s+jest\.fn\(\s*\(\s*\)\s*=>\s*\(\{/)) {
-      line = line.replace(/child:\s+jest\.fn\(\s*\(\s*\)\s*=>/g, 'child: jest.fn((): Record<string, unknown> =>');
+      line = line.replace(
+        /child:\s+jest\.fn\(\s*\(\s*\)\s*=>/g,
+        'child: jest.fn((): Record<string, unknown> =>'
+      );
       modified = true;
     }
 
@@ -47,7 +58,10 @@ function fixFile(filePath) {
     // Pattern 5: Test helper functions at module level
     // const createMockX = () => ({ ... })
     if (line.match(/^const\s+\w+\s*=\s*\(\s*\)\s*=>\s*\(\{/) && !line.includes('): ')) {
-      line = line.replace(/^(const\s+\w+)\s*=\s*\(\s*\)\s*=>/g, '$1 = (): Record<string, unknown> =>');
+      line = line.replace(
+        /^(const\s+\w+)\s*=\s*\(\s*\)\s*=>/g,
+        '$1 = (): Record<string, unknown> =>'
+      );
       modified = true;
     }
 

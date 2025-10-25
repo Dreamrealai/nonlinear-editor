@@ -9,6 +9,7 @@
 ## Overview
 
 This consolidation will:
+
 - **Reduce root directory files** from 21 to 2
 - **Eliminate duplicates** by merging 15+ similar files
 - **Archive historical reports** to proper locations
@@ -20,12 +21,14 @@ This consolidation will:
 ## Quick Statistics
 
 ### Current State
+
 - **Total .md files**: 191
 - **Root directory**: 21 files (too many!)
 - **docs/ directory**: 126 files
 - **Issues**: Duplicates, unclear structure, agent reports in root
 
 ### Target State
+
 - **Total .md files**: ~120 (37% reduction)
 - **Root directory**: 2 files (README.md, CLAUDE.md)
 - **docs/ directory**: ~100 files (organized)
@@ -36,6 +39,7 @@ This consolidation will:
 ## Files at a Glance
 
 ### What Gets Archived
+
 ```
 ✓ Agent reports (AGENT1, AGENT5, AGENT9, etc.) → archive/agent-reports/
 ✓ Old bundle optimization reports → archive/deprecated/
@@ -45,6 +49,7 @@ This consolidation will:
 ```
 
 ### What Gets Merged
+
 ```
 ✓ PERFORMANCE.md + PERFORMANCE_OPTIMIZATION.md → docs/guides/PERFORMANCE.md
 ✓ CACHING.md + 3 caching reports → docs/guides/CACHING.md
@@ -54,6 +59,7 @@ This consolidation will:
 ```
 
 ### What Stays (Updated Links)
+
 ```
 ✓ README.md (root) - Main project README
 ✓ CLAUDE.md (root) - Project memory
@@ -102,6 +108,7 @@ git push origin docs-consolidation
 ### Option 2: Manual Execution
 
 Follow the detailed plan in `DOCUMENTATION_CONSOLIDATION_STRATEGY.md`:
+
 - Week 1: Preparation
 - Week 2: Execution (5 phases)
 - Week 3: Verification
@@ -111,17 +118,20 @@ Follow the detailed plan in `DOCUMENTATION_CONSOLIDATION_STRATEGY.md`:
 ## Safety Features
 
 ### Backups
+
 - Automatic backup created before any changes
 - Git branch protection (work in `docs-consolidation` branch)
 - Rollback capability at any phase
 
 ### Verification
+
 - Link checker runs automatically
 - Directory structure validation
 - README.md presence checks
 - File count tracking
 
 ### Git Safety
+
 ```bash
 # Before starting
 git checkout -b docs-consolidation
@@ -142,26 +152,31 @@ git reset --hard docs-v1.0-phaseX
 The following require manual review and merging:
 
 ### 1. Performance Documentation
+
 **Files**: `PERFORMANCE.md` + `PERFORMANCE_OPTIMIZATION.md`
 **Action**: Merge into `docs/guides/PERFORMANCE.md`
 **Focus**: Combine sections, remove duplicates, maintain examples
 
 ### 2. Caching Documentation
+
 **Files**: `CACHING.md` + `reports/CACHING_STRATEGY.md` + `reports/CACHING_IMPLEMENTATION.md` + `reports/CACHING_SUMMARY.md`
 **Action**: Merge into `docs/guides/CACHING.md`
 **Focus**: Consolidate patterns, update examples, single source of truth
 
 ### 3. Environment Variables
+
 **Files**: `setup/ENVIRONMENT_VARIABLES.md` + `setup/ENV_VARIABLES_SUMMARY.md`
 **Action**: Merge into `docs/getting-started/ENVIRONMENT_VARIABLES.md`
 **Focus**: Complete variable list, usage examples, clear descriptions
 
 ### 4. Google API Documentation
+
 **Files**: 8 files across `google-ai-apis/` and `api/`
 **Action**: Consolidate into `docs/api/providers/google/` (4 files)
 **Focus**: Organize by service (Gemini, Veo, Imagen, Vertex AI)
 
 ### 5. Security Audits
+
 **Files**: `SECURITY_AUDIT_REPORT.md` + `security/SECURITY_AUDIT.md`
 **Action**: Keep latest in `docs/security/SECURITY_AUDIT.md`, archive old
 **Focus**: Most recent audit findings
@@ -171,6 +186,7 @@ The following require manual review and merging:
 ## Expected Results
 
 ### Before
+
 ```
 /
 ├── README.md
@@ -195,6 +211,7 @@ The following require manual review and merging:
 ```
 
 ### After
+
 ```
 /
 ├── README.md                    # ✓ Updated links
@@ -223,17 +240,20 @@ The following require manual review and merging:
 ## Timeline
 
 ### Fast Track (1 Week)
+
 - **Day 1**: Run automated script phases
 - **Day 2-3**: Complete manual merges
 - **Day 4**: Update links and verify
 - **Day 5**: Review, commit, merge PR
 
 ### Standard (3 Weeks)
+
 - **Week 1**: Preparation, directory setup, planning
 - **Week 2**: Execute phases, manual merges
 - **Week 3**: Verification, updates, finalization
 
 ### Conservative (4 Weeks)
+
 - Add extra week for peer review and iterative improvements
 
 ---
@@ -241,6 +261,7 @@ The following require manual review and merging:
 ## Success Criteria
 
 ### Must Have
+
 - [x] All files accounted for (none lost)
 - [x] No broken links
 - [x] Clear directory structure
@@ -248,12 +269,14 @@ The following require manual review and merging:
 - [x] Root directory has only 2 .md files
 
 ### Should Have
+
 - [x] All duplicates merged
 - [x] Historical reports archived
 - [x] API docs organized by provider
 - [x] Updated main README.md and CLAUDE.md
 
 ### Nice to Have
+
 - [x] Link checker passes
 - [x] Automated migration script works
 - [x] CHANGELOG.md tracks changes
@@ -263,18 +286,23 @@ The following require manual review and merging:
 ## Common Issues & Solutions
 
 ### Issue: "Script fails on git mv"
+
 **Solution**: File may already be moved or not exist. Check `git status` and skip that file.
 
 ### Issue: "Merge conflicts"
+
 **Solution**: Work in clean branch. If conflicts, resolve manually and continue.
 
 ### Issue: "Broken links after consolidation"
+
 **Solution**: Run `./scripts/consolidate-docs.sh verify` to find broken links. Update manually.
 
 ### Issue: "Lost track of changes"
+
 **Solution**: Check git log. Each phase creates a commit. Revert to previous phase if needed.
 
 ### Issue: "README.md files incomplete"
+
 **Solution**: Use provided templates in DOCUMENTATION_CONSOLIDATION_STRATEGY.md Appendix B.
 
 ---
@@ -293,12 +321,14 @@ The following require manual review and merging:
 ## Need Help?
 
 ### Resources
+
 - **Full Strategy**: `DOCUMENTATION_CONSOLIDATION_STRATEGY.md`
 - **Automation Script**: `scripts/consolidate-docs.sh`
 - **Merge Checklist**: Generated by script in Phase 3
 - **Link Updates**: Automated in Phase 4
 
 ### Support
+
 - Review detailed mapping tables in strategy document
 - Check Appendices for templates and examples
 - Refer to risk mitigation section for troubleshooting

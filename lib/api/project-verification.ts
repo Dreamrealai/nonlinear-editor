@@ -71,12 +71,15 @@ export async function verifyProjectOwnership(
       .single();
 
     if (projectError || !project || typeof project === 'string') {
-      serverLogger.warn({
-        event: 'project.verification.failed',
-        projectId,
-        userId,
-        error: projectError?.message,
-      }, 'Project verification failed - not found or access denied');
+      serverLogger.warn(
+        {
+          event: 'project.verification.failed',
+          projectId,
+          userId,
+          error: projectError?.message,
+        },
+        'Project verification failed - not found or access denied'
+      );
 
       return {
         hasAccess: false,
@@ -85,23 +88,29 @@ export async function verifyProjectOwnership(
       };
     }
 
-    serverLogger.debug({
-      event: 'project.verification.success',
-      projectId,
-      userId,
-    }, 'Project ownership verified');
+    serverLogger.debug(
+      {
+        event: 'project.verification.success',
+        projectId,
+        userId,
+      },
+      'Project ownership verified'
+    );
 
     return {
       hasAccess: true,
       project,
     };
   } catch (error) {
-    serverLogger.error({
-      event: 'project.verification.error',
-      projectId,
-      userId,
-      error,
-    }, 'Error verifying project ownership');
+    serverLogger.error(
+      {
+        event: 'project.verification.error',
+        projectId,
+        userId,
+        error,
+      },
+      'Error verifying project ownership'
+    );
 
     return {
       hasAccess: false,
@@ -149,11 +158,14 @@ export async function verifyProjectExists(
       .maybeSingle();
 
     if (projectError || !project || typeof project === 'string') {
-      serverLogger.warn({
-        event: 'project.exists.failed',
-        projectId,
-        error: projectError?.message,
-      }, 'Project not found');
+      serverLogger.warn(
+        {
+          event: 'project.exists.failed',
+          projectId,
+          error: projectError?.message,
+        },
+        'Project not found'
+      );
 
       return {
         hasAccess: false,
@@ -167,11 +179,14 @@ export async function verifyProjectExists(
       project,
     };
   } catch (error) {
-    serverLogger.error({
-      event: 'project.exists.error',
-      projectId,
-      error,
-    }, 'Error checking project existence');
+    serverLogger.error(
+      {
+        event: 'project.exists.error',
+        projectId,
+        error,
+      },
+      'Error checking project existence'
+    );
 
     return {
       hasAccess: false,
@@ -240,12 +255,15 @@ export async function verifyAssetOwnership(
       .single();
 
     if (assetError || !asset || typeof asset === 'string') {
-      serverLogger.warn({
-        event: 'asset.verification.failed',
-        assetId,
-        userId,
-        error: assetError?.message,
-      }, 'Asset verification failed - not found or access denied');
+      serverLogger.warn(
+        {
+          event: 'asset.verification.failed',
+          assetId,
+          userId,
+          error: assetError?.message,
+        },
+        'Asset verification failed - not found or access denied'
+      );
 
       return {
         hasAccess: false,
@@ -254,23 +272,29 @@ export async function verifyAssetOwnership(
       };
     }
 
-    serverLogger.debug({
-      event: 'asset.verification.success',
-      assetId,
-      userId,
-    }, 'Asset ownership verified');
+    serverLogger.debug(
+      {
+        event: 'asset.verification.success',
+        assetId,
+        userId,
+      },
+      'Asset ownership verified'
+    );
 
     return {
       hasAccess: true,
       asset,
     };
   } catch (error) {
-    serverLogger.error({
-      event: 'asset.verification.error',
-      assetId,
-      userId,
-      error,
-    }, 'Error verifying asset ownership');
+    serverLogger.error(
+      {
+        event: 'asset.verification.error',
+        assetId,
+        userId,
+        error,
+      },
+      'Error verifying asset ownership'
+    );
 
     return {
       hasAccess: false,
@@ -321,12 +345,15 @@ export async function verifyMultipleProjects(
       .eq('user_id', userId);
 
     if (projectError) {
-      serverLogger.error({
-        event: 'projects.batch_verification.error',
-        projectIds,
-        userId,
-        error: projectError.message,
-      }, 'Error in batch project verification');
+      serverLogger.error(
+        {
+          event: 'projects.batch_verification.error',
+          projectIds,
+          userId,
+          error: projectError.message,
+        },
+        'Error in batch project verification'
+      );
 
       // Mark all as failed
       for (const projectId of projectIds) {
@@ -340,14 +367,14 @@ export async function verifyMultipleProjects(
     }
 
     // Create a Set of found project IDs for quick lookup
-    const foundProjectIds = new Set((projects || []).map(p => p.id));
+    const foundProjectIds = new Set((projects || []).map((p) => p.id));
 
     // Build results map
     for (const projectId of projectIds) {
       if (foundProjectIds.has(projectId)) {
         results.set(projectId, {
           hasAccess: true,
-          project: projects!.find(p => p.id === projectId),
+          project: projects!.find((p) => p.id === projectId),
         });
       } else {
         results.set(projectId, {
@@ -360,12 +387,15 @@ export async function verifyMultipleProjects(
 
     return results;
   } catch (error) {
-    serverLogger.error({
-      event: 'projects.batch_verification.exception',
-      projectIds,
-      userId,
-      error,
-    }, 'Exception in batch project verification');
+    serverLogger.error(
+      {
+        event: 'projects.batch_verification.exception',
+        projectIds,
+        userId,
+        error,
+      },
+      'Exception in batch project verification'
+    );
 
     // Mark all as failed
     for (const projectId of projectIds) {

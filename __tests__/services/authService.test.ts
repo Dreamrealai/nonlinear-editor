@@ -17,45 +17,54 @@ import { cache, CacheKeys, CacheTTL } from '@/lib/cache';
 import { invalidateUserCache, invalidateUserProfile } from '@/lib/cacheInvalidation';
 
 // Mock external modules
-jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
-  trackError: jest.fn(),
-  ErrorCategory: {
-    AUTH: 'auth',
-    DATABASE: 'database',
-    EXTERNAL_SERVICE: 'external_service',
-  },
-  ErrorSeverity: {
-    HIGH: 'high',
-    MEDIUM: 'medium',
-    LOW: 'low',
-  },
-}));
+jest.mock(
+  '@/lib/errorTracking',
+  (): Record<string, unknown> => ({
+    trackError: jest.fn(),
+    ErrorCategory: {
+      AUTH: 'auth',
+      DATABASE: 'database',
+      EXTERNAL_SERVICE: 'external_service',
+    },
+    ErrorSeverity: {
+      HIGH: 'high',
+      MEDIUM: 'medium',
+      LOW: 'low',
+    },
+  })
+);
 
-jest.mock('@/lib/cache', (): Record<string, unknown> => ({
-  cache: {
-    get: jest.fn(),
-    set: jest.fn(),
-    del: jest.fn(),
-    delPattern: jest.fn(),
-    clear: jest.fn(),
-    getStats: jest.fn(),
-  },
-  CacheKeys: {
-    userProfile: (userId: string) => `user:profile:${userId}`,
-    userSettings: (userId: string) => `user:settings:${userId}`,
-    userSubscription: (userId: string) => `user:subscription:${userId}`,
-    projectMetadata: (projectId: string) => `project:metadata:${projectId}`,
-    userProjects: (userId: string) => `user:projects:${userId}`,
-  },
-  CacheTTL: {
-    userProfile: 300, // 5 minutes
-  },
-}));
+jest.mock(
+  '@/lib/cache',
+  (): Record<string, unknown> => ({
+    cache: {
+      get: jest.fn(),
+      set: jest.fn(),
+      del: jest.fn(),
+      delPattern: jest.fn(),
+      clear: jest.fn(),
+      getStats: jest.fn(),
+    },
+    CacheKeys: {
+      userProfile: (userId: string) => `user:profile:${userId}`,
+      userSettings: (userId: string) => `user:settings:${userId}`,
+      userSubscription: (userId: string) => `user:subscription:${userId}`,
+      projectMetadata: (projectId: string) => `project:metadata:${projectId}`,
+      userProjects: (userId: string) => `user:projects:${userId}`,
+    },
+    CacheTTL: {
+      userProfile: 300, // 5 minutes
+    },
+  })
+);
 
-jest.mock('@/lib/cacheInvalidation', (): Record<string, unknown> => ({
-  invalidateUserCache: jest.fn(),
-  invalidateUserProfile: jest.fn(),
-}));
+jest.mock(
+  '@/lib/cacheInvalidation',
+  (): Record<string, unknown> => ({
+    invalidateUserCache: jest.fn(),
+    invalidateUserProfile: jest.fn(),
+  })
+);
 
 describe('AuthService', () => {
   let mockSupabase: jest.Mocked<SupabaseClient>;

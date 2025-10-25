@@ -37,9 +37,9 @@ test.describe('Timeline Grid Settings', () => {
   test.describe('Grid Settings Panel', () => {
     test('should open grid settings panel on button click', async ({ page }) => {
       // Find and click grid settings button
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
 
       await expect(gridButton).toBeVisible({ timeout: 5000 });
       await gridButton.click();
@@ -51,9 +51,9 @@ test.describe('Timeline Grid Settings', () => {
 
     test('should close panel when clicking outside', async ({ page }) => {
       // Open panel
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
       const panel = page.locator('.absolute.left-0.top-full').filter({ hasText: 'Grid Settings' });
@@ -69,9 +69,9 @@ test.describe('Timeline Grid Settings', () => {
 
     test('should close panel when clicking backdrop', async ({ page }) => {
       // Open panel
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
       const panel = page.locator('.absolute.left-0.top-full').filter({ hasText: 'Grid Settings' });
@@ -87,9 +87,9 @@ test.describe('Timeline Grid Settings', () => {
 
     test('should display keyboard shortcut hint', async ({ page }) => {
       // Open panel
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
       // Check for keyboard shortcut display
@@ -101,15 +101,15 @@ test.describe('Timeline Grid Settings', () => {
   test.describe('Snap Toggle', () => {
     test('should toggle snap on and off', async ({ page }) => {
       // Open panel
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
       // Find snap toggle button
-      const snapToggle = page.locator('button:has-text("Snap On")').or(
-        page.locator('button:has-text("Snap Off")')
-      );
+      const snapToggle = page
+        .locator('button:has-text("Snap On")')
+        .or(page.locator('button:has-text("Snap Off")'));
       await expect(snapToggle).toBeVisible();
 
       const initialText = await snapToggle.textContent();
@@ -126,14 +126,14 @@ test.describe('Timeline Grid Settings', () => {
     test('should toggle snap with Cmd+Shift+S shortcut on Mac', async ({ page, browserName }) => {
       if (browserName === 'webkit') {
         // Open panel to see initial state
-        const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-          page.locator('button:has-text("Grid")')
-        );
+        const gridButton = page
+          .locator('button[aria-label="Grid settings"]')
+          .or(page.locator('button:has-text("Grid")'));
         await gridButton.click();
 
-        const snapToggle = page.locator('button:has-text("Snap On")').or(
-          page.locator('button:has-text("Snap Off")')
-        );
+        const snapToggle = page
+          .locator('button:has-text("Snap On")')
+          .or(page.locator('button:has-text("Snap Off")'));
         const initialText = await snapToggle.textContent();
 
         // Close panel
@@ -152,17 +152,20 @@ test.describe('Timeline Grid Settings', () => {
       }
     });
 
-    test('should toggle snap with Ctrl+Shift+S shortcut on Windows/Linux', async ({ page, browserName }) => {
+    test('should toggle snap with Ctrl+Shift+S shortcut on Windows/Linux', async ({
+      page,
+      browserName,
+    }) => {
       if (browserName !== 'webkit') {
         // Open panel to see initial state
-        const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-          page.locator('button:has-text("Grid")')
-        );
+        const gridButton = page
+          .locator('button[aria-label="Grid settings"]')
+          .or(page.locator('button:has-text("Grid")'));
         await gridButton.click();
 
-        const snapToggle = page.locator('button:has-text("Snap On")').or(
-          page.locator('button:has-text("Snap Off")')
-        );
+        const snapToggle = page
+          .locator('button:has-text("Snap On")')
+          .or(page.locator('button:has-text("Snap Off")'));
         const initialText = await snapToggle.textContent();
 
         // Close panel
@@ -183,15 +186,15 @@ test.describe('Timeline Grid Settings', () => {
 
     test('should show snap state in grid button', async ({ page }) => {
       // Open panel
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
       // Toggle snap on
-      const snapToggle = page.locator('button:has-text("Snap On")').or(
-        page.locator('button:has-text("Snap Off")')
-      );
+      const snapToggle = page
+        .locator('button:has-text("Snap On")')
+        .or(page.locator('button:has-text("Snap Off")'));
 
       // Ensure snap is on
       const snapText = await snapToggle.textContent();
@@ -221,9 +224,9 @@ test.describe('Timeline Grid Settings', () => {
     for (const preset of presets) {
       test(`should select ${preset.label} preset`, async ({ page }) => {
         // Open panel
-        const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-          page.locator('button:has-text("Grid")')
-        );
+        const gridButton = page
+          .locator('button[aria-label="Grid settings"]')
+          .or(page.locator('button:has-text("Grid")'));
         await gridButton.click();
 
         // Click preset button
@@ -244,9 +247,9 @@ test.describe('Timeline Grid Settings', () => {
 
     test('should show current interval in grid button', async ({ page }) => {
       // Open panel
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
       // Select a preset
@@ -264,9 +267,9 @@ test.describe('Timeline Grid Settings', () => {
 
     test('should highlight only one preset at a time', async ({ page }) => {
       // Open panel
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
       // Select first preset
@@ -289,15 +292,15 @@ test.describe('Timeline Grid Settings', () => {
   test.describe('Custom Interval', () => {
     test('should accept custom interval input', async ({ page }) => {
       // Open panel
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
       // Find custom interval input
-      const customInput = page.locator('input[aria-label="Custom grid interval"]').or(
-        page.locator('input[type="number"]')
-      );
+      const customInput = page
+        .locator('input[aria-label="Custom grid interval"]')
+        .or(page.locator('input[type="number"]'));
       await expect(customInput).toBeVisible();
 
       // Enter custom value
@@ -319,15 +322,15 @@ test.describe('Timeline Grid Settings', () => {
 
     test('should submit custom interval with Enter key', async ({ page }) => {
       // Open panel
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
       // Enter custom value
-      const customInput = page.locator('input[aria-label="Custom grid interval"]').or(
-        page.locator('input[type="number"]')
-      );
+      const customInput = page
+        .locator('input[aria-label="Custom grid interval"]')
+        .or(page.locator('input[type="number"]'));
       await customInput.fill('3.14');
       await customInput.press('Enter');
       await page.waitForTimeout(300);
@@ -340,15 +343,15 @@ test.describe('Timeline Grid Settings', () => {
 
     test('should validate minimum interval (0.01s)', async ({ page }) => {
       // Open panel
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
       // Try to set value below minimum
-      const customInput = page.locator('input[aria-label="Custom grid interval"]').or(
-        page.locator('input[type="number"]')
-      );
+      const customInput = page
+        .locator('input[aria-label="Custom grid interval"]')
+        .or(page.locator('input[type="number"]'));
       await customInput.fill('0.005');
 
       const setButton = page.locator('button:has-text("Set")');
@@ -363,15 +366,15 @@ test.describe('Timeline Grid Settings', () => {
 
     test('should validate maximum interval (10s)', async ({ page }) => {
       // Open panel
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
       // Try to set value above maximum
-      const customInput = page.locator('input[aria-label="Custom grid interval"]').or(
-        page.locator('input[type="number"]')
-      );
+      const customInput = page
+        .locator('input[aria-label="Custom grid interval"]')
+        .or(page.locator('input[type="number"]'));
       await customInput.fill('15');
 
       const setButton = page.locator('button:has-text("Set")');
@@ -385,15 +388,15 @@ test.describe('Timeline Grid Settings', () => {
 
     test('should clear invalid input', async ({ page }) => {
       // Open panel
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
       // Enter invalid value
-      const customInput = page.locator('input[aria-label="Custom grid interval"]').or(
-        page.locator('input[type="number"]')
-      );
+      const customInput = page
+        .locator('input[aria-label="Custom grid interval"]')
+        .or(page.locator('input[type="number"]'));
       await customInput.fill('abc');
 
       const setButton = page.locator('button:has-text("Set")');
@@ -407,9 +410,9 @@ test.describe('Timeline Grid Settings', () => {
 
     test('should disable Set button when input is empty', async ({ page }) => {
       // Open panel
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
       // Set button should be disabled when input is empty
@@ -417,9 +420,9 @@ test.describe('Timeline Grid Settings', () => {
       await expect(setButton).toBeDisabled({ timeout: 2000 });
 
       // Enter value
-      const customInput = page.locator('input[aria-label="Custom grid interval"]').or(
-        page.locator('input[type="number"]')
-      );
+      const customInput = page
+        .locator('input[aria-label="Custom grid interval"]')
+        .or(page.locator('input[type="number"]'));
       await customInput.fill('2');
 
       // Set button should be enabled
@@ -430,14 +433,14 @@ test.describe('Timeline Grid Settings', () => {
   test.describe('Settings Persistence', () => {
     test('should persist snap state across page reloads', async ({ page }) => {
       // Open panel and enable snap
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
-      const snapToggle = page.locator('button:has-text("Snap On")').or(
-        page.locator('button:has-text("Snap Off")')
-      );
+      const snapToggle = page
+        .locator('button:has-text("Snap On")')
+        .or(page.locator('button:has-text("Snap Off")'));
 
       // Ensure snap is on
       const snapText = await snapToggle.textContent();
@@ -463,14 +466,14 @@ test.describe('Timeline Grid Settings', () => {
 
     test('should persist grid interval across page reloads', async ({ page }) => {
       // Open panel and set custom interval
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
-      const customInput = page.locator('input[aria-label="Custom grid interval"]').or(
-        page.locator('input[type="number"]')
-      );
+      const customInput = page
+        .locator('input[aria-label="Custom grid interval"]')
+        .or(page.locator('input[type="number"]'));
       await customInput.fill('4.2');
       await customInput.press('Enter');
       await page.waitForTimeout(300);
@@ -489,15 +492,15 @@ test.describe('Timeline Grid Settings', () => {
 
     test('should persist settings in Zustand store', async ({ page }) => {
       // Open panel and configure settings
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
       // Enable snap
-      const snapToggle = page.locator('button:has-text("Snap On")').or(
-        page.locator('button:has-text("Snap Off")')
-      );
+      const snapToggle = page
+        .locator('button:has-text("Snap On")')
+        .or(page.locator('button:has-text("Snap Off")'));
       const snapText = await snapToggle.textContent();
       if (snapText?.includes('Off')) {
         await snapToggle.click();
@@ -524,14 +527,14 @@ test.describe('Timeline Grid Settings', () => {
   test.describe('Grid Visual Feedback', () => {
     test('should show grid lines when snap is enabled', async ({ page }) => {
       // Open panel and enable snap
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
-      const snapToggle = page.locator('button:has-text("Snap On")').or(
-        page.locator('button:has-text("Snap Off")')
-      );
+      const snapToggle = page
+        .locator('button:has-text("Snap On")')
+        .or(page.locator('button:has-text("Snap Off")'));
 
       const snapText = await snapToggle.textContent();
       if (snapText?.includes('Off')) {
@@ -550,9 +553,9 @@ test.describe('Timeline Grid Settings', () => {
 
     test('should update grid lines when interval changes', async ({ page }) => {
       // Open panel
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
       await gridButton.click();
 
       // Set different intervals and verify timeline updates
@@ -575,9 +578,9 @@ test.describe('Timeline Grid Settings', () => {
 
   test.describe('Accessibility', () => {
     test('should have proper ARIA attributes', async ({ page }) => {
-      const gridButton = page.locator('button[aria-label="Grid settings"]').or(
-        page.locator('button:has-text("Grid")')
-      );
+      const gridButton = page
+        .locator('button[aria-label="Grid settings"]')
+        .or(page.locator('button:has-text("Grid")'));
 
       // Button should have aria-label
       await expect(gridButton).toHaveAttribute('aria-label', 'Grid settings');

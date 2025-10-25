@@ -5,33 +5,39 @@
 import { NextRequest } from 'next/server';
 import { POST, GET } from '@/app/api/feedback/route';
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    error: jest.fn(),
-  },
-}));
-
-jest.mock('@supabase/supabase-js', (): Record<string, unknown> => ({
-  createClient: jest.fn(() => ({
-    auth: {
-      getUser: jest.fn().mockResolvedValue({
-        data: { user: { id: 'test-user-id' } },
-        error: null,
-      }),
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      error: jest.fn(),
     },
-    from: jest.fn(() => ({
-      insert: jest.fn().mockResolvedValue({
-        data: null,
+  })
+);
+
+jest.mock(
+  '@supabase/supabase-js',
+  (): Record<string, unknown> => ({
+    createClient: jest.fn(() => ({
+      auth: {
+        getUser: jest.fn().mockResolvedValue({
+          data: { user: { id: 'test-user-id' } },
+          error: null,
+        }),
+      },
+      from: jest.fn(() => ({
+        insert: jest.fn().mockResolvedValue({
+          data: null,
+          error: null,
+        }),
+      })),
+      rpc: jest.fn().mockResolvedValue({
+        data: { total: 100, by_type: {}, by_sentiment: {} },
         error: null,
       }),
     })),
-    rpc: jest.fn().mockResolvedValue({
-      data: { total: 100, by_type: {}, by_sentiment: {} },
-      error: null,
-    }),
-  })),
-}));
+  })
+);
 
 describe('POST /api/feedback', () => {
   beforeEach((): void => {

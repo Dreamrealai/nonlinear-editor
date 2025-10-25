@@ -143,7 +143,9 @@ export function useImageUpload({
       const items = event.clipboardData?.items;
       if (!items) return;
 
-      const imageItems = Array.from(items).filter((item): boolean => item.type.startsWith('image/'));
+      const imageItems = Array.from(items).filter((item): boolean =>
+        item.type.startsWith('image/')
+      );
       if (imageItems.length === 0) return;
 
       const target = event.target as HTMLElement;

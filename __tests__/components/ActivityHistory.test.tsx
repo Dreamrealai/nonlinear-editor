@@ -8,20 +8,26 @@ import toast from 'react-hot-toast';
 // Mock the SupabaseProvider
 const mockSupabaseClient = {};
 
-jest.mock('@/components/providers/SupabaseProvider', (): Record<string, unknown> => ({
-  useSupabase: (): Record<string, unknown> => ({
-    supabaseClient: mockSupabaseClient,
-  }),
-}));
+jest.mock(
+  '@/components/providers/SupabaseProvider',
+  (): Record<string, unknown> => ({
+    useSupabase: (): Record<string, unknown> => ({
+      supabaseClient: mockSupabaseClient,
+    }),
+  })
+);
 
 // Mock react-hot-toast
-jest.mock('react-hot-toast', (): Record<string, unknown> => ({
-  __esModule: true,
-  default: {
-    success: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  'react-hot-toast',
+  (): Record<string, unknown> => ({
+    __esModule: true,
+    default: {
+      success: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 // Mock fetch
 global.fetch = jest.fn();

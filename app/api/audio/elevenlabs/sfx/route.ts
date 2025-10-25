@@ -157,5 +157,8 @@ export const POST = createGenerationRoute<SFXGenerateRequest, SFXGenerateRespons
     validateUUID(body.projectId as string, 'projectId');
   },
   execute: executeSFXGeneration,
-  formatResponse: (result): NextResponse<SFXGenerateResponse | SuccessResponse<SFXGenerateResponse>> => successResponse(result),
+  formatResponse: (
+    result
+  ): NextResponse<SFXGenerateResponse | SuccessResponse<SFXGenerateResponse>> =>
+    successResponse(result),
 });

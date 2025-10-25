@@ -13,20 +13,20 @@
  * Edit modes supported by the timeline editor
  */
 export type EditMode =
-  | 'normal'    // Standard trim - affects only the selected clip
-  | 'ripple'    // Trim and ripple - moves all following clips on the same track
-  | 'roll'      // Roll edit - adjusts boundary between two adjacent clips
-  | 'slip'      // Slip edit - changes in/out points without moving timeline position
-  | 'slide';    // Slide edit - moves clip, adjusting adjacent clips' durations
+  | 'normal' // Standard trim - affects only the selected clip
+  | 'ripple' // Trim and ripple - moves all following clips on the same track
+  | 'roll' // Roll edit - adjusts boundary between two adjacent clips
+  | 'slip' // Slip edit - changes in/out points without moving timeline position
+  | 'slide'; // Slide edit - moves clip, adjusting adjacent clips' durations
 
 /**
  * Keyboard modifiers that change edit mode behavior
  */
 export type EditModeModifiers = {
-  shift: boolean;   // Enables ripple mode
-  alt: boolean;     // Enables roll mode
-  cmd: boolean;     // Enables slip mode
-  ctrl: boolean;    // Alternative for cmd on non-Mac
+  shift: boolean; // Enables ripple mode
+  alt: boolean; // Enables roll mode
+  cmd: boolean; // Enables slip mode
+  ctrl: boolean; // Alternative for cmd on non-Mac
 };
 
 /**

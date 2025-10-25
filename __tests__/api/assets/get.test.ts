@@ -16,51 +16,63 @@ import {
 let mockSupabaseForAuth: any = null;
 
 // Mock modules
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(() => mockSupabaseForAuth),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(() => mockSupabaseForAuth),
+  })
+);
 
 // Mock withAuth wrapper that properly handles authentication
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: (handler: any, options: any) => async (req: any, context: any) => {
-    const supabase = mockSupabaseForAuth;
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: (handler: any, options: any) => async (req: any, context: any) => {
+      const supabase = mockSupabaseForAuth;
 
-    if (!supabase) {
-      return new Response(JSON.stringify({ error: 'Internal server error' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+      if (!supabase) {
+        return new Response(JSON.stringify({ error: 'Internal server error' }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+      if (!user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
 
-    return handler(req, { user, supabase });
-  },
-}));
+      return handler(req, { user, supabase });
+    },
+  })
+);
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    error: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      error: jest.fn(),
+      info: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    },
+  })
+);
 
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  RATE_LIMITS: {
-    tier3_status_read: { requests: 30, window: 60 },
-  },
-}));
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    RATE_LIMITS: {
+      tier3_status_read: { requests: 30, window: 60 },
+    },
+  })
+);
 
 describe('GET /api/assets', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;

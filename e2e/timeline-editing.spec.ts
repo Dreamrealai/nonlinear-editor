@@ -83,8 +83,7 @@ test.describe('Timeline Editing', () => {
 
     // Find and click generate video button/link
     const generateLink =
-      page.locator('a[href*="video-gen"]').first() ||
-      page.locator('text=Generate Video').first();
+      page.locator('a[href*="video-gen"]').first() || page.locator('text=Generate Video').first();
 
     if ((await generateLink.count()) > 0) {
       await generateLink.click();
@@ -119,10 +118,7 @@ test.describe('Timeline Editing', () => {
     expect(page.url()).toContain('/timeline');
 
     // Test other routes if they exist
-    const routes = [
-      '/editor/${projectId}/keyframe',
-      '/editor/${projectId}/generate-audio',
-    ];
+    const routes = ['/editor/${projectId}/keyframe', '/editor/${projectId}/generate-audio'];
 
     for (const route of routes) {
       const testRoute = route.replace('${projectId}', projectId);
@@ -205,9 +201,7 @@ test.describe('Timeline Editing', () => {
 
     // Should not have critical JavaScript errors
     const criticalErrors = errors.filter(
-      (err) =>
-        err.toLowerCase().includes('undefined') ||
-        err.toLowerCase().includes('null')
+      (err) => err.toLowerCase().includes('undefined') || err.toLowerCase().includes('null')
     );
 
     expect(criticalErrors.length).toBe(0);

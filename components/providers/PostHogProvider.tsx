@@ -25,7 +25,7 @@
 
 'use client';
 
-import React, {  useEffect  } from 'react';
+import React, { useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { analyticsService } from '@/lib/services/analyticsService';
 
@@ -45,9 +45,7 @@ export function PostHogProvider({ children }: PostHogProviderProps): React.React
   // Track page views on route change
   useEffect((): void => {
     if (pathname) {
-      const url = searchParams?.toString()
-        ? `${pathname}?${searchParams.toString()}`
-        : pathname;
+      const url = searchParams?.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
 
       analyticsService.trackPageView(url);
     }

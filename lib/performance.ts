@@ -143,9 +143,7 @@ export function createPerformanceTimer(
 /**
  * Get performance statistics for a category
  */
-export function getPerformanceStats(
-  category: PerformanceCategory
-): {
+export function getPerformanceStats(category: PerformanceCategory): {
   count: number;
   avg: number;
   min: number;

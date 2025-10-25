@@ -228,22 +228,24 @@ export function VideoEffectsSection({
         </h4>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-          {VIDEO_EFFECT_PRESETS.map((preset): React.ReactElement => (
-            <button
-              key={preset.name}
-              type="button"
-              onClick={(): void => onPresetApply(preset)}
-              className="group relative flex flex-col items-center gap-1.5 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 p-3 text-center transition hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:shadow-md"
-              title={preset.description}
-            >
-              <span className="text-2xl" role="img" aria-label={preset.name}>
-                {preset.icon}
-              </span>
-              <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300 group-hover:text-purple-700 dark:group-hover:text-purple-300">
-                {preset.name}
-              </span>
-            </button>
-          ))}
+          {VIDEO_EFFECT_PRESETS.map(
+            (preset): React.ReactElement => (
+              <button
+                key={preset.name}
+                type="button"
+                onClick={(): void => onPresetApply(preset)}
+                className="group relative flex flex-col items-center gap-1.5 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 p-3 text-center transition hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:shadow-md"
+                title={preset.description}
+              >
+                <span className="text-2xl" role="img" aria-label={preset.name}>
+                  {preset.icon}
+                </span>
+                <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300 group-hover:text-purple-700 dark:group-hover:text-purple-300">
+                  {preset.name}
+                </span>
+              </button>
+            )
+          )}
         </div>
       </div>
 
@@ -450,7 +452,13 @@ export function VideoEffectsSection({
                 style={{ accentColor: '#3b82f6' }}
               />
               <p className="mt-1 text-[10px] text-neutral-600 dark:text-neutral-400">
-                {blur === 0 ? 'No blur' : blur < 5 ? 'Soft focus' : blur < 10 ? 'Medium blur' : 'Heavy blur'}
+                {blur === 0
+                  ? 'No blur'
+                  : blur < 5
+                    ? 'Soft focus'
+                    : blur < 10
+                      ? 'Medium blur'
+                      : 'Heavy blur'}
               </p>
             </div>
           </div>

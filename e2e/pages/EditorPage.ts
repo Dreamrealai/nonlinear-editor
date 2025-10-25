@@ -62,12 +62,16 @@ export class EditorPage {
   }
 
   async getClipCount(): Promise<number> {
-    const clips = this.page.locator('[data-testid="timeline-clip"]').or(this.page.locator('.timeline-clip'));
+    const clips = this.page
+      .locator('[data-testid="timeline-clip"]')
+      .or(this.page.locator('.timeline-clip'));
     return await clips.count();
   }
 
   async deleteClip(index: number) {
-    const clips = this.page.locator('[data-testid="timeline-clip"]').or(this.page.locator('.timeline-clip'));
+    const clips = this.page
+      .locator('[data-testid="timeline-clip"]')
+      .or(this.page.locator('.timeline-clip'));
     const clip = clips.nth(index);
     await clip.hover();
     const deleteButton = clip.locator('text=Delete').or(clip.locator('[aria-label="Delete"]'));
@@ -75,7 +79,9 @@ export class EditorPage {
   }
 
   async moveClip(index: number, targetIndex: number) {
-    const clips = this.page.locator('[data-testid="timeline-clip"]').or(this.page.locator('.timeline-clip'));
+    const clips = this.page
+      .locator('[data-testid="timeline-clip"]')
+      .or(this.page.locator('.timeline-clip'));
     const sourceClip = clips.nth(index);
     const targetClip = clips.nth(targetIndex);
 

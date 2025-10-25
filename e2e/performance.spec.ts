@@ -42,7 +42,9 @@ test.describe('Performance & Load Testing', () => {
       expect(loadTime).toBeLessThan(5000);
 
       // Page should be functional
-      await expect(page.locator('[data-testid="timeline"], .timeline')).toBeVisible({ timeout: 3000 });
+      await expect(page.locator('[data-testid="timeline"], .timeline')).toBeVisible({
+        timeout: 3000,
+      });
     });
 
     test('should handle project with 1000+ assets', async ({ page }) => {
@@ -117,7 +119,9 @@ test.describe('Performance & Load Testing', () => {
 
       // Get performance metrics
       const metrics = await page.evaluate(() => {
-        const perfData = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+        const perfData = performance.getEntriesByType(
+          'navigation'
+        )[0] as PerformanceNavigationTiming;
         return {
           domContentLoaded: perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart,
           loadComplete: perfData.loadEventEnd - perfData.loadEventStart,
@@ -251,7 +255,7 @@ test.describe('Performance & Load Testing', () => {
 
       // Mock API responses for all
       for (const p of pages) {
-        await p.route('**/api/video/generate', route => {
+        await p.route('**/api/video/generate', (route) => {
           route.fulfill({
             status: 200,
             contentType: 'application/json',
@@ -269,7 +273,9 @@ test.describe('Performance & Load Testing', () => {
       await Promise.all(
         pages.map(async (p, i) => {
           await p.goto(`/video-gen?projectId=${projectIds[i]}`);
-          const prompt = p.locator('textarea[name="prompt"], textarea[placeholder*="prompt" i]').first();
+          const prompt = p
+            .locator('textarea[name="prompt"], textarea[placeholder*="prompt" i]')
+            .first();
           if (await prompt.isVisible({ timeout: 2000 })) {
             await prompt.fill(`Concurrent test ${i + 1}`);
             await p.locator('button:has-text("Generate")').first().click();
@@ -328,13 +334,16 @@ test.describe('Performance & Load Testing', () => {
 
       // Mock upload endpoint
       let uploadCount = 0;
-      await page.route('**/api/assets/upload', route => {
+      await page.route('**/api/assets/upload', (route) => {
         uploadCount++;
         setTimeout(() => {
           route.fulfill({
             status: 200,
             contentType: 'application/json',
-            body: JSON.stringify({ id: `asset-${uploadCount}`, url: `http://test.com/asset-${uploadCount}` }),
+            body: JSON.stringify({
+              id: `asset-${uploadCount}`,
+              url: `http://test.com/asset-${uploadCount}`,
+            }),
           });
         }, 500); // Simulate slow upload
       });
@@ -546,7 +555,10 @@ test.describe('Performance & Load Testing', () => {
       await page.waitForTimeout(2000);
 
       const isSignIn = page.url().includes('signin');
-      const sessionExpired = await page.locator('text=/session.*expired|sign.*in.*again/i').isVisible({ timeout: 2000 }).catch(() => false);
+      const sessionExpired = await page
+        .locator('text=/session.*expired|sign.*in.*again/i')
+        .isVisible({ timeout: 2000 })
+        .catch(() => false);
 
       expect(isSignIn || sessionExpired).toBeTruthy();
     });
@@ -598,7 +610,7 @@ test.describe('Performance & Load Testing', () => {
       // Check for deferred scripts
       const scripts = await page.evaluate(() => {
         const scriptElements = Array.from(document.querySelectorAll('script'));
-        return scriptElements.map(script => ({
+        return scriptElements.map((script) => ({
           defer: script.defer,
           async: script.async,
         }));
@@ -607,7 +619,7 @@ test.describe('Performance & Load Testing', () => {
       console.log('Script loading strategies:', scripts);
 
       // Should have some deferred or async scripts
-      const optimizedScripts = scripts.filter(s => s.defer || s.async);
+      const optimizedScripts = scripts.filter((s) => s.defer || s.async);
       expect(optimizedScripts.length >= 0).toBe(true);
     });
   });

@@ -32,60 +32,78 @@ import {
 import { cache } from '@/lib/cache';
 
 // Mock the error tracking module
-jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
-  trackError: jest.fn(),
-  ErrorCategory: {
-    DATABASE: 'database',
-    EXTERNAL_SERVICE: 'external_service',
-  },
-  ErrorSeverity: {
-    HIGH: 'high',
-    MEDIUM: 'medium',
-  },
-}));
+jest.mock(
+  '@/lib/errorTracking',
+  (): Record<string, unknown> => ({
+    trackError: jest.fn(),
+    ErrorCategory: {
+      DATABASE: 'database',
+      EXTERNAL_SERVICE: 'external_service',
+    },
+    ErrorSeverity: {
+      HIGH: 'high',
+      MEDIUM: 'medium',
+    },
+  })
+);
 
 // Mock serverLogger
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 // Mock video generation modules
-jest.mock('@/lib/veo', (): Record<string, unknown> => ({
-  generateVideo: jest.fn(),
-  checkOperationStatus: jest.fn(),
-}));
+jest.mock(
+  '@/lib/veo',
+  (): Record<string, unknown> => ({
+    generateVideo: jest.fn(),
+    checkOperationStatus: jest.fn(),
+  })
+);
 
-jest.mock('@/lib/fal-video', (): Record<string, unknown> => ({
-  generateFalVideo: jest.fn(),
-  checkFalVideoStatus: jest.fn(),
-}));
+jest.mock(
+  '@/lib/fal-video',
+  (): Record<string, unknown> => ({
+    generateFalVideo: jest.fn(),
+    checkFalVideoStatus: jest.fn(),
+  })
+);
 
 // Mock Google Auth Library to avoid real JWT signing
-jest.mock('google-auth-library', (): Record<string, unknown> => ({
-  GoogleAuth: jest.fn().mockImplementation(() => ({
-    getClient: jest.fn().mockResolvedValue({
-      getAccessToken: jest.fn().mockResolvedValue({
-        token: 'mock-access-token',
+jest.mock(
+  'google-auth-library',
+  (): Record<string, unknown> => ({
+    GoogleAuth: jest.fn().mockImplementation(() => ({
+      getClient: jest.fn().mockResolvedValue({
+        getAccessToken: jest.fn().mockResolvedValue({
+          token: 'mock-access-token',
+        }),
       }),
-    }),
-  })),
-}));
+    })),
+  })
+);
 
 // Mock Google Cloud Storage for GCS video download tests
-jest.mock('@google-cloud/storage', (): Record<string, unknown> => ({
-  Storage: jest.fn().mockImplementation(() => ({
-    bucket: jest.fn().mockReturnValue({
-      file: jest.fn().mockReturnValue({
-        download: jest.fn().mockResolvedValue([Buffer.from('mock-gcs-video-data')]),
+jest.mock(
+  '@google-cloud/storage',
+  (): Record<string, unknown> => ({
+    Storage: jest.fn().mockImplementation(() => ({
+      bucket: jest.fn().mockReturnValue({
+        file: jest.fn().mockReturnValue({
+          download: jest.fn().mockResolvedValue([Buffer.from('mock-gcs-video-data')]),
+        }),
       }),
-    }),
-  })),
-}));
+    })),
+  })
+);
 
 describe('Integration: Video Generation Flow', () => {
   let mockSupabase: MockSupabaseChain;

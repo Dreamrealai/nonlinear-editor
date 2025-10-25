@@ -11,14 +11,17 @@ import { VertexAI } from '@google-cloud/vertexai';
 // Mock the AI SDKs
 jest.mock('@google/generative-ai');
 jest.mock('@google-cloud/vertexai');
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    error: jest.fn(),
-    warn: jest.fn(),
-    info: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      error: jest.fn(),
+      warn: jest.fn(),
+      info: jest.fn(),
+      debug: jest.fn(),
+    },
+  })
+);
 
 const MockGoogleGenerativeAI = GoogleGenerativeAI as jest.MockedClass<typeof GoogleGenerativeAI>;
 const MockVertexAI = VertexAI as jest.MockedClass<typeof VertexAI>;

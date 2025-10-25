@@ -40,10 +40,15 @@ interface LoadingSpinnerProps {
  * @param className - Additional CSS classes
  * @returns An animated loading spinner with proper accessibility attributes
  */
-export function LoadingSpinner({ size = 24, className, variant = 'default' }: LoadingSpinnerProps): React.ReactElement {
-  const variantClass = variant === 'branded'
-    ? 'bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent'
-    : '';
+export function LoadingSpinner({
+  size = 24,
+  className,
+  variant = 'default',
+}: LoadingSpinnerProps): React.ReactElement {
+  const variantClass =
+    variant === 'branded'
+      ? 'bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent'
+      : '';
 
   return (
     <Loader2

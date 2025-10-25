@@ -27,9 +27,7 @@ export interface LockSliceState {
   selectedClipIds: Set<string>;
 }
 
-export const createLockSlice = (
-  set: (fn: (state: LockSliceState) => void) => void
-): LockSlice => ({
+export const createLockSlice = (set: (fn: (state: LockSliceState) => void) => void): LockSlice => ({
   lockClip: (id: string): void =>
     set((state: LockSliceState): void => {
       const clip = state.timeline?.clips.find((c): boolean => c.id === id);

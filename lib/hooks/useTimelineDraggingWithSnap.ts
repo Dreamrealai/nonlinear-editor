@@ -43,14 +43,18 @@ export interface UseTimelineDraggingWithSnapReturn {
   trimPreviewInfo: import('./useTimelineDragging').TrimPreviewInfo | null;
   setDraggingClip: React.Dispatch<React.SetStateAction<DraggingClip | null>>;
   setIsDraggingPlayhead: React.Dispatch<React.SetStateAction<boolean>>;
-  setTrimmingClip: React.Dispatch<React.SetStateAction<import('./useTimelineDragging').TrimmingClip | null>>;
+  setTrimmingClip: React.Dispatch<
+    React.SetStateAction<import('./useTimelineDragging').TrimmingClip | null>
+  >;
   currentEditMode: import('@/types/editModes').EditMode;
   editModeModifiers: import('@/types/editModes').EditModeModifiers;
   trimFeedback: import('@/types/editModes').TrimFeedback | null;
   snapInfo: SnapInfo | null;
 }
 
-export function useTimelineDraggingWithSnap(options: UseTimelineDraggingWithSnapOptions): UseTimelineDraggingWithSnapReturn {
+export function useTimelineDraggingWithSnap(
+  options: UseTimelineDraggingWithSnapOptions
+): UseTimelineDraggingWithSnapReturn {
   const draggingState = useTimelineDragging(options);
   const [snapInfo, setSnapInfo] = useState<SnapInfo | null>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });

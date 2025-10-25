@@ -20,7 +20,7 @@ describe('VoiceSelector', () => {
     cleanup();
     // Wait for any pending async operations to complete
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     });
   });
 
@@ -61,7 +61,9 @@ describe('VoiceSelector', () => {
         />
       );
 
-      expect(screen.getByText('Select a voice for your text-to-speech generation')).toBeInTheDocument();
+      expect(
+        screen.getByText('Select a voice for your text-to-speech generation')
+      ).toBeInTheDocument();
     });
 
     it('should have proper styling classes', () => {
@@ -75,7 +77,14 @@ describe('VoiceSelector', () => {
       );
 
       const wrapper = container.firstChild as HTMLElement;
-      expect(wrapper).toHaveClass('rounded-lg', 'border', 'border-neutral-200', 'bg-white', 'p-6', 'shadow-sm');
+      expect(wrapper).toHaveClass(
+        'rounded-lg',
+        'border',
+        'border-neutral-200',
+        'bg-white',
+        'p-6',
+        'shadow-sm'
+      );
     });
   });
 
@@ -181,7 +190,7 @@ describe('VoiceSelector', () => {
       );
 
       const select = screen.getByRole('combobox') as HTMLSelectElement;
-      const alexOption = Array.from(select.options).find(opt => opt.value === 'voice-3');
+      const alexOption = Array.from(select.options).find((opt) => opt.value === 'voice-3');
 
       expect(alexOption?.textContent).toBe('Alex');
       expect(alexOption?.textContent).not.toContain(' - ');

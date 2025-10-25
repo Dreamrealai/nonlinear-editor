@@ -25,10 +25,7 @@
           "outputFile": "test-results.json"
         }
       ],
-      [
-        "list",
-        null
-      ]
+      ["list", null]
     ],
     "reportSlowTests": {
       "max": 5,
@@ -45,9 +42,7 @@
         "name": "chromium",
         "testDir": "/Users/davidchen/Projects/non-linear-editor/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
         "timeout": 30000
       },
       {
@@ -59,9 +54,7 @@
         "name": "firefox",
         "testDir": "/Users/davidchen/Projects/non-linear-editor/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
         "timeout": 30000
       },
       {
@@ -73,9 +66,7 @@
         "name": "webkit",
         "testDir": "/Users/davidchen/Projects/non-linear-editor/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
         "timeout": 30000
       },
       {
@@ -87,9 +78,7 @@
         "name": "Mobile Chrome iPhone",
         "testDir": "/Users/davidchen/Projects/non-linear-editor/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
         "timeout": 30000
       },
       {
@@ -101,9 +90,7 @@
         "name": "Mobile Safari iPhone",
         "testDir": "/Users/davidchen/Projects/non-linear-editor/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
         "timeout": 30000
       },
       {
@@ -115,9 +102,7 @@
         "name": "Mobile Safari iPhone SE",
         "testDir": "/Users/davidchen/Projects/non-linear-editor/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
         "timeout": 30000
       },
       {
@@ -129,9 +114,7 @@
         "name": "Mobile Safari iPad",
         "testDir": "/Users/davidchen/Projects/non-linear-editor/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
         "timeout": 30000
       },
       {
@@ -143,9 +126,7 @@
         "name": "Mobile Safari iPad Mini",
         "testDir": "/Users/davidchen/Projects/non-linear-editor/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
         "timeout": 30000
       },
       {
@@ -157,9 +138,7 @@
         "name": "Mobile Chrome Android",
         "testDir": "/Users/davidchen/Projects/non-linear-editor/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
         "timeout": 30000
       },
       {
@@ -171,9 +150,7 @@
         "name": "Mobile Chrome Galaxy",
         "testDir": "/Users/davidchen/Projects/non-linear-editor/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
         "timeout": 30000
       },
       {
@@ -185,9 +162,7 @@
         "name": "Mobile Chrome Tablet",
         "testDir": "/Users/davidchen/Projects/non-linear-editor/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
         "timeout": 30000
       },
       {
@@ -199,9 +174,7 @@
         "name": "Desktop 1080p",
         "testDir": "/Users/davidchen/Projects/non-linear-editor/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
         "timeout": 30000
       },
       {
@@ -213,9 +186,7 @@
         "name": "Desktop 4K",
         "testDir": "/Users/davidchen/Projects/non-linear-editor/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
         "timeout": 30000
       },
       {
@@ -227,9 +198,7 @@
         "name": "Mobile Portrait",
         "testDir": "/Users/davidchen/Projects/non-linear-editor/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
         "timeout": 30000
       },
       {
@@ -241,9 +210,7 @@
         "name": "Mobile Landscape",
         "testDir": "/Users/davidchen/Projects/non-linear-editor/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
-        ],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
         "timeout": 30000
       }
     ],

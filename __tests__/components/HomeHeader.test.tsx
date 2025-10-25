@@ -3,13 +3,19 @@ import { render, screen, cleanup, act } from '@testing-library/react';
 import { HomeHeader } from '@/components/HomeHeader';
 
 // Mock child components
-jest.mock('@/components/UserMenu', (): Record<string, unknown> => ({
-  UserMenu: () => <div data-testid="user-menu">User Menu</div>,
-}));
+jest.mock(
+  '@/components/UserMenu',
+  (): Record<string, unknown> => ({
+    UserMenu: () => <div data-testid="user-menu">User Menu</div>,
+  })
+);
 
-jest.mock('@/components/CreateProjectButton', (): Record<string, unknown> => ({
-  CreateProjectButton: () => <button data-testid="create-project-button">Create Project</button>,
-}));
+jest.mock(
+  '@/components/CreateProjectButton',
+  (): Record<string, unknown> => ({
+    CreateProjectButton: () => <button data-testid="create-project-button">Create Project</button>,
+  })
+);
 
 describe('HomeHeader', () => {
   describe('Rendering', () => {

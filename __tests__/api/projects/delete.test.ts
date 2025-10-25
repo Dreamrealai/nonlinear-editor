@@ -12,69 +12,81 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock the Supabase module
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-  ensureHttpsProtocol: jest.fn((url) => url),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+    ensureHttpsProtocol: jest.fn((url) => url),
+  })
+);
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 // Mock validation
-jest.mock('@/lib/validation', (): Record<string, unknown> => ({
-  validateUUID: jest.fn((id: string) => {
-    if (!id || typeof id !== 'string' || id.length < 10) {
-      const error = new Error('Invalid UUID format');
-      error.name = 'ValidationError';
-      throw error;
-    }
-  }),
-  ValidationError: class ValidationError extends Error {
-    constructor(message: string) {
-      super(message);
-      this.name = 'ValidationError';
-    }
-  },
-}));
+jest.mock(
+  '@/lib/validation',
+  (): Record<string, unknown> => ({
+    validateUUID: jest.fn((id: string) => {
+      if (!id || typeof id !== 'string' || id.length < 10) {
+        const error = new Error('Invalid UUID format');
+        error.name = 'ValidationError';
+        throw error;
+      }
+    }),
+    ValidationError: class ValidationError extends Error {
+      constructor(message: string) {
+        super(message);
+        this.name = 'ValidationError';
+      }
+    },
+  })
+);
 
 /**
  * Mock withAuth to handle both 2-param and 3-param handler signatures
  * - 2-param: handler(request, authContext) - for routes without params
  * - 3-param: handler(request, authContext, routeContext) - for routes with params like [projectId]
  */
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: (handler: any) => async (req: any, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: (handler: any) => async (req: any, context: any) => {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    }
+      if (!user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      }
 
-    const authContext = { user, supabase };
+      const authContext = { user, supabase };
 
-    // Check if this is a dynamic route (has params)
-    if (context?.params !== undefined) {
-      // 3-param signature: handler(request, authContext, routeContext)
-      const routeContext = { params: context.params };
-      return handler(req, authContext, routeContext);
-    } else {
-      // 2-param signature: handler(request, authContext)
-      return handler(req, authContext);
-    }
-  },
-}));
+      // Check if this is a dynamic route (has params)
+      if (context?.params !== undefined) {
+        // 3-param signature: handler(request, authContext, routeContext)
+        const routeContext = { params: context.params };
+        return handler(req, authContext, routeContext);
+      } else {
+        // 2-param signature: handler(request, authContext)
+        return handler(req, authContext);
+      }
+    },
+  })
+);
 
 describe('DELETE /api/projects/[projectId]', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;

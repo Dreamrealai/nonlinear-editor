@@ -9,7 +9,13 @@
  * cp test-utils/templates/hook.template.test.tsx __tests__/hooks/useMyHook.test.tsx
  */
 
-import { renderHook, waitFor, act, createMockSupabaseClient, mockAuthenticatedUser } from '@/test-utils';
+import {
+  renderHook,
+  waitFor,
+  act,
+  createMockSupabaseClient,
+  mockAuthenticatedUser,
+} from '@/test-utils';
 
 // TODO: Import your hook
 // import { useMyHook } from '@/hooks/useMyHook';
@@ -23,7 +29,6 @@ describe('TODO: Hook Name', () => {
     // Act
     // TODO: Render hook
     // const { result } = renderHook(() => useMyHook());
-
     // Assert
     // TODO: Check initial state
     // expect(result.current.data).toBeNull();
@@ -176,11 +181,9 @@ describe('TODO: Hook Name', () => {
   it('cleans up on unmount', () => {
     // TODO: Render hook
     // const { unmount } = renderHook(() => useMyHook());
-
     // Act
     // TODO: Unmount hook
     // unmount();
-
     // Assert
     // TODO: Verify cleanup
     // (e.g., subscriptions cancelled, timers cleared, etc.)

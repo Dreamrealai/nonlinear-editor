@@ -23,12 +23,9 @@ describe('useDebounce', () => {
 
     it('should debounce value changes', async () => {
       jest.useFakeTimers();
-      const { result, rerender } = renderHook(
-        ({ value, delay }) => useDebounce(value, delay),
-        {
-          initialProps: { value: 'initial', delay: 300 },
-        }
-      );
+      const { result, rerender } = renderHook(({ value, delay }) => useDebounce(value, delay), {
+        initialProps: { value: 'initial', delay: 300 },
+      });
 
       expect(result.current).toBe('initial');
 
@@ -59,12 +56,9 @@ describe('useDebounce', () => {
 
     it('should use default delay of 300ms', async () => {
       jest.useFakeTimers();
-      const { result, rerender } = renderHook(
-        ({ value }) => useDebounce(value),
-        {
-          initialProps: { value: 'initial' },
-        }
-      );
+      const { result, rerender } = renderHook(({ value }) => useDebounce(value), {
+        initialProps: { value: 'initial' },
+      });
 
       rerender({ value: 'updated' });
 
@@ -87,12 +81,9 @@ describe('useDebounce', () => {
   describe('Multiple Rapid Changes', () => {
     it('should only execute once for multiple rapid changes', async () => {
       jest.useFakeTimers();
-      const { result, rerender } = renderHook(
-        ({ value }) => useDebounce(value, 300),
-        {
-          initialProps: { value: 'value1' },
-        }
-      );
+      const { result, rerender } = renderHook(({ value }) => useDebounce(value, 300), {
+        initialProps: { value: 'value1' },
+      });
 
       // Rapid changes
       rerender({ value: 'value2' });
@@ -126,12 +117,9 @@ describe('useDebounce', () => {
 
     it('should reset timer on each value change', async () => {
       jest.useFakeTimers();
-      const { result, rerender } = renderHook(
-        ({ value }) => useDebounce(value, 500),
-        {
-          initialProps: { value: 'initial' },
-        }
-      );
+      const { result, rerender } = renderHook(({ value }) => useDebounce(value, 500), {
+        initialProps: { value: 'initial' },
+      });
 
       // First change
       rerender({ value: 'change1' });
@@ -163,12 +151,9 @@ describe('useDebounce', () => {
   describe('Delay Changes', () => {
     it('should handle changing delay', async () => {
       jest.useFakeTimers();
-      const { result, rerender } = renderHook(
-        ({ value, delay }) => useDebounce(value, delay),
-        {
-          initialProps: { value: 'initial', delay: 300 },
-        }
-      );
+      const { result, rerender } = renderHook(({ value, delay }) => useDebounce(value, delay), {
+        initialProps: { value: 'initial', delay: 300 },
+      });
 
       // Change value with 300ms delay
       rerender({ value: 'updated', delay: 300 });
@@ -203,12 +188,9 @@ describe('useDebounce', () => {
   describe('Cleanup', () => {
     it('should cleanup timeout on unmount', async () => {
       jest.useFakeTimers();
-      const { result, rerender, unmount } = renderHook(
-        ({ value }) => useDebounce(value, 300),
-        {
-          initialProps: { value: 'initial' },
-        }
-      );
+      const { result, rerender, unmount } = renderHook(({ value }) => useDebounce(value, 300), {
+        initialProps: { value: 'initial' },
+      });
 
       rerender({ value: 'updated' });
 
@@ -228,12 +210,9 @@ describe('useDebounce', () => {
 
     it('should cleanup timeout when value changes', async () => {
       jest.useFakeTimers();
-      const { result, rerender } = renderHook(
-        ({ value }) => useDebounce(value, 300),
-        {
-          initialProps: { value: 'initial' },
-        }
-      );
+      const { result, rerender } = renderHook(({ value }) => useDebounce(value, 300), {
+        initialProps: { value: 'initial' },
+      });
 
       rerender({ value: 'change1' });
 
@@ -255,12 +234,9 @@ describe('useDebounce', () => {
   describe('Different Value Types', () => {
     it('should work with numbers', async () => {
       jest.useFakeTimers();
-      const { result, rerender } = renderHook(
-        ({ value }) => useDebounce(value, 300),
-        {
-          initialProps: { value: 0 },
-        }
-      );
+      const { result, rerender } = renderHook(({ value }) => useDebounce(value, 300), {
+        initialProps: { value: 0 },
+      });
 
       rerender({ value: 42 });
 
@@ -278,12 +254,9 @@ describe('useDebounce', () => {
       const initialObj = { name: 'John', age: 30 };
       const updatedObj = { name: 'Jane', age: 25 };
 
-      const { result, rerender } = renderHook(
-        ({ value }) => useDebounce(value, 300),
-        {
-          initialProps: { value: initialObj },
-        }
-      );
+      const { result, rerender } = renderHook(({ value }) => useDebounce(value, 300), {
+        initialProps: { value: initialObj },
+      });
 
       rerender({ value: updatedObj });
 
@@ -298,12 +271,9 @@ describe('useDebounce', () => {
 
     it('should work with arrays', async () => {
       jest.useFakeTimers();
-      const { result, rerender } = renderHook(
-        ({ value }) => useDebounce(value, 300),
-        {
-          initialProps: { value: [1, 2, 3] },
-        }
-      );
+      const { result, rerender } = renderHook(({ value }) => useDebounce(value, 300), {
+        initialProps: { value: [1, 2, 3] },
+      });
 
       rerender({ value: [4, 5, 6] });
 
@@ -318,12 +288,9 @@ describe('useDebounce', () => {
 
     it('should work with boolean values', async () => {
       jest.useFakeTimers();
-      const { result, rerender } = renderHook(
-        ({ value }) => useDebounce(value, 300),
-        {
-          initialProps: { value: false },
-        }
-      );
+      const { result, rerender } = renderHook(({ value }) => useDebounce(value, 300), {
+        initialProps: { value: false },
+      });
 
       rerender({ value: true });
 
@@ -539,9 +506,7 @@ describe('useDebouncedCallback', () => {
     it('should cleanup timeout on unmount', async () => {
       jest.useFakeTimers();
       const callback = jest.fn();
-      const { result, unmount } = renderHook(() =>
-        useDebouncedCallback(callback, 300)
-      );
+      const { result, unmount } = renderHook(() => useDebouncedCallback(callback, 300));
 
       act(() => {
         result.current('test');

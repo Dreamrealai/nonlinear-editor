@@ -12,21 +12,38 @@ import {
   resetAllMocks,
 } from '@/__tests__/helpers/apiMocks';
 
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    return handler(req, { user, supabase, params: context?.params || {} });
-  }),
-}));
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return handler(req, { user, supabase, params: context?.params || {} });
+    }),
+  })
+);
 
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({ createServerSupabaseClient: jest.fn() }));
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({ serverLogger: { info: jest.fn(), error: jest.fn() } }));
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({ RATE_LIMITS: { tier3_status_read: { requests: 60, window: 60 }, tier2_resource_creation: { requests: 10, window: 60 } } }));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({ createServerSupabaseClient: jest.fn() })
+);
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({ serverLogger: { info: jest.fn(), error: jest.fn() } })
+);
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    RATE_LIMITS: {
+      tier3_status_read: { requests: 60, window: 60 },
+      tier2_resource_creation: { requests: 10, window: 60 },
+    },
+  })
+);
 
 describe('GET /api/export-presets', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
@@ -40,7 +57,13 @@ describe('GET /api/export-presets', () => {
     mockSupabase.order.mockResolvedValue({
       data: [
         { id: 'preset-1', name: 'YouTube 1080p', is_platform: true, is_custom: false },
-        { id: 'preset-2', name: 'My Custom', is_platform: false, is_custom: true, user_id: 'test-user-id' },
+        {
+          id: 'preset-2',
+          name: 'My Custom',
+          is_platform: false,
+          is_custom: true,
+          user_id: 'test-user-id',
+        },
       ],
       error: null,
     });
@@ -50,13 +73,19 @@ describe('GET /api/export-presets', () => {
 
   it('should return 401 when not authenticated', async () => {
     mockUnauthenticatedUser(mockSupabase);
-    const response = await GET(new NextRequest('http://localhost/api/export-presets', { method: 'GET' }), { params: Promise.resolve({}) });
+    const response = await GET(
+      new NextRequest('http://localhost/api/export-presets', { method: 'GET' }),
+      { params: Promise.resolve({}) }
+    );
     expect(response.status).toBe(401);
   });
 
   it('should return platform and user presets', async () => {
     const mockUser = mockAuthenticatedUser(mockSupabase);
-    const response = await GET(new NextRequest('http://localhost/api/export-presets', { method: 'GET' }), { params: Promise.resolve({}) });
+    const response = await GET(
+      new NextRequest('http://localhost/api/export-presets', { method: 'GET' }),
+      { params: Promise.resolve({}) }
+    );
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.presets).toHaveLength(2);
@@ -65,7 +94,9 @@ describe('GET /api/export-presets', () => {
 
   it('should order by platform first, then created_at', async () => {
     mockAuthenticatedUser(mockSupabase);
-    await GET(new NextRequest('http://localhost/api/export-presets', { method: 'GET' }), { params: Promise.resolve({}) });
+    await GET(new NextRequest('http://localhost/api/export-presets', { method: 'GET' }), {
+      params: Promise.resolve({}),
+    });
     expect(mockSupabase.order).toHaveBeenCalledWith('is_platform', { ascending: false });
     expect(mockSupabase.order).toHaveBeenCalledWith('created_at', { ascending: true });
   });
@@ -73,7 +104,10 @@ describe('GET /api/export-presets', () => {
   it('should return 500 on database error', async () => {
     mockAuthenticatedUser(mockSupabase);
     mockSupabase.order.mockResolvedValue({ data: null, error: { message: 'DB error' } });
-    const response = await GET(new NextRequest('http://localhost/api/export-presets', { method: 'GET' }), { params: Promise.resolve({}) });
+    const response = await GET(
+      new NextRequest('http://localhost/api/export-presets', { method: 'GET' }),
+      { params: Promise.resolve({}) }
+    );
     expect(response.status).toBe(500);
   });
 });

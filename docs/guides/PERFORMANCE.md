@@ -28,17 +28,17 @@ Comprehensive performance optimization strategies and best practices for the Non
 
 ### Performance Goals
 
-| Metric                         | Target  | Acceptable |
-| ------------------------------ | ------- | ---------- |
-| First Contentful Paint (FCP)   | < 1.5s  | < 2.5s     |
-| Largest Contentful Paint (LCP) | < 2.5s  | < 4.0s     |
-| Time to Interactive (TTI)      | < 3.5s  | < 5.0s     |
-| Total Blocking Time (TBT)      | < 200ms | < 500ms    |
-| Cumulative Layout Shift (CLS)  | < 0.1   | < 0.25     |
-| First Input Delay (FID)        | < 100ms | < 300ms    |
-| Interaction to Next Paint (INP)| < 200ms | < 300ms    |
-| API Response Time              | < 500ms | < 1s       |
-| Video Playback FPS             | 30fps   | 24fps      |
+| Metric                          | Target  | Acceptable |
+| ------------------------------- | ------- | ---------- |
+| First Contentful Paint (FCP)    | < 1.5s  | < 2.5s     |
+| Largest Contentful Paint (LCP)  | < 2.5s  | < 4.0s     |
+| Time to Interactive (TTI)       | < 3.5s  | < 5.0s     |
+| Total Blocking Time (TBT)       | < 200ms | < 500ms    |
+| Cumulative Layout Shift (CLS)   | < 0.1   | < 0.25     |
+| First Input Delay (FID)         | < 100ms | < 300ms    |
+| Interaction to Next Paint (INP) | < 200ms | < 300ms    |
+| API Response Time               | < 500ms | < 1s       |
+| Video Playback FPS              | 30fps   | 24fps      |
 
 ### Current Performance Characteristics
 
@@ -1339,6 +1339,7 @@ npm run build
    - CI integration available
 
 2. **Bundle Analyzer**
+
    ```bash
    npm run build:analyze
    ```

@@ -1958,6 +1958,7 @@ export const POST = withAuth(handleProjectCreate, {
 Before merging code, ensure:
 
 ### Code Quality
+
 - [ ] TypeScript strict mode is satisfied (no `any`, proper types)
 - [ ] Branded types are used for IDs
 - [ ] API routes use `withAuth` middleware
@@ -1972,6 +1973,7 @@ Before merging code, ensure:
 - [ ] Documentation is updated
 
 ### Accessibility (WCAG 2.1 AA)
+
 - [ ] All interactive elements are keyboard accessible (Tab, Enter, Space, Escape)
 - [ ] All images have meaningful `alt` text (or `alt=""` for decorative images)
 - [ ] Color contrast meets WCAG AA standards (4.5:1 for text, 3:1 for UI components)

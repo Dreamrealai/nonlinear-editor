@@ -12,30 +12,39 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    return handler(req, { user, supabase, params: context?.params || {} });
-  }),
-}));
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return handler(req, { user, supabase, params: context?.params || {} });
+    }),
+  })
+);
 
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+  })
+);
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+      debug: jest.fn(),
+    },
+  })
+);
 
 jest.mock('@/lib/api/response', () => {
   const actual = jest.requireActual('@/lib/api/response');
@@ -46,36 +55,42 @@ jest.mock('@/lib/api/response', () => {
 });
 
 // Mock Google Cloud libraries
-jest.mock('@google-cloud/video-intelligence', (): Record<string, unknown> => ({
-  VideoIntelligenceServiceClient: jest.fn(() => ({
-    annotateVideo: jest.fn(),
-  })),
-  protos: {
-    google: {
-      cloud: {
-        videointelligence: {
-          v1: {
-            Feature: {
-              SHOT_CHANGE_DETECTION: 1,
+jest.mock(
+  '@google-cloud/video-intelligence',
+  (): Record<string, unknown> => ({
+    VideoIntelligenceServiceClient: jest.fn(() => ({
+      annotateVideo: jest.fn(),
+    })),
+    protos: {
+      google: {
+        cloud: {
+          videointelligence: {
+            v1: {
+              Feature: {
+                SHOT_CHANGE_DETECTION: 1,
+              },
             },
           },
         },
       },
     },
-  },
-}));
+  })
+);
 
-jest.mock('@google-cloud/storage', (): Record<string, unknown> => ({
-  Storage: jest.fn(() => ({
-    bucket: jest.fn(() => ({
-      exists: jest.fn().mockResolvedValue([true]),
-      file: jest.fn(() => ({
-        save: jest.fn().mockResolvedValue(undefined),
-        delete: jest.fn().mockResolvedValue(undefined),
+jest.mock(
+  '@google-cloud/storage',
+  (): Record<string, unknown> => ({
+    Storage: jest.fn(() => ({
+      bucket: jest.fn(() => ({
+        exists: jest.fn().mockResolvedValue([true]),
+        file: jest.fn(() => ({
+          save: jest.fn().mockResolvedValue(undefined),
+          delete: jest.fn().mockResolvedValue(undefined),
+        })),
       })),
     })),
-  })),
-}));
+  })
+);
 
 global.fetch = jest.fn();
 

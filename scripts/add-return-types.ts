@@ -172,7 +172,7 @@ class ReturnTypeFixer {
         typeText.includes('typeof import') ||
         typeText.length > 500 ||
         typeText.includes('...') ||
-        typeText === 'void' && this.isGeneratorFunction(node)
+        (typeText === 'void' && this.isGeneratorFunction(node))
       ) {
         return null;
       }
@@ -254,9 +254,7 @@ class ReturnTypeFixer {
   }
 
   private saveChanges(): void {
-    const modifiedFiles = this.project
-      .getSourceFiles()
-      .filter((file) => !file.isSaved());
+    const modifiedFiles = this.project.getSourceFiles().filter((file) => !file.isSaved());
 
     for (const file of modifiedFiles) {
       if (this.options.backup && !this.options.dryRun) {
@@ -275,7 +273,9 @@ class ReturnTypeFixer {
     const space = ' '.repeat(30 - bar.length);
     const relativePath = path.relative(process.cwd(), filePath);
 
-    process.stdout.write(`\r[${bar}${space}] ${percentage}% (${current}/${total}) ${relativePath.substring(0, 50)}`);
+    process.stdout.write(
+      `\r[${bar}${space}] ${percentage}% (${current}/${total}) ${relativePath.substring(0, 50)}`
+    );
   }
 
   public async run(): Promise<void> {
@@ -341,7 +341,9 @@ class ReturnTypeFixer {
     console.log('\n' + '='.repeat(60));
     console.log('📊 Summary Report');
     console.log('='.repeat(60));
-    console.log(`Mode:                 ${this.options.dryRun ? 'DRY RUN (no changes made)' : 'LIVE'}`);
+    console.log(
+      `Mode:                 ${this.options.dryRun ? 'DRY RUN (no changes made)' : 'LIVE'}`
+    );
     console.log(`Files Processed:      ${this.stats.filesProcessed}`);
     console.log(`Files Modified:       ${this.stats.filesModified}`);
     console.log(`Functions Fixed:      ${this.stats.functionsFixed}`);

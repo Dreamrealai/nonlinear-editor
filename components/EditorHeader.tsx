@@ -177,16 +177,25 @@ export function EditorHeader({
   }, [supabaseClient, projectId, currentProject?.title, router]);
 
   return (
-    <header className="border-b border-neutral-200 bg-white px-3 sm:px-6 py-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900" role="banner">
+    <header
+      className="border-b border-neutral-200 bg-white px-3 sm:px-6 py-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+      role="banner"
+    >
       <div className="flex items-center justify-between">
         {/* Mobile Menu Button */}
         <button
           onClick={(): void => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="lg:hidden rounded-lg border border-neutral-300 bg-white p-2 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-          aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+          aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={isMobileMenuOpen}
         >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
             {isMobileMenuOpen ? (
               <path
                 strokeLinecap="round"
@@ -373,7 +382,11 @@ export function EditorHeader({
         </div>
 
         {/* Navigation Tabs - Desktop */}
-        <nav className="hidden lg:flex items-center gap-1 rounded-lg bg-neutral-100 p-1" role="navigation" aria-label="Editor navigation">
+        <nav
+          className="hidden lg:flex items-center gap-1 rounded-lg bg-neutral-100 p-1"
+          role="navigation"
+          aria-label="Editor navigation"
+        >
           <Link
             href={`/editor/${projectId}/timeline`}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
@@ -497,7 +510,13 @@ export function EditorHeader({
                     aria-haspopup="true"
                     aria-expanded={isExportProjectDropdownOpen}
                   >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"

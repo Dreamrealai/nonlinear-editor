@@ -57,7 +57,8 @@ export function useKeyframeSelection({
   const [feather, setFeather] = useState<number>(24);
 
   const selectedFrame = useMemo(
-    (): SceneFrameRow | null => frames.find((frame): boolean => frame.id === selectedFrameId) ?? null,
+    (): SceneFrameRow | null =>
+      frames.find((frame): boolean => frame.id === selectedFrameId) ?? null,
     [frames, selectedFrameId]
   );
 
@@ -103,7 +104,9 @@ export function useKeyframeSelection({
     [mode, selectedFrame, crop.size, clampCrop]
   );
 
-  const cropOverlayStyle = useMemo((): { left: string; top: string; width: string; height: string; } | undefined => {
+  const cropOverlayStyle = useMemo(():
+    | { left: string; top: string; width: string; height: string }
+    | undefined => {
     if (mode !== 'crop' || !selectedFrame || !selectedFrameUrl) return undefined;
     const displayWidth = selectedFrame.width ?? 1;
     const displayHeight = selectedFrame.height ?? 1;

@@ -7,8 +7,24 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Video, Music, Image as ImageIcon, Filter, Trash2, RefreshCw, CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react';
-import { useGenerationDashboard, type GenerationType, type GenerationJob } from '@/lib/hooks/useGenerationDashboard';
+import {
+  X,
+  Video,
+  Music,
+  Image as ImageIcon,
+  Filter,
+  Trash2,
+  RefreshCw,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Loader2,
+} from 'lucide-react';
+import {
+  useGenerationDashboard,
+  type GenerationType,
+  type GenerationJob,
+} from '@/lib/hooks/useGenerationDashboard';
 import { GenerationProgress } from '@/components/ui/GenerationProgress';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
@@ -79,7 +95,13 @@ function formatDuration(startedAt: Date, completedAt?: Date): string {
 /**
  * Job Card Component
  */
-function JobCard({ job, onRemove }: { job: GenerationJob; onRemove: (id: string) => void }): React.ReactElement {
+function JobCard({
+  job,
+  onRemove,
+}: {
+  job: GenerationJob;
+  onRemove: (id: string) => void;
+}): React.ReactElement {
   const isActive = job.status === 'processing' || job.status === 'queued';
 
   return (
@@ -95,13 +117,15 @@ function JobCard({ job, onRemove }: { job: GenerationJob; onRemove: (id: string)
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div className={cn(
-            'flex-shrink-0 rounded-full p-2',
-            job.status === 'completed' && 'bg-green-100',
-            job.status === 'failed' && 'bg-red-100',
-            job.status === 'processing' && 'bg-blue-100',
-            job.status === 'queued' && 'bg-yellow-100'
-          )}>
+          <div
+            className={cn(
+              'flex-shrink-0 rounded-full p-2',
+              job.status === 'completed' && 'bg-green-100',
+              job.status === 'failed' && 'bg-red-100',
+              job.status === 'processing' && 'bg-blue-100',
+              job.status === 'queued' && 'bg-yellow-100'
+            )}
+          >
             {getTypeIcon(job.type)}
           </div>
           <div className="flex-1 min-w-0">
@@ -126,11 +150,7 @@ function JobCard({ job, onRemove }: { job: GenerationJob; onRemove: (id: string)
       </div>
 
       {/* Prompt (if available) */}
-      {job.prompt && (
-        <p className="text-xs text-neutral-600 mb-3 line-clamp-2">
-          {job.prompt}
-        </p>
-      )}
+      {job.prompt && <p className="text-xs text-neutral-600 mb-3 line-clamp-2">{job.prompt}</p>}
 
       {/* Progress Bar (for active jobs) */}
       {isActive && (
@@ -230,7 +250,8 @@ export function GenerationDashboard({
         <div>
           <h2 className="text-lg font-bold text-neutral-900">Generation Dashboard</h2>
           <p className="text-xs text-neutral-600 mt-0.5">
-            {activeJobs.length} active • {completedJobs.length} completed • {failedJobs.length} failed
+            {activeJobs.length} active • {completedJobs.length} completed • {failedJobs.length}{' '}
+            failed
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -331,31 +352,19 @@ export function GenerationDashboard({
         {(completedJobs.length > 0 || failedJobs.length > 0 || jobs.length > 0) && (
           <div className="flex gap-2">
             {completedJobs.length > 0 && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={clearCompleted}
-              >
+              <Button variant="secondary" size="sm" onClick={clearCompleted}>
                 <Trash2 className="w-3 h-3 mr-1" />
                 Clear Completed
               </Button>
             )}
             {failedJobs.length > 0 && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={clearFailed}
-              >
+              <Button variant="secondary" size="sm" onClick={clearFailed}>
                 <Trash2 className="w-3 h-3 mr-1" />
                 Clear Failed
               </Button>
             )}
             {jobs.length > 0 && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={clearAll}
-              >
+              <Button variant="secondary" size="sm" onClick={clearAll}>
                 <Trash2 className="w-3 h-3 mr-1" />
                 Clear All
               </Button>
@@ -378,9 +387,11 @@ export function GenerationDashboard({
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredJobs.map((job): React.ReactElement => (
-              <JobCard key={job.id} job={job} onRemove={removeJob} />
-            ))}
+            {filteredJobs.map(
+              (job): React.ReactElement => (
+                <JobCard key={job.id} job={job} onRemove={removeJob} />
+              )
+            )}
           </div>
         )}
       </div>
@@ -405,11 +416,7 @@ export function GenerationDashboard({
   }
 
   // Sidebar variant
-  return (
-    <div className="h-full bg-white border-l border-neutral-200 shadow-lg">
-      {content}
-    </div>
-  );
+  return <div className="h-full bg-white border-l border-neutral-200 shadow-lg">{content}</div>;
 }
 
 /**

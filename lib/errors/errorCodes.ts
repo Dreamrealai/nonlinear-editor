@@ -283,7 +283,6 @@ export function isPostgresNotFound(error: { code?: string }): boolean {
  */
 export function shouldRetryOnStatus(statusCode: number): boolean {
   return (
-    statusCode === HttpStatusCode.RATE_LIMITED ||
-    statusCode >= HttpStatusCode.INTERNAL_SERVER_ERROR
+    statusCode === HttpStatusCode.RATE_LIMITED || statusCode >= HttpStatusCode.INTERNAL_SERVER_ERROR
   );
 }

@@ -23,12 +23,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { serverLogger } from '@/lib/serverLogger';
-import {
-  ValidationError,
-  validateEnum,
-  validateString,
-  validateInteger,
-} from '@/lib/validation';
+import { ValidationError, validateEnum, validateString, validateInteger } from '@/lib/validation';
 import { withAdminAuth, type AdminAuthContext } from '@/lib/api/withAuth';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 
@@ -185,9 +180,7 @@ function analyzeSentiment(message: string, rating?: number): 'positive' | 'neutr
   return 'neutral';
 }
 
-export async function POST(
-  request: NextRequest
-): Promise<
+export async function POST(request: NextRequest): Promise<
   | NextResponse<{
       success: boolean;
       message: string;
@@ -197,8 +190,12 @@ export async function POST(
 > {
   try {
     // Rate limiting to prevent spam (use IP-based for anonymous endpoint)
-    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-    const rateLimitResult = await checkRateLimit(`feedback:${ip}`, RATE_LIMITS.tier2_resource_creation);
+    const ip =
+      request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    const rateLimitResult = await checkRateLimit(
+      `feedback:${ip}`,
+      RATE_LIMITS.tier2_resource_creation
+    );
 
     if (!rateLimitResult.success) {
       serverLogger.warn(

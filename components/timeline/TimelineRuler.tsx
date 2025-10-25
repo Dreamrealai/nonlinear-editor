@@ -147,7 +147,11 @@ export const TimelineRuler = React.memo<TimelineRulerProps>(function TimelineRul
 
   // Memoize markers calculation to avoid recalculating on every render
   // Only recalculates when timelineDuration or zoom changes
-  const markers = useMemo((): { time: number; type: "major" | "minor"; label?: string; }[] => generateMarkers(timelineDuration, zoom), [timelineDuration, zoom]);
+  const markers = useMemo(
+    (): { time: number; type: 'major' | 'minor'; label?: string }[] =>
+      generateMarkers(timelineDuration, zoom),
+    [timelineDuration, zoom]
+  );
 
   /**
    * Calculate time position from mouse X coordinate

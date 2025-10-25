@@ -289,7 +289,8 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
         // Check sequence-based easter eggs
         if (egg.keys) {
           const sequenceMatches = egg.keys.every(
-            (k, i): boolean => konamiSequence.current[konamiSequence.current.length - egg.keys!.length + i] === k
+            (k, i): boolean =>
+              konamiSequence.current[konamiSequence.current.length - egg.keys!.length + i] === k
           );
 
           if (sequenceMatches) {
@@ -314,7 +315,15 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
         }
       });
     },
-    [enabled, easterEggsTriggered, activateKonamiCode, activateDeveloperMode, activateMatrixMode, activateDiscoMode, activateGravityMode]
+    [
+      enabled,
+      easterEggsTriggered,
+      activateKonamiCode,
+      activateDeveloperMode,
+      activateMatrixMode,
+      activateDiscoMode,
+      activateGravityMode,
+    ]
   );
 
   // Reset easter eggs
@@ -337,13 +346,13 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
   }, []);
 
   // Register event listener
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     window.addEventListener('keydown', handleKeyDown);
     return (): void => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
   // Inject CSS for konami effect
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     const style = document.createElement('style');
     style.id = 'easter-egg-styles';
     style.textContent = `
@@ -489,7 +498,9 @@ function createMatrixRain(): void {
 function playSecretSound(): void {
   try {
     // Support for both modern and webkit prefixed AudioContext
-    const AudioContextClass = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AudioContextClass) {
       return; // Audio context not supported
     }

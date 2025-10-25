@@ -91,7 +91,9 @@ export interface CustomRenderHookOptions<TProps>
 /**
  * Creates a wrapper component with all necessary providers
  */
-function createWrapper(options: CustomRenderOptions = {}): React.ComponentType<{ children: ReactNode }> {
+function createWrapper(
+  options: CustomRenderOptions = {}
+): React.ComponentType<{ children: ReactNode }> {
   const { routerProps, wrapper: CustomWrapper } = options;
 
   // Setup router mocks
@@ -109,7 +111,7 @@ function createWrapper(options: CustomRenderOptions = {}): React.ComponentType<{
     } = routerProps;
 
     // Mock useRouter
-     
+
     jest.mocked(useRouter).mockReturnValue({
       push,
       replace,
@@ -120,19 +122,16 @@ function createWrapper(options: CustomRenderOptions = {}): React.ComponentType<{
       pathname,
       query,
       asPath,
-    } as unknown as ReturnType<typeof useRouter>);  
+    } as unknown as ReturnType<typeof useRouter>);
 
     // Mock usePathname
     jest.mocked(usePathname).mockReturnValue(pathname);
 
     // Mock useSearchParams
     const searchParams = new URLSearchParams(
-      Object.entries(query).map(([key, value]) => [
-        key,
-        Array.isArray(value) ? value[0] : value,
-      ])
+      Object.entries(query).map(([key, value]) => [key, Array.isArray(value) ? value[0] : value])
     );
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     jest.mocked(useSearchParams).mockReturnValue(searchParams as any);
   }
 
@@ -166,7 +165,7 @@ export function render(
 
   // If mockSupabase is provided, set it globally for the test
   if (mockSupabase) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     (globalThis as any).__TEST_SUPABASE_CLIENT__ = mockSupabase;
   }
 
@@ -189,7 +188,7 @@ export function renderHook<TResult, TProps>(
 
   // If mockSupabase is provided, set it globally for the test
   if (mockSupabase) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     (globalThis as any).__TEST_SUPABASE_CLIENT__ = mockSupabase;
   }
 

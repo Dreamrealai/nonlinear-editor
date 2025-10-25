@@ -38,9 +38,9 @@ test.describe('Auto-Backup', () => {
   test.describe('Auto-Save', () => {
     test('should show last-saved indicator', async ({ page }) => {
       // Look for "Last saved" or "Saved" indicator
-      const savedIndicator = page.locator('text=/Last saved|Saved at|Auto-saved/i').or(
-        page.locator('[data-testid="save-status"]')
-      );
+      const savedIndicator = page
+        .locator('text=/Last saved|Saved at|Auto-saved/i')
+        .or(page.locator('[data-testid="save-status"]'));
 
       const count = await savedIndicator.count();
       expect(count).toBeGreaterThanOrEqual(0);
@@ -105,9 +105,9 @@ test.describe('Auto-Backup', () => {
       // This would require waiting 5 minutes or mocking timers
       // For E2E, we'll test the backup functionality exists
 
-      const backupButton = page.locator('button:has-text("Backup")').or(
-        page.locator('button[aria-label*="backup" i]')
-      );
+      const backupButton = page
+        .locator('button:has-text("Backup")')
+        .or(page.locator('button[aria-label*="backup" i]'));
 
       const count = await backupButton.count();
       expect(count).toBeGreaterThanOrEqual(0);
@@ -115,20 +115,23 @@ test.describe('Auto-Backup', () => {
 
     test('should have backup manager', async ({ page }) => {
       // Look for backup manager button/link
-      const backupManager = page.locator('button:has-text("Backups")').or(
-        page.locator('button:has-text("Backup Manager")').or(
-          page.locator('[aria-label*="backup manager" i]')
-        )
-      );
+      const backupManager = page
+        .locator('button:has-text("Backups")')
+        .or(
+          page
+            .locator('button:has-text("Backup Manager")')
+            .or(page.locator('[aria-label*="backup manager" i]'))
+        );
 
       const count = await backupManager.count();
       expect(count).toBeGreaterThanOrEqual(0);
     });
 
     test('should open backup manager modal', async ({ page }) => {
-      const backupManager = page.locator('button:has-text("Backups")').or(
-        page.locator('button:has-text("Backup Manager")')
-      ).first();
+      const backupManager = page
+        .locator('button:has-text("Backups")')
+        .or(page.locator('button:has-text("Backup Manager")'))
+        .first();
 
       const count = await backupManager.count();
       if (count > 0) {
@@ -136,18 +139,17 @@ test.describe('Auto-Backup', () => {
         await page.waitForTimeout(500);
 
         // Should show modal with backup list
-        const modal = page.locator('[role="dialog"]').or(
-          page.locator('.modal')
-        );
+        const modal = page.locator('[role="dialog"]').or(page.locator('.modal'));
 
         await expect(modal).toBeVisible({ timeout: 2000 });
       }
     });
 
     test('should list available backups', async ({ page }) => {
-      const backupManager = page.locator('button:has-text("Backups")').or(
-        page.locator('button:has-text("Backup Manager")')
-      ).first();
+      const backupManager = page
+        .locator('button:has-text("Backups")')
+        .or(page.locator('button:has-text("Backup Manager")'))
+        .first();
 
       const count = await backupManager.count();
       if (count > 0) {
@@ -155,9 +157,9 @@ test.describe('Auto-Backup', () => {
         await page.waitForTimeout(500);
 
         // Look for backup list
-        const backupList = page.locator('[data-testid="backup-list"]').or(
-          page.locator('.backup-list')
-        );
+        const backupList = page
+          .locator('[data-testid="backup-list"]')
+          .or(page.locator('.backup-list'));
 
         const listCount = await backupList.count();
         expect(listCount).toBeGreaterThanOrEqual(0);
@@ -165,9 +167,10 @@ test.describe('Auto-Backup', () => {
     });
 
     test('should show backup timestamps', async ({ page }) => {
-      const backupManager = page.locator('button:has-text("Backups")').or(
-        page.locator('button:has-text("Backup Manager")')
-      ).first();
+      const backupManager = page
+        .locator('button:has-text("Backups")')
+        .or(page.locator('button:has-text("Backup Manager")'))
+        .first();
 
       const count = await backupManager.count();
       if (count > 0) {
@@ -185,20 +188,20 @@ test.describe('Auto-Backup', () => {
 
   test.describe('Manual Backup', () => {
     test('should have manual backup button', async ({ page }) => {
-      const manualBackup = page.locator('button:has-text("Create Backup")').or(
-        page.locator('button:has-text("Backup Now")')
-      ).or(
-        page.locator('button[aria-label*="manual backup" i]')
-      );
+      const manualBackup = page
+        .locator('button:has-text("Create Backup")')
+        .or(page.locator('button:has-text("Backup Now")'))
+        .or(page.locator('button[aria-label*="manual backup" i]'));
 
       const count = await manualBackup.count();
       expect(count).toBeGreaterThanOrEqual(0);
     });
 
     test('should create backup on button click', async ({ page }) => {
-      const manualBackup = page.locator('button:has-text("Create Backup")').or(
-        page.locator('button:has-text("Backup Now")')
-      ).first();
+      const manualBackup = page
+        .locator('button:has-text("Create Backup")')
+        .or(page.locator('button:has-text("Backup Now")'))
+        .first();
 
       const count = await manualBackup.count();
       if (count > 0) {
@@ -214,18 +217,19 @@ test.describe('Auto-Backup', () => {
     });
 
     test('should show loading state during backup', async ({ page }) => {
-      const manualBackup = page.locator('button:has-text("Create Backup")').or(
-        page.locator('button:has-text("Backup Now")')
-      ).first();
+      const manualBackup = page
+        .locator('button:has-text("Create Backup")')
+        .or(page.locator('button:has-text("Backup Now")'))
+        .first();
 
       const count = await manualBackup.count();
       if (count > 0) {
         await manualBackup.click();
 
         // Should show loading spinner
-        const spinner = page.locator('[data-testid="loading-spinner"]').or(
-          page.locator('.spinner')
-        );
+        const spinner = page
+          .locator('[data-testid="loading-spinner"]')
+          .or(page.locator('.spinner'));
 
         // May briefly see spinner
         await page.waitForTimeout(200);
@@ -238,9 +242,10 @@ test.describe('Auto-Backup', () => {
 
   test.describe('Restore from Backup', () => {
     test('should have restore button for each backup', async ({ page }) => {
-      const backupManager = page.locator('button:has-text("Backups")').or(
-        page.locator('button:has-text("Backup Manager")')
-      ).first();
+      const backupManager = page
+        .locator('button:has-text("Backups")')
+        .or(page.locator('button:has-text("Backup Manager")'))
+        .first();
 
       const count = await backupManager.count();
       if (count > 0) {
@@ -248,9 +253,9 @@ test.describe('Auto-Backup', () => {
         await page.waitForTimeout(500);
 
         // Look for restore buttons
-        const restoreButtons = page.locator('button:has-text("Restore")').or(
-          page.locator('button[aria-label*="restore" i]')
-        );
+        const restoreButtons = page
+          .locator('button:has-text("Restore")')
+          .or(page.locator('button[aria-label*="restore" i]'));
 
         const restoreCount = await restoreButtons.count();
         expect(restoreCount).toBeGreaterThanOrEqual(0);
@@ -258,9 +263,10 @@ test.describe('Auto-Backup', () => {
     });
 
     test('should confirm before restoring', async ({ page }) => {
-      const backupManager = page.locator('button:has-text("Backups")').or(
-        page.locator('button:has-text("Backup Manager")')
-      ).first();
+      const backupManager = page
+        .locator('button:has-text("Backups")')
+        .or(page.locator('button:has-text("Backup Manager")'))
+        .first();
 
       const count = await backupManager.count();
       if (count > 0) {
@@ -288,9 +294,10 @@ test.describe('Auto-Backup', () => {
       // This would require creating a backup, making changes, then restoring
       // For E2E, we verify the restore flow exists
 
-      const backupManager = page.locator('button:has-text("Backups")').or(
-        page.locator('button:has-text("Backup Manager")')
-      ).first();
+      const backupManager = page
+        .locator('button:has-text("Backups")')
+        .or(page.locator('button:has-text("Backup Manager")'))
+        .first();
 
       const count = await backupManager.count();
       if (count > 0) {
@@ -305,9 +312,10 @@ test.describe('Auto-Backup', () => {
           await page.waitForTimeout(300);
 
           // Click confirm (if dialog appears)
-          const confirmButton = page.locator('button:has-text("Confirm")').or(
-            page.locator('button:has-text("Yes")')
-          ).first();
+          const confirmButton = page
+            .locator('button:has-text("Confirm")')
+            .or(page.locator('button:has-text("Yes")'))
+            .first();
 
           const confirmCount = await confirmButton.count();
           if (confirmCount > 0) {
@@ -315,9 +323,7 @@ test.describe('Auto-Backup', () => {
             await page.waitForTimeout(1000);
 
             // Should show success or reload
-            const timeline = page.locator('[data-testid="timeline"]').or(
-              page.locator('.timeline')
-            );
+            const timeline = page.locator('[data-testid="timeline"]').or(page.locator('.timeline'));
             await expect(timeline).toBeVisible();
           }
         }
@@ -327,9 +333,10 @@ test.describe('Auto-Backup', () => {
 
   test.describe('Download Backup', () => {
     test('should have download backup button', async ({ page }) => {
-      const backupManager = page.locator('button:has-text("Backups")').or(
-        page.locator('button:has-text("Backup Manager")')
-      ).first();
+      const backupManager = page
+        .locator('button:has-text("Backups")')
+        .or(page.locator('button:has-text("Backup Manager")'))
+        .first();
 
       const count = await backupManager.count();
       if (count > 0) {
@@ -337,9 +344,9 @@ test.describe('Auto-Backup', () => {
         await page.waitForTimeout(500);
 
         // Look for download buttons
-        const downloadButtons = page.locator('button:has-text("Download")').or(
-          page.locator('button[aria-label*="download" i]')
-        );
+        const downloadButtons = page
+          .locator('button:has-text("Download")')
+          .or(page.locator('button[aria-label*="download" i]'));
 
         const downloadCount = await downloadButtons.count();
         expect(downloadCount).toBeGreaterThanOrEqual(0);
@@ -347,9 +354,10 @@ test.describe('Auto-Backup', () => {
     });
 
     test('should download backup as local file', async ({ page }) => {
-      const backupManager = page.locator('button:has-text("Backups")').or(
-        page.locator('button:has-text("Backup Manager")')
-      ).first();
+      const backupManager = page
+        .locator('button:has-text("Backups")')
+        .or(page.locator('button:has-text("Backup Manager")'))
+        .first();
 
       const count = await backupManager.count();
       if (count > 0) {
@@ -381,9 +389,9 @@ test.describe('Auto-Backup', () => {
 
   test.describe('Backup Settings', () => {
     test('should have backup settings', async ({ page }) => {
-      const settings = page.locator('button:has-text("Settings")').or(
-        page.locator('button[aria-label*="settings" i]')
-      );
+      const settings = page
+        .locator('button:has-text("Settings")')
+        .or(page.locator('button[aria-label*="settings" i]'));
 
       const count = await settings.count();
       expect(count).toBeGreaterThanOrEqual(0);
@@ -415,9 +423,9 @@ test.describe('Auto-Backup', () => {
         await page.waitForTimeout(500);
 
         // Look for auto-backup toggle
-        const autoBackupToggle = page.locator('input[type="checkbox"]').and(
-          page.locator('text=/Auto-backup/i')
-        );
+        const autoBackupToggle = page
+          .locator('input[type="checkbox"]')
+          .and(page.locator('text=/Auto-backup/i'));
 
         const toggleCount = await autoBackupToggle.count();
         expect(toggleCount).toBeGreaterThanOrEqual(0);
@@ -427,9 +435,10 @@ test.describe('Auto-Backup', () => {
 
   test.describe('Backup Limit', () => {
     test('should show number of backups stored', async ({ page }) => {
-      const backupManager = page.locator('button:has-text("Backups")').or(
-        page.locator('button:has-text("Backup Manager")')
-      ).first();
+      const backupManager = page
+        .locator('button:has-text("Backups")')
+        .or(page.locator('button:has-text("Backup Manager")'))
+        .first();
 
       const count = await backupManager.count();
       if (count > 0) {
@@ -445,9 +454,10 @@ test.describe('Auto-Backup', () => {
     });
 
     test('should allow deleting old backups', async ({ page }) => {
-      const backupManager = page.locator('button:has-text("Backups")').or(
-        page.locator('button:has-text("Backup Manager")')
-      ).first();
+      const backupManager = page
+        .locator('button:has-text("Backups")')
+        .or(page.locator('button:has-text("Backup Manager")'))
+        .first();
 
       const count = await backupManager.count();
       if (count > 0) {
@@ -455,9 +465,9 @@ test.describe('Auto-Backup', () => {
         await page.waitForTimeout(500);
 
         // Look for delete buttons
-        const deleteButtons = page.locator('button:has-text("Delete")').or(
-          page.locator('button[aria-label*="delete backup" i]')
-        );
+        const deleteButtons = page
+          .locator('button:has-text("Delete")')
+          .or(page.locator('button[aria-label*="delete backup" i]'));
 
         const deleteCount = await deleteButtons.count();
         expect(deleteCount).toBeGreaterThanOrEqual(0);
@@ -468,9 +478,10 @@ test.describe('Auto-Backup', () => {
   test.describe('Error Handling', () => {
     test('should handle backup failures gracefully', async ({ page }) => {
       // Create backup with potential failure
-      const manualBackup = page.locator('button:has-text("Create Backup")').or(
-        page.locator('button:has-text("Backup Now")')
-      ).first();
+      const manualBackup = page
+        .locator('button:has-text("Create Backup")')
+        .or(page.locator('button:has-text("Backup Now")'))
+        .first();
 
       const count = await manualBackup.count();
       if (count > 0) {
@@ -487,9 +498,10 @@ test.describe('Auto-Backup', () => {
     });
 
     test('should handle restore failures gracefully', async ({ page }) => {
-      const backupManager = page.locator('button:has-text("Backups")').or(
-        page.locator('button:has-text("Backup Manager")')
-      ).first();
+      const backupManager = page
+        .locator('button:has-text("Backups")')
+        .or(page.locator('button:has-text("Backup Manager")'))
+        .first();
 
       const count = await backupManager.count();
       if (count > 0) {

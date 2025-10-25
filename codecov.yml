@@ -9,7 +9,7 @@ codecov:
 coverage:
   precision: 2
   round: down
-  range: "70...100"
+  range: '70...100'
 
   status:
     project:
@@ -30,32 +30,32 @@ coverage:
         if_ci_failed: error
 
 comment:
-  layout: "header, diff, files, footer"
+  layout: 'header, diff, files, footer'
   behavior: default
   require_changes: false
   require_base: no
   require_head: yes
 
 ignore:
-  - "**/*.test.ts"
-  - "**/*.test.tsx"
-  - "**/*.spec.ts"
-  - "**/*.spec.tsx"
-  - "__tests__/**"
-  - "**/__mocks__/**"
-  - "**/test-utils/**"
-  - "e2e/**"
-  - "k6/**"
-  - "scripts/**"
-  - "*.config.js"
-  - "*.config.ts"
-  - "*.setup.js"
-  - "*.setup.ts"
-  - "app/**/layout.tsx"
-  - "app/**/loading.tsx"
-  - "app/**/error.tsx"
-  - "app/**/not-found.tsx"
-  - "types/**"
+  - '**/*.test.ts'
+  - '**/*.test.tsx'
+  - '**/*.spec.ts'
+  - '**/*.spec.tsx'
+  - '__tests__/**'
+  - '**/__mocks__/**'
+  - '**/test-utils/**'
+  - 'e2e/**'
+  - 'k6/**'
+  - 'scripts/**'
+  - '*.config.js'
+  - '*.config.ts'
+  - '*.setup.js'
+  - '*.setup.ts'
+  - 'app/**/layout.tsx'
+  - 'app/**/loading.tsx'
+  - 'app/**/error.tsx'
+  - 'app/**/not-found.tsx'
+  - 'types/**'
 
 # GitHub Status Checks
 github_checks:

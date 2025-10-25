@@ -87,11 +87,15 @@ export async function makeAIClient(): Promise<AIClient> {
         const { serverLogger } = await import('./serverLogger');
         serverLogger.error({ error: authError, projectId }, 'Vertex AI initialization error');
       }
-      throw new Error(`Failed to initialize Vertex AI: ${authError instanceof Error ? authError.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to initialize Vertex AI: ${authError instanceof Error ? authError.message : 'Unknown error'}`
+      );
     }
   }
 
-  throw new Error('Either AISTUDIO_API_KEY, GEMINI_API_KEY, or GOOGLE_SERVICE_ACCOUNT environment variable is required');
+  throw new Error(
+    'Either AISTUDIO_API_KEY, GEMINI_API_KEY, or GOOGLE_SERVICE_ACCOUNT environment variable is required'
+  );
 }
 
 /**
@@ -177,9 +181,7 @@ export async function chat(params: {
         });
 
         // Build message parts for Vertex AI
-        const parts: VertexPart[] = [
-          { text: params.message },
-        ];
+        const parts: VertexPart[] = [{ text: params.message }];
 
         // Add file attachments as inline data
         if (params.files && params.files.length > 0) {
@@ -194,10 +196,12 @@ export async function chat(params: {
         }
 
         // Convert history to Vertex AI format
-        const vertexHistory: Content[] = (params.history || []).map((msg): { role: "user" | "model"; parts: { text: string; }[]; } => ({
-          role: msg.role,
-          parts: msg.parts.map((p): { text: string; } => ({ text: p.text })),
-        }));
+        const vertexHistory: Content[] = (params.history || []).map(
+          (msg): { role: 'user' | 'model'; parts: { text: string }[] } => ({
+            role: msg.role,
+            parts: msg.parts.map((p): { text: string } => ({ text: p.text })),
+          })
+        );
 
         // Start chat session with history and generation config
         const chatSession = model.startChat({
@@ -219,9 +223,7 @@ export async function chat(params: {
         const model = aiClient.client.getGenerativeModel({ model: params.model });
 
         // Build message parts (text + optional files)
-        const parts: Part[] = [
-          { text: params.message },
-        ];
+        const parts: Part[] = [{ text: params.message }];
 
         // Add file attachments as inline data
         if (params.files && params.files.length > 0) {
@@ -253,13 +255,16 @@ export async function chat(params: {
     } catch (error) {
       const isLastAttempt = attempt === maxRetries - 1;
 
-      if (error instanceof Error && (error.message.includes('timeout') || error.message.includes('ETIMEDOUT'))) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('timeout') || error.message.includes('ETIMEDOUT'))
+      ) {
         if (isLastAttempt) {
           throw new Error(`Gemini API timeout after ${maxRetries} attempts`);
         }
         // Exponential backoff: 1s, 2s, 4s
         const backoffDelay = Math.pow(2, attempt) * 1000;
-        await new Promise(resolve => setTimeout(resolve, backoffDelay));
+        await new Promise((resolve) => setTimeout(resolve, backoffDelay));
         continue;
       }
 

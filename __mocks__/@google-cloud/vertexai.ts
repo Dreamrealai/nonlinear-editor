@@ -13,7 +13,9 @@ export class VertexAI {
   }
 
   preview = {
-    getGenerativeModel: (_config: { model: string }): { generateContent: typeof mockGenerateVideo } => ({
+    getGenerativeModel: (_config: {
+      model: string;
+    }): { generateContent: typeof mockGenerateVideo } => ({
       generateContent: mockGenerateVideo,
     }),
   };

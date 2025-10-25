@@ -20,79 +20,97 @@ import {
  * - 2-param: handler(request, authContext) - for routes without params
  * - 3-param: handler(request, authContext, routeContext) - for routes with params like [projectId]
  */
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: (handler: any) => async (req: any, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: (handler: any) => async (req: any, context: any) => {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    }
+      if (!user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      }
 
-    const authContext = { user, supabase };
+      const authContext = { user, supabase };
 
-    // Check if this is a dynamic route (has params)
-    if (context?.params !== undefined) {
-      // 3-param signature: handler(request, authContext, routeContext)
-      const routeContext = { params: context.params };
-      return handler(req, authContext, routeContext);
-    } else {
-      // 2-param signature: handler(request, authContext)
-      return handler(req, authContext);
-    }
-  },
-}));
+      // Check if this is a dynamic route (has params)
+      if (context?.params !== undefined) {
+        // 3-param signature: handler(request, authContext, routeContext)
+        const routeContext = { params: context.params };
+        return handler(req, authContext, routeContext);
+      } else {
+        // 2-param signature: handler(request, authContext)
+        return handler(req, authContext);
+      }
+    },
+  })
+);
 
 // Mock the Supabase module
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-  ensureHttpsProtocol: jest.fn((url) => url),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+    ensureHttpsProtocol: jest.fn((url) => url),
+  })
+);
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 // Mock cache invalidation
-jest.mock('@/lib/cacheInvalidation', (): Record<string, unknown> => ({
-  invalidateUserProjects: jest.fn().mockResolvedValue(undefined),
-  invalidateProjectCache: jest.fn().mockResolvedValue(undefined),
-}));
+jest.mock(
+  '@/lib/cacheInvalidation',
+  (): Record<string, unknown> => ({
+    invalidateUserProjects: jest.fn().mockResolvedValue(undefined),
+    invalidateProjectCache: jest.fn().mockResolvedValue(undefined),
+  })
+);
 
 // Mock error tracking
-jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
-  trackError: jest.fn(),
-  ErrorCategory: { DATABASE: 'DATABASE' },
-  ErrorSeverity: { HIGH: 'HIGH', MEDIUM: 'MEDIUM' },
-}));
+jest.mock(
+  '@/lib/errorTracking',
+  (): Record<string, unknown> => ({
+    trackError: jest.fn(),
+    ErrorCategory: { DATABASE: 'DATABASE' },
+    ErrorSeverity: { HIGH: 'HIGH', MEDIUM: 'MEDIUM' },
+  })
+);
 
 // Mock cache
-jest.mock('@/lib/cache', (): Record<string, unknown> => ({
-  cache: {
-    get: jest.fn().mockResolvedValue(null),
-    set: jest.fn().mockResolvedValue(undefined),
-    del: jest.fn().mockResolvedValue(undefined),
-  },
-  CacheKeys: {
-    userProjects: (userId: string) => `user:${userId}:projects`,
-    project: (projectId: string) => `project:${projectId}`,
-  },
-  CacheTTL: {
-    SHORT: 300,
-    MEDIUM: 900,
-    LONG: 3600,
-  },
-}));
+jest.mock(
+  '@/lib/cache',
+  (): Record<string, unknown> => ({
+    cache: {
+      get: jest.fn().mockResolvedValue(null),
+      set: jest.fn().mockResolvedValue(undefined),
+      del: jest.fn().mockResolvedValue(undefined),
+    },
+    CacheKeys: {
+      userProjects: (userId: string) => `user:${userId}:projects`,
+      project: (projectId: string) => `project:${projectId}`,
+    },
+    CacheTTL: {
+      SHORT: 300,
+      MEDIUM: 900,
+      LONG: 3600,
+    },
+  })
+);
 
 describe('POST /api/projects', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;

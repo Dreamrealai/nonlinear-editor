@@ -5,13 +5,16 @@ import '@testing-library/jest-dom';
 import { VideoQueueItem } from '@/components/generation/VideoQueueItem';
 import { browserLogger } from '@/lib/browserLogger';
 
-jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
-  browserLogger: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/browserLogger',
+  (): Record<string, unknown> => ({
+    browserLogger: {
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 describe('VideoQueueItem', () => {
   const mockOnRemove = jest.fn();

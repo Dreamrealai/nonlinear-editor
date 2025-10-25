@@ -166,7 +166,7 @@ export function useGlobalKeyboardShortcuts({
     [enabled, disableInInputs]
   );
 
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     window.addEventListener('keydown', handleKeyDown);
     return (): void => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);

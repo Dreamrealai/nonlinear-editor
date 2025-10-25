@@ -3,11 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
 import { ValidationError } from '@/lib/validation';
-import {
-  unauthorizedResponse,
-  rateLimitResponse,
-  withErrorHandling,
-} from '@/lib/api/response';
+import { unauthorizedResponse, rateLimitResponse, withErrorHandling } from '@/lib/api/response';
 import { verifyProjectOwnership } from '@/lib/api/project-verification';
 import type { SupabaseClient } from '@supabase/supabase-js';
 

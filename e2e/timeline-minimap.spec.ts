@@ -36,11 +36,10 @@ test.describe('Timeline Minimap', () => {
 
   test('should display minimap component', async ({ page }) => {
     // Look for minimap
-    const minimap = page.locator('[data-testid="timeline-minimap"]').or(
-      page.locator('.timeline-minimap')
-    ).or(
-      page.locator('text=/Timeline Overview/i')
-    );
+    const minimap = page
+      .locator('[data-testid="timeline-minimap"]')
+      .or(page.locator('.timeline-minimap'))
+      .or(page.locator('text=/Timeline Overview/i'));
 
     const count = await minimap.count();
     expect(count).toBeGreaterThanOrEqual(0);
@@ -52,9 +51,9 @@ test.describe('Timeline Minimap', () => {
 
     if (clipCount > 0) {
       // Minimap should show clip representations
-      const minimapClips = page.locator('[data-testid="minimap-clip"]').or(
-        page.locator('.minimap-clip')
-      );
+      const minimapClips = page
+        .locator('[data-testid="minimap-clip"]')
+        .or(page.locator('.minimap-clip'));
 
       // May have different implementation
       const minimapClipCount = await minimapClips.count();
@@ -63,16 +62,14 @@ test.describe('Timeline Minimap', () => {
   });
 
   test('should display viewport indicator', async ({ page }) => {
-    const minimap = page.locator('[data-testid="timeline-minimap"]').or(
-      page.locator('.timeline-minimap')
-    );
+    const minimap = page
+      .locator('[data-testid="timeline-minimap"]')
+      .or(page.locator('.timeline-minimap'));
 
     const minimapCount = await minimap.count();
     if (minimapCount > 0) {
       // Look for viewport indicator
-      const viewport = page.locator('[role="slider"]').or(
-        page.locator('.viewport-indicator')
-      );
+      const viewport = page.locator('[role="slider"]').or(page.locator('.viewport-indicator'));
 
       const viewportCount = await viewport.count();
       expect(viewportCount).toBeGreaterThanOrEqual(0);
@@ -81,9 +78,9 @@ test.describe('Timeline Minimap', () => {
 
   test('should update viewport indicator on timeline scroll', async ({ page }) => {
     const timeline = page.locator('[data-testid="timeline"]').or(page.locator('.timeline'));
-    const minimap = page.locator('[data-testid="timeline-minimap"]').or(
-      page.locator('.timeline-minimap')
-    );
+    const minimap = page
+      .locator('[data-testid="timeline-minimap"]')
+      .or(page.locator('.timeline-minimap'));
 
     const minimapCount = await minimap.count();
     if (minimapCount > 0) {
@@ -107,9 +104,9 @@ test.describe('Timeline Minimap', () => {
   });
 
   test('should jump to position when clicking minimap', async ({ page }) => {
-    const minimap = page.locator('[data-testid="timeline-minimap"]').or(
-      page.locator('.timeline-minimap')
-    );
+    const minimap = page
+      .locator('[data-testid="timeline-minimap"]')
+      .or(page.locator('.timeline-minimap'));
 
     const minimapCount = await minimap.count();
     if (minimapCount > 0) {
@@ -159,16 +156,16 @@ test.describe('Timeline Minimap', () => {
   });
 
   test('should update when clips are added', async ({ page }) => {
-    const minimap = page.locator('[data-testid="timeline-minimap"]').or(
-      page.locator('.timeline-minimap')
-    );
+    const minimap = page
+      .locator('[data-testid="timeline-minimap"]')
+      .or(page.locator('.timeline-minimap'));
 
     const minimapCount = await minimap.count();
     if (minimapCount > 0) {
       // Get initial state
-      const minimapClips = page.locator('[data-testid="minimap-clip"]').or(
-        page.locator('.minimap-clip')
-      );
+      const minimapClips = page
+        .locator('[data-testid="minimap-clip"]')
+        .or(page.locator('.minimap-clip'));
       const initialClipCount = await minimapClips.count();
 
       // Add a clip (if possible)
@@ -191,23 +188,24 @@ test.describe('Timeline Minimap', () => {
     const clipCount = await clips.count();
 
     if (clipCount > 0) {
-      const minimap = page.locator('[data-testid="timeline-minimap"]').or(
-        page.locator('.timeline-minimap')
-      );
+      const minimap = page
+        .locator('[data-testid="timeline-minimap"]')
+        .or(page.locator('.timeline-minimap'));
 
       const minimapCount = await minimap.count();
       if (minimapCount > 0) {
         // Get initial minimap clip count
-        const minimapClips = page.locator('[data-testid="minimap-clip"]').or(
-          page.locator('.minimap-clip')
-        );
+        const minimapClips = page
+          .locator('[data-testid="minimap-clip"]')
+          .or(page.locator('.minimap-clip'));
         const initialCount = await minimapClips.count();
 
         // Delete a clip
         await clips.nth(0).hover();
-        const deleteButton = page.locator('button[aria-label="Delete"]').or(
-          page.locator('button:has-text("Delete")')
-        ).first();
+        const deleteButton = page
+          .locator('button[aria-label="Delete"]')
+          .or(page.locator('button:has-text("Delete")'))
+          .first();
 
         const deleteCount = await deleteButton.count();
         if (deleteCount > 0) {
@@ -223,9 +221,9 @@ test.describe('Timeline Minimap', () => {
   });
 
   test('should scale with timeline duration', async ({ page }) => {
-    const minimap = page.locator('[data-testid="timeline-minimap"]').or(
-      page.locator('.timeline-minimap')
-    );
+    const minimap = page
+      .locator('[data-testid="timeline-minimap"]')
+      .or(page.locator('.timeline-minimap'));
 
     const minimapCount = await minimap.count();
     if (minimapCount > 0) {
@@ -238,16 +236,16 @@ test.describe('Timeline Minimap', () => {
   });
 
   test('should show clip type colors in minimap', async ({ page }) => {
-    const minimap = page.locator('[data-testid="timeline-minimap"]').or(
-      page.locator('.timeline-minimap')
-    );
+    const minimap = page
+      .locator('[data-testid="timeline-minimap"]')
+      .or(page.locator('.timeline-minimap'));
 
     const minimapCount = await minimap.count();
     if (minimapCount > 0) {
       // Minimap clips should have different colors for different types
-      const minimapClips = page.locator('[data-testid="minimap-clip"]').or(
-        page.locator('.minimap-clip')
-      );
+      const minimapClips = page
+        .locator('[data-testid="minimap-clip"]')
+        .or(page.locator('.minimap-clip'));
 
       const clipCount = await minimapClips.count();
       if (clipCount > 0) {
@@ -262,9 +260,9 @@ test.describe('Timeline Minimap', () => {
   });
 
   test('should show clip count', async ({ page }) => {
-    const minimap = page.locator('[data-testid="timeline-minimap"]').or(
-      page.locator('.timeline-minimap')
-    );
+    const minimap = page
+      .locator('[data-testid="timeline-minimap"]')
+      .or(page.locator('.timeline-minimap'));
 
     const minimapCount = await minimap.count();
     if (minimapCount > 0) {

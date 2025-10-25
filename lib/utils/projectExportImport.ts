@@ -39,11 +39,11 @@ export function exportProjectToJSON(
   // Calculate metadata
   const clipCount = timeline.clips.length;
   const duration = Math.max(
-    ...timeline.clips.map(clip => clip.timelinePosition + (clip.end - clip.start)),
+    ...timeline.clips.map((clip) => clip.timelinePosition + (clip.end - clip.start)),
     0
   );
-  const tracks = Math.max(...timeline.clips.map(clip => clip.trackIndex), 0) + 1;
-  const hasAudio = timeline.clips.some(clip => clip.hasAudio);
+  const tracks = Math.max(...timeline.clips.map((clip) => clip.trackIndex), 0) + 1;
+  const hasAudio = timeline.clips.some((clip) => clip.hasAudio);
   const hasTextOverlays = (timeline.textOverlays?.length ?? 0) > 0;
   const hasMarkers = (timeline.markers?.length ?? 0) > 0;
 
@@ -138,32 +138,32 @@ export function validateImportedProject(data: unknown): {
     if (!clip) {
       return {
         valid: false,
-        error: `Invalid clip at index ${i}: clip is undefined`
+        error: `Invalid clip at index ${i}: clip is undefined`,
       };
     }
     if (!clip.id || !clip.assetId || !clip.filePath) {
       return {
         valid: false,
-        error: `Invalid clip at index ${i}: missing required fields (id, assetId, filePath)`
+        error: `Invalid clip at index ${i}: missing required fields (id, assetId, filePath)`,
       };
     }
     if (typeof clip.start !== 'number' || typeof clip.end !== 'number') {
       return {
         valid: false,
-        error: `Invalid clip at index ${i}: start and end must be numbers`
+        error: `Invalid clip at index ${i}: start and end must be numbers`,
       };
     }
     if (typeof clip.timelinePosition !== 'number' || typeof clip.trackIndex !== 'number') {
       return {
         valid: false,
-        error: `Invalid clip at index ${i}: timelinePosition and trackIndex must be numbers`
+        error: `Invalid clip at index ${i}: timelinePosition and trackIndex must be numbers`,
       };
     }
   }
 
   return {
     valid: true,
-    project: project as ExportedProject
+    project: project as ExportedProject,
   };
 }
 
@@ -206,7 +206,7 @@ export async function importProjectFromFile(file: File): Promise<{
   } catch (error) {
     return {
       success: false,
-      error: 'Failed to read file: ' + (error as Error).message
+      error: 'Failed to read file: ' + (error as Error).message,
     };
   }
 }
@@ -242,7 +242,7 @@ export function mergeTimelines(
   // Merge clips with offset
   const mergedClips = [
     ...currentTimeline.clips,
-    ...importedTimeline.clips.map(clip => ({
+    ...importedTimeline.clips.map((clip) => ({
       ...clip,
       id: `imported-${clip.id}-${Date.now()}`, // Generate new IDs to avoid conflicts
       timelinePosition: clip.timelinePosition + offsetTime,
@@ -253,7 +253,7 @@ export function mergeTimelines(
   // Merge text overlays
   const mergedTextOverlays = [
     ...(currentTimeline.textOverlays ?? []),
-    ...(importedTimeline.textOverlays ?? []).map(overlay => ({
+    ...(importedTimeline.textOverlays ?? []).map((overlay) => ({
       ...overlay,
       id: `imported-${overlay.id}-${Date.now()}`,
       timelinePosition: overlay.timelinePosition + offsetTime,
@@ -263,7 +263,7 @@ export function mergeTimelines(
   // Merge markers
   const mergedMarkers = [
     ...(currentTimeline.markers ?? []),
-    ...(importedTimeline.markers ?? []).map(marker => ({
+    ...(importedTimeline.markers ?? []).map((marker) => ({
       ...marker,
       id: `imported-${marker.id}-${Date.now()}`,
       time: marker.time + offsetTime,

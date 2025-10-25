@@ -6,7 +6,7 @@
  */
 'use client';
 
-import React, {  useState, useEffect  } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
@@ -25,7 +25,11 @@ interface AssetLibraryModalProps {
   onClose: () => void;
 }
 
-export function AssetLibraryModal({ projectId, onSelect, onClose }: AssetLibraryModalProps): React.ReactElement {
+export function AssetLibraryModal({
+  projectId,
+  onSelect,
+  onClose,
+}: AssetLibraryModalProps): React.ReactElement {
   const [assets, setAssets] = useState<ImageAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -113,22 +117,24 @@ export function AssetLibraryModal({ projectId, onSelect, onClose }: AssetLibrary
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-4">
-              {assets.map((asset): React.ReactElement => (
-                <button
-                  key={asset.id}
-                  onClick={(): void => onSelect(asset)}
-                  className="group relative aspect-square overflow-hidden rounded-lg border-2 border-neutral-200 hover:border-blue-500 transition-colors"
-                >
-                  <Image
-                    src={asset.metadata?.thumbnail || asset.storage_url}
-                    alt="Asset"
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                </button>
-              ))}
+              {assets.map(
+                (asset): React.ReactElement => (
+                  <button
+                    key={asset.id}
+                    onClick={(): void => onSelect(asset)}
+                    className="group relative aspect-square overflow-hidden rounded-lg border-2 border-neutral-200 hover:border-blue-500 transition-colors"
+                  >
+                    <Image
+                      src={asset.metadata?.thumbnail || asset.storage_url}
+                      alt="Asset"
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                  </button>
+                )
+              )}
             </div>
           )}
         </div>
@@ -158,7 +164,9 @@ export function AssetLibraryModal({ projectId, onSelect, onClose }: AssetLibrary
                     Previous
                   </button>
                   <button
-                    onClick={(): void => setCurrentPage((prev): number => Math.min(totalPages - 1, prev + 1))}
+                    onClick={(): void =>
+                      setCurrentPage((prev): number => Math.min(totalPages - 1, prev + 1))
+                    }
                     disabled={currentPage >= totalPages - 1 || loading}
                     className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
                   >

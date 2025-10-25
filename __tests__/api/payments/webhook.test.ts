@@ -27,31 +27,40 @@ jest.mock('@/lib/supabase', () => {
 });
 
 // Mock Stripe
-jest.mock('@/lib/stripe', (): Record<string, unknown> => ({
-  stripe: {
-    webhooks: {
-      constructEvent: jest.fn(),
+jest.mock(
+  '@/lib/stripe',
+  (): Record<string, unknown> => ({
+    stripe: {
+      webhooks: {
+        constructEvent: jest.fn(),
+      },
+      subscriptions: {
+        retrieve: jest.fn(),
+      },
     },
-    subscriptions: {
-      retrieve: jest.fn(),
-    },
-  },
-}));
+  })
+);
 
 // Mock cache invalidation
-jest.mock('@/lib/cacheInvalidation', (): Record<string, unknown> => ({
-  invalidateOnStripeWebhook: jest.fn(),
-}));
+jest.mock(
+  '@/lib/cacheInvalidation',
+  (): Record<string, unknown> => ({
+    invalidateOnStripeWebhook: jest.fn(),
+  })
+);
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 // Import after all mocks
 import { POST } from '@/app/api/stripe/webhook/route';

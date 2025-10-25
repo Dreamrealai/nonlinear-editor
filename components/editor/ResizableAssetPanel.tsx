@@ -6,7 +6,7 @@
  */
 'use client';
 
-import React, {  useState, useCallback, useRef, useEffect  } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { AssetPanel } from './AssetPanel';
 import type { AssetRow } from '@/types/assets';
 import type { ChangeEvent } from 'react';

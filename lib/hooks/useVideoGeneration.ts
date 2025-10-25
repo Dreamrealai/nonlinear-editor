@@ -109,8 +109,7 @@ export function useVideoGeneration(
         const json = (await res.json()) as GenerateVideoResponse | { error: string };
 
         if (!res.ok) {
-          const errorMessage =
-            'error' in json ? json.error : 'Video generation failed';
+          const errorMessage = 'error' in json ? json.error : 'Video generation failed';
           throw new Error(errorMessage);
         }
 

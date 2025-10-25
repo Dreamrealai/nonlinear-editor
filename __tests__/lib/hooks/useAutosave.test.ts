@@ -8,19 +8,28 @@ import { useEditorStore } from '@/state/useEditorStore';
 import type { Timeline } from '@/types/timeline';
 
 // Mock dependencies
-jest.mock('@/lib/saveLoad', (): Record<string, unknown> => ({
-  saveTimeline: jest.fn(),
-}));
+jest.mock(
+  '@/lib/saveLoad',
+  (): Record<string, unknown> => ({
+    saveTimeline: jest.fn(),
+  })
+);
 
-jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
-  browserLogger: {
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/browserLogger',
+  (): Record<string, unknown> => ({
+    browserLogger: {
+      error: jest.fn(),
+    },
+  })
+);
 
-jest.mock('@/state/useEditorStore', (): Record<string, unknown> => ({
-  useEditorStore: jest.fn(),
-}));
+jest.mock(
+  '@/state/useEditorStore',
+  (): Record<string, unknown> => ({
+    useEditorStore: jest.fn(),
+  })
+);
 
 const mockSaveTimeline = require('@/lib/saveLoad').saveTimeline;
 const mockBrowserLogger = require('@/lib/browserLogger').browserLogger;

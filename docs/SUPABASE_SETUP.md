@@ -3,6 +3,7 @@
 Complete step-by-step guide to setting up Supabase for the Non-Linear Video Editor.
 
 ## Table of Contents
+
 1. [Prerequisites](#prerequisites)
 2. [Create Supabase Project](#create-supabase-project)
 3. [Configure Authentication](#configure-authentication)
@@ -19,6 +20,7 @@ Complete step-by-step guide to setting up Supabase for the Non-Linear Video Edit
 ## Prerequisites
 
 Before you begin, ensure you have:
+
 - A Supabase account ([sign up here](https://supabase.com))
 - Node.js 20+ installed
 - Git installed
@@ -71,6 +73,7 @@ Once created, you'll see your project dashboard. Note these values:
 Go to **Authentication** → **Email Templates**
 
 **Confirm Signup Template:**
+
 ```html
 <h2>Confirm your email</h2>
 <p>Click the link below to confirm your email address:</p>
@@ -78,6 +81,7 @@ Go to **Authentication** → **Email Templates**
 ```
 
 **Reset Password Template:**
+
 ```html
 <h2>Reset your password</h2>
 <p>Click the link below to reset your password:</p>
@@ -98,8 +102,7 @@ JWT Expiry: 3600 (1 hour)
 Refresh Token Rotation: Enabled
 Reuse Interval: 10 seconds
 
-Security:
-  ✅ Enable email confirmations
+Security: ✅ Enable email confirmations
   ✅ Enable email change confirmation
   ✅ Secure password change (require re-auth)
 
@@ -158,6 +161,7 @@ cat supabase/migrations/20250101000000_init_schema.sql
 3. Verify success message
 
 This migration creates:
+
 - `projects` table
 - `assets` table
 - `scenes` table
@@ -192,6 +196,7 @@ This adds support for async job tracking.
 ### Step 3: Verify Migrations
 
 In the **Table Editor**:
+
 1. Check that all tables exist:
    - `projects`
    - `assets`
@@ -218,6 +223,7 @@ Storage buckets are created by migrations, but verify settings:
 Go to **Storage** in Supabase dashboard.
 
 #### Assets Bucket
+
 ```yaml
 Name: assets
 Public: No (private)
@@ -235,6 +241,7 @@ Allowed MIME types:
 ```
 
 #### Frames Bucket
+
 ```yaml
 Name: frames
 Public: No (private)
@@ -246,6 +253,7 @@ Allowed MIME types:
 ```
 
 #### Frame-Edits Bucket
+
 ```yaml
 Name: frame-edits
 Public: No (private)
@@ -261,6 +269,7 @@ Allowed MIME types:
 Go to **Storage** → **Policies**
 
 Each bucket should have policies for:
+
 - ✅ Users can upload to own folder
 - ✅ Users can read own files
 - ✅ Users can update own files
@@ -280,6 +289,7 @@ RLS policies are created by migrations. Verify they're active:
 Go to **Database** → **Tables**
 
 For each table, RLS should show as **"Enabled"**:
+
 - ✅ projects
 - ✅ assets
 - ✅ timelines
@@ -294,12 +304,14 @@ For each table, RLS should show as **"Enabled"**:
 Click on each table → **Policies** tab
 
 **Projects table should have:**
+
 - `projects_owner_select` (SELECT)
 - `projects_owner_insert` (INSERT)
 - `projects_owner_update` (UPDATE)
 - `projects_owner_delete` (DELETE)
 
 **Assets table should have:**
+
 - `assets_owner_select` (SELECT)
 - `assets_owner_mod` (INSERT, UPDATE, DELETE)
 
@@ -329,24 +341,30 @@ Go to **Project Settings** → **API**
 You'll need three keys:
 
 #### 1. Project URL
+
 ```
 https://xxxxx.supabase.co
 ```
+
 - Safe to expose publicly
 - Use for both client and server
 
 #### 2. Anon (Public) Key
+
 ```
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
+
 - Safe to expose publicly
 - Has limited RLS-enforced access
 - Use for client-side operations
 
 #### 3. Service Role Key (Secret!)
+
 ```
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
+
 - **NEVER expose publicly**
 - Bypasses RLS
 - Server-side only
@@ -400,6 +418,7 @@ AXIOM_DATASET=genai-video-production
 ```
 
 **Replace:**
+
 - `xxxxx` with your project ref
 - `eyJhbGci...` with actual keys from Supabase dashboard
 
@@ -468,9 +487,7 @@ Open browser console and try:
 
 ```javascript
 // This should work (your own data)
-const { data: projects } = await supabase
-  .from('projects')
-  .select('*');
+const { data: projects } = await supabase.from('projects').select('*');
 console.log(projects); // Shows your projects
 
 // This should return empty (RLS protection)
@@ -490,6 +507,7 @@ console.log(allProjects); // Empty array
 **Cause**: Anon key or service role key is incorrect
 
 **Solution**:
+
 1. Re-copy keys from Supabase dashboard
 2. Ensure no extra spaces in `.env.local`
 3. Restart dev server: `npm run dev`
@@ -499,6 +517,7 @@ console.log(allProjects); // Empty array
 **Cause**: RLS policies not set up correctly
 
 **Solution**:
+
 1. Re-run migration `/supabase/migrations/20250101000000_init_schema.sql`
 2. Check **Database** → **Tables** → RLS is "Enabled"
 3. Verify policies exist in **Policies** tab
@@ -508,6 +527,7 @@ console.log(allProjects); // Empty array
 **Cause**: Missing INSERT policy
 
 **Solution**:
+
 1. Run migration `/supabase/migrations/20251022000000_fix_projects_rls.sql`
 2. This adds separate INSERT policy
 
@@ -516,6 +536,7 @@ console.log(allProjects); // Empty array
 **Cause**: Storage bucket or policies missing
 
 **Solution**:
+
 1. Check **Storage** → buckets exist
 2. Re-run init schema migration
 3. Verify storage policies in **Storage** → **Policies**
@@ -525,6 +546,7 @@ console.log(allProjects); // Empty array
 **Cause**: Default SMTP limits hit or disabled
 
 **Solution**:
+
 1. For production, configure custom SMTP (Resend recommended)
 2. For development, check **Authentication** → **Logs**
 3. Temporarily disable email confirmation in Auth settings
@@ -534,6 +556,7 @@ console.log(allProjects); // Empty array
 **Cause**: Site URL not configured
 
 **Solution**:
+
 1. Go to **Authentication** → **Settings**
 2. Add your URL to **Site URL** and **Redirect URLs**:
    ```
@@ -546,6 +569,7 @@ console.log(allProjects); // Empty array
 **Cause**: Project not fully provisioned
 
 **Solution**:
+
 1. Wait 5 minutes after project creation
 2. Check **Project Settings** → **General** → Status should be "Active"
 3. Try restarting Supabase project (Settings → Restart project)
@@ -558,6 +582,7 @@ console.log(allProjects); // Empty array
 
 1. Go to Vercel project settings → **Environment Variables**
 2. Add Supabase variables:
+
    ```
    NEXT_PUBLIC_SUPABASE_URL = https://xxxxx.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY = eyJhbGci...
@@ -565,6 +590,7 @@ console.log(allProjects); // Empty array
    ```
 
 3. Update Auth settings in Supabase:
+
    ```
    Site URL: https://yourdomain.vercel.app
    Redirect URLs:

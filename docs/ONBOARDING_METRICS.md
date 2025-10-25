@@ -214,6 +214,7 @@ This document defines the key metrics for tracking onboarding effectiveness and 
 ### Critical Alerts (Immediate Action Required)
 
 1. **Completion Rate Below 60%**
+
    ```
    Trigger: completion_rate < 60
    Action: Investigate drop-off points immediately
@@ -221,6 +222,7 @@ This document defines the key metrics for tracking onboarding effectiveness and 
    ```
 
 2. **Any Step Drop-off >15%**
+
    ```
    Trigger: drop_off_rate > 15 for any step
    Action: Review specific step content and flow
@@ -237,6 +239,7 @@ This document defines the key metrics for tracking onboarding effectiveness and 
 ### Warning Alerts (Action Within 24-48 Hours)
 
 4. **Feedback Sentiment <70% Positive**
+
    ```
    Trigger: helpful_percentage < 70
    Action: Review text feedback for common issues
@@ -302,6 +305,7 @@ Create a dashboard with these panels:
 ## Success Criteria
 
 ### Excellent Performance
+
 - Completion Rate: >85%
 - Average Time: 2-3 minutes
 - Drop-off per Step: <3%
@@ -309,6 +313,7 @@ Create a dashboard with these panels:
 - Replay Rate: <10%
 
 ### Good Performance
+
 - Completion Rate: 75-85%
 - Average Time: 3-4 minutes
 - Drop-off per Step: 3-5%
@@ -316,6 +321,7 @@ Create a dashboard with these panels:
 - Replay Rate: 10-15%
 
 ### Needs Improvement
+
 - Completion Rate: 60-75%
 - Average Time: 4-6 minutes
 - Drop-off per Step: 5-10%
@@ -323,6 +329,7 @@ Create a dashboard with these panels:
 - Replay Rate: 15-20%
 
 ### Critical (Requires Immediate Action)
+
 - Completion Rate: <60%
 - Average Time: >6 minutes
 - Drop-off per Step: >10%

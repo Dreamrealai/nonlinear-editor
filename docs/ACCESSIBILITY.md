@@ -37,33 +37,36 @@ We adhere to **WCAG 2.1 Level AA** standards, ensuring:
 
 All functionality is accessible via keyboard. Core shortcuts:
 
-| Action | Shortcut | Context |
-|--------|----------|---------|
-| **Play/Pause** | `Space` | Timeline focused |
-| **Undo** | `Cmd+Z` (Mac) / `Ctrl+Z` (Win) | Global |
-| **Redo** | `Cmd+Y` / `Ctrl+Y` | Global |
-| **Save** | `Cmd+S` / `Ctrl+S` | Global |
-| **Toggle Snap** | `Cmd+Shift+S` / `Ctrl+Shift+S` | Timeline |
-| **Zoom In** | `Cmd+=` / `Ctrl+=` | Timeline |
-| **Zoom Out** | `Cmd+-` / `Ctrl+-` | Timeline |
-| **Delete Selected** | `Delete` / `Backspace` | Timeline with selection |
-| **Select All** | `Cmd+A` / `Ctrl+A` | Timeline |
-| **Keyboard Shortcuts Help** | `?` | Global |
+| Action                      | Shortcut                       | Context                 |
+| --------------------------- | ------------------------------ | ----------------------- |
+| **Play/Pause**              | `Space`                        | Timeline focused        |
+| **Undo**                    | `Cmd+Z` (Mac) / `Ctrl+Z` (Win) | Global                  |
+| **Redo**                    | `Cmd+Y` / `Ctrl+Y`             | Global                  |
+| **Save**                    | `Cmd+S` / `Ctrl+S`             | Global                  |
+| **Toggle Snap**             | `Cmd+Shift+S` / `Ctrl+Shift+S` | Timeline                |
+| **Zoom In**                 | `Cmd+=` / `Ctrl+=`             | Timeline                |
+| **Zoom Out**                | `Cmd+-` / `Ctrl+-`             | Timeline                |
+| **Delete Selected**         | `Delete` / `Backspace`         | Timeline with selection |
+| **Select All**              | `Cmd+A` / `Ctrl+A`             | Timeline                |
+| **Keyboard Shortcuts Help** | `?`                            | Global                  |
 
 ### Navigation Patterns
 
 #### Tab Navigation
+
 - **Tab**: Move focus forward
 - **Shift+Tab**: Move focus backward
 - **Tab order** follows logical reading order (left-to-right, top-to-bottom)
 - **Skip links** available to jump to main content
 
 #### Arrow Key Navigation
+
 - **Arrow keys**: Navigate within complex components (timeline, minimap, dropdown menus)
 - **ArrowRight/ArrowLeft**: Navigate onboarding steps
 - **ArrowUp/ArrowDown**: Navigate menu items, adjust values
 
 #### Focus Management
+
 - **Focus indicators** are visible on all focusable elements (2px outline or box-shadow)
 - **Focus trapping** in modal dialogs prevents tabbing outside the modal
 - **Focus restoration** after closing modals returns focus to the trigger element
@@ -71,25 +74,30 @@ All functionality is accessible via keyboard. Core shortcuts:
 ### Component-Specific Keyboard Support
 
 #### Onboarding Tour
+
 - `ArrowRight`: Next step
 - `ArrowLeft`: Previous step
 - `Escape`: Skip/dismiss tour
 
 #### Timeline
+
 - `Enter` / `Space`: Select clip at cursor
 - `Cmd+Click` / `Ctrl+Click`: Multi-select clips
 - `Escape`: Deselect all clips
 - Arrow keys: Fine-tune clip position (when selected)
 
 #### Minimap
+
 - `ArrowLeft` / `ArrowRight`: Pan viewport
 - `Enter` / `Space`: Jump to position
 
 #### Grid Settings
+
 - `Enter`: Apply custom grid interval
 - `Escape`: Close dropdown
 
 #### Asset Panel
+
 - `Enter`: Add asset to timeline
 - `Delete`: Delete selected asset
 - `Tab`: Navigate filter controls
@@ -205,12 +213,12 @@ Maintain logical heading hierarchy (h1 → h2 → h3, no skipping levels):
 
 All text and interactive elements meet WCAG AA contrast requirements:
 
-| Element Type | Minimum Contrast Ratio | Examples |
-|--------------|------------------------|----------|
-| **Normal text** (< 18pt) | 4.5:1 | Body text, labels |
-| **Large text** (≥ 18pt or 14pt bold) | 3:1 | Headings, buttons |
-| **UI components** | 3:1 | Borders, icons, focus indicators |
-| **Graphical objects** | 3:1 | Charts, timeline clips |
+| Element Type                         | Minimum Contrast Ratio | Examples                         |
+| ------------------------------------ | ---------------------- | -------------------------------- |
+| **Normal text** (< 18pt)             | 4.5:1                  | Body text, labels                |
+| **Large text** (≥ 18pt or 14pt bold) | 3:1                    | Headings, buttons                |
+| **UI components**                    | 3:1                    | Borders, icons, focus indicators |
+| **Graphical objects**                | 3:1                    | Charts, timeline clips           |
 
 #### Verified Color Combinations
 
@@ -278,8 +286,12 @@ Support browser text zoom up to 200%:
 
 ```css
 /* Use relative units (rem, em) not px */
-.text-base { font-size: 1rem; } /* 16px default, scales */
-.text-lg { font-size: 1.125rem; } /* 18px default */
+.text-base {
+  font-size: 1rem;
+} /* 16px default, scales */
+.text-lg {
+  font-size: 1.125rem;
+} /* 18px default */
 
 /* Avoid fixed pixel widths for text containers */
 .container {
@@ -313,19 +325,10 @@ Respect user's motion preferences:
 
 ```tsx
 // Check reduced motion preference
-const prefersReducedMotion = window.matchMedia(
-  '(prefers-reduced-motion: reduce)'
-).matches;
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Conditionally apply animations
-<div
-  className={cn(
-    'transition-all',
-    !prefersReducedMotion && 'duration-300'
-  )}
->
-  Content
-</div>
+<div className={cn('transition-all', !prefersReducedMotion && 'duration-300')}>Content</div>;
 
 // For confetti and decorative effects
 function createConfetti() {
@@ -353,6 +356,7 @@ function createConfetti() {
 ### UserOnboarding
 
 **Accessibility Features**:
+
 - ✅ Keyboard navigation (Arrow keys, Escape)
 - ✅ Screen reader announcements for step changes
 - ✅ ARIA `role="dialog"` with `aria-modal="true"`
@@ -361,6 +365,7 @@ function createConfetti() {
 - ✅ Backdrop marked `aria-hidden="true"`
 
 **Implementation**:
+
 ```tsx
 <div
   role="dialog"
@@ -380,12 +385,14 @@ function createConfetti() {
 ### TimelineGridSettings
 
 **Accessibility Features**:
+
 - ✅ Keyboard support (Enter to apply, Escape to close)
 - ✅ ARIA expanded state on dropdown button
 - ✅ Screen reader announcement of snap state changes
 - ✅ Validation messages for custom interval
 
 **Implementation**:
+
 ```tsx
 <button
   aria-label="Grid settings"
@@ -413,6 +420,7 @@ function createConfetti() {
 ### AssetPanelEnhanced
 
 **Accessibility Features**:
+
 - ✅ Search input with results announcement
 - ✅ Tab navigation with `role="tablist"`
 - ✅ Filter controls with `aria-pressed` states
@@ -420,6 +428,7 @@ function createConfetti() {
 - ✅ Loading states with `aria-busy`
 
 **Implementation**:
+
 ```tsx
 <input
   type="search"
@@ -453,12 +462,14 @@ function createConfetti() {
 ### TimelineMinimap
 
 **Accessibility Features**:
+
 - ✅ Keyboard navigation (Arrow keys to pan)
 - ✅ ARIA slider role with value attributes
 - ✅ Position announcements to screen readers
 - ✅ Alternative to mouse drag interaction
 
 **Implementation**:
+
 ```tsx
 <div
   role="button"
@@ -485,6 +496,7 @@ function createConfetti() {
 ### useEasterEggs
 
 **Accessibility Considerations**:
+
 - ✅ Doesn't interfere with form inputs
 - ✅ Respects `prefers-reduced-motion`
 - ✅ Effects dismissible with Escape
@@ -492,6 +504,7 @@ function createConfetti() {
 - ✅ ARIA announcements for triggered effects
 
 **Safe Implementation**:
+
 ```tsx
 function createConfetti() {
   // Respect reduced motion preference
@@ -520,12 +533,14 @@ useEffect(() => {
 ### TimelineSelection (Rubber Band)
 
 **Accessibility Features**:
+
 - ✅ Keyboard alternative for selection (Shift+Click, Cmd+A)
 - ✅ Visual rectangle with `aria-label`
 - ✅ Selection count announced to screen readers
 - ✅ Selected clips have `aria-selected="true"`
 
 **Implementation**:
+
 ```tsx
 <div
   className="selection-rectangle"
@@ -612,6 +627,7 @@ npm run lighthouse -- --only-categories=accessibility
 #### Screen Reader Testing
 
 **macOS (VoiceOver)**:
+
 ```bash
 # Enable VoiceOver: Cmd+F5
 # Navigate: VO+Arrow keys
@@ -619,6 +635,7 @@ npm run lighthouse -- --only-categories=accessibility
 ```
 
 **Windows (NVDA)**:
+
 ```bash
 # Download: https://www.nvaccess.org/download/
 # Navigate: Arrow keys
@@ -626,6 +643,7 @@ npm run lighthouse -- --only-categories=accessibility
 ```
 
 **Test Checklist**:
+
 - [ ] All controls announce their purpose
 - [ ] Form labels are read correctly
 - [ ] Dynamic content changes are announced
@@ -645,16 +663,19 @@ npm run lighthouse -- --only-categories=accessibility
 ## Resources
 
 ### WCAG Guidelines
+
 - [WCAG 2.1 Quick Reference](https://www.w3.org/WAI/WCAG21/quickref/)
 - [Understanding WCAG 2.1](https://www.w3.org/WAI/WCAG21/Understanding/)
 - [How to Meet WCAG](https://www.w3.org/WAI/WCAG21/quickref/)
 
 ### ARIA Documentation
+
 - [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/)
 - [ARIA Roles Reference](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles)
 - [ARIA States and Properties](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes)
 
 ### Testing Tools
+
 - [axe DevTools Browser Extension](https://www.deque.com/axe/devtools/)
 - [WAVE Browser Extension](https://wave.webaim.org/extension/)
 - [Lighthouse](https://developers.google.com/web/tools/lighthouse)
@@ -663,11 +684,13 @@ npm run lighthouse -- --only-categories=accessibility
 - [Colour Contrast Analyser](https://www.tpgi.com/color-contrast-checker/)
 
 ### React/Next.js Accessibility
+
 - [React Accessibility Docs](https://react.dev/learn/accessibility)
 - [Next.js Accessibility](https://nextjs.org/docs/accessibility)
 - [eslint-plugin-jsx-a11y](https://github.com/jsx-eslint/eslint-plugin-jsx-a11y)
 
 ### Learning Resources
+
 - [WebAIM: Web Accessibility In Mind](https://webaim.org/)
 - [A11ycasts (YouTube)](https://www.youtube.com/playlist?list=PLNYkxOF6rcICWx0C9LVWWVqvHlYJyqw7g)
 - [The A11Y Project](https://www.a11yproject.com/)

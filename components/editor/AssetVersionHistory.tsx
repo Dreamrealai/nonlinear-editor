@@ -9,7 +9,7 @@
  */
 'use client';
 
-import React, {  useState, useEffect  } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -117,7 +117,11 @@ export function AssetVersionHistory({
   };
 
   const handleRevert = async (versionId: string, versionNumber: number): Promise<void> => {
-    if (!confirm(`Are you sure you want to revert to version ${versionNumber}? This will create a backup of the current version.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to revert to version ${versionNumber}? This will create a backup of the current version.`
+      )
+    ) {
       return;
     }
 
@@ -229,84 +233,90 @@ export function AssetVersionHistory({
           {!loading && versions.length === 0 && (
             <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
               <p>No version history available.</p>
-              <p className="text-sm mt-2">
-                Versions are created when you update this asset.
-              </p>
+              <p className="text-sm mt-2">Versions are created when you update this asset.</p>
             </div>
           )}
 
           {/* Version list */}
           {!loading && versions.length > 0 && (
             <div className="space-y-3">
-              {versions.map((version): React.ReactElement => (
-                <div
-                  key={version.id}
-                  className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    {/* Version info */}
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-lg">
-                          Version {version.version_number}
-                        </span>
-                        {version.version_label && (
-                          <span className="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs rounded-full">
-                            {version.version_label}
+              {versions.map(
+                (version): React.ReactElement => (
+                  <div
+                    key={version.id}
+                    className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      {/* Version info */}
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-lg">
+                            Version {version.version_number}
                           </span>
-                        )}
-                      </div>
-
-                      <div className="text-sm text-neutral-600 dark:text-neutral-400 space-y-1">
-                        <div className="flex items-center gap-4 flex-wrap">
-                          <span>
-                            <span className="font-medium">Created:</span> {formatDate(version.created_at)}
-                          </span>
-                          <span>
-                            <span className="font-medium">Size:</span> {formatFileSize(version.file_size)}
-                          </span>
-                          {version.width && version.height && (
-                            <span>
-                              <span className="font-medium">Dimensions:</span> {version.width} × {version.height}
-                            </span>
-                          )}
-                          {version.duration_seconds && (
-                            <span>
-                              <span className="font-medium">Duration:</span> {formatDuration(version.duration_seconds * 1000)}
+                          {version.version_label && (
+                            <span className="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs rounded-full">
+                              {version.version_label}
                             </span>
                           )}
                         </div>
 
-                        {version.change_reason && (
-                          <div className="mt-2">
-                            <span className="font-medium">Reason:</span>{' '}
-                            <span className="italic">{version.change_reason}</span>
+                        <div className="text-sm text-neutral-600 dark:text-neutral-400 space-y-1">
+                          <div className="flex items-center gap-4 flex-wrap">
+                            <span>
+                              <span className="font-medium">Created:</span>{' '}
+                              {formatDate(version.created_at)}
+                            </span>
+                            <span>
+                              <span className="font-medium">Size:</span>{' '}
+                              {formatFileSize(version.file_size)}
+                            </span>
+                            {version.width && version.height && (
+                              <span>
+                                <span className="font-medium">Dimensions:</span> {version.width} ×{' '}
+                                {version.height}
+                              </span>
+                            )}
+                            {version.duration_seconds && (
+                              <span>
+                                <span className="font-medium">Duration:</span>{' '}
+                                {formatDuration(version.duration_seconds * 1000)}
+                              </span>
+                            )}
                           </div>
-                        )}
+
+                          {version.change_reason && (
+                            <div className="mt-2">
+                              <span className="font-medium">Reason:</span>{' '}
+                              <span className="italic">{version.change_reason}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(): Promise<void> =>
+                            handleRevert(version.id, version.version_number)
+                          }
+                          disabled={reverting !== null}
+                        >
+                          {reverting === version.id ? (
+                            <>
+                              <LoadingSpinner size={16} className="mr-2" />
+                              Reverting...
+                            </>
+                          ) : (
+                            'Revert'
+                          )}
+                        </Button>
                       </div>
                     </div>
-
-                    {/* Actions */}
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(): Promise<void> => handleRevert(version.id, version.version_number)}
-                        disabled={reverting !== null}
-                      >
-                        {reverting === version.id ? (
-                          <>
-                            <LoadingSpinner size={16} className="mr-2" />
-                            Reverting...
-                          </>
-                        ) : (
-                          'Revert'
-                        )}
-                      </Button>
-                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              )}
             </div>
           )}
 

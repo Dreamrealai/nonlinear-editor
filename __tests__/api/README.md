@@ -38,6 +38,7 @@ npm test -- __tests__/api --watch
 ## Test Coverage
 
 ### Priority 1 - Projects (Highest Priority)
+
 - **create.test.ts** - POST /api/projects
   - Authentication tests
   - Input validation
@@ -46,6 +47,7 @@ npm test -- __tests__/api --watch
   - Response format validation
 
 ### Priority 2 - Payments
+
 - **checkout.test.ts** - POST /api/stripe/checkout
   - Authentication tests
   - User profile validation
@@ -65,6 +67,7 @@ npm test -- __tests__/api --watch
   - Database failure scenarios
 
 ### Priority 3 - Video Generation
+
 - **generate.test.ts** - POST /api/video/generate
   - Authentication tests
   - Rate limiting (5 req/min)
@@ -86,6 +89,7 @@ npm test -- __tests__/api --watch
   - Cleanup on errors
 
 ### Priority 4 - Assets
+
 - **upload.test.ts** - POST /api/assets/upload
   - Authentication tests
   - File validation (size, MIME type)
@@ -109,33 +113,43 @@ npm test -- __tests__/api --watch
 ## Test Patterns
 
 ### Authentication Testing
+
 All tests verify:
+
 - 401 response for unauthenticated requests
 - 401 response for invalid tokens
 - Proper user context in authenticated requests
 
 ### Validation Testing
+
 All tests verify:
+
 - 400 response for missing required fields
 - 400 response for invalid data types
 - 400 response for out-of-range values
 - Proper error messages with field names
 
 ### Authorization Testing
+
 All tests verify:
+
 - 403 response for unauthorized access
 - 404 response for non-existent resources
 - Proper ownership verification
 
 ### Error Handling
+
 All tests verify:
+
 - 500 response for database errors
 - 500 response for external API failures
 - Proper error cleanup (e.g., removing uploaded files)
 - Informative error messages
 
 ### Success Cases
+
 All tests verify:
+
 - Correct HTTP status codes
 - Complete response objects
 - Database record creation
@@ -147,7 +161,9 @@ All tests verify:
 Located in `__tests__/utils/`:
 
 ### mockSupabase.ts
+
 Provides utilities for mocking Supabase client:
+
 - `createMockSupabaseClient()` - Creates chainable mock client
 - `createMockUser()` - Creates mock user object
 - `createMockProject()` - Creates mock project
@@ -161,7 +177,9 @@ Provides utilities for mocking Supabase client:
 - `mockStorageUploadError()` - Mocks failed upload
 
 ### mockStripe.ts
+
 Provides utilities for mocking Stripe:
+
 - `createMockCheckoutSession()` - Creates mock checkout session
 - `createMockSubscription()` - Creates mock subscription
 - `createMockCustomer()` - Creates mock customer
@@ -174,6 +192,7 @@ Current test files: **9 test suites**
 Target coverage for critical routes: **60%+**
 
 Coverage breakdown:
+
 - Projects: High coverage on creation
 - Payments: Comprehensive webhook & checkout coverage
 - Video: Full generation & status flow coverage
@@ -191,15 +210,19 @@ Coverage breakdown:
 ## Common Issues
 
 ### Request/Response Not Defined
+
 If you see "Request is not defined", ensure jest.setup.js includes Web API polyfills.
 
 ### Module Mocking
+
 Mocks must be defined before the module is imported. Use `jest.mock()` at the top of test files.
 
 ### Async/Await
+
 Always use `async/await` when testing async functions and API routes.
 
 ### Type Errors
+
 Use `as any` sparingly and prefer proper TypeScript types with `jest.Mocked<T>`.
 
 ## Future Enhancements
@@ -220,6 +243,7 @@ Use `as any` sparingly and prefer proper TypeScript types with `jest.Mocked<T>`.
 ## Contributing
 
 When adding new API routes:
+
 1. Create corresponding test file in appropriate directory
 2. Follow existing test patterns
 3. Achieve minimum 60% coverage

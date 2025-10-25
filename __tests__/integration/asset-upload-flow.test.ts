@@ -31,17 +31,20 @@ import {
 import { cache } from '@/lib/cache';
 
 // Mock the error tracking module
-jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
-  trackError: jest.fn(),
-  ErrorCategory: {
-    DATABASE: 'database',
-    EXTERNAL_SERVICE: 'external_service',
-  },
-  ErrorSeverity: {
-    HIGH: 'high',
-    MEDIUM: 'medium',
-  },
-}));
+jest.mock(
+  '@/lib/errorTracking',
+  (): Record<string, unknown> => ({
+    trackError: jest.fn(),
+    ErrorCategory: {
+      DATABASE: 'database',
+      EXTERNAL_SERVICE: 'external_service',
+    },
+    ErrorSeverity: {
+      HIGH: 'high',
+      MEDIUM: 'medium',
+    },
+  })
+);
 
 describe('Integration: Asset Upload Flow', () => {
   let mockSupabase: MockSupabaseChain;

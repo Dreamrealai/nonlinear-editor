@@ -6,17 +6,20 @@ import { UserService } from '@/lib/services/userService';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 // Mock external modules
-jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
-  trackError: jest.fn(),
-  ErrorCategory: {
-    DATABASE: 'database',
-  },
-  ErrorSeverity: {
-    HIGH: 'high',
-    MEDIUM: 'medium',
-    LOW: 'low',
-  },
-}));
+jest.mock(
+  '@/lib/errorTracking',
+  (): Record<string, unknown> => ({
+    trackError: jest.fn(),
+    ErrorCategory: {
+      DATABASE: 'database',
+    },
+    ErrorSeverity: {
+      HIGH: 'high',
+      MEDIUM: 'medium',
+      LOW: 'low',
+    },
+  })
+);
 
 describe('UserService', () => {
   let mockSupabase: jest.Mocked<SupabaseClient>;

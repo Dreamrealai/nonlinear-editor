@@ -14,27 +14,36 @@ const mockChannel = {
 
 const mockSupabaseClient = createMockSupabaseClient();
 
-jest.mock('@/components/providers/SupabaseProvider', (): Record<string, unknown> => ({
-  useSupabase: (): Record<string, unknown> => ({
-    supabaseClient: mockSupabaseClient,
-  }),
-}));
+jest.mock(
+  '@/components/providers/SupabaseProvider',
+  (): Record<string, unknown> => ({
+    useSupabase: (): Record<string, unknown> => ({
+      supabaseClient: mockSupabaseClient,
+    }),
+  })
+);
 
 // Mock browserLogger
-jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
-  browserLogger: {
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/browserLogger',
+  (): Record<string, unknown> => ({
+    browserLogger: {
+      error: jest.fn(),
+    },
+  })
+);
 
 // Mock Next.js Image component
-jest.mock('next/image', (): Record<string, unknown> => ({
-  __esModule: true,
-  default: (props: any) => {
-    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
-    return <img {...props} />;
-  },
-}));
+jest.mock(
+  'next/image',
+  (): Record<string, unknown> => ({
+    __esModule: true,
+    default: (props: any) => {
+      // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+      return <img {...props} />;
+    },
+  })
+);
 
 // Mock fetch
 global.fetch = jest.fn();

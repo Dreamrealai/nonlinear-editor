@@ -7,7 +7,7 @@ const mockLogger = {
   warn: jest.fn(),
   error: jest.fn(),
   debug: jest.fn(),
-  child: jest.fn(function() {
+  child: jest.fn(function () {
     return mockLogger;
   }),
 };

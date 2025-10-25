@@ -31,9 +31,7 @@ test.describe('Offline & Network Conditions', () => {
       const offlineIndicator = page.locator(
         'text=/offline|no.*connection|disconnected/i, [data-offline="true"]'
       );
-      const isOfflineShown = await offlineIndicator
-        .isVisible({ timeout: 3000 })
-        .catch(() => false);
+      const isOfflineShown = await offlineIndicator.isVisible({ timeout: 3000 }).catch(() => false);
 
       // Or check for network status in page
       const isOffline = await page.evaluate(() => !navigator.onLine);
@@ -59,9 +57,7 @@ test.describe('Offline & Network Conditions', () => {
 
       // Should show online indicator or remove offline indicator
       const onlineIndicator = page.locator('text=/online|connected/i');
-      const isOnlineShown = await onlineIndicator
-        .isVisible({ timeout: 3000 })
-        .catch(() => false);
+      const isOnlineShown = await onlineIndicator.isVisible({ timeout: 3000 }).catch(() => false);
 
       const isOnline = await page.evaluate(() => navigator.onLine);
 
@@ -93,10 +89,7 @@ test.describe('Offline & Network Conditions', () => {
   });
 
   test.describe('Save Draft Functionality', () => {
-    test('should save draft to local storage when offline', async ({
-      page,
-      context,
-    }) => {
+    test('should save draft to local storage when offline', async ({ page, context }) => {
       const projectId = await createTestProject(page, 'Offline Save Test');
       const editorPage = new EditorPage(page);
       await editorPage.goto(projectId);
@@ -122,9 +115,7 @@ test.describe('Offline & Network Conditions', () => {
 
         // Or check for draft saved message
         const draftMessage = page.locator('text=/draft.*saved|saved.*locally/i');
-        const hasDraftMessage = await draftMessage
-          .isVisible({ timeout: 2000 })
-          .catch(() => false);
+        const hasDraftMessage = await draftMessage.isVisible({ timeout: 2000 }).catch(() => false);
 
         expect(isDrafted || hasDraftMessage || true).toBe(true);
 
@@ -159,17 +150,12 @@ test.describe('Offline & Network Conditions', () => {
 
       // Should show draft restore option
       const restoreOption = page.locator('text=/restore|draft.*available|recover/i');
-      const hasRestoreOption = await restoreOption
-        .isVisible({ timeout: 3000 })
-        .catch(() => false);
+      const hasRestoreOption = await restoreOption.isVisible({ timeout: 3000 }).catch(() => false);
 
       expect(hasRestoreOption || true).toBe(true);
     });
 
-    test('should warn about unsaved changes when going offline', async ({
-      page,
-      context,
-    }) => {
+    test('should warn about unsaved changes when going offline', async ({ page, context }) => {
       const projectId = await createTestProject(page, 'Unsaved Offline Test');
       const editorPage = new EditorPage(page);
       await editorPage.goto(projectId);
@@ -220,9 +206,7 @@ test.describe('Offline & Network Conditions', () => {
 
         // Should attempt to sync
         const syncIndicator = page.locator('text=/syncing|sync|uploading/i');
-        const isSyncing = await syncIndicator
-          .isVisible({ timeout: 3000 })
-          .catch(() => false);
+        const isSyncing = await syncIndicator.isVisible({ timeout: 3000 }).catch(() => false);
 
         expect(isSyncing || true).toBe(true);
       }
@@ -254,9 +238,7 @@ test.describe('Offline & Network Conditions', () => {
 
       // Should handle conflict (show dialog or auto-merge)
       const conflictDialog = page.locator('text=/conflict|version/i');
-      const hasConflict = await conflictDialog
-        .isVisible({ timeout: 3000 })
-        .catch(() => false);
+      const hasConflict = await conflictDialog.isVisible({ timeout: 3000 }).catch(() => false);
 
       // Or should sync successfully
       expect(hasConflict || true).toBe(true);
@@ -346,9 +328,7 @@ test.describe('Offline & Network Conditions', () => {
       const loadingIndicator = page.locator(
         '[role="progressbar"], [aria-busy="true"], text=/loading/i'
       );
-      const isLoading = await loadingIndicator
-        .isVisible({ timeout: 2000 })
-        .catch(() => false);
+      const isLoading = await loadingIndicator.isVisible({ timeout: 2000 }).catch(() => false);
 
       // Reset network conditions
       await client.send('Network.emulateNetworkConditions', {
@@ -441,9 +421,7 @@ test.describe('Offline & Network Conditions', () => {
         const progressBar = page.locator(
           '[role="progressbar"], .progress-bar, text=/uploading|%/i'
         );
-        const hasProgress = await progressBar
-          .isVisible({ timeout: 3000 })
-          .catch(() => false);
+        const hasProgress = await progressBar.isVisible({ timeout: 3000 }).catch(() => false);
 
         expect(hasProgress || true).toBe(true);
       }
@@ -481,9 +459,7 @@ test.describe('Offline & Network Conditions', () => {
 
         // Should timeout after reasonable period
         const timeoutMessage = page.locator('text=/timeout|taking.*long|slow/i');
-        const hasTimeout = await timeoutMessage
-          .isVisible({ timeout: 10000 })
-          .catch(() => false);
+        const hasTimeout = await timeoutMessage.isVisible({ timeout: 10000 }).catch(() => false);
 
         expect(hasTimeout || true).toBe(true);
       }
@@ -502,12 +478,8 @@ test.describe('Offline & Network Conditions', () => {
       await page.goto('/editor');
 
       // Should show loading state or simplified UI
-      const loadingState = page.locator(
-        'text=/loading|slow.*connection|reduced.*quality/i'
-      );
-      const hasAdaptation = await loadingState
-        .isVisible({ timeout: 5000 })
-        .catch(() => false);
+      const loadingState = page.locator('text=/loading|slow.*connection|reduced.*quality/i');
+      const hasAdaptation = await loadingState.isVisible({ timeout: 5000 }).catch(() => false);
 
       // Reset network
       await client.send('Network.emulateNetworkConditions', {

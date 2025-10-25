@@ -64,16 +64,19 @@ k6 run --out cloud k6/video-generation.test.js
 ### `video-generation.test.js`
 
 Tests the video generation endpoints with:
+
 - Rate limit handling
 - Status polling
 - Multiple concurrent users
 - Response time tracking
 
 **Endpoints tested:**
+
 - `POST /api/video/generate`
 - `GET /api/video/status`
 
 **Metrics:**
+
 - `rate_limit_hits` - Number of 429 responses
 - `successful_generations` - Successful generation requests
 - `failed_generations` - Failed generation requests
@@ -83,15 +86,18 @@ Tests the video generation endpoints with:
 ### `audio-generation.test.js`
 
 Tests audio generation APIs:
+
 - ElevenLabs text-to-speech
 - Suno music generation
 
 **Endpoints tested:**
+
 - `POST /api/audio/elevenlabs/generate`
 - `POST /api/audio/suno/generate`
 - `GET /api/audio/suno/status`
 
 **Metrics:**
+
 - `elevenlabs_success` / `elevenlabs_failed`
 - `suno_success` / `suno_failed`
 - Response time trends for both providers
@@ -101,9 +107,11 @@ Tests audio generation APIs:
 Tests image generation with Google Imagen:
 
 **Endpoints tested:**
+
 - `POST /api/image/generate`
 
 **Metrics:**
+
 - `successful_generations` / `failed_generations`
 - `rate_limit_hits`
 - `generation_response_time`
@@ -136,16 +144,19 @@ k6 run k6/video-generation.test.js
 ### Success Criteria
 
 ✅ Good:
+
 - p95 response time < 5s (video/image) or < 10s (audio)
 - Error rate < 10%
 - Rate limit hits < 5% of total requests
 
 ⚠️ Warning:
+
 - p95 response time 5-10s
 - Error rate 10-20%
 - Rate limit hits 5-10% of requests
 
 ❌ Poor:
+
 - p95 response time > 10s
 - Error rate > 20%
 - Rate limit hits > 10% of requests
@@ -179,7 +190,7 @@ name: Load Tests
 
 on:
   schedule:
-    - cron: '0 2 * * *'  # Run daily at 2 AM
+    - cron: '0 2 * * *' # Run daily at 2 AM
   workflow_dispatch:
 
 jobs:
@@ -206,6 +217,7 @@ jobs:
 ### Rate Limits
 
 If you're hitting rate limits frequently:
+
 1. Reduce number of VUs
 2. Increase sleep time between requests
 3. Check rate limit configuration in `lib/rateLimit.ts`
@@ -213,6 +225,7 @@ If you're hitting rate limits frequently:
 ### Authentication Failures
 
 If tests fail with 401 errors:
+
 1. Verify `TEST_EMAIL` and `TEST_PASSWORD` are correct
 2. Check that the user exists in your database
 3. Ensure Supabase auth is configured properly
@@ -220,6 +233,7 @@ If tests fail with 401 errors:
 ### Timeouts
 
 If requests timeout:
+
 1. Check your API server is running
 2. Verify `BASE_URL` is correct
 3. Check if external AI services (Gemini, FAL, etc.) are responding

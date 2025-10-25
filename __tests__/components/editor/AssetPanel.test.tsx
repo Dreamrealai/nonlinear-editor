@@ -6,23 +6,29 @@ import { AssetPanel } from '@/components/editor/AssetPanel';
 import type { AssetRow } from '@/types/assets';
 
 // Mock Next.js Image component
-jest.mock('next/image', (): Record<string, unknown> => ({
-  __esModule: true,
-  default: ({ unoptimized, priority, loading, ...props }: any) => {
-    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
-    return <img {...props} />;
-  },
-}));
+jest.mock(
+  'next/image',
+  (): Record<string, unknown> => ({
+    __esModule: true,
+    default: ({ unoptimized, priority, loading, ...props }: any) => {
+      // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+      return <img {...props} />;
+    },
+  })
+);
 
 // Mock Next.js Link component
-jest.mock('next/link', (): Record<string, unknown> => ({
-  __esModule: true,
-  default: ({ children, href, ...props }: any) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+jest.mock(
+  'next/link',
+  (): Record<string, unknown> => ({
+    __esModule: true,
+    default: ({ children, href, ...props }: any) => (
+      <a href={href} {...props}>
+        {children}
+      </a>
+    ),
+  })
+);
 
 const mockAssets: AssetRow[] = [
   {

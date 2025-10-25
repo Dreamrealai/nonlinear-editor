@@ -18,34 +18,43 @@ import sharp from 'sharp';
 
 // Mock errorTracking
 const mockTrackError = jest.fn();
-jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
-  trackError: mockTrackError,
-  ErrorCategory: {
-    EXTERNAL_SERVICE: 'EXTERNAL_SERVICE',
-  },
-  ErrorSeverity: {
-    LOW: 'LOW',
-    MEDIUM: 'MEDIUM',
-    HIGH: 'HIGH',
-  },
-}));
+jest.mock(
+  '@/lib/errorTracking',
+  (): Record<string, unknown> => ({
+    trackError: mockTrackError,
+    ErrorCategory: {
+      EXTERNAL_SERVICE: 'EXTERNAL_SERVICE',
+    },
+    ErrorSeverity: {
+      LOW: 'LOW',
+      MEDIUM: 'MEDIUM',
+      HIGH: 'HIGH',
+    },
+  })
+);
 
 // Mock child_process and util.promisify
 const mockExec = jest.fn();
 const mockExecAsync = jest.fn();
 
-jest.mock('util', (): Record<string, unknown> => ({
-  promisify: (fn: any): any => {
-    if (fn.name === 'exec') {
-      return mockExecAsync;
-    }
-    return jest.requireActual('util').promisify(fn);
-  },
-}));
+jest.mock(
+  'util',
+  (): Record<string, unknown> => ({
+    promisify: (fn: any): any => {
+      if (fn.name === 'exec') {
+        return mockExecAsync;
+      }
+      return jest.requireActual('util').promisify(fn);
+    },
+  })
+);
 
-jest.mock('child_process', (): Record<string, unknown> => ({
-  exec: mockExec,
-}));
+jest.mock(
+  'child_process',
+  (): Record<string, unknown> => ({
+    exec: mockExec,
+  })
+);
 
 // Mock fs
 const mockWriteFile = jest.fn();
@@ -53,14 +62,17 @@ const mockReadFile = jest.fn();
 const mockUnlink = jest.fn();
 const mockExistsSync = jest.fn();
 
-jest.mock('fs', (): Record<string, unknown> => ({
-  promises: {
-    writeFile: mockWriteFile,
-    readFile: mockReadFile,
-    unlink: mockUnlink,
-  },
-  existsSync: mockExistsSync,
-}));
+jest.mock(
+  'fs',
+  (): Record<string, unknown> => ({
+    promises: {
+      writeFile: mockWriteFile,
+      readFile: mockReadFile,
+      unlink: mockUnlink,
+    },
+    existsSync: mockExistsSync,
+  })
+);
 
 describe('ThumbnailService', () => {
   let service: ThumbnailService;

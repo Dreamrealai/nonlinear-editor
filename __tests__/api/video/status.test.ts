@@ -12,17 +12,20 @@ import {
 } from '@/test-utils';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    return handler(req, { user, supabase, params: context?.params || {} });
-  }),
-}));
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return handler(req, { user, supabase, params: context?.params || {} });
+    }),
+  })
+);
 
 // Mock modules
 jest.mock('@/lib/supabase', () => {
@@ -37,25 +40,34 @@ jest.mock('@/lib/supabase', () => {
   };
 });
 
-jest.mock('@/lib/veo', (): Record<string, unknown> => ({
-  checkOperationStatus: jest.fn(),
-}));
+jest.mock(
+  '@/lib/veo',
+  (): Record<string, unknown> => ({
+    checkOperationStatus: jest.fn(),
+  })
+);
 
-jest.mock('@/lib/fal-video', (): Record<string, unknown> => ({
-  checkFalVideoStatus: jest.fn(),
-}));
+jest.mock(
+  '@/lib/fal-video',
+  (): Record<string, unknown> => ({
+    checkFalVideoStatus: jest.fn(),
+  })
+);
 
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  checkRateLimit: jest.fn().mockResolvedValue({
-    success: true,
-    limit: 30,
-    remaining: 29,
-    resetAt: Date.now() + 60_000,
-  }),
-  RATE_LIMITS: {
-    tier3_status_read: { max: 30, windowMs: 60_000 },
-  },
-}));
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    checkRateLimit: jest.fn().mockResolvedValue({
+      success: true,
+      limit: 30,
+      remaining: 29,
+      resetAt: Date.now() + 60_000,
+    }),
+    RATE_LIMITS: {
+      tier3_status_read: { max: 30, windowMs: 60_000 },
+    },
+  })
+);
 
 // serverLogger is mocked globally in __mocks__/lib/serverLogger.ts
 
@@ -77,9 +89,12 @@ jest.mock('@/lib/api/response', () => {
   };
 });
 
-jest.mock('uuid', (): Record<string, unknown> => ({
-  v4: jest.fn(() => 'mock-uuid'),
-}));
+jest.mock(
+  'uuid',
+  (): Record<string, unknown> => ({
+    v4: jest.fn(() => 'mock-uuid'),
+  })
+);
 
 const createRequest = (path: string, init: RequestInit = {}) =>
   new Request(`http://localhost${path}`, init);

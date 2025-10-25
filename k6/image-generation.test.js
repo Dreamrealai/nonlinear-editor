@@ -32,12 +32,16 @@ const TEST_EMAIL = __ENV.TEST_EMAIL || 'david@dreamreal.ai';
 const TEST_PASSWORD = __ENV.TEST_PASSWORD || 'sc3p4sses';
 
 export function setup() {
-  const loginRes = http.post(`${BASE_URL}/auth/signin`, JSON.stringify({
-    email: TEST_EMAIL,
-    password: TEST_PASSWORD,
-  }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
+  const loginRes = http.post(
+    `${BASE_URL}/auth/signin`,
+    JSON.stringify({
+      email: TEST_EMAIL,
+      password: TEST_PASSWORD,
+    }),
+    {
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
 
   let authCookie = '';
   for (let cookieName in loginRes.cookies) {
@@ -45,28 +49,32 @@ export function setup() {
   }
 
   const projectsRes = http.get(`${BASE_URL}/api/projects`, {
-    headers: { 'Cookie': authCookie },
+    headers: { Cookie: authCookie },
   });
 
   let projectId;
   if (projectsRes.json().length > 0) {
     projectId = projectsRes.json()[0].id;
   } else {
-    const createRes = http.post(`${BASE_URL}/api/projects`, JSON.stringify({
-      title: 'k6 Image Load Test',
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Cookie': authCookie,
-      },
-    });
+    const createRes = http.post(
+      `${BASE_URL}/api/projects`,
+      JSON.stringify({
+        title: 'k6 Image Load Test',
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: authCookie,
+        },
+      }
+    );
     projectId = createRes.json().id;
   }
 
   return { authCookie, projectId };
 }
 
-export default function(data) {
+export default function (data) {
   const { authCookie, projectId } = data;
 
   const prompts = [
@@ -93,7 +101,7 @@ export default function(data) {
 
   const headers = {
     'Content-Type': 'application/json',
-    'Cookie': authCookie,
+    Cookie: authCookie,
   };
 
   const startTime = Date.now();

@@ -18,80 +18,100 @@ import {
  * - 2-param: handler(request, authContext) - for routes without params
  * - 3-param: handler(request, authContext, routeContext) - for routes with params like [projectId]
  */
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: (handler: any) => async (req: any, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: (handler: any) => async (req: any, context: any) => {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    }
+      if (!user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      }
 
-    const authContext = { user, supabase };
+      const authContext = { user, supabase };
 
-    // Check if this is a dynamic route (has params)
-    if (context?.params !== undefined) {
-      // 3-param signature: handler(request, authContext, routeContext)
-      const routeContext = { params: context.params };
-      return handler(req, authContext, routeContext);
-    } else {
-      // 2-param signature: handler(request, authContext)
-      return handler(req, authContext);
-    }
-  },
-}));
+      // Check if this is a dynamic route (has params)
+      if (context?.params !== undefined) {
+        // 3-param signature: handler(request, authContext, routeContext)
+        const routeContext = { params: context.params };
+        return handler(req, authContext, routeContext);
+      } else {
+        // 2-param signature: handler(request, authContext)
+        return handler(req, authContext);
+      }
+    },
+  })
+);
 
 /**
  * CRITICAL: The jest.mock factory function cannot access external variables.
  * However, jest.fn() returns a mock that CAN be configured later in beforeEach.
  * This is why we use jest.fn() here and then configure it with mockResolvedValue in beforeEach.
  */
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(), // This jest.fn() will be configured in beforeEach
-}));
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-    child: jest.fn((): Record<string, unknown> => ({
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(), // This jest.fn() will be configured in beforeEach
+  })
+);
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
       info: jest.fn(),
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
+      child: jest.fn(
+        (): Record<string, unknown> => ({
+          info: jest.fn(),
+          error: jest.fn(),
+          warn: jest.fn(),
+          debug: jest.fn(),
+        })
+      ),
+    },
+  })
+);
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    RATE_LIMITS: {
+      tier3_status_read: { requests: 60, window: 60 },
+      tier2_resource_creation: { requests: 10, window: 60 },
+    },
+  })
+);
+jest.mock(
+  '@/lib/auditLog',
+  (): Record<string, unknown> => ({
+    auditSecurityEvent: jest.fn().mockResolvedValue(undefined),
+    auditRateLimitViolation: jest.fn().mockResolvedValue(undefined),
+    AuditAction: { SECURITY_UNAUTHORIZED_ACCESS: 'security.unauthorized_access' },
+  })
+);
+jest.mock(
+  '@/lib/services/backupService',
+  (): Record<string, unknown> => ({
+    BackupService: jest.fn().mockImplementation(() => ({
+      listBackups: jest.fn().mockResolvedValue([
+        {
+          id: 'backup-1',
+          created_at: '2024-01-01',
+          backup_type: 'manual',
+          backup_name: 'Test Backup',
+        },
+      ]),
+      createBackup: jest.fn().mockResolvedValue({ id: 'new-backup', created_at: '2024-01-02' }),
+      restoreBackup: jest.fn().mockResolvedValue(undefined),
     })),
-  },
-}));
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  RATE_LIMITS: {
-    tier3_status_read: { requests: 60, window: 60 },
-    tier2_resource_creation: { requests: 10, window: 60 },
-  },
-}));
-jest.mock('@/lib/auditLog', (): Record<string, unknown> => ({
-  auditSecurityEvent: jest.fn().mockResolvedValue(undefined),
-  auditRateLimitViolation: jest.fn().mockResolvedValue(undefined),
-  AuditAction: { SECURITY_UNAUTHORIZED_ACCESS: 'security.unauthorized_access' },
-}));
-jest.mock('@/lib/services/backupService', (): Record<string, unknown> => ({
-  BackupService: jest.fn().mockImplementation(() => ({
-    listBackups: jest.fn().mockResolvedValue([
-      {
-        id: 'backup-1',
-        created_at: '2024-01-01',
-        backup_type: 'manual',
-        backup_name: 'Test Backup',
-      },
-    ]),
-    createBackup: jest.fn().mockResolvedValue({ id: 'new-backup', created_at: '2024-01-02' }),
-    restoreBackup: jest.fn().mockResolvedValue(undefined),
-  })),
-}));
+  })
+);
 
 // Import route handlers AFTER all mocks are set up to ensure mocks are applied
 import { GET, POST } from '@/app/api/projects/[projectId]/backups/route';

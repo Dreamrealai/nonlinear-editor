@@ -195,18 +195,21 @@ npm run test:e2e
 ### Test Requirements by Type
 
 **API Routes**:
+
 - Test all success paths
 - Test error handling
 - Test authentication/authorization
 - Test input validation
 
 **Components**:
+
 - Test rendering
 - Test user interactions
 - Test edge cases
 - Test accessibility
 
 **Services**:
+
 - Test business logic
 - Test error handling
 - Test edge cases
@@ -240,24 +243,28 @@ Update documentation when:
 We follow strict TypeScript and React best practices. Key points:
 
 **TypeScript**:
+
 - Use strict mode (no `any`)
 - Use branded types for IDs (`UserId`, `ProjectId`, etc.)
 - Always specify function return types
 - Use discriminated unions for error handling
 
 **React**:
+
 - Use functional components with hooks
 - Use `forwardRef` for reusable components
 - Extract logic into custom hooks
 - Follow hooks order: context → state → refs → effects → custom
 
 **Naming Conventions**:
+
 - **Components**: PascalCase (e.g., `VideoPlayer.tsx`)
 - **Files**: kebab-case for utilities (e.g., `format-time.ts`)
 - **Functions**: camelCase (e.g., `handleClick`)
 - **Constants**: SCREAMING_SNAKE_CASE (e.g., `MAX_FILE_SIZE`)
 
 **Import Order**:
+
 1. React imports
 2. Third-party imports
 3. Absolute imports (from `/app`, `/lib`, `/components`)
@@ -287,6 +294,7 @@ npm run lint:fix
 ### Pre-commit Hooks
 
 We use Husky and lint-staged. Before each commit, your code will be:
+
 - Formatted with Prettier
 - Linted with ESLint
 - Type-checked with TypeScript
@@ -343,6 +351,7 @@ git commit -m "Updated files"
 ### Before Submitting
 
 1. **Update your branch** with the latest main:
+
    ```bash
    git checkout main
    git pull upstream main
@@ -351,6 +360,7 @@ git commit -m "Updated files"
    ```
 
 2. **Run all checks**:
+
    ```bash
    npm run validate
    npm run build
@@ -370,6 +380,7 @@ Use the same format as commit messages:
 ```
 
 Examples:
+
 - `feat(timeline): add clip snapping functionality`
 - `fix(export): resolve audio sync issues`
 - `docs(setup): clarify Supabase configuration steps`
@@ -378,18 +389,22 @@ Examples:
 
 ```markdown
 ## Description
+
 Brief description of what this PR does and why.
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking change that fixes an issue)
 - [ ] New feature (non-breaking change that adds functionality)
 - [ ] Breaking change (fix or feature that causes existing functionality to change)
 - [ ] Documentation update
 
 ## How Has This Been Tested?
+
 Describe the tests you ran and how to reproduce them.
 
 ## Checklist
+
 - [ ] My code follows the style guidelines
 - [ ] I have performed a self-review of my code
 - [ ] I have commented my code, particularly in hard-to-understand areas
@@ -400,9 +415,11 @@ Describe the tests you ran and how to reproduce them.
 - [ ] Any dependent changes have been merged and published
 
 ## Screenshots (if applicable)
+
 Add screenshots to help explain your changes.
 
 ## Additional Notes
+
 Any additional information that reviewers should know.
 ```
 
@@ -432,6 +449,7 @@ Any additional information that reviewers should know.
 ### Common Issues
 
 **Build Errors**:
+
 ```bash
 # Clear cache and rebuild
 rm -rf node_modules .next
@@ -440,6 +458,7 @@ npm run build
 ```
 
 **Test Failures**:
+
 ```bash
 # Run specific test
 npm test -- path/to/test.ts
@@ -449,6 +468,7 @@ npm run test:watch
 ```
 
 **Type Errors**:
+
 ```bash
 # Check TypeScript
 npm run type-check
@@ -460,6 +480,7 @@ See [SUPABASE_SETUP.md](docs/setup/SUPABASE_SETUP.md) for troubleshooting.
 ## Recognition
 
 Contributors will be recognized in:
+
 - GitHub contributors page
 - Project README.md (for significant contributions)
 - Release notes

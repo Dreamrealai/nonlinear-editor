@@ -11,11 +11,13 @@
 **Overall Accuracy: 82% (Mostly Accurate)**
 
 The CODEBASE_ANALYSIS_REPORT.md contains mostly accurate findings, but several claims need correction. Out of 35+ major claims:
+
 - ✅ **25 claims CONFIRMED** (71%)
 - ⚠️ **5 claims PARTIAL** (14%)
 - ❌ **5 claims INVALID** (14%)
 
 **Current Codebase Status:**
+
 - ESLint: **786 problems** (58 errors, 728 warnings) - Report claimed 793
 - Files with issues: **233** (validated)
 - Critical issues: **Multiple duplicate systems CONFIRMED**
@@ -29,6 +31,7 @@ The CODEBASE_ANALYSIS_REPORT.md contains mostly accurate findings, but several c
 **Status:** ✅ ACCURATE
 
 **Evidence:**
+
 - Located in `/Users/davidchen/Projects/non-linear-editor/types/api.ts:603-607, 680`
 - `LegacyAPIResponse<T>` marked `@deprecated` at line 680
 - `GenericAPIError` at lines 603-607
@@ -44,6 +47,7 @@ The CODEBASE_ANALYSIS_REPORT.md contains mostly accurate findings, but several c
 **Status:** ✅ ACCURATE
 
 **Evidence:**
+
 - Located in `/Users/davidchen/Projects/non-linear-editor/lib/hooks/useAssetManager.ts:66-133`
 - Fully implemented composition hook (68 lines)
 - Search results show only test files, documentation, and the hook itself reference it
@@ -58,6 +62,7 @@ The CODEBASE_ANALYSIS_REPORT.md contains mostly accurate findings, but several c
 **Status:** ✅ ACCURATE
 
 **Evidence:**
+
 - Located in `/Users/davidchen/Projects/non-linear-editor/types/assets.ts:68-77, 94-110`
 - `isBaseAssetRow()` type guard at lines 68-77
 - `baseAssetToAssetRow()` converter at lines 94-110
@@ -73,10 +78,12 @@ The CODEBASE_ANALYSIS_REPORT.md contains mostly accurate findings, but several c
 **Status:** ⚠️ PARTIALLY CONFIRMED
 
 **Evidence:**
+
 - Line 16: `export class ErrorBoundary ...`
 - Line 106: `export { ErrorBoundary };`
 
 **Validation:**
+
 - Report claimed this causes **build errors** ❌ INCORRECT
 - Redundant export exists ✅ CORRECT
 - Does NOT cause TypeScript errors - both are valid syntax
@@ -95,25 +102,33 @@ The CODEBASE_ANALYSIS_REPORT.md contains mostly accurate findings, but several c
 The report claimed 24 TypeScript compilation errors. Validation found:
 
 #### Claim: Missing `ensureResponse` Function
+
 **Status:** ❌ **COMPLETELY INVALID**
+
 - Function exists at `app/api/video/generate/route.ts:432-437`
 - Defined locally in same file where used
 - No compilation error
 
 #### Claim: ErrorBoundary Duplicate Export Causes Errors
+
 **Status:** ❌ **INVALID**
+
 - Redundant export exists (verified above)
 - Does NOT cause build errors
 - ESLint shows 0 errors in this file
 
 #### Claim: Incorrect Default Imports (5 files)
+
 **Status:** ❌ **INVALID**
+
 - All imports work correctly
 - ErrorBoundary exports class as primary export
 - No import errors found
 
 #### Claim: Dynamic Import Type Errors in LazyComponents
+
 **Status:** ❌ **INVALID**
+
 - All dynamic imports properly typed
 - `createLazyComponent` function correctly typed (lines 201-209)
 - ESLint shows 0 errors in LazyComponents.tsx
@@ -125,6 +140,7 @@ The report claimed 24 TypeScript compilation errors. Validation found:
 **Status:** ✅ ACCURATE (with minor discrepancy)
 
 **Actual vs Reported:**
+
 - Report claimed: 793 total issues
 - Actual (validated): **786 total issues** (58 errors, 728 warnings)
 - Difference: 7 issues (99% accuracy)
@@ -134,6 +150,7 @@ The report claimed 24 TypeScript compilation errors. Validation found:
 **Status:** ✅ ACCURATE
 
 **Evidence:**
+
 - Report claimed: 38 occurrences
 - Actual (validated): **40 occurrences** of `@typescript-eslint/no-explicit-any`
 - Files confirmed:
@@ -150,11 +167,13 @@ The report claimed 24 TypeScript compilation errors. Validation found:
 **Status:** ❌ **INVALID**
 
 Report claimed unused variables at:
+
 - `lib/hooks/useVideoGeneration.ts:67` - `route` and `router`
 - `lib/fal-video.ts:74` - `index` parameter
 - `lib/stripe.ts:278` - `tier` parameter
 
 **Validation:**
+
 - Searched all three files for these variable names
 - No matches found for `route`, `router`, `index`, or `tier` declarations
 - ESLint shows 0 unused variable errors in these files
@@ -169,12 +188,14 @@ Report claimed unused variables at:
 **Status:** ✅ ACCURATE
 
 **Evidence:**
+
 - Report claimed: 710 warnings for missing return types
 - Actual (validated): **728 warnings** total (most are missing return types)
 - Production code missing return types: ~160 functions (confirmed)
 - Project standards require return types per CODING_BEST_PRACTICES.md
 
 **Critical Files Confirmed:**
+
 - API routes missing return types
 - Hooks missing return types
 - Components missing return types
@@ -190,6 +211,7 @@ Report claimed unused variables at:
 **Status:** ✅ ACCURATE - **HIGH SEVERITY**
 
 **Evidence:**
+
 ```typescript
 // lib/api/response.ts:55-72
 export function errorResponse(
@@ -197,23 +219,25 @@ export function errorResponse(
   status: number = HttpStatusCode.INTERNAL_SERVER_ERROR,
   field?: string,
   details?: unknown
-): NextResponse<ErrorResponse>
+): NextResponse<ErrorResponse>;
 
 // lib/api/errorResponse.ts:51-68
 export function errorResponse(
   message: string,
   status: number = 500,
   context?: ErrorContext
-): NextResponse<ErrorResponse>
+): NextResponse<ErrorResponse>;
 ```
 
 **Key Differences:**
+
 1. Different default status codes (500 vs HttpStatusCode.INTERNAL_SERVER_ERROR)
 2. Different parameter signatures (field/details vs context)
 3. errorResponse.ts includes automatic logging
 4. response.ts has field-specific error support
 
 **Impact:**
+
 - Developers must choose which to import
 - Inconsistent error handling across codebase
 - Maintenance burden
@@ -227,6 +251,7 @@ export function errorResponse(
 **Status:** ✅ ACCURATE - **HIGH SEVERITY**
 
 **Evidence:**
+
 ```typescript
 // lib/validation.ts:33-42 (assertion-based)
 export function validateUUID(value: unknown, fieldName: string = 'ID'): asserts value is string {
@@ -240,6 +265,7 @@ export function validateUUID(value: unknown, fieldName: string = 'id'): Validati
 ```
 
 **Key Differences:**
+
 1. Different error handling patterns (throw vs return)
 2. Different type signatures (assertion vs result)
 3. Inconsistent default values ('ID' vs 'id')
@@ -253,6 +279,7 @@ export function validateUUID(value: unknown, fieldName: string = 'id'): Validati
 **Status:** ✅ ACCURATE - **HIGH SEVERITY**
 
 **Evidence:**
+
 ```bash
 # File sizes
 14322 bytes - app/editor/[projectId]/AssetPanel.tsx
@@ -264,6 +291,7 @@ export function validateUUID(value: unknown, fieldName: string = 'id'): Validati
 ```
 
 **Differences Found:**
+
 - Different imports: `NextImage` vs `Image`
 - Different prop interfaces: `type` vs `interface`
 - Different JSDoc comments (components/editor has more detailed docs)
@@ -280,6 +308,7 @@ export function validateUUID(value: unknown, fieldName: string = 'id'): Validati
 **Report Claim:** Duplicate time formatting in `timelineUtils.ts` and `videoUtils.ts`
 
 **Validation:**
+
 - Found `formatTime()` in `lib/utils/timelineUtils.ts:9-14`
 - Did NOT find `formatTimecode()` in `videoUtils.ts`
 - Only one time formatting function exists
@@ -294,6 +323,7 @@ export function validateUUID(value: unknown, fieldName: string = 'id'): Validati
 
 **Evidence:**
 Three routes with similar polling logic:
+
 1. `app/api/video/status/route.ts`
 2. `app/api/video/upscale-status/route.ts`
 3. `app/api/video/generate-audio-status/route.ts`
@@ -311,6 +341,7 @@ All implement identical validation pattern.
 **Status:** ✅ ACCURATE - **HIGH SEVERITY**
 
 **Evidence:**
+
 ```bash
 # Pattern A: withAuth middleware
 9 files use withAuth
@@ -320,12 +351,15 @@ All implement identical validation pattern.
 ```
 
 **Validation of Manual Auth Pattern:**
+
 ```typescript
 // app/api/assets/upload/route.ts:78
 export const POST = withErrorHandling(async (request: NextRequest) => {
   // Manual auth check required
   const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     serverLogger.warn({ event: 'assets.upload.unauthorized' });
@@ -336,6 +370,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 ```
 
 **Confirmed:**
+
 - 23+ files require manual auth verification
 - This code is duplicated across all withErrorHandling routes
 - `withAuth` automatically handles this
@@ -349,6 +384,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 **Status:** ✅ ACCURATE - **HIGH SEVERITY**
 
 **Evidence:**
+
 ```bash
 # Format A: successResponse wrapper
 33 uses across codebase
@@ -358,6 +394,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 ```
 
 **Example of inconsistency:**
+
 ```typescript
 // Some routes use structured response
 return successResponse(project); // { success: true, data: project }
@@ -379,6 +416,7 @@ return NextResponse.json({ voices: result.voices }); // No success wrapper
 **Report Claim:** TODO exists to deprecate `timeline_state_jsonb` column
 
 **Validation:**
+
 ```typescript
 // lib/saveLoad.ts:47-52
 // NOTE: Double write to projects.timeline_state_jsonb removed (2025-10-23)
@@ -390,6 +428,7 @@ return NextResponse.json({ voices: result.voices }); // No success wrapper
 ```
 
 **Evidence:**
+
 ```bash
 # Migration file exists
 -rw-r--r-- 4065 bytes /supabase/migrations/20251025100000_deprecate_timeline_state_jsonb.sql
@@ -403,11 +442,11 @@ return NextResponse.json({ voices: result.voices }); // No success wrapper
 
 ### P0 - Critical (Must Fix Immediately)
 
-| Issue | Status | Estimated Hours | Validated |
-|-------|--------|-----------------|-----------|
-| Consolidate error response systems | ✅ Confirmed | 4-6 | ✅ |
-| Standardize middleware pattern | ✅ Confirmed | 8-12 | ✅ |
-| Unify API response format | ✅ Confirmed | 6-8 | ✅ |
+| Issue                              | Status       | Estimated Hours | Validated |
+| ---------------------------------- | ------------ | --------------- | --------- |
+| Consolidate error response systems | ✅ Confirmed | 4-6             | ✅        |
+| Standardize middleware pattern     | ✅ Confirmed | 8-12            | ✅        |
+| Unify API response format          | ✅ Confirmed | 6-8             | ✅        |
 
 **Total P0 Work:** 18-26 hours
 
@@ -415,12 +454,12 @@ return NextResponse.json({ voices: result.voices }); // No success wrapper
 
 ### P1 - High Priority (Fix This Sprint)
 
-| Issue | Status | Estimated Hours | Validated |
-|-------|--------|-----------------|-----------|
-| Fix `any` type usage (40 occurrences) | ✅ Confirmed | 4-6 | ✅ |
-| Remove duplicate AssetPanel | ✅ Confirmed | 2-3 | ✅ |
-| Consolidate validation logic | ✅ Confirmed | 3-4 | ✅ |
-| Add return types (production code) | ✅ Confirmed | 8-12 | ✅ |
+| Issue                                 | Status       | Estimated Hours | Validated |
+| ------------------------------------- | ------------ | --------------- | --------- |
+| Fix `any` type usage (40 occurrences) | ✅ Confirmed | 4-6             | ✅        |
+| Remove duplicate AssetPanel           | ✅ Confirmed | 2-3             | ✅        |
+| Consolidate validation logic          | ✅ Confirmed | 3-4             | ✅        |
+| Add return types (production code)    | ✅ Confirmed | 8-12            | ✅        |
 
 **Total P1 Work:** 17-25 hours
 
@@ -428,11 +467,11 @@ return NextResponse.json({ voices: result.voices }); // No success wrapper
 
 ### P2 - Medium Priority (Next Sprint)
 
-| Issue | Status | Estimated Hours | Validated |
-|-------|--------|-----------------|-----------|
-| Standardize validation approach | ✅ Confirmed | 4-6 | ✅ |
-| Enforce service layer usage | ✅ Confirmed | 6-8 | ✅ |
-| Extract shared status check logic | ✅ Confirmed | 2-3 | ✅ |
+| Issue                             | Status       | Estimated Hours | Validated |
+| --------------------------------- | ------------ | --------------- | --------- |
+| Standardize validation approach   | ✅ Confirmed | 4-6             | ✅        |
+| Enforce service layer usage       | ✅ Confirmed | 6-8             | ✅        |
+| Extract shared status check logic | ✅ Confirmed | 2-3             | ✅        |
 
 **Total P2 Work:** 12-17 hours
 
@@ -440,11 +479,11 @@ return NextResponse.json({ voices: result.voices }); // No success wrapper
 
 ### P3 - Low Priority (Nice to Have)
 
-| Issue | Status | Estimated Hours | Validated |
-|-------|--------|-----------------|-----------|
-| Remove unused code (LegacyAPIResponse, etc.) | ✅ Confirmed | 1-2 | ✅ |
-| Remove ErrorBoundary duplicate export | ⚠️ Partial | 0.1 | ⚠️ |
-| ~~Remove unused variables~~ | ❌ Invalid | 0 | ❌ |
+| Issue                                        | Status       | Estimated Hours | Validated |
+| -------------------------------------------- | ------------ | --------------- | --------- |
+| Remove unused code (LegacyAPIResponse, etc.) | ✅ Confirmed | 1-2             | ✅        |
+| Remove ErrorBoundary duplicate export        | ⚠️ Partial   | 0.1             | ⚠️        |
+| ~~Remove unused variables~~                  | ❌ Invalid   | 0               | ❌        |
 
 **Total P3 Work:** 1-2 hours
 
@@ -505,18 +544,21 @@ return NextResponse.json({ voices: result.voices }); // No success wrapper
 ## Final Verdict
 
 **Report Accuracy: 82%**
+
 - Core findings are sound
 - Major issues correctly identified
 - Some false positives in TypeScript errors section
 - ESLint counts off by ~1% (acceptable margin)
 
 **Report Value: HIGH**
+
 - Identifies critical architectural issues
 - Provides actionable recommendations
 - Estimates are reasonable
 - Prioritization is appropriate
 
 **Recommended Action:**
+
 - Trust the P0 and P1 findings
 - Verify P2 findings before acting
 - Ignore invalid claims (ensureResponse, unused variables, type errors)

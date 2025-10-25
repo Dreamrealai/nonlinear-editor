@@ -25,12 +25,13 @@ export async function fillFormField(page: Page, selector: string, value: string)
 /**
  * Click button and wait for navigation or network response
  */
-export async function clickAndWait(page: Page, selector: string, waitFor: 'navigation' | 'networkidle' = 'networkidle') {
+export async function clickAndWait(
+  page: Page,
+  selector: string,
+  waitFor: 'navigation' | 'networkidle' = 'networkidle'
+) {
   if (waitFor === 'navigation') {
-    await Promise.all([
-      page.waitForNavigation({ timeout: 10000 }),
-      page.click(selector),
-    ]);
+    await Promise.all([page.waitForNavigation({ timeout: 10000 }), page.click(selector)]);
   } else {
     await page.click(selector);
     await waitForNetworkIdle(page);
@@ -69,18 +70,14 @@ export function generateTestId(): string {
 export async function takeScreenshot(page: Page, name: string) {
   await page.screenshot({
     path: `test-results/${name}-${Date.now()}.png`,
-    fullPage: true
+    fullPage: true,
   });
 }
 
 /**
  * Wait for API response
  */
-export async function waitForAPIResponse(
-  page: Page,
-  urlPattern: string | RegExp,
-  timeout = 10000
-) {
+export async function waitForAPIResponse(page: Page, urlPattern: string | RegExp, timeout = 10000) {
   return page.waitForResponse(
     (response) => {
       const url = response.url();

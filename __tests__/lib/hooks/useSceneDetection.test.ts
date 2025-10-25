@@ -312,7 +312,9 @@ describe('useSceneDetection', () => {
         await result.current.detectScenes();
       });
 
-      expect(mockToast.error).toHaveBeenCalledWith('Failed: Video too long', { id: 'detect-scenes' });
+      expect(mockToast.error).toHaveBeenCalledWith('Failed: Video too long', {
+        id: 'detect-scenes',
+      });
     });
 
     it('should select first video asset when multiple exist', async () => {

@@ -17,12 +17,14 @@ Google provides the core AI capabilities for video generation, image generation,
 - **[CLOUD_VISION.md](./google/CLOUD_VISION.md)** - Cloud Vision video analysis
 
 **Services:**
+
 - Video generation (Veo 2, Veo 3)
 - Image generation (Imagen)
 - Multimodal AI (Gemini)
 - Video analysis (Cloud Vision)
 
 **Setup:**
+
 - Requires Google Cloud project with Vertex AI enabled
 - Service account credentials required
 - See setup docs for configuration
@@ -39,11 +41,13 @@ ElevenLabs provides text-to-speech and voice cloning capabilities.
 - **[ELEVENLABS_FAL.md](./elevenlabs/ELEVENLABS_FAL.md)** - ElevenLabs via FAL.AI proxy
 
 **Services:**
+
 - Text-to-speech
 - Voice cloning
 - Multiple voice options
 
 **Setup:**
+
 - ElevenLabs API key required
 - Optional: FAL.AI proxy for additional features
 
@@ -54,11 +58,13 @@ ElevenLabs provides text-to-speech and voice cloning capabilities.
 Suno (via Comet API) provides AI music and audio generation.
 
 **Services:**
+
 - AI music generation
 - Sound effects
 - Audio composition
 
 **Setup:**
+
 - Comet API key required
 - Access to Suno models
 
@@ -109,23 +115,23 @@ try {
 
 ### Video Generation
 
-| Provider | Model | Max Duration | Resolution | Cost/min |
-|----------|-------|--------------|------------|----------|
-| Google Veo 2 | veo-002 | 60s | 1080p | Medium |
-| Google Veo 3 | veo-003 | 120s | 1080p | High |
+| Provider     | Model   | Max Duration | Resolution | Cost/min |
+| ------------ | ------- | ------------ | ---------- | -------- |
+| Google Veo 2 | veo-002 | 60s          | 1080p      | Medium   |
+| Google Veo 3 | veo-003 | 120s         | 1080p      | High     |
 
 ### Audio Generation
 
-| Provider | Service | Features | Cost |
-|----------|---------|----------|------|
-| ElevenLabs | TTS | Voice cloning, multiple voices | Per character |
-| Suno/Comet | Music | AI composition, sound effects | Per generation |
+| Provider   | Service | Features                       | Cost           |
+| ---------- | ------- | ------------------------------ | -------------- |
+| ElevenLabs | TTS     | Voice cloning, multiple voices | Per character  |
+| Suno/Comet | Music   | AI composition, sound effects  | Per generation |
 
 ### Image Generation
 
-| Provider | Model | Max Resolution | Cost/image |
-|----------|-------|----------------|------------|
-| Google Imagen | imagen-3.0 | 1024x1024 | Medium |
+| Provider      | Model      | Max Resolution | Cost/image |
+| ------------- | ---------- | -------------- | ---------- |
+| Google Imagen | imagen-3.0 | 1024x1024      | Medium     |
 
 ## Quick Start
 
@@ -158,14 +164,14 @@ import { generateAudio } from '@/lib/services/audio-generation';
 const video = await generateVideo({
   provider: 'google-veo3',
   prompt: 'A cat playing piano',
-  duration: 5
+  duration: 5,
 });
 
 // Generate audio
 const audio = await generateAudio({
   provider: 'elevenlabs',
   text: 'Hello world',
-  voice: 'professional'
+  voice: 'professional',
 });
 ```
 
@@ -198,8 +204,8 @@ All providers have rate limiting configured:
 // lib/services/provider-config.ts
 export const PROVIDER_LIMITS = {
   'google-veo': { requests: 10, per: 'minute' },
-  'elevenlabs': { requests: 100, per: 'minute' },
-  'comet': { requests: 5, per: 'minute' }
+  elevenlabs: { requests: 100, per: 'minute' },
+  comet: { requests: 5, per: 'minute' },
 };
 ```
 
@@ -208,7 +214,7 @@ export const PROVIDER_LIMITS = {
 Monitor provider costs via admin dashboard:
 
 ```typescript
-GET /api/admin/provider-usage
+GET / api / admin / provider - usage;
 ```
 
 ## Troubleshooting

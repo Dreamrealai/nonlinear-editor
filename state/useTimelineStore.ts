@@ -162,7 +162,9 @@ export const useTimelineStore = create<TimelineStore>()(
     reorderClips: (ids): void =>
       set((state): void => {
         if (!state.timeline) return;
-        const clipMap = new Map(state.timeline.clips.map((clip): [string, WritableDraft<Clip>] => [clip.id, clip]));
+        const clipMap = new Map(
+          state.timeline.clips.map((clip): [string, WritableDraft<Clip>] => [clip.id, clip])
+        );
         state.timeline.clips = ids
           .map((id) => clipMap.get(id))
           .filter((clip): clip is Clip => Boolean(clip));
@@ -263,7 +265,9 @@ export const useTimelineStore = create<TimelineStore>()(
     removeTextOverlay: (id): void =>
       set((state): void => {
         if (!state.timeline?.textOverlays) return;
-        state.timeline.textOverlays = state.timeline.textOverlays.filter((t): boolean => t.id !== id);
+        state.timeline.textOverlays = state.timeline.textOverlays.filter(
+          (t): boolean => t.id !== id
+        );
       }),
 
     updateTextOverlay: (id, patch): void =>

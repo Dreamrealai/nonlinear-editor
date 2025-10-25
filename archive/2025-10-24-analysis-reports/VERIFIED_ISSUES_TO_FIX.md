@@ -13,10 +13,12 @@
 **Problem:** Two different `errorResponse()` functions with incompatible signatures
 
 **Files:**
+
 - `/Users/davidchen/Projects/non-linear-editor/lib/api/response.ts:55-72`
 - `/Users/davidchen/Projects/non-linear-editor/lib/api/errorResponse.ts:51-68`
 
 **Impact:**
+
 - Inconsistent error handling
 - Developers must choose which to import
 - Different logging behavior
@@ -30,20 +32,25 @@
 **Problem:** Two different authentication patterns in API routes
 
 **Evidence:**
+
 - 9 routes use `withAuth` (automatic auth)
 - 23+ routes use `withErrorHandling` (manual auth required)
 
 **Example of duplication:**
+
 ```typescript
 // Repeated in 23+ files using withErrorHandling
 const supabase = await createServerSupabaseClient();
-const { data: { user } } = await supabase.auth.getUser();
+const {
+  data: { user },
+} = await supabase.auth.getUser();
 if (!user) {
   return unauthorizedResponse();
 }
 ```
 
 **Impact:**
+
 - Code duplication
 - Inconsistent auth handling
 - Easy to forget auth check
@@ -57,11 +64,13 @@ if (!user) {
 **Problem:** Three different response formats across API routes
 
 **Evidence:**
+
 - 33 routes use `successResponse()` - returns `{ success: true, data: ... }`
 - 123 routes use `NextResponse.json()` - returns data directly
 - No standard format
 
 **Impact:**
+
 - Client code must handle multiple formats
 - Type safety issues
 - Inconsistent error handling
@@ -77,10 +86,12 @@ if (!user) {
 **Problem:** 40 occurrences of `any` type (violates TypeScript strict mode)
 
 **Critical Files:**
+
 - `lib/hooks/useVideoGeneration.ts` - line 65 and others
 - Multiple other files
 
 **Impact:**
+
 - No type safety
 - Runtime errors possible
 - Violates project standards
@@ -94,10 +105,12 @@ if (!user) {
 **Problem:** Two nearly identical AssetPanel components
 
 **Files:**
+
 - `/Users/davidchen/Projects/non-linear-editor/app/editor/[projectId]/AssetPanel.tsx` (352 lines)
 - `/Users/davidchen/Projects/non-linear-editor/components/editor/AssetPanel.tsx` (367 lines)
 
 **Impact:**
+
 - 719 total lines of duplicate code
 - Bug fixes must be applied twice
 - Unclear which is canonical
@@ -113,10 +126,12 @@ if (!user) {
 **Problem:** Two validation systems with different patterns
 
 **Files:**
+
 - `/Users/davidchen/Projects/non-linear-editor/lib/validation.ts` - throws errors (assertion-based)
 - `/Users/davidchen/Projects/non-linear-editor/lib/api/validation.ts` - returns errors (result-based)
 
 **Example:**
+
 ```typescript
 // System A (lib/validation.ts)
 validateUUID(value, field); // throws on error
@@ -127,6 +142,7 @@ if (error) { ... }
 ```
 
 **Impact:**
+
 - Inconsistent error handling
 - Two patterns to maintain
 
@@ -139,10 +155,12 @@ if (error) { ... }
 **Problem:** 728 ESLint warnings for missing return types
 
 **Evidence:**
+
 - ~160 production functions missing return types
 - Project standards require return types (per CODING_BEST_PRACTICES.md)
 
 **Critical Files:**
+
 - API routes
 - Hooks
 - Components
@@ -158,6 +176,7 @@ if (error) { ... }
 **Problem:** Three routes with identical validation logic
 
 **Files:**
+
 - `app/api/video/status/route.ts`
 - `app/api/video/upscale-status/route.ts`
 - `app/api/video/generate-audio-status/route.ts`
@@ -173,6 +192,7 @@ if (error) { ... }
 **Problem:** Some routes use service layer, others query database directly
 
 **Impact:**
+
 - Inconsistent architecture
 - Cache invalidation may be missed
 - Business logic duplication
@@ -223,12 +243,12 @@ if (error) { ... }
 
 ## Total Estimated Work
 
-| Priority | Total Hours |
-|----------|-------------|
-| **P0** | 18-26 hours |
-| **P1** | 17-25 hours |
-| **P2** | 12-17 hours |
-| **P3** | 1-2 hours |
+| Priority  | Total Hours     |
+| --------- | --------------- |
+| **P0**    | 18-26 hours     |
+| **P1**    | 17-25 hours     |
+| **P2**    | 12-17 hours     |
+| **P3**    | 1-2 hours       |
 | **TOTAL** | **48-70 hours** |
 
 ---
@@ -255,6 +275,7 @@ These items from CODEBASE_ANALYSIS_REPORT.md are **INCORRECT**:
 **File:** `/Users/davidchen/Projects/non-linear-editor/lib/saveLoad.ts:47-52`
 
 **Evidence:**
+
 - Migration created: `/Users/davidchen/Projects/non-linear-editor/supabase/migrations/20251025100000_deprecate_timeline_state_jsonb.sql`
 - Documentation exists
 - Can remove TODO comment
@@ -276,6 +297,7 @@ Complete these first for immediate impact:
 ## Current Codebase Health
 
 **ESLint Status:**
+
 - **786 problems** total
 - 58 errors
 - 728 warnings
@@ -283,12 +305,14 @@ Complete these first for immediate impact:
 **Code Quality Score:** B+ (85/100)
 
 **Major Strengths:**
+
 - Modern architecture
 - Good test coverage
 - Excellent documentation
 - Strong service layer pattern
 
 **Major Weaknesses:**
+
 - Duplicate systems (error handling, validation, components)
 - Inconsistent patterns (middleware, responses, validation)
 - Type safety issues (40 `any` usages)
@@ -299,21 +323,25 @@ Complete these first for immediate impact:
 ## Recommended Action Plan
 
 ### Week 1 - Critical Issues
+
 1. Consolidate error response systems
 2. Fix 40 `any` type usages
 3. Remove duplicate AssetPanel
 4. Remove unused code (quick win)
 
 ### Week 2 - Middleware & Responses
+
 1. Standardize middleware to `withAuth`
 2. Migrate all routes to `successResponse()`
 3. Consolidate validation logic
 
 ### Week 3 - Type Safety
+
 1. Add return types to production code
 2. Fix remaining ESLint errors
 
 ### Week 4 - Architecture
+
 1. Extract shared status check logic
 2. Enforce service layer usage
 3. Document patterns

@@ -32,6 +32,7 @@ No! The Non-Linear Video Editor runs entirely in your web browser. Just sign up 
 ### What browsers are supported?
 
 We support the latest versions of:
+
 - **Chrome** (recommended)
 - **Firefox**
 - **Safari**
@@ -50,6 +51,7 @@ Currently, an internet connection is required to use the editor. Offline support
 ### How do I upload assets?
 
 There are two ways:
+
 1. **Drag and drop**: Drag files from your computer directly into the Asset Panel
 2. **File browser**: Click the "Upload" button and select files
 
@@ -73,6 +75,7 @@ See the [Onboarding Guide](/docs/user-guide/ONBOARDING.md) for the full tutorial
 ### What subscription plans are available?
 
 **Free Plan**:
+
 - 5 GB storage
 - 50 assets max
 - 1080p export
@@ -80,6 +83,7 @@ See the [Onboarding Guide](/docs/user-guide/ONBOARDING.md) for the full tutorial
 - Basic features
 
 **Pro Plan ($19/month)**:
+
 - 100 GB storage
 - Unlimited assets
 - 4K export
@@ -88,6 +92,7 @@ See the [Onboarding Guide](/docs/user-guide/ONBOARDING.md) for the full tutorial
 - Priority support
 
 **Enterprise Plan (Custom)**:
+
 - Unlimited storage
 - Team collaboration
 - Custom integrations
@@ -130,6 +135,7 @@ We offer a 30-day money-back guarantee for new subscriptions. Contact support@ex
 ### Can I export my data before deleting my account?
 
 Yes! Before deleting your account:
+
 1. Export all your projects (Settings > Projects > Export All)
 2. Download any assets you want to keep
 3. Export your project settings and preferences
@@ -149,6 +155,7 @@ There's no limit on the number of projects you can create!
 ### Can I duplicate a project?
 
 Yes! To duplicate a project:
+
 1. Go to your Projects dashboard
 2. Right-click on the project
 3. Select **"Duplicate"**
@@ -172,6 +179,7 @@ Deleted projects go to Trash and can be recovered for 30 days.
 ### Can I recover a deleted project?
 
 Yes! Projects remain in Trash for 30 days:
+
 1. Go to Projects dashboard
 2. Click **"Trash"** folder
 3. Find your project
@@ -182,6 +190,7 @@ After 30 days, deleted projects are permanently removed.
 ### Can I share my project with others?
 
 Yes! Use the collaboration features:
+
 1. Click **"Share"** in the project
 2. Enter collaborator email addresses
 3. Set permissions (view, edit, admin)
@@ -192,6 +201,7 @@ See the [Collaboration section](#collaboration) for more details.
 ### What happens to my projects if I downgrade?
 
 When downgrading to Free plan:
+
 - Projects remain accessible
 - Asset limit applies (oldest assets may be archived)
 - Export quality limited to 1080p
@@ -232,6 +242,7 @@ Storage includes all assets across all projects.
 3. View usage breakdown by project
 
 You'll see:
+
 - Total storage used
 - Storage per project
 - Largest files
@@ -240,6 +251,7 @@ You'll see:
 ### My upload is stuck. What should I do?
 
 Try these solutions:
+
 1. Check your internet connection
 2. Refresh the page
 3. Cancel and retry the upload
@@ -251,6 +263,7 @@ If the issue persists, contact support.
 ### Can I upload from my phone?
 
 Yes! The editor works on mobile browsers, but for best experience we recommend:
+
 - Using a tablet rather than phone
 - Desktop/laptop for serious editing
 - Mobile for quick reviews and minor edits
@@ -258,6 +271,7 @@ Yes! The editor works on mobile browsers, but for best experience we recommend:
 ### Why are my assets not uploading?
 
 Common causes:
+
 - **File too large**: Check size limits for your plan
 - **Unsupported format**: Verify file format is supported
 - **Storage full**: Check if you've reached storage limit
@@ -267,6 +281,7 @@ Common causes:
 ### Can I upload YouTube videos directly?
 
 Not currently. You'll need to:
+
 1. Download the video from YouTube
 2. Upload it to the editor
 3. Edit as normal
@@ -294,6 +309,7 @@ Or right-click and choose "Split Clip".
 ### How do I add transitions?
 
 Transitions between clips are coming soon! Currently, you can:
+
 - Overlap clips for a cross-fade effect
 - Use opacity keyframes for custom fades
 - Wait for the transitions feature (in development)
@@ -305,6 +321,7 @@ Transitions between clips are coming soon! Currently, you can:
 3. Or drag the volume handle directly on the clip
 
 You can also:
+
 - Add fade in/out
 - Normalize audio
 - Apply audio effects (Pro feature)
@@ -312,6 +329,7 @@ You can also:
 ### Can I add text overlays?
 
 Yes!
+
 1. Click the **"Text"** button in the toolbar
 2. Choose a text template
 3. Customize the text, font, size, and position
@@ -329,6 +347,7 @@ The editor tracks unlimited undo history for your current session.
 Yes! Press **Cmd/Ctrl+?** to see all available shortcuts.
 
 Common shortcuts:
+
 - **Space**: Play/Pause
 - **S**: Split clip
 - **Delete**: Delete selected clips
@@ -340,6 +359,7 @@ See the [Keyboard Shortcuts Guide](/docs/KEYBOARD_SHORTCUTS.md) for the complete
 ### How do I select multiple clips?
 
 Several ways:
+
 - **Shift+Click**: Select range between two clips
 - **Drag selection box**: Click and drag on empty space
 - **Cmd/Ctrl+A**: Select all clips
@@ -348,6 +368,7 @@ Several ways:
 ### Can I copy and paste clips?
 
 Yes!
+
 - **Copy**: Select clips and press **Cmd/Ctrl+C**
 - **Paste**: Press **Cmd/Ctrl+V**
 - **Duplicate**: Select clips and press **Cmd/Ctrl+D**
@@ -355,6 +376,7 @@ Yes!
 ### How do I align clips precisely?
 
 Use the Grid Settings:
+
 1. Click the grid icon in the timeline toolbar
 2. Enable **"Snap to Grid"** (or press **Cmd/Ctrl+Shift+S**)
 3. Choose a grid interval (1s, 5s, 10s, etc.)
@@ -378,12 +400,14 @@ See the [Grid Settings section](/docs/user-guide/TIMELINE_EDITING.md#grid-settin
 ### How long does exporting take?
 
 Export time depends on:
+
 - Video length
 - Resolution (4K takes longer)
 - Quality settings
 - Server load
 
 **Typical times**:
+
 - 1-minute 1080p video: 1-2 minutes
 - 5-minute 1080p video: 5-10 minutes
 - 10-minute 4K video: 20-40 minutes
@@ -401,16 +425,19 @@ MP4 is recommended for most use cases.
 ### What resolution should I choose?
 
 **720p (1280x720)**:
+
 - Social media stories
 - Mobile viewing
 - Smaller file size
 
 **1080p (1920x1080)** - Recommended:
+
 - YouTube, Vimeo
 - Most screens
 - Good balance of quality and size
 
 **4K (3840x2160)** (Pro only):
+
 - High-end displays
 - Future-proofing
 - Professional work
@@ -427,6 +454,7 @@ Upgrade to Pro to remove the watermark.
 ### Can I export just a portion of my timeline?
 
 Yes! Use the In/Out points:
+
 1. Position playhead at start point
 2. Press **"I"** to set In point
 3. Position playhead at end point
@@ -436,6 +464,7 @@ Yes! Use the In/Out points:
 ### My export failed. What should I do?
 
 Common causes:
+
 - **Timeline too long**: Try exporting in segments
 - **Corrupted clip**: Check for problematic clips
 - **Storage full**: Free up space in your account
@@ -446,6 +475,7 @@ If the problem persists, contact support with your project ID.
 ### Can I export audio only?
 
 Yes! In export settings:
+
 1. Choose **"Audio Only"**
 2. Select format (MP3, WAV)
 3. Export
@@ -457,6 +487,7 @@ This creates an audio-only file without video.
 ### Why is my video not playing?
 
 Common issues:
+
 1. **File format**: Ensure format is supported
 2. **Codec**: Some codecs may not be supported
 3. **File corruption**: Try re-uploading
@@ -466,17 +497,20 @@ Common issues:
 ### The editor feels slow. How can I improve performance?
 
 **Browser**:
+
 - Use Chrome for best performance
 - Close unnecessary tabs
 - Clear browser cache
 - Disable unnecessary extensions
 
 **Timeline**:
+
 - Reduce zoom level (show less detail)
 - Hide unused tracks
 - Use proxy mode for 4K footage (Pro)
 
 **Hardware**:
+
 - Close other applications
 - Restart your browser
 - Check available RAM
@@ -485,12 +519,14 @@ Common issues:
 ### Why is playback choppy?
 
 Choppy playback can be caused by:
+
 - **High resolution footage**: 4K requires more processing
 - **Multiple layers**: Too many simultaneous clips
 - **Effects**: Heavy effects reduce performance
 - **Computer specs**: Older hardware may struggle
 
 **Solutions**:
+
 - Lower preview quality (Settings > Preview Quality > Low)
 - Use proxy mode for heavy footage (Pro)
 - Disable effects during editing
@@ -499,6 +535,7 @@ Choppy playback can be caused by:
 ### Can I preview at different quality levels?
 
 Yes! (Pro feature)
+
 1. Go to Settings > Preview Quality
 2. Choose: Full, Half, Quarter
 3. Lower quality = smoother playback
@@ -508,6 +545,7 @@ This doesn't affect export quality, only preview.
 ### Does the editor work on mobile?
 
 The editor works on mobile browsers but is optimized for desktop. For best experience:
+
 - **Desktop/Laptop**: Full editing capabilities
 - **Tablet**: Good for reviews and minor edits
 - **Phone**: Basic viewing and simple edits
@@ -517,6 +555,7 @@ The editor works on mobile browsers but is optimized for desktop. For best exper
 ### Can I collaborate with others on a project?
 
 Yes! (Pro and Enterprise plans)
+
 1. Click **"Share"** in your project
 2. Enter collaborator email addresses
 3. Set permissions
@@ -527,16 +566,19 @@ Collaborators can edit in real-time.
 ### What permission levels are available?
 
 **Viewer**:
+
 - View project and timeline
 - Cannot make changes
 - Can comment
 
 **Editor**:
+
 - View and edit project
 - Add/remove clips
 - Cannot delete project or manage collaborators
 
 **Admin**:
+
 - Full edit access
 - Manage collaborators
 - Delete project
@@ -545,6 +587,7 @@ Collaborators can edit in real-time.
 ### Can multiple people edit at the same time?
 
 Yes! Real-time collaboration allows multiple editors to work simultaneously. You'll see:
+
 - Other users' cursors
 - Live updates to timeline
 - Conflict resolution for simultaneous edits
@@ -561,6 +604,7 @@ They'll immediately lose access to the project.
 ### Can I see who's currently editing?
 
 Yes! Active collaborators appear in the top right:
+
 - Profile pictures show who's online
 - Hover to see names
 - Colored cursors show where they're working
@@ -568,6 +612,7 @@ Yes! Active collaborators appear in the top right:
 ### Can collaborators see all my projects?
 
 No! Collaboration is per-project. Collaborators only see:
+
 - Shared projects
 - Assets used in those projects
 - Nothing else from your account
@@ -577,6 +622,7 @@ No! Collaboration is per-project. Collaborators only see:
 ### The editor won't load. What should I do?
 
 Try these steps:
+
 1. **Refresh the page**: Press F5 or Cmd/Ctrl+R
 2. **Clear cache**: Clear browser cache and cookies
 3. **Try incognito mode**: Rules out extension conflicts
@@ -587,12 +633,14 @@ Try these steps:
 ### My changes aren't saving.
 
 Check for:
+
 1. **Internet connection**: Ensure you're online
 2. **Saving indicator**: Look for "Saving..." in top bar
 3. **Storage full**: Check if you've reached storage limit
 4. **Browser console**: Check for errors (F12 > Console)
 
 Try:
+
 - Manual save (Cmd/Ctrl+S)
 - Refresh the page
 - Check if you're signed in
@@ -600,17 +648,21 @@ Try:
 ### I accidentally deleted something. Can I recover it?
 
 **Deleted clips**:
+
 - Press **Cmd/Ctrl+Z** to undo immediately
 
 **Deleted assets**:
+
 - Check Trash folder (recoverable for 30 days)
 
 **Deleted projects**:
+
 - Check Projects > Trash (recoverable for 30 days)
 
 ### The timeline looks glitchy.
 
 Try:
+
 1. Refresh the page
 2. Clear browser cache
 3. Update your browser
@@ -618,6 +670,7 @@ Try:
 5. Try a different browser
 
 If issues persist, report it to support with:
+
 - Browser and version
 - Operating system
 - Screenshot of issue
@@ -626,6 +679,7 @@ If issues persist, report it to support with:
 ### Video/audio is out of sync.
 
 Solutions:
+
 1. Check that audio is properly linked to video
 2. Ensure consistent frame rate across clips
 3. Try re-uploading the source file
@@ -635,6 +689,7 @@ Solutions:
 ### I can't find a feature.
 
 Try:
+
 1. Use search in Help (Cmd/Ctrl+?)
 2. Check the documentation
 3. Watch video tutorials
@@ -646,6 +701,7 @@ Try:
 ### What technology does the editor use?
 
 The editor is built with:
+
 - **Frontend**: Next.js, React, TypeScript
 - **Backend**: Supabase, PostgreSQL
 - **Video Processing**: FFmpeg
@@ -655,6 +711,7 @@ The editor is built with:
 ### Is my data secure?
 
 Yes! We take security seriously:
+
 - **Encryption**: All data encrypted in transit (TLS) and at rest
 - **Authentication**: Secure password hashing
 - **Backups**: Daily automated backups
@@ -665,6 +722,7 @@ See our [Privacy Policy] and [Security Practices] for details.
 ### Where is my data stored?
 
 Data is stored in:
+
 - **US West** (primary data center)
 - **EU West** (for EU customers)
 - **Automatic backups** in multiple regions
@@ -674,6 +732,7 @@ You can choose your region in Account Settings.
 ### Do you support SSO (Single Sign-On)?
 
 Yes! (Enterprise plan only)
+
 - SAML 2.0
 - OAuth 2.0
 - Google Workspace
@@ -684,6 +743,7 @@ Contact sales for SSO setup.
 ### Can I use the editor via API?
 
 Yes! (Enterprise plan)
+
 - REST API for project management
 - Webhook integration
 - Custom integrations
@@ -694,15 +754,18 @@ Contact sales for API access.
 ### What are the minimum system requirements?
 
 **Browser**:
+
 - Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
 
 **Hardware**:
+
 - **CPU**: Intel i5 or equivalent (i7 recommended)
 - **RAM**: 4 GB minimum (8 GB recommended)
 - **Internet**: 5 Mbps (25 Mbps recommended)
 - **GPU**: Not required, but improves performance
 
 **Operating System**:
+
 - macOS 10.14+
 - Windows 10+
 - Linux (Ubuntu 20.04+ or equivalent)
@@ -710,6 +773,7 @@ Contact sales for API access.
 ### Does the editor support 60fps video?
 
 Yes! The editor supports:
+
 - 24fps (cinema)
 - 30fps (standard)
 - 60fps (smooth motion)
@@ -720,6 +784,7 @@ Export maintains the frame rate of your source footage or you can choose a custo
 ### Can I use custom fonts?
 
 Yes! (Pro feature)
+
 1. Go to Settings > Fonts
 2. Upload custom font files (TTF, OTF)
 3. Use in text overlays
@@ -739,12 +804,14 @@ Free plan is limited to system fonts.
 ### Community
 
 **Forum**: community.example.com
+
 - Ask questions
 - Share tips
 - Connect with other users
 - Vote on feature requests
 
 **Discord**: discord.gg/example
+
 - Real-time chat
 - Community help
 - Beta testing opportunities

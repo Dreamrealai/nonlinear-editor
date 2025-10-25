@@ -288,10 +288,9 @@ describe('saveTimeline', () => {
 
       await saveTimeline('project-existing', mockTimeline);
 
-      expect(mockQuery.upsert).toHaveBeenCalledWith(
-        expect.any(Object),
-        { onConflict: 'project_id' }
-      );
+      expect(mockQuery.upsert).toHaveBeenCalledWith(expect.any(Object), {
+        onConflict: 'project_id',
+      });
     });
 
     it('should update timestamp on each save', async () => {
@@ -414,9 +413,7 @@ describe('saveTimeline', () => {
       mockSupabase.from.mockReturnValue(mockQuery);
 
       // Should not throw
-      await expect(
-        saveTimeline('project-no-throw', mockTimeline)
-      ).resolves.toBeUndefined();
+      await expect(saveTimeline('project-no-throw', mockTimeline)).resolves.toBeUndefined();
     });
   });
 

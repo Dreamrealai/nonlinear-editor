@@ -23,27 +23,33 @@ jest.mock('@/lib/supabase', () => {
   };
 });
 
-jest.mock('@/lib/services/analyticsService', (): Record<string, unknown> => ({
-  analyticsService: {
-    track: jest.fn(),
-  },
-  AnalyticsEvents: {
-    EASTER_EGG_DISCOVERED: 'easter_egg_discovered',
-    EASTER_EGG_ACTIVATED: 'easter_egg_activated',
-    EASTER_EGG_DEACTIVATED: 'easter_egg_deactivated',
-    EASTER_EGG_SHARED: 'easter_egg_shared',
-    EASTER_EGG_ACHIEVEMENT_UNLOCKED: 'easter_egg_achievement_unlocked',
-    EASTER_EGG_FEEDBACK_SUBMITTED: 'easter_egg_feedback_submitted',
-  },
-}));
+jest.mock(
+  '@/lib/services/analyticsService',
+  (): Record<string, unknown> => ({
+    analyticsService: {
+      track: jest.fn(),
+    },
+    AnalyticsEvents: {
+      EASTER_EGG_DISCOVERED: 'easter_egg_discovered',
+      EASTER_EGG_ACTIVATED: 'easter_egg_activated',
+      EASTER_EGG_DEACTIVATED: 'easter_egg_deactivated',
+      EASTER_EGG_SHARED: 'easter_egg_shared',
+      EASTER_EGG_ACHIEVEMENT_UNLOCKED: 'easter_egg_achievement_unlocked',
+      EASTER_EGG_FEEDBACK_SUBMITTED: 'easter_egg_feedback_submitted',
+    },
+  })
+);
 
-jest.mock('react-hot-toast', (): Record<string, unknown> => ({
-  __esModule: true,
-  default: {
-    success: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  'react-hot-toast',
+  (): Record<string, unknown> => ({
+    __esModule: true,
+    default: {
+      success: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 // Import after mocks are set up
 import {

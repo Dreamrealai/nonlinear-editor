@@ -11,41 +11,53 @@ import {
   resetAllMocks,
 } from '@/test-utils/mockSupabase';
 
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-  isSupabaseServiceConfigured: jest.fn(() => true),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+    isSupabaseServiceConfigured: jest.fn(() => true),
+  })
+);
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
-jest.mock('@/lib/auditLog', (): Record<string, unknown> => ({
-  auditLog: jest.fn(),
-  auditSecurityEvent: jest.fn(),
-  AuditAction: {
-    FRAME_EDIT_REQUEST: 'frame_edit_request',
-    FRAME_EDIT_COMPLETE: 'frame_edit_complete',
-    FRAME_EDIT_FAILED: 'frame_edit_failed',
-    FRAME_EDIT_UNAUTHORIZED: 'frame_edit_unauthorized',
-  },
-}));
+jest.mock(
+  '@/lib/auditLog',
+  (): Record<string, unknown> => ({
+    auditLog: jest.fn(),
+    auditSecurityEvent: jest.fn(),
+    AuditAction: {
+      FRAME_EDIT_REQUEST: 'frame_edit_request',
+      FRAME_EDIT_COMPLETE: 'frame_edit_complete',
+      FRAME_EDIT_FAILED: 'frame_edit_failed',
+      FRAME_EDIT_UNAUTHORIZED: 'frame_edit_unauthorized',
+    },
+  })
+);
 
-jest.mock('@google/generative-ai', (): Record<string, unknown> => ({
-  GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
-    getGenerativeModel: jest.fn().mockReturnValue({
-      generateContent: jest.fn().mockResolvedValue({
-        response: {
-          text: jest.fn().mockReturnValue('AI generated edit description'),
-        },
+jest.mock(
+  '@google/generative-ai',
+  (): Record<string, unknown> => ({
+    GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
+      getGenerativeModel: jest.fn().mockReturnValue({
+        generateContent: jest.fn().mockResolvedValue({
+          response: {
+            text: jest.fn().mockReturnValue('AI generated edit description'),
+          },
+        }),
       }),
-    }),
-  })),
-}));
+    })),
+  })
+);
 
 global.fetch = jest.fn();
 
@@ -79,13 +91,10 @@ describe('POST /api/frames/[frameId]/edit', () => {
   describe('Authentication', () => {
     it('should return 401 when not authenticated', async () => {
       mockUnauthenticatedUser(mockSupabase);
-      const mockRequest = new NextRequest(
-        `http://localhost/api/frames/${validFrameId}/edit`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ prompt: 'Test prompt' }),
-        }
-      );
+      const mockRequest = new NextRequest(`http://localhost/api/frames/${validFrameId}/edit`, {
+        method: 'POST',
+        body: JSON.stringify({ prompt: 'Test prompt' }),
+      });
 
       const response = await POST(mockRequest, {
         params: Promise.resolve({ frameId: validFrameId }),
@@ -112,13 +121,10 @@ describe('POST /api/frames/[frameId]/edit', () => {
   describe('Input Validation', () => {
     it('should return 400 when prompt is missing', async () => {
       mockAuthenticatedUser(mockSupabase);
-      const mockRequest = new NextRequest(
-        `http://localhost/api/frames/${validFrameId}/edit`,
-        {
-          method: 'POST',
-          body: JSON.stringify({}),
-        }
-      );
+      const mockRequest = new NextRequest(`http://localhost/api/frames/${validFrameId}/edit`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
 
       const response = await POST(mockRequest, {
         params: Promise.resolve({ frameId: validFrameId }),
@@ -128,13 +134,10 @@ describe('POST /api/frames/[frameId]/edit', () => {
 
     it('should return 400 when prompt is not a string', async () => {
       mockAuthenticatedUser(mockSupabase);
-      const mockRequest = new NextRequest(
-        `http://localhost/api/frames/${validFrameId}/edit`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ prompt: 123 }),
-        }
-      );
+      const mockRequest = new NextRequest(`http://localhost/api/frames/${validFrameId}/edit`, {
+        method: 'POST',
+        body: JSON.stringify({ prompt: 123 }),
+      });
 
       const response = await POST(mockRequest, {
         params: Promise.resolve({ frameId: validFrameId }),
@@ -167,13 +170,10 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const mockRequest = new NextRequest(
-        `http://localhost/api/frames/${validFrameId}/edit`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ prompt: 'Test', numVariations: 20 }),
-        }
-      );
+      const mockRequest = new NextRequest(`http://localhost/api/frames/${validFrameId}/edit`, {
+        method: 'POST',
+        body: JSON.stringify({ prompt: 'Test', numVariations: 20 }),
+      });
 
       const response = await POST(mockRequest, {
         params: Promise.resolve({ frameId: validFrameId }),
@@ -192,13 +192,10 @@ describe('POST /api/frames/[frameId]/edit', () => {
         error: { message: 'Not found' },
       });
 
-      const mockRequest = new NextRequest(
-        `http://localhost/api/frames/${validFrameId}/edit`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ prompt: 'Test' }),
-        }
-      );
+      const mockRequest = new NextRequest(`http://localhost/api/frames/${validFrameId}/edit`, {
+        method: 'POST',
+        body: JSON.stringify({ prompt: 'Test' }),
+      });
 
       const response = await POST(mockRequest, {
         params: Promise.resolve({ frameId: validFrameId }),
@@ -218,13 +215,10 @@ describe('POST /api/frames/[frameId]/edit', () => {
         error: null,
       });
 
-      const mockRequest = new NextRequest(
-        `http://localhost/api/frames/${validFrameId}/edit`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ prompt: 'Test' }),
-        }
-      );
+      const mockRequest = new NextRequest(`http://localhost/api/frames/${validFrameId}/edit`, {
+        method: 'POST',
+        body: JSON.stringify({ prompt: 'Test' }),
+      });
 
       const response = await POST(mockRequest, {
         params: Promise.resolve({ frameId: validFrameId }),
@@ -245,13 +239,10 @@ describe('POST /api/frames/[frameId]/edit', () => {
         error: null,
       });
 
-      const mockRequest = new NextRequest(
-        `http://localhost/api/frames/${validFrameId}/edit`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ prompt: 'Test' }),
-        }
-      );
+      const mockRequest = new NextRequest(`http://localhost/api/frames/${validFrameId}/edit`, {
+        method: 'POST',
+        body: JSON.stringify({ prompt: 'Test' }),
+      });
 
       const response = await POST(mockRequest, {
         params: Promise.resolve({ frameId: validFrameId }),
@@ -277,13 +268,10 @@ describe('POST /api/frames/[frameId]/edit', () => {
         error: null,
       });
 
-      const mockRequest = new NextRequest(
-        `http://localhost/api/frames/${validFrameId}/edit`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ prompt: 'Test' }),
-        }
-      );
+      const mockRequest = new NextRequest(`http://localhost/api/frames/${validFrameId}/edit`, {
+        method: 'POST',
+        body: JSON.stringify({ prompt: 'Test' }),
+      });
 
       const response = await POST(mockRequest, {
         params: Promise.resolve({ frameId: validFrameId }),
@@ -319,13 +307,10 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const mockRequest = new NextRequest(
-        `http://localhost/api/frames/${validFrameId}/edit`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ prompt: 'Test' }),
-        }
-      );
+      const mockRequest = new NextRequest(`http://localhost/api/frames/${validFrameId}/edit`, {
+        method: 'POST',
+        body: JSON.stringify({ prompt: 'Test' }),
+      });
 
       const response = await POST(mockRequest, {
         params: Promise.resolve({ frameId: validFrameId }),
@@ -361,13 +346,10 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const mockRequest = new NextRequest(
-        `http://localhost/api/frames/${validFrameId}/edit`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ prompt: 'Test' }),
-        }
-      );
+      const mockRequest = new NextRequest(`http://localhost/api/frames/${validFrameId}/edit`, {
+        method: 'POST',
+        body: JSON.stringify({ prompt: 'Test' }),
+      });
 
       const response = await POST(mockRequest, {
         params: Promise.resolve({ frameId: validFrameId }),
@@ -401,20 +383,17 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const mockRequest = new NextRequest(
-        `http://localhost/api/frames/${validFrameId}/edit`,
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            prompt: 'Test',
-            mode: 'crop',
-            cropX: 100,
-            cropY: 100,
-            cropSize: 200,
-            feather: 10,
-          }),
-        }
-      );
+      const mockRequest = new NextRequest(`http://localhost/api/frames/${validFrameId}/edit`, {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: 'Test',
+          mode: 'crop',
+          cropX: 100,
+          cropY: 100,
+          cropSize: 200,
+          feather: 10,
+        }),
+      });
 
       const response = await POST(mockRequest, {
         params: Promise.resolve({ frameId: validFrameId }),
@@ -455,13 +434,10 @@ describe('POST /api/frames/[frameId]/edit', () => {
         }),
       });
 
-      const mockRequest = new NextRequest(
-        `http://localhost/api/frames/${validFrameId}/edit`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ prompt: 'Make it brighter' }),
-        }
-      );
+      const mockRequest = new NextRequest(`http://localhost/api/frames/${validFrameId}/edit`, {
+        method: 'POST',
+        body: JSON.stringify({ prompt: 'Make it brighter' }),
+      });
 
       const response = await POST(mockRequest, {
         params: Promise.resolve({ frameId: validFrameId }),

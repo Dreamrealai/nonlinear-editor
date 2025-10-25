@@ -8,38 +8,53 @@ import * as veo from '@/lib/veo';
 import * as falVideo from '@/lib/fal-video';
 
 // Mock external modules
-jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
-  trackError: jest.fn(),
-  ErrorCategory: {
-    EXTERNAL_SERVICE: 'external_service',
-    DATABASE: 'database',
-  },
-  ErrorSeverity: {
-    HIGH: 'high',
-    MEDIUM: 'medium',
-  },
-}));
+jest.mock(
+  '@/lib/errorTracking',
+  (): Record<string, unknown> => ({
+    trackError: jest.fn(),
+    ErrorCategory: {
+      EXTERNAL_SERVICE: 'external_service',
+      DATABASE: 'database',
+    },
+    ErrorSeverity: {
+      HIGH: 'high',
+      MEDIUM: 'medium',
+    },
+  })
+);
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
-jest.mock('@/lib/veo', (): Record<string, unknown> => ({
-  generateVideo: jest.fn(),
-  checkOperationStatus: jest.fn(),
-}));
+jest.mock(
+  '@/lib/veo',
+  (): Record<string, unknown> => ({
+    generateVideo: jest.fn(),
+    checkOperationStatus: jest.fn(),
+  })
+);
 
-jest.mock('@/lib/fal-video', (): Record<string, unknown> => ({
-  generateFalVideo: jest.fn(),
-  checkFalVideoStatus: jest.fn(),
-}));
+jest.mock(
+  '@/lib/fal-video',
+  (): Record<string, unknown> => ({
+    generateFalVideo: jest.fn(),
+    checkFalVideoStatus: jest.fn(),
+  })
+);
 
-jest.mock('uuid', (): Record<string, unknown> => ({
-  v4: () => 'test-uuid-1234',
-}));
+jest.mock(
+  'uuid',
+  (): Record<string, unknown> => ({
+    v4: () => 'test-uuid-1234',
+  })
+);
 
 describe('VideoService', () => {
   let mockSupabase: jest.Mocked<SupabaseClient>;

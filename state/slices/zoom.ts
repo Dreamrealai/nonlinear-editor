@@ -125,7 +125,9 @@ export const createZoomSlice = (
     }
 
     const timelineDuration = Math.max(
-      ...state.timeline.clips.map((clip: Clip): number => clip.timelinePosition + (clip.end - clip.start))
+      ...state.timeline.clips.map(
+        (clip: Clip): number => clip.timelinePosition + (clip.end - clip.start)
+      )
     );
 
     const padding = 0.1;
@@ -152,7 +154,9 @@ export const createZoomSlice = (
       return;
     }
 
-    const minPosition = Math.min(...selectedClips.map((clip: Clip): number => clip.timelinePosition));
+    const minPosition = Math.min(
+      ...selectedClips.map((clip: Clip): number => clip.timelinePosition)
+    );
     const maxPosition = Math.max(
       ...selectedClips.map((clip: Clip): number => clip.timelinePosition + (clip.end - clip.start))
     );

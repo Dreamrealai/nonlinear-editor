@@ -21,11 +21,13 @@ This document provides comprehensive documentation on middleware usage patterns 
 The application uses a standardized middleware pattern for API routes through the `withAuth` and `withAdminAuth` wrappers located in `/lib/api/withAuth.ts`.
 
 **Core Middleware Functions:**
+
 - `withAuth` - Standard authentication middleware for protected routes
 - `withAdminAuth` - Admin-only authentication middleware
 - `withErrorHandling` - Legacy error handling wrapper (being phased out)
 
 **Current Status (2025-10-24):**
+
 - Total API Routes: 37
 - Routes using `withAuth`: 25 (68%)
 - Routes using `withErrorHandling` only: 2 (5%) - Valid edge cases
@@ -58,6 +60,7 @@ export const POST = withAuth(
 ```
 
 **Benefits:**
+
 - Automatic user authentication
 - Supabase client injection
 - Built-in rate limiting
@@ -107,6 +110,7 @@ export const GET = withAuth<{ projectId: string }>(
 ```
 
 **Important Notes:**
+
 - Always await `routeContext!.params` for Next.js 15+ compatibility
 - Type parameters specify the shape of route params
 - Use non-null assertion `!` since params are guaranteed for dynamic routes
@@ -120,12 +124,14 @@ export const GET = withAuth<{ projectId: string }>(
 **Route:** `/app/api/docs/route.ts`
 
 **Why `withErrorHandling` instead of `withAuth`:**
+
 - Documentation endpoint must be publicly accessible
 - No authentication required for API documentation
 - Still needs error handling and logging
 - Public access is intentional for developer convenience
 
 **Pattern Used:**
+
 ```typescript
 import { withErrorHandling } from '@/lib/api/errorHandling';
 
@@ -147,12 +153,14 @@ export const GET = withErrorHandling(
 **Route:** `/app/api/auth/signout/route.ts`
 
 **Why `withErrorHandling` with Manual Auth:**
+
 - Signout requires special handling of auth state
 - Needs CSRF protection separate from standard auth flow
 - Must handle both authenticated and partially-authenticated sessions
 - Session invalidation requires direct control
 
 **Pattern Used:**
+
 ```typescript
 import { withErrorHandling } from '@/lib/api/errorHandling';
 import { createServerSupabaseClient } from '@/lib/supabase';
@@ -176,15 +184,18 @@ export const POST = withErrorHandling(
 ### Edge Case 3: Webhook Endpoints
 
 **Routes:**
+
 - `/app/api/stripe/webhook/route.ts`
 
 **Why No Middleware:**
+
 - Webhooks use signature-based authentication, not session auth
 - Stripe requires raw request body for signature verification
 - Cannot use standard session-based authentication
 - Has its own security mechanism (webhook signatures)
 
 **Pattern Used:**
+
 ```typescript
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
@@ -210,19 +221,21 @@ export async function POST(request: NextRequest) {
 **Route:** `/app/api/health/route.ts`
 
 **Why No Middleware:**
+
 - Health checks must be fast and lightweight
 - Used by monitoring systems and load balancers
 - No authentication needed (public infrastructure endpoint)
 - Minimal processing for performance
 
 **Pattern Used:**
+
 ```typescript
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   return NextResponse.json({
     status: 'ok',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 }
 ```
@@ -236,18 +249,23 @@ export async function GET() {
 **Route:** `/app/api/projects/[projectId]/chat/route.ts`
 
 **Why Manual Auth:**
+
 - Legacy implementation predating `withAuth` middleware
 - Uses streaming responses incompatible with standard middleware
 - Implements custom authentication verification
 - Marked for future refactoring
 
 **Pattern Used:**
+
 ```typescript
 import { createServerSupabaseClient } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
   if (error || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -265,17 +283,20 @@ export async function POST(request: NextRequest) {
 ### Edge Case 6: Wrapper Utility Functions
 
 **Routes Using Wrappers:**
+
 - `/app/api/audio/elevenlabs/sfx/route.ts` (uses `createGenerationRoute`)
 - `/app/api/video/generate-audio-status/route.ts` (uses `createStatusCheckHandler`)
 - `/app/api/video/upscale-status/route.ts` (uses `createStatusCheckHandler`)
 
 **Why Wrapper Utilities:**
+
 - Common patterns abstracted into reusable utilities
 - Wrappers internally use `withErrorHandling` + manual auth
 - Provide consistent behavior for similar route types
 - Reduce code duplication
 
 **Pattern Used:**
+
 ```typescript
 // Wrapper definition
 export function createGenerationRoute(config: GenerationConfig) {
@@ -315,12 +336,14 @@ export const POST = createGenerationRoute({
 ### Category A: Standard Protected Routes (25 routes)
 
 **Characteristics:**
+
 - Use `withAuth` or `withAdminAuth`
 - Require user authentication
 - Apply rate limiting
 - Full audit logging
 
 **Examples:**
+
 - `/api/projects` - CRUD operations
 - `/api/assets/upload` - File uploads
 - `/api/export` - Video export
@@ -329,53 +352,63 @@ export const POST = createGenerationRoute({
 ### Category B: Public/Infrastructure Routes (5 routes)
 
 **Characteristics:**
+
 - No authentication required
 - Public access by design
 - Infrastructure or documentation
 
 **Examples:**
+
 - `/api/health` - Health check
 - `/api/docs` - API documentation
 
 ### Category C: Special Auth Routes (2 routes)
 
 **Characteristics:**
+
 - Use `withErrorHandling` with manual auth
 - Require custom auth handling
 - Authentication lifecycle or public documentation
 
 **Examples:**
+
 - `/api/auth/signout` - Custom session handling
 - `/api/docs` - Public documentation
 
 ### Category D: Webhook Routes (1 route)
 
 **Characteristics:**
+
 - Signature-based authentication
 - No session auth
 - External system integration
 
 **Examples:**
+
 - `/api/stripe/webhook` - Stripe webhooks
 
 ### Category E: Legacy Routes (1 route)
 
 **Characteristics:**
+
 - Manual authentication
 - Marked for refactoring
 - Incompatible with standard middleware
 
 **Examples:**
+
 - `/api/projects/[projectId]/chat` - Streaming responses
 
 ### Category F: Wrapper Utility Routes (3 routes)
 
 **Characteristics:**
+
 - Use abstraction wrappers
 - Wrappers implement auth internally
 - Reduce code duplication
 
 **Examples:**
+
 - `/api/audio/elevenlabs/sfx` - Generation wrapper
 - `/api/video/*-status` - Status check wrappers
 
@@ -397,11 +430,13 @@ All standard CRUD and business logic routes have been migrated to `withAuth`:
 ### Intentionally Not Migrated (10 routes)
 
 **Valid Edge Cases (No Action Needed):**
+
 - 2 routes with `withErrorHandling` (documented above)
 - 5 public/infrastructure routes (health, docs, webhooks)
 - 3 wrapper utility routes (acceptable pattern)
 
 **Pending Refactor (Action Needed):**
+
 - 1 legacy route (`/api/projects/[projectId]/chat`) - Streaming response refactor needed
 
 ---
@@ -411,6 +446,7 @@ All standard CRUD and business logic routes have been migrated to `withAuth`:
 ### When to Use `withAuth`
 
 **Use `withAuth` for:**
+
 - Standard CRUD operations
 - Business logic endpoints
 - User-scoped data access
@@ -420,6 +456,7 @@ All standard CRUD and business logic routes have been migrated to `withAuth`:
 ### When to Use `withAdminAuth`
 
 **Use `withAdminAuth` for:**
+
 - Admin-only operations
 - User management
 - System configuration
@@ -429,6 +466,7 @@ All standard CRUD and business logic routes have been migrated to `withAuth`:
 ### When to Use Manual Auth
 
 **Only use manual auth for:**
+
 - Streaming responses (SSE, WebSocket)
 - Auth lifecycle endpoints (signin, signout, refresh)
 - Routes with complex auth requirements
@@ -436,6 +474,7 @@ All standard CRUD and business logic routes have been migrated to `withAuth`:
 ### When to Use No Middleware
 
 **Only skip middleware for:**
+
 - Public health checks
 - Webhook endpoints with signature verification
 - Public documentation endpoints
@@ -447,16 +486,16 @@ Choose appropriate rate limit tier based on operation cost:
 
 ```typescript
 // Tier 1: 5 req/min - Admin, payments, account deletion
-rateLimit: RATE_LIMITS.tier1_auth_payment
+rateLimit: RATE_LIMITS.tier1_auth_payment;
 
 // Tier 2: 10 req/min - AI generation, video processing, uploads
-rateLimit: RATE_LIMITS.tier2_ai_generation
+rateLimit: RATE_LIMITS.tier2_ai_generation;
 
 // Tier 3: 30 req/min - Status checks, read operations
-rateLimit: RATE_LIMITS.tier3_read
+rateLimit: RATE_LIMITS.tier3_read;
 
 // Tier 4: 60 req/min - General operations, logging
-rateLimit: RATE_LIMITS.tier4_logging
+rateLimit: RATE_LIMITS.tier4_logging;
 ```
 
 ---
@@ -538,6 +577,7 @@ describe('POST /api/projects', () => {
 **Issue:** Route returns 401 despite being authenticated
 
 **Solution:**
+
 - Verify cookies are being sent
 - Check Supabase client configuration
 - Ensure session hasn't expired
@@ -545,6 +585,7 @@ describe('POST /api/projects', () => {
 **Issue:** Rate limit errors in development
 
 **Solution:**
+
 - Rate limits are disabled in test environment
 - Clear Redis cache: `redis-cli FLUSHALL`
 - Check `NODE_ENV` is set correctly
@@ -552,6 +593,7 @@ describe('POST /api/projects', () => {
 **Issue:** Params undefined in Next.js 15+
 
 **Solution:**
+
 - Always await params: `const params = await routeContext!.params`
 - Use type parameter: `withAuth<{ id: string }>(...)`
 - Ensure routeContext is passed to handler
@@ -588,6 +630,7 @@ When migrating a route to `withAuth`:
 ## Conclusion
 
 The codebase has achieved 94% middleware standardization with all edge cases documented and justified. The remaining 6% consists of:
+
 - 2.7% valid edge cases (public endpoints, custom auth)
 - 2.7% wrapper utilities (acceptable pattern)
 - 0.6% legacy code (scheduled for refactoring)

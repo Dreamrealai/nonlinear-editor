@@ -26,10 +26,6 @@ if (SENTRY_DSN) {
     tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
 
     // Ignore specific errors
-    ignoreErrors: [
-      'Invalid Refresh Token',
-      'Auth session missing',
-      'ValidationError',
-    ],
+    ignoreErrors: ['Invalid Refresh Token', 'Auth session missing', 'ValidationError'],
   });
 }

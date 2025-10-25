@@ -10,7 +10,14 @@
  */
 
 import React from 'react';
-import { render, screen, waitFor, userEvent, createMockSupabaseClient, mockAuthenticatedUser } from '@/test-utils';
+import {
+  render,
+  screen,
+  waitFor,
+  userEvent,
+  createMockSupabaseClient,
+  mockAuthenticatedUser,
+} from '@/test-utils';
 
 // TODO: Import your component
 // import { MyComponent } from '@/components/MyComponent';

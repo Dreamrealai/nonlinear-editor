@@ -30,10 +30,16 @@ const sizeClasses = {
   xl: 'w-12 h-12 border-4',
 };
 
-export function LoadingSpinner({ size = 'md', className, text, variant = 'default' }: LoadingSpinnerProps): React.ReactElement {
-  const borderClasses = variant === 'branded'
-    ? 'border-purple-200 border-t-purple-600 dark:border-purple-800 dark:border-t-purple-400'
-    : 'border-gray-300 border-t-blue-600 dark:border-gray-700 dark:border-t-blue-400';
+export function LoadingSpinner({
+  size = 'md',
+  className,
+  text,
+  variant = 'default',
+}: LoadingSpinnerProps): React.ReactElement {
+  const borderClasses =
+    variant === 'branded'
+      ? 'border-purple-200 border-t-purple-600 dark:border-purple-800 dark:border-t-purple-400'
+      : 'border-gray-300 border-t-blue-600 dark:border-gray-700 dark:border-t-blue-400';
 
   return (
     <div className={clsx('flex items-center gap-2', className)}>

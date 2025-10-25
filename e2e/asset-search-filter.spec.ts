@@ -46,11 +46,10 @@ test.describe('Asset Search and Filter', () => {
   test.describe('Search Functionality', () => {
     test('should have search input visible', async ({ page }) => {
       // Look for search input in asset panel
-      const searchInput = page.locator('input[placeholder*="Search"]').or(
-        page.locator('input[type="search"]')
-      ).or(
-        page.locator('input[aria-label*="search" i]')
-      );
+      const searchInput = page
+        .locator('input[placeholder*="Search"]')
+        .or(page.locator('input[type="search"]'))
+        .or(page.locator('input[aria-label*="search" i]'));
 
       await expect(searchInput.first()).toBeVisible({ timeout: 5000 });
     });
@@ -60,14 +59,13 @@ test.describe('Asset Search and Filter', () => {
       // For now, assume assets exist or are mocked
 
       // Find search input
-      const searchInput = page.locator('input[placeholder*="Search"]').or(
-        page.locator('input[type="search"]')
-      ).first();
+      const searchInput = page
+        .locator('input[placeholder*="Search"]')
+        .or(page.locator('input[type="search"]'))
+        .first();
 
       // Get initial asset count
-      const assetCards = page.locator('[data-testid="asset-card"]').or(
-        page.locator('.asset-card')
-      );
+      const assetCards = page.locator('[data-testid="asset-card"]').or(page.locator('.asset-card'));
       const initialCount = await assetCards.count();
 
       if (initialCount > 0) {
@@ -83,9 +81,10 @@ test.describe('Asset Search and Filter', () => {
     });
 
     test('should show no results message when search has no matches', async ({ page }) => {
-      const searchInput = page.locator('input[placeholder*="Search"]').or(
-        page.locator('input[type="search"]')
-      ).first();
+      const searchInput = page
+        .locator('input[placeholder*="Search"]')
+        .or(page.locator('input[type="search"]'))
+        .first();
 
       // Search for non-existent term
       await searchInput.fill('zzz_nonexistent_xyz_123');
@@ -93,9 +92,7 @@ test.describe('Asset Search and Filter', () => {
 
       // Should show no results message
       const noResults = page.locator('text=/No assets found|No results/i');
-      const assetCards = page.locator('[data-testid="asset-card"]').or(
-        page.locator('.asset-card')
-      );
+      const assetCards = page.locator('[data-testid="asset-card"]').or(page.locator('.asset-card'));
       const count = await assetCards.count();
 
       if (count === 0) {
@@ -104,13 +101,12 @@ test.describe('Asset Search and Filter', () => {
     });
 
     test('should clear search when input is cleared', async ({ page }) => {
-      const searchInput = page.locator('input[placeholder*="Search"]').or(
-        page.locator('input[type="search"]')
-      ).first();
+      const searchInput = page
+        .locator('input[placeholder*="Search"]')
+        .or(page.locator('input[type="search"]'))
+        .first();
 
-      const assetCards = page.locator('[data-testid="asset-card"]').or(
-        page.locator('.asset-card')
-      );
+      const assetCards = page.locator('[data-testid="asset-card"]').or(page.locator('.asset-card'));
 
       // Get initial count
       const initialCount = await assetCards.count();
@@ -129,9 +125,10 @@ test.describe('Asset Search and Filter', () => {
     });
 
     test('should update results in real-time as user types', async ({ page }) => {
-      const searchInput = page.locator('input[placeholder*="Search"]').or(
-        page.locator('input[type="search"]')
-      ).first();
+      const searchInput = page
+        .locator('input[placeholder*="Search"]')
+        .or(page.locator('input[type="search"]'))
+        .first();
 
       // Type one character at a time
       await searchInput.pressSequentially('tes', { delay: 200 });
@@ -139,9 +136,7 @@ test.describe('Asset Search and Filter', () => {
       // Results should update (implementation-specific timing)
       await page.waitForTimeout(600);
 
-      const assetCards = page.locator('[data-testid="asset-card"]').or(
-        page.locator('.asset-card')
-      );
+      const assetCards = page.locator('[data-testid="asset-card"]').or(page.locator('.asset-card'));
       const count = await assetCards.count();
 
       // Count should be >= 0
@@ -152,15 +147,15 @@ test.describe('Asset Search and Filter', () => {
   test.describe('Filter by Type', () => {
     test('should have type filter tabs', async ({ page }) => {
       // Look for Video, Audio, Image tabs
-      const videoTab = page.locator('button:has-text("Video")').or(
-        page.locator('[role="tab"]:has-text("Video")')
-      );
-      const audioTab = page.locator('button:has-text("Audio")').or(
-        page.locator('[role="tab"]:has-text("Audio")')
-      );
-      const imageTab = page.locator('button:has-text("Image")').or(
-        page.locator('[role="tab"]:has-text("Image")')
-      );
+      const videoTab = page
+        .locator('button:has-text("Video")')
+        .or(page.locator('[role="tab"]:has-text("Video")'));
+      const audioTab = page
+        .locator('button:has-text("Audio")')
+        .or(page.locator('[role="tab"]:has-text("Audio")'));
+      const imageTab = page
+        .locator('button:has-text("Image")')
+        .or(page.locator('[role="tab"]:has-text("Image")'));
 
       await expect(videoTab.first()).toBeVisible({ timeout: 5000 });
       await expect(audioTab.first()).toBeVisible();
@@ -168,59 +163,57 @@ test.describe('Asset Search and Filter', () => {
     });
 
     test('should filter assets by video type', async ({ page }) => {
-      const videoTab = page.locator('button:has-text("Video")').or(
-        page.locator('[role="tab"]:has-text("Video")')
-      ).first();
+      const videoTab = page
+        .locator('button:has-text("Video")')
+        .or(page.locator('[role="tab"]:has-text("Video")'))
+        .first();
 
       await videoTab.click();
       await page.waitForTimeout(500);
 
       // All shown assets should be video type
       // This would require checking asset metadata
-      const assetCards = page.locator('[data-testid="asset-card"]').or(
-        page.locator('.asset-card')
-      );
+      const assetCards = page.locator('[data-testid="asset-card"]').or(page.locator('.asset-card'));
       const count = await assetCards.count();
 
       expect(count).toBeGreaterThanOrEqual(0);
     });
 
     test('should filter assets by audio type', async ({ page }) => {
-      const audioTab = page.locator('button:has-text("Audio")').or(
-        page.locator('[role="tab"]:has-text("Audio")')
-      ).first();
+      const audioTab = page
+        .locator('button:has-text("Audio")')
+        .or(page.locator('[role="tab"]:has-text("Audio")'))
+        .first();
 
       await audioTab.click();
       await page.waitForTimeout(500);
 
-      const assetCards = page.locator('[data-testid="asset-card"]').or(
-        page.locator('.asset-card')
-      );
+      const assetCards = page.locator('[data-testid="asset-card"]').or(page.locator('.asset-card'));
       const count = await assetCards.count();
 
       expect(count).toBeGreaterThanOrEqual(0);
     });
 
     test('should filter assets by image type', async ({ page }) => {
-      const imageTab = page.locator('button:has-text("Image")').or(
-        page.locator('[role="tab"]:has-text("Image")')
-      ).first();
+      const imageTab = page
+        .locator('button:has-text("Image")')
+        .or(page.locator('[role="tab"]:has-text("Image")'))
+        .first();
 
       await imageTab.click();
       await page.waitForTimeout(500);
 
-      const assetCards = page.locator('[data-testid="asset-card"]').or(
-        page.locator('.asset-card')
-      );
+      const assetCards = page.locator('[data-testid="asset-card"]').or(page.locator('.asset-card'));
       const count = await assetCards.count();
 
       expect(count).toBeGreaterThanOrEqual(0);
     });
 
     test('should highlight active type filter', async ({ page }) => {
-      const videoTab = page.locator('button:has-text("Video")').or(
-        page.locator('[role="tab"]:has-text("Video")')
-      ).first();
+      const videoTab = page
+        .locator('button:has-text("Video")')
+        .or(page.locator('[role="tab"]:has-text("Video")'))
+        .first();
 
       await videoTab.click();
       await page.waitForTimeout(300);
@@ -234,17 +227,15 @@ test.describe('Asset Search and Filter', () => {
   test.describe('Filter by Usage', () => {
     test('should have usage filter options', async ({ page }) => {
       // Look for "Used" and "Unused" filter buttons or checkboxes
-      const usedFilter = page.locator('text=/^Used$/i').or(
-        page.locator('button:has-text("Used")')
-      ).or(
-        page.locator('input[type="checkbox"] + label:has-text("Used")')
-      );
+      const usedFilter = page
+        .locator('text=/^Used$/i')
+        .or(page.locator('button:has-text("Used")'))
+        .or(page.locator('input[type="checkbox"] + label:has-text("Used")'));
 
-      const unusedFilter = page.locator('text=/^Unused$/i').or(
-        page.locator('button:has-text("Unused")')
-      ).or(
-        page.locator('input[type="checkbox"] + label:has-text("Unused")')
-      );
+      const unusedFilter = page
+        .locator('text=/^Unused$/i')
+        .or(page.locator('button:has-text("Unused")'))
+        .or(page.locator('input[type="checkbox"] + label:has-text("Unused")'));
 
       // At least one should be visible (implementation varies)
       const usedCount = await usedFilter.count();
@@ -254,9 +245,10 @@ test.describe('Asset Search and Filter', () => {
     });
 
     test('should filter to show only used assets', async ({ page }) => {
-      const usedFilter = page.locator('button:has-text("Used")').or(
-        page.locator('text=/^Used$/i')
-      ).first();
+      const usedFilter = page
+        .locator('button:has-text("Used")')
+        .or(page.locator('text=/^Used$/i'))
+        .first();
 
       const filterCount = await usedFilter.count();
       if (filterCount > 0) {
@@ -264,9 +256,9 @@ test.describe('Asset Search and Filter', () => {
         await page.waitForTimeout(500);
 
         // Assets should be filtered to used only
-        const assetCards = page.locator('[data-testid="asset-card"]').or(
-          page.locator('.asset-card')
-        );
+        const assetCards = page
+          .locator('[data-testid="asset-card"]')
+          .or(page.locator('.asset-card'));
         const count = await assetCards.count();
 
         expect(count).toBeGreaterThanOrEqual(0);
@@ -274,18 +266,19 @@ test.describe('Asset Search and Filter', () => {
     });
 
     test('should filter to show only unused assets', async ({ page }) => {
-      const unusedFilter = page.locator('button:has-text("Unused")').or(
-        page.locator('text=/^Unused$/i')
-      ).first();
+      const unusedFilter = page
+        .locator('button:has-text("Unused")')
+        .or(page.locator('text=/^Unused$/i'))
+        .first();
 
       const filterCount = await unusedFilter.count();
       if (filterCount > 0) {
         await unusedFilter.click();
         await page.waitForTimeout(500);
 
-        const assetCards = page.locator('[data-testid="asset-card"]').or(
-          page.locator('.asset-card')
-        );
+        const assetCards = page
+          .locator('[data-testid="asset-card"]')
+          .or(page.locator('.asset-card'));
         const count = await assetCards.count();
 
         expect(count).toBeGreaterThanOrEqual(0);
@@ -296,11 +289,10 @@ test.describe('Asset Search and Filter', () => {
   test.describe('Filter by Tags', () => {
     test('should have tag filter interface', async ({ page }) => {
       // Look for tag filter dropdown or input
-      const tagFilter = page.locator('button:has-text("Tags")').or(
-        page.locator('text=/Filter by tags/i')
-      ).or(
-        page.locator('[aria-label*="tag" i]')
-      );
+      const tagFilter = page
+        .locator('button:has-text("Tags")')
+        .or(page.locator('text=/Filter by tags/i'))
+        .or(page.locator('[aria-label*="tag" i]'));
 
       const count = await tagFilter.count();
       expect(count).toBeGreaterThanOrEqual(0);
@@ -316,9 +308,7 @@ test.describe('Asset Search and Filter', () => {
         await page.waitForTimeout(500);
 
         // Should show list of tags
-        const tagList = page.locator('[role="menu"]').or(
-          page.locator('.tag-list')
-        );
+        const tagList = page.locator('[role="menu"]').or(page.locator('.tag-list'));
 
         const listCount = await tagList.count();
         expect(listCount).toBeGreaterThanOrEqual(0);
@@ -343,9 +333,9 @@ test.describe('Asset Search and Filter', () => {
           await firstTag.click();
           await page.waitForTimeout(500);
 
-          const assetCards = page.locator('[data-testid="asset-card"]').or(
-            page.locator('.asset-card')
-          );
+          const assetCards = page
+            .locator('[data-testid="asset-card"]')
+            .or(page.locator('.asset-card'));
           const assetCount = await assetCards.count();
 
           expect(assetCount).toBeGreaterThanOrEqual(0);
@@ -362,16 +352,15 @@ test.describe('Asset Search and Filter', () => {
       await page.waitForTimeout(300);
 
       // Search
-      const searchInput = page.locator('input[placeholder*="Search"]').or(
-        page.locator('input[type="search"]')
-      ).first();
+      const searchInput = page
+        .locator('input[placeholder*="Search"]')
+        .or(page.locator('input[type="search"]'))
+        .first();
       await searchInput.fill('test');
       await page.waitForTimeout(500);
 
       // Both filters should be active
-      const assetCards = page.locator('[data-testid="asset-card"]').or(
-        page.locator('.asset-card')
-      );
+      const assetCards = page.locator('[data-testid="asset-card"]').or(page.locator('.asset-card'));
       const count = await assetCards.count();
 
       expect(count).toBeGreaterThanOrEqual(0);
@@ -391,9 +380,9 @@ test.describe('Asset Search and Filter', () => {
         await unusedFilter.click();
         await page.waitForTimeout(500);
 
-        const assetCards = page.locator('[data-testid="asset-card"]').or(
-          page.locator('.asset-card')
-        );
+        const assetCards = page
+          .locator('[data-testid="asset-card"]')
+          .or(page.locator('.asset-card'));
         const count = await assetCards.count();
 
         expect(count).toBeGreaterThanOrEqual(0);
@@ -407,9 +396,10 @@ test.describe('Asset Search and Filter', () => {
       await page.waitForTimeout(300);
 
       // Search
-      const searchInput = page.locator('input[placeholder*="Search"]').or(
-        page.locator('input[type="search"]')
-      ).first();
+      const searchInput = page
+        .locator('input[placeholder*="Search"]')
+        .or(page.locator('input[type="search"]'))
+        .first();
       await searchInput.fill('a');
       await page.waitForTimeout(300);
 
@@ -422,9 +412,7 @@ test.describe('Asset Search and Filter', () => {
         await page.waitForTimeout(500);
       }
 
-      const assetCards = page.locator('[data-testid="asset-card"]').or(
-        page.locator('.asset-card')
-      );
+      const assetCards = page.locator('[data-testid="asset-card"]').or(page.locator('.asset-card'));
       const count = await assetCards.count();
 
       expect(count).toBeGreaterThanOrEqual(0);
@@ -433,11 +421,10 @@ test.describe('Asset Search and Filter', () => {
 
   test.describe('Sort Options', () => {
     test('should have sort dropdown', async ({ page }) => {
-      const sortButton = page.locator('button:has-text("Sort")').or(
-        page.locator('select[aria-label*="sort" i]')
-      ).or(
-        page.locator('[aria-label*="sort" i]')
-      );
+      const sortButton = page
+        .locator('button:has-text("Sort")')
+        .or(page.locator('select[aria-label*="sort" i]'))
+        .or(page.locator('[aria-label*="sort" i]'));
 
       const count = await sortButton.count();
       expect(count).toBeGreaterThanOrEqual(0);
@@ -452,9 +439,10 @@ test.describe('Asset Search and Filter', () => {
         await page.waitForTimeout(300);
 
         // Select "Name" option
-        const nameOption = page.locator('text=/^Name$/i').or(
-          page.locator('[role="menuitem"]:has-text("Name")')
-        ).first();
+        const nameOption = page
+          .locator('text=/^Name$/i')
+          .or(page.locator('[role="menuitem"]:has-text("Name")'))
+          .first();
 
         const nameCount = await nameOption.count();
         if (nameCount > 0) {
@@ -462,9 +450,9 @@ test.describe('Asset Search and Filter', () => {
           await page.waitForTimeout(500);
 
           // Assets should be reordered
-          const assetCards = page.locator('[data-testid="asset-card"]').or(
-            page.locator('.asset-card')
-          );
+          const assetCards = page
+            .locator('[data-testid="asset-card"]')
+            .or(page.locator('.asset-card'));
           expect(await assetCards.count()).toBeGreaterThanOrEqual(0);
         }
       }
@@ -478,18 +466,19 @@ test.describe('Asset Search and Filter', () => {
         await sortButton.click();
         await page.waitForTimeout(300);
 
-        const dateOption = page.locator('text=/^Date$/i').or(
-          page.locator('[role="menuitem"]:has-text("Date")')
-        ).first();
+        const dateOption = page
+          .locator('text=/^Date$/i')
+          .or(page.locator('[role="menuitem"]:has-text("Date")'))
+          .first();
 
         const dateCount = await dateOption.count();
         if (dateCount > 0) {
           await dateOption.click();
           await page.waitForTimeout(500);
 
-          const assetCards = page.locator('[data-testid="asset-card"]').or(
-            page.locator('.asset-card')
-          );
+          const assetCards = page
+            .locator('[data-testid="asset-card"]')
+            .or(page.locator('.asset-card'));
           expect(await assetCards.count()).toBeGreaterThanOrEqual(0);
         }
       }
@@ -503,18 +492,19 @@ test.describe('Asset Search and Filter', () => {
         await sortButton.click();
         await page.waitForTimeout(300);
 
-        const sizeOption = page.locator('text=/^Size$/i').or(
-          page.locator('[role="menuitem"]:has-text("Size")')
-        ).first();
+        const sizeOption = page
+          .locator('text=/^Size$/i')
+          .or(page.locator('[role="menuitem"]:has-text("Size")'))
+          .first();
 
         const sizeCount = await sizeOption.count();
         if (sizeCount > 0) {
           await sizeOption.click();
           await page.waitForTimeout(500);
 
-          const assetCards = page.locator('[data-testid="asset-card"]').or(
-            page.locator('.asset-card')
-          );
+          const assetCards = page
+            .locator('[data-testid="asset-card"]')
+            .or(page.locator('.asset-card'));
           expect(await assetCards.count()).toBeGreaterThanOrEqual(0);
         }
       }
@@ -528,18 +518,19 @@ test.describe('Asset Search and Filter', () => {
         await sortButton.click();
         await page.waitForTimeout(300);
 
-        const typeOption = page.locator('text=/^Type$/i').or(
-          page.locator('[role="menuitem"]:has-text("Type")')
-        ).first();
+        const typeOption = page
+          .locator('text=/^Type$/i')
+          .or(page.locator('[role="menuitem"]:has-text("Type")'))
+          .first();
 
         const typeCount = await typeOption.count();
         if (typeCount > 0) {
           await typeOption.click();
           await page.waitForTimeout(500);
 
-          const assetCards = page.locator('[data-testid="asset-card"]').or(
-            page.locator('.asset-card')
-          );
+          const assetCards = page
+            .locator('[data-testid="asset-card"]')
+            .or(page.locator('.asset-card'));
           expect(await assetCards.count()).toBeGreaterThanOrEqual(0);
         }
       }
@@ -554,9 +545,10 @@ test.describe('Asset Search and Filter', () => {
         await page.waitForTimeout(300);
 
         // Look for direction toggle (asc/desc)
-        const directionToggle = page.locator('[aria-label*="direction"]').or(
-          page.locator('button:has-text("↑")').or(page.locator('button:has-text("↓")'))
-        ).first();
+        const directionToggle = page
+          .locator('[aria-label*="direction"]')
+          .or(page.locator('button:has-text("↑")').or(page.locator('button:has-text("↓")')))
+          .first();
 
         const toggleCount = await directionToggle.count();
         if (toggleCount > 0) {
@@ -564,9 +556,9 @@ test.describe('Asset Search and Filter', () => {
           await page.waitForTimeout(500);
 
           // Assets should be reordered in reverse
-          const assetCards = page.locator('[data-testid="asset-card"]').or(
-            page.locator('.asset-card')
-          );
+          const assetCards = page
+            .locator('[data-testid="asset-card"]')
+            .or(page.locator('.asset-card'));
           expect(await assetCards.count()).toBeGreaterThanOrEqual(0);
         }
       }
@@ -575,11 +567,10 @@ test.describe('Asset Search and Filter', () => {
 
   test.describe('Clear Filters', () => {
     test('should have clear filters button', async ({ page }) => {
-      const clearButton = page.locator('button:has-text("Clear")').or(
-        page.locator('button:has-text("Reset")')
-      ).or(
-        page.locator('button[aria-label*="clear" i]')
-      );
+      const clearButton = page
+        .locator('button:has-text("Clear")')
+        .or(page.locator('button:has-text("Reset")'))
+        .or(page.locator('button[aria-label*="clear" i]'));
 
       const count = await clearButton.count();
       expect(count).toBeGreaterThanOrEqual(0);
@@ -587,9 +578,10 @@ test.describe('Asset Search and Filter', () => {
 
     test('should clear all active filters', async ({ page }) => {
       // Apply multiple filters
-      const searchInput = page.locator('input[placeholder*="Search"]').or(
-        page.locator('input[type="search"]')
-      ).first();
+      const searchInput = page
+        .locator('input[placeholder*="Search"]')
+        .or(page.locator('input[type="search"]'))
+        .first();
       await searchInput.fill('test');
       await page.waitForTimeout(300);
 
@@ -598,15 +590,14 @@ test.describe('Asset Search and Filter', () => {
       await page.waitForTimeout(300);
 
       // Get asset count with filters
-      const assetCards = page.locator('[data-testid="asset-card"]').or(
-        page.locator('.asset-card')
-      );
+      const assetCards = page.locator('[data-testid="asset-card"]').or(page.locator('.asset-card'));
       const filteredCount = await assetCards.count();
 
       // Clear filters
-      const clearButton = page.locator('button:has-text("Clear")').or(
-        page.locator('button:has-text("Reset")')
-      ).first();
+      const clearButton = page
+        .locator('button:has-text("Clear")')
+        .or(page.locator('button:has-text("Reset")'))
+        .first();
 
       const clearCount = await clearButton.count();
       if (clearCount > 0) {
@@ -626,12 +617,12 @@ test.describe('Asset Search and Filter', () => {
 
   test.describe('Pagination', () => {
     test('should have pagination controls', async ({ page }) => {
-      const nextButton = page.locator('button:has-text("Next")').or(
-        page.locator('button[aria-label*="next" i]')
-      );
-      const prevButton = page.locator('button:has-text("Previous")').or(
-        page.locator('button[aria-label*="previous" i]')
-      );
+      const nextButton = page
+        .locator('button:has-text("Next")')
+        .or(page.locator('button[aria-label*="next" i]'));
+      const prevButton = page
+        .locator('button:has-text("Previous")')
+        .or(page.locator('button[aria-label*="previous" i]'));
 
       const nextCount = await nextButton.count();
       const prevCount = await prevButton.count();
@@ -642,16 +633,18 @@ test.describe('Asset Search and Filter', () => {
 
     test('should preserve filters across page navigation', async ({ page }) => {
       // Apply a filter
-      const searchInput = page.locator('input[placeholder*="Search"]').or(
-        page.locator('input[type="search"]')
-      ).first();
+      const searchInput = page
+        .locator('input[placeholder*="Search"]')
+        .or(page.locator('input[type="search"]'))
+        .first();
       await searchInput.fill('test');
       await page.waitForTimeout(500);
 
       // Go to next page (if available)
-      const nextButton = page.locator('button:has-text("Next")').or(
-        page.locator('button[aria-label*="next" i]')
-      ).first();
+      const nextButton = page
+        .locator('button:has-text("Next")')
+        .or(page.locator('button[aria-label*="next" i]'))
+        .first();
 
       const nextCount = await nextButton.count();
       if (nextCount > 0) {
@@ -668,18 +661,19 @@ test.describe('Asset Search and Filter', () => {
     });
 
     test('should show page number and total', async ({ page }) => {
-      const pageInfo = page.locator('text=/Page \\d+ of \\d+/i').or(
-        page.locator('text=/\\d+ - \\d+ of \\d+/')
-      );
+      const pageInfo = page
+        .locator('text=/Page \\d+ of \\d+/i')
+        .or(page.locator('text=/\\d+ - \\d+ of \\d+/'));
 
       const count = await pageInfo.count();
       expect(count).toBeGreaterThanOrEqual(0);
     });
 
     test('should disable previous button on first page', async ({ page }) => {
-      const prevButton = page.locator('button:has-text("Previous")').or(
-        page.locator('button[aria-label*="previous" i]')
-      ).first();
+      const prevButton = page
+        .locator('button:has-text("Previous")')
+        .or(page.locator('button[aria-label*="previous" i]'))
+        .first();
 
       const count = await prevButton.count();
       if (count > 0) {
@@ -692,9 +686,10 @@ test.describe('Asset Search and Filter', () => {
 
   test.describe('Performance', () => {
     test('should filter quickly with many assets', async ({ page }) => {
-      const searchInput = page.locator('input[placeholder*="Search"]').or(
-        page.locator('input[type="search"]')
-      ).first();
+      const searchInput = page
+        .locator('input[placeholder*="Search"]')
+        .or(page.locator('input[type="search"]'))
+        .first();
 
       const startTime = Date.now();
 
@@ -709,9 +704,10 @@ test.describe('Asset Search and Filter', () => {
     });
 
     test('should debounce search input', async ({ page }) => {
-      const searchInput = page.locator('input[placeholder*="Search"]').or(
-        page.locator('input[type="search"]')
-      ).first();
+      const searchInput = page
+        .locator('input[placeholder*="Search"]')
+        .or(page.locator('input[type="search"]'))
+        .first();
 
       // Type quickly
       await searchInput.pressSequentially('testing', { delay: 50 });
@@ -720,9 +716,7 @@ test.describe('Asset Search and Filter', () => {
       await page.waitForTimeout(600);
 
       // Only one filtered result should occur
-      const assetCards = page.locator('[data-testid="asset-card"]').or(
-        page.locator('.asset-card')
-      );
+      const assetCards = page.locator('[data-testid="asset-card"]').or(page.locator('.asset-card'));
       const count = await assetCards.count();
 
       expect(count).toBeGreaterThanOrEqual(0);

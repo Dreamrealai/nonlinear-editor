@@ -16,7 +16,11 @@ import type { ShareLink } from '@/types/collaboration';
  * PATCH - Update a share link (deactivate, change settings)
  */
 export const PATCH = withAuth<{ projectId: string; linkId: string }>(
-  async (req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ link: ShareLink; }>> => {
+  async (
+    req: NextRequest,
+    { user, supabase },
+    routeContext
+  ): Promise<NextResponse<{ error: string }> | NextResponse<{ link: ShareLink }>> => {
     const params = await routeContext?.params;
     const projectId = params?.projectId;
     const linkId = params?.linkId;
@@ -61,7 +65,10 @@ export const PATCH = withAuth<{ projectId: string; linkId: string }>(
         .single();
 
       if (updateError || !link) {
-        serverLogger.error({ error: updateError, linkId, projectId }, 'Failed to update share link');
+        serverLogger.error(
+          { error: updateError, linkId, projectId },
+          'Failed to update share link'
+        );
         return NextResponse.json({ error: 'Failed to update share link' }, { status: 500 });
       }
 
@@ -92,7 +99,11 @@ export const PATCH = withAuth<{ projectId: string; linkId: string }>(
  * DELETE - Delete a share link
  */
 export const DELETE = withAuth<{ projectId: string; linkId: string }>(
-  async (_req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; }>> => {
+  async (
+    _req: NextRequest,
+    { user, supabase },
+    routeContext
+  ): Promise<NextResponse<{ error: string }> | NextResponse<{ success: boolean }>> => {
     const params = await routeContext?.params;
     const projectId = params?.projectId;
     const linkId = params?.linkId;
@@ -129,7 +140,10 @@ export const DELETE = withAuth<{ projectId: string; linkId: string }>(
         .eq('project_id', projectId);
 
       if (deleteError) {
-        serverLogger.error({ error: deleteError, linkId, projectId }, 'Failed to delete share link');
+        serverLogger.error(
+          { error: deleteError, linkId, projectId },
+          'Failed to delete share link'
+        );
         return NextResponse.json({ error: 'Failed to delete share link' }, { status: 500 });
       }
 

@@ -10,14 +10,20 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 // Mock fs module
-jest.mock('fs', (): Record<string, unknown> => ({
-  readFileSync: jest.fn(),
-}));
+jest.mock(
+  'fs',
+  (): Record<string, unknown> => ({
+    readFileSync: jest.fn(),
+  })
+);
 
 // Mock yaml parser
-jest.mock('yaml', (): Record<string, unknown> => ({
-  parse: jest.fn(),
-}));
+jest.mock(
+  'yaml',
+  (): Record<string, unknown> => ({
+    parse: jest.fn(),
+  })
+);
 
 describe('GET /api/docs', () => {
   const mockYamlContent = `

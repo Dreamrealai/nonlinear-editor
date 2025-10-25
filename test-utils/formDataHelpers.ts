@@ -124,7 +124,7 @@ export function createAuthFormDataRequest(
   });
 
   // Attach user to request for test auth to pick up
-  (request as any).__testUser = user; // eslint-disable-line @typescript-eslint/no-explicit-any
+  (request as any).__testUser = user;  
 
   return { request, user };
 }
@@ -211,10 +211,7 @@ export function createTestFile(
  * );
  * ```
  */
-export function createFormDataWithFiles(
-  fields: FormDataFields,
-  files: File[]
-): FormData {
+export function createFormDataWithFiles(fields: FormDataFields, files: File[]): FormData {
   const formData = createTestFormData(fields);
 
   files.forEach((file, index) => {

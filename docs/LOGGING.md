@@ -162,10 +162,7 @@ serverLogger.error({ error, userId }, 'Failed to save user data');
 serverLogger.error('Save failed');
 
 // ✅ Good
-serverLogger.error(
-  { error, userId, projectId, operation: 'save' },
-  'Failed to save project'
-);
+serverLogger.error({ error, userId, projectId, operation: 'save' }, 'Failed to save project');
 ```
 
 ### 3. Use Child Loggers for Routes
@@ -194,12 +191,14 @@ serverLogger.info({ userId }, 'User authenticated');
 ## Performance Characteristics
 
 ### Browser Logger
+
 - **Batch size**: 10 logs
 - **Batch interval**: 5 seconds
 - **API overhead**: ~1 POST request per 10 logs
 - **Memory**: Minimal (queue cleared on batch)
 
 ### Server Logger (Pino)
+
 - **Throughput**: ~40,000 logs/second (Pino benchmark)
 - **Batch size**: 10 logs to Axiom
 - **Batch interval**: 2 seconds
@@ -210,12 +209,14 @@ serverLogger.info({ userId }, 'User authenticated');
 ### Logs not appearing in Axiom
 
 1. Check environment variables are set:
+
    ```bash
    echo $AXIOM_TOKEN
    echo $AXIOM_DATASET
    ```
 
 2. Verify Axiom credentials:
+
    ```typescript
    // In browser console or API route
    console.log(process.env.AXIOM_TOKEN?.slice(0, 10)); // Should show "xaat-..."
@@ -226,6 +227,7 @@ serverLogger.info({ userId }, 'User authenticated');
 ### Development console logs only
 
 If you only see logs in console but not in Axiom:
+
 - Ensure `.env.local` contains Axiom credentials
 - Restart Next.js dev server
 - Check network tab for POST requests to `/api/logs`
@@ -237,6 +239,7 @@ This is expected behavior. Pino logs are captured by Vercel's logging infrastruc
 ## Migration from Old Logger
 
 Old logger usage:
+
 ```typescript
 const logger = new ServerLogger();
 logger.info(undefined, 'Server started');
@@ -244,6 +247,7 @@ logger.error({ error: err }, 'Failed');
 ```
 
 New Pino usage:
+
 ```typescript
 import { serverLogger } from '@/lib/serverLogger';
 serverLogger.info('Server started');
@@ -251,6 +255,7 @@ serverLogger.error({ error: err }, 'Failed');
 ```
 
 **Key differences:**
+
 - No need to pass `undefined` for data parameter
 - Data and message order can be swapped (Pino is flexible)
 - Built-in error serialization

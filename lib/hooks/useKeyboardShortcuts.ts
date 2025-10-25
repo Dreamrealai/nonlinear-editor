@@ -47,15 +47,17 @@ export function useKeyboardShortcuts(options: KeyboardShortcutOptions = {}): voi
 
   const timeline = useEditorStore((state): Timeline | null => state.timeline);
   const selectedClipIds = useEditorStore((state): Set<string> => state.selectedClipIds);
-  const undo = useEditorStore((state): () => void => state.undo);
-  const redo = useEditorStore((state): () => void => state.redo);
-  const canUndo = useEditorStore((state): () => boolean => state.canUndo);
-  const canRedo = useEditorStore((state): () => boolean => state.canRedo);
-  const removeClip = useEditorStore((state): (id: string) => void => state.removeClip);
-  const copyClips = useEditorStore((state): () => void => state.copyClips);
-  const pasteClips = useEditorStore((state): () => void => state.pasteClips);
-  const selectClip = useEditorStore((state): (id: string, multi?: boolean) => void => state.selectClip);
-  const clearSelection = useEditorStore((state): () => void => state.clearSelection);
+  const undo = useEditorStore((state): (() => void) => state.undo);
+  const redo = useEditorStore((state): (() => void) => state.redo);
+  const canUndo = useEditorStore((state): (() => boolean) => state.canUndo);
+  const canRedo = useEditorStore((state): (() => boolean) => state.canRedo);
+  const removeClip = useEditorStore((state): ((id: string) => void) => state.removeClip);
+  const copyClips = useEditorStore((state): (() => void) => state.copyClips);
+  const pasteClips = useEditorStore((state): (() => void) => state.pasteClips);
+  const selectClip = useEditorStore(
+    (state): ((id: string, multi?: boolean) => void) => state.selectClip
+  );
+  const clearSelection = useEditorStore((state): (() => void) => state.clearSelection);
 
   useEffect((): (() => void) | undefined => {
     if (!enabled) return;

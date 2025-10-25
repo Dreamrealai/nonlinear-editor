@@ -74,16 +74,16 @@ __tests__/
 ### Basic Test Structure
 
 ```typescript
-import { functionToTest } from '@/lib/yourModule'
+import { functionToTest } from '@/lib/yourModule';
 
 describe('Module Name', () => {
   describe('functionToTest', () => {
     it('should perform expected behavior', () => {
-      const result = functionToTest(input)
-      expect(result).toBe(expectedOutput)
-    })
-  })
-})
+      const result = functionToTest(input);
+      expect(result).toBe(expectedOutput);
+    });
+  });
+});
 ```
 
 ### Testing React Components
@@ -114,41 +114,41 @@ describe('YourComponent', () => {
 ### Testing Zustand Stores
 
 ```typescript
-import { renderHook, act } from '@testing-library/react'
-import { useYourStore } from '@/state/useYourStore'
+import { renderHook, act } from '@testing-library/react';
+import { useYourStore } from '@/state/useYourStore';
 
 describe('useYourStore', () => {
   it('should update state', () => {
-    const { result } = renderHook(() => useYourStore())
+    const { result } = renderHook(() => useYourStore());
 
     act(() => {
-      result.current.updateValue('new value')
-    })
+      result.current.updateValue('new value');
+    });
 
-    expect(result.current.value).toBe('new value')
-  })
-})
+    expect(result.current.value).toBe('new value');
+  });
+});
 ```
 
 ### Testing Async Functions
 
 ```typescript
 it('should fetch data successfully', async () => {
-  const data = await fetchData()
-  expect(data).toEqual(expectedData)
-})
+  const data = await fetchData();
+  expect(data).toEqual(expectedData);
+});
 ```
 
 ### Testing Error Cases
 
 ```typescript
 it('should throw error for invalid input', () => {
-  expect(() => functionThatThrows()).toThrow('Expected error message')
-})
+  expect(() => functionThatThrows()).toThrow('Expected error message');
+});
 
 it('should handle async errors', async () => {
-  await expect(asyncFunctionThatThrows()).rejects.toThrow('Error message')
-})
+  await expect(asyncFunctionThatThrows()).rejects.toThrow('Error message');
+});
 ```
 
 ## Mocking
@@ -160,21 +160,21 @@ The project includes pre-configured mocks in the `__mocks__` directory:
 #### Supabase Mock (`__mocks__/supabase.ts`)
 
 ```typescript
-import { mockSupabaseClient } from '@/__mocks__/supabase'
+import { mockSupabaseClient } from '@/__mocks__/supabase';
 
 // Use in tests
-jest.mock('@/lib/supabase', () => require('@/__mocks__/supabase'))
+jest.mock('@/lib/supabase', () => require('@/__mocks__/supabase'));
 ```
 
 #### Next.js Navigation Mock (`__mocks__/next-navigation.ts`)
 
 ```typescript
-jest.mock('next/navigation', () => require('@/__mocks__/next-navigation'))
+jest.mock('next/navigation', () => require('@/__mocks__/next-navigation'));
 
 // Access mocked functions
-import { useRouter } from 'next/navigation'
-const mockPush = useRouter().push
-expect(mockPush).toHaveBeenCalledWith('/expected-route')
+import { useRouter } from 'next/navigation';
+const mockPush = useRouter().push;
+expect(mockPush).toHaveBeenCalledWith('/expected-route');
 ```
 
 ### Creating Custom Mocks
@@ -184,7 +184,7 @@ expect(mockPush).toHaveBeenCalledWith('/expected-route')
 ```typescript
 jest.mock('@/lib/yourModule', () => ({
   functionName: jest.fn().mockReturnValue('mocked value'),
-}))
+}));
 ```
 
 #### Mock fetch
@@ -193,27 +193,27 @@ jest.mock('@/lib/yourModule', () => ({
 global.fetch = jest.fn().mockResolvedValue({
   ok: true,
   json: async () => ({ data: 'test' }),
-})
+});
 ```
 
 #### Mock timers
 
 ```typescript
 beforeEach(() => {
-  jest.useFakeTimers()
-})
+  jest.useFakeTimers();
+});
 
 afterEach(() => {
-  jest.useRealTimers()
-})
+  jest.useRealTimers();
+});
 
 test('uses fake timers', () => {
-  const callback = jest.fn()
-  setTimeout(callback, 1000)
+  const callback = jest.fn();
+  setTimeout(callback, 1000);
 
-  jest.advanceTimersByTime(1000)
-  expect(callback).toHaveBeenCalled()
-})
+  jest.advanceTimersByTime(1000);
+  expect(callback).toHaveBeenCalled();
+});
 ```
 
 ## Coverage
@@ -227,12 +227,14 @@ npm run test:coverage
 ### Coverage Configuration
 
 The Jest configuration collects coverage from:
+
 - `app/**/*.{js,jsx,ts,tsx}`
 - `components/**/*.{js,jsx,ts,tsx}`
 - `lib/**/*.{js,jsx,ts,tsx}`
 - `state/**/*.{js,jsx,ts,tsx}`
 
 Excluded from coverage:
+
 - Type definition files (`*.d.ts`)
 - Node modules
 - Build output (`.next/`)
@@ -241,6 +243,7 @@ Excluded from coverage:
 ### Viewing Coverage
 
 After running with `--coverage`, open:
+
 ```
 coverage/lcov-report/index.html
 ```
@@ -261,10 +264,10 @@ coverage/lcov-report/index.html
 
 ```typescript
 // Good
-it('should return error when password is too short', () => {})
+it('should return error when password is too short', () => {});
 
 // Bad
-it('test password', () => {})
+it('test password', () => {});
 ```
 
 ### 2. Arrange-Act-Assert (AAA) Pattern
@@ -272,15 +275,15 @@ it('test password', () => {})
 ```typescript
 it('should add clip to timeline', () => {
   // Arrange - Set up test data
-  const timeline = createMockTimeline()
-  const clip = createMockClip()
+  const timeline = createMockTimeline();
+  const clip = createMockClip();
 
   // Act - Perform the action
-  addClipToTimeline(timeline, clip)
+  addClipToTimeline(timeline, clip);
 
   // Assert - Verify the result
-  expect(timeline.clips).toContain(clip)
-})
+  expect(timeline.clips).toContain(clip);
+});
 ```
 
 ### 3. Test One Thing at a Time
@@ -289,39 +292,39 @@ Each test should verify a single behavior or outcome.
 
 ```typescript
 // Good - Separate tests
-it('should validate password length', () => {})
-it('should validate password complexity', () => {})
+it('should validate password length', () => {});
+it('should validate password complexity', () => {});
 
 // Bad - Testing multiple things
 it('should validate password', () => {
   // Tests length, complexity, special chars, etc.
-})
+});
 ```
 
 ### 4. Use beforeEach for Setup
 
 ```typescript
 describe('MyComponent', () => {
-  let mockData
+  let mockData;
 
   beforeEach(() => {
-    mockData = createMockData()
-    jest.clearAllMocks()
-  })
+    mockData = createMockData();
+    jest.clearAllMocks();
+  });
 
   it('test 1', () => {
     // Use mockData
-  })
-})
+  });
+});
 ```
 
 ### 5. Clean Up After Tests
 
 ```typescript
 afterEach(() => {
-  jest.clearAllMocks()
-  jest.useRealTimers()
-})
+  jest.clearAllMocks();
+  jest.useRealTimers();
+});
 ```
 
 ### 6. Test Edge Cases
@@ -338,10 +341,10 @@ Test behavior, not implementation:
 
 ```typescript
 // Good - Tests behavior
-expect(screen.getByText('Welcome')).toBeInTheDocument()
+expect(screen.getByText('Welcome')).toBeInTheDocument();
 
 // Bad - Tests implementation
-expect(component.state.isVisible).toBe(true)
+expect(component.state.isVisible).toBe(true);
 ```
 
 ### 8. Use Data-Testid Sparingly
@@ -350,14 +353,14 @@ Prefer semantic queries:
 
 ```typescript
 // Best
-screen.getByRole('button', { name: 'Submit' })
-screen.getByLabelText('Email')
+screen.getByRole('button', { name: 'Submit' });
+screen.getByLabelText('Email');
 
 // Good
-screen.getByText('Welcome')
+screen.getByText('Welcome');
 
 // Use only when necessary
-screen.getByTestId('custom-element')
+screen.getByTestId('custom-element');
 ```
 
 ### 9. Test Accessibility
@@ -420,15 +423,17 @@ it('should display error message', () => {
 ### Tests timing out
 
 Increase timeout in test:
+
 ```typescript
 it('slow test', async () => {
   // test code
-}, 10000) // 10 second timeout
+}, 10000); // 10 second timeout
 ```
 
 ### Module not found errors
 
 Check your path aliases in `jest.config.js`:
+
 ```javascript
 moduleNameMapper: {
   '^@/(.*)$': '<rootDir>/$1',
@@ -438,10 +443,11 @@ moduleNameMapper: {
 ### Act warnings
 
 Wrap state updates in `act()`:
+
 ```typescript
 await act(async () => {
-  result.current.updateState()
-})
+  result.current.updateState();
+});
 ```
 
 ## Resources
@@ -454,6 +460,7 @@ await act(async () => {
 ## Getting Help
 
 If you encounter issues:
+
 1. Check this documentation
 2. Review existing test files for examples
 3. Consult the official documentation links above

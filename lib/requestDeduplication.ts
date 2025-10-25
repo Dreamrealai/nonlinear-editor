@@ -56,7 +56,7 @@ class RequestDeduplicationManager {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32bit integer
     }
     return hash.toString(36);
@@ -93,13 +93,16 @@ class RequestDeduplicationManager {
       this.requestCounts.set(key, count);
 
       if (enableLogging) {
-        browserLogger.debug({
-          event: 'request.deduplicated',
-          key,
-          duplicateCount: count,
-          age: Date.now() - existing.timestamp,
-          ...logContext,
-        }, 'Request deduplicated - reusing in-flight request');
+        browserLogger.debug(
+          {
+            event: 'request.deduplicated',
+            key,
+            duplicateCount: count,
+            age: Date.now() - existing.timestamp,
+            ...logContext,
+          },
+          'Request deduplicated - reusing in-flight request'
+        );
       }
 
       // Return the existing promise
@@ -121,13 +124,16 @@ class RequestDeduplicationManager {
     const promise = (async (): Promise<T> => {
       try {
         if (enableLogging) {
-          browserLogger.debug({
-            event: 'request.started',
-            key,
-            url,
-            method: options?.method ?? 'GET',
-            ...logContext,
-          }, 'Starting new request');
+          browserLogger.debug(
+            {
+              event: 'request.started',
+              key,
+              url,
+              method: options?.method ?? 'GET',
+              ...logContext,
+            },
+            'Starting new request'
+          );
         }
 
         const response = await fetch(url, {
@@ -137,24 +143,30 @@ class RequestDeduplicationManager {
 
         if (enableLogging) {
           const duplicateCount = this.requestCounts.get(key) ?? 0;
-          browserLogger.debug({
-            event: 'request.completed',
-            key,
-            status: response.status,
-            duplicatesAvoided: duplicateCount,
-            ...logContext,
-          }, `Request completed (avoided ${duplicateCount} duplicate calls)`);
+          browserLogger.debug(
+            {
+              event: 'request.completed',
+              key,
+              status: response.status,
+              duplicatesAvoided: duplicateCount,
+              ...logContext,
+            },
+            `Request completed (avoided ${duplicateCount} duplicate calls)`
+          );
         }
 
         return response as T;
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
           if (enableLogging) {
-            browserLogger.debug({
-              event: 'request.aborted',
-              key,
-              ...logContext,
-            }, 'Request aborted');
+            browserLogger.debug(
+              {
+                event: 'request.aborted',
+                key,
+                ...logContext,
+              },
+              'Request aborted'
+            );
           }
         }
         throw error;

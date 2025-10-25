@@ -9,31 +9,40 @@ import { NextRequest } from 'next/server';
 import { GET, DELETE } from '@/app/api/admin/cache/route';
 
 // Mock cache invalidation functions
-jest.mock('@/lib/cacheInvalidation', (): Record<string, unknown> => ({
-  getCacheStats: jest.fn(),
-  clearAllCaches: jest.fn(),
-}));
+jest.mock(
+  '@/lib/cacheInvalidation',
+  (): Record<string, unknown> => ({
+    getCacheStats: jest.fn(),
+    clearAllCaches: jest.fn(),
+  })
+);
 
 // Mock withAdminAuth wrapper
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAdminAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
-    const mockAdmin = {
-      id: 'admin-123',
-      email: 'admin@example.com',
-      user_metadata: { is_admin: true },
-    };
-    return handler(req, { user: mockAdmin, supabase: null, params: context?.params || {} });
-  }),
-}));
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAdminAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+      const mockAdmin = {
+        id: 'admin-123',
+        email: 'admin@example.com',
+        user_metadata: { is_admin: true },
+      };
+      return handler(req, { user: mockAdmin, supabase: null, params: context?.params || {} });
+    }),
+  })
+);
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 describe('GET /api/admin/cache', () => {
   beforeEach((): void => {

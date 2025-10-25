@@ -73,12 +73,14 @@ export function VoiceSelector({
           {voices.length === 0 ? (
             <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Default)</option>
           ) : (
-            voices.map((voice): React.ReactElement => (
-              <option key={voice.voice_id} value={voice.voice_id}>
-                {voice.name}
-                {voice.category ? ` - ${voice.category}` : ''}
-              </option>
-            ))
+            voices.map(
+              (voice): React.ReactElement => (
+                <option key={voice.voice_id} value={voice.voice_id}>
+                  {voice.name}
+                  {voice.category ? ` - ${voice.category}` : ''}
+                </option>
+              )
+            )
           )}
         </select>
       )}

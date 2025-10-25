@@ -37,18 +37,22 @@ jest.mock('@/lib/api/withAuth', () => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     // ... complex mock setup
   }),
 }));
 
 jest.mock('@/lib/supabase', () => ({
-  createServerSupabaseClient: jest.fn()
+  createServerSupabaseClient: jest.fn(),
 }));
 
 jest.mock('@/lib/services/projectService', () => ({
   ProjectService: jest.fn().mockImplementation(() => ({
-    listProjects: jest.fn().mockResolvedValue([/* mock data */]),
+    listProjects: jest.fn().mockResolvedValue([
+      /* mock data */
+    ]),
   })),
 }));
 
@@ -56,6 +60,7 @@ jest.mock('@/lib/services/projectService', () => ({
 ```
 
 **Problems:**
+
 - ❌ **Complex mock coordination** - withAuth → Supabase → Services → Database
 - ❌ **Brittle** - Breaks when implementation changes
 - ❌ **Timeout issues** - P0 bug affecting 49 test files
@@ -69,11 +74,13 @@ jest.mock('@/lib/services/projectService', () => ({
 ### Definitions
 
 **Unit Testing (Current Approach):**
+
 - Test a single function in isolation
 - Mock ALL dependencies
 - Fast, but brittle
 
 **Integration Testing (Proposed Approach):**
+
 - Test multiple components working together
 - Mock ONLY external services (Stripe, AI APIs, etc.)
 - Use real implementations for internal code
@@ -288,10 +295,12 @@ describe('POST /api/projects', () => {
 ### Hybrid Approach (Recommended)
 
 Use both:
+
 - **Integration tests** for main happy paths and critical flows
 - **Unit tests** for edge cases and error handling
 
 Example:
+
 ```typescript
 describe('POST /api/projects - Integration', () => {
   it('should create project end-to-end', async () => {
@@ -317,12 +326,14 @@ describe('POST /api/projects - Unit', () => {
 ### Step 1: Identify Candidates
 
 Good candidates for migration:
+
 - Tests with complex withAuth mocking
 - Tests mocking multiple services
 - Tests that timeout (P0 issue)
 - Tests that break frequently
 
 Bad candidates:
+
 - Simple unit tests of pure functions
 - Tests of public endpoints
 - Tests that are already working well
@@ -330,10 +341,17 @@ Bad candidates:
 ### Step 2: Migrate Test File
 
 **Before (Unit Test):**
+
 ```typescript
-jest.mock('@/lib/api/withAuth', () => ({ /* complex mock */ }));
-jest.mock('@/lib/supabase', () => ({ /* complex mock */ }));
-jest.mock('@/lib/services/projectService', () => ({ /* mock */ }));
+jest.mock('@/lib/api/withAuth', () => ({
+  /* complex mock */
+}));
+jest.mock('@/lib/supabase', () => ({
+  /* complex mock */
+}));
+jest.mock('@/lib/services/projectService', () => ({
+  /* mock */
+}));
 
 describe('POST /api/projects', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
@@ -349,10 +367,13 @@ describe('POST /api/projects', () => {
 ```
 
 **After (Integration Test):**
+
 ```typescript
 import { createTestUser, createTestSupabaseClient } from '@/test-utils/testWithAuth';
 
-jest.mock('@/lib/serverLogger', () => ({ /* minimal mock */ }));
+jest.mock('@/lib/serverLogger', () => ({
+  /* minimal mock */
+}));
 
 describe('POST /api/projects - Integration', () => {
   it('should create project', async () => {
@@ -370,6 +391,7 @@ describe('POST /api/projects - Integration', () => {
 ### Step 3: Verify Behavior
 
 Ensure:
+
 - ✅ All test cases still pass
 - ✅ Tests are more readable
 - ✅ No timeout issues
@@ -378,11 +400,13 @@ Ensure:
 ### Step 4: Clean Up
 
 Remove:
+
 - Complex withAuth mocks
 - Supabase query builder mocks
 - Service layer mocks
 
 Keep:
+
 - External service mocks (Stripe, Google Cloud, etc.)
 - Logger mocks
 - Environment variable setup
@@ -393,21 +417,22 @@ Keep:
 
 ### Metrics Comparison
 
-| Metric | Unit Testing | Integration Testing |
-|--------|--------------|---------------------|
-| **Mocks Required** | 5-10 per test file | 1-2 per test file |
-| **Lines of Setup** | 30-50 lines | 5-10 lines |
-| **Test Reliability** | ⚠️ Brittle (breaks on refactor) | ✅ Robust (survives refactor) |
-| **Timeout Issues** | ❌ P0 bug (49 files) | ✅ No timeouts |
-| **Real Logic Tested** | ❌ ~30% (services mocked) | ✅ ~95% (real services) |
-| **Execution Speed** | ⚡ Fast (~50ms/test) | 🐌 Slower (~200ms/test) |
-| **Maintenance** | ❌ High (update mocks) | ✅ Low (use real code) |
-| **Confidence** | ⚠️ Medium (mocks may not match) | ✅ High (tests real code) |
-| **Debug Difficulty** | ❌ Hard (mock complexity) | ✅ Easy (real stack traces) |
+| Metric                | Unit Testing                    | Integration Testing           |
+| --------------------- | ------------------------------- | ----------------------------- |
+| **Mocks Required**    | 5-10 per test file              | 1-2 per test file             |
+| **Lines of Setup**    | 30-50 lines                     | 5-10 lines                    |
+| **Test Reliability**  | ⚠️ Brittle (breaks on refactor) | ✅ Robust (survives refactor) |
+| **Timeout Issues**    | ❌ P0 bug (49 files)            | ✅ No timeouts                |
+| **Real Logic Tested** | ❌ ~30% (services mocked)       | ✅ ~95% (real services)       |
+| **Execution Speed**   | ⚡ Fast (~50ms/test)            | 🐌 Slower (~200ms/test)       |
+| **Maintenance**       | ❌ High (update mocks)          | ✅ Low (use real code)        |
+| **Confidence**        | ⚠️ Medium (mocks may not match) | ✅ High (tests real code)     |
+| **Debug Difficulty**  | ❌ Hard (mock complexity)       | ✅ Easy (real stack traces)   |
 
 ### Real-World Example: POST /api/projects
 
 **Unit Test (Before):**
+
 - **Lines of code:** 90 lines
 - **Mocks:** 7 (withAuth, Supabase, ProjectService, logger, rateLimit, cacheInvalidation, serverLogger)
 - **Setup complexity:** High
@@ -416,6 +441,7 @@ Keep:
 - **Time to maintain:** ~15 minutes per refactor
 
 **Integration Test (After):**
+
 - **Lines of code:** 40 lines
 - **Mocks:** 2 (logger, cacheInvalidation)
 - **Setup complexity:** Low
@@ -424,6 +450,7 @@ Keep:
 - **Time to maintain:** ~5 minutes per refactor
 
 **Improvement:**
+
 - ✅ **55% less code**
 - ✅ **71% fewer mocks**
 - ✅ **50% faster to write**
@@ -461,6 +488,7 @@ Keep:
 The integration testing approach offers significant advantages for testing Next.js API routes:
 
 **Pros:**
+
 - ✅ Eliminates P0 withAuth timeout issue
 - ✅ Reduces mock complexity and maintenance
 - ✅ Tests real business logic
@@ -468,6 +496,7 @@ The integration testing approach offers significant advantages for testing Next.
 - ✅ Easier to write and maintain
 
 **Cons:**
+
 - ⚠️ Slightly slower execution
 - ⚠️ Requires initial setup (test utilities)
 - ⚠️ Team learning curve
@@ -475,6 +504,7 @@ The integration testing approach offers significant advantages for testing Next.
 **Verdict:** **RECOMMENDED** for authenticated API route tests, especially those affected by the P0 timeout issue.
 
 **Next Steps:**
+
 1. Review this guide with team
 2. Try integration approach on 2-3 problematic tests
 3. Evaluate results after 1 week

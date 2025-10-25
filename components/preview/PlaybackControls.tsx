@@ -111,7 +111,7 @@ export function PlaybackControls({
   }, [isDraggingSlider, getTimeFromMouseEvent, onSeek]);
 
   // Cleanup timeout on unmount
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     return (): void => {
       if (hideControlsTimeoutRef.current) {
         clearTimeout(hideControlsTimeoutRef.current);

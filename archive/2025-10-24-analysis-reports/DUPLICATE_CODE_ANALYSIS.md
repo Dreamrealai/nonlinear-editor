@@ -3,6 +3,7 @@
 Generated: October 24, 2025
 
 ## Summary
+
 This comprehensive analysis identifies duplicate code patterns, components, functions, and types across the codebase that could be consolidated to improve maintainability and reduce technical debt.
 
 ---
@@ -10,19 +11,23 @@ This comprehensive analysis identifies duplicate code patterns, components, func
 ## 1. DUPLICATE API RESPONSE/ERROR HANDLING
 
 ### Issue: Two Separate Response Utility Files
+
 There are two files with overlapping error response functionality:
 
 **Files:**
+
 - `/lib/api/response.ts` (310 lines)
 - `/lib/api/errorResponse.ts` (139 lines)
 
 **Duplicated Functions:**
+
 - `errorResponse()` - defined in both files (lines 55-72 and 51-68)
 - Error response creation helpers (badRequest, unauthorized, forbidden, notFound, conflict, tooManyRequests, internal, serviceUnavailable)
 
 **Key Differences:**
+
 - `response.ts` includes `successResponse()`, `withErrorHandling()`, and specific helper functions
-- `errorResponse.ts` uses logging context with `serverLogger` 
+- `errorResponse.ts` uses logging context with `serverLogger`
 - `response.ts` uses `HttpStatusCode` enum while `errorResponse.ts` uses raw numbers
 
 **Recommendation:** Merge into single file `/lib/api/response.ts` and consolidate error logging
@@ -32,18 +37,22 @@ There are two files with overlapping error response functionality:
 ## 2. DUPLICATE VALIDATION LOGIC
 
 ### Issue: Two Separate Validation Modules
+
 Overlapping validation functionality across two files:
 
 **Files:**
+
 - `/lib/validation.ts` (150+ lines)
 - `/lib/api/validation.ts` (150+ lines)
 
 **Duplicated Functions:**
+
 - `validateUUID()` - similar implementations in both files
 - `validateString()` / `validateStringLength()` - similar pattern validation
 - `validateEnum()` - enum validation logic
 
 **Key Differences:**
+
 - `validation.ts` uses assertion functions (type guards)
 - `api/validation.ts` returns ValidationError objects
 - Different error handling approaches
@@ -55,14 +64,18 @@ Overlapping validation functionality across two files:
 ## 3. DUPLICATE TIME FORMATTING UTILITIES
 
 ### Issue: Two Time Formatting Functions
+
 Time formatting implemented twice with different approaches:
 
 **Files:**
+
 - `/lib/utils/timelineUtils.ts` (line 9)
 - `/lib/utils/videoUtils.ts` (line 258)
 
 **Functions:**
+
 - `formatTime()` - MM:SS.CS format with centiseconds
+
 ```typescript
 // timelineUtils.ts line 9
 export function formatTime(seconds: number): string {
@@ -74,6 +87,7 @@ export function formatTime(seconds: number): string {
 ```
 
 - `formatTimecode()` - MM:SS:FF format with 30fps frames
+
 ```typescript
 // videoUtils.ts line 258
 export const formatTimecode = (seconds: number): string => {
@@ -93,13 +107,16 @@ export const formatTimecode = (seconds: number): string => {
 ## 4. DUPLICATE ASSET PANEL COMPONENTS
 
 ### Issue: AssetPanel Component Defined in Two Locations
+
 Nearly identical component with minor variations:
 
 **Files:**
+
 - `/app/editor/[projectId]/AssetPanel.tsx` (347 lines)
 - `/components/editor/AssetPanel.tsx` (366 lines)
 
 **Differences:**
+
 - App version uses `type` instead of `interface`
 - App version calls handlers `onAssetClick`, component version calls `onAssetAdd`
 - App version imports from `./editorUtils`, component version standalone
@@ -112,9 +129,11 @@ Nearly identical component with minor variations:
 ## 5. DUPLICATE KEYFRAME PREVIEW COMPONENTS
 
 ### Issue: KeyframePreview Component in Two Locations
+
 Similar implementation in different directories:
 
 **Files:**
+
 - `/components/keyframes/KeyframePreview.tsx`
 - `/components/keyframes/components/KeyframePreview.tsx`
 
@@ -127,13 +146,16 @@ Similar implementation in different directories:
 ## 6. DUPLICATE LOGGER TYPES
 
 ### Issue: Logger Type Defined in Multiple Files
+
 Type definitions across client and server loggers:
 
 **Files:**
+
 - `/lib/browserLogger.ts` (line 433)
 - `/lib/serverLogger.ts` (line 109)
 
 **Code:**
+
 ```typescript
 // Both define:
 export type Logger = ...;
@@ -147,23 +169,31 @@ export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 ## 7. DUPLICATE STATUS CHECK API ROUTES
 
 ### Issue: Similar Status Checking Endpoints with Duplicated Logic
+
 Multiple status check routes with overlapping code patterns:
 
 **Files:**
+
 - `/app/api/video/status/route.ts` (100+ lines)
 - `/app/api/video/upscale-status/route.ts` (100+ lines)
 - `/app/api/video/generate-audio-status/route.ts` (100+ lines)
 
 **Duplicated Patterns:**
+
 1. User authentication check
+
 ```typescript
-const { data: { user }, error: userError } = await supabase.auth.getUser();
+const {
+  data: { user },
+  error: userError,
+} = await supabase.auth.getUser();
 if (userError || !user) {
   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 }
 ```
 
 2. API key validation
+
 ```typescript
 const falKey = process.env['FAL_API_KEY'];
 if (!falKey) {
@@ -172,6 +202,7 @@ if (!falKey) {
 ```
 
 3. Timeout handling with AbortController
+
 ```typescript
 const controller1 = new AbortController();
 const timeout1 = setTimeout(() => controller1.abort(), 60000);
@@ -184,13 +215,16 @@ const timeout1 = setTimeout(() => controller1.abort(), 60000);
 ## 8. DUPLICATE MODAL COMPONENTS
 
 ### Issue: Modal Structure Duplicated Across Components
+
 Similar modal implementation patterns:
 
 **Files:**
+
 - `/app/editor/[projectId]/AudioGenerationModal.tsx` (lines 36-38)
 - `/app/editor/[projectId]/VideoGenerationModal.tsx` (lines 29-30)
 
 **Duplicated HTML/CSS:**
+
 ```jsx
 // Both use identical modal wrapper structure:
 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6">
@@ -210,9 +244,11 @@ Similar modal implementation patterns:
 ## 9. DUPLICATE TEST HELPER UTILITIES
 
 ### Issue: Test Helpers Distributed Across Multiple Locations
+
 Test utilities are scattered and potentially duplicated:
 
 **Files:**
+
 - `/test-utils/testHelpers.ts`
 - `/test-utils/legacy-helpers/` (multiple files)
 - `/__tests__/integration/helpers/integration-helpers.ts`
@@ -224,14 +260,17 @@ Test utilities are scattered and potentially duplicated:
 ## 10. DUPLICATE SANITIZATION AND VALIDATION
 
 ### Issue: Input Sanitization Spread Across Files
+
 Sanitization logic appears in multiple locations:
 
 **Files:**
+
 - `/lib/api/sanitization.ts` (465 lines)
 - `/app/api/assets/upload/route.ts` (has inline sanitization)
 - `/lib/hooks/useAssetUpload.ts` (has validation)
 
 **Functions Defined in Sanitization Module:**
+
 - `sanitizeString()`
 - `sanitizeEmail()`
 - `sanitizeUrl()`
@@ -250,9 +289,11 @@ Sanitization logic appears in multiple locations:
 ## 11. DUPLICATE SERVICE LAYER PATTERNS
 
 ### Issue: Similar Service Class Structure
+
 All service classes follow similar patterns that could benefit from base class:
 
 **Files:**
+
 - `/lib/services/assetService.ts`
 - `/lib/services/audioService.ts`
 - `/lib/services/authService.ts`
@@ -261,6 +302,7 @@ All service classes follow similar patterns that could benefit from base class:
 - `/lib/services/videoService.ts`
 
 **Common Patterns:**
+
 1. Constructor with dependency injection
 2. Error handling with try-catch
 3. Logging with serverLogger
@@ -273,9 +315,11 @@ All service classes follow similar patterns that could benefit from base class:
 ## 12. DUPLICATE TYPE DEFINITIONS FOR API REQUESTS
 
 ### Issue: Similar Request Type Patterns Across API Types
+
 In `/types/api.ts`, many request types follow similar patterns:
 
 **Examples:**
+
 - `GenerateVideoRequest` (line 122)
 - `GenerateImageRequest` (line 166)
 - `GenerateSunoMusicRequest` (line 234)
@@ -289,9 +333,11 @@ All contain similar fields for generation requests but lack shared interface
 ## 13. MOCK UTILITIES DUPLICATION
 
 ### Issue: Test Mocks Defined in Multiple Locations
+
 Mock implementations spread across test utilities:
 
 **Files:**
+
 - `/__mocks__/lib/api/response.ts`
 - `/__mocks__/lib/auditLog.ts`
 - `/__mocks__/lib/cache.ts`
@@ -307,19 +353,19 @@ Mock implementations spread across test utilities:
 
 ## Summary of Duplicates by Category
 
-| Category | Count | Severity | Impact |
-|----------|-------|----------|--------|
-| Response/Error Handling | 2 files | High | Inconsistent error handling |
-| Validation Functions | 2 files | High | Duplicate validation logic |
-| Time Formatting | 2 functions | Medium | Maintenance burden |
-| Components (AssetPanel) | 2 locations | High | Component duplication |
-| Components (KeyframePreview) | 2 locations | Medium | Component duplication |
-| Type Definitions | Scattered | Medium | Type inconsistency |
-| Service Patterns | 6 services | Low | Structural duplication |
-| Test Utilities | Multiple | Medium | Test maintainability |
-| Mock Utilities | 8+ mocks | Low | Test setup complexity |
-| API Status Routes | 3 routes | Medium | Code duplication |
-| Modal Structure | Multiple | Low | CSS/HTML duplication |
+| Category                     | Count       | Severity | Impact                      |
+| ---------------------------- | ----------- | -------- | --------------------------- |
+| Response/Error Handling      | 2 files     | High     | Inconsistent error handling |
+| Validation Functions         | 2 files     | High     | Duplicate validation logic  |
+| Time Formatting              | 2 functions | Medium   | Maintenance burden          |
+| Components (AssetPanel)      | 2 locations | High     | Component duplication       |
+| Components (KeyframePreview) | 2 locations | Medium   | Component duplication       |
+| Type Definitions             | Scattered   | Medium   | Type inconsistency          |
+| Service Patterns             | 6 services  | Low      | Structural duplication      |
+| Test Utilities               | Multiple    | Medium   | Test maintainability        |
+| Mock Utilities               | 8+ mocks    | Low      | Test setup complexity       |
+| API Status Routes            | 3 routes    | Medium   | Code duplication            |
+| Modal Structure              | Multiple    | Low      | CSS/HTML duplication        |
 
 ---
 

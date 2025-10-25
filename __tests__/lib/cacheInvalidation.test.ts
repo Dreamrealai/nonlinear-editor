@@ -30,34 +30,41 @@ import { cache, CacheKeys } from '@/lib/cache';
 import { serverLogger } from '@/lib/serverLogger';
 
 // Mock dependencies
-jest.mock('@/lib/cache', (): Record<string, unknown> => ({
-  cache: {
-    del: jest.fn(),
-    delPattern: jest.fn(),
-    get: jest.fn(),
-    set: jest.fn(),
-    clear: jest.fn(),
-    getStats: jest.fn(),
-  },
-  CacheKeys: {
-    userProfile: (userId: string) => `user:profile:${userId}`,
-    userSettings: (userId: string) => `user:settings:${userId}`,
-    userSubscription: (userId: string) => `user:subscription:${userId}`,
-    userProjects: (userId: string) => `user:projects:${userId}`,
-    projectMetadata: (projectId: string) => `project:metadata:${projectId}`,
-    asset: (assetId: string) => `asset:${assetId}`,
-    userAssets: (userId: string, projectId: string) => `user:${userId}:project:${projectId}:assets`,
-  },
-}));
+jest.mock(
+  '@/lib/cache',
+  (): Record<string, unknown> => ({
+    cache: {
+      del: jest.fn(),
+      delPattern: jest.fn(),
+      get: jest.fn(),
+      set: jest.fn(),
+      clear: jest.fn(),
+      getStats: jest.fn(),
+    },
+    CacheKeys: {
+      userProfile: (userId: string) => `user:profile:${userId}`,
+      userSettings: (userId: string) => `user:settings:${userId}`,
+      userSubscription: (userId: string) => `user:subscription:${userId}`,
+      userProjects: (userId: string) => `user:projects:${userId}`,
+      projectMetadata: (projectId: string) => `project:metadata:${projectId}`,
+      asset: (assetId: string) => `asset:${assetId}`,
+      userAssets: (userId: string, projectId: string) =>
+        `user:${userId}:project:${projectId}:assets`,
+    },
+  })
+);
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 describe('CacheInvalidation', () => {
   let mockCache: jest.Mocked<typeof cache>;

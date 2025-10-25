@@ -30,24 +30,30 @@ import {
 import { cache } from '@/lib/cache';
 
 // Mock the error tracking module
-jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
-  trackError: jest.fn(),
-  ErrorCategory: {
-    AUTH: 'auth',
-    DATABASE: 'database',
-    EXTERNAL_SERVICE: 'external_service',
-  },
-  ErrorSeverity: {
-    HIGH: 'high',
-    MEDIUM: 'medium',
-  },
-}));
+jest.mock(
+  '@/lib/errorTracking',
+  (): Record<string, unknown> => ({
+    trackError: jest.fn(),
+    ErrorCategory: {
+      AUTH: 'auth',
+      DATABASE: 'database',
+      EXTERNAL_SERVICE: 'external_service',
+    },
+    ErrorSeverity: {
+      HIGH: 'high',
+      MEDIUM: 'medium',
+    },
+  })
+);
 
 // Mock cache invalidation
-jest.mock('@/lib/cacheInvalidation', (): Record<string, unknown> => ({
-  invalidateUserCache: jest.fn(),
-  invalidateUserProfile: jest.fn(),
-}));
+jest.mock(
+  '@/lib/cacheInvalidation',
+  (): Record<string, unknown> => ({
+    invalidateUserCache: jest.fn(),
+    invalidateUserProfile: jest.fn(),
+  })
+);
 
 describe('Integration: Authentication Flow', () => {
   let mockSupabase: MockSupabaseChain;

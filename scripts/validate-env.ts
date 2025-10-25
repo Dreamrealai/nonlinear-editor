@@ -28,10 +28,7 @@ import { validateEnvSafe, printEnvStatus } from '../lib/validateEnv';
  * Loads environment variables from .env.local file
  */
 function loadEnvFile() {
-  const envPaths = [
-    path.join(process.cwd(), '.env.local'),
-    path.join(process.cwd(), '.env'),
-  ];
+  const envPaths = [path.join(process.cwd(), '.env.local'), path.join(process.cwd(), '.env')];
 
   for (const envPath of envPaths) {
     if (fs.existsSync(envPath)) {

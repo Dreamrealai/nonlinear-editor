@@ -9,14 +9,17 @@ process.env.STRIPE_SECRET_KEY = 'sk_test_123';
 
 // Mock Stripe SDK
 jest.mock('stripe');
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    error: jest.fn(),
-    warn: jest.fn(),
-    info: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      error: jest.fn(),
+      warn: jest.fn(),
+      info: jest.fn(),
+      debug: jest.fn(),
+    },
+  })
+);
 
 import Stripe from 'stripe';
 import { serverLogger } from '@/lib/serverLogger';

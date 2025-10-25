@@ -16,7 +16,11 @@ import type { ShareProjectRequest, ProjectInvite } from '@/types/collaboration';
  * GET - List all invites for a project
  */
 export const GET = withAuth<{ projectId: string }>(
-  async (_req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ invites: ProjectInvite[]; }>> => {
+  async (
+    _req: NextRequest,
+    { user, supabase },
+    routeContext
+  ): Promise<NextResponse<{ error: string }> | NextResponse<{ invites: ProjectInvite[] }>> => {
     const params = await routeContext?.params;
     const projectId = params?.projectId;
 
@@ -68,7 +72,13 @@ export const GET = withAuth<{ projectId: string }>(
  * POST - Create a new invite
  */
 export const POST = withAuth<{ projectId: string }>(
-  async (req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ invite: ProjectInvite; message: string; }>> => {
+  async (
+    req: NextRequest,
+    { user, supabase },
+    routeContext
+  ): Promise<
+    NextResponse<{ error: string }> | NextResponse<{ invite: ProjectInvite; message: string }>
+  > => {
     const params = await routeContext?.params;
     const projectId = params?.projectId;
 
@@ -85,7 +95,13 @@ export const POST = withAuth<{ projectId: string }>(
       const { email, role } = body;
 
       // Basic email validation (more comprehensive validation would check format)
-      if (!email || typeof email !== 'string' || !email.includes('@') || email.length < 3 || email.length > 254) {
+      if (
+        !email ||
+        typeof email !== 'string' ||
+        !email.includes('@') ||
+        email.length < 3 ||
+        email.length > 254
+      ) {
         throw new ValidationError('Invalid email address', 'email', 'INVALID_EMAIL');
       }
 
@@ -133,9 +149,15 @@ export const POST = withAuth<{ projectId: string }>(
       if (inviteError) {
         // Check for unique constraint violation
         if (inviteError.code === '23505') {
-          return NextResponse.json({ error: 'An invite for this email already exists' }, { status: 400 });
+          return NextResponse.json(
+            { error: 'An invite for this email already exists' },
+            { status: 400 }
+          );
         }
-        serverLogger.error({ error: inviteError, projectId, userId: user.id }, 'Failed to create invite');
+        serverLogger.error(
+          { error: inviteError, projectId, userId: user.id },
+          'Failed to create invite'
+        );
         return NextResponse.json({ error: 'Failed to create invite' }, { status: 500 });
       }
 

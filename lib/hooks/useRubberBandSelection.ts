@@ -43,7 +43,7 @@ export function useRubberBandSelection({
   zoom,
   trackHeight,
   onSelectClipsInRange,
-}: UseRubberBandSelectionProps): { selectionRect: SelectionRect; isSelecting: boolean; } {
+}: UseRubberBandSelectionProps): { selectionRect: SelectionRect; isSelecting: boolean } {
   const [selectionRect, setSelectionRect] = useState<SelectionRect>(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const [startPoint, setStartPoint] = useState<{ x: number; y: number } | null>(null);

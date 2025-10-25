@@ -14,77 +14,95 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    return handler(req, { user, supabase, params: context?.params || {} });
-  }),
-}));
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return handler(req, { user, supabase, params: context?.params || {} });
+    }),
+  })
+);
 
 // Mock modules
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-  ensureHttpsProtocol: jest.fn((url) => url),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+    ensureHttpsProtocol: jest.fn((url) => url),
+  })
+);
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  checkRateLimit: jest.fn().mockResolvedValue({
-    success: true,
-    limit: 60,
-    remaining: 59,
-    resetAt: Date.now() + 60000,
-  }),
-  RATE_LIMITS: {
-    tier3_status_read: { requests: 60, window: 60 },
-  },
-}));
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    checkRateLimit: jest.fn().mockResolvedValue({
+      success: true,
+      limit: 60,
+      remaining: 59,
+      resetAt: Date.now() + 60000,
+    }),
+    RATE_LIMITS: {
+      tier3_status_read: { requests: 60, window: 60 },
+    },
+  })
+);
 
-jest.mock('@/lib/api/project-verification', (): Record<string, unknown> => ({
-  verifyProjectOwnership: jest.fn(),
-}));
+jest.mock(
+  '@/lib/api/project-verification',
+  (): Record<string, unknown> => ({
+    verifyProjectOwnership: jest.fn(),
+  })
+);
 
-jest.mock('@/lib/services/assetVersionService', (): Record<string, unknown> => ({
-  AssetVersionService: jest.fn().mockImplementation(() => ({
-    getVersionHistory: jest.fn().mockResolvedValue([
-      {
-        id: 'version-1',
-        asset_id: '123e4567-e89b-12d3-a456-426614174000',
-        version_number: 2,
-        storage_url: 'supabase://assets/version-2.jpg',
-        file_size: 2048,
-        mime_type: 'image/jpeg',
-        change_reason: 'Color correction',
-        created_at: '2024-01-02T00:00:00Z',
-        created_by: 'test-user-id',
-      },
-      {
-        id: 'version-2',
-        asset_id: '123e4567-e89b-12d3-a456-426614174000',
-        version_number: 1,
-        storage_url: 'supabase://assets/version-1.jpg',
-        file_size: 1024,
-        mime_type: 'image/jpeg',
-        change_reason: 'Initial version',
-        created_at: '2024-01-01T00:00:00Z',
-        created_by: 'test-user-id',
-      },
-    ]),
-  })),
-}));
+jest.mock(
+  '@/lib/services/assetVersionService',
+  (): Record<string, unknown> => ({
+    AssetVersionService: jest.fn().mockImplementation(() => ({
+      getVersionHistory: jest.fn().mockResolvedValue([
+        {
+          id: 'version-1',
+          asset_id: '123e4567-e89b-12d3-a456-426614174000',
+          version_number: 2,
+          storage_url: 'supabase://assets/version-2.jpg',
+          file_size: 2048,
+          mime_type: 'image/jpeg',
+          change_reason: 'Color correction',
+          created_at: '2024-01-02T00:00:00Z',
+          created_by: 'test-user-id',
+        },
+        {
+          id: 'version-2',
+          asset_id: '123e4567-e89b-12d3-a456-426614174000',
+          version_number: 1,
+          storage_url: 'supabase://assets/version-1.jpg',
+          file_size: 1024,
+          mime_type: 'image/jpeg',
+          change_reason: 'Initial version',
+          created_at: '2024-01-01T00:00:00Z',
+          created_by: 'test-user-id',
+        },
+      ]),
+    })),
+  })
+);
 
 describe('GET /api/assets/[assetId]/versions', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;

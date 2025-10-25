@@ -134,7 +134,9 @@ export function useTimelineDragging({
         .filter((clip): boolean => clip.trackIndex === trackIndex && clip.id !== clipId)
         .sort((a, b): number => a.timelinePosition - b.timelinePosition);
 
-      const previous = trackClips.filter((clip): boolean => clip.timelinePosition <= position).pop();
+      const previous = trackClips
+        .filter((clip): boolean => clip.timelinePosition <= position)
+        .pop();
       const next = trackClips.find((clip): boolean => clip.timelinePosition >= position);
 
       let minStart = 0;
@@ -217,7 +219,10 @@ export function useTimelineDragging({
                 : (trimmingClip.sourceDuration ?? trimmingClip.originalEnd);
             const newStart = Math.max(
               0,
-              Math.min(trimmingClip.originalStart + deltaTime, Math.max(0, maxEnd - MIN_CLIP_DURATION))
+              Math.min(
+                trimmingClip.originalStart + deltaTime,
+                Math.max(0, maxEnd - MIN_CLIP_DURATION)
+              )
             );
             const newPosition = Math.max(
               0,
@@ -307,7 +312,10 @@ export function useTimelineDragging({
               });
 
               // Execute trim operation (applies to main clip and affected clips)
-              if (boundedEnd - clip.start >= MIN_CLIP_DURATION && Math.abs(boundedEnd - clip.end) > 1e-4) {
+              if (
+                boundedEnd - clip.start >= MIN_CLIP_DURATION &&
+                Math.abs(boundedEnd - clip.end) > 1e-4
+              ) {
                 advancedTrimming.executeTrimOperation(operation);
               }
             }

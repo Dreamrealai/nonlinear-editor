@@ -10,7 +10,8 @@ jest.unmock('@/lib/browserLogger');
 // Set up window and navigator BEFORE importing browserLogger module
 // Modify in place rather than redefining to avoid "Cannot redefine property" errors
 const originalFetch = global.fetch;
-const originalAddEventListener = typeof window !== 'undefined' ? window.addEventListener : undefined;
+const originalAddEventListener =
+  typeof window !== 'undefined' ? window.addEventListener : undefined;
 
 // Mock fetch
 global.fetch = jest.fn().mockResolvedValue({
@@ -227,10 +228,7 @@ describe('BrowserLogger', () => {
 
       await browserLogger.flush(true);
 
-      expect(navigator.sendBeacon).toHaveBeenCalledWith(
-        '/api/logs',
-        expect.any(Blob)
-      );
+      expect(navigator.sendBeacon).toHaveBeenCalledWith('/api/logs', expect.any(Blob));
     });
 
     it('should fall back to fetch when sendBeacon unavailable', async () => {
@@ -413,10 +411,7 @@ describe('BrowserLogger', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
       jest.useFakeTimers();
 
-      expect(console.error).toHaveBeenCalledWith(
-        'Failed to send logs to server:',
-        'Bad Request'
-      );
+      expect(console.error).toHaveBeenCalledWith('Failed to send logs to server:', 'Bad Request');
     });
   });
 

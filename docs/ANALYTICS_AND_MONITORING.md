@@ -283,9 +283,9 @@ replaysOnErrorSampleRate: 0.1,        // Record 10% of sessions with errors
 ```typescript
 // Automatically masks sensitive data
 Sentry.replayIntegration({
-  maskAllText: true,        // Mask all text
-  blockAllMedia: true,      // Block images and videos
-})
+  maskAllText: true, // Mask all text
+  blockAllMedia: true, // Block images and videos
+});
 ```
 
 ---
@@ -620,13 +620,13 @@ Both Sentry and PostHog are configured for GDPR compliance:
 // sentry.client.config.ts
 Sentry.init({
   // Mask sensitive data in session replay
-  replaysSessionSampleRate: 0.0,  // Don't record all sessions
-  replaysOnErrorSampleRate: 0.1,  // Only 10% of error sessions
+  replaysSessionSampleRate: 0.0, // Don't record all sessions
+  replaysOnErrorSampleRate: 0.1, // Only 10% of error sessions
 
   integrations: [
     Sentry.replayIntegration({
-      maskAllText: true,      // Mask all text content
-      blockAllMedia: true,    // Block images and videos
+      maskAllText: true, // Mask all text content
+      blockAllMedia: true, // Block images and videos
     }),
   ],
 
@@ -650,14 +650,14 @@ posthog.init(key, {
   api_host: host,
 
   // Privacy settings
-  respect_dnt: true,  // Respect Do Not Track
+  respect_dnt: true, // Respect Do Not Track
   opt_out_capturing_by_default: false,
 
   // Session recording (disabled by default)
   session_recording: {
-    maskAllInputs: true,      // Mask all input fields
-    maskTextSelector: '*',    // Mask all text
-    blockSelector: '[data-ph-no-capture]',  // Allow opt-out
+    maskAllInputs: true, // Mask all input fields
+    maskTextSelector: '*', // Mask all text
+    blockSelector: '[data-ph-no-capture]', // Allow opt-out
   },
 
   // Manual tracking only
@@ -759,14 +759,16 @@ NEXT_PUBLIC_POSTHOG_ENABLE_RECORDINGS=false  # Enable session recordings
 ### Error Tracking
 
 1. **Add context to errors:**
+
    ```typescript
    captureError(error, {
      tags: { operation: 'video_generation' },
-     context: { projectId, userId, params }
+     context: { projectId, userId, params },
    });
    ```
 
 2. **Use breadcrumbs for user flow:**
+
    ```typescript
    addBreadcrumb({ message: 'User clicked generate', category: 'ui' });
    addBreadcrumb({ message: 'Validating parameters', category: 'validation' });
@@ -774,37 +776,48 @@ NEXT_PUBLIC_POSTHOG_ENABLE_RECORDINGS=false  # Enable session recordings
    ```
 
 3. **Set user context after authentication:**
+
    ```typescript
    setUserContext({ id: user.id, email: user.email });
    ```
 
 4. **Use consistent error types:**
    ```typescript
-   tags: { errorType: ErrorTypes.EXTERNAL_SERVICE }
+   tags: {
+     errorType: ErrorTypes.EXTERNAL_SERVICE;
+   }
    ```
 
 ### Analytics Tracking
 
 1. **Use standard event names:**
+
    ```typescript
    analyticsService.track(AnalyticsEvents.VIDEO_GENERATED, data);
    ```
 
 2. **Track meaningful properties:**
+
    ```typescript
    analyticsService.track('video_generated', {
-     duration, format, quality, provider, model,
+     duration,
+     format,
+     quality,
+     provider,
+     model,
      generation_time_ms: duration,
-     user_tier: userProfile.tier
+     user_tier: userProfile.tier,
    });
    ```
 
 3. **Identify users early:**
+
    ```typescript
    analyticsService.identify(user.id, { email, tier, createdAt });
    ```
 
 4. **Track complete user flows:**
+
    ```typescript
    // Start of flow
    analyticsService.track('flow_started', { flow: 'video_generation' });
@@ -820,11 +833,13 @@ NEXT_PUBLIC_POSTHOG_ENABLE_RECORDINGS=false  # Enable session recordings
 ### Performance
 
 1. **Track critical operations:**
+
    ```typescript
    const transaction = startTransaction({ name: 'video_gen', op: 'ai.generate' });
    ```
 
 2. **Measure user-facing metrics:**
+
    ```typescript
    trackPerformance('page_load', duration, { page: '/editor' });
    ```
@@ -840,6 +855,7 @@ NEXT_PUBLIC_POSTHOG_ENABLE_RECORDINGS=false  # Enable session recordings
 **Problem:** Errors not appearing in Sentry
 
 **Solutions:**
+
 1. Check `NEXT_PUBLIC_SENTRY_DSN` is set correctly
 2. Verify environment (production vs development)
 3. Check Sentry quota limits
@@ -848,6 +864,7 @@ NEXT_PUBLIC_POSTHOG_ENABLE_RECORDINGS=false  # Enable session recordings
 **Problem:** Too many events
 
 **Solutions:**
+
 1. Adjust sample rates in config
 2. Add more filters to `beforeSend`
 3. Use `ignoreErrors` to filter noise
@@ -857,6 +874,7 @@ NEXT_PUBLIC_POSTHOG_ENABLE_RECORDINGS=false  # Enable session recordings
 **Problem:** Events not tracking
 
 **Solutions:**
+
 1. Check `NEXT_PUBLIC_POSTHOG_KEY` is set
 2. Verify `analyticsService.init()` is called
 3. Check browser ad blockers
@@ -865,6 +883,7 @@ NEXT_PUBLIC_POSTHOG_ENABLE_RECORDINGS=false  # Enable session recordings
 **Problem:** Feature flags not working
 
 **Solutions:**
+
 1. Verify feature flag exists in PostHog dashboard
 2. Check feature flag is enabled
 3. Ensure user is identified: `analyticsService.identify(userId)`
@@ -874,11 +893,13 @@ NEXT_PUBLIC_POSTHOG_ENABLE_RECORDINGS=false  # Enable session recordings
 ## Additional Resources
 
 ### Documentation
+
 - [Sentry Next.js Documentation](https://docs.sentry.io/platforms/javascript/guides/nextjs/)
 - [PostHog JavaScript SDK](https://posthog.com/docs/libraries/js)
 - [Web Vitals Guide](https://web.dev/vitals/)
 
 ### Internal Files
+
 - `/lib/sentry.ts` - Sentry utilities
 - `/lib/services/analyticsService.ts` - PostHog analytics
 - `/lib/errorTracking.ts` - Error tracking helpers

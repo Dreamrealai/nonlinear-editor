@@ -77,11 +77,11 @@ class AxiomTransport {
         const response = await fetch(`${AXIOM_API}/${this.dataset}/ingest`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${this.token}`,
+            Authorization: `Bearer ${this.token}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(
-            logsToSend.map(log => {
+            logsToSend.map((log) => {
               const { level: levelNum, msg, time, ...rest } = log;
               return {
                 _time: new Date(time).toISOString(),

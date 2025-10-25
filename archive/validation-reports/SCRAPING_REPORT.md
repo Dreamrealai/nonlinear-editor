@@ -60,21 +60,25 @@ Note: These models may have been renamed or moved. The correct endpoint was foun
 Comprehensive documentation including:
 
 #### 1. Overview
+
 - Platform capabilities (600+ models)
 - Base URLs for APIs
 - Service offerings
 
 #### 2. Authentication
+
 - API key setup and configuration
 - Security best practices
 - Client library setup (JavaScript/Python)
 
 #### 3. API Endpoints
+
 - Queue endpoints table
 - Parameter documentation
 - Request/response formats
 
 #### 4. Queue System (Complete)
+
 - Submitting requests (cURL + JavaScript examples)
 - Status checking (IN_QUEUE, IN_PROGRESS, COMPLETED)
 - Streaming status with SSE
@@ -86,6 +90,7 @@ Comprehensive documentation including:
 #### 5. Video Generation Models
 
 **MiniMax Hailuo 02 (Detailed):**
+
 - Complete input schema with all parameters
 - Output schema
 - Pricing ($0.045/sec for 768P, $0.017/sec for 512P)
@@ -95,6 +100,7 @@ Comprehensive documentation including:
 - Processing times (~4 minutes)
 
 **Topaz Video Upscale (Detailed):**
+
 - Upscaling capabilities (up to 8x)
 - Frame interpolation (up to 120 FPS)
 - Input parameters
@@ -103,6 +109,7 @@ Comprehensive documentation including:
 - Supported formats
 
 **Other Models (Listed):**
+
 - Veo 3.1 (Google)
 - Sora 2 (OpenAI)
 - Kling Video
@@ -110,6 +117,7 @@ Comprehensive documentation including:
 - Wan 2.5
 
 #### 6. Error Handling (Complete Reference)
+
 - Error response structure
 - HTTP headers (X-Fal-Retryable)
 - 20+ error types documented:
@@ -130,11 +138,13 @@ Comprehensive documentation including:
   - Recommended actions
 
 #### 7. Rate Limits and Pricing
+
 - Pay-per-use model
 - Model-specific pricing
 - Enterprise options
 
 #### 8. Best Practices
+
 - Authentication security
 - Queue management
 - File handling (upload methods)
@@ -144,6 +154,7 @@ Comprehensive documentation including:
 - Monitoring and logging
 
 #### 9. Additional Resources
+
 - Client libraries (JavaScript/TypeScript, Python)
 - File upload API
 - Complete model list appendix
@@ -153,6 +164,7 @@ Comprehensive documentation including:
 ## Key Features Documented
 
 ### Queue System
+
 - ✅ Complete endpoint reference
 - ✅ Status types and transitions
 - ✅ Server-Sent Events (SSE) streaming
@@ -161,6 +173,7 @@ Comprehensive documentation including:
 - ✅ Log streaming
 
 ### Model Endpoints
+
 - ✅ MiniMax Hailuo 02 (image-to-video)
   - Input schema (prompt, image_url, duration, resolution, etc.)
   - Output schema
@@ -174,12 +187,14 @@ Comprehensive documentation including:
   - Pricing
 
 ### Error Handling
+
 - ✅ Standardized error format
 - ✅ 20+ error types with examples
 - ✅ Retry logic guidance
 - ✅ Content policy documentation
 
 ### Authentication
+
 - ✅ API key management
 - ✅ Security best practices
 - ✅ Client configuration examples
@@ -196,6 +211,7 @@ Comprehensive documentation including:
 ## Quality Assessment
 
 ### Completeness: ✅ Excellent
+
 - All major features documented
 - Complete API endpoint reference
 - Comprehensive error handling
@@ -203,11 +219,13 @@ Comprehensive documentation including:
 - Best practices included
 
 ### Accuracy: ✅ High
+
 - Scraped directly from official sources
 - Examples verified from API documentation
 - Model-specific details captured
 
 ### Usability: ✅ High
+
 - Well-organized table of contents
 - Clear section hierarchy
 - Practical code examples

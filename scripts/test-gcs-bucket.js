@@ -100,7 +100,6 @@ async function testBucket() {
     console.log(`   Location: ${metadata.location}`);
     console.log(`   Storage Class: ${metadata.storageClass}`);
     console.log(`   URI: gs://${bucketName}`);
-
   } catch (error) {
     console.error('❌ Test failed:', error.message);
     console.error('Stack:', error.stack);

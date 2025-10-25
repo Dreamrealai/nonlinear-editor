@@ -90,7 +90,9 @@ function getFalEndpoint(model: string, hasImage: boolean): string {
  * @returns Request ID and endpoint for status polling
  * @throws Error if API request fails
  */
-export async function generateFalVideo(params: FalVideoParams): Promise<{ requestId: string; endpoint: string }> {
+export async function generateFalVideo(
+  params: FalVideoParams
+): Promise<{ requestId: string; endpoint: string }> {
   const apiKey = getFalApiKey();
   const endpoint = getFalEndpoint(params.model, !!params.imageUrl);
 
@@ -139,7 +141,7 @@ export async function generateFalVideo(params: FalVideoParams): Promise<{ reques
       response = await fetch(`${API_ENDPOINTS.FAL_QUEUE}/${endpoint}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Key ${apiKey}`,
+          Authorization: `Key ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(input),
@@ -172,7 +174,9 @@ export async function generateFalVideo(params: FalVideoParams): Promise<{ reques
       const { serverLogger } = await import('./serverLogger');
       serverLogger.error({ error, model: params.model, endpoint }, 'FAL video generation error');
     }
-    throw new Error(`FAL video generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `FAL video generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 }
 
@@ -197,13 +201,16 @@ export async function checkFalVideoStatus(
 
     let response;
     try {
-      response = await fetch(`${API_ENDPOINTS.FAL_QUEUE}/${endpoint}/requests/${requestId}/status`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Key ${apiKey}`,
-        },
-        signal: controller.signal,
-      });
+      response = await fetch(
+        `${API_ENDPOINTS.FAL_QUEUE}/${endpoint}/requests/${requestId}/status`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Key ${apiKey}`,
+          },
+          signal: controller.signal,
+        }
+      );
 
       clearTimeout(timeout);
 
@@ -229,13 +236,16 @@ export async function checkFalVideoStatus(
 
       let resultResponse;
       try {
-        resultResponse = await fetch(`${API_ENDPOINTS.FAL_QUEUE}/${endpoint}/requests/${requestId}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Key ${apiKey}`,
-          },
-          signal: resultController.signal,
-        });
+        resultResponse = await fetch(
+          `${API_ENDPOINTS.FAL_QUEUE}/${endpoint}/requests/${requestId}`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Key ${apiKey}`,
+            },
+            signal: resultController.signal,
+          }
+        );
 
         clearTimeout(resultTimeout);
 
@@ -276,7 +286,9 @@ export async function checkFalVideoStatus(
       const { serverLogger } = await import('./serverLogger');
       serverLogger.error({ error, requestId, endpoint }, 'FAL status check error');
     }
-    throw new Error(`FAL status check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `FAL status check failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 }
 
@@ -296,13 +308,16 @@ export async function cancelFalVideo(requestId: string, endpoint: string): Promi
     const timeout = setTimeout((): void => controller.abort(), TIMEOUTS.FAL_STATUS);
 
     try {
-      const response = await fetch(`${API_ENDPOINTS.FAL_QUEUE}/${endpoint}/requests/${requestId}/cancel`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Key ${apiKey}`,
-        },
-        signal: controller.signal,
-      });
+      const response = await fetch(
+        `${API_ENDPOINTS.FAL_QUEUE}/${endpoint}/requests/${requestId}/cancel`,
+        {
+          method: 'PUT',
+          headers: {
+            Authorization: `Key ${apiKey}`,
+          },
+          signal: controller.signal,
+        }
+      );
 
       clearTimeout(timeout);
 
@@ -323,6 +338,8 @@ export async function cancelFalVideo(requestId: string, endpoint: string): Promi
       const { serverLogger } = await import('./serverLogger');
       serverLogger.error({ error, requestId, endpoint }, 'FAL cancellation error');
     }
-    throw new Error(`FAL cancellation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `FAL cancellation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 }

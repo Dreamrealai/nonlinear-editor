@@ -11,7 +11,13 @@
 /**
  * Base skeleton component with pulsing animation
  */
-function SkeletonBase({ className = '', style }: { className?: string; style?: React.CSSProperties }) {
+function SkeletonBase({
+  className = '',
+  style,
+}: {
+  className?: string;
+  style?: React.CSSProperties;
+}) {
   return <div className={`animate-pulse rounded bg-neutral-200 ${className}`} style={style} />;
 }
 

@@ -291,7 +291,7 @@ export function usePolling<T>(options: PollingOptions<T>): UsePollingReturn {
   }, [cleanup, enableLogging, logContext]);
 
   // Cleanup on unmount
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     return (): void => {
       cleanup();
     };

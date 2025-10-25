@@ -12,36 +12,45 @@ import {
 } from '@/test-utils/mockSupabase';
 
 // Mock the Supabase module
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+  })
+);
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 // Mock validation
-jest.mock('@/lib/validation', (): Record<string, unknown> => ({
-  validateUUID: jest.fn((id: string, field: string) => {
-    if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
-      const error = new Error(`${field} must be a valid UUID`);
-      error.name = 'ValidationError';
-      throw error;
-    }
-    return id;
-  }),
-  ValidationError: class ValidationError extends Error {
-    constructor(message: string) {
-      super(message);
-      this.name = 'ValidationError';
-    }
-  },
-}));
+jest.mock(
+  '@/lib/validation',
+  (): Record<string, unknown> => ({
+    validateUUID: jest.fn((id: string, field: string) => {
+      if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+        const error = new Error(`${field} must be a valid UUID`);
+        error.name = 'ValidationError';
+        throw error;
+      }
+      return id;
+    }),
+    ValidationError: class ValidationError extends Error {
+      constructor(message: string) {
+        super(message);
+        this.name = 'ValidationError';
+      }
+    },
+  })
+);
 
 describe('DELETE /api/projects/[projectId]', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;

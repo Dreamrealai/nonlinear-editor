@@ -9,7 +9,7 @@
  */
 'use client';
 
-import React, {  useState, useEffect, useRef  } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -39,7 +39,7 @@ export function UserMenu(): React.ReactElement {
     loadUser();
   }, [supabaseClient]);
 
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     const handleClickOutside = (event: MouseEvent): void => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsOpen(false);

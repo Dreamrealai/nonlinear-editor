@@ -26,6 +26,7 @@ Maintained by: Engineering Team
 This runbook provides step-by-step procedures for maintaining test health, diagnosing failures, and preventing regressions. It's based on lessons learned from extensive testing efforts in Round 3.
 
 **Key Metrics:**
+
 - Target pass rate: ≥95%
 - Target coverage: ≥70% services, ≥50% overall
 - Max acceptable flaky rate: <1%
@@ -106,6 +107,7 @@ npm test -- path/to/failing-test.test.ts --watch
 ### Step 2: Read the Error Message
 
 **Look for:**
+
 1. **Assertion failure** - What was expected vs what was received?
 2. **Timeout** - Is an async operation not resolving?
 3. **Import error** - Is a module missing or misconfigured?
@@ -117,16 +119,19 @@ npm test -- path/to/failing-test.test.ts --watch
 Expected: 200
 Received: 401
 ```
+
 → **Diagnosis:** Authentication issue, check mock user setup
 
 ```
 Timeout - Async callback was not invoked within 5000ms
 ```
+
 → **Diagnosis:** Promise not resolving, check mocks or waitFor
 
 ```
 Cannot find module '@/lib/someModule'
 ```
+
 → **Diagnosis:** Import path issue or missing mock
 
 ### Step 3: Check Recent Changes
@@ -198,6 +203,7 @@ beforeEach(() => {
 ### Pattern 1: withAuth Mock Timeout
 
 **Symptom:**
+
 ```
 Timeout - Async callback was not invoked within 5000ms
 ```
@@ -205,17 +211,20 @@ Timeout - Async callback was not invoked within 5000ms
 **Diagnosis:** withAuth mock not properly configured
 
 **Fix:**
+
 ```typescript
 // Ensure you're using the correct pattern
 jest.mock('@/lib/api/withAuth', () => ({
   withAuth: (handler: any) => async (req: any, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401
+        status: 401,
       });
     }
 
@@ -239,6 +248,7 @@ jest.mock('@/lib/supabase', () => ({
 ### Pattern 2: Component Test Timeout
 
 **Symptom:**
+
 ```
 Timeout waiting for element with text "Expected Text"
 ```
@@ -246,11 +256,15 @@ Timeout waiting for element with text "Expected Text"
 **Diagnosis:** Component not rendering expected content
 
 **Fix:**
+
 ```typescript
 // Check if async data is being loaded
-await waitFor(() => {
-  expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-}, { timeout: 10000 });
+await waitFor(
+  () => {
+    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+  },
+  { timeout: 10000 }
+);
 
 // Then check for expected content
 expect(screen.getByText('Expected Text')).toBeInTheDocument();
@@ -262,6 +276,7 @@ console.log('Mock data:', mockSupabase.mock.results);
 ### Pattern 3: Import/Module Not Found
 
 **Symptom:**
+
 ```
 Cannot find module '@/lib/someModule' from 'test.ts'
 ```
@@ -269,6 +284,7 @@ Cannot find module '@/lib/someModule' from 'test.ts'
 **Diagnosis:** Module path issue or missing mock
 
 **Fix:**
+
 ```typescript
 // Option 1: Verify path is correct
 // Check tsconfig.json paths
@@ -293,6 +309,7 @@ beforeAll(async () => {
 **Diagnosis:** Race condition, timing issue, or shared state
 
 **Fix:**
+
 ```typescript
 // 1. Add proper waitFor with timeout
 await waitFor(() => {
@@ -323,6 +340,7 @@ for i in {1..20}; do npm test -- failing-test.test.ts; done
 **Diagnosis:** Resources not cleaned up
 
 **Fix:**
+
 ```typescript
 afterEach(() => {
   // Clear mocks
@@ -346,6 +364,7 @@ afterEach(() => {
 ### Pattern 6: HTML Validation Error
 
 **Symptom:**
+
 ```
 Warning: validateDOMNesting(...): <button> cannot appear as a descendant of <button>
 ```
@@ -353,6 +372,7 @@ Warning: validateDOMNesting(...): <button> cannot appear as a descendant of <but
 **Diagnosis:** Invalid HTML structure
 
 **Fix:**
+
 ```typescript
 // ❌ WRONG - Nested buttons
 <button>
@@ -370,6 +390,7 @@ Warning: validateDOMNesting(...): <button> cannot appear as a descendant of <but
 ### Pattern 7: Query Selector Ambiguity
 
 **Symptom:**
+
 ```
 TestingLibraryElementError: Found multiple elements with the role "button"
 ```
@@ -377,6 +398,7 @@ TestingLibraryElementError: Found multiple elements with the role "button"
 **Diagnosis:** Query matches too many elements
 
 **Fix:**
+
 ```typescript
 // ❌ WRONG - Too broad
 screen.getByRole('button');
@@ -395,6 +417,7 @@ within(form).getByRole('button', { name: 'Submit' });
 ### Pattern 8: Async State Update Warning
 
 **Symptom:**
+
 ```
 Warning: An update to Component inside a test was not wrapped in act(...)
 ```
@@ -402,6 +425,7 @@ Warning: An update to Component inside a test was not wrapped in act(...)
 **Diagnosis:** State update after test completion
 
 **Fix:**
+
 ```typescript
 // ❌ WRONG - Not wrapped in act
 await user.click(button);
@@ -424,15 +448,15 @@ act(() => {
 
 ### Decision Matrix
 
-| Situation | Action | Example |
-|-----------|--------|---------|
-| **Test reveals real bug** | Fix the bug | Validation not working |
-| **Test is outdated** | Update or delete test | Feature was removed |
-| **Test is flaky** | Fix timing/race condition | Intermittent failures |
-| **Test blocks deployment** | Skip temporarily, create issue | P0 blocker, fix in progress |
-| **Test is too slow** | Optimize or move to E2E | >10s execution time |
-| **Test is trivial** | Delete test | Testing framework behavior |
-| **Test duplicates coverage** | Delete duplicate | Same thing tested twice |
+| Situation                    | Action                         | Example                     |
+| ---------------------------- | ------------------------------ | --------------------------- |
+| **Test reveals real bug**    | Fix the bug                    | Validation not working      |
+| **Test is outdated**         | Update or delete test          | Feature was removed         |
+| **Test is flaky**            | Fix timing/race condition      | Intermittent failures       |
+| **Test blocks deployment**   | Skip temporarily, create issue | P0 blocker, fix in progress |
+| **Test is too slow**         | Optimize or move to E2E        | >10s execution time         |
+| **Test is trivial**          | Delete test                    | Testing framework behavior  |
+| **Test duplicates coverage** | Delete duplicate               | Same thing tested twice     |
 
 ### How to Skip Tests
 
@@ -512,12 +536,12 @@ it('should return projects', async () => {
 it('should return projects', async () => {
   mockSupabase.mockResolvedValue({
     data: [{ id: '1', title: 'Project' }],
-    error: null
+    error: null,
   });
   const result = await service.getProjects();
   expect(result).toEqual({
     projects: [{ id: '1', title: 'Project' }],
-    total: 1
+    total: 1,
   }); // ✅ Matches new API response format
 });
 ```
@@ -597,24 +621,28 @@ Perform weekly test health review:
 # Test Health Report - Week of [Date]
 
 ## Summary
+
 - Pass Rate: X%
 - Total Tests: X
 - Coverage: X%
 - Avg Execution Time: Xs
 
 ## Issues
+
 - [ ] X tests failing (>1 week)
 - [ ] X tests skipped (>2 weeks)
 - [ ] X flaky tests identified
 - [ ] X slow tests (>5s)
 
 ## Actions
+
 1. Fix failing test in file X (Owner: @name)
 2. Delete obsolete skipped test Y
 3. Optimize slow test Z
 4. Investigate flaky test W
 
 ## Trends
+
 - Coverage: +2% from last week
 - Pass rate: Stable at 95%
 - Execution time: -10s from last week
@@ -645,6 +673,7 @@ Add to CI/CD pipeline:
 ### 2. Require Tests for New Features
 
 PR checklist:
+
 - [ ] Tests added for new functionality
 - [ ] Tests pass locally
 - [ ] Coverage maintained or improved
@@ -656,7 +685,6 @@ PR checklist:
 # .github/workflows/test.yml
 - name: Run tests
   run: npm test
-
 # This will fail the workflow if tests fail
 ```
 
@@ -700,6 +728,7 @@ jobs:
 ### When to Refactor Tests
 
 Refactor when:
+
 - Tests are hard to understand
 - Tests have duplicated setup code
 - Tests are brittle (break on refactors)
@@ -709,11 +738,13 @@ Refactor when:
 ### Refactoring Workflow
 
 1. **Ensure tests pass first**
+
    ```bash
    npm test -- test-to-refactor.test.ts
    ```
 
 2. **Extract common setup**
+
    ```typescript
    // Before
    it('test 1', () => {
@@ -746,6 +777,7 @@ Refactor when:
    ```
 
 3. **Replace outdated patterns**
+
    ```typescript
    // Before - Old withAuth pattern
    jest.mock('@/lib/api/withAuth', () => ({
@@ -761,6 +793,7 @@ Refactor when:
    ```
 
 4. **Verify tests still pass**
+
    ```bash
    npm test -- test-to-refactor.test.ts
    ```
@@ -791,6 +824,7 @@ Refactor when:
 **Steps:**
 
 1. **Assess impact**
+
    ```bash
    # How many tests failing?
    npm test -- --json | jq '.numFailedTests'
@@ -800,6 +834,7 @@ Refactor when:
    ```
 
 2. **Check recent changes**
+
    ```bash
    # What was merged?
    git log --oneline -10
@@ -811,12 +846,14 @@ Refactor when:
 3. **Immediate actions**
 
    **Option A: Revert (if recent merge)**
+
    ```bash
    git revert <commit-hash>
    git push origin main
    ```
 
    **Option B: Hot fix (if simple)**
+
    ```bash
    # Fix the test
    # Push directly to main (emergency only)
@@ -825,6 +862,7 @@ Refactor when:
    ```
 
    **Option C: Skip temporarily (if complex)**
+
    ```typescript
    // In failing test file
    describe.skip('Temporarily disabled', () => {
@@ -848,6 +886,7 @@ Refactor when:
 1. **Don't panic - systematic approach**
 
 2. **Check environment**
+
    ```bash
    # Node version
    node --version
@@ -860,6 +899,7 @@ Refactor when:
    ```
 
 3. **Identify pattern**
+
    ```bash
    # All API tests?
    npm test __tests__/api/
@@ -894,29 +934,34 @@ Refactor when:
 **Steps:**
 
 1. **Kill process**
+
    ```bash
    Ctrl+C
    ```
 
 2. **Run single test**
+
    ```bash
    npm test -- __tests__/simple.test.ts
    # Does any test work?
    ```
 
 3. **Check for infinite loops**
+
    ```bash
    # Run with timeout
    npm test -- --testTimeout=10000
    ```
 
 4. **Run in band (no parallelization)**
+
    ```bash
    npm test -- --runInBand
    # Easier to identify hanging test
    ```
 
 5. **Binary search for problematic test**
+
    ```bash
    # Test half the files
    npm test __tests__/api/

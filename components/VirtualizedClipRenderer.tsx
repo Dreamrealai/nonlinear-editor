@@ -6,7 +6,7 @@
  */
 'use client';
 
-import React, {  useMemo, useState, useEffect, type RefObject, type ReactNode  } from 'react';
+import React, { useMemo, useState, useEffect, type RefObject, type ReactNode } from 'react';
 import type { Clip } from '@/types/timeline';
 
 interface VirtualizedClipRendererProps<T extends Clip | unknown> {
@@ -88,7 +88,10 @@ export function VirtualizedClipRenderer<T extends Clip | unknown>({
  * Hook to detect if a timeline container is being scrolled.
  * Returns scroll position for virtualization.
  */
-export function useTimelineScroll(containerRef: RefObject<HTMLElement | HTMLDivElement | null>): { scrollLeft: number; viewportWidth: number; } {
+export function useTimelineScroll(containerRef: RefObject<HTMLElement | HTMLDivElement | null>): {
+  scrollLeft: number;
+  viewportWidth: number;
+} {
   const [scrollLeft, setScrollLeft] = useState(0);
   const [viewportWidth, setViewportWidth] = useState(0);
 

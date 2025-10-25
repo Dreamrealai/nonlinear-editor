@@ -80,14 +80,18 @@ export const ErrorResponses = {
   /**
    * 400 Bad Request - Invalid input
    */
-  badRequest: (message: string = 'Invalid request', context?: ErrorContext): NextResponse<ErrorResponse> =>
-    errorResponse(message, 400, context),
+  badRequest: (
+    message: string = 'Invalid request',
+    context?: ErrorContext
+  ): NextResponse<ErrorResponse> => errorResponse(message, 400, context),
 
   /**
    * 401 Unauthorized - Authentication required
    */
-  unauthorized: (message: string = 'Unauthorized', context?: ErrorContext): NextResponse<ErrorResponse> =>
-    errorResponse(message, 401, context),
+  unauthorized: (
+    message: string = 'Unauthorized',
+    context?: ErrorContext
+  ): NextResponse<ErrorResponse> => errorResponse(message, 401, context),
 
   /**
    * 403 Forbidden - Insufficient permissions
@@ -110,20 +114,26 @@ export const ErrorResponses = {
   /**
    * 429 Too Many Requests - Rate limit exceeded
    */
-  tooManyRequests: (message: string = 'Too many requests', context?: ErrorContext): NextResponse<ErrorResponse> =>
-    errorResponse(message, 429, context),
+  tooManyRequests: (
+    message: string = 'Too many requests',
+    context?: ErrorContext
+  ): NextResponse<ErrorResponse> => errorResponse(message, 429, context),
 
   /**
    * 500 Internal Server Error - Unexpected error
    */
-  internal: (message: string = 'Internal server error', context?: ErrorContext): NextResponse<ErrorResponse> =>
-    errorResponse(message, 500, context),
+  internal: (
+    message: string = 'Internal server error',
+    context?: ErrorContext
+  ): NextResponse<ErrorResponse> => errorResponse(message, 500, context),
 
   /**
    * 503 Service Unavailable - Service temporarily unavailable
    */
-  serviceUnavailable: (message: string = 'Service unavailable', context?: ErrorContext): NextResponse<ErrorResponse> =>
-    errorResponse(message, 503, context),
+  serviceUnavailable: (
+    message: string = 'Service unavailable',
+    context?: ErrorContext
+  ): NextResponse<ErrorResponse> => errorResponse(message, 503, context),
 } as const satisfies Record<
   string,
   (message?: string, context?: ErrorContext) => NextResponse<ErrorResponse>

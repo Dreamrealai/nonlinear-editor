@@ -39,8 +39,7 @@ export const TimelineTrimOverlay = React.memo<TimelineTrimOverlayProps>(
       return null;
     }
 
-    const { handle, originalDuration, newDuration, newStart, newEnd, position } =
-      trimInfo;
+    const { handle, originalDuration, newDuration, newStart, newEnd, position } = trimInfo;
 
     // Calculate the change in duration
     const durationChange = newDuration - originalDuration;

@@ -105,7 +105,9 @@ jest.mock('@/lib/api/withAuth', () => ({
       const { createServerSupabaseClient } = require('@/lib/supabase');
       const supabase = await createServerSupabaseClient();
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), {
           status: 401,
@@ -125,9 +127,8 @@ jest.mock('@/lib/api/withAuth', () => ({
         }
       }
 
-      const params = context?.params instanceof Promise
-        ? await context.params
-        : context?.params || {};
+      const params =
+        context?.params instanceof Promise ? await context.params : context?.params || {};
 
       return await handler(req, { user, supabase, params });
     };
@@ -220,12 +221,12 @@ beforeEach(() => {
 
 ## Test Pass Rates Summary
 
-| Test Suite | Before | After | Change |
-|-----------|--------|-------|--------|
-| frames/edit.test.ts | 3/23 (13%) | 17/23 (74%) | +61% ✅ |
-| video/status.test.ts | 9/26 (35%) | 11/26 (42%) | +7% ⚠️ |
-| audio/suno-generate.test.ts | 13/30 (43%) | 3/30 (10%) | -33% ❌ |
-| **Total** | **25/79 (32%)** | **31/79 (39%)** | **+7%** |
+| Test Suite                  | Before          | After           | Change  |
+| --------------------------- | --------------- | --------------- | ------- |
+| frames/edit.test.ts         | 3/23 (13%)      | 17/23 (74%)     | +61% ✅ |
+| video/status.test.ts        | 9/26 (35%)      | 11/26 (42%)     | +7% ⚠️  |
+| audio/suno-generate.test.ts | 13/30 (43%)     | 3/30 (10%)      | -33% ❌ |
+| **Total**                   | **25/79 (32%)** | **31/79 (39%)** | **+7%** |
 
 ## Next Steps
 

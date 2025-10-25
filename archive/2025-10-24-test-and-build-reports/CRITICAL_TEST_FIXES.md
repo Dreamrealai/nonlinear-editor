@@ -9,12 +9,14 @@
 ## Issue 1: Memory Exhaustion (5 Suites Failing)
 
 ### Symptoms
+
 ```
 FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory
 Jest worker ran out of memory and crashed
 ```
 
 ### Affected Files
+
 1. `__tests__/lib/saveLoad.test.ts`
 2. `__tests__/components/generation/GenerateVideoTab.test.tsx`
 3. `__tests__/components/HorizontalTimeline.test.tsx` (process exceptions)
@@ -22,6 +24,7 @@ Jest worker ran out of memory and crashed
 5. `__tests__/components/EditorHeader.test.tsx` (process exceptions)
 
 ### Root Cause
+
 - Current worker memory limit: 1024MB
 - Large test files loading too much mock data
 - Multiple workers competing for memory
@@ -37,17 +40,18 @@ module.exports = {
   maxWorkers: 3,
   workerIdleMemoryLimit: '1024MB',
   // ...
-}
+};
 
 // AFTER
 module.exports = {
   maxWorkers: 2, // Reduce workers to give more memory per worker
   workerIdleMemoryLimit: '2048MB', // Double the memory limit
   // ...
-}
+};
 ```
 
 **Alternative:** Run tests with increased Node heap size:
+
 ```bash
 NODE_OPTIONS="--max-old-space-size=8192" npm test
 ```
@@ -57,11 +61,13 @@ NODE_OPTIONS="--max-old-space-size=8192" npm test
 **Example: saveLoad.test.ts**
 
 Current structure (causing crash):
+
 ```
 __tests__/lib/saveLoad.test.ts (1,500+ lines)
 ```
 
 Split into:
+
 ```
 __tests__/lib/saveLoad/
 ├─ save.test.ts          (save operations)
@@ -71,6 +77,7 @@ __tests__/lib/saveLoad/
 ```
 
 **Command to check file sizes:**
+
 ```bash
 wc -l __tests__/lib/saveLoad.test.ts
 wc -l __tests__/components/generation/GenerateVideoTab.test.tsx
@@ -82,16 +89,19 @@ wc -l __tests__/components/HorizontalTimeline.test.tsx
 ## Issue 2: Window Object Redefinition (18 Tests Failing)
 
 ### Symptoms
+
 ```
 TypeError: Cannot redefine property: window
     at Function.defineProperty (<anonymous>)
 ```
 
 ### Affected Files
+
 - `__tests__/lib/browserLogger.test.ts` (18 tests)
 - All tests that try to mock `window` object
 
 ### Root Cause
+
 The test setup attempts to redefine `window` multiple times:
 
 ```typescript
@@ -105,6 +115,7 @@ Object.defineProperty(global, 'window', {
 ```
 
 This fails because:
+
 1. `window` is already defined in jsdom environment
 2. `Object.defineProperty` can't redefine non-configurable properties
 3. Each test tries to redefine it in `beforeEach`
@@ -146,6 +157,7 @@ afterEach(() => {
 ```
 
 **Alternative:** Use `jest.spyOn` for specific properties:
+
 ```typescript
 beforeEach(() => {
   jest.spyOn(window, 'location', 'get').mockReturnValue({
@@ -159,6 +171,7 @@ beforeEach(() => {
 ## Issue 3: AudioContext Mock Not Called (9 Tests Failing)
 
 ### Symptoms
+
 ```
 expect(jest.fn()).toHaveBeenCalled()
 Expected number of calls: >= 1
@@ -166,9 +179,11 @@ Received number of calls:    0
 ```
 
 ### Affected Files
+
 - `__tests__/components/AudioWaveform.test.tsx` (9 tests)
 
 ### Root Cause
+
 The AudioContext mock is defined but never executed:
 
 ```typescript
@@ -227,6 +242,7 @@ afterAll(() => {
 ```
 
 **Alternative:** Mock at module level:
+
 ```typescript
 // At top of file, before imports
 const mockAudioContext = {
@@ -248,6 +264,7 @@ beforeEach(() => {
 ## Issue 4: Webhook Retry Logic Tests (9 Tests Failing)
 
 ### Symptoms
+
 ```
 expect(received).toBe(expected)
 Expected: true
@@ -259,9 +276,11 @@ Received: 1
 ```
 
 ### Affected Files
+
 - `__tests__/lib/webhooks.test.ts` (9 tests)
 
 ### Root Cause
+
 The webhook retry logic isn't being executed correctly in tests:
 
 1. **Validation issues**: `validateWebhookUrl()` accepting invalid URLs
@@ -277,9 +296,9 @@ The webhook retry logic isn't being executed correctly in tests:
 it('should reject invalid URLs', () => {
   const invalidUrls = [
     'not-a-url',
-    'ftp://example.com',  // Wrong protocol
-    'http://localhost',   // No path
-    'https:///webhook',   // No host
+    'ftp://example.com', // Wrong protocol
+    'http://localhost', // No path
+    'https:///webhook', // No host
   ];
 
   invalidUrls.forEach((url) => {
@@ -378,22 +397,26 @@ echo "✅ Test run complete"
 After applying fixes, verify:
 
 - [ ] Memory errors resolved
+
   ```bash
   npm test -- __tests__/lib/saveLoad.test.ts
   npm test -- __tests__/components/generation/GenerateVideoTab.test.tsx
   ```
 
 - [ ] Window mock errors resolved
+
   ```bash
   npm test -- __tests__/lib/browserLogger.test.ts
   ```
 
 - [ ] AudioContext errors resolved
+
   ```bash
   npm test -- __tests__/components/AudioWaveform.test.tsx
   ```
 
 - [ ] Webhook tests passing
+
   ```bash
   npm test -- __tests__/lib/webhooks.test.ts
   ```
@@ -408,14 +431,14 @@ After applying fixes, verify:
 
 ## Expected Results After Fixes
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Suite Pass Rate** | 39.2% (65/166) | 55%+ (90+/166) | +15.8% |
-| **Test Pass Rate** | 76.8% | 85%+ | +8.2% |
-| **Memory Crashes** | 5 suites | 0 suites | -5 |
-| **Window Mock Errors** | 18 tests | 0 tests | -18 |
-| **AudioContext Errors** | 9 tests | 0 tests | -9 |
-| **Webhook Failures** | 9 tests | 0 tests | -9 |
+| Metric                  | Before         | After          | Improvement |
+| ----------------------- | -------------- | -------------- | ----------- |
+| **Suite Pass Rate**     | 39.2% (65/166) | 55%+ (90+/166) | +15.8%      |
+| **Test Pass Rate**      | 76.8%          | 85%+           | +8.2%       |
+| **Memory Crashes**      | 5 suites       | 0 suites       | -5          |
+| **Window Mock Errors**  | 18 tests       | 0 tests        | -18         |
+| **AudioContext Errors** | 9 tests        | 0 tests        | -9          |
+| **Webhook Failures**    | 9 tests        | 0 tests        | -9          |
 
 **Total Impact:** +41 tests fixed (+4.2% pass rate improvement)
 
@@ -424,16 +447,19 @@ After applying fixes, verify:
 ## Timeline
 
 **Immediate (15 minutes):**
+
 1. Update `jest.config.js` memory settings
 2. Set `NODE_OPTIONS` environment variable
 3. Re-run tests
 
 **Short-term (1 hour):**
+
 1. Fix `browserLogger.test.ts` window mocks
 2. Fix `AudioWaveform.test.tsx` AudioContext mocks
 3. Fix `webhooks.test.ts` retry logic
 
 **Medium-term (3 hours):**
+
 1. Split large test files (saveLoad, GenerateVideoTab, etc.)
 2. Optimize slow tests
 3. Add test isolation improvements
@@ -443,6 +469,7 @@ After applying fixes, verify:
 ---
 
 **Priority Order:**
+
 1. 🔴 Memory fixes (blocks everything)
 2. 🔴 Window mock fixes (blocks 18 tests)
 3. 🟡 AudioContext fixes (blocks 9 tests)

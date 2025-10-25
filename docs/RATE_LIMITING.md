@@ -25,7 +25,7 @@ export const RATE_LIMITS = {
 
   // 100 requests per minute - for expensive AI generation operations (20x increase)
   expensive: { max: 100, windowMs: 60 * 1000 },
-}
+};
 ```
 
 ## Protected Endpoints
@@ -35,30 +35,35 @@ export const RATE_LIMITS = {
 All AI generation endpoints are rate limited to **100 requests per minute per user** (20x increase from previous 5 req/min limit).
 
 #### Video Generation
+
 - **Endpoint**: `POST /api/video/generate`
 - **Rate Limit Key**: `video-gen:{userId}`
 - **Limit**: 100 requests per minute
 - **Applies to**: Google Veo, Seedance, MiniMax models
 
 #### Image Generation
+
 - **Endpoint**: `POST /api/image/generate`
 - **Rate Limit Key**: `image-gen:{userId}`
 - **Limit**: 100 requests per minute
 - **Applies to**: Google Imagen models
 
 #### Audio TTS Generation
+
 - **Endpoint**: `POST /api/audio/elevenlabs/generate`
 - **Rate Limit Key**: `audio-tts:{userId}`
 - **Limit**: 100 requests per minute
 - **Applies to**: ElevenLabs text-to-speech
 
 #### Music Generation
+
 - **Endpoint**: `POST /api/audio/suno/generate`
 - **Rate Limit Key**: `audio-music:{userId}`
 - **Limit**: 100 requests per minute
 - **Applies to**: Suno music generation via Comet API
 
 #### Sound Effects Generation
+
 - **Endpoint**: `POST /api/audio/elevenlabs/sfx`
 - **Rate Limit Key**: `audio-sfx:{userId}`
 - **Limit**: 100 requests per minute
@@ -67,12 +72,14 @@ All AI generation endpoints are rate limited to **100 requests per minute per us
 ### Standard API Endpoints (MODERATE: 300 req/min)
 
 #### Voice Listing
+
 - **Endpoint**: `GET /api/audio/elevenlabs/voices`
 - **Limit**: 300 requests per minute (10x increase from previous 30 req/min)
 
 ### Read Operations (RELAXED: 1000 req/min)
 
 #### Client Logging
+
 - **Endpoint**: `POST /api/logs`
 - **Limit**: 1000 requests per minute (10x increase from previous 100 req/min)
 
@@ -81,6 +88,7 @@ All AI generation endpoints are rate limited to **100 requests per minute per us
 ### Database-Backed Rate Limiting
 
 The rate limiter uses a PostgreSQL function `increment_rate_limit` that:
+
 1. Creates or retrieves the rate limit entry
 2. Increments the count atomically
 3. Returns the current count AFTER incrementing
@@ -89,6 +97,7 @@ The rate limiter uses a PostgreSQL function `increment_rate_limit` that:
 ### Race Condition Prevention
 
 The implementation prevents race conditions by:
+
 - Using atomic database operations via PostgreSQL function
 - Incrementing count AFTER checking, within a single transaction
 - Checking if `currentCount <= max` after increment
@@ -97,6 +106,7 @@ The implementation prevents race conditions by:
 ### Fallback Strategy
 
 When Supabase is unavailable:
+
 1. Falls back to in-memory Map-based rate limiting
 2. Logs warning about using fallback
 3. Cleanup interval runs every 5 minutes to remove expired entries
@@ -109,16 +119,19 @@ All external API calls include timeout handling to prevent hanging requests.
 ### API Timeouts
 
 #### FAL.ai API (Video Generation)
+
 - **Submit Request**: 60 second timeout
 - **Status Check**: 30 second timeout
 - **Result Fetch**: 30 second timeout
 - **Cancel Request**: 30 second timeout
 
 #### Comet API (Suno Music)
+
 - **Submit Request**: 60 second timeout
 - Returns 504 Gateway Timeout on timeout
 
 #### ElevenLabs API
+
 - **TTS Generation**: 60 second timeout
 - **SFX Generation**: 60 second timeout (via `fetchWithTimeout`)
 - Returns 504 Gateway Timeout on timeout
@@ -151,9 +164,11 @@ try {
 When rate limit is exceeded, the API returns:
 
 ### HTTP Status
+
 - **429 Too Many Requests**
 
 ### Response Headers
+
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 0
@@ -162,6 +177,7 @@ Retry-After: 45
 ```
 
 ### Response Body
+
 ```json
 {
   "error": "Rate limit exceeded",
@@ -174,12 +190,14 @@ Retry-After: 45
 All rate limit events are logged with structured logging:
 
 ### Events
+
 - `{service}.{operation}.rate_limited` - Rate limit exceeded
 - `{service}.{operation}.rate_limit_ok` - Rate limit check passed
 - `rateLimit.check_failed` - Database check failed, using fallback
 - `rateLimit.supabase_unavailable` - Supabase credentials missing
 
 ### Example Log Entry
+
 ```json
 {
   "event": "image.generate.rate_limited",
@@ -270,6 +288,7 @@ expect(result2.remaining).toBe(0);
    - `SUPABASE_SERVICE_ROLE_KEY`
 
 2. Verify PostgreSQL function exists:
+
    ```sql
    SELECT * FROM pg_proc WHERE proname = 'increment_rate_limit';
    ```

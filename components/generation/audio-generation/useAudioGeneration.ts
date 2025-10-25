@@ -55,7 +55,7 @@ export function useAudioGeneration({ projectId }: UseAudioGenerationProps) {
   }, []);
 
   // Cleanup on unmount
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     return (): void => {
       cleanupPolling();
     };

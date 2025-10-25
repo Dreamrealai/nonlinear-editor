@@ -31,10 +31,7 @@ export { expect } from '@playwright/test';
 /**
  * Setup authenticated session for tests that require a logged-in user
  */
-export async function setupAuthenticatedSession(
-  page: any,
-  credentials = TEST_USER
-) {
+export async function setupAuthenticatedSession(page: any, credentials = TEST_USER) {
   const signInPage = new SignInPage(page);
   await signInPage.goto();
   await signInPage.signIn(credentials.email, credentials.password);

@@ -4,11 +4,14 @@ import '@testing-library/jest-dom';
 import { TimelineRuler } from '@/components/timeline/TimelineRuler';
 
 // Mock TIMELINE_CONSTANTS
-jest.mock('@/lib/constants/ui', (): Record<string, unknown> => ({
-  TIMELINE_CONSTANTS: {
-    RULER_HEIGHT: 40,
-  },
-}));
+jest.mock(
+  '@/lib/constants/ui',
+  (): Record<string, unknown> => ({
+    TIMELINE_CONSTANTS: {
+      RULER_HEIGHT: 40,
+    },
+  })
+);
 
 describe('TimelineRuler', () => {
   const defaultProps = {
@@ -31,7 +34,9 @@ describe('TimelineRuler', () => {
     });
 
     it('should render adaptive time markers based on zoom level', () => {
-      const { container } = render(<TimelineRuler {...defaultProps} timelineDuration={10} zoom={100} />);
+      const { container } = render(
+        <TimelineRuler {...defaultProps} timelineDuration={10} zoom={100} />
+      );
 
       // With zoom=100, MIN_LABEL_SPACING_PX=80, minInterval = 80/100 = 0.8s
       // Should use 1s intervals (next nice interval)

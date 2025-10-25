@@ -25,12 +25,14 @@ Maintained by: Engineering Team
 ## Overview
 
 This guide provides quick solutions to common test errors. Each section includes:
+
 - Error message examples
 - Root cause explanation
 - Step-by-step fix
 - Prevention tips
 
 **Quick Navigation:**
+
 - Timeout errors → [withAuth Mock Issues](#withauth-mock-issues) or [Async/Timing Issues](#asynctiming-issues)
 - Import errors → [Import/Module Issues](#importmodule-issues)
 - Mock not called → [Mock Configuration Issues](#mock-configuration-issues)
@@ -44,11 +46,13 @@ This guide provides quick solutions to common test errors. Each section includes
 ### Error 1: Test Timeout (5000ms)
 
 **Error Message:**
+
 ```
 Timeout - Async callback was not invoked within the timeout period of 5000ms
 ```
 
 **Root Cause:**
+
 - withAuth mock not properly configured
 - Mock factory accessing external variables (not allowed)
 - Missing or incorrect parameter handling
@@ -71,7 +75,7 @@ jest.mock('@/lib/api/withAuth', () => ({
 
     if (!user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401
+        status: 401,
       });
     }
 
@@ -139,6 +143,7 @@ describe('API Route', () => {
 ```
 
 **Prevention:**
+
 - Always use the correct withAuth pattern
 - Never reference external variables in jest.mock() factories
 - Check parameter handling for dynamic routes
@@ -148,12 +153,14 @@ describe('API Route', () => {
 ### Error 2: Unauthorized (401) When Should Be Authenticated
 
 **Error Message:**
+
 ```
 Expected status: 200
 Received status: 401
 ```
 
 **Root Cause:**
+
 - Mock user not configured
 - getUser() returning null
 
@@ -169,7 +176,7 @@ beforeEach(() => {
           id: 'test-user',
           email: 'test@example.com',
           // Add other required fields
-        }
+        },
       },
       error: null,
     }),
@@ -190,6 +197,7 @@ it('should reject unauthenticated', async () => {
 ```
 
 **Prevention:**
+
 - Always configure auth in beforeEach
 - Reset mocks between tests
 - Verify user object has required fields
@@ -197,11 +205,13 @@ it('should reject unauthenticated', async () => {
 ### Error 3: Mock Factory Scope Error
 
 **Error Message:**
+
 ```
 ReferenceError: mockSupabase is not defined
 ```
 
 **Root Cause:**
+
 - Trying to access external variable in jest.mock() factory
 
 **Fix:**
@@ -233,6 +243,7 @@ describe('Test', () => {
 ```
 
 **Prevention:**
+
 - Never reference variables outside jest.mock()
 - Use require() inside factories
 - Configure mocks in beforeEach
@@ -244,11 +255,13 @@ describe('Test', () => {
 ### Error 1: Element Not Found
 
 **Error Message:**
+
 ```
 TestingLibraryElementError: Unable to find an element with the text: Expected Text
 ```
 
 **Root Cause:**
+
 - Element hasn't rendered yet
 - Async operation not complete
 - Wrong query selector
@@ -283,6 +296,7 @@ test('loads data', async () => {
 ```
 
 **Prevention:**
+
 - Use findBy for elements that appear asynchronously
 - Use waitFor for complex assertions
 - Always wait for loading states to finish
@@ -290,11 +304,13 @@ test('loads data', async () => {
 ### Error 2: Act Warning
 
 **Error Message:**
+
 ```
 Warning: An update to Component inside a test was not wrapped in act(...)
 ```
 
 **Root Cause:**
+
 - State update after component rendered
 - Async operation not awaited
 
@@ -331,6 +347,7 @@ test('updates state', async () => {
 ```
 
 **Prevention:**
+
 - Always await user-event actions
 - Wrap state updates in act()
 - Use waitFor for assertions after state changes
@@ -341,6 +358,7 @@ test('updates state', async () => {
 Test passes sometimes, fails other times
 
 **Root Cause:**
+
 - Race condition
 - Timing dependency
 - Shared state between tests
@@ -387,6 +405,7 @@ test('delays action', () => {
 ```
 
 **Prevention:**
+
 - Never use arbitrary setTimeout in tests
 - Always use waitFor with conditions
 - Reset mocks and state between tests
@@ -399,12 +418,14 @@ test('delays action', () => {
 ### Error 1: Invalid HTML Nesting
 
 **Error Message:**
+
 ```
 Warning: validateDOMNesting(...): <button> cannot appear as a descendant of <button>
 Error: Uncaught [Error: Hydration failed]
 ```
 
 **Root Cause:**
+
 - Nested interactive elements (invalid HTML)
 
 **Fix:**
@@ -436,6 +457,7 @@ Error: Uncaught [Error: Hydration failed]
 ```
 
 **Prevention:**
+
 - Never nest buttons, links, or other interactive elements
 - Use div with proper ARIA attributes
 - Add keyboard support (Enter/Space)
@@ -444,11 +466,13 @@ Error: Uncaught [Error: Hydration failed]
 ### Error 2: Query Selector Ambiguity
 
 **Error Message:**
+
 ```
 TestingLibraryElementError: Found multiple elements with the role "button"
 ```
 
 **Root Cause:**
+
 - Query matches multiple elements
 - Not specific enough
 
@@ -474,6 +498,7 @@ expect(buttons[1]).toHaveTextContent('Submit');
 ```
 
 **Prevention:**
+
 - Use data-testid for disambiguation
 - Use within to scope queries
 - Make button labels unique and descriptive
@@ -482,12 +507,14 @@ expect(buttons[1]).toHaveTextContent('Submit');
 ### Error 3: Missing Mock for API Call
 
 **Error Message:**
+
 ```
 TypeError: Cannot read property 'json' of undefined
 Error: Network request failed
 ```
 
 **Root Cause:**
+
 - fetch() or API call not mocked
 
 **Fix:**
@@ -528,6 +555,7 @@ test('handles error', async () => {
 ```
 
 **Prevention:**
+
 - Mock fetch in beforeEach
 - Mock all endpoints component calls
 - Test both success and error paths
@@ -535,11 +563,13 @@ test('handles error', async () => {
 ### Error 4: Incomplete API Flow Mocking
 
 **Error Message:**
+
 ```
 TypeError: Cannot read property 'done' of undefined
 ```
 
 **Root Cause:**
+
 - Only mocked initial request, missing polling/subsequent requests
 
 **Fix:**
@@ -576,6 +606,7 @@ beforeEach(() => {
 ```
 
 **Prevention:**
+
 - Map out entire API flow before writing test
 - Mock initial, polling, and completion endpoints
 - Use mockResolvedValueOnce for sequential calls
@@ -588,11 +619,13 @@ beforeEach(() => {
 ### Error 1: Database State Pollution
 
 **Error Message:**
+
 ```
 Expected 0 items, received 5 items from previous test
 ```
 
 **Root Cause:**
+
 - Database not reset between tests
 - Shared state
 
@@ -619,6 +652,7 @@ test('creates project', async () => {
 ```
 
 **Prevention:**
+
 - Always reset database in beforeEach
 - Use unique identifiers for test data
 - Clean up after tests in afterEach
@@ -626,12 +660,14 @@ test('creates project', async () => {
 ### Error 2: Service Dependencies Not Mocked
 
 **Error Message:**
+
 ```
 Error: Stripe is not defined
 Error: Google Cloud credentials not found
 ```
 
 **Root Cause:**
+
 - External service not mocked
 
 **Fix:**
@@ -659,6 +695,7 @@ jest.mock('@google-cloud/storage', () => ({
 ```
 
 **Prevention:**
+
 - Mock all external services (Stripe, Google Cloud, AI APIs)
 - Use real implementations for internal code
 - Document which services need mocking
@@ -670,11 +707,13 @@ jest.mock('@google-cloud/storage', () => ({
 ### Error 1: Mock Not Called
 
 **Error Message:**
+
 ```
 Expected mock function to have been called, but it was not called.
 ```
 
 **Root Cause:**
+
 - Mock defined after import
 - Mock not configured properly
 - Code path not executed
@@ -710,6 +749,7 @@ describe('Test', () => {
 ```
 
 **Prevention:**
+
 - Always mock before importing
 - Verify mock is on code path
 - Check mock configuration in beforeEach
@@ -717,11 +757,13 @@ describe('Test', () => {
 ### Error 2: Chainable Mock Returns Undefined
 
 **Error Message:**
+
 ```
 TypeError: Cannot read property 'select' of undefined
 ```
 
 **Root Cause:**
+
 - Supabase query chain not properly mocked
 
 **Fix:**
@@ -757,6 +799,7 @@ await mockSupabase.from('table').select('*').eq('id', '1').single();
 ```
 
 **Prevention:**
+
 - Use createMockSupabaseClient utility
 - Understand return vs resolved value
 - Test query chains
@@ -764,11 +807,13 @@ await mockSupabase.from('table').select('*').eq('id', '1').single();
 ### Error 3: Mock Reset Issues
 
 **Error Message:**
+
 ```
 Mock called 3 times, expected 1 time
 ```
 
 **Root Cause:**
+
 - Mocks not reset between tests
 - State bleeding between tests
 
@@ -793,6 +838,7 @@ afterEach(() => {
 ```
 
 **Prevention:**
+
 - Always clear mocks in beforeEach
 - Use isolated test data
 - Verify mock state before assertions
@@ -804,11 +850,13 @@ afterEach(() => {
 ### Error 1: Cannot Find Module
 
 **Error Message:**
+
 ```
 Cannot find module '@/lib/someModule' from 'test.ts'
 ```
 
 **Root Cause:**
+
 - Module path incorrect
 - Module not mocked (has side effects)
 - TypeScript path not resolved
@@ -835,6 +883,7 @@ beforeAll(async () => {
 ```
 
 **Prevention:**
+
 - Verify tsconfig.json paths
 - Mock modules with side effects
 - Use dynamic imports for problematic modules
@@ -842,12 +891,14 @@ beforeAll(async () => {
 ### Error 2: Module Initialization Error
 
 **Error Message:**
+
 ```
 Error: Cannot initialize Sentry in test environment
 ReferenceError: window is not defined
 ```
 
 **Root Cause:**
+
 - Module has initialization code that runs on import
 - Module expects browser environment
 
@@ -872,6 +923,7 @@ beforeAll(async () => {
 ```
 
 **Prevention:**
+
 - Avoid module-level side effects
 - Use dynamic imports in tests
 - Mock modules with initialization code
@@ -883,11 +935,13 @@ beforeAll(async () => {
 ### Error 1: Environment Variables Not Set
 
 **Error Message:**
+
 ```
 Error: NEXT_PUBLIC_SUPABASE_URL is required
 ```
 
 **Root Cause:**
+
 - Environment variables not set in test environment
 
 **Fix:**
@@ -912,6 +966,7 @@ beforeAll(() => {
 ```
 
 **Prevention:**
+
 - Create .env.test file
 - Use setTestEnv utility
 - Document required env vars
@@ -919,11 +974,13 @@ beforeAll(() => {
 ### Error 2: Port Already in Use
 
 **Error Message:**
+
 ```
 Error: listen EADDRINUSE: address already in use :::3000
 ```
 
 **Root Cause:**
+
 - Test server port in use
 - Previous test didn't clean up
 
@@ -938,6 +995,7 @@ TEST_PORT=3001 npm test
 ```
 
 **Prevention:**
+
 - Use random ports for test servers
 - Clean up servers in afterAll
 - Don't run multiple test processes
@@ -952,6 +1010,7 @@ TEST_PORT=3001 npm test
 Test suite takes >5 minutes
 
 **Root Cause:**
+
 - Slow tests
 - Not parallelized
 - Too many integration tests
@@ -975,6 +1034,7 @@ npm test -- --verbose | grep -E "\([0-9]{4,} ms\)"
 ```
 
 **Prevention:**
+
 - Keep tests under 5s each
 - Use fake timers
 - Minimize setup/teardown
@@ -986,6 +1046,7 @@ npm test -- --verbose | grep -E "\([0-9]{4,} ms\)"
 Tests slow down over time, process crashes
 
 **Root Cause:**
+
 - Resources not cleaned up
 - Event listeners not removed
 - Timers not cleared
@@ -1013,6 +1074,7 @@ afterEach(() => {
 ```
 
 **Prevention:**
+
 - Always clean up in afterEach
 - Use cleanup() from testing-library
 - Clear timers and mocks
@@ -1023,6 +1085,7 @@ afterEach(() => {
 ## Quick Fixes
 
 ### Test Timeout
+
 ```typescript
 // Increase timeout for specific test
 it('slow test', async () => {
@@ -1031,12 +1094,14 @@ it('slow test', async () => {
 ```
 
 ### Element Not Found
+
 ```typescript
 // Wait for element
 expect(await screen.findByText('Text')).toBeInTheDocument();
 ```
 
 ### Mock Not Called
+
 ```typescript
 // Mock BEFORE import
 jest.mock('@/lib/module');
@@ -1044,12 +1109,14 @@ import { function } from '@/app/route';
 ```
 
 ### Act Warning
+
 ```typescript
 // Await user interactions
 await user.click(button);
 ```
 
 ### Flaky Test
+
 ```typescript
 // Use waitFor
 await waitFor(() => {
@@ -1058,6 +1125,7 @@ await waitFor(() => {
 ```
 
 ### Import Error
+
 ```typescript
 // Use dynamic import
 beforeAll(async () => {
@@ -1066,6 +1134,7 @@ beforeAll(async () => {
 ```
 
 ### Environment Variable Missing
+
 ```typescript
 // Set in beforeAll
 beforeAll(() => {
@@ -1074,6 +1143,7 @@ beforeAll(() => {
 ```
 
 ### HTML Validation Error
+
 ```tsx
 // Use div with button role
 <div role="button" tabIndex={0} onKeyDown={handleKey}>

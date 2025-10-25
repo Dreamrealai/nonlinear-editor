@@ -207,7 +207,11 @@ export function ProjectBackupManager({
                 {projectTitle && `${projectTitle} - `}Version history and backup management
               </CardDescription>
             </div>
-            <Button onClick={(): undefined => void handleCreateBackup()} disabled={creating} size="sm">
+            <Button
+              onClick={(): undefined => void handleCreateBackup()}
+              disabled={creating}
+              size="sm"
+            >
               {creating ? 'Creating...' : 'Create Backup'}
             </Button>
           </div>
@@ -239,52 +243,58 @@ export function ProjectBackupManager({
             </div>
           ) : (
             <div className="space-y-3">
-              {backups.map((backup): React.ReactElement => (
-                <div
-                  key={backup.id}
-                  className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 p-4 hover:bg-neutral-100 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="text-sm font-semibold text-neutral-900 truncate">
-                        {backup.backup_name}
-                      </h4>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                          backup.backup_type === 'auto'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-green-100 text-green-700'
-                        }`}
-                      >
-                        {backup.backup_type === 'auto' ? 'Auto' : 'Manual'}
-                      </span>
+              {backups.map(
+                (backup): React.ReactElement => (
+                  <div
+                    key={backup.id}
+                    className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 p-4 hover:bg-neutral-100 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="text-sm font-semibold text-neutral-900 truncate">
+                          {backup.backup_name}
+                        </h4>
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                            backup.backup_type === 'auto'
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-green-100 text-green-700'
+                          }`}
+                        >
+                          {backup.backup_type === 'auto' ? 'Auto' : 'Manual'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-neutral-500">{formatDate(backup.created_at)}</p>
                     </div>
-                    <p className="text-xs text-neutral-500">{formatDate(backup.created_at)}</p>
+                    <div className="flex items-center gap-2 ml-4">
+                      <Button
+                        onClick={(): void => handleRestoreClick(backup)}
+                        variant="outline"
+                        size="sm"
+                        disabled={restoring}
+                      >
+                        Restore
+                      </Button>
+                      <Button
+                        onClick={(): undefined => void handleDownload(backup)}
+                        variant="outline"
+                        size="sm"
+                      >
+                        Download
+                      </Button>
+                      <Button
+                        onClick={(): undefined => void handleDelete(backup)}
+                        variant="outline"
+                        size="sm"
+                        disabled={deleting === backup.id}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        {deleting === backup.id ? 'Deleting...' : 'Delete'}
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 ml-4">
-                    <Button
-                      onClick={(): void => handleRestoreClick(backup)}
-                      variant="outline"
-                      size="sm"
-                      disabled={restoring}
-                    >
-                      Restore
-                    </Button>
-                    <Button onClick={(): undefined => void handleDownload(backup)} variant="outline" size="sm">
-                      Download
-                    </Button>
-                    <Button
-                      onClick={(): undefined => void handleDelete(backup)}
-                      variant="outline"
-                      size="sm"
-                      disabled={deleting === backup.id}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      {deleting === backup.id ? 'Deleting...' : 'Delete'}
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                )
+              )}
             </div>
           )}
 

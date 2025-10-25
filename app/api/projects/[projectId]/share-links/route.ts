@@ -10,13 +10,21 @@ import { RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateEnum, validateUUID, validateInteger, ValidationError } from '@/lib/validation';
 import { validationError } from '@/lib/api/response';
-import type { CreateShareLinkRequest, CreateShareLinkResponse, ShareLink } from '@/types/collaboration';
+import type {
+  CreateShareLinkRequest,
+  CreateShareLinkResponse,
+  ShareLink,
+} from '@/types/collaboration';
 
 /**
  * GET - List all share links for a project
  */
 export const GET = withAuth<{ projectId: string }>(
-  async (_req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ links: ShareLink[]; }>> => {
+  async (
+    _req: NextRequest,
+    { user, supabase },
+    routeContext
+  ): Promise<NextResponse<{ error: string }> | NextResponse<{ links: ShareLink[] }>> => {
     const params = await routeContext?.params;
     const projectId = params?.projectId;
 
@@ -69,7 +77,11 @@ export const GET = withAuth<{ projectId: string }>(
  * POST - Create a new share link
  */
 export const POST = withAuth<{ projectId: string }>(
-  async (req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<CreateShareLinkResponse>> => {
+  async (
+    req: NextRequest,
+    { user, supabase },
+    routeContext
+  ): Promise<NextResponse<{ error: string }> | NextResponse<CreateShareLinkResponse>> => {
     const params = await routeContext?.params;
     const projectId = params?.projectId;
 
@@ -129,7 +141,10 @@ export const POST = withAuth<{ projectId: string }>(
         .single();
 
       if (linkError || !link) {
-        serverLogger.error({ error: linkError, projectId, userId: user.id }, 'Failed to create share link');
+        serverLogger.error(
+          { error: linkError, projectId, userId: user.id },
+          'Failed to create share link'
+        );
         return NextResponse.json({ error: 'Failed to create share link' }, { status: 500 });
       }
 

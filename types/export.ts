@@ -60,7 +60,10 @@ export interface UpdateExportPresetInput {
 /**
  * Platform-specific export preset configurations
  */
-export const PLATFORM_PRESETS: Record<PlatformType, Omit<ExportPreset, 'id' | 'user_id' | 'created_at' | 'updated_at'>> = {
+export const PLATFORM_PRESETS: Record<
+  PlatformType,
+  Omit<ExportPreset, 'id' | 'user_id' | 'created_at' | 'updated_at'>
+> = {
   youtube_1080p: {
     name: 'YouTube 1080p',
     description: 'Full HD for YouTube (1920x1080, 30fps)',

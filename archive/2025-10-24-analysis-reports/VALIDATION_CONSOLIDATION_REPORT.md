@@ -9,6 +9,7 @@ Successfully consolidated duplicate validation logic from two separate systems i
 ### Two Validation Systems Identified
 
 **System A: lib/validation.ts (Assertion-based)** - CANONICAL
+
 - Uses TypeScript assertion functions (`asserts value is Type`)
 - Throws `ValidationError` on failure
 - Better type narrowing and inference
@@ -16,6 +17,7 @@ Successfully consolidated duplicate validation logic from two separate systems i
 - Pattern: Try-catch error handling
 
 **System B: lib/api/validation.ts (Result-based)** - DEPRECATED
+
 - Returns `ValidationError | null` objects
 - Does not throw exceptions
 - Requires manual error checking
@@ -24,6 +26,7 @@ Successfully consolidated duplicate validation logic from two separate systems i
 ### Duplicate Validation Functions
 
 The following functions existed in both systems:
+
 1. `validateUUID` - UUID v4 format validation
 2. `validateString` / `validateStringLength` - String length constraints
 3. `validateNumber` - Number range validation
@@ -35,6 +38,7 @@ The following functions existed in both systems:
 ### Helper Functions (System B Only)
 
 System B had convenience wrappers that were migrated to System A:
+
 - `validateAspectRatio` - Validates image/video aspect ratios
 - `validateDuration` - Validates video duration (4-10 seconds)
 - `validateSeed` - Validates random seed (0-4294967295)
@@ -49,6 +53,7 @@ System B had convenience wrappers that were migrated to System A:
 Added the following to make it feature-complete:
 
 **New Helper Functions:**
+
 ```typescript
 - validateAspectRatio(aspectRatio, fieldName?)
 - validateDuration(duration, fieldName?)
@@ -60,6 +65,7 @@ Added the following to make it feature-complete:
 ```
 
 **New Constants:**
+
 ```typescript
 - VALID_ASPECT_RATIOS: ['16:9', '9:16', '1:1', '4:3', '3:4']
 - VALID_DURATIONS: [4, 5, 6, 8, 10]
@@ -68,6 +74,7 @@ Added the following to make it feature-complete:
 ```
 
 **New Batch Validation:**
+
 ```typescript
 validateAll(validationFn: () => void): void
 // Runs validation function, throws on first error
@@ -76,6 +83,7 @@ validateAll(validationFn: () => void): void
 ### 2. Updated lib/api/validation.ts (Backward Compatibility Layer)
 
 Converted to re-export module pointing to canonical validation:
+
 ```typescript
 /**
  * @deprecated Import directly from @/lib/validation instead
@@ -97,6 +105,7 @@ This allows existing code to continue working while encouraging migration.
 Successfully migrated the following routes to assertion-based validation:
 
 #### Completed Migrations (3 routes):
+
 1. **app/api/video/generate/route.ts**
    - Converted from `validateAll([...])` returning result object
    - Now uses `validateAll(() => { ... })` with try-catch
@@ -112,7 +121,9 @@ Successfully migrated the following routes to assertion-based validation:
    - Custom mode validation with assertions
 
 #### Pending Migrations (12 routes):
+
 Still using old `validateAll([...])` pattern:
+
 - app/api/history/route.ts
 - app/api/export/route.ts
 - app/api/audio/elevenlabs/generate/route.ts
@@ -129,6 +140,7 @@ Still using old `validateAll([...])` pattern:
 ## Migration Pattern
 
 ### Old Pattern (Result-based):
+
 ```typescript
 const validation = validateAll([
   validateString(prompt, 'prompt', { minLength: 3, maxLength: 1000 }),
@@ -143,6 +155,7 @@ if (!validation.valid) {
 ```
 
 ### New Pattern (Assertion-based):
+
 ```typescript
 try {
   validateAll(() => {
@@ -159,6 +172,7 @@ try {
 ```
 
 ### Benefits of New Pattern:
+
 1. **Better Type Narrowing** - TypeScript knows types after validation
 2. **Simpler API** - No need to check result objects
 3. **Consistent with Best Practices** - Matches docs/CODING_BEST_PRACTICES.md
@@ -168,21 +182,25 @@ try {
 ## Statistics
 
 ### Validation Functions Consolidated: 14
+
 - Core validators: 7 (UUID, String, Number, Boolean, Enum, URL, Integer)
 - Helper validators: 7 (AspectRatio, Duration, Seed, SampleCount, SafetyFilter, PersonGeneration, validateAll)
 
 ### Constants Unified: 4
+
 - VALID_ASPECT_RATIOS
 - VALID_DURATIONS
 - VALID_SAFETY_LEVELS
 - VALID_PERSON_GENERATION
 
 ### API Routes Updated: 3 / 15 (20%)
+
 - Migrated: 3 routes
 - Pending: 12 routes
 - Using canonical lib/validation.ts: All routes (via re-export)
 
 ### Lines of Code Deduplicated: ~400 lines
+
 - Removed ~400 lines of duplicate validation logic from lib/api/validation.ts
 - Added ~150 lines of new helpers to lib/validation.ts
 - Net reduction: ~250 lines
@@ -190,12 +208,14 @@ try {
 ## Testing Considerations
 
 ### Test Files to Update:
-1. **__tests__/lib/api/validation.test.ts**
+
+1. \***\*tests**/lib/api/validation.test.ts\*\*
    - Currently tests result-based system
    - Should be updated to test assertion-based system
    - Or marked as legacy and create new test file
 
 ### What to Test:
+
 - ValidationError is thrown (not returned)
 - Error messages are consistent
 - Type narrowing works correctly
@@ -205,16 +225,19 @@ try {
 ## Recommendations
 
 ### Immediate Actions:
+
 1. **Update remaining 12 API routes** to use assertion-based validation
 2. **Update test files** to test assertion-based pattern
 3. **Document migration** in CODING_BEST_PRACTICES.md
 
 ### Medium-term:
+
 1. **Remove lib/api/validation.ts** entirely after all routes migrated
 2. **Update code generators** to use new pattern
 3. **Add linting rule** to prevent old pattern usage
 
 ### Long-term:
+
 1. **Create branded types** for validated values (ValidatedUUID, ValidatedString)
 2. **Generate validation code** from TypeScript interfaces
 3. **Add validation middleware** to reduce boilerplate
@@ -222,17 +245,20 @@ try {
 ## Impact Assessment
 
 ### Risk Level: LOW
+
 - Backward compatible via re-exports
 - Gradual migration possible
 - No breaking changes to existing code
 - Type safety improved
 
 ### Breaking Changes: NONE
+
 - All existing imports continue to work
 - API signatures unchanged (for now)
 - Test compatibility maintained
 
 ### Performance Impact: NEUTRAL
+
 - Exception throwing vs result checking: negligible difference
 - No additional allocations
 - Same validation logic
@@ -244,6 +270,7 @@ Successfully consolidated duplicate validation logic into a single canonical sys
 The new assertion-based pattern aligns with TypeScript best practices, provides better type narrowing, and results in cleaner, more maintainable code. Migration is low-risk and can proceed incrementally.
 
 ### Next Steps:
+
 1. Complete migration of remaining 12 API routes
 2. Update test files to cover assertion-based validation
 3. Remove lib/api/validation.ts after full migration

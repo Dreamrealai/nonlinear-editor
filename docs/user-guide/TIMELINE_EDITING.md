@@ -36,6 +36,7 @@ The timeline is where you arrange, edit, and fine-tune your video clips. It's th
 ```
 
 **Key Elements**:
+
 - **Time Ruler** - Shows time markers and current position
 - **Tracks** - Horizontal lanes for video, audio, and overlays
 - **Playhead** - Red vertical line showing current time position
@@ -46,16 +47,19 @@ The timeline is where you arrange, edit, and fine-tune your video clips. It's th
 ### Understanding Tracks
 
 **Video Tracks**:
+
 - Hold video clips and images
 - Higher tracks appear on top (layering)
 - Support transparency and compositing
 
 **Audio Tracks**:
+
 - Hold audio clips and music
 - Can be linked to video tracks
 - Support volume adjustment
 
 **Text Overlay Tracks**:
+
 - Hold titles and captions
 - Always appear on top of video
 - Support positioning and animation
@@ -81,6 +85,7 @@ Choose from common time intervals for quick setup:
 - **1 Minute** - Long-form content organization
 
 **When to Use Each**:
+
 - **1 Second**: Music videos, precise sync to audio
 - **5 Seconds**: Most general editing tasks
 - **10 Seconds**: Documentary-style rough cuts
@@ -97,6 +102,7 @@ Need a specific interval? Create your own:
 4. Click **"Apply"**
 
 **Use Cases for Custom Intervals**:
+
 - Matching specific music tempo (e.g., 2.4s for 25 BPM)
 - Frame-specific timing (e.g., 0.033s for 30fps)
 - Custom animation timing
@@ -106,15 +112,18 @@ Need a specific interval? Create your own:
 Snap helps clips automatically align to grid lines:
 
 **Enable Snap**:
+
 - Click the magnet icon in the toolbar
 - Or press **Cmd/Ctrl+Shift+S**
 
 **When Snap is Enabled**:
+
 - Clips automatically align to grid lines
 - Playhead snaps to markers and clip boundaries
 - Makes it easier to align clips precisely
 
 **When Snap is Disabled**:
+
 - Free positioning of clips
 - Useful for overlays and transitions
 - More precise control for micro-adjustments
@@ -134,11 +143,13 @@ Efficient selection is key to fast editing. Master these techniques to speed up 
 ### Single Selection
 
 **Click to Select**:
+
 1. Click on any clip in the timeline
 2. The clip will be highlighted (usually with a colored border)
 3. Properties panel shows clip details
 
 **Keyboard Navigation**:
+
 - **Tab** - Select next clip
 - **Shift+Tab** - Select previous clip
 
@@ -164,11 +175,13 @@ Select multiple clips by drawing a box:
 3. Release to select all clips within the box
 
 **Tips**:
+
 - Start from empty space, not on a clip
 - Selection box shows as you drag
 - Works across multiple tracks
 
 **Use Cases**:
+
 - Selecting scattered clips
 - Selecting all clips in a time range
 - Cross-track selection
@@ -191,6 +204,7 @@ Select every clip on the timeline:
 2. All clips on all tracks are selected
 
 **Use Cases**:
+
 - Moving entire timeline
 - Applying global changes
 - Checking total duration
@@ -200,10 +214,12 @@ Select every clip on the timeline:
 ### Deselecting
 
 **Deselect All**:
+
 - Click on empty timeline space
 - Or press **Escape**
 
 **Remove from Selection**:
+
 - Hold **Shift** and click on a selected clip
 
 ## Timeline Minimap
@@ -221,12 +237,14 @@ The minimap provides a bird's-eye view of your entire project, making navigation
 ```
 
 **Visual Elements**:
+
 - **Dark blocks** - Clips on the timeline
 - **Light spaces** - Empty gaps
 - **Viewport indicator** - Current visible area (highlighted box)
 - **Playhead** - Current time position (red line)
 
 **Information at a Glance**:
+
 - Total project length
 - Clip distribution and density
 - Empty gaps in your edit
@@ -241,6 +259,7 @@ The minimap provides a bird's-eye view of your entire project, making navigation
 3. Release to stop at that position
 
 **Benefits**:
+
 - Smooth, continuous scrolling
 - Visual feedback of position
 - Precise control
@@ -252,6 +271,7 @@ The minimap provides a bird's-eye view of your entire project, making navigation
 3. The viewport centers on the clicked location
 
 **Benefits**:
+
 - Instant navigation
 - Great for jumping between sections
 - Quick review of specific parts
@@ -259,12 +279,14 @@ The minimap provides a bird's-eye view of your entire project, making navigation
 ### Minimap Tips
 
 **Use the Minimap For**:
+
 - Finding empty gaps in your timeline
 - Jumping to specific sections quickly
 - Understanding overall project structure
 - Identifying dense vs. sparse areas
 
 **When to Watch the Minimap**:
+
 - During rough cut to see overall pacing
 - When looking for specific clips
 - To ensure even distribution of content
@@ -279,12 +301,14 @@ The minimap provides a bird's-eye view of your entire project, making navigation
 #### Adding Clips to Timeline
 
 **Method 1: Drag and Drop**
+
 1. Find asset in Asset Panel
 2. Click and hold on the asset
 3. Drag onto timeline
 4. Release at desired position
 
 **Method 2: Double-Click**
+
 1. Double-click an asset
 2. It's automatically added to the end of the timeline
 
@@ -303,21 +327,25 @@ The minimap provides a bird's-eye view of your entire project, making navigation
 Adjust the in and out points of a clip:
 
 **Trim Start**:
+
 1. Hover over the left edge of a clip
 2. Cursor changes to resize icon (⟷)
 3. Click and drag right to trim from start
 
 **Trim End**:
+
 1. Hover over the right edge of a clip
 2. Cursor changes to resize icon (⟷)
 3. Click and drag left to trim from end
 
 **Visual Feedback**:
+
 - Dimmed area shows trimmed portion
 - Time indicator shows new duration
 - Snap lines appear at grid intervals
 
 **Keyboard Shortcuts**:
+
 - **[** - Trim to playhead (start)
 - **]** - Trim to playhead (end)
 
@@ -326,16 +354,19 @@ Adjust the in and out points of a clip:
 Cut a clip into two separate clips:
 
 **Method 1: Keyboard Shortcut**
+
 1. Position playhead where you want to split
 2. Click on the clip to select it
 3. Press **S**
 
 **Method 2: Context Menu**
+
 1. Position playhead
 2. Right-click on the clip
 3. Choose **"Split Clip"**
 
 **Use Cases**:
+
 - Removing unwanted sections
 - Creating separate segments for different effects
 - Inserting clips in the middle
@@ -345,10 +376,12 @@ Cut a clip into two separate clips:
 #### Deleting Clips
 
 **Method 1: Keyboard**
+
 1. Select clip(s)
 2. Press **Delete** or **Backspace**
 
 **Method 2: Context Menu**
+
 1. Right-click on clip
 2. Choose **"Delete"**
 
@@ -367,6 +400,7 @@ Layer multiple video tracks for picture-in-picture or compositing:
 4. Adjust overlay position and size
 
 **Use Cases**:
+
 - Picture-in-picture
 - Lower thirds
 - Watermarks
@@ -375,16 +409,19 @@ Layer multiple video tracks for picture-in-picture or compositing:
 #### Working with Audio
 
 **Detach Audio from Video**:
+
 1. Right-click on video clip
 2. Choose **"Detach Audio"**
 3. Audio appears on separate track
 
 **Adjust Audio Levels**:
+
 1. Click on audio clip
 2. Adjust volume slider in properties panel
 3. Or drag volume handle on clip
 
 **Audio Fade**:
+
 1. Hover over clip edge
 2. Drag fade handle to create fade in/out
 
@@ -397,12 +434,14 @@ Add markers for important points:
 3. Marker appears on timeline
 
 **Use Cases**:
+
 - Mark beat drops in music
 - Flag sections for review
 - Create chapter markers
 - Note important moments
 
 **Navigate Between Markers**:
+
 - **Shift+M** - Next marker
 - **Shift+Ctrl+M** - Previous marker
 
@@ -413,24 +452,28 @@ Add markers for important points:
 Adjust the timeline scale to see more or less detail:
 
 **Zoom In**:
+
 - Click **+** button
 - Scroll up with mouse wheel
 - Pinch out on trackpad
 - Press **Cmd/Ctrl + =**
 
 **Zoom Out**:
+
 - Click **-** button
 - Scroll down with mouse wheel
 - Pinch in on trackpad
 - Press **Cmd/Ctrl + -**
 
 **Zoom to Fit**:
+
 - Click **"Fit"** button
 - Press **Cmd/Ctrl + 0**
 - Shows entire timeline in view
 
 **Zoom Presets**:
 Use the zoom preset dropdown for quick zoom levels:
+
 - 1 second view
 - 5 seconds view
 - 10 seconds view
@@ -440,25 +483,30 @@ Use the zoom preset dropdown for quick zoom levels:
 ### Scrolling
 
 **Horizontal Scroll**:
+
 - Drag the scrollbar
 - Scroll with mouse wheel
 - Two-finger swipe on trackpad
 - Use minimap
 
 **Vertical Scroll** (for multiple tracks):
+
 - Scroll with mouse wheel (when hovering over tracks)
 - Two-finger swipe on trackpad
 
 ### Playhead Movement
 
 **Click to Position**:
+
 - Click on timeline ruler to move playhead
 
 **Drag Playhead**:
+
 - Click and drag the playhead
 - Scrub through video
 
 **Keyboard Navigation**:
+
 - **Left Arrow** - Move back 1 frame
 - **Right Arrow** - Move forward 1 frame
 - **Shift+Left** - Move back 1 second
@@ -503,6 +551,7 @@ Use ripple for adding/removing content, roll for fine-tuning.
 #### 1. Use Keyboard Shortcuts
 
 Learn these essential shortcuts:
+
 - **Space** - Play/Pause
 - **S** - Split
 - **Delete** - Delete clip
@@ -515,16 +564,19 @@ Learn these essential shortcuts:
 Organize your editing process:
 
 **Stage 1: Rough Cut**
+
 - Get all clips on timeline
 - Rough order and timing
 - Don't worry about perfection
 
 **Stage 2: Fine Cut**
+
 - Trim precisely
 - Remove gaps
 - Refine pacing
 
 **Stage 3: Polish**
+
 - Add effects
 - Color correction
 - Audio mixing
@@ -546,6 +598,7 @@ Makes organization much easier!
 #### 5. Color Code Your Clips
 
 Assign colors to clip types:
+
 - Blue - Interview footage
 - Green - B-roll
 - Yellow - Music
@@ -556,6 +609,7 @@ Quick visual organization.
 #### 6. Use Markers Liberally
 
 Mark important points as you watch:
+
 - Beat drops
 - Important moments
 - Problems to fix
@@ -564,6 +618,7 @@ Mark important points as you watch:
 #### 7. Regular Preview
 
 Don't wait until the end:
+
 - Preview every few edits
 - Watch entire timeline periodically
 - Check pacing and flow
@@ -607,12 +662,14 @@ Don't wait until the end:
 Essential shortcuts for timeline editing:
 
 ### Selection
+
 - **Click** - Select clip
 - **Shift+Click** - Add to selection
 - **Cmd/Ctrl+A** - Select all
 - **Escape** - Deselect all
 
 ### Editing
+
 - **S** - Split clip at playhead
 - **Delete/Backspace** - Delete selected clips
 - **Cmd/Ctrl+C** - Copy selected clips
@@ -623,6 +680,7 @@ Essential shortcuts for timeline editing:
 - **Ctrl+Y** - Redo (Windows)
 
 ### Navigation
+
 - **Space** - Play/Pause
 - **Left/Right Arrow** - Move playhead 1 frame
 - **Shift+Left/Right** - Move playhead 1 second
@@ -632,34 +690,43 @@ Essential shortcuts for timeline editing:
 - **Shift+M** - Next marker
 
 ### View
+
 - **Cmd/Ctrl + =** - Zoom in
 - **Cmd/Ctrl + -** - Zoom out
 - **Cmd/Ctrl + 0** - Zoom to fit
 
 ### Grid & Snap
+
 - **Cmd/Ctrl+Shift+S** - Toggle snap
 
 ### Help
+
 - **Cmd/Ctrl+?** - Show keyboard shortcuts help
 
 ## Troubleshooting
 
 ### Clips Won't Align Properly
+
 - **Solution**: Enable snap (Cmd/Ctrl+Shift+S)
 
 ### Can't Select Multiple Clips
+
 - **Solution**: Click on empty space first, then drag selection box
 
 ### Timeline Feels Sluggish
+
 - **Solution**: Zoom out to see less detail, or close other browser tabs
 
 ### Clips Keep Snapping When I Don't Want Them To
+
 - **Solution**: Disable snap (Cmd/Ctrl+Shift+S)
 
 ### Lost My Place in Timeline
+
 - **Solution**: Use the minimap to navigate back
 
 ### Can't See All My Tracks
+
 - **Solution**: Scroll vertically or adjust timeline height
 
 ## Best Practices

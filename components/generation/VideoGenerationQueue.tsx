@@ -72,9 +72,11 @@ export function VideoGenerationQueue({
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
-            {videoQueue.map((video): React.ReactElement => (
-              <VideoQueueItem key={video.id} {...video} onRemove={onRemove} />
-            ))}
+            {videoQueue.map(
+              (video): React.ReactElement => (
+                <VideoQueueItem key={video.id} {...video} onRemove={onRemove} />
+              )
+            )}
           </div>
         )}
       </div>

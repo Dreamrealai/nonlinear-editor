@@ -23,6 +23,7 @@ Supabase provides built-in connection pooling through **Supavisor** (new project
 Supabase supports two connection pooling modes:
 
 ### 1. Transaction Mode (Recommended)
+
 - **Use Case**: Most application queries, serverless functions
 - **Connection String (Supavisor)**: `postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres`
 - **Connection String (PgBouncer)**: `postgresql://[user]:[password]@[host]:6543/postgres?pgbouncer=true`
@@ -32,6 +33,7 @@ Supabase supports two connection pooling modes:
 - **Best for**: Short-lived serverless functions, API routes, edge functions
 
 ### 2. Session Mode
+
 - **Use Case**: Long-running connections, prepared statements, advisory locks
 - **Connection String (Supavisor)**: `postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres`
 - **Connection String (Direct)**: `postgresql://[user]:[password]@[host]:5432/postgres`
@@ -47,6 +49,7 @@ Supabase supports two connection pooling modes:
 **Our application already uses connection pooling best practices!**
 
 The Supabase JavaScript SDK (`@supabase/supabase-js`) automatically:
+
 - Uses HTTP/REST API connections (not direct Postgres connections)
 - Implements efficient connection pooling server-side via PostgREST
 - Reuses connections across requests
@@ -158,12 +161,12 @@ await adminClient.from('posts').select('*'); // Use regular client instead
 
 ## Connection Pool Limits by Plan
 
-| Plan | Transaction Mode | Session Mode | Notes |
-|------|-----------------|--------------|-------|
-| Free | 50 connections | 5 connections | Sufficient for development |
-| Pro | 200 connections | 15 connections | Recommended for production |
-| Team | 400 connections | 30 connections | For larger applications |
-| Enterprise | Custom | Custom | Configurable based on needs |
+| Plan       | Transaction Mode | Session Mode   | Notes                       |
+| ---------- | ---------------- | -------------- | --------------------------- |
+| Free       | 50 connections   | 5 connections  | Sufficient for development  |
+| Pro        | 200 connections  | 15 connections | Recommended for production  |
+| Team       | 400 connections  | 30 connections | For larger applications     |
+| Enterprise | Custom           | Custom         | Configurable based on needs |
 
 ## Troubleshooting
 
@@ -172,6 +175,7 @@ await adminClient.from('posts').select('*'); // Use regular client instead
 **Cause**: Connection pool is exhausted
 
 **Solutions**:
+
 1. Verify you're using the Supabase SDK (not direct `pg` connections)
 2. Upgrade to Pro plan for more connections
 3. Optimize queries to reduce connection time
@@ -179,17 +183,13 @@ await adminClient.from('posts').select('*'); // Use regular client instead
 5. Implement retry logic with exponential backoff
 
 ```typescript
-async function retryQuery<T>(
-  fn: () => Promise<T>,
-  maxRetries = 3,
-  delay = 1000
-): Promise<T> {
+async function retryQuery<T>(fn: () => Promise<T>, maxRetries = 3, delay = 1000): Promise<T> {
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn();
     } catch (error) {
       if (i === maxRetries - 1) throw error;
-      await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+      await new Promise((resolve) => setTimeout(resolve, delay * (i + 1)));
     }
   }
   throw new Error('Max retries exceeded');
@@ -205,6 +205,7 @@ async function retryQuery<T>(
 ### High Connection Count
 
 **Diagnosis**:
+
 ```sql
 -- Check active connections
 SELECT count(*) FROM pg_stat_activity;
@@ -220,6 +221,7 @@ ORDER BY duration DESC;
 ```
 
 **Solutions**:
+
 1. Identify and optimize long-running queries
 2. Implement query timeouts
 3. Use connection pooling (already enabled by default)
@@ -247,11 +249,13 @@ ORDER BY duration DESC;
 ### Monitoring Setup
 
 Use Supabase Dashboard:
+
 - **Database** → **Connection Pooling**: View real-time connections
 - **Database** → **Query Performance**: Identify slow queries
 - **Logs** → **Database**: View connection errors
 
 Optional: Integrate with monitoring tools:
+
 - Axiom (application-level logging)
 - Sentry (error tracking)
 - PostHog (performance analytics)
@@ -261,9 +265,11 @@ Optional: Integrate with monitoring tools:
 Our codebase already implements connection pooling best practices:
 
 ### 1. SDK-Based Access ✅
+
 All database access uses the Supabase SDK (HTTP API), which automatically pools connections server-side.
 
 ### 2. Client Factory Pattern ✅
+
 ```typescript
 // lib/supabase.ts
 export const createBrowserSupabaseClient = () => { ... }
@@ -272,14 +278,17 @@ export const createServiceSupabaseClient = () => { ... }
 ```
 
 ### 3. Proper Client Usage ✅
+
 - **Browser client**: For client components (auto-pooled)
 - **Server client**: For server components (auto-pooled)
 - **Service client**: For admin operations (used sparingly)
 
 ### 4. No Direct Postgres Connections ✅
+
 We don't use `pg`, `pg-pool`, or direct Postgres connections, avoiding connection pool exhaustion in serverless environments.
 
 ### 5. Serverless-Optimized ✅
+
 - Works seamlessly with Vercel Edge Runtime
 - Compatible with Next.js App Router
 - No connection management required
@@ -306,6 +315,7 @@ The following variables are documented for reference if you ever use direct Post
 ### Next.js Configuration
 
 No additional Next.js configuration needed. Connection pooling works out-of-the-box with:
+
 - Server Components
 - API Routes
 - Server Actions
@@ -315,6 +325,7 @@ No additional Next.js configuration needed. Connection pooling works out-of-the-
 ## Summary
 
 ✅ **Our implementation already uses connection pooling best practices:**
+
 - Uses Supabase SDK (HTTP API with auto-pooling via PostgREST)
 - Client factory pattern for efficient reuse
 - No direct Postgres connections

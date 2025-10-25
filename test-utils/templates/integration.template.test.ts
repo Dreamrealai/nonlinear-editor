@@ -51,34 +51,18 @@ describe('TODO: Workflow Name', () => {
     assertProjectValid(project);
 
     // 2. Upload assets
-    const videoAsset = await workflow.uploadAssetWorkflow(
-      project.id,
-      user.id,
-      'video'
-    );
+    const videoAsset = await workflow.uploadAssetWorkflow(project.id, user.id, 'video');
     assertAssetValid(videoAsset);
 
-    const audioAsset = await workflow.uploadAssetWorkflow(
-      project.id,
-      user.id,
-      'audio'
-    );
+    const audioAsset = await workflow.uploadAssetWorkflow(project.id, user.id, 'audio');
     assertAssetValid(audioAsset);
 
     // 3. Build timeline
-    const timeline = TimelineBuilders.multiTrack(
-      project.id,
-      [videoAsset],
-      [audioAsset]
-    );
+    const timeline = TimelineBuilders.multiTrack(project.id, [videoAsset], [audioAsset]);
     assertTimelineValid(timeline);
 
     // 4. Update project with timeline
-    const updatedProject = await workflow.updateTimelineWorkflow(
-      project.id,
-      user.id,
-      timeline
-    );
+    const updatedProject = await workflow.updateTimelineWorkflow(project.id, user.id, timeline);
 
     // 5. Generate AI content (optional)
     // const aiVideo = await workflow.generateVideoWorkflow(project.id, user.id);
@@ -150,11 +134,7 @@ describe('TODO: Workflow Name', () => {
       title: 'Consistency Test',
     });
 
-    const asset = await workflow.uploadAssetWorkflow(
-      project.id,
-      user.id,
-      'video'
-    );
+    const asset = await workflow.uploadAssetWorkflow(project.id, user.id, 'video');
 
     const timeline = TimelineBuilders.singleTrack(project.id, [asset]);
 

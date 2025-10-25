@@ -7,7 +7,7 @@
 
 'use client';
 
-import React, {  useState  } from 'react';
+import React, { useState } from 'react';
 import type { ModelConfig } from '@/lib/config/models';
 import { MODEL_PROVIDERS } from '@/lib/config/models';
 
@@ -125,17 +125,21 @@ export function VideoGenerationSettings({
                   <select
                     id="sampleCount"
                     value={sampleCount}
-                    onChange={(e): void => onSampleCountChange(parseInt(e.target.value) as 1 | 2 | 3 | 4)}
+                    onChange={(e): void =>
+                      onSampleCountChange(parseInt(e.target.value) as 1 | 2 | 3 | 4)
+                    }
                     disabled={disabled}
                     className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {[1, 2, 3, 4]
                       .filter((n): boolean => n <= modelConfig.maxSampleCount)
-                      .map((n): React.ReactElement => (
-                        <option key={n} value={n}>
-                          {n} video{n > 1 ? 's' : ''}
-                        </option>
-                      ))}
+                      .map(
+                        (n): React.ReactElement => (
+                          <option key={n} value={n}>
+                            {n} video{n > 1 ? 's' : ''}
+                          </option>
+                        )
+                      )}
                   </select>
                 </div>
               )}

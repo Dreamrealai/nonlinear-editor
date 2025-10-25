@@ -145,9 +145,7 @@ export const EditModeFeedback = React.memo<EditModeFeedbackProps>(function EditM
             <span className={`text-sm font-bold uppercase tracking-wider ${colors.text}`}>
               {currentMode} Mode
             </span>
-            {feedback && (
-              <span className="text-[10px] text-gray-300">{feedback.description}</span>
-            )}
+            {feedback && <span className="text-[10px] text-gray-300">{feedback.description}</span>}
           </div>
         </div>
 

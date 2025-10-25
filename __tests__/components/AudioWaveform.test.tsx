@@ -12,9 +12,12 @@ const mockBrowserLogger = {
   debug: jest.fn(),
 };
 
-jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
-  browserLogger: mockBrowserLogger,
-}));
+jest.mock(
+  '@/lib/browserLogger',
+  (): Record<string, unknown> => ({
+    browserLogger: mockBrowserLogger,
+  })
+);
 
 // Mock Worker that appears to exist but will throw when constructed
 // This forces the AudioContext fallback path

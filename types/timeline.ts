@@ -1,4 +1,16 @@
-export type TransitionType = 'none' | 'crossfade' | 'fade-in' | 'fade-out' | 'slide-left' | 'slide-right' | 'slide-up' | 'slide-down' | 'wipe-left' | 'wipe-right' | 'zoom-in' | 'zoom-out';
+export type TransitionType =
+  | 'none'
+  | 'crossfade'
+  | 'fade-in'
+  | 'fade-out'
+  | 'slide-left'
+  | 'slide-right'
+  | 'slide-up'
+  | 'slide-down'
+  | 'wipe-left'
+  | 'wipe-right'
+  | 'zoom-in'
+  | 'zoom-out';
 
 export type CropRect = {
   x: number;
@@ -9,39 +21,39 @@ export type CropRect = {
 
 export type VideoEffects = {
   brightness: number; // 0-200, default 100 (100 = no change)
-  contrast: number;   // 0-200, default 100 (100 = no change)
+  contrast: number; // 0-200, default 100 (100 = no change)
   saturation: number; // 0-200, default 100 (100 = no change)
-  hue: number;        // 0-360, default 0 (degrees rotation)
-  blur: number;       // 0-20 pixels, default 0 (no blur)
+  hue: number; // 0-360, default 0 (degrees rotation)
+  blur: number; // 0-20 pixels, default 0 (no blur)
 };
 
 // Keep ColorCorrection as an alias for backward compatibility
 export type ColorCorrection = VideoEffects;
 
 export type Transform = {
-  rotation: number;       // 0-360, default 0 (degrees)
+  rotation: number; // 0-360, default 0 (degrees)
   flipHorizontal: boolean; // default false
-  flipVertical: boolean;   // default false
-  scale: number;          // 0.1-3, default 1.0
+  flipVertical: boolean; // default false
+  scale: number; // 0.1-3, default 1.0
 };
 
 export type AudioEffects = {
   // Volume
-  volume: number;        // -60 to +12 dB, default 0 (0 dB = 100%, no change)
-  mute: boolean;         // Mute flag, default false
+  volume: number; // -60 to +12 dB, default 0 (0 dB = 100%, no change)
+  mute: boolean; // Mute flag, default false
 
   // Fades
-  fadeIn: number;        // Fade in duration in seconds, default 0
-  fadeOut: number;       // Fade out duration in seconds, default 0
+  fadeIn: number; // Fade in duration in seconds, default 0
+  fadeOut: number; // Fade out duration in seconds, default 0
 
   // 3-band EQ (equalizer)
-  bassGain: number;      // -12 to +12 dB, default 0 (100-400 Hz)
-  midGain: number;       // -12 to +12 dB, default 0 (400-4000 Hz)
-  trebleGain: number;    // -12 to +12 dB, default 0 (4000+ Hz)
+  bassGain: number; // -12 to +12 dB, default 0 (100-400 Hz)
+  midGain: number; // -12 to +12 dB, default 0 (400-4000 Hz)
+  trebleGain: number; // -12 to +12 dB, default 0 (4000+ Hz)
 
   // Dynamics
-  compression: number;   // 0-100, default 0 (0 = no compression, 100 = heavy)
-  normalize: boolean;    // Auto-normalize to -3dB peak, default false
+  compression: number; // 0-100, default 0 (0 = no compression, 100 = heavy)
+  normalize: boolean; // Auto-normalize to -3dB peak, default false
 };
 
 export type Clip = {

@@ -128,10 +128,7 @@ export const VOICE_SETTINGS = {
  * Helper function to calculate retry delay with exponential backoff
  */
 export function calculateRetryDelay(attempt: number): number {
-  const delay = Math.min(
-    RETRY_CONFIG.BASE_DELAY * Math.pow(2, attempt),
-    RETRY_CONFIG.MAX_DELAY
-  );
+  const delay = Math.min(RETRY_CONFIG.BASE_DELAY * Math.pow(2, attempt), RETRY_CONFIG.MAX_DELAY);
 
   // Add jitter
   const jitter = delay * RETRY_CONFIG.JITTER_FACTOR * Math.random();

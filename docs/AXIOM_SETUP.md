@@ -11,6 +11,7 @@ This guide explains how to set up comprehensive monitoring and alerting using Ax
 ## Quick Start
 
 1. Load monitor definitions:
+
    ```bash
    # The monitor configurations are in axiom-monitors.json
    cat axiom-monitors.json
@@ -29,6 +30,7 @@ This guide explains how to set up comprehensive monitoring and alerting using Ax
 **Purpose:** Catch sudden spikes in application errors
 
 **Query:**
+
 ```apl
 ['logs']
 | where ['level'] == 'error'
@@ -50,6 +52,7 @@ This guide explains how to set up comprehensive monitoring and alerting using Ax
 **Purpose:** Detect performance degradation
 
 **Query:**
+
 ```apl
 ['logs']
 | where ['request'] != null
@@ -71,6 +74,7 @@ This guide explains how to set up comprehensive monitoring and alerting using Ax
 **Purpose:** Detect potential security threats
 
 **Query:**
+
 ```apl
 ['logs']
 | where ['message'] contains 'authentication failed' or ['message'] contains 'invalid credentials'
@@ -91,6 +95,7 @@ This guide explains how to set up comprehensive monitoring and alerting using Ax
 **Purpose:** Monitor external AI service health
 
 **Query:**
+
 ```apl
 ['logs']
 | where ['service'] in ('gemini', 'fal-ai', 'elevenlabs', 'suno') and ['status'] == 'failed'
@@ -111,6 +116,7 @@ This guide explains how to set up comprehensive monitoring and alerting using Ax
 **Purpose:** Critical database connectivity issues
 
 **Query:**
+
 ```apl
 ['logs']
 | where ['category'] == 'DATABASE' and ['level'] == 'error'
@@ -225,6 +231,7 @@ For each widget in `axiom-monitors.json`:
 ### Example Dashboard Widgets
 
 #### Request Rate
+
 ```apl
 ['logs']
 | where ['request'] != null
@@ -232,6 +239,7 @@ For each widget in `axiom-monitors.json`:
 ```
 
 #### Error Rate
+
 ```apl
 ['logs']
 | where ['level'] == 'error'
@@ -239,6 +247,7 @@ For each widget in `axiom-monitors.json`:
 ```
 
 #### Latency Percentiles
+
 ```apl
 ['logs']
 | where ['response.duration'] != null
@@ -255,6 +264,7 @@ For each widget in `axiom-monitors.json`:
 ### Generate Test Events
 
 1. **Trigger error alert:**
+
    ```bash
    # Make multiple failing API calls
    for i in {1..15}; do
@@ -263,6 +273,7 @@ For each widget in `axiom-monitors.json`:
    ```
 
 2. **Trigger latency alert:**
+
    ```bash
    # Make slow requests
    curl http://localhost:3000/api/test/slow?delay=5000
@@ -304,6 +315,7 @@ For each widget in `axiom-monitors.json`:
 ### Runbook Development
 
 For each monitor, document:
+
 1. What the alert means
 2. Potential root causes
 3. Investigation steps
@@ -311,32 +323,39 @@ For each monitor, document:
 5. Escalation path
 
 Example runbook structure:
+
 ```markdown
 ## High Error Rate Alert
 
 ### What it means
+
 Application is experiencing elevated error rates
 
 ### Potential causes
+
 - Recent deployment introduced bugs
 - Database connectivity issues
 - External service failures
 - DDoS attack
 
 ### Investigation
+
 1. Check recent deployments: `git log -10`
 2. Review error logs: Query Axiom for error details
 3. Check Supabase status
 4. Verify external API status
 
 ### Resolution
+
 - Rollback deployment if needed
 - Scale database connections
 - Contact external service support
 - Enable rate limiting
 
 ### Escalation
+
 If unresolved in 30 minutes:
+
 - Page on-call engineer
 - Create incident in PagerDuty
 - Notify stakeholders
@@ -450,6 +469,7 @@ Track your monitoring system health:
 ## Support
 
 For issues or questions:
+
 - Axiom Support: support@axiom.co
 - Axiom Community: https://axiom.co/discord
 - Documentation: https://axiom.co/docs

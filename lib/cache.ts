@@ -87,11 +87,14 @@ class LRUCache {
     }
 
     if (cleaned > 0) {
-      serverLogger.debug({
-        event: 'cache.cleanup',
-        cleaned,
-        remaining: this.cache.size,
-      }, `Cleaned ${cleaned} expired cache entries`);
+      serverLogger.debug(
+        {
+          event: 'cache.cleanup',
+          cleaned,
+          remaining: this.cache.size,
+        },
+        `Cleaned ${cleaned} expired cache entries`
+      );
     }
   }
 
@@ -112,11 +115,14 @@ class LRUCache {
 
     if (lruKey) {
       this.cache.delete(lruKey);
-      serverLogger.debug({
-        event: 'cache.eviction',
-        key: lruKey,
-        size: this.cache.size,
-      }, 'Evicted LRU cache entry');
+      serverLogger.debug(
+        {
+          event: 'cache.eviction',
+          key: lruKey,
+          size: this.cache.size,
+        },
+        'Evicted LRU cache entry'
+      );
     }
   }
 
@@ -193,11 +199,14 @@ class LRUCache {
 
     if (deleted > 0) {
       this.stats.deletes += deleted;
-      serverLogger.debug({
-        event: 'cache.pattern_delete',
-        pattern,
-        deleted,
-      }, `Deleted ${deleted} keys matching pattern ${pattern}`);
+      serverLogger.debug(
+        {
+          event: 'cache.pattern_delete',
+          pattern,
+          deleted,
+        },
+        `Deleted ${deleted} keys matching pattern ${pattern}`
+      );
     }
 
     return deleted;
@@ -209,10 +218,13 @@ class LRUCache {
   async clear(): Promise<void> {
     const size = this.cache.size;
     this.cache.clear();
-    serverLogger.info({
-      event: 'cache.cleared',
-      entriesCleared: size,
-    }, `Cache cleared: ${size} entries removed`);
+    serverLogger.info(
+      {
+        event: 'cache.cleared',
+        entriesCleared: size,
+      },
+      `Cache cleared: ${size} entries removed`
+    );
   }
 
   /**
@@ -256,11 +268,14 @@ function getCache(): LRUCache {
     const maxSize = parseInt(process.env.CACHE_MAX_SIZE || '1000', 10);
     cacheInstance = new LRUCache(maxSize);
 
-    serverLogger.info({
-      event: 'cache.initialized',
-      type: 'lru',
-      maxSize,
-    }, `Cache initialized with LRU strategy (max ${maxSize} entries)`);
+    serverLogger.info(
+      {
+        event: 'cache.initialized',
+        type: 'lru',
+        maxSize,
+      },
+      `Cache initialized with LRU strategy (max ${maxSize} entries)`
+    );
   }
 
   return cacheInstance;
@@ -333,7 +348,8 @@ export const CacheKeys = {
   projectMetadata: (projectId: string): string => `project:metadata:${projectId}`,
   userProjects: (userId: string): string => `user:projects:${userId}`,
   asset: (assetId: string): string => `asset:${assetId}`,
-  userAssets: (userId: string, projectId: string): string => `user:${userId}:project:${projectId}:assets`,
+  userAssets: (userId: string, projectId: string): string =>
+    `user:${userId}:project:${projectId}:assets`,
 };
 
 /**

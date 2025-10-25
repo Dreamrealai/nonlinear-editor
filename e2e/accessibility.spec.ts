@@ -99,7 +99,9 @@ test.describe('Accessibility', () => {
       await editorPage.goto(projectId);
 
       // Look for a button that opens a modal
-      const modalTrigger = page.locator('button:has-text("Settings"), button:has-text("Options")').first();
+      const modalTrigger = page
+        .locator('button:has-text("Settings"), button:has-text("Options")')
+        .first();
 
       if (await modalTrigger.isVisible({ timeout: 2000 })) {
         await modalTrigger.click();
@@ -117,7 +119,10 @@ test.describe('Accessibility', () => {
 
           // Focus should still be within modal
           const focusedElement = page.locator(':focus');
-          const isInModal = await modal.locator(':focus').isVisible().catch(() => false);
+          const isInModal = await modal
+            .locator(':focus')
+            .isVisible()
+            .catch(() => false);
 
           // Close modal with Escape
           await page.keyboard.press('Escape');
@@ -135,7 +140,9 @@ test.describe('Accessibility', () => {
       // Look for skip to content link
       await page.keyboard.press('Tab');
 
-      const skipLink = page.locator('a:has-text("Skip to"), a[href="#main-content"], a[href="#content"]');
+      const skipLink = page.locator(
+        'a:has-text("Skip to"), a[href="#main-content"], a[href="#content"]'
+      );
       const hasSkipLink = await skipLink.isVisible({ timeout: 1000 }).catch(() => false);
 
       if (hasSkipLink) {
@@ -144,7 +151,7 @@ test.describe('Accessibility', () => {
 
         // Main content should be focused
         const mainContent = page.locator('#main-content, #content, main');
-        if (await mainContent.count() > 0) {
+        if ((await mainContent.count()) > 0) {
           // Main content area should be in viewport
           expect(await mainContent.first().isVisible()).toBe(true);
         }
@@ -214,9 +221,7 @@ test.describe('Accessibility', () => {
       // Check all images have alt text
       const imagesWithoutAlt = await page.evaluate(() => {
         const images = Array.from(document.querySelectorAll('img'));
-        return images
-          .filter((img) => !img.hasAttribute('alt'))
-          .map((img) => img.src);
+        return images.filter((img) => !img.hasAttribute('alt')).map((img) => img.src);
       });
 
       console.log('Images without alt text:', imagesWithoutAlt);
@@ -234,7 +239,9 @@ test.describe('Accessibility', () => {
       await page.goto('/video-gen');
 
       // Look for ARIA live regions
-      const liveRegions = await page.locator('[aria-live], [role="status"], [role="alert"]').count();
+      const liveRegions = await page
+        .locator('[aria-live], [role="status"], [role="alert"]')
+        .count();
 
       console.log('Live regions found:', liveRegions);
 
@@ -310,7 +317,9 @@ test.describe('Accessibility', () => {
       await editorPage.goto(projectId);
 
       // Find modal trigger
-      const modalTrigger = page.locator('button:has-text("Settings"), button:has-text("Options")').first();
+      const modalTrigger = page
+        .locator('button:has-text("Settings"), button:has-text("Options")')
+        .first();
 
       if (await modalTrigger.isVisible({ timeout: 2000 })) {
         await modalTrigger.focus();
@@ -328,10 +337,9 @@ test.describe('Accessibility', () => {
           // Focus should return to trigger button
           await page.waitForTimeout(200);
           const focusedElement = page.locator(':focus');
-          const isTriggerFocused = await modalTrigger.evaluate(
-            (el, focused) => el === focused,
-            await focusedElement.elementHandle()
-          ).catch(() => false);
+          const isTriggerFocused = await modalTrigger
+            .evaluate((el, focused) => el === focused, await focusedElement.elementHandle())
+            .catch(() => false);
 
           // Focus should be restored (or at least somewhere visible)
           expect(isTriggerFocused || true).toBe(true);
@@ -412,14 +420,7 @@ test.describe('Accessibility', () => {
 
       // Check for ARIA landmarks
       const landmarks = await page.evaluate(() => {
-        const roles = [
-          'banner',
-          'navigation',
-          'main',
-          'complementary',
-          'contentinfo',
-          'region',
-        ];
+        const roles = ['banner', 'navigation', 'main', 'complementary', 'contentinfo', 'region'];
         const found: Record<string, number> = {};
 
         roles.forEach((role) => {
@@ -432,9 +433,7 @@ test.describe('Accessibility', () => {
             contentinfo: 'footer',
           }[role];
 
-          const semanticCount = semantic
-            ? document.querySelectorAll(semantic).length
-            : 0;
+          const semanticCount = semantic ? document.querySelectorAll(semantic).length : 0;
 
           found[role] = count + semanticCount;
         });
@@ -458,11 +457,9 @@ test.describe('Accessibility', () => {
       const interactiveChecks = await page.evaluate(() => {
         const checks = {
           buttonsWithPressed: document.querySelectorAll('button[aria-pressed]').length,
-          buttonsWithExpanded: document.querySelectorAll('button[aria-expanded]')
-            .length,
+          buttonsWithExpanded: document.querySelectorAll('button[aria-expanded]').length,
           inputsWithInvalid: document.querySelectorAll('input[aria-invalid]').length,
-          inputsWithRequired: document.querySelectorAll('input[aria-required]')
-            .length,
+          inputsWithRequired: document.querySelectorAll('input[aria-required]').length,
         };
         return checks;
       });
@@ -504,14 +501,16 @@ test.describe('Accessibility', () => {
       await injectAxe(page);
 
       // Check color contrast
-      const results = await page.evaluate(async () => {
-        // @ts-ignore
-        const axe = await import('axe-core');
-        // @ts-ignore
-        return await axe.run({
-          runOnly: ['color-contrast'],
-        });
-      }).catch(() => null);
+      const results = await page
+        .evaluate(async () => {
+          // @ts-ignore
+          const axe = await import('axe-core');
+          // @ts-ignore
+          return await axe.run({
+            runOnly: ['color-contrast'],
+          });
+        })
+        .catch(() => null);
 
       if (results) {
         console.log('Color contrast violations:', results);
@@ -618,9 +617,7 @@ test.describe('Accessibility', () => {
       // tabindex="-1" for programmatic focus
       // tabindex="0" for natural tab order
       // Avoid tabindex > 0
-      const positiveTabIndex = tabIndexElements.filter(
-        (el) => parseInt(el.tabIndex || '0') > 0
-      );
+      const positiveTabIndex = tabIndexElements.filter((el) => parseInt(el.tabIndex || '0') > 0);
 
       expect(positiveTabIndex.length).toBe(0); // Should avoid positive tabindex
     });
@@ -675,7 +672,7 @@ test.describe('Accessibility', () => {
 
           // Check for live region announcement
           const liveRegion = page.locator('[role="status"][aria-live="polite"]');
-          const hasAnnouncement = await liveRegion.count() > 0;
+          const hasAnnouncement = (await liveRegion.count()) > 0;
           expect(hasAnnouncement || true).toBe(true); // May not be implemented yet
         }
       }
@@ -701,7 +698,7 @@ test.describe('Accessibility', () => {
           hasText: /showing|results|assets/i,
         });
 
-        const hasResults = await resultsAnnouncement.count() > 0;
+        const hasResults = (await resultsAnnouncement.count()) > 0;
         expect(hasResults || true).toBe(true); // May not be fully implemented
       }
 
@@ -797,7 +794,7 @@ test.describe('Accessibility', () => {
           hasText: /selected/i,
         });
 
-        const hasAnnouncement = await selectionAnnouncement.count() > 0;
+        const hasAnnouncement = (await selectionAnnouncement.count()) > 0;
         // This may not be implemented yet, so we just log it
         console.log('Selection announcement found:', hasAnnouncement);
       }
@@ -812,7 +809,10 @@ test.describe('Accessibility', () => {
       await editorPage.goto(projectId);
 
       // Try to open a modal (e.g., grid settings or any dialog)
-      const modalTrigger = page.locator('button').filter({ hasText: /settings|options/i }).first();
+      const modalTrigger = page
+        .locator('button')
+        .filter({ hasText: /settings|options/i })
+        .first();
 
       if (await modalTrigger.isVisible({ timeout: 2000 })) {
         await modalTrigger.click();
@@ -830,7 +830,7 @@ test.describe('Accessibility', () => {
 
             // Check that focus is still within modal
             const focusedElement = page.locator(':focus');
-            const isInModal = await modal.locator(':focus').count() > 0;
+            const isInModal = (await modal.locator(':focus').count()) > 0;
 
             if (i < focusableInModal) {
               // Should be in modal
@@ -857,7 +857,8 @@ test.describe('Accessibility', () => {
       const allButtons = await page.locator('button').all();
       const unlabeledButtons: string[] = [];
 
-      for (const button of allButtons.slice(0, 50)) { // Check first 50 to avoid timeout
+      for (const button of allButtons.slice(0, 50)) {
+        // Check first 50 to avoid timeout
         const ariaLabel = await button.getAttribute('aria-label');
         const textContent = await button.textContent();
         const title = await button.getAttribute('title');

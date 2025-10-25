@@ -37,37 +37,50 @@ type SelectionStore = {
 };
 
 export const useSelectionStore = create<SelectionStore>()(
-  immer((set, get): { selectedClipIds: Set<string>; selectClip: (id: string, multi?: boolean | undefined) => void; deselectClip: (id: string) => void; clearSelection: () => void; isSelected: (id: string) => boolean; getSelectedCount: () => number; getSelectedIds: () => string[]; } => ({
-    selectedClipIds: new Set<string>(),
+  immer(
+    (
+      set,
+      get
+    ): {
+      selectedClipIds: Set<string>;
+      selectClip: (id: string, multi?: boolean | undefined) => void;
+      deselectClip: (id: string) => void;
+      clearSelection: () => void;
+      isSelected: (id: string) => boolean;
+      getSelectedCount: () => number;
+      getSelectedIds: () => string[];
+    } => ({
+      selectedClipIds: new Set<string>(),
 
-    selectClip: (id, multi = false): void =>
-      set((state): void => {
-        if (multi) {
-          if (state.selectedClipIds.has(id)) {
-            state.selectedClipIds.delete(id);
+      selectClip: (id, multi = false): void =>
+        set((state): void => {
+          if (multi) {
+            if (state.selectedClipIds.has(id)) {
+              state.selectedClipIds.delete(id);
+            } else {
+              state.selectedClipIds.add(id);
+            }
           } else {
+            state.selectedClipIds.clear();
             state.selectedClipIds.add(id);
           }
-        } else {
+        }),
+
+      deselectClip: (id): void =>
+        set((state): void => {
+          state.selectedClipIds.delete(id);
+        }),
+
+      clearSelection: (): void =>
+        set((state): void => {
           state.selectedClipIds.clear();
-          state.selectedClipIds.add(id);
-        }
-      }),
+        }),
 
-    deselectClip: (id): void =>
-      set((state): void => {
-        state.selectedClipIds.delete(id);
-      }),
+      isSelected: (id): boolean => get().selectedClipIds.has(id),
 
-    clearSelection: (): void =>
-      set((state): void => {
-        state.selectedClipIds.clear();
-      }),
+      getSelectedCount: (): number => get().selectedClipIds.size,
 
-    isSelected: (id): boolean => get().selectedClipIds.has(id),
-
-    getSelectedCount: (): number => get().selectedClipIds.size,
-
-    getSelectedIds: (): string[] => Array.from(get().selectedClipIds),
-  }))
+      getSelectedIds: (): string[] => Array.from(get().selectedClipIds),
+    })
+  )
 );

@@ -13,14 +13,17 @@ import {
 import { browserLogger } from '@/lib/browserLogger';
 
 // Mock the browserLogger
-jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
-  browserLogger: {
-    fatal: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    info: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/browserLogger',
+  (): Record<string, unknown> => ({
+    browserLogger: {
+      fatal: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      info: jest.fn(),
+    },
+  })
+);
 
 describe('Error Tracking', () => {
   beforeEach((): void => {

@@ -285,7 +285,9 @@ export function validateNumber(
   if (!required && (value === undefined || value === null)) {
     return null;
   }
-  return wrapValidation((): void => canonicalValidateNumber(value, fieldName, options.min, options.max));
+  return wrapValidation((): void =>
+    canonicalValidateNumber(value, fieldName, options.min, options.max)
+  );
 }
 
 /**

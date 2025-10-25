@@ -139,38 +139,40 @@ export function KeyframeSidebar({
           <div className="grid grid-cols-2 gap-2">
             {customFrames
               .sort((a, b): number => b.t_ms - a.t_ms)
-              .map((frame): React.ReactElement => (
-                <button
-                  key={frame.id}
-                  type="button"
-                  onClick={(): void => onFrameSelect(frame)}
-                  className={clsx(
-                    'group relative aspect-[4/3] overflow-hidden rounded border text-left transition-all',
-                    selectedFrameId === frame.id
-                      ? 'border-neutral-900 ring-1 ring-neutral-900'
-                      : 'border-neutral-200 hover:border-neutral-400'
-                  )}
-                >
-                  {frameUrls[frame.id] ? (
-                    <Image
-                      src={frameUrls[frame.id] ?? ''}
-                      alt="Custom frame"
-                      fill
-                      className="object-cover"
-                      sizes="120px"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center bg-neutral-100">
-                      <LoadingSpinner size="sm" />
+              .map(
+                (frame): React.ReactElement => (
+                  <button
+                    key={frame.id}
+                    type="button"
+                    onClick={(): void => onFrameSelect(frame)}
+                    className={clsx(
+                      'group relative aspect-[4/3] overflow-hidden rounded border text-left transition-all',
+                      selectedFrameId === frame.id
+                        ? 'border-neutral-900 ring-1 ring-neutral-900'
+                        : 'border-neutral-200 hover:border-neutral-400'
+                    )}
+                  >
+                    {frameUrls[frame.id] ? (
+                      <Image
+                        src={frameUrls[frame.id] ?? ''}
+                        alt="Custom frame"
+                        fill
+                        className="object-cover"
+                        sizes="120px"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center bg-neutral-100">
+                        <LoadingSpinner size="sm" />
+                      </div>
+                    )}
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-1.5 py-1">
+                      <span className="text-[9px] font-medium text-white">
+                        {frame.t_ms > 0 ? formatMs(frame.t_ms) : 'Upload'}
+                      </span>
                     </div>
-                  )}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-1.5 py-1">
-                    <span className="text-[9px] font-medium text-white">
-                      {frame.t_ms > 0 ? formatMs(frame.t_ms) : 'Upload'}
-                    </span>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                )
+              )}
           </div>
         </div>
       )}
@@ -194,38 +196,40 @@ export function KeyframeSidebar({
                   <span>{formatMs(scene.end_ms)}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-1.5">
-                  {sceneFrames.map((frame): React.ReactElement => (
-                    <button
-                      key={frame.id}
-                      type="button"
-                      onClick={(): void => onFrameSelect(frame)}
-                      className={clsx(
-                        'group relative aspect-[4/3] overflow-hidden rounded border text-left transition-all',
-                        selectedFrameId === frame.id
-                          ? 'border-neutral-900 ring-1 ring-neutral-900'
-                          : 'border-neutral-200 hover:border-neutral-400'
-                      )}
-                    >
-                      {frameUrls[frame.id] ? (
-                        <Image
-                          src={frameUrls[frame.id] ?? ''}
-                          alt={`${frame.kind} frame`}
-                          fill
-                          className="object-cover"
-                          sizes="80px"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center bg-neutral-100 text-[9px] text-neutral-400">
-                          ...
+                  {sceneFrames.map(
+                    (frame): React.ReactElement => (
+                      <button
+                        key={frame.id}
+                        type="button"
+                        onClick={(): void => onFrameSelect(frame)}
+                        className={clsx(
+                          'group relative aspect-[4/3] overflow-hidden rounded border text-left transition-all',
+                          selectedFrameId === frame.id
+                            ? 'border-neutral-900 ring-1 ring-neutral-900'
+                            : 'border-neutral-200 hover:border-neutral-400'
+                        )}
+                      >
+                        {frameUrls[frame.id] ? (
+                          <Image
+                            src={frameUrls[frame.id] ?? ''}
+                            alt={`${frame.kind} frame`}
+                            fill
+                            className="object-cover"
+                            sizes="80px"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center bg-neutral-100 text-[9px] text-neutral-400">
+                            ...
+                          </div>
+                        )}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-1 py-0.5">
+                          <span className="text-[8px] font-medium uppercase text-white">
+                            {frame.kind}
+                          </span>
                         </div>
-                      )}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-1 py-0.5">
-                        <span className="text-[8px] font-medium uppercase text-white">
-                          {frame.kind}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
             );

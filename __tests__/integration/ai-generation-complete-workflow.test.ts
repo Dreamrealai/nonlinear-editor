@@ -39,39 +39,51 @@ import {
 import { cache } from '@/lib/cache';
 
 // Mock error tracking
-jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
-  trackError: jest.fn(),
-  ErrorCategory: {
-    DATABASE: 'database',
-    EXTERNAL_SERVICE: 'external_service',
-  },
-  ErrorSeverity: {
-    HIGH: 'high',
-    MEDIUM: 'medium',
-  },
-}));
+jest.mock(
+  '@/lib/errorTracking',
+  (): Record<string, unknown> => ({
+    trackError: jest.fn(),
+    ErrorCategory: {
+      DATABASE: 'database',
+      EXTERNAL_SERVICE: 'external_service',
+    },
+    ErrorSeverity: {
+      HIGH: 'high',
+      MEDIUM: 'medium',
+    },
+  })
+);
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 // Mock video generation
-jest.mock('@/lib/veo', (): Record<string, unknown> => ({
-  generateVideo: jest.fn(),
-  checkOperationStatus: jest.fn(),
-}));
+jest.mock(
+  '@/lib/veo',
+  (): Record<string, unknown> => ({
+    generateVideo: jest.fn(),
+    checkOperationStatus: jest.fn(),
+  })
+);
 
 // Mock FAL video
-jest.mock('@/lib/fal-video', (): Record<string, unknown> => ({
-  generateFalVideo: jest.fn(),
-  checkFalVideoStatus: jest.fn(),
-}));
+jest.mock(
+  '@/lib/fal-video',
+  (): Record<string, unknown> => ({
+    generateFalVideo: jest.fn(),
+    checkFalVideoStatus: jest.fn(),
+  })
+);
 
 describe('Integration: Complete AI Generation Workflows', () => {
   let env: ReturnType<typeof createTestEnvironment>;

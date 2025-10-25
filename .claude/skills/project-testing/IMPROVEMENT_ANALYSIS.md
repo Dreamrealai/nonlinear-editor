@@ -10,6 +10,7 @@
 After deep research into agent swarm patterns, Chrome DevTools Protocol best practices, resilience patterns, and Claude skills community feedback, I've identified **24 critical improvements** to make the project-testing skill production-grade.
 
 **Priority breakdown:**
+
 - 🔴 **Critical (P0):** 5 improvements - blocking resilience issues
 - 🟡 **High (P1):** 8 improvements - major reliability/performance gains
 - 🟢 **Medium (P2):** 7 improvements - quality of life enhancements
@@ -20,18 +21,21 @@ After deep research into agent swarm patterns, Chrome DevTools Protocol best pra
 ## Research Sources
 
 ### 1. Agent Swarm Patterns
+
 - **Finding:** Large-scale experiments use 100,000+ agents successfully
 - **Finding:** Parallel execution reduces time by 70-80%
 - **Finding:** Consensus accuracy improves with multi-agent voting
 - **Finding:** Structured task hand-offs prevent context pollution
 
 ### 2. Chrome DevTools Protocol
+
 - **Finding:** Use higher-level abstractions (Puppeteer) for stability
 - **Finding:** Performance profiling captures LCP, FID, CLS metrics
 - **Finding:** Network interception enables request/response monitoring
 - **Warning:** Experimental APIs change frequently
 
 ### 3. Resilience Design Patterns
+
 - **Pattern:** Retry with exponential backoff (4s → 8s → 16s → 32s)
 - **Pattern:** Add jitter to prevent synchronized retry storms
 - **Pattern:** Circuit breaker prevents cascading failures
@@ -39,6 +43,7 @@ After deep research into agent swarm patterns, Chrome DevTools Protocol best pra
 - **Critical:** Ensure idempotency to prevent duplicate operations
 
 ### 4. Claude Skills Best Practices
+
 - **Finding:** Skills should be 30-50 tokens until loaded (keep focused)
 - **Finding:** Document like for a human collaborator
 - **Finding:** Test thoroughly in non-production first
@@ -46,6 +51,7 @@ After deep research into agent swarm patterns, Chrome DevTools Protocol best pra
 - **Warning:** Avoid multi-purpose bloated skills
 
 ### 5. Claude Code Production Patterns
+
 - **Pattern:** Plan-then-execute workflow (don't code immediately)
 - **Pattern:** Use `/clear` between tasks for context management
 - **Pattern:** Delegate complex workflows to sub-agents
@@ -53,6 +59,7 @@ After deep research into agent swarm patterns, Chrome DevTools Protocol best pra
 - **Pattern:** Hooks for automation in CI/CD
 
 ### 6. Community Lessons Learned
+
 - **Result:** 30-50% reduction in test maintenance costs
 - **Result:** Claude spots edge cases humans miss
 - **Issue:** Claude gets stuck on complex tasks (needs fallback)
@@ -200,6 +207,7 @@ After deep research into agent swarm patterns, Chrome DevTools Protocol best pra
 #### Improvement #1: Retry with Exponential Backoff
 
 **Implementation:**
+
 ```typescript
 interface RetryConfig {
   maxAttempts: number;      // 3
@@ -255,6 +263,7 @@ async function retryWithBackoff<T>(
 ```
 
 **Benefits:**
+
 - 80% reduction in false negatives from transient failures
 - Prevents retry storms with jitter
 - Fast-fails permanent errors
@@ -266,6 +275,7 @@ async function retryWithBackoff<T>(
 #### Improvement #2: Circuit Breaker Pattern
 
 **Implementation:**
+
 ```typescript
 enum CircuitState {
   CLOSED = 'closed',   // Normal operation
@@ -341,6 +351,7 @@ const productionCircuitBreaker = new CircuitBreaker({
 ```
 
 **Benefits:**
+
 - Protects production from testing during incidents
 - Fast-fails when production is down
 - Automatic recovery detection
@@ -352,6 +363,7 @@ const productionCircuitBreaker = new CircuitBreaker({
 #### Improvement #3: Error Classification System
 
 **Implementation:**
+
 ```typescript
 enum ErrorType {
   TRANSIENT = 'transient',    // Retry safe
@@ -453,6 +465,7 @@ function classifyError(error: Error, context: any): ClassifiedError {
 ```
 
 **Benefits:**
+
 - 60% faster error resolution (skip non-retryable errors)
 - Better error reporting to user
 - Smarter retry decisions
@@ -464,6 +477,7 @@ function classifyError(error: Error, context: any): ClassifiedError {
 #### Improvement #4: Idempotency Checks
 
 **Implementation:**
+
 ```typescript
 interface TestRun {
   id: string;
@@ -526,6 +540,7 @@ class TestRunRegistry {
 ```
 
 **Benefits:**
+
 - Safe to re-run tests multiple times
 - Prevents test data pollution
 - Caches results for identical code
@@ -538,6 +553,7 @@ class TestRunRegistry {
 #### Improvement #5: Context Management with /clear
 
 **Implementation:**
+
 ```typescript
 // Update agent launch strategy
 interface AgentLaunchStrategy {
@@ -589,6 +605,7 @@ interface AgentHandoff {
 ```
 
 **Benefits:**
+
 - 70-80% reduction in context size
 - 2-3x faster agent responses
 - Prevents token limit overflow
@@ -605,6 +622,7 @@ interface AgentHandoff {
 #### Improvement #6: Test Result Caching
 
 **Implementation:**
+
 ```typescript
 interface CachedTestResult {
   gitCommit: string;
@@ -674,6 +692,7 @@ class TestCache {
 ```
 
 **Benefits:**
+
 - 10-minute tests → 10-second cache lookup (60x faster)
 - Reduces Vercel/Axiom API calls
 - Developer productivity boost
@@ -686,6 +705,7 @@ class TestCache {
 #### Improvement #7: Consensus Voting for Critical Tests
 
 **Implementation:**
+
 ```typescript
 interface ConsensusConfig {
   agentsPerTest: number;      // 3
@@ -755,6 +775,7 @@ Process:
 ```
 
 **Benefits:**
+
 - 80% reduction in false negatives for critical tests
 - Higher confidence in test results
 - Detects agent hallucinations
@@ -767,6 +788,7 @@ Process:
 #### Improvement #8: Performance Budget Enforcement
 
 **Implementation:**
+
 ```typescript
 interface PerformanceBudget {
   LCP: number;    // Largest Contentful Paint: 2500ms
@@ -853,6 +875,7 @@ function checkPerformanceBudget(
 ```
 
 **Benefits:**
+
 - Automatic detection of performance regressions
 - Core Web Vitals tracked in production
 - Prevents UX degradation
@@ -865,6 +888,7 @@ function checkPerformanceBudget(
 #### Improvement #9: Configurable Parameters
 
 **Implementation:**
+
 ```typescript
 // Create config file
 interface ProjectTestingConfig {
@@ -942,6 +966,7 @@ function loadConfig(): ProjectTestingConfig {
 ```
 
 **Benefits:**
+
 - Flexibility for different scenarios
 - User control over trade-offs
 - Easy tuning for specific projects
@@ -958,6 +983,7 @@ function loadConfig(): ProjectTestingConfig {
 ## Implementation Roadmap
 
 ### Sprint 1 (Week 1): Critical Resilience
+
 - ✅ Retry with exponential backoff
 - ✅ Circuit breaker pattern
 - ✅ Error classification system
@@ -967,6 +993,7 @@ function loadConfig(): ProjectTestingConfig {
 **Outcome:** Production-grade resilience
 
 ### Sprint 2 (Week 2): Performance & Reliability
+
 - ✅ Test result caching
 - ✅ Consensus voting
 - ✅ Performance budget enforcement
@@ -976,6 +1003,7 @@ function loadConfig(): ProjectTestingConfig {
 **Outcome:** 60% faster tests, higher confidence
 
 ### Sprint 3 (Week 3): Intelligence & Optimization
+
 - ✅ Learning from history
 - ✅ Incremental testing
 - ✅ Agent prompt optimization
@@ -985,6 +1013,7 @@ function loadConfig(): ProjectTestingConfig {
 **Outcome:** Smarter testing, better coverage
 
 ### Sprint 4 (Week 4): Production Readiness
+
 - ✅ Git branch strategy
 - ✅ CI/CD integration
 - ✅ Rate limit handling
@@ -998,6 +1027,7 @@ function loadConfig(): ProjectTestingConfig {
 ## Success Metrics
 
 ### Before Improvements
+
 - ⏱️ **Test Duration:** 5-10 minutes
 - ❌ **False Negative Rate:** 40-60% (flaky tests)
 - 🔄 **Wasted Iterations:** 2-3 (retry non-retryable errors)
@@ -1006,6 +1036,7 @@ function loadConfig(): ProjectTestingConfig {
 - 🎯 **Test Confidence:** Low (single agent)
 
 ### After Improvements
+
 - ⏱️ **Test Duration:** 2-3 minutes (with cache) / 5-7 minutes (no cache)
 - ✅ **False Negative Rate:** 5-10% (resilient retry + consensus)
 - 🔄 **Wasted Iterations:** 0-1 (smart error classification)
@@ -1019,22 +1050,22 @@ function loadConfig(): ProjectTestingConfig {
 
 ## Priority Decision Matrix
 
-| Improvement | Impact | Effort | Priority | Sprint |
-|------------|--------|--------|----------|--------|
-| Retry with backoff | 🔴 Critical | 4h | P0 | 1 |
-| Circuit breaker | 🔴 Critical | 6h | P0 | 1 |
-| Error classification | 🔴 Critical | 3h | P0 | 1 |
-| Idempotency | 🔴 Critical | 4h | P0 | 1 |
-| Context management | 🔴 Critical | 3h | P0 | 1 |
-| Test caching | 🟡 High | 6h | P1 | 2 |
-| Consensus voting | 🟡 High | 5h | P1 | 2 |
-| Performance budgets | 🟡 High | 4h | P1 | 2 |
-| Configurable params | 🟡 High | 3h | P1 | 2 |
-| Fallback strategies | 🟡 High | 4h | P1 | 2 |
-| Learning from history | 🟡 High | 6h | P1 | 3 |
-| Incremental testing | 🟡 High | 5h | P1 | 3 |
-| Agent optimization | 🟡 High | 4h | P1 | 3 |
-| ... | ... | ... | ... | ... |
+| Improvement           | Impact      | Effort | Priority | Sprint |
+| --------------------- | ----------- | ------ | -------- | ------ |
+| Retry with backoff    | 🔴 Critical | 4h     | P0       | 1      |
+| Circuit breaker       | 🔴 Critical | 6h     | P0       | 1      |
+| Error classification  | 🔴 Critical | 3h     | P0       | 1      |
+| Idempotency           | 🔴 Critical | 4h     | P0       | 1      |
+| Context management    | 🔴 Critical | 3h     | P0       | 1      |
+| Test caching          | 🟡 High     | 6h     | P1       | 2      |
+| Consensus voting      | 🟡 High     | 5h     | P1       | 2      |
+| Performance budgets   | 🟡 High     | 4h     | P1       | 2      |
+| Configurable params   | 🟡 High     | 3h     | P1       | 2      |
+| Fallback strategies   | 🟡 High     | 4h     | P1       | 2      |
+| Learning from history | 🟡 High     | 6h     | P1       | 3      |
+| Incremental testing   | 🟡 High     | 5h     | P1       | 3      |
+| Agent optimization    | 🟡 High     | 4h     | P1       | 3      |
+| ...                   | ...         | ...    | ...      | ...    |
 
 ---
 
@@ -1043,17 +1074,20 @@ function loadConfig(): ProjectTestingConfig {
 The current project-testing skill is a **strong foundation** but needs **critical resilience improvements** to be production-ready.
 
 **Recommended Action:**
+
 1. ✅ Implement Sprint 1 (Critical Resilience) immediately
 2. ✅ Validate improvements with production testing
 3. ✅ Proceed with Sprint 2-4 based on results
 
 **Expected Outcome:**
+
 - Production-grade testing system
 - 60% faster execution
 - 90% reliability improvement
 - Enterprise-ready for critical deployments
 
 **Next Steps:**
+
 1. Review and approve improvement plan
 2. Create feature branch for Sprint 1
 3. Implement improvements with tests

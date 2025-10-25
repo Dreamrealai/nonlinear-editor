@@ -33,31 +33,11 @@
         -1,
         "TEMPLATE_URL"
       ],
-      [
-        "https://api.axiom.co/v1/datasets/${dataset}/ingest",
-        -1,
-        "TEMPLATE_URL"
-      ],
-      [
-        "https://api.axiom.co/v1/datasets/{DATASET_NAME}/ingest",
-        -1,
-        "TEMPLATE_URL"
-      ],
-      [
-        "https://api.axiom.co/v1/datasets/{DATASET_NAME}/query",
-        -1,
-        "TEMPLATE_URL"
-      ],
-      [
-        "https://api.cometapi.com/suno/fetch/${taskId}",
-        -1,
-        "TEMPLATE_URL"
-      ],
-      [
-        "https://api.vercel.com/v6/deployments?teamId=[TEAM_ID]",
-        -1,
-        "TEMPLATE_URL"
-      ],
+      ["https://api.axiom.co/v1/datasets/${dataset}/ingest", -1, "TEMPLATE_URL"],
+      ["https://api.axiom.co/v1/datasets/{DATASET_NAME}/ingest", -1, "TEMPLATE_URL"],
+      ["https://api.axiom.co/v1/datasets/{DATASET_NAME}/query", -1, "TEMPLATE_URL"],
+      ["https://api.cometapi.com/suno/fetch/${taskId}", -1, "TEMPLATE_URL"],
+      ["https://api.vercel.com/v6/deployments?teamId=[TEAM_ID]", -1, "TEMPLATE_URL"],
       [
         "https://queue.fal.run/fal-ai/minimax/hailuo-02/standard/image-to-video/requests/{request_id}",
         -1,
@@ -78,36 +58,12 @@
         -1,
         "TEMPLATE_URL"
       ],
-      [
-        "https://queue.fal.run/{model_id}",
-        -1,
-        "TEMPLATE_URL"
-      ],
-      [
-        "https://queue.fal.run/{model_id}/requests/{request_id}",
-        -1,
-        "TEMPLATE_URL"
-      ],
-      [
-        "https://queue.fal.run/{model_id}/requests/{request_id}/cancel",
-        -1,
-        "TEMPLATE_URL"
-      ],
-      [
-        "https://queue.fal.run/{model_id}/requests/{request_id}/status",
-        -1,
-        "TEMPLATE_URL"
-      ],
-      [
-        "https://queue.fal.run/{model_id}/requests/{request_id}/status/stream",
-        -1,
-        "TEMPLATE_URL"
-      ],
-      [
-        "https://queue.fal.run/{model_id}/{subpath}",
-        -1,
-        "TEMPLATE_URL"
-      ],
+      ["https://queue.fal.run/{model_id}", -1, "TEMPLATE_URL"],
+      ["https://queue.fal.run/{model_id}/requests/{request_id}", -1, "TEMPLATE_URL"],
+      ["https://queue.fal.run/{model_id}/requests/{request_id}/cancel", -1, "TEMPLATE_URL"],
+      ["https://queue.fal.run/{model_id}/requests/{request_id}/status", -1, "TEMPLATE_URL"],
+      ["https://queue.fal.run/{model_id}/requests/{request_id}/status/stream", -1, "TEMPLATE_URL"],
+      ["https://queue.fal.run/{model_id}/{subpath}", -1, "TEMPLATE_URL"],
       [
         "https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/MODEL_ID:fetchPredictOperation",
         -1,
@@ -155,71 +111,19 @@
       ]
     ],
     "example": [
-      [
-        "https://api.example.com",
-        -1,
-        "EXAMPLE_URL"
-      ],
-      [
-        "https://example.com/account",
-        -1,
-        "EXAMPLE_URL"
-      ],
-      [
-        "https://example.com/auth/callback",
-        -1,
-        "EXAMPLE_URL"
-      ],
-      [
-        "https://example.com/cancel",
-        -1,
-        "EXAMPLE_URL"
-      ],
-      [
-        "https://example.com/cat.jpg",
-        -1,
-        "EXAMPLE_URL"
-      ],
-      [
-        "https://example.com/image.png",
-        -1,
-        "EXAMPLE_URL"
-      ],
-      [
-        "https://example.com/reset-password",
-        -1,
-        "EXAMPLE_URL"
-      ],
-      [
-        "https://example.com/success",
-        -1,
-        "EXAMPLE_URL"
-      ],
-      [
-        "https://example.com/welcome",
-        -1,
-        "EXAMPLE_URL"
-      ],
-      [
-        "https://example123.ngrok.io/api/webhook",
-        -1,
-        "EXAMPLE_URL"
-      ],
-      [
-        "https://staging.api.example.com",
-        -1,
-        "EXAMPLE_URL"
-      ],
-      [
-        "https://xyzcompany.supabase.co",
-        -1,
-        "EXAMPLE_URL"
-      ],
-      [
-        "https://your-server.com/webhook/callback",
-        -1,
-        "EXAMPLE_URL"
-      ]
+      ["https://api.example.com", -1, "EXAMPLE_URL"],
+      ["https://example.com/account", -1, "EXAMPLE_URL"],
+      ["https://example.com/auth/callback", -1, "EXAMPLE_URL"],
+      ["https://example.com/cancel", -1, "EXAMPLE_URL"],
+      ["https://example.com/cat.jpg", -1, "EXAMPLE_URL"],
+      ["https://example.com/image.png", -1, "EXAMPLE_URL"],
+      ["https://example.com/reset-password", -1, "EXAMPLE_URL"],
+      ["https://example.com/success", -1, "EXAMPLE_URL"],
+      ["https://example.com/welcome", -1, "EXAMPLE_URL"],
+      ["https://example123.ngrok.io/api/webhook", -1, "EXAMPLE_URL"],
+      ["https://staging.api.example.com", -1, "EXAMPLE_URL"],
+      ["https://xyzcompany.supabase.co", -1, "EXAMPLE_URL"],
+      ["https://your-server.com/webhook/callback", -1, "EXAMPLE_URL"]
     ],
     "error": [
       [
@@ -347,11 +251,7 @@
         -2,
         "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
       ],
-      [
-        "https://api.production.com",
-        -2,
-        "[Errno 8] nodename nor servname provided, or not known"
-      ],
+      ["https://api.production.com", -2, "[Errno 8] nodename nor servname provided, or not known"],
       [
         "https://api.resend.com",
         -2,
@@ -362,11 +262,7 @@
         -2,
         "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)"
       ],
-      [
-        "https://api.staging.com",
-        -2,
-        "[Errno 8] nodename nor servname provided, or not known"
-      ],
+      ["https://api.staging.com", -2, "[Errno 8] nodename nor servname provided, or not known"],
       [
         "https://api.vercel.com",
         -2,

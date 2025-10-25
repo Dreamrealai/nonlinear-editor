@@ -22,32 +22,38 @@ import { NUMERIC_LIMITS } from '@/lib/config';
 import { VIDEO_MODEL_CONFIGS } from '@/lib/config/models';
 
 // Mock config
-jest.mock('@/lib/config', (): Record<string, unknown> => ({
-  NUMERIC_LIMITS: {
-    VIDEO_QUEUE_MAX: 3,
-  },
-}));
+jest.mock(
+  '@/lib/config',
+  (): Record<string, unknown> => ({
+    NUMERIC_LIMITS: {
+      VIDEO_QUEUE_MAX: 3,
+    },
+  })
+);
 
-jest.mock('@/lib/config/models', (): Record<string, unknown> => ({
-  VIDEO_MODEL_CONFIGS: {
-    'veo-002': {
-      supportedAspectRatios: ['16:9', '9:16', '1:1'],
-      supportedDurations: [5, 8],
-      maxSampleCount: 2,
-      supportsAudio: true,
-      supportsNegativePrompt: true,
-      supportsEnhancePrompt: true,
+jest.mock(
+  '@/lib/config/models',
+  (): Record<string, unknown> => ({
+    VIDEO_MODEL_CONFIGS: {
+      'veo-002': {
+        supportedAspectRatios: ['16:9', '9:16', '1:1'],
+        supportedDurations: [5, 8],
+        maxSampleCount: 2,
+        supportsAudio: true,
+        supportsNegativePrompt: true,
+        supportsEnhancePrompt: true,
+      },
+      'minimax-01': {
+        supportedAspectRatios: ['16:9', '9:16'],
+        supportedDurations: [5, 6],
+        maxSampleCount: 1,
+        supportsAudio: false,
+        supportsNegativePrompt: false,
+        supportsEnhancePrompt: false,
+      },
     },
-    'minimax-01': {
-      supportedAspectRatios: ['16:9', '9:16'],
-      supportedDurations: [5, 6],
-      maxSampleCount: 1,
-      supportsAudio: false,
-      supportsNegativePrompt: false,
-      supportsEnhancePrompt: false,
-    },
-  },
-}));
+  })
+);
 
 describe('canAddToQueue', () => {
   it('should allow adding when queue is empty', () => {

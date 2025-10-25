@@ -37,36 +37,39 @@ type PlaybackStore = {
   reset: () => void;
 };
 
-export const usePlaybackStore = create<PlaybackStore>()((set): PlaybackStore => ({
-  currentTime: 0,
-  zoom: DEFAULT_ZOOM,
-  isPlaying: false,
+export const usePlaybackStore = create<PlaybackStore>()(
+  (set): PlaybackStore => ({
+    currentTime: 0,
+    zoom: DEFAULT_ZOOM,
+    isPlaying: false,
 
-  setCurrentTime: (time): void =>
-    set((): { currentTime: number; } => ({
-      currentTime: Math.max(0, time),
-    })),
+    setCurrentTime: (time): void =>
+      set((): { currentTime: number } => ({
+        currentTime: Math.max(0, time),
+      })),
 
-  setZoom: (zoom): void =>
-    set((): { zoom: number; } => ({
-      zoom: Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom)),
-    })),
+    setZoom: (zoom): void =>
+      set((): { zoom: number } => ({
+        zoom: Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom)),
+      })),
 
-  setIsPlaying: (playing): void =>
-    set((): { isPlaying: boolean; } => ({
-      isPlaying: playing,
-    })),
+    setIsPlaying: (playing): void =>
+      set((): { isPlaying: boolean } => ({
+        isPlaying: playing,
+      })),
 
-  play: (): void => set((): { isPlaying: true; } => ({ isPlaying: true })),
+    play: (): void => set((): { isPlaying: true } => ({ isPlaying: true })),
 
-  pause: (): void => set((): { isPlaying: false; } => ({ isPlaying: false })),
+    pause: (): void => set((): { isPlaying: false } => ({ isPlaying: false })),
 
-  togglePlayPause: (): void => set((state): { isPlaying: boolean; } => ({ isPlaying: !state.isPlaying })),
+    togglePlayPause: (): void =>
+      set((state): { isPlaying: boolean } => ({ isPlaying: !state.isPlaying })),
 
-  reset: (): void =>
-    set((): { currentTime: number; zoom: number; isPlaying: boolean; } => ({
-      currentTime: 0,
-      zoom: DEFAULT_ZOOM,
-      isPlaying: false,
-    })),
-}));
+    reset: (): void =>
+      set((): { currentTime: number; zoom: number; isPlaying: boolean } => ({
+        currentTime: 0,
+        zoom: DEFAULT_ZOOM,
+        isPlaying: false,
+      })),
+  })
+);

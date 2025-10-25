@@ -6,7 +6,8 @@
 
 Based on audit of test files:
 
-**Integration Tests (/__tests__/integration/):**
+**Integration Tests (/**tests**/integration/):**
+
 - ✅ auth-flow.test.ts - Authentication lifecycle
 - ✅ asset-upload-flow.test.ts - Asset upload complete workflow
 - ✅ asset-management-workflow.test.ts - Asset CRUD operations
@@ -17,7 +18,8 @@ Based on audit of test files:
 - ✅ project-workflow.test.ts - Project CRUD
 - ✅ memory-leak-prevention.test.ts - Memory management
 
-**Component Tests (/__tests__/components/):**
+**Component Tests (/**tests**/components/):**
+
 - Most component tests are **isolated unit tests**
 - Tests mock stores/contexts heavily
 - Limited testing of component interactions
@@ -26,13 +28,16 @@ Based on audit of test files:
 ### Identified Gaps
 
 #### 1. Component Communication Not Well Tested
+
 - Parent-child prop passing and callbacks
 - Context providers and consumers working together
 - Event bubbling between components
 - State synchronization across related components
 
 #### 2. Multi-Component User Flows Missing
+
 Current integration tests focus on service/API layer, not UI component integration:
+
 - Video generation form → queue → status updates
 - Asset panel → drag-drop → timeline integration
 - Timeline controls → playback → preview synchronization
@@ -40,6 +45,7 @@ Current integration tests focus on service/API layer, not UI component integrati
 - Settings changes → immediate UI updates
 
 #### 3. Interactive Behaviors Not Covered
+
 - Keyboard navigation between components
 - Focus management across modals/panels
 - Drag-and-drop between components
@@ -105,9 +111,11 @@ Current integration tests focus on service/API layer, not UI component integrati
 ### For Top 5 Flows (Immediate Priority)
 
 #### 1. Video Generation Flow Integration Test
+
 **File**: `__tests__/components/integration/video-generation-flow-ui.test.tsx`
 
 Test scenarios:
+
 - Complete form submission workflow
 - Queue updates and status polling
 - Error handling and user feedback
@@ -116,9 +124,11 @@ Test scenarios:
 - Multi-video queue management
 
 #### 2. Asset Upload and Timeline Integration Test
+
 **File**: `__tests__/components/integration/asset-timeline-integration.test.tsx`
 
 Test scenarios:
+
 - File upload via drag-drop zone
 - Asset panel updates after upload
 - Drag asset from panel to timeline
@@ -127,9 +137,11 @@ Test scenarios:
 - Batch upload handling
 
 #### 3. Timeline Editing Flow Integration Test
+
 **File**: `__tests__/components/integration/timeline-editing-flow.test.tsx`
 
 Test scenarios:
+
 - Add multiple clips to timeline
 - Select clip and update properties
 - Timeline controls (play, pause, seek)
@@ -138,9 +150,11 @@ Test scenarios:
 - Timeline zoom and pan
 
 #### 4. Export Workflow Integration Test
+
 **File**: `__tests__/components/integration/export-workflow.test.tsx`
 
 Test scenarios:
+
 - Open export modal from timeline
 - Select export preset
 - Validate timeline before export
@@ -149,9 +163,11 @@ Test scenarios:
 - Handle export errors
 
 #### 5. Project Management Flow Integration Test
+
 **File**: `__tests__/components/integration/project-management-flow.test.tsx`
 
 Test scenarios:
+
 - Create new project
 - Navigate to editor
 - Make changes and autosave
@@ -162,6 +178,7 @@ Test scenarios:
 ### Testing Approach
 
 **Use Real User Interactions:**
+
 ```typescript
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -181,6 +198,7 @@ await user.keyboard('{Enter}');
 ```
 
 **Test Component Trees, Not Isolation:**
+
 ```typescript
 // BAD: Testing in isolation with mocks
 render(<VideoGenerationForm {...mocks} />);
@@ -194,6 +212,7 @@ render(
 ```
 
 **Verify State Synchronization:**
+
 ```typescript
 // Submit form
 await user.click(submitButton);
@@ -208,12 +227,14 @@ expect(screen.getByLabelText('Prompt')).toHaveValue('');
 ## Expected Outcomes
 
 ### Metrics
+
 - **New integration test files**: 5
 - **New test cases**: 30-50
 - **Component integration coverage**: +15-20%
 - **User flow coverage**: Top 5 flows fully tested
 
 ### Quality Improvements
+
 - Components tested together, not just isolated
 - Real user interactions verified
 - State synchronization validated

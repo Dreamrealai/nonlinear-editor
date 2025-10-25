@@ -432,6 +432,7 @@ Total running time: ~18 minutes
 ## Production Checklist
 
 ### Pre-Production
+
 - [ ] Write and review all scripts
 - [ ] Gather all sample assets
 - [ ] Prepare clean project states
@@ -439,6 +440,7 @@ Total running time: ~18 minutes
 - [ ] Create shot list for each tutorial
 
 ### Production
+
 - [ ] Record screen at 1920x1080 or higher
 - [ ] Use clear microphone (no background noise)
 - [ ] Record in multiple takes for best results
@@ -446,6 +448,7 @@ Total running time: ~18 minutes
 - [ ] Record cursor highlights for important actions
 
 ### Post-Production
+
 - [ ] Edit for pacing (remove long pauses)
 - [ ] Add keyboard shortcut overlays
 - [ ] Include zoom effects for clarity
@@ -456,6 +459,7 @@ Total running time: ~18 minutes
 - [ ] Add intro/outro branding
 
 ### Publishing
+
 - [ ] Upload to YouTube
 - [ ] Create eye-catching thumbnails
 - [ ] Write SEO-optimized descriptions
@@ -467,6 +471,7 @@ Total running time: ~18 minutes
 - [ ] Add to onboarding flow
 
 ### Supplementary Materials
+
 - [ ] Keyboard shortcuts cheat sheet (PDF)
 - [ ] Tag system template
 - [ ] Sample assets for practice
@@ -478,6 +483,7 @@ Total running time: ~18 minutes
 ## Video Thumbnail Templates
 
 ### Tutorial 1 Thumbnail
+
 - Background: Screenshot of clean editor interface
 - Text: "Getting Started" (large)
 - Subtext: "Your First Video Project"
@@ -485,6 +491,7 @@ Total running time: ~18 minutes
 - Color scheme: Blue/green (beginner-friendly)
 
 ### Tutorial 2 Thumbnail
+
 - Background: Timeline with multiple clips
 - Text: "Timeline Editing" (large)
 - Subtext: "Master the Basics"
@@ -492,6 +499,7 @@ Total running time: ~18 minutes
 - Color scheme: Orange (engaging)
 
 ### Tutorial 3 Thumbnail
+
 - Background: Asset panel with many assets
 - Text: "Asset Management" (large)
 - Subtext: "Stay Organized"
@@ -499,6 +507,7 @@ Total running time: ~18 minutes
 - Color scheme: Purple (organized feel)
 
 ### Tutorial 4 Thumbnail
+
 - Background: Keyboard shortcuts overlay
 - Text: "Power User Tips" (large)
 - Subtext: "Advanced Techniques"

@@ -1,14 +1,17 @@
 # MiniMax (Hailuo AI) Video Generation API (via fal.ai)
 
 ## Overview
+
 MiniMax Video 01 Live is a high-quality video generation model by Hailuo AI, optimized for transforming static art into dynamic masterpieces with enhanced smoothness and vivid motion.
 
 ## Base URL
+
 ```
 https://fal.ai
 ```
 
 ## Authentication
+
 ```bash
 export FAL_KEY="YOUR_API_KEY"
 ```
@@ -16,11 +19,13 @@ export FAL_KEY="YOUR_API_KEY"
 ## Models
 
 ### MiniMax Video 01 Live (Text-to-Video)
+
 **Endpoint**: `fal-ai/minimax/video-01-live`
 
 Generate video clips from text prompts with automatic prompt optimization.
 
 **Features**:
+
 - High-quality motion generation
 - Automatic prompt optimization
 - Excellent for character animation
@@ -28,22 +33,26 @@ Generate video clips from text prompts with automatic prompt optimization.
 - Optimized for stability and expression
 
 ### MiniMax Video 01 Live (Image-to-Video)
+
 **Endpoint**: `fal-ai/minimax/video-01-live/image-to-video`
 
 Transform static illustrations into dynamic animated clips.
 
 **Features**:
+
 - Enhanced smoothness
 - Vivid character motion
 - Subtle expression support
 - Wide artistic style compatibility
 
 ### MiniMax T2V-01-Director
+
 **Endpoint**: `fal-ai/minimax/video-01-live/text-to-video/director`
 
 Advanced text-to-video with camera movement controls.
 
 **Features**:
+
 - Camera movement instructions in prompts
 - Up to 3 combined movements
 - Professional cinematography control
@@ -51,16 +60,16 @@ Advanced text-to-video with camera movement controls.
 ## Text-to-Video Example
 
 ```typescript
-import { fal } from "@fal-ai/client";
+import { fal } from '@fal-ai/client';
 
-const result = await fal.subscribe("fal-ai/minimax/video-01-live", {
+const result = await fal.subscribe('fal-ai/minimax/video-01-live', {
   input: {
-    prompt: "A rugged middle-aged man with wheat-colored skin stands in harsh desert sunlight",
-    prompt_optimizer: true
+    prompt: 'A rugged middle-aged man with wheat-colored skin stands in harsh desert sunlight',
+    prompt_optimizer: true,
   },
   logs: true,
   onQueueUpdate: (update) => {
-    if (update.status === "IN_PROGRESS") {
+    if (update.status === 'IN_PROGRESS') {
       update.logs.map((log) => log.message).forEach(console.log);
     }
   },
@@ -72,14 +81,14 @@ console.log(result.data.video.url);
 ## Image-to-Video Example
 
 ```typescript
-import { fal } from "@fal-ai/client";
+import { fal } from '@fal-ai/client';
 
-const result = await fal.subscribe("fal-ai/minimax/video-01-live/image-to-video", {
+const result = await fal.subscribe('fal-ai/minimax/video-01-live/image-to-video', {
   input: {
-    prompt: "The character smiles and waves warmly at the viewer",
-    image_url: "https://example.com/character.png",
-    prompt_optimizer: true
-  }
+    prompt: 'The character smiles and waves warmly at the viewer',
+    image_url: 'https://example.com/character.png',
+    prompt_optimizer: true,
+  },
 });
 
 console.log(result.data.video.url);
@@ -88,15 +97,16 @@ console.log(result.data.video.url);
 ## Director Mode with Camera Controls
 
 ```typescript
-const result = await fal.subscribe("fal-ai/minimax/video-01-live/text-to-video/director", {
+const result = await fal.subscribe('fal-ai/minimax/video-01-live/text-to-video/director', {
   input: {
-    prompt: "[Pan left, Zoom in] A vast landscape reveals a hidden valley",
-    prompt_optimizer: true
-  }
+    prompt: '[Pan left, Zoom in] A vast landscape reveals a hidden valley',
+    prompt_optimizer: true,
+  },
 });
 ```
 
 ### Supported Camera Movements
+
 - `Truck left/right`: Lateral camera movement
 - `Pan left/right`: Horizontal rotation
 - `Push in/Pull out`: Forward/backward movement
@@ -108,12 +118,15 @@ const result = await fal.subscribe("fal-ai/minimax/video-01-live/text-to-video/d
 - `Static shot`: No camera movement
 
 ### Camera Movement Syntax
+
 Use square brackets in your prompt:
+
 ```
 [Movement1, Movement2, Movement3] Your scene description
 ```
 
 Example:
+
 ```
 [Truck left, Pan right, Zoom in] A warrior walks through a misty forest
 ```
@@ -121,52 +134,55 @@ Example:
 ## Queue API
 
 ### Submit Request
+
 ```typescript
-const { request_id } = await fal.queue.submit("fal-ai/minimax/video-01-live", {
+const { request_id } = await fal.queue.submit('fal-ai/minimax/video-01-live', {
   input: {
-    prompt: "Your video description",
-    prompt_optimizer: true
+    prompt: 'Your video description',
+    prompt_optimizer: true,
   },
-  webhookUrl: "https://your-app.com/webhook"
+  webhookUrl: 'https://your-app.com/webhook',
 });
 ```
 
 ### Check Status
+
 ```typescript
-const status = await fal.queue.status("fal-ai/minimax/video-01-live", {
+const status = await fal.queue.status('fal-ai/minimax/video-01-live', {
   requestId: request_id,
-  logs: true
+  logs: true,
 });
 ```
 
 ### Get Result
+
 ```typescript
-const result = await fal.queue.result("fal-ai/minimax/video-01-live", {
-  requestId: request_id
+const result = await fal.queue.result('fal-ai/minimax/video-01-live', {
+  requestId: request_id,
 });
 ```
 
 ## Input Schema (Text-to-Video)
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `prompt` | string | Yes | Text description of the video |
-| `prompt_optimizer` | boolean | No | Auto-optimize prompt (default: true) |
+| Parameter          | Type    | Required | Description                          |
+| ------------------ | ------- | -------- | ------------------------------------ |
+| `prompt`           | string  | Yes      | Text description of the video        |
+| `prompt_optimizer` | boolean | No       | Auto-optimize prompt (default: true) |
 
 ## Input Schema (Image-to-Video)
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `prompt` | string | Yes | Animation description |
-| `image_url` | string | Yes | URL of input image |
-| `prompt_optimizer` | boolean | No | Auto-optimize prompt (default: true) |
+| Parameter          | Type    | Required | Description                          |
+| ------------------ | ------- | -------- | ------------------------------------ |
+| `prompt`           | string  | Yes      | Animation description                |
+| `image_url`        | string  | Yes      | URL of input image                   |
+| `prompt_optimizer` | boolean | No       | Auto-optimize prompt (default: true) |
 
 ## Input Schema (Director Mode)
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `prompt` | string | Yes | Prompt with camera movements in brackets |
-| `prompt_optimizer` | boolean | No | Auto-optimize prompt (default: true) |
+| Parameter          | Type    | Required | Description                              |
+| ------------------ | ------- | -------- | ---------------------------------------- |
+| `prompt`           | string  | Yes      | Prompt with camera movements in brackets |
+| `prompt_optimizer` | boolean | No       | Auto-optimize prompt (default: true)     |
 
 ## Output Schema
 
@@ -182,6 +198,7 @@ const result = await fal.queue.result("fal-ai/minimax/video-01-live", {
 ```
 
 ## Pricing
+
 - **Standard**: ~$0.10 per video
 - **Director Mode**: ~$0.15 per video
 - Very cost-effective for high-quality output
@@ -197,6 +214,7 @@ const result = await fal.queue.result("fal-ai/minimax/video-01-live", {
 ## Prompt Structure
 
 ### Good Text-to-Video Prompt
+
 ```
 A [character description] in [environment],
 [action/movement], [lighting/atmosphere],
@@ -204,6 +222,7 @@ A [character description] in [environment],
 ```
 
 ### Example
+
 ```
 A young woman with long flowing hair in a cherry blossom garden,
 twirling gracefully as petals fall around her,
@@ -213,12 +232,14 @@ high quality, detailed, smooth motion
 ```
 
 ### Good Image-to-Video Prompt
+
 ```
 [Action/movement description], [emotion/expression],
 [environmental interaction], [motion quality]
 ```
 
 ### Example
+
 ```
 The character looks at the camera and smiles warmly,
 her eyes sparkling with joy,
@@ -229,15 +250,16 @@ smooth and natural movement
 ## Advanced Features
 
 ### Subject Reference (Consistent Character)
+
 For maintaining character consistency across videos:
 
 ```typescript
-const result = await fal.subscribe("fal-ai/minimax/video-01-live/subject-reference", {
+const result = await fal.subscribe('fal-ai/minimax/video-01-live/subject-reference', {
   input: {
-    prompt: "The character walks through a forest",
-    subject_reference_image_url: "https://example.com/character-ref.png",
-    prompt_optimizer: true
-  }
+    prompt: 'The character walks through a forest',
+    subject_reference_image_url: 'https://example.com/character-ref.png',
+    prompt_optimizer: true,
+  },
 });
 ```
 
@@ -245,16 +267,17 @@ const result = await fal.subscribe("fal-ai/minimax/video-01-live/subject-referen
 
 ```typescript
 try {
-  const result = await fal.subscribe("fal-ai/minimax/video-01-live", {
-    input: { prompt: "..." }
+  const result = await fal.subscribe('fal-ai/minimax/video-01-live', {
+    input: { prompt: '...' },
   });
 } catch (error) {
-  console.error("Video generation failed:", error.message);
+  console.error('Video generation failed:', error.message);
   // Implement retry logic
 }
 ```
 
 ## Rate Limits
+
 - Check fal.ai dashboard for current limits
 - MiniMax is generally fast (30-60 seconds per video)
 
@@ -276,6 +299,7 @@ try {
 - Social media clips
 
 ## Notes
+
 - Excellent for 2D illustration to video
 - Strong understanding of human motion
 - Good physics simulation

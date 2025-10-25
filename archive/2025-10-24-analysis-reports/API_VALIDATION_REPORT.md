@@ -25,42 +25,42 @@ This report validates the API documentation against the actual implementation co
 
 #### ✅ Fully Documented and Accurate
 
-| Endpoint | Route File | Documentation | Status |
-|----------|-----------|---------------|--------|
-| `POST /api/projects` | ✅ Exists | ✅ Complete | Accurate |
-| `POST /api/assets/upload` | ✅ Exists | ✅ Complete | Accurate |
-| `POST /api/video/generate` | ✅ Exists | ✅ Complete | Accurate |
-| `GET /api/video/status` | ✅ Exists | ✅ Complete | Accurate |
-| `POST /api/image/generate` | ✅ Exists | ✅ Complete | Accurate |
-| `POST /api/audio/elevenlabs/generate` | ✅ Exists | ✅ Complete | Accurate |
-| `GET /api/audio/elevenlabs/voices` | ✅ Exists | ✅ Complete | Accurate |
-| `POST /api/audio/elevenlabs/sfx` | ✅ Exists | ✅ Complete | Accurate |
-| `POST /api/export` | ✅ Exists | ✅ Complete | Accurate |
-| `GET /api/export` | ✅ Exists | ✅ Complete | Accurate |
+| Endpoint                              | Route File | Documentation | Status   |
+| ------------------------------------- | ---------- | ------------- | -------- |
+| `POST /api/projects`                  | ✅ Exists  | ✅ Complete   | Accurate |
+| `POST /api/assets/upload`             | ✅ Exists  | ✅ Complete   | Accurate |
+| `POST /api/video/generate`            | ✅ Exists  | ✅ Complete   | Accurate |
+| `GET /api/video/status`               | ✅ Exists  | ✅ Complete   | Accurate |
+| `POST /api/image/generate`            | ✅ Exists  | ✅ Complete   | Accurate |
+| `POST /api/audio/elevenlabs/generate` | ✅ Exists  | ✅ Complete   | Accurate |
+| `GET /api/audio/elevenlabs/voices`    | ✅ Exists  | ✅ Complete   | Accurate |
+| `POST /api/audio/elevenlabs/sfx`      | ✅ Exists  | ✅ Complete   | Accurate |
+| `POST /api/export`                    | ✅ Exists  | ✅ Complete   | Accurate |
+| `GET /api/export`                     | ✅ Exists  | ✅ Complete   | Accurate |
 
 #### ⚠️ Implemented but Missing Documentation
 
-| Endpoint | Route File | Issue |
-|----------|-----------|-------|
-| `GET /api/projects/[projectId]` | `/app/api/projects/[projectId]/route.ts` | Missing from main docs |
-| `DELETE /api/projects/[projectId]` | `/app/api/projects/[projectId]/route.ts` | Missing from main docs |
-| `PUT /api/projects/[projectId]` | `/app/api/projects/[projectId]/route.ts` | Missing from main docs |
-| `POST /api/projects/[projectId]/chat` | `/app/api/projects/[projectId]/chat/route.ts` | Missing from main docs |
-| `GET /api/projects/[projectId]/chat/messages` | `/app/api/projects/[projectId]/chat/messages/route.ts` | Missing from main docs |
-| `POST /api/frames/[frameId]/edit` | `/app/api/frames/[frameId]/edit/route.ts` | Missing from main docs |
-| `POST /api/video/upscale` | `/app/api/video/upscale/route.ts` | Mentioned but not detailed |
-| `GET /api/video/upscale-status` | `/app/api/video/upscale-status/route.ts` | Mentioned but not detailed |
-| `POST /api/video/generate-audio` | `/app/api/video/generate-audio/route.ts` | Mentioned but not detailed |
-| `GET /api/video/generate-audio-status` | `/app/api/video/generate-audio-status/route.ts` | Mentioned but not detailed |
-| `POST /api/video/split-scenes` | `/app/api/video/split-scenes/route.ts` | Mentioned but not detailed |
-| `POST /api/video/split-audio` | `/app/api/video/split-audio/route.ts` | Mentioned but not detailed |
-| `POST /api/audio/suno/generate` | `/app/api/audio/suno/generate/route.ts` | Basic docs, needs detail |
-| `GET /api/audio/suno/status` | `/app/api/audio/suno/status/route.ts` | Basic docs, needs detail |
-| `POST /api/assets/sign` | `/app/api/assets/sign/route.ts` | Mentioned but not detailed |
-| `GET /api/assets` | `/app/api/assets/route.ts` | Documented |
-| `GET /api/health` | `/app/api/health/route.ts` | Not documented |
-| `GET /api/logs` | `/app/api/logs/route.ts` | Not documented |
-| `GET /api/docs` | `/app/api/docs/route.ts` | Not documented (self-doc) |
+| Endpoint                                      | Route File                                             | Issue                      |
+| --------------------------------------------- | ------------------------------------------------------ | -------------------------- |
+| `GET /api/projects/[projectId]`               | `/app/api/projects/[projectId]/route.ts`               | Missing from main docs     |
+| `DELETE /api/projects/[projectId]`            | `/app/api/projects/[projectId]/route.ts`               | Missing from main docs     |
+| `PUT /api/projects/[projectId]`               | `/app/api/projects/[projectId]/route.ts`               | Missing from main docs     |
+| `POST /api/projects/[projectId]/chat`         | `/app/api/projects/[projectId]/chat/route.ts`          | Missing from main docs     |
+| `GET /api/projects/[projectId]/chat/messages` | `/app/api/projects/[projectId]/chat/messages/route.ts` | Missing from main docs     |
+| `POST /api/frames/[frameId]/edit`             | `/app/api/frames/[frameId]/edit/route.ts`              | Missing from main docs     |
+| `POST /api/video/upscale`                     | `/app/api/video/upscale/route.ts`                      | Mentioned but not detailed |
+| `GET /api/video/upscale-status`               | `/app/api/video/upscale-status/route.ts`               | Mentioned but not detailed |
+| `POST /api/video/generate-audio`              | `/app/api/video/generate-audio/route.ts`               | Mentioned but not detailed |
+| `GET /api/video/generate-audio-status`        | `/app/api/video/generate-audio-status/route.ts`        | Mentioned but not detailed |
+| `POST /api/video/split-scenes`                | `/app/api/video/split-scenes/route.ts`                 | Mentioned but not detailed |
+| `POST /api/video/split-audio`                 | `/app/api/video/split-audio/route.ts`                  | Mentioned but not detailed |
+| `POST /api/audio/suno/generate`               | `/app/api/audio/suno/generate/route.ts`                | Basic docs, needs detail   |
+| `GET /api/audio/suno/status`                  | `/app/api/audio/suno/status/route.ts`                  | Basic docs, needs detail   |
+| `POST /api/assets/sign`                       | `/app/api/assets/sign/route.ts`                        | Mentioned but not detailed |
+| `GET /api/assets`                             | `/app/api/assets/route.ts`                             | Documented                 |
+| `GET /api/health`                             | `/app/api/health/route.ts`                             | Not documented             |
+| `GET /api/logs`                               | `/app/api/logs/route.ts`                               | Not documented             |
+| `GET /api/docs`                               | `/app/api/docs/route.ts`                               | Not documented (self-doc)  |
 
 ---
 
@@ -69,6 +69,7 @@ This report validates the API documentation against the actual implementation co
 ### 2.1 Video Generation (`POST /api/video/generate`)
 
 **Documentation Parameters:**
+
 - ✅ `prompt` (3-1000 chars) - Matches code
 - ✅ `projectId` (UUID) - Matches code
 - ✅ `model` (string) - Matches code
@@ -85,15 +86,17 @@ This report validates the API documentation against the actual implementation co
 - ✅ `imageAssetId` (UUID) - Matches code
 
 **Supported Models in Code:**
+
 ```typescript
-'veo-3.1-generate-preview'
-'veo-3.1-fast-generate-preview'
-'veo-2.0-generate-001'
-'seedance-1.0-pro'
-'minimax-hailuo-02-pro'
+'veo-3.1-generate-preview';
+'veo-3.1-fast-generate-preview';
+'veo-2.0-generate-001';
+'seedance-1.0-pro';
+'minimax-hailuo-02-pro';
 ```
 
 **Documentation Models:**
+
 ```
 'veo-3.1-generate-preview'
 'veo-3.1-fast-generate-preview'
@@ -109,6 +112,7 @@ This report validates the API documentation against the actual implementation co
 ### 2.2 Image Generation (`POST /api/image/generate`)
 
 **Documentation Parameters:**
+
 - ✅ `prompt` (3-1000 chars) - Matches code
 - ✅ `projectId` (UUID) - Matches code
 - ✅ `model` (default: imagen-3.0-generate-001) - Matches code
@@ -129,22 +133,25 @@ This report validates the API documentation against the actual implementation co
 ### 2.3 Asset Upload (`POST /api/assets/upload`)
 
 **Documentation:**
+
 - ✅ `file` (File, max 100MB) - Matches code
 - ✅ `projectId` (UUID) - Matches code
 - ✅ `type` ('image', 'video', 'audio') - Matches code
 
 **Allowed MIME Types (Documentation):**
+
 - Image: image/jpeg, image/png, image/gif, image/webp, image/avif
 - Video: video/mp4, video/webm, video/quicktime, video/x-msvideo
 - Audio: audio/mpeg, audio/wav, audio/ogg, audio/webm
 
 **Allowed MIME Types (Code):**
+
 ```typescript
 const ALLOWED_MIME_TYPES = {
   image: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif'],
   video: ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'],
   audio: ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm'],
-}
+};
 ```
 
 ✅ **Status:** Fully Accurate
@@ -154,6 +161,7 @@ const ALLOWED_MIME_TYPES = {
 ### 2.4 Audio Generation - ElevenLabs TTS (`POST /api/audio/elevenlabs/generate`)
 
 **Documentation Parameters:**
+
 - ✅ `text` (1-5000 chars) - Matches code
 - ✅ `projectId` (UUID) - Matches code
 - ✅ `voiceId` (default: EXAVITQu4vr4xnSDxMaL) - Matches code
@@ -168,6 +176,7 @@ const ALLOWED_MIME_TYPES = {
 ### 2.5 Sound Effects (`POST /api/audio/elevenlabs/sfx`)
 
 **Documentation Parameters:**
+
 - ✅ `projectId` (UUID) - Matches code
 - ✅ `prompt` (3-500 chars) - Matches code
 - ✅ `duration` (0.5-22, default: 5.0) - Matches code
@@ -179,6 +188,7 @@ const ALLOWED_MIME_TYPES = {
 ### 2.6 Export (`POST /api/export`)
 
 **Documentation Parameters:**
+
 - ✅ `projectId` (UUID) - Matches code
 - ✅ `timeline.clips` (array) - Matches code
 - ✅ `outputSpec.width` (1-7680) - Matches code
@@ -189,6 +199,7 @@ const ALLOWED_MIME_TYPES = {
 - ✅ `outputSpec.format` ('mp4' or 'webm') - Matches code
 
 **Clip Properties:**
+
 - ✅ `id`, `assetId`, `start`, `end`, `timelinePosition`, `trackIndex` - All match
 - ✅ `volume` (0-2), `opacity` (0-1), `speed` (1-10) - All match
 - ✅ `transitionToNext` - Matches code
@@ -207,17 +218,20 @@ const ALLOWED_MIME_TYPES = {
 **Validation Results:**
 
 ✅ **Text-to-Speech Endpoint:** Up to date
+
 - Endpoint: `POST /v1/text-to-speech/{voice_id}`
 - Parameters match current API
 - Output formats documented correctly
 - Voice settings parameters accurate
 
 ✅ **Sound Effects Endpoint:** Up to date
+
 - Endpoint: `POST /v1/sound-generation`
 - Parameters: `text`, `loop`, `duration_seconds`, `prompt_influence`
 - All documented correctly
 
 ⚠️ **Minor Discrepancy:**
+
 - Documentation shows `optimize_streaming_latency` as deprecated
 - Firecrawl confirms this is deprecated
 - Our implementation doesn't use this parameter ✅
@@ -232,6 +246,7 @@ const ALLOWED_MIME_TYPES = {
 **Current Status:** Could not validate via Firecrawl (response too large)
 
 **Manual Validation:**
+
 - ✅ Auth methods documented correctly
 - ✅ Database operations accurate
 - ✅ Storage API matches implementation
@@ -246,6 +261,7 @@ const ALLOWED_MIME_TYPES = {
 **Status:** No direct validation possible via Firecrawl
 
 **Documentation Files:**
+
 - `/docs/api/IMAGEN_IMAGE_GOOGLE_DOCUMENTATION.md`
 - `/docs/api/VEO2_VIDEO_GOOGLE_DOCUMENTATION.md`
 - `/docs/api/VEO3_VIDEO_GOOGLE_DOCUMENTATION.md`
@@ -259,26 +275,28 @@ const ALLOWED_MIME_TYPES = {
 
 ### 4.1 Documented Rate Limits
 
-| Tier | Limit/Min | Documented Use Cases |
-|------|-----------|---------------------|
-| Tier 1 | 5 | Auth, payments, account deletion |
-| Tier 2 | 10 | AI generation, uploads |
-| Tier 3 | 30 | Status checks, reads |
-| Tier 4 | 60 | General operations |
+| Tier   | Limit/Min | Documented Use Cases             |
+| ------ | --------- | -------------------------------- |
+| Tier 1 | 5         | Auth, payments, account deletion |
+| Tier 2 | 10        | AI generation, uploads           |
+| Tier 3 | 30        | Status checks, reads             |
+| Tier 4 | 60        | General operations               |
 
 ### 4.2 Implementation Validation
 
 **Code Review:**
+
 ```typescript
 export const RATE_LIMITS = {
   tier1_critical: { limit: 5, windowMs: 60000 },
   tier2_resource_creation: { limit: 10, windowMs: 60000 },
   tier3_status_reads: { limit: 30, windowMs: 60000 },
   tier4_general: { limit: 60, windowMs: 60000 },
-}
+};
 ```
 
 **Applied to Endpoints:**
+
 - ✅ Video generation: Tier 2 (10/min)
 - ✅ Image generation: Tier 2 (10/min)
 - ✅ Audio TTS: Tier 2 (10/min)
@@ -387,12 +405,12 @@ export const RATE_LIMITS = {
 
 ## 7. Validation Metrics
 
-| Category | Total | Documented | Accurate | Missing | Inaccurate |
-|----------|-------|------------|----------|---------|------------|
-| **Core Endpoints** | 37 | 20 | 20 | 17 | 0 |
-| **Parameters** | ~150 | ~150 | ~149 | 0 | 1 |
-| **Error Codes** | ~50 | ~40 | ~40 | ~10 | 0 |
-| **External APIs** | 3 | 3 | 3 | 0 | 0 |
+| Category           | Total | Documented | Accurate | Missing | Inaccurate |
+| ------------------ | ----- | ---------- | -------- | ------- | ---------- |
+| **Core Endpoints** | 37    | 20         | 20       | 17      | 0          |
+| **Parameters**     | ~150  | ~150       | ~149     | 0       | 1          |
+| **Error Codes**    | ~50   | ~40        | ~40      | ~10     | 0          |
+| **External APIs**  | 3     | 3          | 3        | 0       | 0          |
 
 **Accuracy Rate:** 97.3%
 **Documentation Coverage:** 54.1%
@@ -403,29 +421,29 @@ export const RATE_LIMITS = {
 
 ### 8.1 Documented External APIs
 
-| Service | Documentation File | Last Updated | Status |
-|---------|-------------------|--------------|--------|
-| FAL.AI | `/docs/api/fal-ai-docs.md` | 2025-10-23 | ✅ Current |
-| ElevenLabs | `/docs/api/elevenlabs-api-docs.md` | 2025-10-23 | ✅ Current |
-| Supabase | `/docs/api/supabase-api-docs.md` | 2025-10-23 | ✅ Current |
-| Stripe | `/docs/api/stripe-api-docs.md` | Unknown | ⚠️ Review needed |
-| Google Vertex AI | `/docs/api/google-vertex-ai-docs.md` | Unknown | ⚠️ Review needed |
-| Google AI Studio | `/docs/api/google-ai-studio-docs.md` | Unknown | ⚠️ Review needed |
-| Comet/Suno | `/docs/api/comet-suno-api-docs.md` | Unknown | ⚠️ Review needed |
-| Axiom | `/docs/api/axiom-api-docs.md` | Unknown | ⚠️ Review needed |
+| Service          | Documentation File                   | Last Updated | Status           |
+| ---------------- | ------------------------------------ | ------------ | ---------------- |
+| FAL.AI           | `/docs/api/fal-ai-docs.md`           | 2025-10-23   | ✅ Current       |
+| ElevenLabs       | `/docs/api/elevenlabs-api-docs.md`   | 2025-10-23   | ✅ Current       |
+| Supabase         | `/docs/api/supabase-api-docs.md`     | 2025-10-23   | ✅ Current       |
+| Stripe           | `/docs/api/stripe-api-docs.md`       | Unknown      | ⚠️ Review needed |
+| Google Vertex AI | `/docs/api/google-vertex-ai-docs.md` | Unknown      | ⚠️ Review needed |
+| Google AI Studio | `/docs/api/google-ai-studio-docs.md` | Unknown      | ⚠️ Review needed |
+| Comet/Suno       | `/docs/api/comet-suno-api-docs.md`   | Unknown      | ⚠️ Review needed |
+| Axiom            | `/docs/api/axiom-api-docs.md`        | Unknown      | ⚠️ Review needed |
 
 ### 8.2 Model-Specific Documentation
 
-| Model | Provider | Documentation File | Status |
-|-------|----------|-------------------|--------|
-| MiniMax | FAL.AI | `/docs/api/fal-minimax.md` | ✅ |
-| Kling | FAL.AI | `/docs/api/fal-kling.md` | ✅ |
-| Pixverse | FAL.AI | `/docs/api/fal-pixverse.md` | ✅ |
-| Sora 2 | FAL.AI | `/docs/api/fal-sora-2.md` | ✅ |
-| Imagen 3 | Google | `/docs/api/IMAGEN_IMAGE_GOOGLE_DOCUMENTATION.md` | ✅ |
-| Veo 2 | Google | `/docs/api/VEO2_VIDEO_GOOGLE_DOCUMENTATION.md` | ✅ |
-| Veo 3 | Google | `/docs/api/VEO3_VIDEO_GOOGLE_DOCUMENTATION.md` | ✅ |
-| Gemini 2.5 Flash | Google | `/docs/api/GEMINI25FLASH_MULTIMODAL_GOOGLE_DOCUMENTATION.md` | ✅ |
+| Model            | Provider | Documentation File                                           | Status |
+| ---------------- | -------- | ------------------------------------------------------------ | ------ |
+| MiniMax          | FAL.AI   | `/docs/api/fal-minimax.md`                                   | ✅     |
+| Kling            | FAL.AI   | `/docs/api/fal-kling.md`                                     | ✅     |
+| Pixverse         | FAL.AI   | `/docs/api/fal-pixverse.md`                                  | ✅     |
+| Sora 2           | FAL.AI   | `/docs/api/fal-sora-2.md`                                    | ✅     |
+| Imagen 3         | Google   | `/docs/api/IMAGEN_IMAGE_GOOGLE_DOCUMENTATION.md`             | ✅     |
+| Veo 2            | Google   | `/docs/api/VEO2_VIDEO_GOOGLE_DOCUMENTATION.md`               | ✅     |
+| Veo 3            | Google   | `/docs/api/VEO3_VIDEO_GOOGLE_DOCUMENTATION.md`               | ✅     |
+| Gemini 2.5 Flash | Google   | `/docs/api/GEMINI25FLASH_MULTIMODAL_GOOGLE_DOCUMENTATION.md` | ✅     |
 
 ---
 
@@ -434,6 +452,7 @@ export const RATE_LIMITS = {
 The API documentation is **generally accurate and well-maintained** with the following findings:
 
 **Strengths:**
+
 - ✅ Core endpoint documentation is accurate and detailed
 - ✅ Parameter validation matches implementation perfectly
 - ✅ Rate limiting is consistently documented and applied
@@ -442,6 +461,7 @@ The API documentation is **generally accurate and well-maintained** with the fol
 - ✅ Security practices are documented
 
 **Areas for Improvement:**
+
 - ⚠️ 17 implemented endpoints lack documentation (46% coverage gap)
 - ⚠️ Missing detailed documentation for video processing endpoints
 - ⚠️ Need to add frame editing and chat API documentation
@@ -450,6 +470,7 @@ The API documentation is **generally accurate and well-maintained** with the fol
 **Overall Grade:** B+ (87/100)
 
 **Priority Actions:**
+
 1. Document the 17 missing endpoints
 2. Add comprehensive examples for all endpoints
 3. Create automated documentation validation

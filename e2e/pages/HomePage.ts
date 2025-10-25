@@ -11,7 +11,9 @@ export class HomePage {
   constructor(page: Page) {
     this.page = page;
     this.newProjectButton = page.locator('text=New Project');
-    this.projectsList = page.locator('[data-testid="projects-list"]').or(page.locator('.projects-list'));
+    this.projectsList = page
+      .locator('[data-testid="projects-list"]')
+      .or(page.locator('.projects-list'));
     this.userMenu = page.locator('[data-testid="user-menu"]').or(page.locator('.user-menu'));
     this.logoutButton = page.locator('text=Logout').or(page.locator('a[href="/logout"]'));
     this.settingsButton = page.locator('text=Settings').or(page.locator('a[href="/settings"]'));
@@ -32,7 +34,9 @@ export class HomePage {
   }
 
   async getProjectCount(): Promise<number> {
-    const projects = this.page.locator('[data-testid="project-item"]').or(this.page.locator('.project-item'));
+    const projects = this.page
+      .locator('[data-testid="project-item"]')
+      .or(this.page.locator('.project-item'));
     return await projects.count();
   }
 

@@ -22,22 +22,25 @@ import {
 import posthog from 'posthog-js';
 
 // Mock PostHog
-jest.mock('posthog-js', (): Record<string, unknown> => ({
-  init: jest.fn(),
-  capture: jest.fn(),
-  identify: jest.fn(),
-  reset: jest.fn(),
-  people: {
-    set: jest.fn(),
-  },
-  isFeatureEnabled: jest.fn(),
-  getFeatureFlag: jest.fn(),
-  startSessionRecording: jest.fn(),
-  stopSessionRecording: jest.fn(),
-  opt_out_capturing: jest.fn(),
-  opt_in_capturing: jest.fn(),
-  has_opted_out_capturing: jest.fn(),
-}));
+jest.mock(
+  'posthog-js',
+  (): Record<string, unknown> => ({
+    init: jest.fn(),
+    capture: jest.fn(),
+    identify: jest.fn(),
+    reset: jest.fn(),
+    people: {
+      set: jest.fn(),
+    },
+    isFeatureEnabled: jest.fn(),
+    getFeatureFlag: jest.fn(),
+    startSessionRecording: jest.fn(),
+    stopSessionRecording: jest.fn(),
+    opt_out_capturing: jest.fn(),
+    opt_in_capturing: jest.fn(),
+    has_opted_out_capturing: jest.fn(),
+  })
+);
 
 describe('AnalyticsService', () => {
   let originalEnv: NodeJS.ProcessEnv;

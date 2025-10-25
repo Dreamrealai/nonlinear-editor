@@ -190,8 +190,7 @@ export function createTestSupabaseClient(userId: string): SupabaseClient {
               const items = db.query(currentTable, (item) => item[column] === value);
               items.forEach((item) => db.delete(currentTable, item.id));
               return {
-                then: (resolve: any) =>
-                  resolve({ data: null, error: null, count: items.length }),
+                then: (resolve: any) => resolve({ data: null, error: null, count: items.length }),
               };
             },
           };
@@ -379,10 +378,7 @@ export function createTestAuthHandler<TParams = Record<string, never>>(
   handler: AuthenticatedHandler<TParams>,
   options: { skipAuth?: boolean } = {}
 ): (request: NextRequest, context: { params: Promise<TParams> }) => Promise<Response> {
-  return async (
-    request: NextRequest,
-    context: { params: Promise<TParams> }
-  ): Promise<Response> => {
+  return async (request: NextRequest, context: { params: Promise<TParams> }): Promise<Response> => {
     // Check if request has test user attached
     const testUser = (request as any).__testUser as User | undefined;
 

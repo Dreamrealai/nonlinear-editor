@@ -28,24 +28,33 @@ import {
 } from '@/test-utils/testWithAuth';
 
 // Mock external services only
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    child: jest.fn().mockReturnThis(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+      child: jest.fn().mockReturnThis(),
+    },
+  })
+);
 
-jest.mock('@/lib/cacheInvalidation', (): Record<string, unknown> => ({
-  invalidateUserProjects: jest.fn().mockResolvedValue(undefined),
-}));
+jest.mock(
+  '@/lib/cacheInvalidation',
+  (): Record<string, unknown> => ({
+    invalidateUserProjects: jest.fn().mockResolvedValue(undefined),
+  })
+);
 
 // Mock Supabase to use test implementation
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+  })
+);
 
 describe('POST /api/projects - Integration Tests', () => {
   const { serverLogger } = require('@/lib/serverLogger');
@@ -77,24 +86,22 @@ describe('POST /api/projects - Integration Tests', () => {
       });
 
       // Act - Call route handler through test auth wrapper
-      const handler = createTestAuthHandler(
-        async (req, { user, supabase }) => {
-          const { POST: actualHandler } = await import('@/app/api/projects/route');
-          // Extract the actual handler function from withAuth wrapper
-          // For testing, we need to call the inner handler directly
-          const body = await req.json();
-          const title = body.title || 'Untitled Project';
+      const handler = createTestAuthHandler(async (req, { user, supabase }) => {
+        const { POST: actualHandler } = await import('@/app/api/projects/route');
+        // Extract the actual handler function from withAuth wrapper
+        // For testing, we need to call the inner handler directly
+        const body = await req.json();
+        const title = body.title || 'Untitled Project';
 
-          const { ProjectService } = await import('@/lib/services/projectService');
-          const projectService = new ProjectService(supabase);
-          const project = await projectService.createProject(user.id, { title });
+        const { ProjectService } = await import('@/lib/services/projectService');
+        const projectService = new ProjectService(supabase);
+        const project = await projectService.createProject(user.id, { title });
 
-          return new Response(JSON.stringify(project), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-      );
+        return new Response(JSON.stringify(project), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      });
 
       const response = await handler(request, { params: Promise.resolve({}) });
 
@@ -119,21 +126,19 @@ describe('POST /api/projects - Integration Tests', () => {
       });
 
       // Act - Call route handler through test auth wrapper
-      const handler = createTestAuthHandler(
-        async (req, { user, supabase }) => {
-          const body = await req.json();
-          const title = body.title || 'Untitled Project';
+      const handler = createTestAuthHandler(async (req, { user, supabase }) => {
+        const body = await req.json();
+        const title = body.title || 'Untitled Project';
 
-          const { ProjectService } = await import('@/lib/services/projectService');
-          const projectService = new ProjectService(supabase);
-          const project = await projectService.createProject(user.id, { title });
+        const { ProjectService } = await import('@/lib/services/projectService');
+        const projectService = new ProjectService(supabase);
+        const project = await projectService.createProject(user.id, { title });
 
-          return new Response(JSON.stringify(project), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-      );
+        return new Response(JSON.stringify(project), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      });
 
       const response = await handler(request, { params: Promise.resolve({}) });
 
@@ -166,21 +171,19 @@ describe('POST /api/projects - Integration Tests', () => {
         return createTestSupabaseClient(user.id);
       });
 
-      const handler = createTestAuthHandler(
-        async (req, { user, supabase }) => {
-          const body = await req.json();
-          const title = body.title || 'Untitled Project';
+      const handler = createTestAuthHandler(async (req, { user, supabase }) => {
+        const body = await req.json();
+        const title = body.title || 'Untitled Project';
 
-          const { ProjectService } = await import('@/lib/services/projectService');
-          const projectService = new ProjectService(supabase);
-          const project = await projectService.createProject(user.id, { title });
+        const { ProjectService } = await import('@/lib/services/projectService');
+        const projectService = new ProjectService(supabase);
+        const project = await projectService.createProject(user.id, { title });
 
-          return new Response(JSON.stringify(project), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-      );
+        return new Response(JSON.stringify(project), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      });
 
       const response = await handler(request, { params: Promise.resolve({}) });
 
@@ -208,39 +211,37 @@ describe('POST /api/projects - Integration Tests', () => {
           return createTestSupabaseClient(user.id);
         });
 
-        const handler = createTestAuthHandler(
-          async (req, { user, supabase }) => {
-            const body = await req.json();
-            const titleValue = body.title || 'Untitled Project';
+        const handler = createTestAuthHandler(async (req, { user, supabase }) => {
+          const body = await req.json();
+          const titleValue = body.title || 'Untitled Project';
 
-            // Import validation
-            const { validateString, ValidationError } = await import('@/lib/validation');
+          // Import validation
+          const { validateString, ValidationError } = await import('@/lib/validation');
 
-            // Validate if title provided
-            if (body.title) {
-              try {
-                validateString(body.title, 'title', { minLength: 1, maxLength: 200 });
-              } catch (error) {
-                if (error instanceof ValidationError) {
-                  return new Response(
-                    JSON.stringify({ error: error.message, field: error.field }),
-                    { status: 400, headers: { 'Content-Type': 'application/json' } }
-                  );
-                }
-                throw error;
+          // Validate if title provided
+          if (body.title) {
+            try {
+              validateString(body.title, 'title', { minLength: 1, maxLength: 200 });
+            } catch (error) {
+              if (error instanceof ValidationError) {
+                return new Response(JSON.stringify({ error: error.message, field: error.field }), {
+                  status: 400,
+                  headers: { 'Content-Type': 'application/json' },
+                });
               }
+              throw error;
             }
-
-            const { ProjectService } = await import('@/lib/services/projectService');
-            const projectService = new ProjectService(supabase);
-            const project = await projectService.createProject(user.id, { title: titleValue });
-
-            return new Response(JSON.stringify(project), {
-              status: 200,
-              headers: { 'Content-Type': 'application/json' },
-            });
           }
-        );
+
+          const { ProjectService } = await import('@/lib/services/projectService');
+          const projectService = new ProjectService(supabase);
+          const project = await projectService.createProject(user.id, { title: titleValue });
+
+          return new Response(JSON.stringify(project), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        });
 
         const response = await handler(request, { params: Promise.resolve({}) });
 
@@ -262,36 +263,34 @@ describe('POST /api/projects - Integration Tests', () => {
         return createTestSupabaseClient(user.id);
       });
 
-      const handler = createTestAuthHandler(
-        async (req, { user, supabase }) => {
-          const body = await req.json();
+      const handler = createTestAuthHandler(async (req, { user, supabase }) => {
+        const body = await req.json();
 
-          const { validateString, ValidationError } = await import('@/lib/validation');
+        const { validateString, ValidationError } = await import('@/lib/validation');
 
-          if (body.title) {
-            try {
-              validateString(body.title, 'title', { minLength: 1, maxLength: 200 });
-            } catch (error) {
-              if (error instanceof ValidationError) {
-                return new Response(
-                  JSON.stringify({ error: error.message, field: error.field }),
-                  { status: 400, headers: { 'Content-Type': 'application/json' } }
-                );
-              }
-              throw error;
+        if (body.title) {
+          try {
+            validateString(body.title, 'title', { minLength: 1, maxLength: 200 });
+          } catch (error) {
+            if (error instanceof ValidationError) {
+              return new Response(JSON.stringify({ error: error.message, field: error.field }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+              });
             }
+            throw error;
           }
-
-          const { ProjectService } = await import('@/lib/services/projectService');
-          const projectService = new ProjectService(supabase);
-          const project = await projectService.createProject(user.id, { title: body.title });
-
-          return new Response(JSON.stringify(project), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          });
         }
-      );
+
+        const { ProjectService } = await import('@/lib/services/projectService');
+        const projectService = new ProjectService(supabase);
+        const project = await projectService.createProject(user.id, { title: body.title });
+
+        return new Response(JSON.stringify(project), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      });
 
       const response = await handler(request, { params: Promise.resolve({}) });
 
@@ -314,21 +313,19 @@ describe('POST /api/projects - Integration Tests', () => {
         return createTestSupabaseClient(user.id);
       });
 
-      const handler = createTestAuthHandler(
-        async (req, { user, supabase }) => {
-          const body = await req.json();
-          const title = body.title || 'Untitled Project';
+      const handler = createTestAuthHandler(async (req, { user, supabase }) => {
+        const body = await req.json();
+        const title = body.title || 'Untitled Project';
 
-          const { ProjectService } = await import('@/lib/services/projectService');
-          const projectService = new ProjectService(supabase);
-          const project = await projectService.createProject(user.id, { title });
+        const { ProjectService } = await import('@/lib/services/projectService');
+        const projectService = new ProjectService(supabase);
+        const project = await projectService.createProject(user.id, { title });
 
-          return new Response(JSON.stringify(project), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-      );
+        return new Response(JSON.stringify(project), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      });
 
       const response = await handler(request, { params: Promise.resolve({}) });
 
@@ -356,32 +353,30 @@ describe('POST /api/projects - Integration Tests', () => {
         return createTestSupabaseClient(user.id);
       });
 
-      const handler = createTestAuthHandler(
-        async (req, { user, supabase }) => {
-          const body = await req.json();
-          const title = body.title || 'Untitled Project';
+      const handler = createTestAuthHandler(async (req, { user, supabase }) => {
+        const body = await req.json();
+        const title = body.title || 'Untitled Project';
 
-          const { ProjectService } = await import('@/lib/services/projectService');
-          const projectService = new ProjectService(supabase);
-          const project = await projectService.createProject(user.id, { title });
+        const { ProjectService } = await import('@/lib/services/projectService');
+        const projectService = new ProjectService(supabase);
+        const project = await projectService.createProject(user.id, { title });
 
-          // Log like the real handler does
-          serverLogger.info(
-            {
-              event: 'projects.create.success',
-              userId: user.id,
-              projectId: project.id,
-              title,
-            },
-            'Project created successfully'
-          );
+        // Log like the real handler does
+        serverLogger.info(
+          {
+            event: 'projects.create.success',
+            userId: user.id,
+            projectId: project.id,
+            title,
+          },
+          'Project created successfully'
+        );
 
-          return new Response(JSON.stringify(project), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-      );
+        return new Response(JSON.stringify(project), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      });
 
       await handler(request, { params: Promise.resolve({}) });
 

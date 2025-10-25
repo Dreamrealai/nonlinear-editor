@@ -7,45 +7,57 @@ import { POST } from '@/app/api/admin/delete-user/route';
 import { createMockSupabaseClient, resetAllMocks } from '@/test-utils/mockSupabase';
 
 // Mock service Supabase client
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServiceSupabaseClient: jest.fn(),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServiceSupabaseClient: jest.fn(),
+  })
+);
 
 // Mock withAdminAuth wrapper
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAdminAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
-    const mockAdmin = {
-      id: 'admin-123',
-      email: 'admin@example.com',
-      user_metadata: { is_admin: true },
-    };
-    return handler(req, { user: mockAdmin, supabase: null, params: context?.params || {} });
-  }),
-  logAdminAction: jest.fn(),
-}));
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAdminAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+      const mockAdmin = {
+        id: 'admin-123',
+        email: 'admin@example.com',
+        user_metadata: { is_admin: true },
+      };
+      return handler(req, { user: mockAdmin, supabase: null, params: context?.params || {} });
+    }),
+    logAdminAction: jest.fn(),
+  })
+);
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 // Mock validation
-jest.mock('@/lib/api/validation', (): Record<string, unknown> => ({
-  validateUUID: jest.fn((id: string, field: string) => {
-    if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
-      return { valid: false, errors: [{ field, message: `${field} must be a valid UUID` }] };
-    }
-    return { valid: true, errors: [] };
-  }),
-  validateAll: jest.fn((validations) => {
-    const errors = validations.flatMap((v: any) => v.errors || []);
-    return { valid: errors.length === 0, errors };
-  }),
-}));
+jest.mock(
+  '@/lib/api/validation',
+  (): Record<string, unknown> => ({
+    validateUUID: jest.fn((id: string, field: string) => {
+      if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+        return { valid: false, errors: [{ field, message: `${field} must be a valid UUID` }] };
+      }
+      return { valid: true, errors: [] };
+    }),
+    validateAll: jest.fn((validations) => {
+      const errors = validations.flatMap((v: any) => v.errors || []);
+      return { valid: errors.length === 0, errors };
+    }),
+  })
+);
 
 describe('POST /api/admin/delete-user', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;

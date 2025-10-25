@@ -236,7 +236,7 @@ export async function generateVideo(params: VeoGenerateParams): Promise<VeoGener
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${await client.getAccessToken().then(token => token.token)}`,
+        Authorization: `Bearer ${await client.getAccessToken().then((token) => token.token)}`,
       },
       body: JSON.stringify(requestBody),
       signal: controller.signal,
@@ -285,7 +285,10 @@ export async function generateVideo(params: VeoGenerateParams): Promise<VeoGener
  *   // Download video from GCS
  * }
  */
-export async function checkOperationStatus(operationName: string, model?: string): Promise<VeoOperationResult> {
+export async function checkOperationStatus(
+  operationName: string,
+  model?: string
+): Promise<VeoOperationResult> {
   const auth = getAuthClient();
   const client = await auth.getClient();
   const projectId = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT || '{}').project_id;
@@ -296,7 +299,10 @@ export async function checkOperationStatus(operationName: string, model?: string
 
   // Extract model from operation name if not provided
   // Operation name format: projects/{project}/locations/{location}/publishers/google/models/{model}/operations/{id}
-  const modelName = model || operationName.split('/models/')[1]?.split('/operations/')[0] || 'veo-3.1-generate-preview';
+  const modelName =
+    model ||
+    operationName.split('/models/')[1]?.split('/operations/')[0] ||
+    'veo-3.1-generate-preview';
 
   // Use Veo-specific status check endpoint (fetchPredictOperation)
   const endpoint = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/${modelName}:fetchPredictOperation`;
@@ -310,7 +316,7 @@ export async function checkOperationStatus(operationName: string, model?: string
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${await client.getAccessToken().then(token => token.token)}`,
+        Authorization: `Bearer ${await client.getAccessToken().then((token) => token.token)}`,
       },
       body: JSON.stringify({
         operationName: operationName,
@@ -365,7 +371,7 @@ export async function cancelOperation(operationName: string): Promise<void> {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${await client.getAccessToken().then(token => token.token)}`,
+        Authorization: `Bearer ${await client.getAccessToken().then((token) => token.token)}`,
       },
       signal: controller.signal,
     });

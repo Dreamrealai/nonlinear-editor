@@ -11,27 +11,33 @@ import type { AssetRow } from '@/types/assets';
 
 // Mock dependencies
 jest.mock('@/lib/signedUrlCache');
-jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
-  browserLogger: {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createBrowserSupabaseClient: jest.fn(() => ({
-    storage: {
-      from: jest.fn(() => ({
-        getPublicUrl: jest.fn((path: string) => ({
-          data: {
-            publicUrl: `https://storage.supabase.co/public/${path}`,
-          },
-        })),
-      })),
+jest.mock(
+  '@/lib/browserLogger',
+  (): Record<string, unknown> => ({
+    browserLogger: {
+      debug: jest.fn(),
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
     },
-  })),
-}));
+  })
+);
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createBrowserSupabaseClient: jest.fn(() => ({
+      storage: {
+        from: jest.fn(() => ({
+          getPublicUrl: jest.fn((path: string) => ({
+            data: {
+              publicUrl: `https://storage.supabase.co/public/${path}`,
+            },
+          })),
+        })),
+      },
+    })),
+  })
+);
 
 const mockSignedUrlCache = signedUrlCache as jest.Mocked<typeof signedUrlCache>;
 

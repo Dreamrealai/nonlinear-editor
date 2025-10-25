@@ -15,12 +15,14 @@ This document provides a comprehensive protocol for conducting user testing sess
 ## Success Criteria
 
 ### Primary Goals (Must Achieve)
+
 - ✅ **>80% Completion Rate**: 4 out of 5 participants complete onboarding
 - ✅ **No Critical Blockers**: No technical issues prevent completion
 - ✅ **<5 Minutes Average Time**: Users complete in reasonable time
 - ✅ **>75% Positive Feedback**: Users rate tutorial as helpful
 
 ### Secondary Goals (Nice to Have)
+
 - ✅ **Zero Confusion Events**: Users don't express confusion
 - ✅ **Active Engagement**: Users read all descriptions
 - ✅ **Feature Recognition**: Users can identify 5+ features after completion
@@ -31,6 +33,7 @@ This document provides a comprehensive protocol for conducting user testing sess
 ### Participant Personas
 
 #### Persona 1: Complete Beginner
+
 - **Profile**: Never used video editing software
 - **Tech Savvy**: Low (2/5)
 - **Age Range**: 25-35
@@ -38,6 +41,7 @@ This document provides a comprehensive protocol for conducting user testing sess
 - **Pain Points**: Intimidated by complex tools
 
 #### Persona 2: Casual Creator
+
 - **Profile**: Used iMovie or basic tools
 - **Tech Savvy**: Medium (3/5)
 - **Age Range**: 20-30
@@ -45,6 +49,7 @@ This document provides a comprehensive protocol for conducting user testing sess
 - **Pain Points**: Needs more advanced features
 
 #### Persona 3: Experienced User
+
 - **Profile**: Used Premiere Pro or Final Cut Pro
 - **Tech Savvy**: High (4/5)
 - **Age Range**: 25-40
@@ -52,6 +57,7 @@ This document provides a comprehensive protocol for conducting user testing sess
 - **Pain Points**: Wants efficiency and shortcuts
 
 #### Persona 4: Content Marketer
+
 - **Profile**: Creates marketing videos regularly
 - **Tech Savvy**: Medium (3/5)
 - **Age Range**: 28-45
@@ -59,6 +65,7 @@ This document provides a comprehensive protocol for conducting user testing sess
 - **Pain Points**: Needs templates and speed
 
 #### Persona 5: Senior User
+
 - **Profile**: Limited tech experience
 - **Tech Savvy**: Low (1-2/5)
 - **Age Range**: 55+
@@ -68,6 +75,7 @@ This document provides a comprehensive protocol for conducting user testing sess
 ### Recruitment Criteria
 
 For each test session, recruit:
+
 - **5 participants** representing different personas
 - **First-time users** who haven't seen the editor before
 - **Diverse backgrounds** in age, tech experience, and use cases
@@ -76,6 +84,7 @@ For each test session, recruit:
 ## Test Environment Setup
 
 ### Hardware Requirements
+
 - **Computer**: Desktop or laptop with sufficient specs
 - **Browser**: Latest Chrome, Firefox, or Safari
 - **Screen Recording**: OBS Studio or QuickTime
@@ -83,6 +92,7 @@ For each test session, recruit:
 - **Audio**: Microphone for think-aloud protocol
 
 ### Software Setup
+
 1. Clear browser cache and cookies
 2. Disable browser extensions (ad blockers, etc.)
 3. Set `forceShow={true}` on UserOnboarding component
@@ -90,6 +100,7 @@ For each test session, recruit:
 5. Prepare screen recording software
 
 ### Test Materials
+
 - [ ] Consent form
 - [ ] Pre-test questionnaire
 - [ ] Post-test questionnaire
@@ -110,6 +121,7 @@ For each test session, recruit:
 > If you get stuck or confused, that's valuable feedback for us. Feel free to be honest about your experience. Do you have any questions before we start?"
 
 **Recording Consent:**
+
 > "Is it okay if I record your screen and audio for analysis purposes? The recording will only be used internally and will be deleted after 30 days."
 
 ### 2. Pre-Test Questionnaire (3 minutes)
@@ -136,6 +148,7 @@ Ask participants:
 > "I'm going to show you a video editor for the first time. A tutorial will appear automatically. Please complete the tutorial at your own pace while thinking aloud about what you're seeing and thinking.
 >
 > Remember:
+>
 > - Say what you're thinking out loud
 > - Point out anything confusing or unclear
 > - Read the descriptions naturally (don't feel pressured to rush)
@@ -150,60 +163,67 @@ Ask participants:
 As the participant goes through onboarding, note:
 
 #### Step 1: Welcome
+
 - [ ] Reads the full description
 - [ ] Understands they can skip
 - [ ] Knows arrow keys work
 - [ ] Clicks "Next" without hesitation
-- **Confusion Points**: ___________
-- **Quotes**: ___________
+- **Confusion Points**: \***\*\_\_\_\*\***
+- **Quotes**: \***\*\_\_\_\*\***
 
 #### Step 2: Asset Panel
+
 - [ ] Identifies the asset panel
 - [ ] Understands drag-and-drop
 - [ ] Mentions uploading files
 - [ ] Reads full description
-- **Confusion Points**: ___________
-- **Quotes**: ___________
+- **Confusion Points**: \***\*\_\_\_\*\***
+- **Quotes**: \***\*\_\_\_\*\***
 
 #### Step 3: Timeline
+
 - [ ] Understands timeline purpose
 - [ ] Recognizes where clips go
 - [ ] Mentions arranging/editing
 - [ ] Seems engaged
-- **Confusion Points**: ___________
-- **Quotes**: ___________
+- **Confusion Points**: \***\*\_\_\_\*\***
+- **Quotes**: \***\*\_\_\_\*\***
 
 #### Step 4: Preview & Playback
+
 - [ ] Identifies preview area
 - [ ] Understands playback controls
 - [ ] Mentions video preview
 - [ ] Reads description
-- **Confusion Points**: ___________
-- **Quotes**: ___________
+- **Confusion Points**: \***\*\_\_\_\*\***
+- **Quotes**: \***\*\_\_\_\*\***
 
 #### Step 5: Timeline Controls
+
 - [ ] Notices control buttons
 - [ ] Mentions zoom/undo
 - [ ] Acknowledges keyboard shortcuts
 - [ ] Interested in shortcuts
-- **Confusion Points**: ___________
-- **Quotes**: ___________
+- **Confusion Points**: \***\*\_\_\_\*\***
+- **Quotes**: \***\*\_\_\_\*\***
 
 #### Step 6: Grid & Snap
+
 - [ ] Understands grid concept
 - [ ] Recognizes snap functionality
 - [ ] Mentions precision
 - [ ] Remembers shortcut (Cmd+Shift+S)
-- **Confusion Points**: ___________
-- **Quotes**: ___________
+- **Confusion Points**: \***\*\_\_\_\*\***
+- **Quotes**: \***\*\_\_\_\*\***
 
 #### Step 7: Completion
+
 - [ ] Reaches final step
 - [ ] Feels confident to start
 - [ ] Clicks "Get Started"
 - [ ] Positive reaction
-- **Confusion Points**: ___________
-- **Quotes**: ___________
+- **Confusion Points**: \***\*\_\_\_\*\***
+- **Quotes**: \***\*\_\_\_\*\***
 
 ### 5. Post-Test Questionnaire (5 minutes)
 
@@ -243,7 +263,7 @@ Ask participants:
 - [ ] Zoom in on the timeline
 - [ ] Access keyboard shortcuts (press "?")
 
-**Score**: ___ / 6 tasks completed successfully
+**Score**: \_\_\_ / 6 tasks completed successfully
 
 ## Data Collection
 
@@ -286,24 +306,28 @@ After the session:
 Rate issues found:
 
 **Critical (P0)**
+
 - Blocks onboarding completion
 - Causes abandonment
 - Major confusion for 3+ participants
 - Requires immediate fix
 
 **High (P1)**
+
 - Significant confusion
 - Slows down progress
 - Mentioned by 2+ participants
 - Should fix before launch
 
 **Medium (P2)**
+
 - Minor confusion
 - Slightly unclear
 - Mentioned by 1 participant
 - Fix in next iteration
 
 **Low (P3)**
+
 - Polish issues
 - Nice-to-have improvements
 - Cosmetic issues
@@ -313,13 +337,14 @@ Rate issues found:
 
 Calculate:
 
-- **Completion Rate**: ___ / 5 (___%)
-- **Average Time**: ___ minutes
-- **Feature Recognition**: ___ / 6 average
-- **Satisfaction**: ___ / 5 average rating
-- **Confusion Events**: ___ average per participant
+- **Completion Rate**: **_ / 5 (_**%)
+- **Average Time**: \_\_\_ minutes
+- **Feature Recognition**: \_\_\_ / 6 average
+- **Satisfaction**: \_\_\_ / 5 average rating
+- **Confusion Events**: \_\_\_ average per participant
 
 Compare against success criteria:
+
 - ✅ Met criteria
 - ⚠️ Close to criteria
 - ❌ Did not meet criteria
@@ -327,6 +352,7 @@ Compare against success criteria:
 ## Common Pain Points to Watch For
 
 ### Technical Issues
+
 - [ ] Tutorial doesn't appear
 - [ ] Highlight box misaligned
 - [ ] Tooltip off-screen
@@ -334,6 +360,7 @@ Compare against success criteria:
 - [ ] Performance lag
 
 ### Usability Issues
+
 - [ ] Can't find target elements
 - [ ] Descriptions too long/short
 - [ ] Unclear instructions
@@ -341,6 +368,7 @@ Compare against success criteria:
 - [ ] Button placement unclear
 
 ### Content Issues
+
 - [ ] Information overload
 - [ ] Too many steps
 - [ ] Missing context
@@ -348,6 +376,7 @@ Compare against success criteria:
 - [ ] Inconsistent tone
 
 ### Engagement Issues
+
 - [ ] Users skip reading
 - [ ] Users seem bored
 - [ ] Users click through quickly
@@ -359,42 +388,50 @@ Compare against success criteria:
 After testing, create a report:
 
 ### Executive Summary
+
 - Participants tested: 5
-- Completion rate: ____%
-- Average time: ___ minutes
-- Overall satisfaction: ___ / 5
-- Critical issues found: ___
+- Completion rate: \_\_\_\_%
+- Average time: \_\_\_ minutes
+- Overall satisfaction: \_\_\_ / 5
+- Critical issues found: \_\_\_
 - Recommendation: [Launch / Fix Critical Issues / Major Revisions Needed]
 
 ### Key Findings
 
 **What Worked Well:**
-1. ___________
-2. ___________
-3. ___________
+
+1. ***
+2. ***
+3. ***
 
 **Critical Issues:**
+
 1. [Issue] - [Severity] - [Frequency] - [Recommendation]
-2. ___________
+2. ***
 
 **Notable Quotes:**
-> "___________" - Participant X
+
+> "\***\*\_\_\_\*\***" - Participant X
 
 ### Recommendations
 
 **Immediate Actions (Before Launch):**
-1. ___________
-2. ___________
+
+1. ***
+2. ***
 
 **Short-term Improvements (Next Sprint):**
-1. ___________
-2. ___________
+
+1. ***
+2. ***
 
 **Long-term Enhancements (Future Iterations):**
-1. ___________
-2. ___________
+
+1. ***
+2. ***
 
 ### Appendix
+
 - Participant demographics
 - Detailed observation notes
 - Video clips of key moments
@@ -403,12 +440,14 @@ After testing, create a report:
 ## Testing Schedule
 
 ### Pre-Launch Testing
+
 - **Week 1**: Recruit 5 participants
 - **Week 2**: Conduct 5 sessions (1 per day)
 - **Week 3**: Analyze results and implement fixes
 - **Week 4**: Conduct 3 validation sessions
 
 ### Post-Launch Testing
+
 - **Monthly**: Test with 3 new users
 - **Quarterly**: Comprehensive usability audit
 - **After Major Updates**: Test changed steps with 5 users
@@ -416,6 +455,7 @@ After testing, create a report:
 ## Ethics and Best Practices
 
 ### Participant Care
+
 - ✅ Obtain informed consent
 - ✅ Explain data usage clearly
 - ✅ Allow breaks if needed
@@ -424,6 +464,7 @@ After testing, create a report:
 - ✅ Thank participants sincerely
 
 ### Data Privacy
+
 - ✅ Anonymize all data
 - ✅ Delete recordings after 30 days
 - ✅ Secure storage of notes
@@ -431,6 +472,7 @@ After testing, create a report:
 - ✅ Comply with GDPR/privacy laws
 
 ### Testing Integrity
+
 - ✅ Don't lead participants
 - ✅ Don't explain or help during test
 - ✅ Observe objectively
@@ -441,16 +483,18 @@ After testing, create a report:
 ## Resources
 
 ### Tools
+
 - **Recruiting**: UserTesting, Respondent.io, UserInterviews
 - **Screen Recording**: OBS Studio, QuickTime, Loom
 - **Notes**: Notion, Google Docs, Miro
 - **Analysis**: Dovetail, Airtable, Spreadsheets
 
 ### Further Reading
-- *Don't Make Me Think* by Steve Krug
-- *The Mom Test* by Rob Fitzpatrick
+
+- _Don't Make Me Think_ by Steve Krug
+- _The Mom Test_ by Rob Fitzpatrick
 - Nielsen Norman Group articles on usability testing
-- *Rocket Surgery Made Easy* by Steve Krug
+- _Rocket Surgery Made Easy_ by Steve Krug
 
 ## Related Documentation
 

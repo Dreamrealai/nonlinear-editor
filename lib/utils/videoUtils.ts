@@ -41,7 +41,8 @@ export type ClipMeta = {
  * @param max - Maximum bound (default 1)
  * @returns Clamped value
  */
-export const clamp = (value: number, min = 0, max = 1): number => Math.min(max, Math.max(min, value));
+export const clamp = (value: number, min = 0, max = 1): number =>
+  Math.min(max, Math.max(min, value));
 
 /**
  * Generates CSS filter string from color correction settings.
@@ -137,33 +138,47 @@ export const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
   type InternalMeta = ClipMeta & { crossfadeOut: number; crossfadeIn: number };
 
   // Initialize metadata for each clip
-  const base: InternalMeta[] = clips.map((clip): { length: number; timelineStart: number; effectiveStart: number; fadeIn: number; fadeOut: number; crossfadeOut: number; crossfadeIn: number; transitionType: TransitionType; transitionDuration: number; } => {
-    const length = Math.max(0, clip.end - clip.start);
-    const timelineStart = Math.max(0, clip.timelinePosition);
-    const transition = clip.transitionToNext;
+  const base: InternalMeta[] = clips.map(
+    (
+      clip
+    ): {
+      length: number;
+      timelineStart: number;
+      effectiveStart: number;
+      fadeIn: number;
+      fadeOut: number;
+      crossfadeOut: number;
+      crossfadeIn: number;
+      transitionType: TransitionType;
+      transitionDuration: number;
+    } => {
+      const length = Math.max(0, clip.end - clip.start);
+      const timelineStart = Math.max(0, clip.timelinePosition);
+      const transition = clip.transitionToNext;
 
-    // Extract transition durations (minimum 50ms to avoid issues)
-    const fadeInBase =
-      transition?.type === 'fade-in' ? Math.max(0.05, transition.duration || 0.5) : 0;
-    const fadeOutBase =
-      transition?.type === 'fade-out' ? Math.max(0.05, transition.duration || 0.5) : 0;
-    const crossfadeOut =
-      transition?.type === 'crossfade'
-        ? Math.min(length, Math.max(0.05, transition.duration || 0.5))
-        : 0;
+      // Extract transition durations (minimum 50ms to avoid issues)
+      const fadeInBase =
+        transition?.type === 'fade-in' ? Math.max(0.05, transition.duration || 0.5) : 0;
+      const fadeOutBase =
+        transition?.type === 'fade-out' ? Math.max(0.05, transition.duration || 0.5) : 0;
+      const crossfadeOut =
+        transition?.type === 'crossfade'
+          ? Math.min(length, Math.max(0.05, transition.duration || 0.5))
+          : 0;
 
-    return {
-      length,
-      timelineStart,
-      effectiveStart: timelineStart, // Will be adjusted for crossfades
-      fadeIn: fadeInBase,
-      fadeOut: fadeOutBase,
-      crossfadeOut,
-      crossfadeIn: 0,
-      transitionType: transition?.type || 'none',
-      transitionDuration: transition?.duration || 0,
-    };
-  });
+      return {
+        length,
+        timelineStart,
+        effectiveStart: timelineStart, // Will be adjusted for crossfades
+        fadeIn: fadeInBase,
+        fadeOut: fadeOutBase,
+        crossfadeOut,
+        crossfadeIn: 0,
+        transitionType: transition?.type || 'none',
+        transitionDuration: transition?.duration || 0,
+      };
+    }
+  );
 
   // Group clips by track index for crossfade processing
   const clipsByTrack = new Map<number, number[]>();
@@ -176,7 +191,9 @@ export const computeClipMetas = (clips: Clip[]): Map<string, ClipMeta> => {
   // Process crossfades: adjust effectiveStart for overlapping clips
   clipsByTrack.forEach((indices): void => {
     // Sort clips by timeline position within each track
-    indices.sort((a, b): number => (clips[a]?.timelinePosition || 0) - (clips[b]?.timelinePosition || 0));
+    indices.sort(
+      (a, b): number => (clips[a]?.timelinePosition || 0) - (clips[b]?.timelinePosition || 0)
+    );
 
     // Check adjacent clips for crossfade transitions
     for (let i = 1; i < indices.length; i += 1) {

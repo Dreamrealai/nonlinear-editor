@@ -5,27 +5,33 @@ import { VideoGenerationForm } from '@/components/generation/VideoGenerationForm
 import { VIDEO_MODELS, VIDEO_MODEL_CONFIGS } from '@/lib/config/models';
 
 // Mock Next.js Image component
-jest.mock('next/image', (): Record<string, unknown> => ({
-  __esModule: true,
-  default: function MockImage({ src, alt }: any) {
-    return <img src={src} alt={alt} />;
-  },
-}));
+jest.mock(
+  'next/image',
+  (): Record<string, unknown> => ({
+    __esModule: true,
+    default: function MockImage({ src, alt }: any) {
+      return <img src={src} alt={alt} />;
+    },
+  })
+);
 
 // Mock AssetLibraryModal
-jest.mock('@/components/generation/AssetLibraryModal', (): Record<string, unknown> => ({
-  __esModule: true,
-  default: function MockAssetLibraryModal({ onClose, onSelect }: any) {
-    return (
-      <div data-testid="asset-library-modal">
-        <button onClick={onClose}>Close</button>
-        <button onClick={() => onSelect({ id: 'asset-1', url: 'https://example.com/image.jpg' })}>
-          Select Asset
-        </button>
-      </div>
-    );
-  },
-}));
+jest.mock(
+  '@/components/generation/AssetLibraryModal',
+  (): Record<string, unknown> => ({
+    __esModule: true,
+    default: function MockAssetLibraryModal({ onClose, onSelect }: any) {
+      return (
+        <div data-testid="asset-library-modal">
+          <button onClick={onClose}>Close</button>
+          <button onClick={() => onSelect({ id: 'asset-1', url: 'https://example.com/image.jpg' })}>
+            Select Asset
+          </button>
+        </div>
+      );
+    },
+  })
+);
 
 describe('VideoGenerationForm', () => {
   const mockFileInputRef = { current: document.createElement('input') };

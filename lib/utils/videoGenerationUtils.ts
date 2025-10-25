@@ -70,7 +70,9 @@ export function updateQueueItemStatus(
   videoId: string,
   updates: Partial<VideoQueueItemData>
 ): VideoQueueItemData[] {
-  return queue.map((item): VideoQueueItemData => (item.id === videoId ? { ...item, ...updates } : item));
+  return queue.map(
+    (item): VideoQueueItemData => (item.id === videoId ? { ...item, ...updates } : item)
+  );
 }
 
 /**

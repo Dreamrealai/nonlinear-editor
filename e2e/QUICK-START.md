@@ -65,24 +65,28 @@ npx playwright test --project="Mobile Chrome iPhone"
 ## First Test Run
 
 ### Step 1: Start the Application
+
 ```bash
 # In one terminal
 npm run dev
 ```
 
 ### Step 2: Run Tests in UI Mode
+
 ```bash
 # In another terminal
 npm run test:e2e:ui
 ```
 
 This will open Playwright's UI where you can:
+
 - See all test files
 - Run tests individually
 - Watch tests execute
 - Inspect test results
 
 ### Step 3: Run Specific Test Suite
+
 ```bash
 # Start with authentication tests
 npx playwright test e2e/auth.spec.ts --headed
@@ -95,6 +99,7 @@ The `--headed` flag shows the browser so you can see what's happening.
 ### Test Reports
 
 After running tests, view the HTML report:
+
 ```bash
 npx playwright show-report
 ```
@@ -102,11 +107,13 @@ npx playwright show-report
 ### Screenshots and Videos
 
 Failed tests automatically capture:
+
 - Screenshots → `test-results/`
 - Videos → `test-results/`
 - Traces → `test-results/`
 
 View a trace file:
+
 ```bash
 npx playwright show-trace test-results/trace.zip
 ```
@@ -114,24 +121,32 @@ npx playwright show-trace test-results/trace.zip
 ## Common Issues and Solutions
 
 ### Issue: Tests fail with "Timeout waiting for http://localhost:3000"
+
 **Solution:** Make sure the app is running:
+
 ```bash
 npm run dev
 ```
 
 ### Issue: Tests fail with authentication errors
+
 **Solution:** Ensure test user exists in database:
+
 - Email: `test@example.com`
 - Password: `test_password_123`
 
 ### Issue: "chromium not found"
+
 **Solution:** Install Playwright browsers:
+
 ```bash
 npx playwright install
 ```
 
 ### Issue: Tests pass locally but fail in CI
+
 **Solution:** Check environment variables are set in CI:
+
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - etc.
@@ -172,6 +187,7 @@ test.describe('My Feature', () => {
 ```
 
 Run it:
+
 ```bash
 npx playwright test e2e/my-test.spec.ts
 ```
@@ -210,6 +226,7 @@ npm run test:e2e:ui
 ```
 
 Expected output:
+
 ```
 Running 63 tests using 4 workers
   63 passed (2m)
@@ -222,12 +239,12 @@ Success! 🎉
 
 ## Quick Reference
 
-| Command | Description |
-|---------|-------------|
-| `npm run test:e2e` | Run all tests |
-| `npm run test:e2e:ui` | Interactive UI mode |
-| `npm run test:e2e:debug` | Debug mode |
-| `npx playwright test --headed` | Show browser |
-| `npx playwright test --project=chromium` | Chrome only |
-| `npx playwright show-report` | View HTML report |
-| `npx playwright codegen` | Record new tests |
+| Command                                  | Description         |
+| ---------------------------------------- | ------------------- |
+| `npm run test:e2e`                       | Run all tests       |
+| `npm run test:e2e:ui`                    | Interactive UI mode |
+| `npm run test:e2e:debug`                 | Debug mode          |
+| `npx playwright test --headed`           | Show browser        |
+| `npx playwright test --project=chromium` | Chrome only         |
+| `npx playwright show-report`             | View HTML report    |
+| `npx playwright codegen`                 | Record new tests    |

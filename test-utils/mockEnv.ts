@@ -141,7 +141,7 @@ export function assertTestEnv(requiredVars: string[]): void {
   if (missing.length > 0) {
     throw new Error(
       `Missing required test environment variables: ${missing.join(', ')}\n` +
-      'Make sure to call setTestEnv() or mockEnv() before running tests.'
+        'Make sure to call setTestEnv() or mockEnv() before running tests.'
     );
   }
 }
@@ -160,10 +160,7 @@ export function assertTestEnv(requiredVars: string[]): void {
  * });
  * ```
  */
-export function withTestEnv<T>(
-  envVars: Record<string, string | undefined>,
-  fn: () => T
-): T {
+export function withTestEnv<T>(envVars: Record<string, string | undefined>, fn: () => T): T {
   mockEnv(envVars);
   try {
     return fn();

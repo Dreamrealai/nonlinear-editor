@@ -587,6 +587,7 @@ serverLogger.info(
    ```
 
 4. **Log cache operations in development**
+
    ```typescript
    const profile = await getCachedUserProfile(supabase, userId);
    // Check logs: "Cache hit: user profile 123 (1ms)"

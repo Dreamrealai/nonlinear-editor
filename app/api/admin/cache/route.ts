@@ -22,10 +22,13 @@ async function handleGetCacheStats(
   const { user } = context;
 
   try {
-    serverLogger.info({
-      event: 'admin.cache.stats_requested',
-      adminId: user.id,
-    }, 'Admin requested cache statistics');
+    serverLogger.info(
+      {
+        event: 'admin.cache.stats_requested',
+        adminId: user.id,
+      },
+      'Admin requested cache statistics'
+    );
 
     const stats = getCacheStats();
 
@@ -34,11 +37,14 @@ async function handleGetCacheStats(
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    serverLogger.error({
-      event: 'admin.cache.stats_error',
-      adminId: user.id,
-      error,
-    }, 'Error fetching cache statistics');
+    serverLogger.error(
+      {
+        event: 'admin.cache.stats_error',
+        adminId: user.id,
+        error,
+      },
+      'Error fetching cache statistics'
+    );
     return errorResponse('Failed to fetch cache statistics', 500);
   }
 }
@@ -57,27 +63,36 @@ async function handleClearCache(
   const { user } = context;
 
   try {
-    serverLogger.warn({
-      event: 'admin.cache.clear_requested',
-      adminId: user.id,
-      adminEmail: user.email,
-    }, 'Admin requested to clear all caches');
+    serverLogger.warn(
+      {
+        event: 'admin.cache.clear_requested',
+        adminId: user.id,
+        adminEmail: user.email,
+      },
+      'Admin requested to clear all caches'
+    );
 
     await clearAllCaches();
 
-    serverLogger.info({
-      event: 'admin.cache.cleared',
-      adminId: user.id,
-      adminEmail: user.email,
-    }, 'All caches cleared by admin');
+    serverLogger.info(
+      {
+        event: 'admin.cache.cleared',
+        adminId: user.id,
+        adminEmail: user.email,
+      },
+      'All caches cleared by admin'
+    );
 
     return successResponse(null, 'All caches cleared successfully');
   } catch (error) {
-    serverLogger.error({
-      event: 'admin.cache.clear_error',
-      adminId: user.id,
-      error,
-    }, 'Error clearing caches');
+    serverLogger.error(
+      {
+        event: 'admin.cache.clear_error',
+        adminId: user.id,
+        error,
+      },
+      'Error clearing caches'
+    );
     return errorResponse('Failed to clear caches', 500);
   }
 }

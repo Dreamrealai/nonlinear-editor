@@ -9,11 +9,13 @@
 ## Executive Summary
 
 The project currently has **191 markdown files** scattered across multiple locations:
+
 - **21 files** in root directory (many are agent reports and temporary files)
 - **126 files** in `/docs/` directory
 - **44 files** in other locations (`archive/`, `securestoryboard/`, subdirectories)
 
 This strategy consolidates documentation into a clean, hierarchical structure that:
+
 1. Preserves valuable information
 2. Removes redundancy
 3. Archives historical reports
@@ -239,6 +241,7 @@ CLAUDE.md                              # Project memory (Claude AI instructions)
 #### A. Merge Duplicate/Similar Files
 
 **Performance Documentation**:
+
 ```
 MERGE:
   docs/PERFORMANCE.md
@@ -248,6 +251,7 @@ INTO:
 ```
 
 **Caching Documentation**:
+
 ```
 MERGE:
   docs/CACHING.md
@@ -259,6 +263,7 @@ INTO:
 ```
 
 **Environment Variables**:
+
 ```
 MERGE:
   docs/setup/ENVIRONMENT_VARIABLES.md
@@ -268,6 +273,7 @@ INTO:
 ```
 
 **Security Audits**:
+
 ```
 MERGE:
   docs/SECURITY_AUDIT_REPORT.md
@@ -277,6 +283,7 @@ INTO:
 ```
 
 **Verification Reports**:
+
 ```
 CONSOLIDATE:
   docs/reports/VERIFICATION_REPORT.md
@@ -290,6 +297,7 @@ INTO:
 #### B. Reorganize API Documentation
 
 **Google AI APIs**:
+
 ```
 CONSOLIDATE:
   docs/google-ai-apis/gemini-models.md
@@ -308,6 +316,7 @@ INTO:
 ```
 
 **Video Generation APIs**:
+
 ```
 MOVE:
   docs/api/fal-kling.md          → docs/api/video-generation/
@@ -318,6 +327,7 @@ MOVE:
 ```
 
 **Audio Generation APIs**:
+
 ```
 CONSOLIDATE:
   docs/api/ELEVENLABS_TTS_ELEVENLABS_DOCUMENTATION.md
@@ -349,6 +359,7 @@ docs/reports/AGENT_IMPROVEMENT_SUMMARY.md      → archives/2025-10/
 ```
 
 Keep recent, actionable reports:
+
 ```
 docs/reports/FINAL_QUALITY_AUDIT.md            # KEEP
 docs/reports/TEST_SUCCESS_REPORT.md            # KEEP
@@ -471,6 +482,7 @@ docs/reports/archives/
 ### Phase 4: SecureStoryboard Evaluation
 
 **Option A: Separate Repository** (Recommended)
+
 ```
 # Move to separate git repository if it's a distinct project
 git subtree split --prefix securestoryboard -b securestoryboard-branch
@@ -478,6 +490,7 @@ git subtree split --prefix securestoryboard -b securestoryboard-branch
 ```
 
 **Option B: Keep but Organize**
+
 ```
 securestoryboard/
 ├── README.md               # Clear indication it's a separate project
@@ -486,6 +499,7 @@ securestoryboard/
 ```
 
 **Option C: Archive Completely**
+
 ```
 # If no longer active
 mv securestoryboard archive/projects/securestoryboard/
@@ -541,6 +555,7 @@ mv securestoryboard archive/projects/securestoryboard/
 #### Week 1: Preparation & Planning
 
 **Day 1-2**: Audit & Categorize
+
 ```bash
 # Create inventory of all docs
 find . -name "*.md" -not -path "*/node_modules/*" > docs-inventory.txt
@@ -554,6 +569,7 @@ find . -name "*.md" -not -path "*/node_modules/*" > docs-inventory.txt
 ```
 
 **Day 3**: Create new directory structure
+
 ```bash
 mkdir -p docs/getting-started
 mkdir -p docs/guides
@@ -573,6 +589,7 @@ mkdir -p archive/deprecated/{bundle-optimization,typescript-reports,verification
 #### Week 2: Execute Consolidation
 
 **Phase 1**: Archive agent reports (low risk)
+
 ```bash
 # Move agent summaries
 mv AGENT*.md archive/agent-reports/2025-10-24/
@@ -581,6 +598,7 @@ mv test-documentation-review.md docs/reports/2025-10/
 ```
 
 **Phase 2**: Archive deprecated reports
+
 ```bash
 # Move old reports
 mv BUNDLE_OPTIMIZATION_*.md archive/deprecated/bundle-optimization/
@@ -589,6 +607,7 @@ mv TYPESCRIPT_STRICT_MODE_REPORT.md archive/deprecated/typescript-reports/
 ```
 
 **Phase 3**: Consolidate guides (requires merging)
+
 ```bash
 # Merge performance docs
 cat docs/PERFORMANCE.md docs/PERFORMANCE_OPTIMIZATION.md > docs/guides/PERFORMANCE.md
@@ -597,6 +616,7 @@ cat docs/PERFORMANCE.md docs/PERFORMANCE_OPTIMIZATION.md > docs/guides/PERFORMAN
 ```
 
 **Phase 4**: Reorganize API documentation
+
 ```bash
 # Move and rename Google API docs
 mv docs/google-ai-apis/* docs/api/providers/google/
@@ -605,6 +625,7 @@ mv docs/google-ai-apis/* docs/api/providers/google/
 ```
 
 **Phase 5**: Update all internal links
+
 ```bash
 # Use sed or similar to update links
 # Test all links
@@ -613,6 +634,7 @@ mv docs/google-ai-apis/* docs/api/providers/google/
 #### Week 3: Verification & Updates
 
 **Day 1-2**: Update README.md files
+
 - Main README.md
 - docs/README.md
 - All new directory README.md files
@@ -620,6 +642,7 @@ mv docs/google-ai-apis/* docs/api/providers/google/
 **Day 3**: Update CLAUDE.md references
 
 **Day 4**: Test documentation
+
 - Verify all links work
 - Check rendering
 - Ensure no broken references
@@ -652,80 +675,80 @@ git reset --hard docs-v1.0-phaseX
 
 ### Root Directory Files
 
-| Current File | Action | Destination | Reason |
-|-------------|--------|-------------|---------|
-| README.md | KEEP | / | Main project README |
-| CLAUDE.md | KEEP | / | AI assistant instructions |
-| AGENT1_SUMMARY.md | ARCHIVE | archive/agent-reports/2025-10-24/ | Historical report |
-| AGENT5_SUMMARY.md | ARCHIVE | archive/agent-reports/2025-10-24/ | Historical report |
-| AGENT9_SUMMARY.md | ARCHIVE | archive/agent-reports/2025-10-24/ | Historical report |
-| AGENT-9-TEST-STABILITY-REPORT.md | ARCHIVE | archive/agent-reports/2025-10-24/ | Historical report |
-| AGENT-10-TEST-COVERAGE-REPORT.md | ARCHIVE | archive/agent-reports/2025-10-24/ | Historical report |
-| final-summary.md | ARCHIVE | archive/agent-reports/2025-10-24/ | Session summary |
-| BUNDLE_OPTIMIZATION_PLAN.md | ARCHIVE | archive/deprecated/bundle-optimization/ | Completed work |
-| BUNDLE_OPTIMIZATION_SUMMARY.md | ARCHIVE | archive/deprecated/bundle-optimization/ | Completed work |
-| TYPESCRIPT_STRICT_MODE_REPORT.md | ARCHIVE | archive/deprecated/typescript-reports/ | Historical |
-| VERIFICATION_AUDIT_REPORT.md | ARCHIVE | archive/deprecated/verification-reports/ | Superseded |
-| VERIFICATION_SUMMARY.md | ARCHIVE | archive/deprecated/verification-reports/ | Superseded |
-| TEST_COVERAGE_REPORT.md | ARCHIVE | archive/deprecated/test-coverage/ | Old version |
-| ERROR_TEST_COVERAGE_REPORT.md | ARCHIVE | archive/deprecated/test-coverage/ | Historical |
-| CSP-AUDIT-REPORT.md | ARCHIVE | archive/deprecated/security-audits/ | Historical |
-| CLEANUP_CONSOLIDATED_REPORT.md | ARCHIVE | archive/deprecated/ | Completed |
-| DOCUMENTATION_REVIEW_REPORT.md | MOVE | docs/reports/2025-10/ | Recent report |
-| MOCK_PATTERNS_DOCUMENTATION.md | MOVE | docs/reference/MOCK_PATTERNS.md | Reference material |
-| IMMEDIATE_ACTION_REQUIRED.md | EVALUATE | archive/ or DELETE | Check if still relevant |
+| Current File                     | Action   | Destination                              | Reason                    |
+| -------------------------------- | -------- | ---------------------------------------- | ------------------------- |
+| README.md                        | KEEP     | /                                        | Main project README       |
+| CLAUDE.md                        | KEEP     | /                                        | AI assistant instructions |
+| AGENT1_SUMMARY.md                | ARCHIVE  | archive/agent-reports/2025-10-24/        | Historical report         |
+| AGENT5_SUMMARY.md                | ARCHIVE  | archive/agent-reports/2025-10-24/        | Historical report         |
+| AGENT9_SUMMARY.md                | ARCHIVE  | archive/agent-reports/2025-10-24/        | Historical report         |
+| AGENT-9-TEST-STABILITY-REPORT.md | ARCHIVE  | archive/agent-reports/2025-10-24/        | Historical report         |
+| AGENT-10-TEST-COVERAGE-REPORT.md | ARCHIVE  | archive/agent-reports/2025-10-24/        | Historical report         |
+| final-summary.md                 | ARCHIVE  | archive/agent-reports/2025-10-24/        | Session summary           |
+| BUNDLE_OPTIMIZATION_PLAN.md      | ARCHIVE  | archive/deprecated/bundle-optimization/  | Completed work            |
+| BUNDLE_OPTIMIZATION_SUMMARY.md   | ARCHIVE  | archive/deprecated/bundle-optimization/  | Completed work            |
+| TYPESCRIPT_STRICT_MODE_REPORT.md | ARCHIVE  | archive/deprecated/typescript-reports/   | Historical                |
+| VERIFICATION_AUDIT_REPORT.md     | ARCHIVE  | archive/deprecated/verification-reports/ | Superseded                |
+| VERIFICATION_SUMMARY.md          | ARCHIVE  | archive/deprecated/verification-reports/ | Superseded                |
+| TEST_COVERAGE_REPORT.md          | ARCHIVE  | archive/deprecated/test-coverage/        | Old version               |
+| ERROR_TEST_COVERAGE_REPORT.md    | ARCHIVE  | archive/deprecated/test-coverage/        | Historical                |
+| CSP-AUDIT-REPORT.md              | ARCHIVE  | archive/deprecated/security-audits/      | Historical                |
+| CLEANUP_CONSOLIDATED_REPORT.md   | ARCHIVE  | archive/deprecated/                      | Completed                 |
+| DOCUMENTATION_REVIEW_REPORT.md   | MOVE     | docs/reports/2025-10/                    | Recent report             |
+| MOCK_PATTERNS_DOCUMENTATION.md   | MOVE     | docs/reference/MOCK_PATTERNS.md          | Reference material        |
+| IMMEDIATE_ACTION_REQUIRED.md     | EVALUATE | archive/ or DELETE                       | Check if still relevant   |
 
 ### Docs Files to Merge
 
-| Files to Merge | Resulting File | Notes |
-|---------------|----------------|-------|
-| PERFORMANCE.md + PERFORMANCE_OPTIMIZATION.md | docs/guides/PERFORMANCE.md | Combine sections, deduplicate |
-| CACHING.md + reports/CACHING_*.md (3 files) | docs/guides/CACHING.md | Consolidate all caching info |
-| setup/ENVIRONMENT_VARIABLES.md + setup/ENV_VARIABLES_SUMMARY.md | docs/getting-started/ENVIRONMENT_VARIABLES.md | Merge and enhance |
-| security/SECURITY_AUDIT.md + SECURITY_AUDIT_REPORT.md | docs/security/SECURITY_AUDIT.md | Keep latest, archive old |
-| All Google API docs (8 files) | docs/api/providers/google/*.md | Organize by service |
-| ElevenLabs docs (3 files) | docs/api/providers/elevenlabs.md | Consolidate |
-| Suno docs (2 files) | docs/api/providers/comet-suno.md | Consolidate |
+| Files to Merge                                                  | Resulting File                                | Notes                         |
+| --------------------------------------------------------------- | --------------------------------------------- | ----------------------------- |
+| PERFORMANCE.md + PERFORMANCE_OPTIMIZATION.md                    | docs/guides/PERFORMANCE.md                    | Combine sections, deduplicate |
+| CACHING.md + reports/CACHING\_\*.md (3 files)                   | docs/guides/CACHING.md                        | Consolidate all caching info  |
+| setup/ENVIRONMENT_VARIABLES.md + setup/ENV_VARIABLES_SUMMARY.md | docs/getting-started/ENVIRONMENT_VARIABLES.md | Merge and enhance             |
+| security/SECURITY_AUDIT.md + SECURITY_AUDIT_REPORT.md           | docs/security/SECURITY_AUDIT.md               | Keep latest, archive old      |
+| All Google API docs (8 files)                                   | docs/api/providers/google/\*.md               | Organize by service           |
+| ElevenLabs docs (3 files)                                       | docs/api/providers/elevenlabs.md              | Consolidate                   |
+| Suno docs (2 files)                                             | docs/api/providers/comet-suno.md              | Consolidate                   |
 
 ### API Documentation Reorganization
 
-| Current Location | New Location | Type |
-|-----------------|--------------|------|
-| api/google-ai-studio-docs.md | api/providers/google/ai-studio.md | Provider |
-| api/google-vertex-ai-docs.md | api/providers/google/vertex-ai.md | Provider |
-| google-ai-apis/gemini-models.md | api/providers/google/gemini.md | Provider |
-| google-ai-apis/veo-api.md | api/providers/google/veo.md | Provider |
-| google-ai-apis/imagen-api.md | api/providers/google/imagen.md | Provider |
-| api/GEMINI25FLASH_*.md | MERGE into google/gemini.md | Provider |
-| api/VEO2_VIDEO_*.md | MERGE into google/veo.md | Provider |
-| api/VEO3_VIDEO_*.md | MERGE into google/veo.md | Provider |
-| api/IMAGEN_IMAGE_*.md | MERGE into google/imagen.md | Provider |
-| api/fal-kling.md | api/video-generation/kling.md | Video Gen |
-| api/fal-minimax.md | api/video-generation/minimax.md | Video Gen |
-| api/fal-pixverse.md | api/video-generation/pixverse.md | Video Gen |
-| api/fal-sora-2.md | api/video-generation/sora.md | Video Gen |
-| api/supabase-api-docs.md | api/providers/supabase.md | Provider |
-| api/stripe-api-docs.md | api/providers/stripe.md | Provider |
-| api/axiom-api-docs.md | api/providers/axiom.md | Provider |
-| api/resend-api-docs.md | api/providers/resend.md | Provider |
+| Current Location                | New Location                      | Type      |
+| ------------------------------- | --------------------------------- | --------- |
+| api/google-ai-studio-docs.md    | api/providers/google/ai-studio.md | Provider  |
+| api/google-vertex-ai-docs.md    | api/providers/google/vertex-ai.md | Provider  |
+| google-ai-apis/gemini-models.md | api/providers/google/gemini.md    | Provider  |
+| google-ai-apis/veo-api.md       | api/providers/google/veo.md       | Provider  |
+| google-ai-apis/imagen-api.md    | api/providers/google/imagen.md    | Provider  |
+| api/GEMINI25FLASH\_\*.md        | MERGE into google/gemini.md       | Provider  |
+| api/VEO2*VIDEO*\*.md            | MERGE into google/veo.md          | Provider  |
+| api/VEO3*VIDEO*\*.md            | MERGE into google/veo.md          | Provider  |
+| api/IMAGEN*IMAGE*\*.md          | MERGE into google/imagen.md       | Provider  |
+| api/fal-kling.md                | api/video-generation/kling.md     | Video Gen |
+| api/fal-minimax.md              | api/video-generation/minimax.md   | Video Gen |
+| api/fal-pixverse.md             | api/video-generation/pixverse.md  | Video Gen |
+| api/fal-sora-2.md               | api/video-generation/sora.md      | Video Gen |
+| api/supabase-api-docs.md        | api/providers/supabase.md         | Provider  |
+| api/stripe-api-docs.md          | api/providers/stripe.md           | Provider  |
+| api/axiom-api-docs.md           | api/providers/axiom.md            | Provider  |
+| api/resend-api-docs.md          | api/providers/resend.md           | Provider  |
 
 ### Reports to Archive
 
-| Current File | Archive Location | Date Range |
-|-------------|------------------|------------|
-| AUDIT_LOGGING_IMPLEMENTATION.md | archives/audit-logs/ | 2025-10 |
-| AUDIT_LOGGING_SUMMARY.md | archives/audit-logs/ | 2025-10 |
-| AUDIT_LOG_INTEGRATION_EXAMPLES.md | archives/audit-logs/ | 2025-10 |
-| VALIDATION_REPORT.md | archives/validation/ | 2025-10 |
-| VALIDATION_GAPS_REPORT.md | archives/validation/ | 2025-10 |
-| QUALITY_VALIDATION_REPORT.md | archives/validation/ | 2025-10 |
-| SERVICE_LAYER_IMPROVEMENTS_SUMMARY.md | archives/improvements/ | 2025-10 |
-| PERFORMANCE_OPTIMIZATIONS.md | archives/improvements/ | 2025-10 |
-| NEXT_10_FIXES_REPORT.md | archives/improvements/ | 2025-10 |
-| HIGH-015-COMPLETION-REPORT.md | archives/completed-issues/ | 2025-10 |
-| MED-020-ARCHITECTURE-FIXES-REPORT.md | archives/completed-issues/ | 2025-10 |
-| MED-023-ARCHITECTURE-FIXES-REPORT.md | archives/completed-issues/ | 2025-10 |
-| MED-024_RESOLUTION_REPORT.md | archives/completed-issues/ | 2025-10 |
+| Current File                          | Archive Location           | Date Range |
+| ------------------------------------- | -------------------------- | ---------- |
+| AUDIT_LOGGING_IMPLEMENTATION.md       | archives/audit-logs/       | 2025-10    |
+| AUDIT_LOGGING_SUMMARY.md              | archives/audit-logs/       | 2025-10    |
+| AUDIT_LOG_INTEGRATION_EXAMPLES.md     | archives/audit-logs/       | 2025-10    |
+| VALIDATION_REPORT.md                  | archives/validation/       | 2025-10    |
+| VALIDATION_GAPS_REPORT.md             | archives/validation/       | 2025-10    |
+| QUALITY_VALIDATION_REPORT.md          | archives/validation/       | 2025-10    |
+| SERVICE_LAYER_IMPROVEMENTS_SUMMARY.md | archives/improvements/     | 2025-10    |
+| PERFORMANCE_OPTIMIZATIONS.md          | archives/improvements/     | 2025-10    |
+| NEXT_10_FIXES_REPORT.md               | archives/improvements/     | 2025-10    |
+| HIGH-015-COMPLETION-REPORT.md         | archives/completed-issues/ | 2025-10    |
+| MED-020-ARCHITECTURE-FIXES-REPORT.md  | archives/completed-issues/ | 2025-10    |
+| MED-023-ARCHITECTURE-FIXES-REPORT.md  | archives/completed-issues/ | 2025-10    |
+| MED-024_RESOLUTION_REPORT.md          | archives/completed-issues/ | 2025-10    |
 
 ---
 
@@ -752,6 +775,7 @@ find docs -name "*.md" -type f -exec sed -i '' \
 ### Manual Link Review
 
 Areas requiring manual review:
+
 1. README.md - Main project README
 2. docs/README.md - Documentation index
 3. CLAUDE.md - Project memory
@@ -783,6 +807,7 @@ All notable changes to the documentation will be documented in this file.
 ## [2.0.0] - 2025-10-24
 
 ### Changed
+
 - **BREAKING**: Reorganized entire documentation structure
 - Moved all setup guides to `/docs/getting-started/`
 - Consolidated performance documentation
@@ -790,22 +815,26 @@ All notable changes to the documentation will be documented in this file.
 - Archived historical agent reports
 
 ### Added
+
 - New `/docs/guides/` directory for developer guides
 - New `/docs/infrastructure/` directory for DevOps docs
 - Date-based organization for reports
 - Comprehensive README.md files for all directories
 
 ### Removed
+
 - Duplicate files (PERFORMANCE_OPTIMIZATION.md, ENV_VARIABLES_SUMMARY.md)
 - Outdated verification reports
 - Temporary agent summary files from root
 
 ### Archived
+
 - Agent reports to `/archive/agent-reports/2025-10-24/`
 - Old bundle optimization docs to `/archive/deprecated/`
 - Historical verification reports
 
 ## [1.0.0] - 2025-10-23
+
 - Initial documentation structure
 ```
 
@@ -902,11 +931,13 @@ All notable changes to the documentation will be documented in this file.
 ### Recommended Schedule
 
 **Week 1**: Preparation (Days 1-5)
+
 - Day 1-2: Audit and categorize
 - Day 3: Create directory structure
 - Day 4-5: Create README.md files
 
 **Week 2**: Execution (Days 6-10)
+
 - Day 6: Phase 1 - Archive agent reports
 - Day 7: Phase 2 - Archive deprecated docs
 - Day 8: Phase 3 - Consolidate guides
@@ -914,6 +945,7 @@ All notable changes to the documentation will be documented in this file.
 - Day 10: Phase 5 - Update links
 
 **Week 3**: Verification (Days 11-15)
+
 - Day 11-12: Update all READMEs
 - Day 13: Test documentation
 - Day 14: Final review
@@ -942,6 +974,7 @@ All notable changes to the documentation will be documented in this file.
 > Last Updated: 2025-10-24
 
 ## Table of Contents
+
 1. [Overview](#overview)
 2. [Frontend Performance](#frontend-performance)
    - [From PERFORMANCE.md]
@@ -951,7 +984,7 @@ All notable changes to the documentation will be documented in this file.
    - [From PERFORMANCE_OPTIMIZATION.md]
 5. [Bundle Optimization](#bundle-optimization)
    - [From PERFORMANCE_OPTIMIZATION.md]
-...
+     ...
 ```
 
 ### B. README.md Template
@@ -994,13 +1027,14 @@ These reports are **historical** and may contain outdated information.
 
 ## Contents
 
-| File | Date | Summary |
-|------|------|---------|
+| File       | Date       | Summary           |
+| ---------- | ---------- | ----------------- |
 | report1.md | 2025-10-24 | Brief description |
 
 ## Current Documentation
 
 For current information, see:
+
 - [Current Reports](../../reports/)
 - [Documentation Index](../../README.md)
 
@@ -1030,6 +1064,7 @@ This consolidation strategy will:
 ---
 
 **Next Steps**:
+
 1. Review and approve this strategy
 2. Create git branch for consolidation work
 3. Begin Week 1 preparation phase

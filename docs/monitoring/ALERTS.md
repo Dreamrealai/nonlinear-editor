@@ -29,10 +29,12 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 **Impact:** Reduced user activation and retention
 
 #### Trigger Conditions
+
 - Onboarding completion rate < 60% over 24 hours
 - OR completion rate drops > 15% compared to previous 7-day average
 
 #### Axiom Query
+
 ```apl
 ['logs']
 | where ['_time'] > ago(24h)
@@ -44,6 +46,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 #### Action Items
+
 1. Review recent code deployments
 2. Check for errors in onboarding flow
 3. Analyze drop-off points in funnel
@@ -51,6 +54,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 5. Consider A/B test rollback if applicable
 
 #### Notification Channels
+
 - Slack: #product-alerts
 - Email: product-team@company.com
 
@@ -63,10 +67,12 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 **Impact:** Users cannot complete onboarding
 
 #### Trigger Conditions
+
 - Any onboarding step has < 40% completion rate over 6 hours
 - OR error rate > 10% for any step
 
 #### Axiom Query
+
 ```apl
 ['logs']
 | where ['_time'] > ago(6h)
@@ -81,6 +87,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 #### Action Items
+
 1. Immediately investigate failing step
 2. Check for backend errors
 3. Review recent deployments
@@ -88,6 +95,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 5. Notify engineering team
 
 #### Notification Channels
+
 - PagerDuty: On-call engineer
 - Slack: #incidents (mention @engineering)
 - Email: engineering-team@company.com
@@ -103,11 +111,13 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 **Impact:** Poor UX, potential user churn
 
 #### Trigger Conditions
+
 - Timeline render p95 > 3000ms over 1 hour
 - OR Asset search p95 > 1000ms over 30 minutes
 - OR API endpoint p95 > 5000ms over 15 minutes
 
 #### Axiom Query
+
 ```apl
 ['logs']
 | where ['_time'] > ago(1h)
@@ -118,6 +128,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 #### Action Items
+
 1. Page on-call engineer immediately
 2. Check system resource utilization
 3. Review database query performance
@@ -126,11 +137,13 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 6. Rollback recent deployments if necessary
 
 #### Notification Channels
+
 - PagerDuty: Page on-call engineer
 - Slack: #incidents (mention @here)
 - SMS: Engineering leads
 
 #### Auto-remediation
+
 - Trigger auto-scaling if available
 - Restart degraded services
 - Enable caching layers
@@ -144,11 +157,13 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 **Impact:** SEO ranking, user experience
 
 #### Trigger Conditions
+
 - LCP (Largest Contentful Paint) p75 > 2500ms for 2 hours
 - FID (First Input Delay) p75 > 100ms for 2 hours
 - CLS (Cumulative Layout Shift) p75 > 0.1 for 2 hours
 
 #### Axiom Query
+
 ```apl
 ['logs']
 | where ['_time'] > ago(2h)
@@ -164,6 +179,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 #### Action Items
+
 1. Identify which pages are affected
 2. Review recent frontend changes
 3. Analyze resource loading patterns
@@ -171,6 +187,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 5. Review third-party scripts
 
 #### Notification Channels
+
 - Slack: #frontend-team
 - Email: frontend-team@company.com
 
@@ -183,10 +200,12 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 **Impact:** API slowdowns, user experience degradation
 
 #### Trigger Conditions
+
 - More than 10 queries taking > 1000ms in 15 minutes
 - OR p95 query time > 2000ms over 30 minutes
 
 #### Axiom Query
+
 ```apl
 ['logs']
 | where ['_time'] > ago(15m)
@@ -199,6 +218,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 #### Action Items
+
 1. Identify slow queries
 2. Check for missing indexes
 3. Review query execution plans
@@ -207,6 +227,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 6. Scale database if needed
 
 #### Notification Channels
+
 - Slack: #backend-team
 - PagerDuty: On-call engineer (if p95 > 5000ms)
 
@@ -221,10 +242,12 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 **Impact:** Service disruption, user frustration
 
 #### Trigger Conditions
+
 - Error rate > 5% over 15 minutes
 - OR > 100 errors affecting > 10 unique users in 5 minutes
 
 #### Axiom Query
+
 ```apl
 ['logs']
 | where ['_time'] > ago(15m)
@@ -236,6 +259,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 #### Action Items
+
 1. Create incident in PagerDuty
 2. Identify error source
 3. Check recent deployments
@@ -244,11 +268,13 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 6. Post incident update to status page
 
 #### Notification Channels
+
 - PagerDuty: Page on-call engineer
 - Slack: #incidents (mention @here)
 - Status page: Automatic incident creation
 
 #### Auto-remediation
+
 - Automatic rollback if error rate > 10%
 - Circuit breaker activation
 
@@ -261,10 +287,12 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 **Impact:** Data loss risk
 
 #### Trigger Conditions
+
 - Backup failure rate > 5% over 1 hour
 - OR > 50 consecutive failures
 
 #### Axiom Query
+
 ```apl
 ['logs']
 | where ['_time'] > ago(1h)
@@ -276,6 +304,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 #### Action Items
+
 1. Notify engineering team immediately
 2. Check storage system health
 3. Review database connection status
@@ -284,6 +313,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 6. Manual backup if necessary
 
 #### Notification Channels
+
 - Slack: #engineering (mention @engineering-leads)
 - Email: engineering-team@company.com
 - PagerDuty: On-call engineer (if failure rate > 20%)
@@ -297,10 +327,12 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 **Impact:** Feature degradation
 
 #### Trigger Conditions
+
 - Any endpoint has > 10% error rate over 30 minutes
 - Minimum 20 requests to avoid false positives
 
 #### Axiom Query
+
 ```apl
 ['logs']
 | where ['_time'] > ago(30m)
@@ -313,6 +345,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 #### Action Items
+
 1. Identify affected endpoint
 2. Review endpoint logs
 3. Check for dependency failures
@@ -320,6 +353,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 5. Review recent API changes
 
 #### Notification Channels
+
 - Slack: #backend-team
 
 ---
@@ -333,10 +367,12 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 **Impact:** Security breach risk
 
 #### Trigger Conditions
+
 - > 10 failed login attempts from same IP in 5 minutes
 - OR > 20 failed login attempts for same email in 15 minutes
 
 #### Axiom Query
+
 ```apl
 ['logs']
 | where ['_time'] > ago(15m)
@@ -346,6 +382,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 #### Action Items
+
 1. Temporarily block offending IP addresses
 2. Notify security team
 3. Check for account compromise
@@ -354,11 +391,13 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 6. Alert affected users
 
 #### Notification Channels
+
 - PagerDuty: Security team
 - Slack: #security-alerts
 - Email: security-team@company.com
 
 #### Auto-remediation
+
 - Automatic IP blocking after 15 failed attempts
 - Rate limit enforcement
 - CAPTCHA activation
@@ -372,11 +411,13 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 **Impact:** Potential data breach
 
 #### Trigger Conditions
+
 - Mass data export (> 1000 records) by single user
 - Data access from unusual location/IP
 - Multiple failed authorization attempts
 
 #### Axiom Query
+
 ```apl
 ['logs']
 | where ['_time'] > ago(1h)
@@ -388,6 +429,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 #### Action Items
+
 1. Alert security team immediately
 2. Investigate user account
 3. Check for compromised credentials
@@ -396,6 +438,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 6. Contact user if legitimate
 
 #### Notification Channels
+
 - PagerDuty: Security team (immediate)
 - Slack: #security-incidents (mention @security-leads)
 - Email: security-team@company.com
@@ -409,10 +452,12 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 **Impact:** Service degradation, increased costs
 
 #### Trigger Conditions
+
 - > 100 rate limit hits (429 status) from same IP in 10 minutes
 - OR > 500 rate limit hits total in 10 minutes
 
 #### Axiom Query
+
 ```apl
 ['logs']
 | where ['_time'] > ago(10m)
@@ -424,6 +469,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 #### Action Items
+
 1. Identify abusive IP addresses
 2. Review rate limit configuration
 3. Consider IP blocking
@@ -432,6 +478,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 6. Contact user if legitimate high usage
 
 #### Notification Channels
+
 - Slack: #infrastructure
 - Email: ops-team@company.com
 
@@ -446,10 +493,12 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 **Impact:** Product development insights
 
 #### Trigger Conditions
+
 - New feature usage < 10% of active users after 7 days
 - Feature engagement declining > 20% week-over-week
 
 #### Axiom Query
+
 ```apl
 ['logs']
 | where ['_time'] > ago(7d)
@@ -466,6 +515,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 #### Action Items
+
 1. Notify product team
 2. Review feature discoverability
 3. Analyze user feedback
@@ -474,6 +524,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 6. Plan user education/onboarding
 
 #### Notification Channels
+
 - Slack: #product-team
 - Email: Weekly product metrics report
 
@@ -486,10 +537,12 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 **Impact:** Revenue impact
 
 #### Trigger Conditions
+
 - Conversion rate drops > 25% compared to 30-day average
 - Minimum 100 signups in period to avoid noise
 
 #### Axiom Query
+
 ```apl
 ['logs']
 | where ['_time'] > ago(7d)
@@ -501,6 +554,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 #### Action Items
+
 1. Notify product and sales teams
 2. Review pricing page changes
 3. Analyze conversion funnel
@@ -509,6 +563,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 6. Examine user feedback
 
 #### Notification Channels
+
 - Slack: #revenue-ops
 - Email: product-team@company.com, sales-team@company.com
 
@@ -521,10 +576,12 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 **Impact:** Customer retention
 
 #### Trigger Conditions
+
 - > 20% of active users showing churn signals
 - High-value users (> 10 projects) inactive for 7+ days
 
 #### Axiom Query
+
 ```apl
 ['logs']
 | where ['_time'] > ago(30d)
@@ -538,6 +595,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 #### Action Items
+
 1. Notify customer success team
 2. Trigger re-engagement campaigns
 3. Analyze reasons for inactivity
@@ -545,6 +603,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 5. Consider personalized outreach
 
 #### Notification Channels
+
 - Slack: #customer-success
 - Email: Weekly retention report
 
@@ -559,11 +618,13 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 **Impact:** Complete service outage
 
 #### Trigger Conditions
+
 - Health check endpoint returns 503 status
 - Health check response time > 5000ms
 - Health check fails 3 consecutive times
 
 #### Axiom Query
+
 ```apl
 ['logs']
 | where ['_time'] > ago(5m)
@@ -574,6 +635,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 #### Action Items
+
 1. Page on-call engineer immediately
 2. Check all service dependencies
 3. Verify database connectivity
@@ -582,11 +644,13 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 6. Initiate incident response
 
 #### Notification Channels
+
 - PagerDuty: Page on-call engineer (P0)
 - Slack: #incidents (mention @here)
 - Status page: Automatic update
 
 #### Auto-remediation
+
 - Automatic service restart
 - Failover to backup instances
 - Scale up resources
@@ -600,11 +664,13 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 **Impact:** Performance degradation, potential crashes
 
 #### Trigger Conditions
+
 - CPU usage > 80% for 10 minutes
 - Memory usage > 85% for 10 minutes
 - Disk usage > 90%
 
 #### Axiom Query
+
 ```apl
 ['logs']
 | where ['_time'] > ago(10m)
@@ -616,6 +682,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 #### Action Items
+
 1. Notify infrastructure team
 2. Check for resource leaks
 3. Review application logs
@@ -624,11 +691,13 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 6. Consider horizontal scaling
 
 #### Notification Channels
+
 - PagerDuty: On-call SRE
 - Slack: #infrastructure
 - Email: ops-team@company.com
 
 #### Auto-remediation
+
 - Automatic horizontal scaling
 - Memory cleanup routines
 - Kill runaway processes
@@ -693,6 +762,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ### Notification Channel Setup
 
 **Slack Integration:**
+
 ```
 - #incidents: P0, P1 alerts
 - #engineering: P1, P2 technical alerts
@@ -701,6 +771,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 **PagerDuty Integration:**
+
 ```
 - P0: Immediate page, 2-minute timeout
 - P1: Page after 5 minutes, escalate if unacknowledged
@@ -708,6 +779,7 @@ This document defines all production alerts for the Non-Linear Editor platform. 
 ```
 
 **Email:**
+
 ```
 - engineering-team@company.com: All technical alerts
 - product-team@company.com: Product metrics

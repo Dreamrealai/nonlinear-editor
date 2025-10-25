@@ -9,12 +9,14 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
 ### Key Metrics
 
 #### Onboarding Start Rate
+
 - **Query:** Count of `onboarding_started` events per hour/day
 - **Visualization:** Time series chart
 - **Target:** Correlate with new user registrations
 - **Alert Threshold:** Drop > 30% compared to previous week
 
 #### Completion Rate by Step
+
 - **Query:** Track completion rate for each onboarding step
   - Welcome screen
   - Tutorial introduction
@@ -26,6 +28,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
 - **Alert Threshold:** Any step with < 40% completion
 
 #### Drop-off Analysis
+
 - **Query:** Identify where users abandon onboarding
 - **Visualization:** Sankey diagram showing flow between steps
 - **Insights:**
@@ -34,6 +37,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
   - Device/browser correlation with drop-off
 
 #### Average Time per Step
+
 - **Query:** Calculate median and p95 time spent on each step
 - **Visualization:** Bar chart with percentile lines
 - **Target:**
@@ -44,6 +48,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
   - Project creation: < 1 minute
 
 #### Skip Rate
+
 - **Query:** Percentage of users who skip tutorial steps
 - **Visualization:** Pie chart + trend line
 - **Insights:**
@@ -88,6 +93,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
 ### Key Metrics
 
 #### Easter Egg Discovery Rate
+
 - **Query:** Track which easter eggs users discover
 - **Visualization:** Leaderboard + discovery timeline
 - **Metrics:**
@@ -97,6 +103,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
   - Discovery method (keyboard shortcut, UI exploration, etc.)
 
 #### Timeline Grid Usage
+
 - **Query:** Measure grid snap feature adoption
 - **Visualization:** Stacked area chart
 - **Metrics:**
@@ -106,6 +113,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
   - Correlation with editing precision
 
 #### Asset Search Frequency
+
 - **Query:** Track search feature usage
 - **Visualization:** Line chart + search term word cloud
 - **Metrics:**
@@ -115,6 +123,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
   - Search performance (latency)
 
 #### Minimap Interaction Rate
+
 - **Query:** Measure minimap feature engagement
 - **Visualization:** Heatmap of interaction points
 - **Metrics:**
@@ -124,6 +133,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
   - Viewport jumps using minimap
 
 #### Selection Tool Usage
+
 - **Query:** Track multi-select and selection tools
 - **Visualization:** Comparison chart
 - **Metrics:**
@@ -179,6 +189,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
 ### Key Metrics
 
 #### Timeline Render Time (p50, p95, p99)
+
 - **Query:** Track timeline rendering performance
 - **Visualization:** Multi-line percentile chart
 - **Targets:**
@@ -188,6 +199,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
 - **Alert Threshold:** p95 > 3000ms for 1 hour
 
 #### Asset Search Latency
+
 - **Query:** Measure search response time
 - **Visualization:** Histogram + percentile trend
 - **Targets:**
@@ -197,6 +209,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
 - **Alert Threshold:** p95 > 1000ms for 15 minutes
 
 #### Auto-save Completion Time
+
 - **Query:** Track auto-save performance
 - **Visualization:** Time series with error bars
 - **Targets:**
@@ -206,6 +219,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
 - **Alert Threshold:** Failure rate > 5% over 1 hour
 
 #### Error Rates by Feature
+
 - **Query:** Group errors by feature/component
 - **Visualization:** Treemap + trend lines
 - **Metrics:**
@@ -215,6 +229,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
   - User impact (affected users)
 
 #### API Response Times
+
 - **Query:** Track API endpoint performance
 - **Visualization:** Heatmap by endpoint
 - **Targets:**
@@ -287,6 +302,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
 ### Key Metrics
 
 #### Daily Active Users (DAU)
+
 - **Query:** Count unique users per day
 - **Visualization:** Line chart with 7-day moving average
 - **Segments:**
@@ -296,6 +312,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
   - Power users (daily activity > 30 min)
 
 #### Feature Adoption Rate
+
 - **Query:** Track adoption of new features over time
 - **Visualization:** Stacked area chart
 - **Metrics:**
@@ -305,6 +322,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
   - Adoption velocity (users per day)
 
 #### Session Duration
+
 - **Query:** Measure time users spend in the app
 - **Visualization:** Distribution histogram + trend
 - **Segments:**
@@ -314,6 +332,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
   - > 60 minutes (power sessions)
 
 #### Retention Cohorts
+
 - **Query:** Track user retention by cohort
 - **Visualization:** Cohort retention table
 - **Metrics:**
@@ -323,6 +342,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
   - Feature usage impact on retention
 
 #### Churn Indicators
+
 - **Query:** Identify users at risk of churning
 - **Visualization:** Risk score distribution
 - **Risk Factors:**
@@ -414,6 +434,7 @@ This document describes the Axiom monitoring dashboards for the Non-Linear Edito
 ### 4. Add Contextual Filters
 
 All dashboards should include these global filters:
+
 - **Time Range:** Last 24h, 7d, 30d, custom
 - **Environment:** Production, staging, development
 - **User Segment:** New users, returning users, power users
@@ -423,6 +444,7 @@ All dashboards should include these global filters:
 ### 5. Configure Annotations
 
 Add annotations for:
+
 - Feature releases
 - Deployment times
 - Incident reports

@@ -32,8 +32,10 @@ type TimelineGridSettingsProps = {
 export function TimelineGridSettings({ className }: TimelineGridSettingsProps): React.ReactElement {
   const snapEnabled = useEditorStore((state): boolean => state.snapEnabled);
   const snapGridInterval = useEditorStore((state): number => state.snapGridInterval);
-  const toggleSnap = useEditorStore((state): () => void => state.toggleSnap);
-  const setSnapGridInterval = useEditorStore((state): (interval: number) => void => state.setSnapGridInterval);
+  const toggleSnap = useEditorStore((state): (() => void) => state.toggleSnap);
+  const setSnapGridInterval = useEditorStore(
+    (state): ((interval: number) => void) => state.setSnapGridInterval
+  );
 
   const [isOpen, setIsOpen] = useState(false);
   const [customInterval, setCustomInterval] = useState('');
@@ -120,23 +122,25 @@ export function TimelineGridSettings({ className }: TimelineGridSettingsProps): 
                   Key strategy: Use preset label since it's guaranteed unique in PRESET_INTERVALS.
                   Each preset has a unique label value.
                 */}
-                {PRESET_INTERVALS.map((preset): React.ReactElement => (
-                  <button
-                    key={`preset-${preset.label}`}
-                    onClick={(): void => handlePresetClick(preset.value)}
-                    className={cn(
-                      'w-full flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors',
-                      Math.abs(snapGridInterval - preset.value) < 0.001
-                        ? 'bg-purple-50 text-purple-700 font-medium'
-                        : 'text-neutral-700 hover:bg-neutral-50'
-                    )}
-                  >
-                    <span>{preset.label}</span>
-                    {Math.abs(snapGridInterval - preset.value) < 0.001 && (
-                      <Check className="h-4 w-4 text-purple-600" />
-                    )}
-                  </button>
-                ))}
+                {PRESET_INTERVALS.map(
+                  (preset): React.ReactElement => (
+                    <button
+                      key={`preset-${preset.label}`}
+                      onClick={(): void => handlePresetClick(preset.value)}
+                      className={cn(
+                        'w-full flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors',
+                        Math.abs(snapGridInterval - preset.value) < 0.001
+                          ? 'bg-purple-50 text-purple-700 font-medium'
+                          : 'text-neutral-700 hover:bg-neutral-50'
+                      )}
+                    >
+                      <span>{preset.label}</span>
+                      {Math.abs(snapGridInterval - preset.value) < 0.001 && (
+                        <Check className="h-4 w-4 text-purple-600" />
+                      )}
+                    </button>
+                  )
+                )}
               </div>
             </div>
 

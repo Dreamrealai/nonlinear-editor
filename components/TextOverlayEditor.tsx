@@ -2,7 +2,12 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Trash2, Sparkles } from 'lucide-react';
-import type { TextOverlay, TextAnimation, TextAnimationType, EasingFunction } from '@/types/timeline';
+import type {
+  TextOverlay,
+  TextAnimation,
+  TextAnimationType,
+  EasingFunction,
+} from '@/types/timeline';
 import { useEditorStore } from '@/state/useEditorStore';
 import { animationPresets } from '@/lib/utils/textAnimations';
 
@@ -55,8 +60,12 @@ export function TextOverlayEditor({
   currentTime,
   containerRef,
 }: TextOverlayEditorProps): React.ReactElement {
-  const updateTextOverlay = useEditorStore((state): (id: string, patch: Partial<TextOverlay>) => void => state.updateTextOverlay);
-  const removeTextOverlay = useEditorStore((state): (id: string) => void => state.removeTextOverlay);
+  const updateTextOverlay = useEditorStore(
+    (state): ((id: string, patch: Partial<TextOverlay>) => void) => state.updateTextOverlay
+  );
+  const removeTextOverlay = useEditorStore(
+    (state): ((id: string) => void) => state.removeTextOverlay
+  );
 
   const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -257,7 +266,7 @@ export function TextOverlayEditor({
         if (overlay.animation.type === 'fade-in') {
           computedOpacity *= progress;
         } else if (overlay.animation.type === 'fade-out') {
-          computedOpacity *= (1 - progress);
+          computedOpacity *= 1 - progress;
         }
       }
     }
@@ -358,11 +367,13 @@ export function TextOverlayEditor({
                 onChange={(e): void => handleFontFamilyChange(e.target.value)}
                 className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none"
               >
-                {FONT_FAMILIES.map((font): React.ReactElement => (
-                  <option key={font.value} value={font.value} className="bg-gray-900">
-                    {font.label}
-                  </option>
-                ))}
+                {FONT_FAMILIES.map(
+                  (font): React.ReactElement => (
+                    <option key={font.value} value={font.value} className="bg-gray-900">
+                      {font.label}
+                    </option>
+                  )
+                )}
               </select>
             </div>
 
@@ -377,11 +388,13 @@ export function TextOverlayEditor({
                 onChange={(e): void => handleFontSizeChange(Number(e.target.value))}
                 className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none w-20"
               >
-                {FONT_SIZES.map((size): React.ReactElement => (
-                  <option key={size} value={size} className="bg-gray-900">
-                    {size}px
-                  </option>
-                ))}
+                {FONT_SIZES.map(
+                  (size): React.ReactElement => (
+                    <option key={size} value={size} className="bg-gray-900">
+                      {size}px
+                    </option>
+                  )
+                )}
               </select>
             </div>
 
@@ -389,20 +402,22 @@ export function TextOverlayEditor({
             <div className="flex flex-col gap-1">
               <div className="text-xs text-white/60 font-medium">Color</div>
               <div className="flex gap-1">
-                {COLOR_PRESETS.map((color): React.ReactElement => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={(): void => handleColorChange(color)}
-                    className={`w-6 h-6 rounded border-2 transition-all ${
-                      selectedOverlay.color === color
-                        ? 'border-blue-500 scale-110'
-                        : 'border-white/30 hover:border-white/60'
-                    }`}
-                    style={{ backgroundColor: color }}
-                    title={color}
-                  />
-                ))}
+                {COLOR_PRESETS.map(
+                  (color): React.ReactElement => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={(): void => handleColorChange(color)}
+                      className={`w-6 h-6 rounded border-2 transition-all ${
+                        selectedOverlay.color === color
+                          ? 'border-blue-500 scale-110'
+                          : 'border-white/30 hover:border-white/60'
+                      }`}
+                      style={{ backgroundColor: color }}
+                      title={color}
+                    />
+                  )
+                )}
                 {/* Custom color input */}
                 <input
                   type="color"
@@ -419,44 +434,87 @@ export function TextOverlayEditor({
 
             {/* Animation Type */}
             <div className="flex flex-col gap-1">
-              <label htmlFor="animation-type-select" className="text-xs text-white/60 font-medium flex items-center gap-1">
+              <label
+                htmlFor="animation-type-select"
+                className="text-xs text-white/60 font-medium flex items-center gap-1"
+              >
                 <Sparkles className="h-3 w-3" />
                 Animation
               </label>
               <select
                 id="animation-type-select"
                 value={selectedOverlay.animation?.type ?? 'none'}
-                onChange={(e): void => handleAnimationTypeChange(e.target.value as TextAnimationType)}
+                onChange={(e): void =>
+                  handleAnimationTypeChange(e.target.value as TextAnimationType)
+                }
                 className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none min-w-[140px]"
               >
-                <option value="none" className="bg-gray-900">None</option>
+                <option value="none" className="bg-gray-900">
+                  None
+                </option>
                 <optgroup label="Fade" className="bg-gray-900">
-                  <option value="fade-in" className="bg-gray-900">Fade In</option>
-                  <option value="fade-out" className="bg-gray-900">Fade Out</option>
-                  <option value="fade-in-out" className="bg-gray-900">Fade In/Out</option>
+                  <option value="fade-in" className="bg-gray-900">
+                    Fade In
+                  </option>
+                  <option value="fade-out" className="bg-gray-900">
+                    Fade Out
+                  </option>
+                  <option value="fade-in-out" className="bg-gray-900">
+                    Fade In/Out
+                  </option>
                 </optgroup>
                 <optgroup label="Slide" className="bg-gray-900">
-                  <option value="slide-in-left" className="bg-gray-900">Slide In Left</option>
-                  <option value="slide-in-right" className="bg-gray-900">Slide In Right</option>
-                  <option value="slide-in-top" className="bg-gray-900">Slide In Top</option>
-                  <option value="slide-in-bottom" className="bg-gray-900">Slide In Bottom</option>
-                  <option value="slide-out-left" className="bg-gray-900">Slide Out Left</option>
-                  <option value="slide-out-right" className="bg-gray-900">Slide Out Right</option>
-                  <option value="slide-out-top" className="bg-gray-900">Slide Out Top</option>
-                  <option value="slide-out-bottom" className="bg-gray-900">Slide Out Bottom</option>
+                  <option value="slide-in-left" className="bg-gray-900">
+                    Slide In Left
+                  </option>
+                  <option value="slide-in-right" className="bg-gray-900">
+                    Slide In Right
+                  </option>
+                  <option value="slide-in-top" className="bg-gray-900">
+                    Slide In Top
+                  </option>
+                  <option value="slide-in-bottom" className="bg-gray-900">
+                    Slide In Bottom
+                  </option>
+                  <option value="slide-out-left" className="bg-gray-900">
+                    Slide Out Left
+                  </option>
+                  <option value="slide-out-right" className="bg-gray-900">
+                    Slide Out Right
+                  </option>
+                  <option value="slide-out-top" className="bg-gray-900">
+                    Slide Out Top
+                  </option>
+                  <option value="slide-out-bottom" className="bg-gray-900">
+                    Slide Out Bottom
+                  </option>
                 </optgroup>
                 <optgroup label="Scale" className="bg-gray-900">
-                  <option value="scale-in" className="bg-gray-900">Scale In</option>
-                  <option value="scale-out" className="bg-gray-900">Scale Out</option>
-                  <option value="scale-pulse" className="bg-gray-900">Scale Pulse</option>
+                  <option value="scale-in" className="bg-gray-900">
+                    Scale In
+                  </option>
+                  <option value="scale-out" className="bg-gray-900">
+                    Scale Out
+                  </option>
+                  <option value="scale-pulse" className="bg-gray-900">
+                    Scale Pulse
+                  </option>
                 </optgroup>
                 <optgroup label="Rotate" className="bg-gray-900">
-                  <option value="rotate-in" className="bg-gray-900">Rotate In</option>
-                  <option value="rotate-out" className="bg-gray-900">Rotate Out</option>
+                  <option value="rotate-in" className="bg-gray-900">
+                    Rotate In
+                  </option>
+                  <option value="rotate-out" className="bg-gray-900">
+                    Rotate Out
+                  </option>
                 </optgroup>
                 <optgroup label="Special" className="bg-gray-900">
-                  <option value="bounce-in" className="bg-gray-900">Bounce In</option>
-                  <option value="typewriter" className="bg-gray-900">Typewriter</option>
+                  <option value="bounce-in" className="bg-gray-900">
+                    Bounce In
+                  </option>
+                  <option value="typewriter" className="bg-gray-900">
+                    Typewriter
+                  </option>
                 </optgroup>
               </select>
             </div>
@@ -476,7 +534,9 @@ export function TextOverlayEditor({
                     max="10"
                     step="0.1"
                     value={selectedOverlay.animation.duration}
-                    onChange={(e): void => handleAnimationPropertyChange('duration', parseFloat(e.target.value))}
+                    onChange={(e): void =>
+                      handleAnimationPropertyChange('duration', parseFloat(e.target.value))
+                    }
                     className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none w-16"
                   />
                 </div>
@@ -493,7 +553,9 @@ export function TextOverlayEditor({
                     max="10"
                     step="0.1"
                     value={selectedOverlay.animation.delay}
-                    onChange={(e): void => handleAnimationPropertyChange('delay', parseFloat(e.target.value))}
+                    onChange={(e): void =>
+                      handleAnimationPropertyChange('delay', parseFloat(e.target.value))
+                    }
                     className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none w-16"
                   />
                 </div>
@@ -509,17 +571,39 @@ export function TextOverlayEditor({
                     onChange={(e): void => handleAnimationPropertyChange('easing', e.target.value)}
                     className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none"
                   >
-                    <option value="linear" className="bg-gray-900">Linear</option>
-                    <option value="ease-in" className="bg-gray-900">Ease In</option>
-                    <option value="ease-out" className="bg-gray-900">Ease Out</option>
-                    <option value="ease-in-out" className="bg-gray-900">Ease In/Out</option>
-                    <option value="ease-in-quad" className="bg-gray-900">Ease In Quad</option>
-                    <option value="ease-out-quad" className="bg-gray-900">Ease Out Quad</option>
-                    <option value="ease-in-out-quad" className="bg-gray-900">Ease In/Out Quad</option>
-                    <option value="ease-in-cubic" className="bg-gray-900">Ease In Cubic</option>
-                    <option value="ease-out-cubic" className="bg-gray-900">Ease Out Cubic</option>
-                    <option value="ease-in-out-cubic" className="bg-gray-900">Ease In/Out Cubic</option>
-                    <option value="bounce" className="bg-gray-900">Bounce</option>
+                    <option value="linear" className="bg-gray-900">
+                      Linear
+                    </option>
+                    <option value="ease-in" className="bg-gray-900">
+                      Ease In
+                    </option>
+                    <option value="ease-out" className="bg-gray-900">
+                      Ease Out
+                    </option>
+                    <option value="ease-in-out" className="bg-gray-900">
+                      Ease In/Out
+                    </option>
+                    <option value="ease-in-quad" className="bg-gray-900">
+                      Ease In Quad
+                    </option>
+                    <option value="ease-out-quad" className="bg-gray-900">
+                      Ease Out Quad
+                    </option>
+                    <option value="ease-in-out-quad" className="bg-gray-900">
+                      Ease In/Out Quad
+                    </option>
+                    <option value="ease-in-cubic" className="bg-gray-900">
+                      Ease In Cubic
+                    </option>
+                    <option value="ease-out-cubic" className="bg-gray-900">
+                      Ease Out Cubic
+                    </option>
+                    <option value="ease-in-out-cubic" className="bg-gray-900">
+                      Ease In/Out Cubic
+                    </option>
+                    <option value="bounce" className="bg-gray-900">
+                      Bounce
+                    </option>
                   </select>
                 </div>
 
@@ -531,14 +615,26 @@ export function TextOverlayEditor({
                   <select
                     id="animation-repeat"
                     value={selectedOverlay.animation.repeat}
-                    onChange={(e): void => handleAnimationPropertyChange('repeat', parseInt(e.target.value))}
+                    onChange={(e): void =>
+                      handleAnimationPropertyChange('repeat', parseInt(e.target.value))
+                    }
                     className="bg-white/10 text-white text-sm rounded px-2 py-1 border border-white/20 focus:border-blue-500 focus:outline-none"
                   >
-                    <option value="0" className="bg-gray-900">Once</option>
-                    <option value="1" className="bg-gray-900">2x</option>
-                    <option value="2" className="bg-gray-900">3x</option>
-                    <option value="3" className="bg-gray-900">4x</option>
-                    <option value="-1" className="bg-gray-900">Loop</option>
+                    <option value="0" className="bg-gray-900">
+                      Once
+                    </option>
+                    <option value="1" className="bg-gray-900">
+                      2x
+                    </option>
+                    <option value="2" className="bg-gray-900">
+                      3x
+                    </option>
+                    <option value="3" className="bg-gray-900">
+                      4x
+                    </option>
+                    <option value="-1" className="bg-gray-900">
+                      Loop
+                    </option>
                   </select>
                 </div>
               </>

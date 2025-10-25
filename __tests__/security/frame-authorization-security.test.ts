@@ -28,66 +28,86 @@ let mockAuditSecurityEvent: jest.Mock;
 let mockCheckRateLimit: jest.Mock;
 
 // Mock modules
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(() => Promise.resolve(mockSupabaseForAuth)),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(() => Promise.resolve(mockSupabaseForAuth)),
+  })
+);
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    child: jest.fn((): Record<string, unknown> => ({
-      debug: jest.fn(),
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
       info: jest.fn(),
+      debug: jest.fn(),
       warn: jest.fn(),
       error: jest.fn(),
-    })),
-  },
-}));
-
-jest.mock('@/lib/auditLog', (): Record<string, unknown> => ({
-  auditLog: jest.fn().mockResolvedValue(undefined),
-  auditSecurityEvent: jest.fn().mockResolvedValue(undefined),
-  AuditAction: {
-    FRAME_EDIT_REQUEST: 'frame.edit.request',
-    FRAME_EDIT_COMPLETE: 'frame.edit.complete',
-    FRAME_EDIT_FAILED: 'frame.edit.failed',
-    FRAME_EDIT_UNAUTHORIZED: 'frame.edit.unauthorized',
-    SECURITY_UNAUTHORIZED_ACCESS: 'security.unauthorized_access',
-  },
-}));
-
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  checkRateLimit: jest.fn().mockResolvedValue({
-    success: true,
-    limit: 10,
-    remaining: 9,
-    resetAt: Date.now() + 60000,
-  }),
-  RATE_LIMITS: {
-    tier2_resource_creation: { max: 10, windowMs: 60000 },
-  },
-}));
-
-jest.mock('@google/generative-ai', (): Record<string, unknown> => ({
-  GoogleGenerativeAI: jest.fn(() => ({
-    getGenerativeModel: jest.fn(() => ({
-      generateContent: jest.fn(() =>
-        Promise.resolve({
-          response: {
-            text: jest.fn(() => 'Mock AI edit instructions'),
-          },
+      child: jest.fn(
+        (): Record<string, unknown> => ({
+          debug: jest.fn(),
+          info: jest.fn(),
+          warn: jest.fn(),
+          error: jest.fn(),
         })
       ),
-    })),
-  })),
-}));
+    },
+  })
+);
 
-jest.mock('uuid', (): Record<string, unknown> => ({
-  v4: jest.fn(() => 'mock-uuid-123'),
-}));
+jest.mock(
+  '@/lib/auditLog',
+  (): Record<string, unknown> => ({
+    auditLog: jest.fn().mockResolvedValue(undefined),
+    auditSecurityEvent: jest.fn().mockResolvedValue(undefined),
+    AuditAction: {
+      FRAME_EDIT_REQUEST: 'frame.edit.request',
+      FRAME_EDIT_COMPLETE: 'frame.edit.complete',
+      FRAME_EDIT_FAILED: 'frame.edit.failed',
+      FRAME_EDIT_UNAUTHORIZED: 'frame.edit.unauthorized',
+      SECURITY_UNAUTHORIZED_ACCESS: 'security.unauthorized_access',
+    },
+  })
+);
+
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    checkRateLimit: jest.fn().mockResolvedValue({
+      success: true,
+      limit: 10,
+      remaining: 9,
+      resetAt: Date.now() + 60000,
+    }),
+    RATE_LIMITS: {
+      tier2_resource_creation: { max: 10, windowMs: 60000 },
+    },
+  })
+);
+
+jest.mock(
+  '@google/generative-ai',
+  (): Record<string, unknown> => ({
+    GoogleGenerativeAI: jest.fn(() => ({
+      getGenerativeModel: jest.fn(() => ({
+        generateContent: jest.fn(() =>
+          Promise.resolve({
+            response: {
+              text: jest.fn(() => 'Mock AI edit instructions'),
+            },
+          })
+        ),
+      })),
+    })),
+  })
+);
+
+jest.mock(
+  'uuid',
+  (): Record<string, unknown> => ({
+    v4: jest.fn(() => 'mock-uuid-123'),
+  })
+);
 
 global.fetch = jest.fn(() =>
   Promise.resolve({

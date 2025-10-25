@@ -17,25 +17,21 @@ Many API route tests are failing with `TypeError: Cannot read properties of unde
 Instead of manually mocking each response function, use the actual implementations from the module:
 
 **BEFORE (Incorrect)**:
+
 ```typescript
 jest.mock('@/lib/api/response', () => ({
   unauthorizedResponse: jest.fn(
     () => new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
   ),
-  validationError: jest.fn((msg) =>
-    new Response(JSON.stringify({ error: msg }), { status: 400 })
-  ),
-  errorResponse: jest.fn((msg, status) =>
-    new Response(JSON.stringify({ error: msg }), { status })
-  ),
-  successResponse: jest.fn((data) =>
-    new Response(JSON.stringify(data), { status: 200 })
-  ),
+  validationError: jest.fn((msg) => new Response(JSON.stringify({ error: msg }), { status: 400 })),
+  errorResponse: jest.fn((msg, status) => new Response(JSON.stringify({ error: msg }), { status })),
+  successResponse: jest.fn((data) => new Response(JSON.stringify(data), { status: 200 })),
   withErrorHandling: jest.fn((handler) => handler),
 }));
 ```
 
 **AFTER (Correct)**:
+
 ```typescript
 jest.mock('@/lib/api/response', () => {
   const actual = jest.requireActual('@/lib/api/response');
@@ -62,11 +58,13 @@ Based on test analysis, the following API test files need the response mock fix:
 Some tests use `jest.mock('@/lib/api/response');` without any implementation, which auto-mocks all exports. This also needs to be fixed:
 
 **BEFORE**:
+
 ```typescript
 jest.mock('@/lib/api/response');
 ```
 
 **AFTER**:
+
 ```typescript
 jest.mock('@/lib/api/response', () => {
   const actual = jest.requireActual('@/lib/api/response');
@@ -103,11 +101,13 @@ beforeEach(() => {
 ### React Act Warnings
 
 Many component tests show warnings:
+
 ```
 An update to [Component] inside a test was not wrapped in act(...)
 ```
 
 **Common Causes**:
+
 1. State updates in useEffect hooks
 2. Async operations completing after test assertions
 3. setTimeout/setInterval not cleaned up
@@ -115,6 +115,7 @@ An update to [Component] inside a test was not wrapped in act(...)
 **Solutions**:
 
 1. **Wrap async operations in act()**:
+
 ```typescript
 await act(async () => {
   render(<Component />);
@@ -122,6 +123,7 @@ await act(async () => {
 ```
 
 2. **Wait for async updates**:
+
 ```typescript
 await waitFor(() => {
   expect(screen.getByText('...')).toBeInTheDocument();
@@ -129,6 +131,7 @@ await waitFor(() => {
 ```
 
 3. **Mock timers properly**:
+
 ```typescript
 beforeEach(() => {
   jest.useFakeTimers();
@@ -145,6 +148,7 @@ afterEach(() => {
 Tests timing out (especially file upload tests in `ai/chat.test.ts`):
 
 **Solution**:
+
 1. Increase timeout for specific tests: `it('test name', async () => { ... }, 30000);`
 2. Mock file reading operations to return immediately
 3. Check for infinite loops or missing mock responses
@@ -167,6 +171,7 @@ export function mockApiResponse() {
 ```
 
 **Usage** (future tests):
+
 ```typescript
 import { mockApiResponse } from '@/test-utils/mockApiResponse';
 mockApiResponse();
@@ -175,12 +180,14 @@ mockApiResponse();
 ## Test Statistics
 
 **Initial State** (from issue log):
+
 - Total tests: 1785
 - Passing: 1703 (95.3%)
 - Failing: 82 (4.6%)
 - Failing test suites: 22
 
 **Actual State** (discovered during fix):
+
 - Total tests: 3421
 - Passing: 2745
 - Failing: 674 (19.7%)
@@ -188,21 +195,25 @@ mockApiResponse();
 - Failing test suites: 73
 
 **After Response Mock Fix Applied to export.test.ts**:
+
 - export.test.ts: 56/56 passing ✅
 
 ## Action Items for Complete Fix
 
 ### High Priority (API Routes)
+
 1. Apply response mock fix to all API route tests with old pattern
 2. Fix Supabase mock setup in tests using `jest.clearAllMocks()`
 3. Fix auto-mock pattern in remaining API tests
 
 ### Medium Priority (Components)
+
 1. Fix React act() warnings in component tests
 2. Increase timeouts for slow integration tests
 3. Fix async/await patterns in component tests
 
 ### Low Priority (Documentation)
+
 1. Update test writing guidelines
 2. Add examples of proper mock setup
 3. Document common pitfalls
@@ -219,6 +230,7 @@ After applying fixes:
 ## Expected Outcome
 
 With all fixes applied:
+
 - API route tests should have 98%+ pass rate
 - Component tests should have minimal React act() warnings
 - Overall test pass rate should exceed 98%

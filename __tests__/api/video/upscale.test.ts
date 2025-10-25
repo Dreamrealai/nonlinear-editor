@@ -13,17 +13,20 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    return handler(req, { user, supabase, params: context?.params || {} });
-  }),
-}));
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return handler(req, { user, supabase, params: context?.params || {} });
+    }),
+  })
+);
 
 // Mock dependencies
 jest.mock('@/lib/supabase', () => {
@@ -36,24 +39,33 @@ jest.mock('@/lib/supabase', () => {
   };
 });
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
-jest.mock('@/lib/fetchWithTimeout', (): Record<string, unknown> => ({
-  fetchWithTimeout: jest.fn(),
-}));
+jest.mock(
+  '@/lib/fetchWithTimeout',
+  (): Record<string, unknown> => ({
+    fetchWithTimeout: jest.fn(),
+  })
+);
 
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  checkRateLimit: jest.fn(),
-  RATE_LIMITS: {
-    tier2_resource_creation: { requests: 10, window: 60000 },
-  },
-}));
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    checkRateLimit: jest.fn(),
+    RATE_LIMITS: {
+      tier2_resource_creation: { requests: 10, window: 60000 },
+    },
+  })
+);
 
 // Mock API response helpers - use actual implementation, only mock wrapper
 jest.mock('@/lib/api/response', () => {
@@ -64,9 +76,12 @@ jest.mock('@/lib/api/response', () => {
   };
 });
 
-jest.mock('@/lib/api/project-verification', (): Record<string, unknown> => ({
-  verifyAssetOwnership: jest.fn(),
-}));
+jest.mock(
+  '@/lib/api/project-verification',
+  (): Record<string, unknown> => ({
+    verifyAssetOwnership: jest.fn(),
+  })
+);
 
 const { checkRateLimit } = require('@/lib/rateLimit');
 const { verifyAssetOwnership } = require('@/lib/api/project-verification');

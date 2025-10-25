@@ -57,6 +57,7 @@ npm run fix-return-types:dry
 ```
 
 This will:
+
 - Scan all target files
 - Show which functions would be fixed
 - Display a summary report
@@ -71,6 +72,7 @@ npm run fix-return-types
 ```
 
 This will:
+
 - Scan all target files
 - Add return types to functions
 - Save the modified files
@@ -85,6 +87,7 @@ npm run fix-return-types:verbose
 ```
 
 You can combine flags:
+
 ```bash
 tsx scripts/add-return-types.ts --dry-run --verbose
 ```
@@ -100,11 +103,13 @@ tsx scripts/add-return-types.ts --dry-run --verbose
 1. **Dry Run Mode**: Always test with `--dry-run` first to preview changes
 
 2. **Backup Files**: Use `--backup` flag to create backup copies:
+
    ```bash
    tsx scripts/add-return-types.ts --backup
    ```
 
 3. **Git Version Control**: Commit your changes before running:
+
    ```bash
    git add .
    git commit -m "chore: prepare for return type fixes"
@@ -113,6 +118,7 @@ tsx scripts/add-return-types.ts --dry-run --verbose
 4. **Incremental Testing**: Test on a subset of files first by temporarily modifying `TARGET_DIRECTORIES` in the script
 
 5. **TypeScript Validation**: Run type checking after applying fixes:
+
    ```bash
    npm run type-check
    ```
@@ -186,6 +192,7 @@ Processing Time:      12.34s
 #### Issue: Script fails with "Cannot find module"
 
 **Solution**: Install dependencies:
+
 ```bash
 npm install
 ```
@@ -199,6 +206,7 @@ npm install
 #### Issue: Build fails after applying fixes
 
 **Solution**:
+
 1. Check TypeScript errors: `npm run type-check`
 2. Review the git diff to see what changed
 3. Revert specific files if needed: `git checkout -- path/to/file.ts`
@@ -209,6 +217,7 @@ npm install
 **Cause**: Rarely, explicit return types can expose latent type issues.
 
 **Solution**:
+
 1. Run tests: `npm test`
 2. Check test output for specific failures
 3. Fix the underlying type issues (the script revealed problems that already existed)
@@ -228,6 +237,7 @@ npm install
 ### Script Location
 
 The script is located at:
+
 ```
 /scripts/add-return-types.ts
 ```
@@ -235,6 +245,7 @@ The script is located at:
 ### Dependencies
 
 Required packages (already installed in devDependencies):
+
 - `ts-morph` - TypeScript compiler API wrapper
 - `tsx` - TypeScript executor
 
@@ -284,6 +295,7 @@ const EXCLUDE_PATTERNS = [
 After running the script, consider:
 
 1. Updating ESLint rules to enforce return types:
+
    ```typescript
    // eslint.config.mjs
    rules: {
@@ -292,6 +304,7 @@ After running the script, consider:
    ```
 
 2. Adding a pre-commit hook to prevent new violations:
+
    ```bash
    # .husky/pre-commit
    npm run type-check

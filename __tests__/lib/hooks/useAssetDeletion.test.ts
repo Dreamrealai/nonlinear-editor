@@ -40,7 +40,10 @@ describe('useAssetDeletion', () => {
   };
 
   const mockTimeline = {
-    clips: [{ assetId: 'asset-123', id: 'clip-1' }, { assetId: 'asset-456', id: 'clip-2' }],
+    clips: [
+      { assetId: 'asset-123', id: 'clip-1' },
+      { assetId: 'asset-456', id: 'clip-2' },
+    ],
   };
 
   const mockSetTimeline = jest.fn();
@@ -62,9 +65,7 @@ describe('useAssetDeletion', () => {
 
   describe('Deletion Confirmation', () => {
     it('should show confirmation dialog', async () => {
-      const { result } = renderHook(() =>
-        useAssetDeletion(mockProjectId, mockOnDeleteSuccess)
-      );
+      const { result } = renderHook(() => useAssetDeletion(mockProjectId, mockOnDeleteSuccess));
 
       await act(async () => {
         await result.current.deleteAsset(mockAsset, mockTimeline, mockSetTimeline);
@@ -76,9 +77,7 @@ describe('useAssetDeletion', () => {
     it('should not delete if confirmation is denied', async () => {
       (global.confirm as jest.Mock).mockReturnValueOnce(false);
 
-      const { result } = renderHook(() =>
-        useAssetDeletion(mockProjectId, mockOnDeleteSuccess)
-      );
+      const { result } = renderHook(() => useAssetDeletion(mockProjectId, mockOnDeleteSuccess));
 
       await act(async () => {
         await result.current.deleteAsset(mockAsset, mockTimeline, mockSetTimeline);
@@ -91,9 +90,7 @@ describe('useAssetDeletion', () => {
     it('should use asset ID when filename not available', async () => {
       const assetWithoutFilename = { ...mockAsset, metadata: null };
 
-      const { result } = renderHook(() =>
-        useAssetDeletion(mockProjectId, mockOnDeleteSuccess)
-      );
+      const { result } = renderHook(() => useAssetDeletion(mockProjectId, mockOnDeleteSuccess));
 
       await act(async () => {
         await result.current.deleteAsset(assetWithoutFilename, mockTimeline, mockSetTimeline);
@@ -105,9 +102,7 @@ describe('useAssetDeletion', () => {
 
   describe('Successful Deletion', () => {
     it('should delete asset from database', async () => {
-      const { result } = renderHook(() =>
-        useAssetDeletion(mockProjectId, mockOnDeleteSuccess)
-      );
+      const { result } = renderHook(() => useAssetDeletion(mockProjectId, mockOnDeleteSuccess));
 
       await act(async () => {
         await result.current.deleteAsset(mockAsset, mockTimeline, mockSetTimeline);
@@ -120,9 +115,7 @@ describe('useAssetDeletion', () => {
     });
 
     it('should call onDeleteSuccess callback', async () => {
-      const { result } = renderHook(() =>
-        useAssetDeletion(mockProjectId, mockOnDeleteSuccess)
-      );
+      const { result } = renderHook(() => useAssetDeletion(mockProjectId, mockOnDeleteSuccess));
 
       await act(async () => {
         await result.current.deleteAsset(mockAsset, mockTimeline, mockSetTimeline);
@@ -132,9 +125,7 @@ describe('useAssetDeletion', () => {
     });
 
     it('should show success message when asset not in timeline', async () => {
-      const { result } = renderHook(() =>
-        useAssetDeletion(mockProjectId, mockOnDeleteSuccess)
-      );
+      const { result } = renderHook(() => useAssetDeletion(mockProjectId, mockOnDeleteSuccess));
 
       const timelineWithoutAsset = {
         clips: [{ assetId: 'other-asset', id: 'clip-1' }],
@@ -148,9 +139,7 @@ describe('useAssetDeletion', () => {
     });
 
     it('should show enhanced message when asset removed from timeline', async () => {
-      const { result } = renderHook(() =>
-        useAssetDeletion(mockProjectId, mockOnDeleteSuccess)
-      );
+      const { result } = renderHook(() => useAssetDeletion(mockProjectId, mockOnDeleteSuccess));
 
       await act(async () => {
         await result.current.deleteAsset(mockAsset, mockTimeline, mockSetTimeline);
@@ -161,9 +150,7 @@ describe('useAssetDeletion', () => {
     });
 
     it('should handle null timeline', async () => {
-      const { result } = renderHook(() =>
-        useAssetDeletion(mockProjectId, mockOnDeleteSuccess)
-      );
+      const { result } = renderHook(() => useAssetDeletion(mockProjectId, mockOnDeleteSuccess));
 
       await act(async () => {
         await result.current.deleteAsset(mockAsset, null, mockSetTimeline);
@@ -176,9 +163,7 @@ describe('useAssetDeletion', () => {
 
   describe('Timeline Cleanup', () => {
     it('should remove clips using deleted asset from timeline', async () => {
-      const { result } = renderHook(() =>
-        useAssetDeletion(mockProjectId, mockOnDeleteSuccess)
-      );
+      const { result } = renderHook(() => useAssetDeletion(mockProjectId, mockOnDeleteSuccess));
 
       await act(async () => {
         await result.current.deleteAsset(mockAsset, mockTimeline, mockSetTimeline);
@@ -197,9 +182,7 @@ describe('useAssetDeletion', () => {
         transitions: [{ id: 'transition-1' }],
       };
 
-      const { result } = renderHook(() =>
-        useAssetDeletion(mockProjectId, mockOnDeleteSuccess)
-      );
+      const { result } = renderHook(() => useAssetDeletion(mockProjectId, mockOnDeleteSuccess));
 
       await act(async () => {
         await result.current.deleteAsset(mockAsset, fullTimeline, mockSetTimeline);
@@ -217,9 +200,7 @@ describe('useAssetDeletion', () => {
         error: new Error('Delete failed'),
       });
 
-      const { result } = renderHook(() =>
-        useAssetDeletion(mockProjectId, mockOnDeleteSuccess)
-      );
+      const { result } = renderHook(() => useAssetDeletion(mockProjectId, mockOnDeleteSuccess));
 
       await act(async () => {
         await result.current.deleteAsset(mockAsset, mockTimeline, mockSetTimeline);
@@ -235,9 +216,7 @@ describe('useAssetDeletion', () => {
         throw new Error('Unexpected error');
       });
 
-      const { result } = renderHook(() =>
-        useAssetDeletion(mockProjectId, mockOnDeleteSuccess)
-      );
+      const { result } = renderHook(() => useAssetDeletion(mockProjectId, mockOnDeleteSuccess));
 
       await act(async () => {
         await result.current.deleteAsset(mockAsset, mockTimeline, mockSetTimeline);
@@ -284,9 +263,7 @@ describe('useAssetDeletion', () => {
         ],
       };
 
-      const { result } = renderHook(() =>
-        useAssetDeletion(mockProjectId, mockOnDeleteSuccess)
-      );
+      const { result } = renderHook(() => useAssetDeletion(mockProjectId, mockOnDeleteSuccess));
 
       await act(async () => {
         await result.current.deleteAsset(mockAsset, timelineWithMultipleClips, mockSetTimeline);
@@ -300,9 +277,7 @@ describe('useAssetDeletion', () => {
     it('should handle empty timeline', async () => {
       const emptyTimeline = { clips: [] };
 
-      const { result } = renderHook(() =>
-        useAssetDeletion(mockProjectId, mockOnDeleteSuccess)
-      );
+      const { result } = renderHook(() => useAssetDeletion(mockProjectId, mockOnDeleteSuccess));
 
       await act(async () => {
         await result.current.deleteAsset(mockAsset, emptyTimeline, mockSetTimeline);

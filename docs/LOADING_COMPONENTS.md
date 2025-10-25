@@ -36,6 +36,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 ```
 
 **Props:**
+
 - `size?: number` - Size in pixels (default: 24)
 - `variant?: 'default' | 'branded'` - Visual style
 - `className?: string` - Additional CSS classes
@@ -55,12 +56,14 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 ```
 
 **Props:**
+
 - `size?: 'sm' | 'md' | 'lg' | 'xl'` - Preset sizes
 - `variant?: 'default' | 'branded'` - Visual style
 - `text?: string` - Optional label text
 - `className?: string` - Additional CSS classes
 
 **Size Reference:**
+
 - `sm`: 16px (4×4, border-2)
 - `md`: 24px (6×6, border-2)
 - `lg`: 32px (8×8, border-3)
@@ -107,6 +110,7 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 ```
 
 **Props:**
+
 - `showImage?: boolean` - Show image placeholder (default: true)
 - `showTitle?: boolean` - Show title placeholder (default: true)
 - `descriptionLines?: number` - Number of description lines (default: 2)
@@ -173,6 +177,7 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 ```
 
 **Variants:**
+
 - `primary` - Blue (default)
 - `success` - Green
 - `warning` - Yellow
@@ -184,7 +189,7 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 ```tsx
 import { IndeterminateProgressBar } from '@/components/ui/ProgressBar';
 
-<IndeterminateProgressBar label="Loading..." variant="primary" />
+<IndeterminateProgressBar label="Loading..." variant="primary" />;
 ```
 
 ### 4. GenerationProgress (`components/ui/GenerationProgress.tsx`)
@@ -253,10 +258,12 @@ export default function EditorLoading() {
 ### Brand Colors
 
 **Light Mode:**
+
 - Border base: `border-purple-200`
 - Border animated: `border-t-purple-600`
 
 **Dark Mode:**
+
 - Border base: `border-purple-800`
 - Border animated: `border-t-purple-400`
 
@@ -265,12 +272,14 @@ export default function EditorLoading() {
 All loading components support:
 
 1. **Reduced Motion:**
+
    ```css
    motion-reduce:animate-none
    motion-reduce:border-t-8  /* Thicker border when animation disabled */
    ```
 
 2. **ARIA Labels:**
+
    ```tsx
    role="status"
    aria-label="Loading content"
@@ -343,7 +352,11 @@ import dynamic from 'next/dynamic';
 const LoadingFallback = () => (
   <div className="flex h-full w-full items-center justify-center">
     <div className="flex flex-col items-center gap-3">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 motion-reduce:animate-none motion-reduce:border-t-8 dark:border-purple-800 dark:border-t-purple-400" role="status" aria-label="Loading"></div>
+      <div
+        className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 motion-reduce:animate-none motion-reduce:border-t-8 dark:border-purple-800 dark:border-t-purple-400"
+        role="status"
+        aria-label="Loading"
+      ></div>
       <span className="text-sm text-neutral-600 dark:text-neutral-400">Loading...</span>
     </div>
   </div>

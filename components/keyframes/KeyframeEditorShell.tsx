@@ -31,7 +31,7 @@
  */
 'use client';
 
-import React, {  useCallback, useEffect, useState  } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useKeyframeData, useFrameEdits } from './hooks/useKeyframeData';
@@ -58,43 +58,46 @@ function KeyframeEditorContent({
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(assets[0]?.id ?? null);
   const [refreshToken, setRefreshToken] = useState(0);
 
-  const signStoragePath = useCallback(async (storagePath: string, expiresIn = 3600): Promise<string | null> => {
-    if (!storagePath) {
-      return null;
-    }
-
-    if (storagePath.startsWith('http') || storagePath.startsWith('blob:')) {
-      return storagePath;
-    }
-
-    try {
-      parseStoragePathClient(storagePath);
-    } catch (error) {
-      browserLogger.error({ error, storagePath }, 'Invalid storage path');
-      return null;
-    }
-
-    try {
-      const params = new URLSearchParams({ storageUrl: storagePath });
-      if (Number.isFinite(expiresIn) && expiresIn > 0) {
-        params.set('ttl', Math.round(expiresIn).toString());
-      }
-      const response = await fetch(`/api/assets/sign?${params.toString()}`);
-      if (!response.ok) {
-        const detail = await response.text().catch((): string => '');
-        browserLogger.error(
-          { storagePath, status: response.status, detail },
-          'Failed to sign storage path'
-        );
+  const signStoragePath = useCallback(
+    async (storagePath: string, expiresIn = 3600): Promise<string | null> => {
+      if (!storagePath) {
         return null;
       }
-      const payload = (await response.json()) as { signedUrl?: string };
-      return payload.signedUrl ?? null;
-    } catch (error) {
-      browserLogger.error({ error, storagePath }, 'Failed to sign storage path');
-      return null;
-    }
-  }, []);
+
+      if (storagePath.startsWith('http') || storagePath.startsWith('blob:')) {
+        return storagePath;
+      }
+
+      try {
+        parseStoragePathClient(storagePath);
+      } catch (error) {
+        browserLogger.error({ error, storagePath }, 'Invalid storage path');
+        return null;
+      }
+
+      try {
+        const params = new URLSearchParams({ storageUrl: storagePath });
+        if (Number.isFinite(expiresIn) && expiresIn > 0) {
+          params.set('ttl', Math.round(expiresIn).toString());
+        }
+        const response = await fetch(`/api/assets/sign?${params.toString()}`);
+        if (!response.ok) {
+          const detail = await response.text().catch((): string => '');
+          browserLogger.error(
+            { storagePath, status: response.status, detail },
+            'Failed to sign storage path'
+          );
+          return null;
+        }
+        const payload = (await response.json()) as { signedUrl?: string };
+        return payload.signedUrl ?? null;
+      } catch (error) {
+        browserLogger.error({ error, storagePath }, 'Failed to sign storage path');
+        return null;
+      }
+    },
+    []
+  );
 
   const handleRefreshNeeded = useCallback((): void => {
     setRefreshToken((token): number => token + 1);
@@ -193,7 +196,7 @@ function KeyframeEditorContent({
   }, [handleRefImageSelect]);
 
   // Attach paste event listeners
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     const pasteHandler = (event: Event): void => {
       void handlePaste(event as ClipboardEvent);
       void handlePasteAsKeyframe(event as ClipboardEvent);
@@ -226,11 +229,13 @@ function KeyframeEditorContent({
             value={selectedAssetId ?? ''}
             onChange={(event): void => setSelectedAssetId(event.target.value || null)}
           >
-            {assets.map((asset): React.ReactElement => (
-              <option key={asset.id} value={asset.id}>
-                {getAssetLabel(asset)}
-              </option>
-            ))}
+            {assets.map(
+              (asset): React.ReactElement => (
+                <option key={asset.id} value={asset.id}>
+                  {getAssetLabel(asset)}
+                </option>
+              )
+            )}
           </select>
           <button
             type="button"

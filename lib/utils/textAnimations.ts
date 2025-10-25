@@ -28,7 +28,7 @@ export const easingFunctions: Record<EasingFunction, (t: number) => number> = {
 
   // Cubic easing
   'ease-in-cubic': (t: number): number => t * t * t,
-  'ease-out-cubic': (t: number): number => (--t) * t * t + 1,
+  'ease-out-cubic': (t: number): number => --t * t * t + 1,
   'ease-in-out-cubic': (t: number): number =>
     t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1,
 
@@ -69,10 +69,7 @@ export type AnimationState = {
  * @param animation - Animation configuration
  * @returns Normalized progress value (0-1), or null if animation hasn't started
  */
-function calculateAnimationProgress(
-  elapsedTime: number,
-  animation: TextAnimation
-): number | null {
+function calculateAnimationProgress(elapsedTime: number, animation: TextAnimation): number | null {
   const { duration, delay, repeat, direction } = animation;
 
   // Check if animation has started
@@ -138,8 +135,15 @@ function calculateFadeAnimation(
  * Calculate slide animation
  */
 function calculateSlideAnimation(
-  type: 'slide-in-left' | 'slide-in-right' | 'slide-in-top' | 'slide-in-bottom' |
-       'slide-out-left' | 'slide-out-right' | 'slide-out-top' | 'slide-out-bottom',
+  type:
+    | 'slide-in-left'
+    | 'slide-in-right'
+    | 'slide-in-top'
+    | 'slide-in-bottom'
+    | 'slide-out-left'
+    | 'slide-out-right'
+    | 'slide-out-top'
+    | 'slide-out-bottom',
   progress: number
 ): Partial<AnimationState> {
   const isIn = type.includes('in');
@@ -272,9 +276,14 @@ export function calculateTextAnimationState(
   if (rawProgress === null) {
     return {
       ...defaultState,
-      opacity: animation.type.includes('fade-in') || animation.type.includes('slide-in') ||
-               animation.type.includes('scale-in') || animation.type.includes('rotate-in') ||
-               animation.type === 'bounce-in' ? 0 : 1,
+      opacity:
+        animation.type.includes('fade-in') ||
+        animation.type.includes('slide-in') ||
+        animation.type.includes('scale-in') ||
+        animation.type.includes('rotate-in') ||
+        animation.type === 'bounce-in'
+          ? 0
+          : 1,
       visible: animation.type !== 'typewriter',
       visibleText: animation.type === 'typewriter' ? '' : text,
     };
@@ -448,7 +457,7 @@ export const animationPresets: Record<string, TextAnimation> = {
  */
 export function getAnimationDisplayName(type: TextAnimationType): string {
   const names: Record<TextAnimationType, string> = {
-    'none': 'None',
+    none: 'None',
     'fade-in': 'Fade In',
     'fade-out': 'Fade Out',
     'fade-in-out': 'Fade In/Out',
@@ -466,7 +475,7 @@ export function getAnimationDisplayName(type: TextAnimationType): string {
     'rotate-in': 'Rotate In',
     'rotate-out': 'Rotate Out',
     'bounce-in': 'Bounce In',
-    'typewriter': 'Typewriter',
+    typewriter: 'Typewriter',
   };
 
   return names[type];

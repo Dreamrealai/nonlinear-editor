@@ -8,9 +8,12 @@ import { useEditorStore } from '@/state/useEditorStore';
 jest.mock('@/state/useEditorStore');
 
 // Mock useDebounce hook
-jest.mock('@/lib/hooks/useDebounce', (): Record<string, unknown> => ({
-  useDebounce: (value: unknown) => value, // Return value immediately for testing
-}));
+jest.mock(
+  '@/lib/hooks/useDebounce',
+  (): Record<string, unknown> => ({
+    useDebounce: (value: unknown) => value, // Return value immediately for testing
+  })
+);
 
 const mockUseEditorStore = useEditorStore as jest.MockedFunction<typeof useEditorStore>;
 

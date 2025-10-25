@@ -97,10 +97,7 @@ function reportMetric(metric: Metric): void {
       }
     } catch (error) {
       // Silently fail - web vitals tracking is non-critical
-      browserLogger.debug(
-        { error, metric: metric.name },
-        'Error sending web vitals metric'
-      );
+      browserLogger.debug({ error, metric: metric.name }, 'Error sending web vitals metric');
     }
   }
 }
@@ -139,11 +136,17 @@ export function getWebVitalsBudgetStatus(): {
   threshold: { good: number; poor: number };
   status: string;
 }[] {
-  return Object.entries(THRESHOLDS).map(([metric, threshold]): { metric: WebVitalMetric; threshold: { good: number; poor: number; }; status: string; } => ({
-    metric: metric as WebVitalMetric,
-    threshold,
-    status: `Good: ≤${threshold.good}ms, Poor: >${threshold.poor}ms`,
-  }));
+  return Object.entries(THRESHOLDS).map(
+    ([metric, threshold]): {
+      metric: WebVitalMetric;
+      threshold: { good: number; poor: number };
+      status: string;
+    } => ({
+      metric: metric as WebVitalMetric,
+      threshold,
+      status: `Good: ≤${threshold.good}ms, Poor: >${threshold.poor}ms`,
+    })
+  );
 }
 
 /**

@@ -114,20 +114,27 @@ export function useKeyframeEditing({
       const files = event.target.files;
       if (!files || !selectedAssetId) return;
 
-      const imageFiles = Array.from(files).filter((file): boolean => file.type.startsWith('image/'));
+      const imageFiles = Array.from(files).filter((file): boolean =>
+        file.type.startsWith('image/')
+      );
       if (imageFiles.length === 0) {
         toast.error('Please select image files');
         return;
       }
 
-      const newImages = imageFiles.map((file): { id: string; file: File; previewUrl: string; uploading: boolean; } => ({
-        id: `${Date.now()}-${Math.random()}`,
-        file,
-        previewUrl: URL.createObjectURL(file),
-        uploading: false,
-      }));
+      const newImages = imageFiles.map(
+        (file): { id: string; file: File; previewUrl: string; uploading: boolean } => ({
+          id: `${Date.now()}-${Math.random()}`,
+          file,
+          previewUrl: URL.createObjectURL(file),
+          uploading: false,
+        })
+      );
 
-      setRefImages((prev): { id: string; file: File; previewUrl: string; uploading: boolean; }[] => [...prev, ...newImages]);
+      setRefImages((prev): { id: string; file: File; previewUrl: string; uploading: boolean }[] => [
+        ...prev,
+        ...newImages,
+      ]);
 
       for (const img of newImages) {
         setRefImages((prev): RefImage[] =>
@@ -149,10 +156,11 @@ export function useKeyframeEditing({
           const signedUrl = await signStoragePath(storagePath, 3600);
 
           setRefImages((prev): RefImage[] =>
-            prev.map((item): RefImage =>
-              item.id === img.id
-                ? { ...item, uploading: false, uploadedUrl: signedUrl ?? undefined }
-                : item
+            prev.map(
+              (item): RefImage =>
+                item.id === img.id
+                  ? { ...item, uploading: false, uploadedUrl: signedUrl ?? undefined }
+                  : item
             )
           );
         } catch (error) {
@@ -185,7 +193,9 @@ export function useKeyframeEditing({
       const items = event.clipboardData?.items;
       if (!items) return;
 
-      const imageItems = Array.from(items).filter((item): boolean => item.type.startsWith('image/'));
+      const imageItems = Array.from(items).filter((item): boolean =>
+        item.type.startsWith('image/')
+      );
       if (imageItems.length === 0) return;
 
       event.preventDefault();
@@ -205,10 +215,17 @@ export function useKeyframeEditing({
             uploading: false,
           };
 
-          setRefImages((prev): { id: string; file: File; previewUrl: string; uploading: boolean; }[] => [...prev, newImage]);
+          setRefImages(
+            (prev): { id: string; file: File; previewUrl: string; uploading: boolean }[] => [
+              ...prev,
+              newImage,
+            ]
+          );
 
           setRefImages((prev): RefImage[] =>
-            prev.map((item): RefImage => (item.id === newImage.id ? { ...item, uploading: true } : item))
+            prev.map(
+              (item): RefImage => (item.id === newImage.id ? { ...item, uploading: true } : item)
+            )
           );
 
           try {
@@ -226,15 +243,18 @@ export function useKeyframeEditing({
             const signedUrl = await signStoragePath(storagePath, 3600);
 
             setRefImages((prev): RefImage[] =>
-              prev.map((item): RefImage =>
-                item.id === newImage.id
-                  ? { ...item, uploading: false, uploadedUrl: signedUrl ?? undefined }
-                  : item
+              prev.map(
+                (item): RefImage =>
+                  item.id === newImage.id
+                    ? { ...item, uploading: false, uploadedUrl: signedUrl ?? undefined }
+                    : item
               )
             );
           } catch (error) {
             browserLogger.error({ error, selectedAssetId }, 'Failed to upload pasted image');
-            setRefImages((prev): RefImage[] => prev.filter((item): boolean => item.id !== newImage.id));
+            setRefImages((prev): RefImage[] =>
+              prev.filter((item): boolean => item.id !== newImage.id)
+            );
             toast.error('Failed to upload pasted image. Please try again.');
           }
         }

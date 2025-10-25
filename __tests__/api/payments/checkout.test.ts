@@ -22,32 +22,41 @@ import {
 import { handleStripeCheckout } from '@/app/api/stripe/checkout/route';
 
 // Mock external services only
-jest.mock('@/lib/stripe', (): Record<string, unknown> => ({
-  createCheckoutSession: jest.fn(),
-  getOrCreateStripeCustomer: jest.fn(),
-}));
+jest.mock(
+  '@/lib/stripe',
+  (): Record<string, unknown> => ({
+    createCheckoutSession: jest.fn(),
+    getOrCreateStripeCustomer: jest.fn(),
+  })
+);
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 // Mock rate limiting - always allow requests to pass
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  checkRateLimit: jest.fn().mockResolvedValue({
-    success: true,
-    limit: 5,
-    remaining: 4,
-    resetAt: Date.now() + 60000,
-  }),
-  RATE_LIMITS: {
-    tier1_auth_payment: { limit: 5, windowMs: 60000 },
-  },
-}));
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    checkRateLimit: jest.fn().mockResolvedValue({
+      success: true,
+      limit: 5,
+      remaining: 4,
+      resetAt: Date.now() + 60000,
+    }),
+    RATE_LIMITS: {
+      tier1_auth_payment: { limit: 5, windowMs: 60000 },
+    },
+  })
+);
 
 describe('POST /api/stripe/checkout - Integration Tests', () => {
   const { createCheckoutSession, getOrCreateStripeCustomer } = require('@/lib/stripe');

@@ -7,24 +7,33 @@ import toast from 'react-hot-toast';
 import type { Project } from '@/components/ProjectList';
 
 // Mock dependencies
-jest.mock('next/navigation', (): Record<string, unknown> => ({
-  useRouter: jest.fn(),
-}));
+jest.mock(
+  'next/navigation',
+  (): Record<string, unknown> => ({
+    useRouter: jest.fn(),
+  })
+);
 
-jest.mock('next/link', (): Record<string, unknown> => ({
-  __esModule: true,
-  default: function MockLink({ children, href }: any) {
-    return <a href={href}>{children}</a>;
-  },
-}));
+jest.mock(
+  'next/link',
+  (): Record<string, unknown> => ({
+    __esModule: true,
+    default: function MockLink({ children, href }: any) {
+      return <a href={href}>{children}</a>;
+    },
+  })
+);
 
 jest.mock('react-hot-toast');
 
-jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
-  browserLogger: {
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/browserLogger',
+  (): Record<string, unknown> => ({
+    browserLogger: {
+      error: jest.fn(),
+    },
+  })
+);
 
 // Mock window.confirm
 global.confirm = jest.fn();
@@ -248,7 +257,12 @@ describe('ProjectList', () => {
     it('should prevent event propagation when delete is clicked', () => {
       const handleClick = jest.fn();
       render(
-        <div onClick={handleClick} onKeyDown={(e) => e.key === 'Enter' && handleClick()} role="button" tabIndex={0}>
+        <div
+          onClick={handleClick}
+          onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+          role="button"
+          tabIndex={0}
+        >
           <ProjectList projects={mockProjects} />
         </div>
       );

@@ -396,14 +396,7 @@ describe('MusicGenerationForm', () => {
     });
 
     it('should disable button when style is empty in custom mode', () => {
-      render(
-        <MusicGenerationForm
-          {...defaultProps}
-          prompt="test"
-          style=""
-          customMode={true}
-        />
-      );
+      render(<MusicGenerationForm {...defaultProps} prompt="test" style="" customMode={true} />);
 
       const button = screen.getByText('Generate Music');
       expect(button).toBeDisabled();
@@ -418,12 +411,7 @@ describe('MusicGenerationForm', () => {
 
     it('should enable button when all required fields filled in custom mode', () => {
       render(
-        <MusicGenerationForm
-          {...defaultProps}
-          prompt="test"
-          style="rock"
-          customMode={true}
-        />
+        <MusicGenerationForm {...defaultProps} prompt="test" style="rock" customMode={true} />
       );
 
       const button = screen.getByText('Generate Music');
@@ -535,7 +523,7 @@ describe('MusicGenerationForm', () => {
         />
       );
 
-      expect(screen.getByLabelText('Music Description *')).toHaveValue("Music with ♪ ♫ symbols");
+      expect(screen.getByLabelText('Music Description *')).toHaveValue('Music with ♪ ♫ symbols');
       expect(screen.getByLabelText('Title (optional)')).toHaveValue("Song #1 - 'Test'");
     });
 
