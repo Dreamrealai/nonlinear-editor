@@ -87,7 +87,34 @@ export function useAutoBackup(projectId: ProjectId | string): void {
             return;
           }
 
-          throw new Error(data.error || 'Failed to create auto backup');
+          // Handle 500 errors (database schema issues) gracefully without throwing
+          // This prevents timeline crashes when backup table has schema mismatches
+          if (response.status === 500) {
+            browserLogger.warn(
+              {
+                projectId,
+                status: response.status,
+                error: data.error || 'Unknown error',
+                details: data.details,
+              },
+              'Auto backup failed due to server error - continuing without backup'
+            );
+            // Disable auto-backups temporarily by setting a long backoff
+            backoffDelayRef.current = MAX_BACKOFF_DELAY;
+            consecutiveFailuresRef.current = 10; // Max out failures to prevent retries
+            return;
+          }
+
+          // For other errors, log but don't throw to avoid crashing the timeline
+          browserLogger.error(
+            {
+              projectId,
+              status: response.status,
+              error: data.error || 'Failed to create auto backup',
+            },
+            'Auto backup failed'
+          );
+          return;
         }
 
         // Backup succeeded - reset backoff and failure counters
