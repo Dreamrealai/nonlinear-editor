@@ -8,17 +8,10 @@
  */
 import type { Timeline, Clip, ClipGroup } from '@/types/timeline';
 import { EDITOR_CONSTANTS } from '@/lib/constants';
+import { cloneTimeline } from '@/lib/utils/cloneUtils';
 import type { WritableDraft } from 'immer';
 
 const { MAX_HISTORY } = EDITOR_CONSTANTS;
-
-/**
- * Deep clones a timeline for history snapshots.
- */
-const cloneTimeline = (timeline: Timeline | null): Timeline | null => {
-  if (!timeline) return null;
-  return structuredClone(timeline);
-};
 
 export interface GroupsSlice {
   /** Create a group from selected clips */
@@ -92,7 +85,9 @@ export const createGroupsSlice = (set: SetState, get: GetState): GroupsSlice => 
     set((state: WritableDraft<GroupsSliceState>): void => {
       if (!state.timeline || !state.timeline.groups) return;
 
-      state.timeline.groups = state.timeline.groups.filter((g: ClipGroup): boolean => g.id !== groupId);
+      state.timeline.groups = state.timeline.groups.filter(
+        (g: ClipGroup): boolean => g.id !== groupId
+      );
 
       state.timeline.clips.forEach((clip: Clip): void => {
         if (clip.groupId === groupId) {

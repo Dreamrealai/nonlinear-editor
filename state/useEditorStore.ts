@@ -16,7 +16,7 @@
  * - Composed from multiple slices for better maintainability
  * - Immer enables mutation syntax while maintaining immutability
  * - enableMapSet() allows Immer to handle Set<string> for selectedClipIds
- * - Deep cloning via structuredClone for history snapshots
+ * - Deep cloning via cloneUtils for history snapshots (with fallback for non-cloneable properties)
  * - Automatic deduplication prevents duplicate clip IDs
  */
 'use client';
@@ -27,6 +27,7 @@ import { enableMapSet } from 'immer';
 import type { Timeline, Clip } from '@/types/timeline';
 import { EDITOR_CONSTANTS } from '@/lib/constants';
 import { timelineAnnouncements } from '@/lib/utils/screenReaderAnnouncer';
+import { cloneTimeline, cloneClips } from '@/lib/utils/cloneUtils';
 
 // Import slices
 import {
@@ -94,14 +95,6 @@ const dedupeClips = (clips: Clip[]): Clip[] => {
   }
 
   return deduped.reverse();
-};
-
-/**
- * Deep clones a timeline for history snapshots.
- */
-const cloneTimeline = (timeline: Timeline | null): Timeline | null => {
-  if (!timeline) return null;
-  return structuredClone(timeline);
 };
 
 /**
@@ -264,7 +257,8 @@ export const useEditorStore = create<EditorStore>()(
 
         // Announce selection for screen readers
         const count = Array.from(state.selectedClipIds).filter(
-          (id): boolean => state.timeline?.clips.find((c): boolean => c.id === id)?.trackIndex === trackIndex
+          (id): boolean =>
+            state.timeline?.clips.find((c): boolean => c.id === id)?.trackIndex === trackIndex
         ).length;
         timelineAnnouncements.clipSelected(count);
       }),
@@ -285,8 +279,10 @@ export const useEditorStore = create<EditorStore>()(
     copyClips: (): void =>
       set((state): void => {
         if (!state.timeline) return;
-        const selected = state.timeline.clips.filter((clip): boolean => state.selectedClipIds.has(clip.id));
-        state.copiedClips = structuredClone(selected);
+        const selected = state.timeline.clips.filter((clip): boolean =>
+          state.selectedClipIds.has(clip.id)
+        );
+        state.copiedClips = cloneClips(selected);
       }),
 
     pasteClips: (): void =>

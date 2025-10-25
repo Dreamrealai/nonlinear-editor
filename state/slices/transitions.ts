@@ -7,16 +7,9 @@
 
 import type { Timeline, TransitionType, Clip } from '@/types/timeline';
 import { EDITOR_CONSTANTS } from '@/lib/constants';
+import { cloneTimeline } from '@/lib/utils/cloneUtils';
 
 const { MAX_HISTORY } = EDITOR_CONSTANTS;
-
-/**
- * Deep clones a timeline for history snapshots.
- */
-const cloneTimeline = (timeline: Timeline | null): Timeline | null => {
-  if (!timeline) return null;
-  return structuredClone(timeline);
-};
 
 export interface TransitionsSlice {
   /** Add a transition to selected clips */
@@ -30,7 +23,9 @@ export interface TransitionsSliceState {
   historyIndex: number;
 }
 
-export const createTransitionsSlice = (set: (fn: (state: TransitionsSliceState) => void) => void): TransitionsSlice => ({
+export const createTransitionsSlice = (
+  set: (fn: (state: TransitionsSliceState) => void) => void
+): TransitionsSlice => ({
   addTransitionToSelectedClips: (transitionType: TransitionType, duration: number): void =>
     set((state: TransitionsSliceState): void => {
       if (!state.timeline) return;

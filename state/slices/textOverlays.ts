@@ -7,16 +7,9 @@
 
 import type { TextOverlay, Timeline } from '@/types/timeline';
 import { EDITOR_CONSTANTS } from '@/lib/constants';
+import { cloneTimeline } from '@/lib/utils/cloneUtils';
 
 const { MAX_HISTORY } = EDITOR_CONSTANTS;
-
-/**
- * Deep clones a timeline for history snapshots.
- */
-const cloneTimeline = (timeline: Timeline | null): Timeline | null => {
-  if (!timeline) return null;
-  return structuredClone(timeline);
-};
 
 export interface TextOverlaysSlice {
   /** Add a text overlay to the timeline */
@@ -33,7 +26,9 @@ export interface TextOverlaysSliceState {
   historyIndex: number;
 }
 
-export const createTextOverlaysSlice = (set: (fn: (state: TextOverlaysSliceState) => void) => void): TextOverlaysSlice => ({
+export const createTextOverlaysSlice = (
+  set: (fn: (state: TextOverlaysSliceState) => void) => void
+): TextOverlaysSlice => ({
   addTextOverlay: (textOverlay: TextOverlay): void =>
     set((state: TextOverlaysSliceState): void => {
       if (!state.timeline) return;
@@ -58,7 +53,9 @@ export const createTextOverlaysSlice = (set: (fn: (state: TextOverlaysSliceState
   removeTextOverlay: (id: string): void =>
     set((state: TextOverlaysSliceState): void => {
       if (!state.timeline?.textOverlays) return;
-      state.timeline.textOverlays = state.timeline.textOverlays.filter((t: TextOverlay): boolean => t.id !== id);
+      state.timeline.textOverlays = state.timeline.textOverlays.filter(
+        (t: TextOverlay): boolean => t.id !== id
+      );
 
       // Save to history
       const cloned = cloneTimeline(state.timeline);
@@ -75,7 +72,9 @@ export const createTextOverlaysSlice = (set: (fn: (state: TextOverlaysSliceState
 
   updateTextOverlay: (id: string, patch: Partial<TextOverlay>): void =>
     set((state: TextOverlaysSliceState): void => {
-      const textOverlay = state.timeline?.textOverlays?.find((t: TextOverlay): boolean => t.id === id);
+      const textOverlay = state.timeline?.textOverlays?.find(
+        (t: TextOverlay): boolean => t.id === id
+      );
       if (textOverlay) {
         Object.assign(textOverlay, patch);
 
