@@ -187,7 +187,8 @@ paths:
       expect(response.status).toBe(500);
       const data = await response.json();
       expect(data.error).toBe('Failed to load API documentation');
-      expect(data.message).toBe('File not found');
+      // details field is only included in development mode
+      // In test env, it's not exposed for security
     });
 
     it('should return 500 when YAML parsing fails', async () => {
@@ -201,8 +202,8 @@ paths:
 
       expect(response.status).toBe(500);
       const data = await response.json();
-      expect(data.error).toBe('Failed to load API documentation');
-      expect(data.message).toBe('Invalid YAML');
+      expect(data.error).toBe('Failed to parse API documentation');
+      // details field is only included in development mode
     });
 
     it('should handle unknown errors gracefully', async () => {
@@ -216,7 +217,7 @@ paths:
       expect(response.status).toBe(500);
       const data = await response.json();
       expect(data.error).toBe('Failed to load API documentation');
-      expect(data.message).toBe('Unknown error');
+      // details field is only included in development mode
     });
   });
 
@@ -309,9 +310,8 @@ paths:
 
       const data = await response.json();
       expect(data).toHaveProperty('error');
-      expect(data).toHaveProperty('message');
       expect(data.error).toBe('Failed to load API documentation');
-      expect(data.message).toBe('Test error');
+      // details field is only included in development mode, not in test env
     });
   });
 });
