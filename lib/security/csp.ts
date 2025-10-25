@@ -54,6 +54,13 @@ export function buildCSPHeader(options: CSPOptions = {}): string {
     "'wasm-unsafe-eval'",
     // Add nonce for inline scripts (Next.js hydration, config, etc.)
     nonce ? `'nonce-${nonce}'` : null,
+    // REQUIRED: unsafe-inline for PostHog's dynamically injected scripts
+    // PostHog loads scripts (pushca.min.js, callable-future.js, pnotifications.js, auto-sharing.js)
+    // that execute inline code without nonces. These scripts are essential for PostHog's
+    // real-time features (session recording, feature flags, notifications).
+    // Security note: This is a known trade-off for third-party analytics that inject scripts dynamically.
+    // The nonce above will still protect Next.js inline scripts, but PostHog scripts need unsafe-inline.
+    "'unsafe-inline'",
     // Vercel Analytics and Insights (when deployed on Vercel)
     // Allows both script loading and performance data collection
     'https://va.vercel-scripts.com',
@@ -65,8 +72,6 @@ export function buildCSPHeader(options: CSPOptions = {}): string {
     'https://app.posthog.com',
     // Development: allow eval for hot reloading
     isDevelopment ? "'unsafe-eval'" : null,
-    // Note: PostHog's dynamic scripts may require unsafe-inline in production
-    // If CSP errors persist, add: "'unsafe-inline'" (less secure but needed for some analytics)
   ]
     .filter(Boolean)
     .join(' ');
@@ -105,7 +110,7 @@ export function buildCSPHeader(options: CSPOptions = {}): string {
  *
  * Additional security headers to complement CSP
  */
-export function getSecurityHeaders(): { key: string; value: string; }[] {
+export function getSecurityHeaders(): { key: string; value: string }[] {
   return [
     {
       key: 'X-Content-Type-Options',
