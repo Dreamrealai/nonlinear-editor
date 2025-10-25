@@ -17,7 +17,6 @@ import toast, { Toaster } from 'react-hot-toast';
 import {
   LazyHorizontalTimeline,
   LazyPreviewPlayer,
-  LazyExportModal,
   LazyClipPropertiesPanel,
   LazyUserOnboarding,
 } from '@/components/LazyComponents';
@@ -25,11 +24,6 @@ import { EditorHeader } from '@/components/EditorHeader';
 import { TimelineCorrectionsMenu } from '@/components/editor/TimelineCorrectionsMenu';
 import { useAutosave } from '@/lib/hooks/useAutosave';
 import { useAutoBackup } from '@/lib/hooks/useAutoBackup';
-import {
-  useGlobalKeyboardShortcuts,
-  type KeyboardShortcut,
-} from '@/lib/hooks/useGlobalKeyboardShortcuts';
-import { KeyboardShortcutsHelp } from '@/components/KeyboardShortcutsHelp';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { saveTimeline, loadTimeline } from '@/lib/saveLoad';
 import { useEditorStore } from '@/state/useEditorStore';
@@ -57,6 +51,7 @@ import {
   createVideoThumbnail,
 } from './editorUtils';
 import { useEasterEggs } from '@/lib/hooks/useEasterEggs';
+import { ExportModal } from '@/components/ExportModal';
 
 type BrowserEditorClientProps = {
   projectId: string;
@@ -107,9 +102,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
   // Export state
   const [showExportModal, setShowExportModal] = useState(false);
 
-  // Keyboard shortcuts help modal state
-  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
-
   // Centralized polling cleanup tracking
   const pollingTimeoutsRef = useRef<Set<NodeJS.Timeout>>(new Set());
   const abortControllersRef = useRef<Set<AbortController>>(new Set());
@@ -124,18 +116,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
       pollingTimeouts.clear();
       abortControllers.forEach((controller) => controller.abort());
       abortControllers.clear();
-    };
-  }, []);
-
-  // Listen for the custom event from EditorHeader to show keyboard shortcuts
-  useEffect(() => {
-    const handleShowShortcutsEvent = (): void => {
-      setShowShortcutsHelp(true);
-    };
-
-    window.addEventListener('show-shortcuts-help', handleShowShortcutsEvent);
-    return (): void => {
-      window.removeEventListener('show-shortcuts-help', handleShowShortcutsEvent);
     };
   }, []);
 
@@ -175,72 +155,19 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
     null
   );
 
-  // Keyboard shortcut handlers
-  const handleUndo = useCallback((): void => {
-    if (canUndo()) {
-      undo();
-      toast.success('Undo', { duration: 1000 });
-    }
-  }, [undo, canUndo]);
-
-  const handleRedo = useCallback((): void => {
-    if (canRedo()) {
-      redo();
-      toast.success('Redo', { duration: 1000 });
-    }
-  }, [redo, canRedo]);
-
-  const handleCopy = useCallback((): void => {
-    if (selectedClipIds.size > 0) {
-      copyClips();
-      toast.success(`Copied ${selectedClipIds.size} clip${selectedClipIds.size > 1 ? 's' : ''}`, {
-        duration: 1500,
-      });
-    }
-  }, [copyClips, selectedClipIds]);
-
-  const handlePaste = useCallback((): void => {
-    pasteClips();
-  }, [pasteClips]);
-
-  const handleDelete = useCallback((): void => {
-    if (selectedClipIds.size > 0) {
-      const count = selectedClipIds.size;
-      selectedClipIds.forEach((clipId) => removeClip(clipId));
-      toast.success(`Deleted ${count} clip${count > 1 ? 's' : ''}`, { duration: 1500 });
-    }
-  }, [selectedClipIds, removeClip]);
-
-  const handleSelectAll = useCallback((): void => {
-    if (timeline?.clips && timeline.clips.length > 0) {
-      clearSelection();
-      timeline.clips.forEach((clip) => selectClip(clip.id, true));
-      toast.success(
-        `Selected ${timeline.clips.length} clip${timeline.clips.length > 1 ? 's' : ''}`,
-        { duration: 1500 }
-      );
-    }
-  }, [timeline, clearSelection, selectClip]);
-
-  const handlePlayPause = useCallback((): void => {
-    if (playPauseStateRef.current?.togglePlayPause) {
-      playPauseStateRef.current.togglePlayPause();
-    }
-  }, []);
-
-  const handleExportClick = useCallback((): void => {
-    if (!timeline || timeline.clips.length === 0) {
-      toast.error('Add clips to timeline before exporting');
-      return;
-    }
-    setShowExportModal(true);
-  }, [timeline]);
-
-  // Project export handler with format selection
-  const handleExportProject = useCallback(
-    (format: 'json' | 'edl' | 'xml'): void => {
+  const handleExport = useCallback(
+    (format: 'json' | 'edl' | 'xml' | 'video'): void => {
       if (!timeline) {
         toast.error('No timeline to export');
+        return;
+      }
+
+      if (format === 'video') {
+        if (timeline.clips.length === 0) {
+          toast.error('Add clips to timeline before exporting');
+          return;
+        }
+        setShowExportModal(true);
         return;
       }
 
@@ -333,118 +260,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
       toast.error('Failed to apply import: ' + (error as Error).message);
     }
   }, [importPreview, timeline, setTimeline, setShowImportModal, setImportPreview]);
-
-  const handleShowShortcuts = useCallback((): void => {
-    setShowShortcutsHelp(true);
-  }, []);
-
-  // Define all keyboard shortcuts with categories
-  const editorShortcuts = useMemo<KeyboardShortcut[]>(
-    () => [
-      // General shortcuts
-      {
-        id: 'show-shortcuts',
-        keys: ['meta', '?'],
-        description: 'Show keyboard shortcuts',
-        category: 'general',
-        action: handleShowShortcuts,
-        priority: 100,
-      },
-      {
-        id: 'show-shortcuts-alt',
-        keys: ['meta', '/'],
-        description: 'Show keyboard shortcuts',
-        category: 'general',
-        action: handleShowShortcuts,
-        priority: 100,
-      },
-      {
-        id: 'export',
-        keys: ['meta', 'e'],
-        description: 'Export video',
-        category: 'general',
-        action: handleExportClick,
-      },
-
-      // Playback shortcuts
-      {
-        id: 'play-pause',
-        keys: ['space'],
-        description: 'Play/Pause',
-        category: 'playback',
-        action: handlePlayPause,
-      },
-
-      // Editing shortcuts
-      {
-        id: 'undo',
-        keys: ['meta', 'z'],
-        description: 'Undo',
-        category: 'editing',
-        action: handleUndo,
-      },
-      {
-        id: 'redo',
-        keys: ['meta', 'shift', 'z'],
-        description: 'Redo',
-        category: 'editing',
-        action: handleRedo,
-      },
-      {
-        id: 'copy',
-        keys: ['meta', 'c'],
-        description: 'Copy selected clips',
-        category: 'editing',
-        action: handleCopy,
-      },
-      {
-        id: 'paste',
-        keys: ['meta', 'v'],
-        description: 'Paste clips',
-        category: 'editing',
-        action: handlePaste,
-      },
-      {
-        id: 'delete',
-        keys: ['delete'],
-        description: 'Delete selected clips',
-        category: 'editing',
-        action: handleDelete,
-      },
-      {
-        id: 'delete-backspace',
-        keys: ['backspace'],
-        description: 'Delete selected clips',
-        category: 'editing',
-        action: handleDelete,
-      },
-      {
-        id: 'select-all',
-        keys: ['meta', 'a'],
-        description: 'Select all clips',
-        category: 'editing',
-        action: handleSelectAll,
-      },
-    ],
-    [
-      handleUndo,
-      handleRedo,
-      handleCopy,
-      handlePaste,
-      handleDelete,
-      handleSelectAll,
-      handlePlayPause,
-      handleExportClick,
-      handleShowShortcuts,
-    ]
-  );
-
-  // Register global keyboard shortcuts
-  useGlobalKeyboardShortcuts({
-    shortcuts: editorShortcuts,
-    enabled: !showShortcutsHelp, // Disable shortcuts when help modal is open
-    disableInInputs: true,
-  });
 
   // Create a wrapper that calls reloadAssets after state updates
   const setAssetsWithReload = useCallback(
@@ -718,7 +533,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
   }, [assets, assetsLoaded, timeline, supabase, updateAsset]);
 
   // Autosave timeline with 5-second debounce
-  const { lastSaved, isSaving } = useAutosave(
+  useAutosave(
     projectId,
     5000, // Increased from 2s to 5s to reduce database writes
     async (projectIdParam, timelineToSave): Promise<void> => {
@@ -773,11 +588,10 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
       <EditorHeader
         projectId={projectId}
         currentTab="video-editor"
-        onExport={handleExportClick}
-        onExportProject={handleExportProject}
+        onExport={() => handleExport('video')}
         onImportProject={handleImportProject}
-        lastSaved={lastSaved}
-        isSaving={isSaving}
+        lastSaved={null}
+        isSaving={false}
       />
       <main id="main-content" className="flex h-full gap-3 lg:gap-6 p-3 lg:p-6" role="main">
         <Toaster position="bottom-right" />
@@ -868,18 +682,10 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
         />
 
         {/* Export Modal */}
-        <LazyExportModal
+        <ExportModal
           isOpen={showExportModal}
           onClose={() => setShowExportModal(false)}
-          projectId={projectId}
-          timeline={timeline}
-        />
-
-        {/* Keyboard Shortcuts Help Modal */}
-        <KeyboardShortcutsHelp
-          shortcuts={editorShortcuts}
-          isOpen={showShortcutsHelp}
-          onClose={() => setShowShortcutsHelp(false)}
+          onExport={(format) => handleExport(format)}
         />
 
         {/* Hidden File Input for Import Project */}

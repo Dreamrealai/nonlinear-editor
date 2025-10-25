@@ -157,6 +157,32 @@ CREATE TABLE IF NOT EXISTS export_presets (
 );
 
 CREATE INDEX IF NOT EXISTS idx_export_presets_user_id ON export_presets(user_id);
+-- Ensure all required columns exist in export_presets
+DO $$
+BEGIN
+  -- Add missing columns if they don't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'export_presets' AND column_name = 'platform') THEN
+    ALTER TABLE export_presets ADD COLUMN platform text;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'export_presets' AND column_name = 'width') THEN
+    ALTER TABLE export_presets ADD COLUMN width integer NOT NULL DEFAULT 1920;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'export_presets' AND column_name = 'height') THEN
+    ALTER TABLE export_presets ADD COLUMN height integer NOT NULL DEFAULT 1080;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'export_presets' AND column_name = 'fps') THEN
+    ALTER TABLE export_presets ADD COLUMN fps integer NOT NULL DEFAULT 30;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'export_presets' AND column_name = 'bitrate_kbps') THEN
+    ALTER TABLE export_presets ADD COLUMN bitrate_kbps integer;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'export_presets' AND column_name = 'codec') THEN
+    ALTER TABLE export_presets ADD COLUMN codec text;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'export_presets' AND column_name = 'format') THEN
+    ALTER TABLE export_presets ADD COLUMN format text NOT NULL DEFAULT 'mp4';
+  END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_export_presets_platform ON export_presets(platform);
 
 ALTER TABLE export_presets ENABLE ROW LEVEL SECURITY;
@@ -215,6 +241,30 @@ CREATE TABLE IF NOT EXISTS rate_limits (
 
   constraint rate_limits_unique_key_window unique (rate_key, window_start)
 );
+
+-- Handle different column naming in rate_limits table
+DO $$
+BEGIN
+  -- If table has 'key' column, rename to 'rate_key'
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'rate_limits' AND column_name = 'key') THEN
+    ALTER TABLE rate_limits RENAME COLUMN key TO rate_key;
+  END IF;
+
+  -- Add rate_key if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'rate_limits' AND column_name = 'rate_key') THEN
+    ALTER TABLE rate_limits ADD COLUMN rate_key text;
+  END IF;
+
+  -- Add window_start if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'rate_limits' AND column_name = 'window_start') THEN
+    ALTER TABLE rate_limits ADD COLUMN window_start timestamptz NOT NULL DEFAULT NOW();
+  END IF;
+
+  -- Add request_count if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'rate_limits' AND column_name = 'request_count') THEN
+    ALTER TABLE rate_limits ADD COLUMN request_count integer NOT NULL DEFAULT 0;
+  END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_rate_limits_key_window ON rate_limits(rate_key, window_start DESC);
 CREATE INDEX IF NOT EXISTS idx_rate_limits_window_start ON rate_limits(window_start);

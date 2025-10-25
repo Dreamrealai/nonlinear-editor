@@ -8,6 +8,8 @@
  */
 'use client';
 
+import type React from 'react';
+
 /**
  * Base skeleton component with pulsing animation
  */
@@ -17,7 +19,7 @@ function SkeletonBase({
 }: {
   className?: string;
   style?: React.CSSProperties;
-}) {
+}): React.ReactElement {
   return <div className={`animate-pulse rounded bg-neutral-200 ${className}`} style={style} />;
 }
 
@@ -29,7 +31,7 @@ function SkeletonBase({
  * {isLoading ? <AssetThumbnailSkeleton /> : <AssetThumbnail asset={asset} />}
  * ```
  */
-export function AssetThumbnailSkeleton() {
+export function AssetThumbnailSkeleton(): React.ReactElement {
   return (
     <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
       <SkeletonBase className="aspect-video w-full" />
@@ -49,7 +51,7 @@ export function AssetThumbnailSkeleton() {
  * {isLoading ? <AssetCardSkeleton /> : <AssetCard asset={asset} />}
  * ```
  */
-export function AssetCardSkeleton() {
+export function AssetCardSkeleton(): React.ReactElement {
   return (
     <div className="flex gap-3 rounded-lg border border-neutral-200 bg-white p-3">
       <SkeletonBase className="h-16 w-16 flex-shrink-0 rounded" />
@@ -70,7 +72,7 @@ export function AssetCardSkeleton() {
  * {isLoading ? <AssetPreviewSkeleton /> : <AssetPreview asset={asset} />}
  * ```
  */
-export function AssetPreviewSkeleton() {
+export function AssetPreviewSkeleton(): React.ReactElement {
   return (
     <div className="space-y-4">
       <SkeletonBase className="aspect-video w-full rounded-lg" />
@@ -93,7 +95,7 @@ export function AssetPreviewSkeleton() {
  * {isLoading ? <AssetGridSkeleton count={9} /> : <AssetGrid assets={assets} />}
  * ```
  */
-export function AssetGridSkeleton({ count = 6 }: { count?: number }) {
+export function AssetGridSkeleton({ count = 6 }: { count?: number }): React.ReactElement {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: count }, (_, i) => (
@@ -113,7 +115,7 @@ export function AssetGridSkeleton({ count = 6 }: { count?: number }) {
  * {isLoading ? <AssetListSkeleton count={10} /> : <AssetList assets={assets} />}
  * ```
  */
-export function AssetListSkeleton({ count = 5 }: { count?: number }) {
+export function AssetListSkeleton({ count = 5 }: { count?: number }): React.ReactElement {
   return (
     <div className="space-y-3">
       {Array.from({ length: count }, (_, i) => (
@@ -133,7 +135,7 @@ export function AssetListSkeleton({ count = 5 }: { count?: number }) {
  * {isLoading ? <AssetInlineSkeleton /> : <span>{asset.name}</span>}
  * ```
  */
-export function AssetInlineSkeleton({ width = '100px' }: { width?: string }) {
+export function AssetInlineSkeleton({ width = '100px' }: { width?: string }): React.ReactElement {
   return <SkeletonBase className="inline-block h-4" style={{ width }} />;
 }
 
@@ -145,7 +147,7 @@ export function AssetInlineSkeleton({ width = '100px' }: { width?: string }) {
  * {isLoading ? <AssetPanelHeaderSkeleton /> : <AssetPanelHeader />}
  * ```
  */
-export function AssetPanelHeaderSkeleton() {
+export function AssetPanelHeaderSkeleton(): React.ReactElement {
   return (
     <div className="flex items-center justify-between border-b border-neutral-200 p-4">
       <div className="flex items-center gap-3">
@@ -168,7 +170,7 @@ export function AssetPanelHeaderSkeleton() {
  * {isLoading ? <AssetPanelSkeleton /> : <AssetPanel assets={assets} />}
  * ```
  */
-export function AssetPanelSkeleton() {
+export function AssetPanelSkeleton(): React.ReactElement {
   return (
     <div className="flex h-full flex-col">
       <AssetPanelHeaderSkeleton />

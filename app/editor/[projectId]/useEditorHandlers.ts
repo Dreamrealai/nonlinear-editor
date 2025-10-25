@@ -28,6 +28,39 @@ type UseEditorHandlersProps = {
   abortControllersRef: React.MutableRefObject<Set<AbortController>>;
 };
 
+export type UseEditorHandlersReturn = {
+  handleFileSelect: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
+  handleAssetDelete: (asset: AssetRow) => Promise<void>;
+  handleClipAdd: (asset: AssetRow) => Promise<void>;
+  handleDetectScenes: () => Promise<void>;
+  handleAddText: () => void;
+  handleAddTransition: () => void;
+  handleGenerateSuno: (formData: {
+    prompt: string;
+    style?: string;
+    title?: string;
+    customMode?: boolean;
+    instrumental?: boolean;
+  }) => Promise<void>;
+  handleGenerateElevenLabs: (formData: {
+    text: string;
+    voiceId?: string;
+    modelId?: string;
+  }) => Promise<void>;
+  handleGenerateVideo: (formData: {
+    prompt: string;
+    aspectRatio?: '9:16' | '16:9' | '1:1';
+    duration?: number;
+  }) => Promise<string | null>;
+  handleSplitAudio: (asset: AssetRow) => Promise<void>;
+  handleSplitScenes: (asset: AssetRow) => Promise<void>;
+  handleUpscaleVideo: (asset: AssetRow) => Promise<void>;
+  handleGenerateAudioFromClip: (clipId: string) => Promise<void>;
+  handleSplitAudioFromClip: (clipId: string) => Promise<void>;
+  handleSplitScenesFromClip: (clipId: string) => Promise<void>;
+  handleUpscaleVideoFromTimeline: () => Promise<void>;
+};
+
 export function useEditorHandlers({
   projectId,
   timeline,
@@ -39,7 +72,7 @@ export function useEditorHandlers({
   uploadInputRef,
   pollingTimeoutsRef,
   abortControllersRef,
-}: UseEditorHandlersProps) {
+}: UseEditorHandlersProps): UseEditorHandlersReturn {
   const supabase = createBrowserSupabaseClient();
 
   /**

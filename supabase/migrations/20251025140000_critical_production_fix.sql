@@ -78,6 +78,9 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   constraint rate_limits_unique_key_window unique (rate_key, window_start)
 );
 
+-- Drop existing function if it has conflicting signature
+DROP FUNCTION IF EXISTS public.increment_rate_limit(TEXT, INTEGER);
+
 CREATE OR REPLACE FUNCTION public.increment_rate_limit(
   rate_key TEXT,
   window_seconds INTEGER
@@ -123,13 +126,33 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "audit_logs_select_own"
-  ON audit_logs FOR SELECT TO authenticated
-  USING (auth.uid() = user_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+    AND tablename = 'audit_logs'
+    AND policyname = 'audit_logs_select_own'
+  ) THEN
+    CREATE POLICY "audit_logs_select_own"
+      ON audit_logs FOR SELECT TO authenticated
+      USING (auth.uid() = user_id);
+  END IF;
+END $$;
 
-CREATE POLICY IF NOT EXISTS "audit_logs_insert_service"
-  ON audit_logs FOR INSERT TO service_role
-  WITH CHECK (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+    AND tablename = 'audit_logs'
+    AND policyname = 'audit_logs_insert_service'
+  ) THEN
+    CREATE POLICY "audit_logs_insert_service"
+      ON audit_logs FOR INSERT TO service_role
+      WITH CHECK (true);
+  END IF;
+END $$;
 
 -- STEP 6: Fix backup cleanup trigger
 CREATE OR REPLACE FUNCTION cleanup_old_auto_backups()

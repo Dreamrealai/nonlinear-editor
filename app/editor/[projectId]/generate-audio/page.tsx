@@ -1,3 +1,4 @@
+import React from 'react';
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 import { getCachedProjectMetadata } from '@/lib/cachedData';

@@ -27,20 +27,7 @@ const LoadingFallback = (): React.ReactElement => (
   </div>
 );
 
-/**
- * Lazy-loaded ExportModal component
- * Only loaded when user triggers export
- */
-export const LazyExportModal = dynamic(
-  (): Promise<{ default: typeof import('@/components/ExportModal').ExportModal }> =>
-    import('@/components/ExportModal').then((mod): { default: typeof mod.ExportModal } => ({
-      default: mod.ExportModal,
-    })),
-  {
-    loading: LoadingFallback,
-    ssr: false,
-  }
-);
+
 
 /**
  * Lazy-loaded ClipPropertiesPanel component

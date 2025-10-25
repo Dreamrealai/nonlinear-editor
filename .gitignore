@@ -133,7 +133,7 @@ test-summary.txt
 test-reports/
 
 # Reports and logs
-reports/
+/archive/reports/
 
 # Backup files
 *.bak
