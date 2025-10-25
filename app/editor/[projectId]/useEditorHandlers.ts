@@ -171,44 +171,53 @@ export function useEditorHandlers({
         return;
       }
 
-      const assetDuration =
-        typeof asset.duration_seconds === 'number' && Number.isFinite(asset.duration_seconds)
-          ? asset.duration_seconds
-          : typeof asset.metadata?.durationSeconds === 'number' &&
-              Number.isFinite(asset.metadata.durationSeconds)
-            ? asset.metadata.durationSeconds
-            : null;
-      const clip: Clip = {
-        id: uuid(),
-        assetId: asset.id,
-        filePath: asset.storage_url,
-        mime: asset.metadata?.mimeType ?? 'video/mp4',
-        start: 0,
-        end: assetDuration ?? 5,
-        sourceDuration: assetDuration,
-        timelinePosition:
-          timeline.clips.length > 0
-            ? safeArrayMax(
-                timeline.clips.map((c) => c.timelinePosition + (c.end - c.start)),
-                0
-              )
-            : 0,
-        trackIndex: 0,
-        crop: null,
-        transitionToNext: { type: 'none', duration: 0.5 },
-        previewUrl: asset.metadata?.sourceUrl ?? null,
-        thumbnailUrl: asset.metadata?.thumbnail ?? null,
-        hasAudio: asset.type !== 'image',
-      };
+      try {
+        const assetDuration =
+          typeof asset.duration_seconds === 'number' && Number.isFinite(asset.duration_seconds)
+            ? asset.duration_seconds
+            : typeof asset.metadata?.durationSeconds === 'number' &&
+                Number.isFinite(asset.metadata.durationSeconds)
+              ? asset.metadata.durationSeconds
+              : null;
+        const clip: Clip = {
+          id: uuid(),
+          assetId: asset.id,
+          filePath: asset.storage_url,
+          mime: asset.metadata?.mimeType ?? 'video/mp4',
+          start: 0,
+          end: assetDuration ?? 5,
+          sourceDuration: assetDuration,
+          timelinePosition:
+            timeline.clips.length > 0
+              ? safeArrayMax(
+                  timeline.clips.map((c) => c.timelinePosition + (c.end - c.start)),
+                  0
+                )
+              : 0,
+          trackIndex: 0,
+          crop: null,
+          transitionToNext: { type: 'none', duration: 0.5 },
+          previewUrl: asset.metadata?.sourceUrl ?? null,
+          thumbnailUrl: asset.metadata?.thumbnail ?? null,
+          hasAudio: asset.type !== 'image',
+        };
 
-      addClip(clip);
-      // Note: addClip already updates the timeline in the Zustand store
-      // No need to call setTimeline here as it would create a race condition
-      toast.success(
-        `Clip ${asset.metadata?.filename || asset.storage_url.split('/').pop()} added to track ${clip.trackIndex + 1}`
-      );
+        addClip(clip);
+        // Note: addClip already updates the timeline in the Zustand store
+        toast.success(
+          `Clip ${asset.metadata?.filename || asset.storage_url.split('/').pop()} added to track ${clip.trackIndex + 1}`
+        );
+      } catch (error) {
+        browserLogger.error(
+          { error, assetId: asset.id, projectId },
+          'Failed to add clip to timeline'
+        );
+        toast.error(
+          `Failed to add clip: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
+      }
     },
-    [timeline, addClip, setTimeline]
+    [timeline, addClip]
   );
 
   const handleDetectScenes = useCallback(async () => {

@@ -80,24 +80,40 @@ export const createClipsSlice = (set: SetState, _get?: GetState): ClipsSlice => 
   addClip: (clip): void =>
     set((state: WritableDraft<ClipsSliceState>): void => {
       if (!state.timeline) return;
-      state.timeline.clips.push(clip);
-      state.timeline.clips = dedupeClips(state.timeline.clips);
 
-      // Announce to screen readers
-      if (typeof window !== 'undefined') {
-        timelineAnnouncements.clipAdded(getClipFileName(clip), clip.trackIndex);
-      }
+      try {
+        state.timeline.clips.push(clip);
+        state.timeline.clips = dedupeClips(state.timeline.clips);
 
-      // Save to history
-      const cloned = cloneTimeline(state.timeline);
-      if (cloned) {
-        state.history = state.history.slice(0, state.historyIndex + 1);
-        state.history.push(cloned);
-        if (state.history.length > MAX_HISTORY) {
-          state.history.shift();
-        } else {
-          state.historyIndex++;
+        // Announce to screen readers
+        if (typeof window !== 'undefined') {
+          timelineAnnouncements.clipAdded(getClipFileName(clip), clip.trackIndex);
         }
+
+        // Save to history
+        const cloned = cloneTimeline(state.timeline);
+        if (cloned) {
+          state.history = state.history.slice(0, state.historyIndex + 1);
+          state.history.push(cloned);
+          if (state.history.length > MAX_HISTORY) {
+            state.history.shift();
+          } else {
+            state.historyIndex++;
+          }
+        }
+      } catch (error) {
+        // If cloning fails, remove the clip that was just added to maintain consistency
+        state.timeline.clips = state.timeline.clips.filter((c) => c.id !== clip.id);
+
+        // Log error for debugging
+        if (typeof window !== 'undefined' && console.error) {
+          console.error('Failed to add clip to timeline:', error);
+        }
+
+        // Re-throw so the calling code can handle it
+        throw new Error(
+          `Failed to add clip: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     }),
 

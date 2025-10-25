@@ -66,17 +66,24 @@ export class BackupService {
     let lastError = null;
 
     while (retryCount <= maxRetries) {
+      // Try with backup_name first, if it fails due to missing column, retry without it
+      const insertPayload: Record<string, unknown> = {
+        project_id: projectId,
+        user_id: projectData.user_id,
+        backup_type: backupType,
+        project_data: projectData,
+        timeline_data: timelineData,
+        assets_snapshot: assets,
+      };
+
+      // Only add backup_name if this is not a PGRST204 retry
+      if (retryCount === 0 || lastError?.code !== 'PGRST204') {
+        insertPayload.backup_name = name;
+      }
+
       const { data, error } = await this.supabase
         .from('project_backups')
-        .insert({
-          project_id: projectId,
-          user_id: projectData.user_id,
-          backup_name: name,
-          backup_type: backupType,
-          project_data: projectData,
-          timeline_data: timelineData,
-          assets_snapshot: assets,
-        })
+        .insert(insertPayload)
         .select()
         .single();
 
@@ -85,16 +92,22 @@ export class BackupService {
       }
 
       lastError = error;
+
+      // If PGRST204 (column not found), retry once without backup_name
+      if (error?.code === 'PGRST204' && retryCount === 0) {
+        retryCount++;
+        continue;
+      }
+
       retryCount++;
 
-      // Don't retry on schema/permission errors
+      // Don't retry on schema/permission errors (except PGRST204 which we handle above)
       if (
         error?.code === '42501' || // insufficient_privilege
         error?.code === '42P01' || // undefined_table
         error?.code === '23502' || // not_null_violation
         error?.code === '23503' || // foreign_key_violation
-        error?.code === '22P02' || // invalid_text_representation
-        error?.code === 'PGRST204' // PostgREST: undefined column
+        error?.code === '22P02' // invalid_text_representation
       ) {
         break;
       }
