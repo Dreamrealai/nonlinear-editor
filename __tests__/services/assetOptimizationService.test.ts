@@ -14,14 +14,17 @@
 import { AssetOptimizationService } from '@/lib/services/assetOptimizationService';
 
 // Mock serverLogger
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      error: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+    },
+  })
+);
 
 // Mock Sharp
 const mockSharp = jest.fn();
@@ -51,30 +54,42 @@ jest.mock('sharp', () => {
 const mockGenerateVideoThumbnailDataURL = jest.fn();
 const mockGetVideoDuration = jest.fn();
 
-jest.mock('@/lib/services/thumbnailService', (): Record<string, unknown> => ({
-  ThumbnailService: jest.fn().mockImplementation(() => ({
-    generateVideoThumbnailDataURL: mockGenerateVideoThumbnailDataURL,
-    getVideoDuration: mockGetVideoDuration,
-  })),
-}));
+jest.mock(
+  '@/lib/services/thumbnailService',
+  (): Record<string, unknown> => ({
+    ThumbnailService: jest.fn().mockImplementation(() => ({
+      generateVideoThumbnailDataURL: mockGenerateVideoThumbnailDataURL,
+      getVideoDuration: mockGetVideoDuration,
+    })),
+  })
+);
 
 // Mock child_process
 const mockExec = jest.fn();
-jest.mock('child_process', (): Record<string, unknown> => ({
-  exec: mockExec,
-}));
+jest.mock(
+  'child_process',
+  (): Record<string, unknown> => ({
+    exec: mockExec,
+  })
+);
 
-jest.mock('util', (): Record<string, unknown> => ({
-  promisify: (fn: any) => fn,
-}));
+jest.mock(
+  'util',
+  (): Record<string, unknown> => ({
+    promisify: (fn: any) => fn,
+  })
+);
 
 // Mock fs/promises
 const mockWriteFile = jest.fn();
 const mockUnlink = jest.fn();
-jest.mock('fs/promises', (): Record<string, unknown> => ({
-  writeFile: mockWriteFile,
-  unlink: mockUnlink,
-}));
+jest.mock(
+  'fs/promises',
+  (): Record<string, unknown> => ({
+    writeFile: mockWriteFile,
+    unlink: mockUnlink,
+  })
+);
 
 describe('AssetOptimizationService', () => {
   let service: AssetOptimizationService;
@@ -388,13 +403,23 @@ describe('AssetOptimizationService', () => {
       // Arrange
       const audioBuffer = Buffer.from('audio-data');
       mockExec
-        .mockImplementationOnce((cmd: string, callback: Function) => {
-          callback(null, { stdout: 'Duration: 00:02:30.50' });
-        })
-        .mockImplementationOnce((cmd: string, callback: Function) => {
-          const amplitudes = Array.from({ length: 1000 }, (_, i) => i % 10).join('\n');
-          callback(null, { stdout: amplitudes });
-        });
+        .mockImplementationOnce(
+          (
+            cmd: string,
+            callback: (err: Error | null, result?: { stdout: string; stderr?: string }) => void
+          ) => {
+            callback(null, { stdout: 'Duration: 00:02:30.50' });
+          }
+        )
+        .mockImplementationOnce(
+          (
+            cmd: string,
+            callback: (err: Error | null, result?: { stdout: string; stderr?: string }) => void
+          ) => {
+            const amplitudes = Array.from({ length: 1000 }, (_, i) => i % 10).join('\n');
+            callback(null, { stdout: amplitudes });
+          }
+        );
 
       mockWriteFile.mockResolvedValue(undefined);
       mockUnlink.mockResolvedValue(undefined);
@@ -411,14 +436,19 @@ describe('AssetOptimizationService', () => {
     it('should use custom options', async () => {
       // Arrange
       const audioBuffer = Buffer.from('audio-data');
-      mockExec.mockImplementation((cmd: string, callback: Function) => {
-        if (cmd.includes('Duration')) {
-          callback(null, { stdout: 'Duration: 00:01:00.00' });
-        } else {
-          const amplitudes = Array.from({ length: 500 }, () => '0.5').join('\n');
-          callback(null, { stdout: amplitudes });
+      mockExec.mockImplementation(
+        (
+          cmd: string,
+          callback: (err: Error | null, result?: { stdout: string; stderr?: string }) => void
+        ) => {
+          if (cmd.includes('Duration')) {
+            callback(null, { stdout: 'Duration: 00:01:00.00' });
+          } else {
+            const amplitudes = Array.from({ length: 500 }, () => '0.5').join('\n');
+            callback(null, { stdout: amplitudes });
+          }
         }
-      });
+      );
 
       mockWriteFile.mockResolvedValue(undefined);
       mockUnlink.mockResolvedValue(undefined);
@@ -437,9 +467,14 @@ describe('AssetOptimizationService', () => {
     it('should generate dummy waveform on failure', async () => {
       // Arrange
       const audioBuffer = Buffer.from('audio-data');
-      mockExec.mockImplementation((cmd: string, callback: Function) => {
-        callback(new Error('FFmpeg failed'), { stdout: '' });
-      });
+      mockExec.mockImplementation(
+        (
+          cmd: string,
+          callback: (err: Error | null, result?: { stdout: string; stderr?: string }) => void
+        ) => {
+          callback(new Error('FFmpeg failed'), { stdout: '' });
+        }
+      );
 
       mockWriteFile.mockResolvedValue(undefined);
       mockUnlink.mockResolvedValue(undefined);
@@ -456,9 +491,14 @@ describe('AssetOptimizationService', () => {
     it('should clean up temp files', async () => {
       // Arrange
       const audioBuffer = Buffer.from('audio-data');
-      mockExec.mockImplementation((cmd: string, callback: Function) => {
-        callback(null, { stdout: 'Duration: 00:01:00.00' });
-      });
+      mockExec.mockImplementation(
+        (
+          cmd: string,
+          callback: (err: Error | null, result?: { stdout: string; stderr?: string }) => void
+        ) => {
+          callback(null, { stdout: 'Duration: 00:01:00.00' });
+        }
+      );
 
       mockWriteFile.mockResolvedValue(undefined);
       mockUnlink.mockResolvedValue(undefined);
@@ -473,9 +513,14 @@ describe('AssetOptimizationService', () => {
     it('should handle temp file cleanup errors gracefully', async () => {
       // Arrange
       const audioBuffer = Buffer.from('audio-data');
-      mockExec.mockImplementation((cmd: string, callback: Function) => {
-        callback(null, { stdout: 'Duration: 00:01:00.00' });
-      });
+      mockExec.mockImplementation(
+        (
+          cmd: string,
+          callback: (err: Error | null, result?: { stdout: string; stderr?: string }) => void
+        ) => {
+          callback(null, { stdout: 'Duration: 00:01:00.00' });
+        }
+      );
 
       mockWriteFile.mockResolvedValue(undefined);
       mockUnlink.mockRejectedValue(new Error('File not found'));
@@ -488,12 +533,22 @@ describe('AssetOptimizationService', () => {
       // Arrange
       const audioBuffer = Buffer.from('audio-data');
       mockExec
-        .mockImplementationOnce((cmd: string, callback: Function) => {
-          callback(null, { stdout: 'Duration: 00:05:45.30' });
-        })
-        .mockImplementationOnce((cmd: string, callback: Function) => {
-          callback(null, { stdout: '' });
-        });
+        .mockImplementationOnce(
+          (
+            cmd: string,
+            callback: (err: Error | null, result?: { stdout: string; stderr?: string }) => void
+          ) => {
+            callback(null, { stdout: 'Duration: 00:05:45.30' });
+          }
+        )
+        .mockImplementationOnce(
+          (
+            cmd: string,
+            callback: (err: Error | null, result?: { stdout: string; stderr?: string }) => void
+          ) => {
+            callback(null, { stdout: '' });
+          }
+        );
 
       mockWriteFile.mockResolvedValue(undefined);
       mockUnlink.mockResolvedValue(undefined);
@@ -511,16 +566,26 @@ describe('AssetOptimizationService', () => {
       // Arrange
       const audioBuffer = Buffer.from('audio-data');
       mockExec
-        .mockImplementationOnce((cmd: string, callback: Function) => {
-          callback(null, { stdout: 'Duration: 00:01:00.00' });
-        })
-        .mockImplementationOnce((cmd: string, callback: Function) => {
-          // Generate 1000 samples with known pattern
-          const amplitudes = Array.from({ length: 1000 }, (_, i) =>
-            (Math.sin(i / 10) * 0.5 + 0.5).toFixed(2)
-          ).join('\n');
-          callback(null, { stdout: amplitudes });
-        });
+        .mockImplementationOnce(
+          (
+            cmd: string,
+            callback: (err: Error | null, result?: { stdout: string; stderr?: string }) => void
+          ) => {
+            callback(null, { stdout: 'Duration: 00:01:00.00' });
+          }
+        )
+        .mockImplementationOnce(
+          (
+            cmd: string,
+            callback: (err: Error | null, result?: { stdout: string; stderr?: string }) => void
+          ) => {
+            // Generate 1000 samples with known pattern
+            const amplitudes = Array.from({ length: 1000 }, (_, i) =>
+              (Math.sin(i / 10) * 0.5 + 0.5).toFixed(2)
+            ).join('\n');
+            callback(null, { stdout: amplitudes });
+          }
+        );
 
       mockWriteFile.mockResolvedValue(undefined);
       mockUnlink.mockResolvedValue(undefined);

@@ -1,36 +1,63 @@
+/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { DeleteAccountModal } from '@/components/DeleteAccountModal';
 
 // Mock browserLogger
-jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
-  browserLogger: {
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/browserLogger',
+  (): Record<string, unknown> => ({
+    browserLogger: {
+      error: jest.fn(),
+    },
+  })
+);
 
 // Mock Dialog component
-jest.mock('@/components/ui/Dialog', (): Record<string, unknown> => ({
-  Dialog: ({ children, open, onOpenChange }: { children: React.ReactNode; open: boolean; onOpenChange: (open: boolean) => void }) => (
-    open ? <div data-testid="dialog" onClick={() => onOpenChange(false)} onKeyDown={(e) => e.key === 'Escape' && onOpenChange(false)} role="dialog" tabIndex={-1}>{children}</div> : null
-  ),
-  DialogContent: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="dialog-content">{children}</div>
-  ),
-  DialogHeader: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="dialog-header">{children}</div>
-  ),
-  DialogTitle: ({ children }: { children: React.ReactNode }) => (
-    <h2 data-testid="dialog-title">{children}</h2>
-  ),
-  DialogDescription: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="dialog-description">{children}</div>
-  ),
-  DialogFooter: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="dialog-footer">{children}</div>
-  ),
-}));
+jest.mock(
+  '@/components/ui/Dialog',
+  (): Record<string, unknown> => ({
+    Dialog: ({
+      children,
+      open,
+      onOpenChange,
+    }: {
+      children: React.ReactNode;
+      open: boolean;
+      onOpenChange: (open: boolean) => void;
+    }) =>
+       
+      open ? (
+        <div
+          data-testid="dialog"
+          onClick={() => onOpenChange(false)}
+          onKeyDown={(e): void => {
+            if (e.key === 'Escape') onOpenChange(false);
+          }}
+          role="dialog"
+          tabIndex={-1}
+        >
+          {children}
+        </div>
+      ) : null,
+    DialogContent: ({ children }: { children: React.ReactNode }) => (
+      <div data-testid="dialog-content">{children}</div>
+    ),
+    DialogHeader: ({ children }: { children: React.ReactNode }) => (
+      <div data-testid="dialog-header">{children}</div>
+    ),
+    DialogTitle: ({ children }: { children: React.ReactNode }) => (
+      <h2 data-testid="dialog-title">{children}</h2>
+    ),
+    DialogDescription: ({ children }: { children: React.ReactNode }) => (
+      <div data-testid="dialog-description">{children}</div>
+    ),
+    DialogFooter: ({ children }: { children: React.ReactNode }) => (
+      <div data-testid="dialog-footer">{children}</div>
+    ),
+  })
+);
 
 describe('DeleteAccountModal', () => {
   const mockOnOpenChange = jest.fn();
@@ -45,7 +72,7 @@ describe('DeleteAccountModal', () => {
     cleanup();
     // Wait for any pending async operations to complete
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     });
   });
 
@@ -87,7 +114,9 @@ describe('DeleteAccountModal', () => {
       );
 
       expect(screen.getByText('Delete Account')).toBeInTheDocument();
-      expect(screen.getByText('This action is permanent and cannot be undone.')).toBeInTheDocument();
+      expect(
+        screen.getByText('This action is permanent and cannot be undone.')
+      ).toBeInTheDocument();
     });
 
     it('should render warning icon', () => {

@@ -8,10 +8,26 @@ import {
   validateStringLength,
   validateEnum,
   validateIntegerRange,
+  validateInteger,
   validateRequired,
   validateMimeType,
   validateFileSize,
+  validateUrl,
+  validateNumber,
+  validateBoolean,
+  validateAspectRatio,
+  validateDuration,
+  validateSeed,
+  validateSampleCount,
+  validateSafetyFilterLevel,
+  validatePersonGeneration,
+  validateString,
+  validateAll,
   validateImageGenerationRequest,
+  VALID_ASPECT_RATIOS,
+  VALID_DURATIONS,
+  VALID_SAFETY_LEVELS,
+  VALID_PERSON_GENERATION,
 } from '@/lib/validation';
 
 describe('Validation Utilities', () => {
@@ -56,7 +72,9 @@ describe('Validation Utilities', () => {
 
     it('should reject strings that are too long', () => {
       expect(() => validateStringLength('12345678901', 'Field', 3, 10)).toThrow(ValidationError);
-      expect(() => validateStringLength('12345678901', 'Field', 3, 10)).toThrow('not exceed 10 characters');
+      expect(() => validateStringLength('12345678901', 'Field', 3, 10)).toThrow(
+        'not exceed 10 characters'
+      );
     });
 
     it('should reject non-string values', () => {
@@ -240,6 +258,260 @@ describe('Validation Utilities', () => {
       const request = { ...validRequest, personGeneration: 'invalid' };
       expect(() => validateImageGenerationRequest(request)).toThrow(ValidationError);
       expect(() => validateImageGenerationRequest(request)).toThrow('Person generation');
+    });
+  });
+
+  describe('validateInteger', () => {
+    it('should accept valid integers', () => {
+      expect(() => validateInteger(5, 'Count')).not.toThrow();
+      expect(() => validateInteger(0, 'Count')).not.toThrow();
+      expect(() => validateInteger(-5, 'Count')).not.toThrow();
+    });
+
+    it('should handle required option', () => {
+      expect(() => validateInteger(null, 'Count', { required: true })).toThrow(ValidationError);
+      expect(() => validateInteger(undefined, 'Count', { required: true })).toThrow(
+        ValidationError
+      );
+      expect(() => validateInteger(null, 'Count', { required: false })).not.toThrow();
+      expect(() => validateInteger(undefined, 'Count', { required: false })).not.toThrow();
+    });
+
+    it('should validate min/max range', () => {
+      expect(() => validateInteger(5, 'Count', { min: 1, max: 10 })).not.toThrow();
+      expect(() => validateInteger(0, 'Count', { min: 1, max: 10 })).toThrow(ValidationError);
+      expect(() => validateInteger(11, 'Count', { min: 1, max: 10 })).toThrow(ValidationError);
+    });
+
+    it('should reject non-integers', () => {
+      expect(() => validateInteger(5.5, 'Count')).toThrow(ValidationError);
+    });
+  });
+
+  describe('validateUrl', () => {
+    it('should accept valid HTTP/HTTPS URLs', () => {
+      expect(() => validateUrl('http://example.com')).not.toThrow();
+      expect(() => validateUrl('https://example.com')).not.toThrow();
+      expect(() => validateUrl('https://www.example.com/path?query=value')).not.toThrow();
+    });
+
+    it('should reject non-string values', () => {
+      expect(() => validateUrl(123)).toThrow(ValidationError);
+      expect(() => validateUrl(null)).toThrow(ValidationError);
+    });
+
+    it('should reject invalid URL formats', () => {
+      expect(() => validateUrl('not a url')).toThrow(ValidationError);
+      expect(() => validateUrl('ftp://example.com')).toThrow(ValidationError);
+    });
+
+    it('should enforce HTTPS when httpsOnly is true', () => {
+      expect(() => validateUrl('https://example.com', 'URL', { httpsOnly: true })).not.toThrow();
+      expect(() => validateUrl('http://example.com', 'URL', { httpsOnly: true })).toThrow(
+        ValidationError
+      );
+    });
+
+    it('should enforce maxLength', () => {
+      const longUrl = 'https://example.com/' + 'a'.repeat(100);
+      expect(() => validateUrl(longUrl, 'URL', { maxLength: 50 })).toThrow(ValidationError);
+    });
+  });
+
+  describe('validateNumber', () => {
+    it('should accept valid numbers', () => {
+      expect(() => validateNumber(5, 'Value')).not.toThrow();
+      expect(() => validateNumber(5.5, 'Value')).not.toThrow();
+      expect(() => validateNumber(0, 'Value')).not.toThrow();
+      expect(() => validateNumber(-5, 'Value')).not.toThrow();
+    });
+
+    it('should reject non-numbers', () => {
+      expect(() => validateNumber('5', 'Value')).toThrow(ValidationError);
+      expect(() => validateNumber(null, 'Value')).toThrow(ValidationError);
+    });
+
+    it('should reject NaN', () => {
+      expect(() => validateNumber(NaN, 'Value')).toThrow(ValidationError);
+    });
+
+    it('should validate min/max', () => {
+      expect(() => validateNumber(5, 'Value', 1, 10)).not.toThrow();
+      expect(() => validateNumber(0, 'Value', 1, 10)).toThrow(ValidationError);
+      expect(() => validateNumber(11, 'Value', 1, 10)).toThrow(ValidationError);
+    });
+  });
+
+  describe('validateBoolean', () => {
+    it('should accept boolean values', () => {
+      expect(() => validateBoolean(true, 'Flag')).not.toThrow();
+      expect(() => validateBoolean(false, 'Flag')).not.toThrow();
+    });
+
+    it('should reject non-boolean values', () => {
+      expect(() => validateBoolean(1, 'Flag')).toThrow(ValidationError);
+      expect(() => validateBoolean('true', 'Flag')).toThrow(ValidationError);
+      expect(() => validateBoolean(null, 'Flag')).toThrow(ValidationError);
+    });
+
+    it('should handle required option', () => {
+      expect(() => validateBoolean(undefined, 'Flag', { required: false })).not.toThrow();
+      expect(() => validateBoolean(null, 'Flag', { required: false })).not.toThrow();
+      expect(() => validateBoolean(undefined, 'Flag', { required: true })).toThrow(ValidationError);
+    });
+  });
+
+  describe('validateAspectRatio', () => {
+    it('should accept valid aspect ratios', () => {
+      VALID_ASPECT_RATIOS.forEach((ratio) => {
+        expect(() => validateAspectRatio(ratio)).not.toThrow();
+      });
+    });
+
+    it('should accept undefined/null', () => {
+      expect(() => validateAspectRatio(undefined)).not.toThrow();
+      expect(() => validateAspectRatio(null)).not.toThrow();
+    });
+
+    it('should reject invalid aspect ratios', () => {
+      expect(() => validateAspectRatio('21:9')).toThrow(ValidationError);
+      expect(() => validateAspectRatio('invalid')).toThrow(ValidationError);
+    });
+  });
+
+  describe('validateDuration', () => {
+    it('should accept valid durations', () => {
+      VALID_DURATIONS.forEach((duration) => {
+        expect(() => validateDuration(duration)).not.toThrow();
+      });
+    });
+
+    it('should accept undefined/null', () => {
+      expect(() => validateDuration(undefined)).not.toThrow();
+      expect(() => validateDuration(null)).not.toThrow();
+    });
+
+    it('should reject invalid durations', () => {
+      expect(() => validateDuration(3)).toThrow(ValidationError);
+      expect(() => validateDuration(7)).toThrow(ValidationError);
+      expect(() => validateDuration('5')).toThrow(ValidationError);
+    });
+  });
+
+  describe('validateSeed', () => {
+    it('should accept valid seeds', () => {
+      expect(() => validateSeed(0)).not.toThrow();
+      expect(() => validateSeed(12345)).not.toThrow();
+      expect(() => validateSeed(4294967295)).not.toThrow();
+    });
+
+    it('should accept undefined/null', () => {
+      expect(() => validateSeed(undefined)).not.toThrow();
+      expect(() => validateSeed(null)).not.toThrow();
+    });
+
+    it('should reject out of range seeds', () => {
+      expect(() => validateSeed(-1)).toThrow(ValidationError);
+      expect(() => validateSeed(4294967296)).toThrow(ValidationError);
+    });
+  });
+
+  describe('validateSampleCount', () => {
+    it('should accept valid sample counts', () => {
+      expect(() => validateSampleCount(1)).not.toThrow();
+      expect(() => validateSampleCount(4)).not.toThrow();
+      expect(() => validateSampleCount(8)).not.toThrow();
+    });
+
+    it('should accept undefined/null', () => {
+      expect(() => validateSampleCount(undefined)).not.toThrow();
+      expect(() => validateSampleCount(null)).not.toThrow();
+    });
+
+    it('should respect custom max', () => {
+      expect(() => validateSampleCount(4, 4)).not.toThrow();
+      expect(() => validateSampleCount(5, 4)).toThrow(ValidationError);
+    });
+
+    it('should reject out of range counts', () => {
+      expect(() => validateSampleCount(0)).toThrow(ValidationError);
+      expect(() => validateSampleCount(9)).toThrow(ValidationError);
+    });
+  });
+
+  describe('validateSafetyFilterLevel', () => {
+    it('should accept valid safety levels', () => {
+      VALID_SAFETY_LEVELS.forEach((level) => {
+        expect(() => validateSafetyFilterLevel(level)).not.toThrow();
+      });
+    });
+
+    it('should accept undefined/null', () => {
+      expect(() => validateSafetyFilterLevel(undefined)).not.toThrow();
+      expect(() => validateSafetyFilterLevel(null)).not.toThrow();
+    });
+
+    it('should reject invalid safety levels', () => {
+      expect(() => validateSafetyFilterLevel('block_all')).toThrow(ValidationError);
+    });
+  });
+
+  describe('validatePersonGeneration', () => {
+    it('should accept valid person generation options', () => {
+      VALID_PERSON_GENERATION.forEach((option) => {
+        expect(() => validatePersonGeneration(option)).not.toThrow();
+      });
+    });
+
+    it('should accept undefined/null', () => {
+      expect(() => validatePersonGeneration(undefined)).not.toThrow();
+      expect(() => validatePersonGeneration(null)).not.toThrow();
+    });
+
+    it('should reject invalid options', () => {
+      expect(() => validatePersonGeneration('allow_kids')).toThrow(ValidationError);
+    });
+  });
+
+  describe('validateString', () => {
+    it('should accept valid strings', () => {
+      expect(() => validateString('hello', 'Name')).not.toThrow();
+      expect(() => validateString('hello', 'Name', { minLength: 3, maxLength: 10 })).not.toThrow();
+    });
+
+    it('should handle required option', () => {
+      expect(() => validateString('', 'Name', { required: false })).not.toThrow();
+      expect(() => validateString(undefined, 'Name', { required: false })).not.toThrow();
+      expect(() => validateString('', 'Name', { required: true })).toThrow(ValidationError);
+      expect(() => validateString(undefined, 'Name', { required: true })).toThrow(ValidationError);
+    });
+
+    it('should validate length constraints', () => {
+      expect(() => validateString('hi', 'Name', { minLength: 3 })).toThrow(ValidationError);
+      expect(() => validateString('hello world', 'Name', { maxLength: 5 })).toThrow(
+        ValidationError
+      );
+    });
+  });
+
+  describe('validateAll', () => {
+    it('should run validation function', () => {
+      expect(() => {
+        validateAll(() => {
+          validateString('hello', 'Name');
+          validateNumber(5, 'Count');
+        });
+      }).not.toThrow();
+    });
+
+    it('should throw on first error', () => {
+      expect(() => {
+        validateAll(() => {
+          validateString('hello', 'Name');
+          validateNumber('invalid', 'Count');
+          validateBoolean(true, 'Flag');
+        });
+      }).toThrow(ValidationError);
     });
   });
 });

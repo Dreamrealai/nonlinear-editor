@@ -127,6 +127,18 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
     };
   }, []);
 
+  // Listen for the custom event from EditorHeader to show keyboard shortcuts
+  useEffect(() => {
+    const handleShowShortcutsEvent = (): void => {
+      setShowShortcutsHelp(true);
+    };
+
+    window.addEventListener('show-shortcuts-help', handleShowShortcutsEvent);
+    return (): void => {
+      window.removeEventListener('show-shortcuts-help', handleShowShortcutsEvent);
+    };
+  }, []);
+
   // Zustand store selectors
   const timeline = useEditorStore((state) => state.timeline);
   const setTimeline = useEditorStore((state) => state.setTimeline);
@@ -767,8 +779,10 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
         lastSaved={lastSaved}
         isSaving={isSaving}
       />
-      <div className="flex h-full gap-3 lg:gap-6 p-3 lg:p-6">
+      <main id="main-content" className="flex h-full gap-3 lg:gap-6 p-3 lg:p-6" role="main">
         <Toaster position="bottom-right" />
+        {/* ARIA live region for toast notifications */}
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only" />
 
         {/* Assets Panel - Desktop Only (Resizable) */}
         <div className="hidden lg:block">
@@ -993,7 +1007,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
 
         {/* User Onboarding Tour */}
         <UserOnboarding />
-      </div>
+      </main>
     </div>
   );
 }

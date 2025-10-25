@@ -86,7 +86,7 @@ describe('GET /api/health', () => {
 
     it('should handle process.uptime() errors', async () => {
       const originalUptime = process.uptime;
-      (process.uptime as any) = () => {
+      (process.uptime as any) = (): never => {
         throw new Error('Uptime unavailable');
       };
 
