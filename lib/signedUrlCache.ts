@@ -8,7 +8,7 @@
  */
 
 import { browserLogger } from './browserLogger';
-import { deduplicatedFetchJSON } from './requestDeduplication';
+import { deduplicatedFetch } from './requestDeduplication';
 
 /**
  * Signed URL cache entry
@@ -103,11 +103,14 @@ class SignedUrlCacheManager {
     if (oldestKey) {
       this.cache.delete(oldestKey);
       if (this.config.enableLogging) {
-        browserLogger.debug({
-          event: 'signed_url_cache.eviction',
-          key: oldestKey,
-          cacheSize: this.cache.size,
-        }, 'Evicted oldest cache entry');
+        browserLogger.debug(
+          {
+            event: 'signed_url_cache.eviction',
+            key: oldestKey,
+            cacheSize: this.cache.size,
+          },
+          'Evicted oldest cache entry'
+        );
       }
     }
   }
@@ -118,13 +121,9 @@ class SignedUrlCacheManager {
    * @param assetId - Asset ID to sign
    * @param storageUrl - Storage URL to sign (alternative to assetId)
    * @param ttl - TTL in seconds (optional, uses default if not provided)
-   * @returns Promise resolving to the signed URL
+   * @returns Promise resolving to the signed URL, or null if asset not found (404)
    */
-  async get(
-    assetId?: string,
-    storageUrl?: string,
-    ttl?: number
-  ): Promise<string> {
+  async get(assetId?: string, storageUrl?: string, ttl?: number): Promise<string | null> {
     const cacheKey = this.getCacheKey(assetId, storageUrl);
     const cached = this.cache.get(cacheKey);
 
@@ -132,22 +131,28 @@ class SignedUrlCacheManager {
     if (cached && this.isValid(cached)) {
       if (this.config.enableLogging) {
         const timeToExpiry = cached.expiresAt - Date.now();
-        browserLogger.debug({
-          event: 'signed_url_cache.hit',
-          key: cacheKey,
-          timeToExpiry,
-        }, `Cache hit (expires in ${Math.round(timeToExpiry / 1000)}s)`);
+        browserLogger.debug(
+          {
+            event: 'signed_url_cache.hit',
+            key: cacheKey,
+            timeToExpiry,
+          },
+          `Cache hit (expires in ${Math.round(timeToExpiry / 1000)}s)`
+        );
       }
       return cached.signedUrl;
     }
 
     // Cache miss or expired - fetch new signed URL
     if (this.config.enableLogging) {
-      browserLogger.debug({
-        event: 'signed_url_cache.miss',
-        key: cacheKey,
-        reason: cached ? 'expired' : 'not_found',
-      }, 'Cache miss - fetching new signed URL');
+      browserLogger.debug(
+        {
+          event: 'signed_url_cache.miss',
+          key: cacheKey,
+          reason: cached ? 'expired' : 'not_found',
+        },
+        'Cache miss - fetching new signed URL'
+      );
     }
 
     return this.fetch(assetId, storageUrl, ttl);
@@ -159,13 +164,9 @@ class SignedUrlCacheManager {
    * @param assetId - Asset ID to sign
    * @param storageUrl - Storage URL to sign
    * @param ttl - TTL in seconds
-   * @returns Promise resolving to the signed URL
+   * @returns Promise resolving to the signed URL, or null if asset not found (404)
    */
-  private async fetch(
-    assetId?: string,
-    storageUrl?: string,
-    ttl?: number
-  ): Promise<string> {
+  private async fetch(assetId?: string, storageUrl?: string, ttl?: number): Promise<string | null> {
     const cacheKey = this.getCacheKey(assetId, storageUrl);
     const effectiveTTL = ttl ?? this.config.defaultTTL;
 
@@ -177,7 +178,7 @@ class SignedUrlCacheManager {
 
     try {
       // Use request deduplication to prevent duplicate sign requests
-      const response = await deduplicatedFetchJSON<SignedUrlResponse>(
+      const fetchResponse = await deduplicatedFetch(
         `/api/assets/sign?${params.toString()}`,
         undefined,
         {
@@ -186,13 +187,41 @@ class SignedUrlCacheManager {
         }
       );
 
+      // Handle non-OK responses gracefully
+      if (!fetchResponse.ok) {
+        const errorData = await fetchResponse.json().catch(() => ({ error: 'Unknown error' }));
+
+        // 404 is expected for deleted assets - log as warning, not error
+        if (fetchResponse.status === 404) {
+          browserLogger.warn(
+            {
+              event: 'signed_url_cache.asset_not_found',
+              key: cacheKey,
+              assetId,
+              status: 404,
+            },
+            'Asset not found - may have been deleted'
+          );
+
+          // Return null to indicate asset doesn't exist
+          return null;
+        }
+
+        // For other errors, throw
+        throw new Error(
+          `Failed to sign URL (${fetchResponse.status}): ${errorData.error || 'Unknown error'}`
+        );
+      }
+
+      const response = (await fetchResponse.json()) as SignedUrlResponse;
+
       if (!response.signedUrl) {
         throw new Error('Invalid response: missing signedUrl');
       }
 
       const now = Date.now();
       const expiresIn = response.expiresIn ?? effectiveTTL;
-      const expiresAt = now + (expiresIn * 1000);
+      const expiresAt = now + expiresIn * 1000;
 
       // Store in cache
       const entry: CacheEntry = {
@@ -206,21 +235,27 @@ class SignedUrlCacheManager {
       this.enforceCacheLimit();
 
       if (this.config.enableLogging) {
-        browserLogger.debug({
-          event: 'signed_url_cache.stored',
-          key: cacheKey,
-          ttl: expiresIn,
-          cacheSize: this.cache.size,
-        }, `Stored signed URL (TTL: ${expiresIn}s)`);
+        browserLogger.debug(
+          {
+            event: 'signed_url_cache.stored',
+            key: cacheKey,
+            ttl: expiresIn,
+            cacheSize: this.cache.size,
+          },
+          `Stored signed URL (TTL: ${expiresIn}s)`
+        );
       }
 
       return response.signedUrl;
     } catch (error) {
-      browserLogger.error({
-        event: 'signed_url_cache.error',
-        key: cacheKey,
-        error,
-      }, 'Failed to fetch signed URL');
+      browserLogger.error(
+        {
+          event: 'signed_url_cache.error',
+          key: cacheKey,
+          error,
+        },
+        'Failed to fetch signed URL'
+      );
       throw error;
     }
   }
@@ -237,10 +272,13 @@ class SignedUrlCacheManager {
     const deleted = this.cache.delete(cacheKey);
 
     if (deleted && this.config.enableLogging) {
-      browserLogger.debug({
-        event: 'signed_url_cache.invalidated',
-        key: cacheKey,
-      }, 'Cache entry invalidated');
+      browserLogger.debug(
+        {
+          event: 'signed_url_cache.invalidated',
+          key: cacheKey,
+        },
+        'Cache entry invalidated'
+      );
     }
 
     return deleted;
@@ -262,11 +300,14 @@ class SignedUrlCacheManager {
     });
 
     if (count > 0 && this.config.enableLogging) {
-      browserLogger.debug({
-        event: 'signed_url_cache.bulk_invalidated',
-        count,
-        pattern: pattern.source,
-      }, `Invalidated ${count} cache entries`);
+      browserLogger.debug(
+        {
+          event: 'signed_url_cache.bulk_invalidated',
+          count,
+          pattern: pattern.source,
+        },
+        `Invalidated ${count} cache entries`
+      );
     }
 
     return count;
@@ -280,10 +321,13 @@ class SignedUrlCacheManager {
     this.cache.clear();
 
     if (this.config.enableLogging) {
-      browserLogger.debug({
-        event: 'signed_url_cache.cleared',
-        count,
-      }, `Cleared ${count} cache entries`);
+      browserLogger.debug(
+        {
+          event: 'signed_url_cache.cleared',
+          count,
+        },
+        `Cleared ${count} cache entries`
+      );
     }
   }
 
@@ -304,11 +348,14 @@ class SignedUrlCacheManager {
     });
 
     if (count > 0 && this.config.enableLogging) {
-      browserLogger.debug({
-        event: 'signed_url_cache.pruned',
-        count,
-        remainingSize: this.cache.size,
-      }, `Pruned ${count} expired entries`);
+      browserLogger.debug(
+        {
+          event: 'signed_url_cache.pruned',
+          count,
+          remainingSize: this.cache.size,
+        },
+        `Pruned ${count} expired entries`
+      );
     }
 
     return count;
@@ -362,23 +409,29 @@ class SignedUrlCacheManager {
     ttl?: number
   ): Promise<void> {
     if (this.config.enableLogging) {
-      browserLogger.debug({
-        event: 'signed_url_cache.prefetch_started',
-        count: assets.length,
-      }, `Prefetching ${assets.length} signed URLs`);
+      browserLogger.debug(
+        {
+          event: 'signed_url_cache.prefetch_started',
+          count: assets.length,
+        },
+        `Prefetching ${assets.length} signed URLs`
+      );
     }
 
     await Promise.allSettled(
-      assets.map(({ assetId, storageUrl }): Promise<string> =>
-        this.get(assetId, storageUrl, ttl)
+      assets.map(
+        ({ assetId, storageUrl }): Promise<string | null> => this.get(assetId, storageUrl, ttl)
       )
     );
 
     if (this.config.enableLogging) {
-      browserLogger.debug({
-        event: 'signed_url_cache.prefetch_completed',
-        cacheSize: this.cache.size,
-      }, 'Prefetch completed');
+      browserLogger.debug(
+        {
+          event: 'signed_url_cache.prefetch_completed',
+          cacheSize: this.cache.size,
+        },
+        'Prefetch completed'
+      );
     }
   }
 }

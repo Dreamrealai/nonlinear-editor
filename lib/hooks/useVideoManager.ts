@@ -120,6 +120,20 @@ export function useVideoManager({
       const storageTarget = clip.filePath.startsWith('supabase://') ? clip.filePath : undefined;
 
       const signedUrl = await signedUrlCache.get(clip.assetId, storageTarget, ttlSeconds);
+
+      // Handle deleted/missing assets
+      if (!signedUrl) {
+        browserLogger.warn(
+          {
+            clipId: clip.id,
+            assetId: clip.assetId,
+            filePath: clip.filePath,
+          },
+          'Asset not found (404) - clip may reference a deleted asset'
+        );
+        throw new Error('Asset not found - the referenced asset may have been deleted');
+      }
+
       return signedUrl;
     } catch (error) {
       const errorMessage = `Failed to locate clip source for ${clip.id}`;

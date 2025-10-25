@@ -111,11 +111,21 @@ export function useVideoGenerationQueue(projectId: string): UseVideoGenerationQu
 
               if (!playbackUrl && storageUrl) {
                 try {
-                  playbackUrl = await signedUrlCache.get(
+                  const signedUrl = await signedUrlCache.get(
                     assetId,
                     storageUrl,
                     SIGNED_URL_TTL_DEFAULT
                   );
+
+                  // Handle 404 (asset not found) gracefully
+                  if (signedUrl) {
+                    playbackUrl = signedUrl;
+                  } else {
+                    browserLogger.warn(
+                      { assetId, storageUrl, videoId, operationName },
+                      'Asset not found (404) - video may have been deleted'
+                    );
+                  }
                 } catch (error) {
                   browserLogger.error(
                     { error, assetId, storageUrl, videoId, operationName },

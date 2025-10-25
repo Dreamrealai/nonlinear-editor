@@ -108,7 +108,22 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
         if (isSupabasePublicAssetUrl(fetchUrl)) {
           try {
             // Get signed URL for Supabase storage
-            fetchUrl = await signedUrlCache.get(clip.assetId, fetchUrl);
+            const signedUrl = await signedUrlCache.get(clip.assetId, fetchUrl);
+
+            // If asset not found (404), skip this audio clip
+            if (!signedUrl) {
+              browserLogger.warn(
+                {
+                  clipId: clip.id,
+                  assetId: clip.assetId,
+                  previewUrl: clip.previewUrl,
+                },
+                'Asset not found - skipping audio waveform (asset may have been deleted)'
+              );
+              return; // Skip this audio clip
+            }
+
+            fetchUrl = signedUrl;
           } catch (signError) {
             browserLogger.error(
               {
