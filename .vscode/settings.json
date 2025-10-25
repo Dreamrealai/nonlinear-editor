@@ -42,5 +42,5 @@
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "claudeCode.useTerminal": false
+  "claudeCode.useTerminal": true
 }
