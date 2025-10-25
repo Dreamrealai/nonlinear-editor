@@ -35,7 +35,7 @@ const mockExec = jest.fn();
 const mockExecAsync = jest.fn();
 
 jest.mock('util', () => ({
-  promisify: (fn: any) => {
+  promisify: (fn: any): any => {
     if (fn.name === 'exec') {
       return mockExecAsync;
     }
@@ -66,7 +66,7 @@ describe('ThumbnailService', () => {
   let service: ThumbnailService;
   let testImageBuffer: Buffer;
 
-  beforeEach(async () => {
+  beforeEach(async (): Promise<void> => {
     jest.clearAllMocks();
     service = new ThumbnailService();
 
