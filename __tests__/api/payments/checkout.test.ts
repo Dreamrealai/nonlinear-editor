@@ -1,43 +1,24 @@
 /**
  * Integration Tests for POST /api/stripe/checkout
  *
- * This follows the integration testing approach:
+ * This follows the new integration testing approach:
  * - Tests the ACTUAL route handler (not mocked)
  * - Uses real NextRequest/NextResponse
  * - Only mocks external services (Stripe, logger)
- * - Uses test utilities for authentication
+ * - Uses test utilities for authentication (no withAuth mocking)
+ * - Uses real service layer execution
  */
 
-import { NextRequest } from 'next/server';
-import { createTestUser, createTestSupabaseClient } from '@/test-utils/testWithAuth';
+import {
+  createTestUser,
+  createTestSupabaseClient,
+  createAuthenticatedRequest,
+  createUnauthenticatedRequest,
+  createTestAuthHandler,
+  getTestDatabase,
+} from '@/test-utils/testWithAuth';
 
-// Mock withAuth middleware to use test authentication
-jest.mock('@/lib/api/withAuth', () => {
-  const actual = jest.requireActual('@/lib/api/withAuth');
-  return {
-    ...actual,
-     
-    withAuth: jest.fn((handler: any, options: any) => {
-       
-      return async (req: NextRequest, context: any) => {
-         
-        const testUser = (req as any).__testUser;
-        if (!testUser) {
-          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-            status: 401,
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-
-         
-        const supabase = require('@/test-utils/testWithAuth').createTestSupabaseClient(testUser.id);
-        return handler(req, { user: testUser, supabase }, context);
-      };
-    }),
-  };
-});
-
-// Import the actual handler (after mocking withAuth)
+// Import the actual handler
 import { POST } from '@/app/api/stripe/checkout/route';
 
 // Mock external services only
@@ -84,12 +65,14 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
 
   describe('Authentication', () => {
     it('should return 401 when user is not authenticated', async () => {
-      const request = new NextRequest('http://localhost/api/stripe/checkout', {
+      const request = createUnauthenticatedRequest({
         method: 'POST',
-        body: JSON.stringify({}),
+        url: '/api/stripe/checkout',
+        body: {},
       });
 
-      const response = await POST(request, { params: Promise.resolve({}) });
+      const handler = createTestAuthHandler(POST);
+      const response = await handler(request, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(401);
       const data = await response.json();

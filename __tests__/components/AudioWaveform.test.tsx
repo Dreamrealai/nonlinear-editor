@@ -4,11 +4,16 @@ import '@testing-library/jest-dom';
 import { AudioWaveform } from '@/components/AudioWaveform';
 import type { Clip } from '@/types/timeline';
 
-// Mock browserLogger
+// Mock browserLogger - completely suppress error logging in tests
+const mockBrowserLogger = {
+  error: jest.fn(),
+  warn: jest.fn(),
+  info: jest.fn(),
+  debug: jest.fn(),
+};
+
 jest.mock('@/lib/browserLogger', () => ({
-  browserLogger: {
-    error: jest.fn(),
-  },
+  browserLogger: mockBrowserLogger,
 }));
 
 // Mock Worker that appears to exist but will throw when constructed
@@ -103,16 +108,11 @@ describe('AudioWaveform', () => {
   beforeEach((): void => {
     testCounter++; // Increment counter to ensure unique cache keys per test
 
-    // Suppress expected Worker error logs during tests
-    const { browserLogger } = require('@/lib/browserLogger');
-    browserLogger.error.mockClear();
-    browserLogger.error.mockImplementation((error: any, message: string) => {
-      // Suppress Worker creation errors as they are expected in tests
-      if (message?.includes('Failed to create waveform worker')) {
-        return;
-      }
-      // Allow other errors to be tracked for test assertions
-    });
+    // Clear all mock calls from browserLogger
+    mockBrowserLogger.error.mockClear();
+    mockBrowserLogger.warn.mockClear();
+    mockBrowserLogger.info.mockClear();
+    mockBrowserLogger.debug.mockClear();
 
     // Reset AudioContext constructor mock
     mockAudioContextConstructor.mockClear();

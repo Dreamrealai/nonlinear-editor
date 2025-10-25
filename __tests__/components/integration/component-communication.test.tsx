@@ -397,15 +397,14 @@ describe('Integration: Component Communication Patterns', () => {
       });
     });
 
-    it.skip('should handle multiple store subscriptions correctly', async () => {
-      // TODO: usePlaybackStore doesn't have isPlaying/togglePlay - API mismatch
+    it('should handle multiple store subscriptions correctly', async () => {
       const user = userEvent.setup();
 
       const Component = () => {
         const editorTime = useEditorStore((state) => state.currentTime);
-        const playbackState = usePlaybackStore((state) => (state as any).isPlaying);
+        const playbackState = usePlaybackStore((state) => state.isPlaying);
         const setEditorTime = useEditorStore((state) => state.setCurrentTime);
-        const togglePlayback = usePlaybackStore((state) => (state as any).togglePlay);
+        const togglePlayback = usePlaybackStore((state) => state.togglePlayPause);
 
         return (
           <div>

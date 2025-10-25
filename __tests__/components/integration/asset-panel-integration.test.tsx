@@ -128,11 +128,13 @@ describe('Integration: Asset Panel Component', () => {
       expect(screen.getByRole('tab', { name: /image/i })).toBeInTheDocument();
     });
 
-    it('should highlight the active tab', () => {
+    it('should highlight the active tab', async () => {
       render(<AssetPanel {...defaultProps} activeTab="video" />);
 
-      const videoTab = screen.getByRole('tab', { name: /video/i });
-      expect(videoTab).toHaveClass('border-blue-500');
+      await waitFor(() => {
+        const videoTab = screen.getByRole('tab', { name: /video/i });
+        expect(videoTab).toHaveClass('border-blue-500');
+      });
     });
 
     it('should switch tabs when user clicks on different tab', async () => {
@@ -148,7 +150,7 @@ describe('Integration: Asset Panel Component', () => {
       expect(onTabChange).toHaveBeenCalledWith('audio');
     });
 
-    it('should show correct asset count in tab labels', () => {
+    it('should show correct asset count in tab labels', async () => {
       render(
         <AssetPanel
           {...defaultProps}
@@ -157,8 +159,11 @@ describe('Integration: Asset Panel Component', () => {
         />
       );
 
-      // Tabs should show counts
-      expect(screen.getByText(/video/i)).toBeInTheDocument();
+      // Tabs should show counts - wait for render
+      await waitFor(() => {
+        const videoElements = screen.getAllByText(/video/i);
+        expect(videoElements.length).toBeGreaterThan(0);
+      });
     });
   });
 
