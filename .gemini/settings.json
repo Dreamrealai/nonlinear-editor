@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "firecrawl": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "firecrawl-mcp"
+      ],
+      "env": {
+        "FIRECRAWL_API_KEY": "fc-9b91f3ecdb6746d0bf7041e72088288f"
+      }
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "chrome-devtools-mcp@latest"
+      ]
+    },
+    "axiom": {
+      "command": "axiom-mcp",
+      "args": [
+        "-config",
+        "/Users/davidchen/.config/axiom/mcp-config.txt"
+      ]
+    }
+  }
+}

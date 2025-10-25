@@ -4,7 +4,30 @@
  * Validates caching, invalidation, and prefetching of signed URLs
  */
 
-import { SignedUrlCacheManager, signedUrlCache } from '@/lib/signedUrlCache';
+// Mock requestDeduplication BEFORE importing signedUrlCache
+jest.mock('@/lib/requestDeduplication', () => {
+  const defaultImplementation = async (url: string, options?: RequestInit): Promise<Response> => {
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  };
+
+  return {
+    deduplicatedFetch: jest.fn(defaultImplementation),
+    deduplicatedFetchJSON: jest.fn(async <T = unknown>(url: string, options?: RequestInit): Promise<T> => {
+      const response = await defaultImplementation(url, options);
+      return response.json() as Promise<T>;
+    }),
+    cancelRequestsMatching: jest.fn((pattern: RegExp): number => 0),
+    cancelAllRequests: jest.fn((): number => 0),
+    getRequestStats: jest.fn(() => ({
+      inFlightCount: 0,
+      totalDuplicatesAvoided: 0,
+    })),
+    clearRequestTracking: jest.fn((): void => {}),
+  };
+});
 
 // Mock browserLogger
 jest.mock(
@@ -17,9 +40,7 @@ jest.mock(
   })
 );
 
-// Mock requestDeduplication - uses __mocks__/lib/requestDeduplication.ts
-jest.mock('@/lib/requestDeduplication');
-
+import { SignedUrlCacheManager, signedUrlCache } from '@/lib/signedUrlCache';
 import { deduplicatedFetch } from '@/lib/requestDeduplication';
 
 const mockDeduplicatedFetch = deduplicatedFetch as jest.MockedFunction<typeof deduplicatedFetch>;
