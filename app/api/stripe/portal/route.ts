@@ -7,13 +7,9 @@ import { createBillingPortalSession } from '@/lib/stripe';
 import { serverLogger } from '@/lib/serverLogger';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { withAuth, type AuthContext } from '@/lib/api/withAuth';
-import {
-  errorResponse,
-  successResponse,
-  validationError,
-} from '@/lib/api/response';
+import { errorResponse, successResponse, validationError } from '@/lib/api/response';
 
-async function handlePortalPost(request: NextRequest, context: AuthContext) {
+async function handlePortalPost(request: NextRequest, context: AuthContext): Promise<Response> {
   const { user, supabase } = context;
   const startTime = Date.now();
 

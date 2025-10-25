@@ -23,8 +23,8 @@ export default function AudioGenPage(): React.JSX.Element {
   const isMountedRef = useRef(true);
 
   // Cleanup on unmount
-  useEffect(() => {
-    return () => {
+  useEffect((): (() => void) => {
+    return (): void => {
       isMountedRef.current = false;
       if (pollingTimeoutRef.current) {
         clearTimeout(pollingTimeoutRef.current);
@@ -39,7 +39,7 @@ export default function AudioGenPage(): React.JSX.Element {
     title?: string;
     customMode?: boolean;
     instrumental?: boolean;
-  }) => {
+  }): Promise<void> => {
     if (!projectId) {
       toast.error('No project selected');
       return;
@@ -171,7 +171,7 @@ export default function AudioGenPage(): React.JSX.Element {
     text: string;
     voiceId?: string;
     modelId?: string;
-  }) => {
+  }): Promise<void> => {
     if (!projectId) {
       toast.error('No project selected');
       return;

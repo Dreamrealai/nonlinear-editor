@@ -49,7 +49,7 @@ import { withAuth, type AuthContext } from '@/lib/api/withAuth';
  *   "updated_at": "2025-10-23T12:00:00.000Z"
  * }
  */
-async function handleProjectCreate(request: NextRequest, context: AuthContext) {
+async function handleProjectCreate(request: NextRequest, context: AuthContext): Promise<Response> {
   const { user, supabase } = context;
   const startTime = Date.now();
 
