@@ -34,6 +34,7 @@ type PlaybackStore = {
   play: () => void;
   pause: () => void;
   togglePlayPause: () => void;
+  reset: () => void;
 };
 
 export const usePlaybackStore = create<PlaybackStore>()((set): { currentTime: number; zoom: 50; isPlaying: false; setCurrentTime: (time: number) => void; setZoom: (zoom: number) => void; setIsPlaying: (playing: boolean) => void; play: () => void; pause: () => void; togglePlayPause: () => void; } => ({
@@ -61,4 +62,11 @@ export const usePlaybackStore = create<PlaybackStore>()((set): { currentTime: nu
   pause: (): void => set((): { isPlaying: false; } => ({ isPlaying: false })),
 
   togglePlayPause: (): void => set((state): { isPlaying: boolean; } => ({ isPlaying: !state.isPlaying })),
+
+  reset: (): void =>
+    set((): { currentTime: number; zoom: number; isPlaying: boolean; } => ({
+      currentTime: 0,
+      zoom: DEFAULT_ZOOM,
+      isPlaying: false,
+    })),
 }));

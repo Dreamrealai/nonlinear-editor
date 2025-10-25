@@ -33,9 +33,36 @@ jest.mock('next/image', () => ({
 
 // Create a wrapper component to test integration
 const PlaybackIntegrationWrapper = () => {
+  const isPlaying = usePlaybackStore((state) => state.isPlaying);
+  const currentTime = usePlaybackStore((state) => state.currentTime);
+  const timeline = useEditorStore((state) => state.timeline);
+  const hasClips = timeline !== null && timeline.clips.length > 0;
+  const totalDuration = timeline?.duration || 0;
+
+  const handlePlayPause = () => {
+    usePlaybackStore.getState().togglePlayPause();
+  };
+
+  const handleSeek = (time: number) => {
+    usePlaybackStore.getState().setCurrentTime(time);
+  };
+
+  const handleToggleFullscreen = () => {
+    // Mock fullscreen toggle
+  };
+
   return (
     <div>
-      <PlaybackControls />
+      <PlaybackControls
+        isPlaying={isPlaying}
+        currentTime={currentTime}
+        totalDuration={totalDuration}
+        isFullscreen={false}
+        hasClips={hasClips}
+        onPlayPause={handlePlayPause}
+        onSeek={handleSeek}
+        onToggleFullscreen={handleToggleFullscreen}
+      />
       <TimelineControls
         onUndo={jest.fn()}
         onRedo={jest.fn()}
@@ -61,8 +88,8 @@ describe('Integration: Timeline and Playback Controls', () => {
     it('should render both playback and timeline controls', () => {
       render(<PlaybackIntegrationWrapper />);
 
-      // Playback controls
-      expect(screen.getByRole('button', { name: /play/i })).toBeInTheDocument();
+      // Playback controls - use exact match for "Play video" to avoid ambiguity
+      expect(screen.getByRole('button', { name: 'Play video' })).toBeInTheDocument();
 
       // Timeline controls
       expect(screen.getByRole('button', { name: /zoom in/i })).toBeInTheDocument();
@@ -72,7 +99,7 @@ describe('Integration: Timeline and Playback Controls', () => {
       const user = userEvent.setup();
       render(<PlaybackIntegrationWrapper />);
 
-      const playButton = screen.getByRole('button', { name: /play/i });
+      const playButton = screen.getByRole('button', { name: 'Play video' });
       expect(playButton).toBeInTheDocument();
 
       // Click play
@@ -80,16 +107,16 @@ describe('Integration: Timeline and Playback Controls', () => {
 
       // Button should change to pause
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /pause/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Pause video' })).toBeInTheDocument();
       });
 
       // Click pause
-      const pauseButton = screen.getByRole('button', { name: /pause/i });
+      const pauseButton = screen.getByRole('button', { name: 'Pause video' });
       await user.click(pauseButton);
 
       // Button should change back to play
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /play/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Play video' })).toBeInTheDocument();
       });
     });
 
@@ -98,14 +125,14 @@ describe('Integration: Timeline and Playback Controls', () => {
       render(<PlaybackIntegrationWrapper />);
 
       // Initially should show play button
-      expect(screen.getByRole('button', { name: /play/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Play video' })).toBeInTheDocument();
 
       // Press spacebar
       await user.keyboard(' ');
 
       // Should toggle to playing state
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /pause/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Pause video' })).toBeInTheDocument();
       });
 
       // Press spacebar again
@@ -113,7 +140,7 @@ describe('Integration: Timeline and Playback Controls', () => {
 
       // Should toggle back to paused
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /play/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Play video' })).toBeInTheDocument();
       });
     });
   });
@@ -177,7 +204,7 @@ describe('Integration: Timeline and Playback Controls', () => {
       render(<PlaybackIntegrationWrapper />);
 
       // Start playback
-      const playButton = screen.getByRole('button', { name: /play/i });
+      const playButton = screen.getByRole('button', { name: 'Play video' });
       await user.click(playButton);
 
       const initialTime = useEditorStore.getState().currentTime;
@@ -197,14 +224,14 @@ describe('Integration: Timeline and Playback Controls', () => {
       render(<PlaybackIntegrationWrapper />);
 
       // Start playback
-      const playButton = screen.getByRole('button', { name: /play/i });
+      const playButton = screen.getByRole('button', { name: 'Play video' });
       await user.click(playButton);
 
       // Wait a bit
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Pause
-      const pauseButton = screen.getByRole('button', { name: /pause/i });
+      const pauseButton = screen.getByRole('button', { name: 'Pause video' });
       await user.click(pauseButton);
 
       const timeWhenPaused = useEditorStore.getState().currentTime;
@@ -405,7 +432,7 @@ describe('Integration: Timeline and Playback Controls', () => {
       render(<PlaybackIntegrationWrapper />);
 
       // Start playback
-      const playButton = screen.getByRole('button', { name: /play/i });
+      const playButton = screen.getByRole('button', { name: 'Play video' });
       await user.click(playButton);
 
       // Wait for loop to occur
@@ -424,7 +451,7 @@ describe('Integration: Timeline and Playback Controls', () => {
     it('should have proper ARIA labels for all buttons', () => {
       render(<PlaybackIntegrationWrapper />);
 
-      expect(screen.getByRole('button', { name: /play/i })).toHaveAttribute('aria-label');
+      expect(screen.getByRole('button', { name: 'Play video' })).toHaveAttribute('aria-label');
       expect(screen.getByRole('button', { name: /skip backward/i })).toHaveAttribute('aria-label');
       expect(screen.getByRole('button', { name: /skip forward/i })).toHaveAttribute('aria-label');
       expect(screen.getByRole('button', { name: /zoom in/i })).toHaveAttribute('aria-label');
@@ -435,12 +462,12 @@ describe('Integration: Timeline and Playback Controls', () => {
       const user = userEvent.setup();
       render(<PlaybackIntegrationWrapper />);
 
-      const playButton = screen.getByRole('button', { name: /play/i });
+      const playButton = screen.getByRole('button', { name: 'Play video' });
       await user.click(playButton);
 
       // Button label should update
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /pause/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Pause video' })).toBeInTheDocument();
       });
     });
 
@@ -474,7 +501,7 @@ describe('Integration: Timeline and Playback Controls', () => {
       const initialRenderCount = renderCount.current;
 
       // Start playback
-      const playButton = screen.getByRole('button', { name: /play/i });
+      const playButton = screen.getByRole('button', { name: 'Play video' });
       await user.click(playButton);
 
       // Wait a bit
@@ -494,7 +521,7 @@ describe('Integration: Timeline and Playback Controls', () => {
       render(<PlaybackIntegrationWrapper />);
 
       // Controls should still render
-      expect(screen.getByRole('button', { name: /play/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Play video' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /zoom in/i })).toBeInTheDocument();
     });
 
@@ -503,11 +530,11 @@ describe('Integration: Timeline and Playback Controls', () => {
       render(<PlaybackIntegrationWrapper />);
 
       // Try to play empty timeline
-      const playButton = screen.getByRole('button', { name: /play/i });
+      const playButton = screen.getByRole('button', { name: 'Play video' });
       await user.click(playButton);
 
       // Should not crash
-      expect(screen.getByRole('button', { name: /pause/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Pause video' })).toBeInTheDocument();
     });
   });
 });

@@ -160,6 +160,8 @@ type EditorStoreCore = {
   canUndo: () => boolean;
   /** Check if redo is available */
   canRedo: () => boolean;
+  /** Reset store to initial state (for testing) */
+  reset: () => void;
 };
 
 /**
@@ -355,6 +357,15 @@ export const useEditorStore = create<EditorStore>()(
       const state = get();
       return state.historyIndex < state.history.length - 1;
     },
+
+    reset: (): void =>
+      set((state): void => {
+        state.timeline = null;
+        state.selectedClipIds = new Set<string>();
+        state.copiedClips = [];
+        state.history = [];
+        state.historyIndex = -1;
+      }),
 
     // ===== Slices =====
     ...createClipsSlice(set, get, {} as any),
