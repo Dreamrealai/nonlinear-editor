@@ -294,23 +294,114 @@ npm run test:perf 3000
 
 ### Issue #83: Legacy Test Utilities Should Be Deprecated
 
-**Status:** Open
-**Priority:** P3 (Low - Technical debt)
-**Impact:** Maintenance burden, confusion
+**Status:** ✅ Analysis Complete - Ready for Immediate Deprecation (Agent 10)
+**Priority:** P3 (Low - Technical debt, but safe to deprecate)
+**Impact:** Maintenance burden reduced, zero migration effort needed
 **Location:** `/test-utils/legacy-helpers/`
 **Reported:** 2025-10-24
+**Updated:** 2025-10-24 (Agent 10 deprecation analysis)
 
 **Description:**
-Legacy helpers remain in use alongside modern utilities, causing duplication and confusion.
+Legacy helpers exist alongside modern utilities but are **NOT ACTIVELY USED** by any tests.
 
-**Recommendation:**
+**Agent 10 Analysis Results:**
 
-1. New tests use modern utilities (immediate)
-2. Migrate tests as they're modified (gradual)
-3. Deprecate legacy after 3-6 months
-4. Remove legacy after full migration
+**Usage Statistics:**
 
-**Estimated Effort:** 20-30 hours over 3-6 months
+- Legacy helper files: 5 files, 2,490 lines of code
+- Tests using legacy helpers: **0 out of 209 test files**
+- All legacy helpers already marked with `@deprecated` JSDoc tags
+- Modern utilities fully functional and complete
+
+**Modern Replacements Available:**
+
+1. `/test-utils/mockSupabase.ts` → Full Supabase mocking (460 lines)
+2. `/test-utils/render.tsx` → Component rendering with providers (217 lines)
+3. `/test-utils/testHelpers.ts` → General helpers (319 lines)
+4. `/test-utils/mockFetch.ts` → Fetch mocking
+5. `/test-utils/mockApiResponse.ts` → API response helpers
+6. `/test-utils/testWithAuth.ts` → Auth test wrapper
+
+**Current Test Import Patterns:**
+
+- ✅ Tests import from `@/test-utils/mockSupabase`
+- ✅ Tests import from `@/test-utils/testWithAuth`
+- ✅ Tests use `@testing-library/react` directly
+- ❌ **ZERO imports from `@/test-utils/legacy-helpers`**
+
+**Recommendation - IMMEDIATE DEPRECATION:**
+
+**Phase 1: Immediate (0 effort)**
+
+- ✅ Already deprecated with JSDoc warnings
+- ✅ Zero tests to migrate (none using legacy)
+- Action: Add runtime deprecation warnings
+
+**Phase 2: Next Sprint (1 hour)**
+
+- Mark directory as deprecated in README
+- Add console warnings if legacy helpers are imported
+- Update test documentation to reference modern utilities only
+
+**Phase 3: 1-2 Months (1 hour)**
+
+- Remove `/test-utils/legacy-helpers/` directory entirely
+- Clean up exports from `/test-utils/index.ts`
+- Remove 2,490 lines of dead code
+
+**Migration Guide (For Future Reference):**
+
+```typescript
+// OLD (legacy-helpers/api.ts):
+import { createAuthenticatedRequest } from '@/test-utils/legacy-helpers/api';
+const request = createAuthenticatedRequest('user-123', { method: 'POST' });
+
+// NEW (testWithAuth.ts):
+import { createTestSupabaseClient } from '@/test-utils/testWithAuth';
+const request = new NextRequest('http://localhost:3000/api/test', { method: 'POST' });
+
+// OLD (legacy-helpers/components.tsx):
+import { renderWithProviders } from '@/test-utils/legacy-helpers/components';
+const { getByText } = renderWithProviders(<MyComponent />);
+
+// NEW (render.tsx):
+import { render, screen } from '@/test-utils';
+render(<MyComponent />);
+const element = screen.getByText('Hello');
+
+// OLD (legacy-helpers/supabase.ts):
+import { createMockSupabaseClient } from '@/test-utils/legacy-helpers/supabase';
+
+// NEW (mockSupabase.ts):
+import { createMockSupabaseClient } from '@/test-utils';
+// Same API, better implementation
+
+// OLD (legacy-helpers/mocks.ts):
+import { mockFetch, createMockFile } from '@/test-utils/legacy-helpers/mocks';
+
+// NEW (mockFetch.ts, testHelpers.ts):
+import { mockFetch, createMockFile } from '@/test-utils';
+```
+
+**Benefits of Removal:**
+
+- Remove 2,490 lines of unused code
+- Eliminate maintenance burden
+- Reduce confusion (single source of truth)
+- Faster test suite (no legacy code to load)
+
+**Risk Assessment:** ✅ **ZERO RISK**
+
+- No tests use legacy helpers
+- All functionality exists in modern utilities
+- Already marked deprecated
+- Can be removed immediately without breaking changes
+
+**Estimated Effort:** 2 hours total
+
+- Phase 1: Already complete (0 hours)
+- Phase 2: 1 hour (add warnings)
+- Phase 3: 1 hour (delete files)
 
 ---
 
