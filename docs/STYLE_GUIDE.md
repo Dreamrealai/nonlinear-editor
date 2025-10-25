@@ -2,7 +2,7 @@
 
 > **Comprehensive code style and formatting conventions for consistent, maintainable code.**
 
-**Last Updated:** October 23, 2025
+**Last Updated:** October 24, 2025 (Updated with test writing best practices by Agent 30)
 
 ---
 
@@ -834,6 +834,305 @@ export function Button() {
 ```
 
 ---
+
+## Test Writing Style
+
+### Test File Naming
+
+**Match source file with `.test` suffix:**
+
+```
+// Source files
+lib/services/projectService.ts
+components/ui/Button.tsx
+app/api/projects/route.ts
+
+// Test files
+__tests__/services/projectService.test.ts
+__tests__/components/ui/Button.test.tsx
+__tests__/api/projects/route.test.ts
+```
+
+### Test Structure
+
+**Follow AAA Pattern** (Arrange-Act-Assert):
+
+```typescript
+// ✅ Good - Clear AAA structure
+test('creates project with valid data', async () => {
+  // Arrange - Set up test data and mocks
+  const mockSupabase = createMockSupabaseClient();
+  const user = mockAuthenticatedUser(mockSupabase);
+  mockSupabase.mockResolvedValue({ data: project, error: null });
+
+  // Act - Perform the action
+  const result = await createProject(user.id, { title: 'Test' });
+
+  // Assert - Verify the outcome
+  expect(result).toBeDefined();
+  expect(result.title).toBe('Test');
+  expect(mockSupabase.from).toHaveBeenCalledWith('projects');
+});
+
+// ❌ Bad - No clear structure
+test('test1', async () => {
+  const mockSupabase = createMockSupabaseClient();
+  mockAuthenticatedUser(mockSupabase);
+  const result = await createProject('user-123', { title: 'Test' });
+  mockSupabase.mockResolvedValue({ data: {}, error: null });
+  expect(result).toBeDefined();
+});
+```
+
+### Test Naming
+
+**Use descriptive names that explain the behavior:**
+
+```typescript
+// ✅ Good - Descriptive test names
+test('returns 401 when user is not authenticated');
+test('creates project with valid title and user ID');
+test('shows error message when API call fails');
+test('disables submit button while loading');
+test('updates timeline state when clip is added');
+
+// ❌ Bad - Unclear test names
+test('test1');
+test('works');
+test('check button');
+test('api test');
+test('should test the function');
+```
+
+**Naming Convention:**
+
+- Start with what the test does: "returns", "creates", "shows", "validates"
+- Include the condition: "when user is authenticated", "with valid data"
+- Be specific: "shows error message" not "handles errors"
+
+### Mock Setup
+
+**Always reset mocks between tests:**
+
+```typescript
+// ✅ Good - Clean slate for each test
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockSupabase = createMockSupabaseClient();
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
+});
+
+// ❌ Bad - Mocks carry over between tests
+describe('MyTests', () => {
+  const mockSupabase = createMockSupabaseClient(); // Set once, never reset
+
+  test('test 1', () => {
+    /* ... */
+  });
+  test('test 2', () => {
+    /* ... */
+  }); // May be affected by test 1
+});
+```
+
+### Async Testing
+
+**Always await async operations:**
+
+```typescript
+// ✅ Good - Proper async handling
+test('loads data asynchronously', async () => {
+  render(<MyComponent />);
+
+  await waitFor(() => {
+    expect(screen.getByText('Loaded')).toBeInTheDocument();
+  });
+});
+
+// ❌ Bad - Missing await
+test('loads data', () => {  // Missing async keyword
+  render(<MyComponent />);
+
+  waitFor(() => {  // Not awaited
+    expect(screen.getByText('Loaded')).toBeInTheDocument();
+  });
+});
+
+// ❌ Bad - Using setTimeout
+test('waits for update', async () => {
+  render(<MyComponent />);
+
+  await new Promise(resolve => setTimeout(resolve, 1000));  // Don't do this
+  expect(screen.getByText('Updated')).toBeInTheDocument();
+});
+```
+
+### Component Testing
+
+**Test user behavior, not implementation:**
+
+```typescript
+// ✅ Good - Tests what user sees/does
+test('submits form when user clicks submit button', async () => {
+  const user = userEvent.setup();
+  render(<LoginForm />);
+
+  await user.type(screen.getByLabelText('Email'), 'test@example.com');
+  await user.click(screen.getByRole('button', { name: 'Submit' }));
+
+  await waitFor(() => {
+    expect(screen.getByText('Success!')).toBeInTheDocument();
+  });
+});
+
+// ❌ Bad - Tests implementation details
+test('updates state on submit', () => {
+  const { component } = render(<LoginForm />);
+
+  component.setState({ email: 'test@example.com' });  // Don't access internal state
+  expect(component.state.isSubmitting).toBe(true);     // Don't test state directly
+});
+```
+
+### Query Selectors
+
+**Use queries in order of preference:**
+
+1. **Role queries** (most accessible):
+
+```typescript
+screen.getByRole('button', { name: 'Submit' });
+screen.getByRole('textbox', { name: 'Email' });
+```
+
+2. **Label queries** (for form fields):
+
+```typescript
+screen.getByLabelText('Email address');
+screen.getByPlaceholderText('Enter your email');
+```
+
+3. **Text queries** (for static content):
+
+```typescript
+screen.getByText('Welcome back');
+screen.getByText(/error/i); // Regex for case-insensitive
+```
+
+4. **Test ID** (last resort):
+
+```typescript
+screen.getByTestId('complex-widget'); // Only when other queries don't work
+```
+
+**Avoid:**
+
+```typescript
+// ❌ Bad - Too brittle, breaks with any DOM change
+container.querySelector('.my-class');
+container.getElementsByClassName('button')[0];
+```
+
+### withAuth Pattern for API Routes
+
+**Always use the standard pattern:**
+
+```typescript
+// ✅ Good - Standard pattern
+jest.mock('@/lib/api/withAuth', () => ({
+  withAuth: mockWithAuth,
+}));
+
+jest.mock('@/lib/supabase', () => ({
+  createServerSupabaseClient: jest.fn(),
+}));
+
+describe('GET /api/projects', () => {
+  let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
+
+  beforeEach(() => {
+    mockSupabase = createMockSupabaseClient();
+    require('@/lib/supabase').createServerSupabaseClient.mockResolvedValue(mockSupabase);
+  });
+
+  it('returns projects', async () => {
+    mockAuthenticatedUser(mockSupabase);
+    // ... test code
+  });
+});
+
+// ❌ Bad - Inconsistent pattern
+describe('GET /api/projects', () => {
+  it('returns projects', async () => {
+    // Mocking inside test - won't work consistently
+    jest.mock('@/lib/api/withAuth');
+  });
+});
+```
+
+### Comments in Tests
+
+**Add comments only for non-obvious setup:**
+
+```typescript
+// ✅ Good - Explains WHY
+test('handles rate limit correctly', async () => {
+  // Mock 5 failed attempts to trigger rate limit
+  for (let i = 0; i < 5; i++) {
+    await attemptLogin('wrong-password');
+  }
+
+  // Next attempt should be rate limited
+  const response = await attemptLogin('correct-password');
+  expect(response.status).toBe(429);
+});
+
+// ❌ Bad - States the obvious
+test('creates user', async () => {
+  // Create mock data
+  const user = { email: 'test@example.com' };
+
+  // Call the function
+  const result = await createUser(user);
+
+  // Check the result
+  expect(result).toBeDefined();
+});
+```
+
+### Test Organization
+
+**Group related tests with describe blocks:**
+
+```typescript
+// ✅ Good - Logical grouping
+describe('ProjectService', () => {
+  describe('createProject', () => {
+    it('creates project with valid data');
+    it('rejects invalid project title');
+    it('enforces user project limit');
+  });
+
+  describe('deleteProject', () => {
+    it('deletes project owned by user');
+    it('rejects deletion of others projects');
+    it('cleans up associated assets');
+  });
+});
+
+// ❌ Bad - Flat structure
+describe('ProjectService', () => {
+  it('creates project with valid data');
+  it('deletes project owned by user');
+  it('rejects invalid project title');
+  it('rejects deletion of others projects');
+  it('enforces user project limit');
+  it('cleans up associated assets');
+});
+```
 
 ## Git Commit Style
 

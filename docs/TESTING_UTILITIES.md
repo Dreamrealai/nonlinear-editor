@@ -2,8 +2,16 @@
 
 **Comprehensive guide to all test utilities, helpers, and patterns in the codebase.**
 
-Last Updated: 2025-10-24
+Last Updated: 2025-10-24 (Updated by Agent 30 with patterns from Agents 21-29)
 Maintained by: Engineering Team
+
+**Recent Additions:**
+
+- withAuth middleware mock pattern (Agent 21, Batch 2)
+- Common pitfalls and solutions (Agent 25)
+- HTML validation patterns
+- Query selector best practices
+- API mocking for multi-step flows
 
 ---
 
@@ -47,7 +55,7 @@ import {
   screen,
   waitFor,
   createMockSupabaseClient,
-  mockAuthenticatedUser
+  mockAuthenticatedUser,
 } from '@/test-utils';
 
 // Import specific categories
@@ -117,7 +125,7 @@ describe('Video Editor Workflow', () => {
 
     // Create project
     const project = await workflow.createProjectWorkflow(user.id, {
-      title: 'My Video'
+      title: 'My Video',
     });
 
     // Upload asset
@@ -139,42 +147,94 @@ describe('Video Editor Workflow', () => {
 
 ### 1. Mocking Utilities (`/test-utils/`)
 
-| File | Purpose | Key Exports |
-|------|---------|-------------|
-| `mockSupabase.ts` | Supabase client mocks | `createMockSupabaseClient`, `mockAuthenticatedUser` |
-| `mockFetch.ts` | Fetch API mocking | `mockFetch`, `mockFetchSuccess`, `mockFetchError` |
-| `mockEnv.ts` | Environment variables | `mockEnv`, `restoreEnv`, `setTestEnv` |
-| `mockStripe.ts` | Stripe API mocks | `createMockCheckoutSession`, `createMockSubscription` |
-| `mockWithAuth.ts` | Auth middleware mock | `mockWithAuth` |
-| `mockApiResponse.ts` | API response helpers | `mockApiResponse`, `createApiResponseMock` |
+| File                 | Purpose               | Key Exports                                           |
+| -------------------- | --------------------- | ----------------------------------------------------- |
+| `mockSupabase.ts`    | Supabase client mocks | `createMockSupabaseClient`, `mockAuthenticatedUser`   |
+| `mockFetch.ts`       | Fetch API mocking     | `mockFetch`, `mockFetchSuccess`, `mockFetchError`     |
+| `mockEnv.ts`         | Environment variables | `mockEnv`, `restoreEnv`, `setTestEnv`                 |
+| `mockStripe.ts`      | Stripe API mocks      | `createMockCheckoutSession`, `createMockSubscription` |
+| `mockWithAuth.ts`    | Auth middleware mock  | `mockWithAuth`                                        |
+| `mockApiResponse.ts` | API response helpers  | `mockApiResponse`, `createApiResponseMock`            |
 
 ### 2. Test Helpers (`/test-utils/`)
 
-| File | Purpose | Key Exports |
-|------|---------|-------------|
-| `testHelpers.ts` | General utilities | `createMockFile`, `waitForAsync`, `testData` |
-| `render.tsx` | Component rendering | `render`, `renderHook` |
+| File             | Purpose             | Key Exports                                  |
+| ---------------- | ------------------- | -------------------------------------------- |
+| `testHelpers.ts` | General utilities   | `createMockFile`, `waitForAsync`, `testData` |
+| `render.tsx`     | Component rendering | `render`, `renderHook`                       |
 
 ### 3. Legacy Helpers (`/test-utils/legacy-helpers/`)
 
 **Note**: These are being consolidated but remain available for backward compatibility.
 
-| File | Purpose | Key Exports |
-|------|---------|-------------|
-| `api.ts` | API testing | `createAuthenticatedRequest`, `expectSuccessResponse` |
-| `components.tsx` | Component helpers | `renderWithProviders`, `waitForLoadingToFinish` |
-| `mocks.ts` | Browser API mocks | `mockIntersectionObserver`, `mockLocalStorage` |
-| `supabase.ts` | Supabase utilities | Detailed Supabase mocking |
+| File             | Purpose            | Key Exports                                           |
+| ---------------- | ------------------ | ----------------------------------------------------- |
+| `api.ts`         | API testing        | `createAuthenticatedRequest`, `expectSuccessResponse` |
+| `components.tsx` | Component helpers  | `renderWithProviders`, `waitForLoadingToFinish`       |
+| `mocks.ts`       | Browser API mocks  | `mockIntersectionObserver`, `mockLocalStorage`        |
+| `supabase.ts`    | Supabase utilities | Detailed Supabase mocking                             |
 
 ### 4. Integration Helpers (`/__tests__/integration/helpers/`)
 
-| File | Purpose | Key Exports |
-|------|---------|-------------|
+| File                     | Purpose                | Key Exports                                            |
+| ------------------------ | ---------------------- | ------------------------------------------------------ |
 | `integration-helpers.ts` | Workflow orchestration | `IntegrationWorkflow`, `UserPersonas`, `AssetFixtures` |
 
 ---
 
 ## Mocking Utilities
+
+### withAuth Middleware (`mockWithAuth.ts`)
+
+#### Recommended Pattern for API Route Tests
+
+**Always use this pattern when testing authenticated API routes** (established by Agent 21 and Batch 2):
+
+```typescript
+import { mockWithAuth } from '@/test-utils/mockWithAuth';
+import { createMockSupabaseClient, mockAuthenticatedUser } from '@/test-utils';
+
+// Mock withAuth middleware BEFORE importing the route
+jest.mock('@/lib/api/withAuth', () => ({
+  withAuth: mockWithAuth,
+}));
+
+// Mock Supabase client creator
+jest.mock('@/lib/supabase', () => ({
+  createServerSupabaseClient: jest.fn(),
+}));
+
+describe('API Route', () => {
+  let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
+
+  beforeEach(() => {
+    mockSupabase = createMockSupabaseClient();
+    require('@/lib/supabase').createServerSupabaseClient.mockResolvedValue(mockSupabase);
+  });
+
+  it('requires authentication', async () => {
+    mockUnauthenticatedUser(mockSupabase);
+
+    const response = await GET(request);
+    expect(response.status).toBe(401);
+  });
+
+  it('processes authenticated request', async () => {
+    mockAuthenticatedUser(mockSupabase);
+    mockSupabase.mockResolvedValue({ data: [], error: null });
+
+    const response = await GET(request);
+    expect(response.status).toBe(200);
+  });
+});
+```
+
+**Key Points:**
+
+- Mock `withAuth` and `createServerSupabaseClient` BEFORE importing route handler
+- Use `mockAuthenticatedUser()` or `mockUnauthenticatedUser()` in each test
+- Reset mocks in `beforeEach` to ensure test isolation
+- Pattern works for all authenticated routes (33/33 routes verified)
 
 ### Supabase Client (`mockSupabase.ts`)
 
@@ -193,16 +253,13 @@ mockSupabase.mockResolvedValue({
 });
 
 // Test chainable queries
-const result = await mockSupabase
-  .from('projects')
-  .select('*')
-  .eq('user_id', 'user-123')
-  .single();
+const result = await mockSupabase.from('projects').select('*').eq('user_id', 'user-123').single();
 
 expect(result.data).toBeDefined();
 ```
 
 **Key Features:**
+
 - Chainable query builder (select, insert, update, delete, eq, neq, in, etc.)
 - Promise-compatible (can be awaited directly)
 - Storage API mocks
@@ -242,7 +299,7 @@ const profile = createMockUserProfile({
 ```typescript
 // Mock authenticated user
 const user = mockAuthenticatedUser(mockSupabase, {
-  email: 'test@example.com'
+  email: 'test@example.com',
 });
 
 // Mock unauthenticated user
@@ -287,7 +344,7 @@ mockFetchReject(new Error('Network failure'));
 // Sequential responses
 mockFetchSequence([
   { ok: true, status: 200, json: { id: '1' } },
-  { ok: false, status: 500, json: { error: 'Server error' } }
+  { ok: false, status: 500, json: { error: 'Server error' } },
 ]);
 
 // URL-based responses
@@ -419,7 +476,7 @@ const blob = createMockBlob('test content', 'text/plain');
 await asyncUtils.waitForCondition(
   () => state.isReady,
   5000, // timeout
-  50    // interval
+  50 // interval
 );
 
 // Flush promises
@@ -612,7 +669,7 @@ import {
   expectErrorResponse,
   expectUnauthorized,
   expectNotFound,
-  expectBadRequest
+  expectBadRequest,
 } from '@/test-utils/legacy-helpers/api';
 
 // Success response
@@ -656,8 +713,7 @@ describe('API Route', () => {
     const mockSupabase = createMockSupabaseClient();
     mockUnauthenticatedUser(mockSupabase);
 
-    require('@/lib/supabase').createServerSupabaseClient
-      .mockResolvedValue(mockSupabase);
+    require('@/lib/supabase').createServerSupabaseClient.mockResolvedValue(mockSupabase);
 
     const response = await GET(request);
     expect(response.status).toBe(401);
@@ -675,7 +731,7 @@ describe('API Route', () => {
 import {
   createTestEnvironment,
   UserPersonas,
-  IntegrationWorkflow
+  IntegrationWorkflow,
 } from '@/__tests__/integration/helpers/integration-helpers';
 
 // Create environment with specific user persona
@@ -716,11 +772,7 @@ const asset = await workflow.uploadAssetWorkflow(
 const aiVideo = await workflow.generateVideoWorkflow(project.id, user.id);
 
 // Update timeline
-const updatedProject = await workflow.updateTimelineWorkflow(
-  project.id,
-  user.id,
-  timelineState
-);
+const updatedProject = await workflow.updateTimelineWorkflow(project.id, user.id, timelineState);
 ```
 
 ### Project Templates
@@ -769,11 +821,7 @@ import { TimelineBuilders } from '@/__tests__/integration/helpers/integration-he
 const timeline = TimelineBuilders.singleTrack(projectId, assets);
 
 // Multi-track
-const timeline = TimelineBuilders.multiTrack(
-  projectId,
-  videoAssets,
-  audioAssets
-);
+const timeline = TimelineBuilders.multiTrack(projectId, videoAssets, audioAssets);
 
 // Overlapping clips
 const timeline = TimelineBuilders.overlapping(projectId, assets);
@@ -932,8 +980,7 @@ describe('GET /api/projects', () => {
 
   beforeEach(() => {
     mockSupabase = createMockSupabaseClient();
-    require('@/lib/supabase').createServerSupabaseClient
-      .mockResolvedValue(mockSupabase);
+    require('@/lib/supabase').createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
   it('returns user projects', async () => {
@@ -1024,11 +1071,7 @@ test('complete video editing workflow', async () => {
   const audio = await workflow.uploadAssetWorkflow(project.id, user.id, 'audio');
 
   // Build timeline
-  const timeline = TimelineBuilders.multiTrack(
-    project.id,
-    [video],
-    [audio]
-  );
+  const timeline = TimelineBuilders.multiTrack(project.id, [video], [audio]);
 
   // Update project
   await workflow.updateTimelineWorkflow(project.id, user.id, timeline);
@@ -1043,11 +1086,155 @@ test('complete video editing workflow', async () => {
 
 ## Troubleshooting
 
+### Common Pitfalls (Discovered by Agent 25)
+
+#### Pitfall 1: Nested Interactive Elements
+
+**Problem**: Nesting buttons inside buttons causes React hydration errors.
+
+**Bad:**
+
+```tsx
+<button onClick={() => handleClick()}>
+  <span>
+    Click to upload or{' '}
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        handleOther();
+      }}
+    >
+      select from library
+    </button>
+  </span>
+</button>
+```
+
+**Solution**: Use div with button role for outer element
+
+```tsx
+<div
+  role="button"
+  tabIndex={disabled ? -1 : 0}
+  onClick={() => !disabled && handleClick()}
+  onKeyDown={(e) => {
+    if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      handleClick();
+    }
+  }}
+  aria-disabled={disabled}
+  aria-label="Upload reference image"
+>
+  <span>
+    Click to upload or{' '}
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        handleOther();
+      }}
+    >
+      select from library
+    </button>
+  </span>
+</div>
+```
+
+**Benefits:**
+
+- Valid HTML structure
+- No React hydration errors
+- Full keyboard accessibility (Enter/Space support)
+- Proper ARIA attributes for screen readers
+
+#### Pitfall 2: Query Selector Ambiguity
+
+**Problem**: Multiple elements match the same query, causing test failures.
+
+**Bad:**
+
+```typescript
+// Too ambiguous - may match multiple elements
+screen.getByRole('button', { name: /video/i });
+```
+
+**Solution**: Use more specific queries
+
+```typescript
+// Good: Specific with data-testid
+screen.getByTestId('tab-videos');
+
+// Good: Exact text match
+screen.getByRole('button', { name: 'Upload Video' });
+
+// Good: More specific role + name combination
+screen.getByRole('tab', { name: 'Videos' });
+```
+
+**When to use data-testid:**
+
+- Multiple similar elements on page
+- Complex component hierarchies
+- Elements that change text content
+- When role/label queries are ambiguous
+
+#### Pitfall 3: API Endpoint Mismatches
+
+**Problem**: Tests mock wrong endpoint or expect wrong response format.
+
+**Example from Agent 25:**
+
+```typescript
+// Bad: Wrong endpoint
+mockFetch('/api/video-generation/generate');  // ❌
+
+// Good: Correct endpoint
+mockFetch('/api/video/generate');  // ✅
+
+// Bad: Wrong response format
+{ videoId: 'video-123', status: 'pending' }  // ❌
+
+// Good: Actual API format
+{ operationName: 'operation-video-123' }  // ✅
+```
+
+**Solution**: Always verify actual API endpoints and response formats before writing tests.
+
+#### Pitfall 4: Incomplete Fetch Mocks
+
+**Problem**: Missing mocks for polling or multi-step API flows.
+
+**Bad:**
+
+```typescript
+// Only mocks initial request, missing status polling
+mockFetch('/api/video/generate', { operationName: 'op-123' });
+```
+
+**Good:**
+
+```typescript
+beforeEach(() => {
+  // Mock video generation API
+  (global.fetch as jest.Mock).mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({ operationName: 'operation-video-123' }),
+  });
+
+  // Mock status polling API (will be called multiple times)
+  (global.fetch as jest.Mock).mockResolvedValue({
+    ok: true,
+    json: async () => ({ done: false }),
+  });
+});
+```
+
 ### Mock not being called
 
 **Problem**: Mock function isn't being called in test.
 
 **Solution**:
+
 ```typescript
 // Ensure mock is set before code runs
 jest.mock('@/lib/supabase', () => ({
@@ -1056,8 +1243,7 @@ jest.mock('@/lib/supabase', () => ({
 
 // Then set implementation in test
 beforeEach(() => {
-  require('@/lib/supabase').createServerSupabaseClient
-    .mockResolvedValue(mockSupabase);
+  require('@/lib/supabase').createServerSupabaseClient.mockResolvedValue(mockSupabase);
 });
 ```
 
@@ -1066,6 +1252,7 @@ beforeEach(() => {
 **Problem**: Supabase query chain returns undefined.
 
 **Solution**:
+
 ```typescript
 // Use createMockSupabaseClient which handles chaining
 const mockSupabase = createMockSupabaseClient();
@@ -1082,6 +1269,7 @@ await mockSupabase.from('table').select('*');
 **Problem**: Test times out waiting for async operation.
 
 **Solution**:
+
 ```typescript
 // Use waitFor with increased timeout
 await waitFor(
@@ -1100,6 +1288,7 @@ mockFetchSuccess({ data: 'test' });
 **Problem**: Tests leave resources open.
 
 **Solution**:
+
 ```typescript
 afterEach(() => {
   jest.clearAllMocks();
@@ -1113,6 +1302,7 @@ afterEach(() => {
 **Problem**: process.env values are undefined.
 
 **Solution**:
+
 ```typescript
 // Set test environment
 import { setTestEnv } from '@/test-utils';
@@ -1155,6 +1345,7 @@ When adding new test utilities:
 **Questions or Issues?**
 
 If you encounter issues with test utilities or have suggestions for improvements, please:
+
 1. Check this documentation first
 2. Search existing tests for examples
 3. Ask in the team chat

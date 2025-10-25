@@ -6,8 +6,6 @@
  */
 
 import { NextRequest } from 'next/server';
-import { GET, POST } from '@/app/api/projects/[projectId]/backups/route';
-import { POST as restoreBackup } from '@/app/api/projects/[projectId]/backups/[backupId]/restore/route';
 import {
   createMockSupabaseClient,
   mockAuthenticatedUser,
@@ -75,20 +73,22 @@ jest.mock('@/lib/auditLog', () => ({
 }));
 jest.mock('@/lib/services/backupService', () => ({
   BackupService: jest.fn().mockImplementation(() => ({
-    listBackups: jest
-      .fn()
-      .mockResolvedValue([
-        {
-          id: 'backup-1',
-          created_at: '2024-01-01',
-          backup_type: 'manual',
-          backup_name: 'Test Backup',
-        },
-      ]),
+    listBackups: jest.fn().mockResolvedValue([
+      {
+        id: 'backup-1',
+        created_at: '2024-01-01',
+        backup_type: 'manual',
+        backup_name: 'Test Backup',
+      },
+    ]),
     createBackup: jest.fn().mockResolvedValue({ id: 'new-backup', created_at: '2024-01-02' }),
     restoreBackup: jest.fn().mockResolvedValue(undefined),
   })),
 }));
+
+// Import route handlers AFTER all mocks are set up to ensure mocks are applied
+import { GET, POST } from '@/app/api/projects/[projectId]/backups/route';
+import { POST as restoreBackup } from '@/app/api/projects/[projectId]/backups/[backupId]/restore/route';
 
 const validProjectId = '123e4567-e89b-12d3-a456-426614174000';
 const validBackupId = '456e7890-e89b-12d3-a456-426614174000';
