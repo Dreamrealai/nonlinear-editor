@@ -201,7 +201,7 @@ function getRetryAfterDelay(error: unknown): number | null {
   if (headers instanceof Headers) {
     retryAfter = headers.get('retry-after');
   } else if (headers instanceof Map) {
-    retryAfter = headers.get('retry-after');
+    retryAfter = headers.get('retry-after') ?? null;
   } else if (typeof headers === 'object') {
     // Handle plain object headers
     retryAfter = (headers as Record<string, string>)['retry-after'] || null;
@@ -430,6 +430,43 @@ export const ASSET_RETRY_OPTIONS: RetryOptions = {
 };
 
 /**
+ * Aggressive retry options specifically for 429 (Rate Limit) errors
+ * Uses longer delays and respects Retry-After headers
+ */
+export const RATE_LIMIT_RETRY_OPTIONS: RetryOptions = {
+  maxRetries: 5,
+  baseDelay: 1000,
+  maxDelay: 32000, // 32 seconds max
+  backoffMultiplier: 2,
+  useJitter: true,
+  shouldRetry: (error: unknown, attempt: number) => {
+    // Always retry 429 errors
+    if (error && typeof error === 'object' && 'status' in error) {
+      const status = (error as { status: number }).status;
+      if (status === 429) {
+        return true; // Always retry rate limit errors
+      }
+      // Also retry 5xx server errors
+      if (status >= 500 && status < 600) {
+        return true;
+      }
+      // Don't retry client errors (4xx except 429)
+      return false;
+    }
+    // Retry network errors
+    if (error instanceof TypeError && String(error).includes('fetch')) {
+      return true;
+    }
+    // Limit retries for unknown errors
+    return attempt < 2;
+  },
+  enableLogging: process.env.NODE_ENV === 'development',
+  enableCircuitBreaker: true,
+  circuitBreakerThreshold: 5,
+  circuitBreakerTimeout: 60000, // 1 minute
+};
+
+/**
  * Wrap a fetch call with retry logic
  *
  * @param url - URL to fetch
@@ -448,22 +485,27 @@ export const ASSET_RETRY_OPTIONS: RetryOptions = {
 export async function retryableFetch(
   url: string,
   init?: RequestInit,
-  options?: RetryOptions
+  options?: RetryOptions,
+  circuitBreakerKey?: string
 ): Promise<Response> {
-  return retryWithBackoff(async () => {
-    const response = await fetch(url, init);
+  return retryWithBackoff(
+    async () => {
+      const response = await fetch(url, init);
 
-    // Attach status to error for retry logic
-    if (!response.ok) {
-      const error = new Error(`HTTP ${response.status}: ${response.statusText}`) as Error & {
-        status: number;
-        response: Response;
-      };
-      error.status = response.status;
-      error.response = response;
-      throw error;
-    }
+      // Attach status and headers to error for retry logic
+      if (!response.ok) {
+        const error = new Error(`HTTP ${response.status}: ${response.statusText}`) as Error & {
+          status: number;
+          response: { headers: Headers };
+        };
+        error.status = response.status;
+        error.response = { headers: response.headers };
+        throw error;
+      }
 
-    return response;
-  }, options);
+      return response;
+    },
+    options,
+    circuitBreakerKey
+  );
 }

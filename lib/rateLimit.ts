@@ -347,13 +347,20 @@ export function checkRateLimitSync(identifier: string, config: RateLimitConfig):
  *   compute/storage. Prevents resource exhaustion attacks
  *   Routes: /api/projects (POST), /api/assets/upload, /api/video/generate, /api/audio/*, /api/image/generate
  *
- * TIER 3 - Status/Read Operations (30/min):
+ * TIER 3 - Status/Read Operations (100/min):
  *   Read-only or polling operations that query external services or databases
+ *   Increased from 30 to support loading timelines with many assets
  *   Routes: /api/video/status, /api/projects (GET), /api/assets (GET), /api/history (GET)
  *
- * TIER 4 - General Operations (60/min):
+ * TIER 4 - General Operations (200/min):
  *   Standard API operations with moderate resource usage
+ *   Increased from 60 to support real-time chat and frequent updates
  *   Routes: Other authenticated routes
+ *
+ * TIER 5 - High Frequency Operations (500/min):
+ *   High-frequency operations like asset signing for authenticated users
+ *   New tier for asset-heavy operations when loading large timelines
+ *   Routes: /api/assets/sign
  */
 export const RATE_LIMITS = {
   // TIER 1: 5 requests per minute - for authentication, payment, and admin operations
@@ -362,16 +369,19 @@ export const RATE_LIMITS = {
   // TIER 2: 10 requests per minute - for expensive resource creation operations
   tier2_resource_creation: { max: 10, windowMs: 60 * 1000 },
 
-  // TIER 3: 30 requests per minute - for status checks and read operations
-  tier3_status_read: { max: 30, windowMs: 60 * 1000 },
+  // TIER 3: 100 requests per minute - for status checks and read operations
+  tier3_status_read: { max: 100, windowMs: 60 * 1000 },
 
-  // TIER 4: 60 requests per minute - for general API operations
-  tier4_general: { max: 60, windowMs: 60 * 1000 },
+  // TIER 4: 200 requests per minute - for general API operations
+  tier4_general: { max: 200, windowMs: 60 * 1000 },
+
+  // TIER 5: 500 requests per minute - for high-frequency operations
+  tier5_high_frequency: { max: 500, windowMs: 60 * 1000 },
 
   // Legacy aliases for backward compatibility (will be removed)
   // @deprecated Use tier-based limits instead
   strict: { max: 5, windowMs: 60 * 1000 },
   expensive: { max: 10, windowMs: 60 * 1000 },
-  moderate: { max: 30, windowMs: 60 * 1000 },
-  relaxed: { max: 60, windowMs: 60 * 1000 },
+  moderate: { max: 100, windowMs: 60 * 1000 },
+  relaxed: { max: 200, windowMs: 60 * 1000 },
 } as const satisfies Record<string, RateLimitConfig>;

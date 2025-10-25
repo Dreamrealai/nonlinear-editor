@@ -361,7 +361,7 @@ const handleSignUrl: AuthenticatedHandler = async (request, { user, supabase }) 
 
 const signOptions = {
   route: '/api/assets/sign',
-  rateLimit: RATE_LIMITS.tier3_status_read,
+  rateLimit: RATE_LIMITS.tier5_high_frequency, // 500 requests/min for asset-heavy timelines
 };
 
 export const GET = withAuth(handleSignUrl, signOptions);

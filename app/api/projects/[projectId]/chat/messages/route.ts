@@ -90,5 +90,5 @@ async function handleChatMessagePost(
 // Export with authentication middleware and rate limiting
 export const POST = withAuth(handleChatMessagePost, {
   route: '/api/projects/[projectId]/chat/messages',
-  rateLimit: RATE_LIMITS.tier4_general, // 60 requests per minute for message operations
+  rateLimit: RATE_LIMITS.tier4_general, // 200 requests per minute for message operations
 });

@@ -214,11 +214,12 @@ class SignedUrlCacheManager {
             throw error;
           }
 
-          // For other errors, throw with status
+          // For other errors, throw with status and headers (for Retry-After)
           const error = new Error(
             `Failed to sign URL (${fetchResponse.status}): ${errorData.error || 'Unknown error'}`
-          ) as Error & { status: number };
+          ) as Error & { status: number; response: { headers: Headers } };
           error.status = fetchResponse.status;
+          error.response = { headers: fetchResponse.headers };
           throw error;
         }
 
@@ -229,13 +230,22 @@ class SignedUrlCacheManager {
       let fetchResponse: Response;
       if (this.config.enableRetry) {
         try {
-          fetchResponse = await retryWithBackoff(fetchWithRetry, {
-            ...ASSET_RETRY_OPTIONS,
-            enableLogging: this.config.enableLogging,
-          });
+          fetchResponse = await retryWithBackoff(
+            fetchWithRetry,
+            {
+              ...ASSET_RETRY_OPTIONS,
+              enableLogging: this.config.enableLogging,
+            },
+            `asset-sign-${assetId || storageUrl?.substring(0, 50)}`
+          );
         } catch (error) {
           // Check if this is a 404 error
-          if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 404) {
+          if (
+            error &&
+            typeof error === 'object' &&
+            'status' in error &&
+            (error as { status: number }).status === 404
+          ) {
             return null;
           }
           throw error;
@@ -245,7 +255,12 @@ class SignedUrlCacheManager {
           fetchResponse = await fetchWithRetry();
         } catch (error) {
           // Check if this is a 404 error
-          if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 404) {
+          if (
+            error &&
+            typeof error === 'object' &&
+            'status' in error &&
+            (error as { status: number }).status === 404
+          ) {
             return null;
           }
           throw error;

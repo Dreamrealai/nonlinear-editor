@@ -120,10 +120,10 @@ async function handleDeleteChat(
 // Export with authentication middleware and rate limiting
 export const GET = withAuth<{ projectId: string }>(handleGetChat, {
   route: '/api/projects/[projectId]/chat',
-  rateLimit: RATE_LIMITS.tier3_status_read, // 30 requests per minute for read operations
+  rateLimit: RATE_LIMITS.tier4_general, // 200 requests per minute for chat read operations
 });
 
 export const DELETE = withAuth<{ projectId: string }>(handleDeleteChat, {
   route: '/api/projects/[projectId]/chat',
-  rateLimit: RATE_LIMITS.tier4_general, // 60 requests per minute for delete operations
+  rateLimit: RATE_LIMITS.tier4_general, // 200 requests per minute for delete operations
 });

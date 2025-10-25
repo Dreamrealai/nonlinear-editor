@@ -7,6 +7,7 @@ import { browserLogger } from '@/lib/browserLogger';
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
 import { ChatMessage } from '@/types/api';
+import { retryWithBackoff, RATE_LIMIT_RETRY_OPTIONS } from '@/lib/utils/retryUtils';
 
 // Use shared type from centralized location
 type Message = ChatMessage;
@@ -85,16 +86,46 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): React.ReactElem
 
     setLoadingMessages(true);
     try {
-      const response = await fetch(`/api/projects/${projectId}/chat`);
-
-      if (!response.ok) {
-        throw new Error('Failed to load chat messages');
-      }
+      const response = await retryWithBackoff(
+        async () => {
+          const res = await fetch(`/api/projects/${projectId}/chat`);
+          if (!res.ok) {
+            const error = new Error('Failed to load chat messages') as Error & { status: number };
+            error.status = res.status;
+            throw error;
+          }
+          return res;
+        },
+        {
+          ...RATE_LIMIT_RETRY_OPTIONS,
+          onRetry: (error, attempt, delay) => {
+            // Show toast notification on retry for user feedback
+            if (
+              error &&
+              typeof error === 'object' &&
+              'status' in error &&
+              (error as { status: number }).status === 429
+            ) {
+              toast.loading(
+                `Rate limit hit. Retrying in ${Math.round(delay / 1000)}s... (${attempt}/5)`,
+                {
+                  id: 'chat-load-retry',
+                }
+              );
+            }
+          },
+        },
+        `chat-load-${projectId}`
+      );
 
       const data = await response.json();
       setMessages(data.messages || []);
+
+      // Dismiss retry toast if it's still showing
+      toast.dismiss('chat-load-retry');
     } catch (error) {
       browserLogger.error({ error, projectId }, 'Error loading chat messages');
+      toast.dismiss('chat-load-retry');
 
       if (supabase) {
         try {
@@ -208,11 +239,48 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): React.ReactElem
         formData.append(`file-${index}`, file);
       });
 
-      const response = await fetch('/api/ai/chat', {
-        method: 'POST',
-        body: formData,
-      });
+      const response = await retryWithBackoff(
+        async () => {
+          const res = await fetch('/api/ai/chat', {
+            method: 'POST',
+            body: formData,
+          });
 
+          if (!res.ok) {
+            const error = new Error(`HTTP ${res.status}`) as Error & {
+              status: number;
+              response: { headers: Headers };
+            };
+            error.status = res.status;
+            error.response = { headers: res.headers };
+            throw error;
+          }
+
+          return res;
+        },
+        {
+          ...RATE_LIMIT_RETRY_OPTIONS,
+          onRetry: (error, attempt, delay) => {
+            // Show toast notification on retry for user feedback
+            if (
+              error &&
+              typeof error === 'object' &&
+              'status' in error &&
+              (error as { status: number }).status === 429
+            ) {
+              toast.loading(
+                `AI is busy. Retrying in ${Math.round(delay / 1000)}s... (${attempt}/5)`,
+                {
+                  id: 'chat-ai-retry',
+                }
+              );
+            }
+          },
+        },
+        `chat-ai-${projectId}`
+      );
+
+      toast.dismiss('chat-ai-retry');
       const data = await response.json();
 
       if (!response.ok) {
@@ -234,6 +302,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): React.ReactElem
       });
     } catch (error) {
       browserLogger.error({ error, projectId, model: selectedModel }, 'Chat error');
+      toast.dismiss('chat-ai-retry');
 
       // Save error message via API endpoint
       await fetch(`/api/projects/${projectId}/chat/messages`, {
