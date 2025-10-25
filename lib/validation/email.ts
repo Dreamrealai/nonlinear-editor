@@ -4,7 +4,8 @@
  */
 
 // RFC 5322 compliant email regex (simplified but robust)
-const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+const EMAIL_REGEX =
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 
 export interface EmailValidationResult {
   valid: boolean;
@@ -40,16 +41,30 @@ export function validateEmail(email: string): EmailValidationResult {
   }
 
   // Check for common typos
-  const domain = trimmed.split('@')[1];
-  const commonTyops = [
-    'gmial.com',
-    'gmai.com',
-    'yahooo.com',
-    'yaho.com',
-    'hotmial.com',
-  ];
+  // Safely split and validate email parts
+  const parts = trimmed.split('@');
 
-  if (domain && commonTyops.includes(domain.toLowerCase())) {
+  // Validate we have exactly 2 parts (should be guaranteed by regex, but defensive)
+  if (parts.length !== 2) {
+    return {
+      valid: false,
+      message: 'Please enter a valid email address',
+    };
+  }
+
+  const [localPart, domain] = parts;
+
+  // Validate parts are not empty (should be guaranteed by regex, but defensive)
+  if (!localPart || !domain) {
+    return {
+      valid: false,
+      message: 'Please enter a valid email address',
+    };
+  }
+
+  const commonTyops = ['gmial.com', 'gmai.com', 'yahooo.com', 'yaho.com', 'hotmial.com'];
+
+  if (commonTyops.includes(domain.toLowerCase())) {
     const suggestions = {
       'gmial.com': 'gmail.com',
       'gmai.com': 'gmail.com',
@@ -60,7 +75,7 @@ export function validateEmail(email: string): EmailValidationResult {
 
     return {
       valid: false,
-      message: `Did you mean ${trimmed.split('@')[0]}@${suggestions[domain.toLowerCase() as keyof typeof suggestions]}?`,
+      message: `Did you mean ${localPart}@${suggestions[domain.toLowerCase() as keyof typeof suggestions]}?`,
     };
   }
 

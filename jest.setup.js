@@ -1,8 +1,22 @@
 /* eslint-env node, jest */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable no-undef */
 
-// CRITICAL: Set NODE_ENV to 'development' before any module loading
-// This ensures detailed error messages are visible in tests
-process.env.NODE_ENV = 'development';
+// CRITICAL: Set NODE_ENV to 'test' for proper test environment
+// This ensures rate limiting is disabled and test-specific behavior is enabled
+process.env.NODE_ENV = 'test';
+
+// CRITICAL: Disable BYPASS_AUTH globally for all tests
+// The .env.local file may have BYPASS_AUTH=true for local development,
+// but tests must use proper authentication via test utilities.
+// This prevents authentication bypass in integration tests.
+process.env.BYPASS_AUTH = 'false';
+
+// Set Supabase test environment variables
+// These are required for Supabase client creation in tests
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key-mock-value-do-not-use-in-production';
+process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key-mock-value-do-not-use-in-production';
 
 // Mock lucide-react before anything else
 jest.mock('lucide-react');

@@ -146,8 +146,23 @@ export class AssetVersionService {
     // Format: supabase://assets/{userId}/{projectId}/{folder}/{filename}
     const storagePath = asset.storage_url.replace('supabase://assets/', '');
     const pathParts = storagePath.split('/');
-    const filename = pathParts[pathParts.length - 1];
-    const folder = pathParts[pathParts.length - 2];
+
+    // Validate path structure
+    if (pathParts.length < 2) {
+      serverLogger.error(
+        {
+          event: 'asset_version.create_version.invalid_path',
+          assetId,
+          storagePath,
+          pathPartsLength: pathParts.length,
+        },
+        'Invalid storage path structure'
+      );
+      throw new Error(`Invalid storage path structure: ${storagePath}`);
+    }
+
+    const filename = pathParts[pathParts.length - 1]!;
+    const folder = pathParts[pathParts.length - 2]!;
 
     // Create versioned storage path
     // Format: {userId}/{projectId}/{folder}/versions/v{versionNumber}_{filename}
@@ -302,11 +317,7 @@ export class AssetVersionService {
    * @param userId - UUID of the user performing the revert
    * @returns Result with new storage URL and path
    */
-  async revertToVersion(
-    assetId: string,
-    versionId: string,
-    userId: string
-  ): Promise<RevertResult> {
+  async revertToVersion(assetId: string, versionId: string, userId: string): Promise<RevertResult> {
     serverLogger.info(
       {
         event: 'asset_version.revert.started',
@@ -358,10 +369,26 @@ export class AssetVersionService {
     // Extract current storage path
     const currentStoragePath = asset.storage_url.replace('supabase://assets/', '');
     const pathParts = currentStoragePath.split('/');
-    const filename = pathParts[pathParts.length - 1];
+
+    // Validate path structure
+    if (pathParts.length === 0) {
+      serverLogger.error(
+        {
+          event: 'asset_version.revert.invalid_path',
+          assetId,
+          versionId,
+          currentStoragePath,
+        },
+        'Invalid storage path structure'
+      );
+      throw new Error(`Invalid storage path structure: ${currentStoragePath}`);
+    }
+
+    const filename = pathParts[pathParts.length - 1]!;
 
     // Generate new filename to avoid cache issues
-    const ext = filename.split('.').pop();
+    const filenameParts = filename.split('.');
+    const ext = filenameParts.length > 1 ? filenameParts[filenameParts.length - 1]! : 'bin';
     const newFilename = `${crypto.randomUUID()}.${ext}`;
     const newPath = pathParts.slice(0, -1).concat(newFilename).join('/');
 

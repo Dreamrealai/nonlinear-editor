@@ -1,6 +1,6 @@
 'use client';
 
-import { formatTime } from '@/lib/utils/timelineUtils';
+import { formatTimeMMSSCS } from '@/lib/utils/timeFormatting';
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Undo,
@@ -94,7 +94,8 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
   const zoomMenuRef = useRef<HTMLDivElement>(null);
 
   // Determine keyboard shortcut based on platform
-  const isMac = typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  const isMac =
+    typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
   const undoShortcut = isMac ? 'Cmd+Z' : 'Ctrl+Z';
   const redoShortcut = isMac ? 'Cmd+Shift+Z' : 'Ctrl+Y';
 
@@ -186,7 +187,9 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
             />
           )}
 
-          <span className="text-xs font-mono text-neutral-700 min-w-[3rem] text-center">{Math.round((zoom / 50) * 100)}%</span>
+          <span className="text-xs font-mono text-neutral-700 min-w-[3rem] text-center">
+            {Math.round((zoom / 50) * 100)}%
+          </span>
           <Button
             onClick={onZoomIn}
             variant="outline"
@@ -448,7 +451,7 @@ export const TimelineControls = React.memo<TimelineControlsProps>(function Timel
 
       {/* Time Display */}
       <div className="text-[10px] sm:text-xs font-mono text-neutral-600 whitespace-nowrap">
-        {formatTime(currentTime)} / {formatTime(timelineDuration)}
+        {formatTimeMMSSCS(currentTime)} / {formatTimeMMSSCS(timelineDuration)}
       </div>
     </div>
   );

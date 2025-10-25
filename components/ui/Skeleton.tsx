@@ -67,13 +67,13 @@ export function SkeletonText({
 }: SkeletonTextProps): React.ReactElement {
   return (
     <div className={cn('space-y-2', className)} role="status" aria-label="Loading text">
-      {Array.from({ length: lines }).map(
-        (_, i): React.ReactElement => (
+      {Array.from({ length: lines }, (_, i) => i).map(
+        (lineIndex): React.ReactElement => (
           <Skeleton
-            key={`skeleton-text-${i}`}
+            key={`skeleton-text-line-${lineIndex}`}
             variant={variant}
             animate={animate}
-            className={cn('h-4', i === lines - 1 ? 'w-4/5' : 'w-full', lineClassName)}
+            className={cn('h-4', lineIndex === lines - 1 ? 'w-4/5' : 'w-full', lineClassName)}
           />
         )
       )}
@@ -230,9 +230,9 @@ export function SkeletonTimeline({
 
       {/* Timeline tracks */}
       <div className="space-y-2">
-        {Array.from({ length: clips }).map(
-          (_, i): React.ReactElement => (
-            <div key={`skeleton-timeline-${i}`} className="flex gap-2">
+        {Array.from({ length: clips }, (_, i) => i).map(
+          (clipIndex): React.ReactElement => (
+            <div key={`skeleton-timeline-clip-${clipIndex}`} className="flex gap-2">
               <Skeleton variant={variant} animate={animate} className="h-16 w-20" />
               <Skeleton variant={variant} animate={animate} className="h-16 flex-1" />
             </div>

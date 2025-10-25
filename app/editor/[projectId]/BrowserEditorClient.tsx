@@ -113,7 +113,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
     const pollingTimeouts = pollingTimeoutsRef.current;
     const abortControllers = abortControllersRef.current;
 
-    return () => {
+    return (): void => {
       pollingTimeouts.forEach((timeout) => clearTimeout(timeout));
       pollingTimeouts.clear();
       abortControllers.forEach((controller) => controller.abort());
@@ -140,7 +140,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
   useEasterEggs({ enabled: true });
 
   // Compute which assets are currently used in the timeline
-  const usedAssetIds = useMemo(() => {
+  const usedAssetIds = useMemo((): Set<string> => {
     const ids = new Set<string>();
     if (timeline?.clips) {
       timeline.clips.forEach((clip) => {
@@ -158,21 +158,21 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
   );
 
   // Keyboard shortcut handlers
-  const handleUndo = useCallback(() => {
+  const handleUndo = useCallback((): void => {
     if (canUndo()) {
       undo();
       toast.success('Undo', { duration: 1000 });
     }
   }, [undo, canUndo]);
 
-  const handleRedo = useCallback(() => {
+  const handleRedo = useCallback((): void => {
     if (canRedo()) {
       redo();
       toast.success('Redo', { duration: 1000 });
     }
   }, [redo, canRedo]);
 
-  const handleCopy = useCallback(() => {
+  const handleCopy = useCallback((): void => {
     if (selectedClipIds.size > 0) {
       copyClips();
       toast.success(`Copied ${selectedClipIds.size} clip${selectedClipIds.size > 1 ? 's' : ''}`, {
@@ -181,11 +181,11 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
     }
   }, [copyClips, selectedClipIds]);
 
-  const handlePaste = useCallback(() => {
+  const handlePaste = useCallback((): void => {
     pasteClips();
   }, [pasteClips]);
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback((): void => {
     if (selectedClipIds.size > 0) {
       const count = selectedClipIds.size;
       selectedClipIds.forEach((clipId) => removeClip(clipId));
@@ -193,7 +193,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
     }
   }, [selectedClipIds, removeClip]);
 
-  const handleSelectAll = useCallback(() => {
+  const handleSelectAll = useCallback((): void => {
     if (timeline?.clips && timeline.clips.length > 0) {
       clearSelection();
       timeline.clips.forEach((clip) => selectClip(clip.id, true));
@@ -204,7 +204,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
     }
   }, [timeline, clearSelection, selectClip]);
 
-  const handlePlayPause = useCallback(() => {
+  const handlePlayPause = useCallback((): void => {
     if (playPauseStateRef.current?.togglePlayPause) {
       playPauseStateRef.current.togglePlayPause();
     }
@@ -218,7 +218,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
     setShowExportModal(true);
   }, [timeline]);
 
-  const handleShowShortcuts = useCallback(() => {
+  const handleShowShortcuts = useCallback((): void => {
     setShowShortcutsHelp(true);
   }, []);
 
@@ -332,7 +332,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
 
   // Create a wrapper that calls reloadAssets after state updates
   const setAssetsWithReload = useCallback(
-    (_updater: React.SetStateAction<AssetRow[]>) => {
+    (_updater: React.SetStateAction<AssetRow[]>): void => {
       // After any asset state change, reload assets to maintain pagination
       void reloadAssets();
     },
@@ -485,7 +485,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
 
     void loadTimelineData();
 
-    return () => {
+    return (): void => {
       cancelled = true;
     };
   }, [projectId, assets, assetsLoaded, timelineBootstrapped, setTimeline]);
@@ -510,7 +510,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
       return;
     }
 
-    void (async () => {
+    void (async (): Promise<void> => {
       for (const asset of missingThumbnails) {
         try {
           const bucketName = safeArrayGet(

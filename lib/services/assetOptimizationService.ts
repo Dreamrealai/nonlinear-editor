@@ -57,12 +57,7 @@ export class AssetOptimizationService {
     buffer: Buffer,
     options: ImageOptimizationOptions = {}
   ): Promise<{ buffer: Buffer; metadata: Partial<AssetMetadata> }> {
-    const {
-      maxWidth = 1920,
-      maxHeight = 1080,
-      quality = 85,
-      format = 'jpeg',
-    } = options;
+    const { maxWidth = 1920, maxHeight = 1080, quality = 85, format = 'jpeg' } = options;
 
     try {
       const sharp = (await import('sharp')).default;
@@ -250,18 +245,32 @@ export class AssetOptimizationService {
 
         const { stdout: durationOutput } = await execAsync(ffmpegCmd);
         const durationMatch = durationOutput.match(/Duration: (\d{2}):(\d{2}):(\d{2}\.\d{2})/);
-        const duration = durationMatch
-          ? parseInt(durationMatch[1]!) * 3600 +
-            parseInt(durationMatch[2]!) * 60 +
-            parseFloat(durationMatch[3]!)
-          : 0;
+
+        // Safely extract duration with proper validation
+        let duration = 0;
+        if (durationMatch && durationMatch[1] && durationMatch[2] && durationMatch[3]) {
+          const hours = parseInt(durationMatch[1], 10);
+          const minutes = parseInt(durationMatch[2], 10);
+          const seconds = parseFloat(durationMatch[3]);
+          duration = hours * 3600 + minutes * 60 + seconds;
+        } else {
+          serverLogger.warn(
+            {
+              event: 'asset_optimization.duration_parse_failed',
+              durationOutput: durationOutput.substring(0, 200),
+            },
+            'Failed to parse duration from FFmpeg output'
+          );
+        }
 
         // Generate amplitude samples
         const sampleCmd = `ffmpeg -i "${inputPath}" -filter_complex "aresample=8000,asetnsamples=n=${samples}:p=0,astats=metadata=1:reset=1" -f null - 2>&1 | grep "lavfi.astats.Overall.RMS_level" | sed 's/.*=//' | head -${samples}`;
 
-        const { stdout: amplitudeOutput } = await execAsync(sampleCmd).catch((): { stdout: string; } => ({
-          stdout: '',
-        }));
+        const { stdout: amplitudeOutput } = await execAsync(sampleCmd).catch(
+          (): { stdout: string } => ({
+            stdout: '',
+          })
+        );
 
         const amplitudes = amplitudeOutput
           .split('\n')

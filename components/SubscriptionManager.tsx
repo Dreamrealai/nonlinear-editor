@@ -298,7 +298,7 @@ export function SubscriptionManager(): React.ReactElement | null {
                       />
                     </svg>
                     {profile.subscription_cancel_at_period_end ? 'Ends' : 'Renews'} on{' '}
-                    <span className="font-semibold text-neutral-900">
+                    <span className="font-semibold text-neutral-900" suppressHydrationWarning>
                       {new Date(profile.subscription_current_period_end).toLocaleDateString(
                         'en-US',
                         {

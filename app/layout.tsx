@@ -72,21 +72,16 @@ export const metadata: Metadata = {
     title: 'Nonlinear Editor - Professional Browser-Based Video Editor',
     description:
       'Create stunning videos with our professional browser-based video editor. Features include timeline editing, keyframe animation, AI-powered video generation, and real-time collaboration.',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'Nonlinear Editor - Professional Video Editing in Your Browser',
-      },
-    ],
+    // TODO: Add og-image.png (1200x630px, PNG format)
+    // Should feature project branding, logo, and tagline
+    // Reference: https://og-image-examples.vercel.app/
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Nonlinear Editor - Professional Browser-Based Video Editor',
     description:
       'Create stunning videos with professional timeline editing, keyframe animation, and AI-powered video generation. No downloads required.',
-    images: ['/og-image.png'],
+    // TODO: Add og-image.png (same as OpenGraph image above)
     creator: '@nonlineareditor',
   },
   robots: {

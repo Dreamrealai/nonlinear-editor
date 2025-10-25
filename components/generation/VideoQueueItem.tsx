@@ -68,11 +68,13 @@ const VideoQueueItem = React.memo<VideoQueueItemProps>(function VideoQueueItem({
               onCanPlay={(): void => {
                 setVideoLoading(false);
               }}
-              onError={async (e): Promise<void> => {
-                const { browserLogger } = await import('@/lib/browserLogger');
-                browserLogger.error({ videoUrl, errorEvent: e.type }, 'Video load error');
-                setVideoLoading(false);
-                setVideoError(true);
+              onError={(e): void => {
+                void (async (): Promise<void> => {
+                  const { browserLogger } = await import('@/lib/browserLogger');
+                  browserLogger.error({ videoUrl, errorEvent: e.type }, 'Video load error');
+                  setVideoLoading(false);
+                  setVideoError(true);
+                })();
               }}
             >
               <track kind="captions" />

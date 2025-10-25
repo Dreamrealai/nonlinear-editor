@@ -45,14 +45,12 @@ interface WebVitalMetric {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Rate limiting to prevent abuse (use IP-based limiting for public endpoint)
-    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    const ip =
+      request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     const rateLimitResult = await checkRateLimit(`web-vitals:${ip}`, RATE_LIMITS.tier4_general);
 
     if (!rateLimitResult.success) {
-      serverLogger.warn(
-        { ip, limit: rateLimitResult.limit },
-        'Web vitals rate limit exceeded'
-      );
+      serverLogger.warn({ ip, limit: rateLimitResult.limit }, 'Web vitals rate limit exceeded');
       // Return 204 anyway to avoid client-side errors (metrics are non-critical)
       return new NextResponse(null, { status: 204 });
     }
@@ -65,19 +63,27 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return new NextResponse(null, { status: 204 });
     }
 
-    // Parse JSON
-    const data = JSON.parse(text) as WebVitalMetric;
+    // Parse JSON with error handling
+    let data: WebVitalMetric;
+    try {
+      data = JSON.parse(text) as WebVitalMetric;
+    } catch (parseError) {
+      if (parseError instanceof SyntaxError) {
+        serverLogger.warn(
+          { text: text.substring(0, 100), error: parseError.message },
+          'Invalid JSON in web vitals request'
+        );
+        // Return 204 anyway to avoid client-side errors (metrics are non-critical)
+        return new NextResponse(null, { status: 204 });
+      }
+      // Re-throw unexpected errors
+      throw parseError;
+    }
 
     // Validate required fields
     if (!data.name || typeof data.value !== 'number' || !data.rating) {
-      serverLogger.warn(
-        { receivedData: data },
-        'Invalid web vitals data received'
-      );
-      return NextResponse.json(
-        { error: 'Invalid metric data' },
-        { status: 400 }
-      );
+      serverLogger.warn({ receivedData: data }, 'Invalid web vitals data received');
+      return NextResponse.json({ error: 'Invalid metric data' }, { status: 400 });
     }
 
     // Log for monitoring
@@ -111,8 +117,5 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
  * This endpoint only accepts POST requests.
  */
 export async function GET(): Promise<NextResponse> {
-  return NextResponse.json(
-    { error: 'Method not allowed' },
-    { status: 405 }
-  );
+  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
 }

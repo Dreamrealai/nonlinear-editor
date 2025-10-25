@@ -13,7 +13,7 @@
  */
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -28,10 +28,9 @@ export interface KbdProps extends React.HTMLAttributes<HTMLElement> {
 
 /**
  * Get the platform-specific modifier key name
+ * This function is only called on the client-side after hydration
  */
 export function getModifierKey(key: string): string {
-  if (typeof window === 'undefined') return key;
-
   const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 
   if (key === 'Mod' || key === 'mod') {
@@ -40,6 +39,28 @@ export function getModifierKey(key: string): string {
 
   return key;
 }
+
+/**
+ * Hook to get platform-specific key display
+ * Prevents hydration mismatch by deferring platform detection to client-side
+ */
+function usePlatformKey(key: string): string {
+  const [displayKey, setDisplayKey] = useState(key);
+
+  useEffect(() => {
+    setDisplayKey(getModifierKey(key));
+  }, [key]);
+
+  return displayKey;
+}
+
+/**
+ * Individual key display component with platform detection
+ */
+const KeyDisplay: React.FC<{ keyValue: string }> = ({ keyValue }) => {
+  const displayKey = usePlatformKey(keyValue);
+  return <>{displayKey}</>;
+};
 
 /**
  * A styled keyboard key component
@@ -74,14 +95,14 @@ export const Kbd = React.forwardRef<HTMLElement, KbdProps>(
       <span className={cn('inline-flex items-center gap-1', className)}>
         {keys.map(
           (key, index): React.ReactElement => (
-            <React.Fragment key={`${key}-${index}`}>
+            <React.Fragment key={`kbd-${key}-${index}`}>
               {index > 0 && <span className="text-xs text-neutral-500">+</span>}
               <kbd
                 ref={index === 0 ? ref : undefined}
                 className="inline-flex items-center justify-center rounded border border-neutral-300 bg-neutral-100 px-1.5 py-0.5 text-xs font-mono font-medium text-neutral-700 shadow-sm"
                 {...(index === 0 ? props : {})}
               >
-                {getModifierKey(key)}
+                <KeyDisplay keyValue={key} />
               </kbd>
             </React.Fragment>
           )

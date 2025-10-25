@@ -1,6 +1,14 @@
 /**
  * API Mock Helpers
- * Re-exports from test-utils for backward compatibility
+ *
+ * @deprecated This file contains duplicate helpers that exist in /test-utils/.
+ * Please migrate to using the consolidated helpers from @/test-utils instead:
+ *
+ * Old import: import { createMockSupabaseClient } from '@/__tests__/helpers/apiMocks';
+ * New import: import { createMockSupabaseClient } from '@/test-utils';
+ *
+ * This file will be removed in a future version.
+ * All functionality is available in the main test-utils package with better documentation.
  */
 
 import { NextRequest } from 'next/server';
@@ -87,9 +95,11 @@ export function createMockSupabaseClient(): any {
       signOut: jest.fn().mockResolvedValue({ error: null }),
     },
     storage: {
-      from: jest.fn(function(this: any) {
-        return this;
-      }).mockReturnThis(),
+      from: jest
+        .fn(function (this: any) {
+          return this;
+        })
+        .mockReturnThis(),
       upload: jest.fn().mockResolvedValue({ data: null, error: null }),
       download: jest.fn().mockResolvedValue({ data: null, error: null }),
       remove: jest.fn().mockResolvedValue({ data: null, error: null }),
@@ -150,10 +160,7 @@ export function createMockProject(overrides?: any): any {
 /**
  * Mocks an authenticated user in the Supabase client
  */
-export function mockAuthenticatedUser(
-  supabaseClient: any,
-  user?: Partial<User>
-): User {
+export function mockAuthenticatedUser(supabaseClient: any, user?: Partial<User>): User {
   const mockUser = createMockUser(user);
 
   supabaseClient.auth.getUser.mockResolvedValue({

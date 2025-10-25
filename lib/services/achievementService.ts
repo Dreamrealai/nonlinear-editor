@@ -87,6 +87,35 @@ export interface LeaderboardEntry {
 }
 
 /**
+ * Database row type for easter egg achievements
+ */
+interface EasterEggRow {
+  id: string;
+  user_id: string;
+  egg_id: EasterEggId;
+  discovered_at: string;
+  activation_count: number;
+  total_duration_ms: number;
+  last_activated_at?: string;
+  shared: boolean;
+  shared_at?: string;
+}
+
+/**
+ * Database row type for leaderboard
+ */
+interface LeaderboardRow {
+  user_id: string;
+  email?: string;
+  eggs_discovered: number;
+  first_discovery?: string;
+  last_discovery?: string;
+  discovery_duration?: string | number;
+  total_activations: number;
+  eggs_shared: number;
+}
+
+/**
  * Achievement Service
  *
  * Handles easter egg discovery, achievements, and leaderboard.
@@ -326,16 +355,16 @@ class AchievementService {
       if (eggError) throw eggError;
 
       const discoveredCount = eggData?.length || 0;
-      const hasShared = eggData?.some((egg: any) => egg.shared) || false;
+      const hasShared = eggData?.some((egg: EasterEggRow) => egg.shared) || false;
 
       // Calculate speed runner achievement
       let isSpeedRunner = false;
       if (discoveredCount === 5 && eggData) {
         const firstDiscovery = new Date(
-          Math.min(...eggData.map((e: any): number => new Date(e.discovered_at).getTime()))
+          Math.min(...eggData.map((e: EasterEggRow): number => new Date(e.discovered_at).getTime()))
         );
         const lastDiscovery = new Date(
-          Math.max(...eggData.map((e: any): number => new Date(e.discovered_at).getTime()))
+          Math.max(...eggData.map((e: EasterEggRow): number => new Date(e.discovered_at).getTime()))
         );
         const durationMinutes = (lastDiscovery.getTime() - firstDiscovery.getTime()) / 1000 / 60;
         isSpeedRunner = durationMinutes < 5;
@@ -383,18 +412,25 @@ class AchievementService {
       if (error) throw error;
 
       return (
-        data?.map((entry: any): { userId: any; email: any; eggsDiscovered: any; firstDiscovery: Date | undefined; lastDiscovery: Date | undefined; discoveryDuration: number | undefined; totalActivations: any; eggsShared: any; } => ({
-          userId: entry.user_id,
-          email: entry.email,
-          eggsDiscovered: entry.eggs_discovered,
-          firstDiscovery: entry.first_discovery ? new Date(entry.first_discovery) : undefined,
-          lastDiscovery: entry.last_discovery ? new Date(entry.last_discovery) : undefined,
-          discoveryDuration: entry.discovery_duration
-            ? parseInt(entry.discovery_duration)
-            : undefined,
-          totalActivations: entry.total_activations,
-          eggsShared: entry.eggs_shared,
-        })) || []
+        data?.map((entry: LeaderboardRow): LeaderboardEntry => {
+          // Safely parse discovery duration with NaN validation
+          let discoveryDuration: number | undefined = undefined;
+          if (entry.discovery_duration) {
+            const parsed = parseInt(String(entry.discovery_duration), 10);
+            discoveryDuration = isNaN(parsed) ? undefined : parsed;
+          }
+
+          return {
+            userId: entry.user_id,
+            email: entry.email,
+            eggsDiscovered: entry.eggs_discovered,
+            firstDiscovery: entry.first_discovery ? new Date(entry.first_discovery) : undefined,
+            lastDiscovery: entry.last_discovery ? new Date(entry.last_discovery) : undefined,
+            discoveryDuration,
+            totalActivations: entry.total_activations,
+            eggsShared: entry.eggs_shared,
+          };
+        }) || []
       );
     } catch (error) {
       console.error('Failed to get leaderboard:', error);
@@ -435,8 +471,14 @@ class AchievementService {
     // Check last hint timestamp
     const lastHintShown = localStorage.getItem('lastEasterEggHint');
     if (lastHintShown) {
-      const daysSinceLastHint = (Date.now() - parseInt(lastHintShown)) / 1000 / 60 / 60 / 24;
-      if (daysSinceLastHint < 7) return false; // Show hints max once per week
+      const parsedTimestamp = parseInt(lastHintShown, 10);
+      if (isNaN(parsedTimestamp)) {
+        // Invalid timestamp in localStorage, clear it
+        localStorage.removeItem('lastEasterEggHint');
+      } else {
+        const daysSinceLastHint = (Date.now() - parsedTimestamp) / 1000 / 60 / 60 / 24;
+        if (daysSinceLastHint < 7) return false; // Show hints max once per week
+      }
     }
 
     // Check account age (show after 30 days if no discoveries)

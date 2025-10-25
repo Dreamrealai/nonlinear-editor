@@ -10,9 +10,10 @@
  */
 'use client';
 
-import React, {  useState, useEffect  } from 'react';
+import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
+import { measureOperation } from '@/lib/utils/performance';
 import type { Timeline } from '@/types/timeline';
 import type { ExportPreset } from '@/types/export';
 import {
@@ -51,7 +52,13 @@ const PLATFORM_ICONS: Record<string, React.ComponentType<{ className?: string }>
   linkedin: Info,
 };
 
-export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue }: ExportModalProps): React.ReactElement {
+export function ExportModal({
+  isOpen,
+  onClose,
+  projectId,
+  timeline,
+  onOpenQueue,
+}: ExportModalProps): React.ReactElement {
   const [presets, setPresets] = useState<ExportPreset[]>([]);
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const [isLoadingPresets, setIsLoadingPresets] = useState(true);
@@ -108,43 +115,61 @@ export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue 
     setFeedback(null);
 
     try {
-      const preset = presets.find((p): boolean => p.id === selectedPresetId);
-      if (!preset) {
-        throw new Error('Invalid export preset selected');
-      }
+      // Track export operation performance
+      await measureOperation(
+        'export-start',
+        'export_start',
+        async (): Promise<void> => {
+          const preset = presets.find((p): boolean => p.id === selectedPresetId);
+          if (!preset) {
+            throw new Error('Invalid export preset selected');
+          }
 
-      const response = await fetch('/api/export', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+          const response = await fetch('/api/export', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              projectId,
+              timeline: {
+                clips: timeline.clips,
+              },
+              outputSpec: preset.settings,
+              priority, // Include priority in export request
+            }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || 'Export failed');
+          }
+
+          browserLogger.info(
+            { projectId, jobId: data.data?.jobId, preset: preset.name, priority },
+            'Export started'
+          );
+          const successMessage =
+            data.message || `Export added to queue. Track progress in the Render Queue.`;
+          setFeedback({
+            type: 'success',
+            message: successMessage,
+          });
+          toast.success('Export added to render queue');
+
+          // Reset priority after successful export
+          setPriority(0);
         },
-        body: JSON.stringify({
+        {
           projectId,
-          timeline: {
-            clips: timeline.clips,
-          },
-          outputSpec: preset.settings,
-          priority, // Include priority in export request
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Export failed');
-      }
-
-      browserLogger.info({ projectId, jobId: data.data?.jobId, preset: preset.name, priority }, 'Export started');
-      const successMessage =
-        data.message || `Export added to queue. Track progress in the Render Queue.`;
-      setFeedback({
-        type: 'success',
-        message: successMessage,
-      });
-      toast.success('Export added to render queue');
-
-      // Reset priority after successful export
-      setPriority(0);
+          component: 'ExportModal',
+          operation: 'export-start',
+          clipCount: timeline.clips.length,
+          presetId: selectedPresetId,
+          priority,
+        }
+      );
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to start export';
       setFeedback({ type: 'error', message: errorMessage });
@@ -193,7 +218,9 @@ export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue 
                   <div className="mb-2 block text-sm font-medium">Platform Presets</div>
                   <div className="grid grid-cols-2 gap-3">
                     {platformPresets.map((preset): React.ReactElement => {
-                      const Icon = preset.platform_type ? PLATFORM_ICONS[preset.platform_type] : Info;
+                      const Icon = preset.platform_type
+                        ? PLATFORM_ICONS[preset.platform_type]
+                        : Info;
                       return (
                         <button
                           key={preset.id}
@@ -210,12 +237,13 @@ export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue 
                             <div className="font-semibold">{preset.name}</div>
                           </div>
                           {preset.description && (
-                            <div className="mt-1 text-xs text-muted-foreground">{preset.description}</div>
+                            <div className="mt-1 text-xs text-muted-foreground">
+                              {preset.description}
+                            </div>
                           )}
                           <div className="mt-2 text-xs text-muted-foreground/80">
-                            {preset.settings.width}x{preset.settings.height} •{' '}
-                            {preset.settings.fps}fps •{' '}
-                            {preset.settings.format.toUpperCase()}
+                            {preset.settings.width}x{preset.settings.height} • {preset.settings.fps}
+                            fps • {preset.settings.format.toUpperCase()}
                           </div>
                         </button>
                       );
@@ -229,28 +257,31 @@ export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue 
                 <div>
                   <div className="mb-2 block text-sm font-medium">Custom Presets</div>
                   <div className="grid grid-cols-2 gap-3">
-                    {customPresets.map((preset): React.ReactElement => (
-                      <button
-                        key={preset.id}
-                        onClick={(): void => setSelectedPresetId(preset.id)}
-                        className={cn(
-                          'rounded-lg border p-4 text-left transition-all',
-                          selectedPresetId === preset.id
-                            ? 'border-blue-500 bg-blue-500/20'
-                            : 'border-border hover:border-blue-500/50'
-                        )}
-                      >
-                        <div className="font-semibold">{preset.name}</div>
-                        {preset.description && (
-                          <div className="mt-1 text-xs text-muted-foreground">{preset.description}</div>
-                        )}
-                        <div className="mt-2 text-xs text-muted-foreground/80">
-                          {preset.settings.width}x{preset.settings.height} •{' '}
-                          {preset.settings.fps}fps •{' '}
-                          {preset.settings.format.toUpperCase()}
-                        </div>
-                      </button>
-                    ))}
+                    {customPresets.map(
+                      (preset): React.ReactElement => (
+                        <button
+                          key={preset.id}
+                          onClick={(): void => setSelectedPresetId(preset.id)}
+                          className={cn(
+                            'rounded-lg border p-4 text-left transition-all',
+                            selectedPresetId === preset.id
+                              ? 'border-blue-500 bg-blue-500/20'
+                              : 'border-border hover:border-blue-500/50'
+                          )}
+                        >
+                          <div className="font-semibold">{preset.name}</div>
+                          {preset.description && (
+                            <div className="mt-1 text-xs text-muted-foreground">
+                              {preset.description}
+                            </div>
+                          )}
+                          <div className="mt-2 text-xs text-muted-foreground/80">
+                            {preset.settings.width}x{preset.settings.height} • {preset.settings.fps}
+                            fps • {preset.settings.format.toUpperCase()}
+                          </div>
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
               )}
@@ -282,9 +313,12 @@ export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue 
 
               {/* Priority Selection */}
               <div>
-                <label className="mb-2 block text-sm font-medium">Priority</label>
+                <label htmlFor="priority-range" className="mb-2 block text-sm font-medium">
+                  Priority
+                </label>
                 <div className="flex items-center gap-4">
                   <input
+                    id="priority-range"
                     type="range"
                     min="0"
                     max="10"
@@ -328,7 +362,10 @@ export function ExportModal({ isOpen, onClose, projectId, timeline, onOpenQueue 
               <Button onClick={onClose} variant="outline" disabled={isExporting}>
                 Cancel
               </Button>
-              <Button onClick={handleExport} disabled={isExporting || !timeline || !selectedPresetId}>
+              <Button
+                onClick={handleExport}
+                disabled={isExporting || !timeline || !selectedPresetId}
+              >
                 {isExporting ? (
                   <div className="flex items-center gap-2">
                     <LoadingSpinner size={16} />

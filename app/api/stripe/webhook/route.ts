@@ -86,8 +86,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
       expand: ['items.data.price'],
     });
 
-    // Extract values before type narrowing
-    const subscriptionData = subscription as unknown as {
+    // Extract subscription data with proper typing
+    interface SubscriptionData {
       current_period_start: number;
       current_period_end: number;
       status: string;
@@ -97,7 +97,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
           price: string | { id: string };
         }>;
       };
-    };
+    }
+    const subscriptionData = subscription as unknown as SubscriptionData;
 
     // Safely get the first item's price
     const firstItem = subscriptionData.items.data?.[0];
@@ -147,11 +148,11 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
       subscription_cancel_at_period_end: subscriptionData.cancel_at_period_end,
       tier: newTier,
     };
-    const { data, error } = await (supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from('user_profiles')
       .update(updateData as never)
       .eq('id', userId)
-      .select() as unknown as Promise<{ data: unknown[] | null; error: { message: string; code: string } | null }>);
+      .select();
 
     // CRITICAL: Check for database errors and throw to trigger Stripe retry
     if (error) {
@@ -256,8 +257,8 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Pro
       return;
     }
 
-    // Extract subscription data
-    const subscriptionData = subscription as unknown as {
+    // Extract subscription data with proper typing
+    interface SubscriptionUpdateData {
       id: string;
       current_period_start: number;
       current_period_end: number;
@@ -268,7 +269,8 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Pro
           price: string | { id: string };
         }>;
       };
-    };
+    }
+    const subscriptionData = subscription as unknown as SubscriptionUpdateData;
 
     // CRITICAL: Preserve admin tier - determine tier based on subscription status
     const oldTier = profile.tier;
@@ -322,11 +324,11 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Pro
       subscription_cancel_at_period_end: subscriptionData.cancel_at_period_end,
       tier,
     };
-    const { data, error } = await (supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from('user_profiles')
       .update(updateData as never)
       .eq('id', profile.id)
-      .select() as unknown as Promise<{ data: unknown[] | null; error: { message: string; code: string } | null }>);
+      .select();
 
     // CRITICAL: Check for database errors and throw to trigger Stripe retry
     if (error) {
@@ -439,11 +441,11 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Pro
       stripe_price_id: null,
       subscription_cancel_at_period_end: false,
     };
-    const { data, error } = await (supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from('user_profiles')
       .update(updateData as never)
       .eq('id', profile.id)
-      .select() as unknown as Promise<{ data: unknown[] | null; error: { message: string; code: string } | null }>);
+      .select();
 
     // CRITICAL: Check for database errors and throw to trigger Stripe retry
     if (error) {
@@ -500,7 +502,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Pro
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
 
   try {

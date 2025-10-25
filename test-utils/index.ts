@@ -14,16 +14,52 @@
  *   expect(screen.getByText('Hello')).toBeInTheDocument();
  * });
  * ```
+ *
+ * @example API Route Testing
+ * ```ts
+ * import { createTestAuthHandler, createAuthenticatedRequest } from '@/test-utils';
+ *
+ * describe('POST /api/projects', () => {
+ *   it('creates project', async () => {
+ *     const handler = createTestAuthHandler(POST);
+ *     const { request } = createAuthenticatedRequest({
+ *       method: 'POST',
+ *       url: '/api/projects',
+ *       body: { title: 'Test' }
+ *     });
+ *     const response = await handler(request, { params: Promise.resolve({}) });
+ *     expect(response.status).toBe(200);
+ *   });
+ * });
+ * ```
+ *
+ * @example FormData Testing
+ * ```ts
+ * import { createTestFormData, createAuthFormDataRequest } from '@/test-utils';
+ *
+ * const formData = createTestFormData({ message: 'Hello', model: 'gpt-4' });
+ * const { request } = createAuthFormDataRequest(formData);
+ * ```
  */
 
+// ============================================================================
+// React Testing Library
+// ============================================================================
 // Re-export all @testing-library/react utilities
 export * from '@testing-library/react';
 export { default as userEvent } from '@testing-library/user-event';
 
-// Re-export custom render with providers
+// ============================================================================
+// Custom Render Functions
+// ============================================================================
+// Re-export custom render with providers (for component tests)
 export { render, renderHook } from './render';
 
-// Re-export Supabase mocking utilities
+// ============================================================================
+// Supabase Mocking Utilities
+// ============================================================================
+// Comprehensive Supabase client mocking with chainable query builder
+// Use these for all Supabase-related testing
 export {
   createMockSupabaseClient,
   createMockUser,
@@ -40,7 +76,42 @@ export {
   type MockSupabaseChain,
 } from './mockSupabase';
 
-// Re-export test helpers
+// ============================================================================
+// Auth Testing Utilities
+// ============================================================================
+// Test-friendly auth utilities with in-memory database
+// Use these for API route testing that requires authentication
+export {
+  createTestAuthHandler,
+  createAuthenticatedRequest,
+  createUnauthenticatedRequest,
+  createTestUser,
+  createTestSupabaseClient,
+  getTestDatabase,
+  clearTestDatabase,
+  type TestUserData,
+} from './testWithAuth';
+
+// withAuth middleware mock (for mocking @/lib/api/withAuth)
+export { mockWithAuth } from './mockWithAuth';
+
+// ============================================================================
+// FormData Testing Utilities
+// ============================================================================
+// Helpers for testing API routes that accept FormData
+export {
+  createTestFormData,
+  createAuthFormDataRequest,
+  createUnauthFormDataRequest,
+  createTestFile,
+  createFormDataWithFiles,
+  type FormDataValue,
+  type FormDataFields,
+} from './formDataHelpers';
+
+// ============================================================================
+// General Test Helpers
+// ============================================================================
 export {
   createMockRouter,
   createMockFetchResponse,
@@ -54,7 +125,9 @@ export {
   waitForAsync,
 } from './testHelpers';
 
-// Re-export Stripe mocking utilities
+// ============================================================================
+// Stripe Mocking Utilities
+// ============================================================================
 export {
   createMockCheckoutSession,
   createMockSubscription,
@@ -63,11 +136,37 @@ export {
   createMockStripeClient,
 } from './mockStripe';
 
-// Re-export API response mocking
+// ============================================================================
+// API Response Mocking
+// ============================================================================
 export { mockApiResponse, createApiResponseMock } from './mockApiResponse';
 
-// Re-export environment mocking
-export { mockEnv, restoreEnv, setTestEnv } from './mockEnv';
+// ============================================================================
+// Environment Variable Mocking
+// ============================================================================
+export {
+  mockEnv,
+  restoreEnv,
+  setTestEnv,
+  getTestEnv,
+  assertTestEnv,
+  withTestEnv,
+  withTestEnvAsync,
+} from './mockEnv';
 
-// Re-export fetch mocking
-export { mockFetch, mockFetchSuccess, mockFetchError, resetFetchMocks } from './mockFetch';
+// ============================================================================
+// Fetch API Mocking
+// ============================================================================
+export {
+  mockFetch,
+  mockFetchSuccess,
+  mockFetchError,
+  mockFetchReject,
+  mockFetchWith,
+  mockFetchSequence,
+  mockFetchByUrl,
+  resetFetchMocks,
+  createFetchSpy,
+  waitForFetchCalls,
+  type MockFetchResponse,
+} from './mockFetch';

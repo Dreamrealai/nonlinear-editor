@@ -170,9 +170,3 @@ export function formatDuration(
 export function formatTimeRemaining(seconds: number): string {
   return formatDuration(seconds, { approximate: true });
 }
-
-/**
- * Legacy alias for formatTimeMMSSCS for backward compatibility.
- * @deprecated Use formatTimeMMSSCS instead for clarity.
- */
-export const formatTime = formatTimeMMSSCS;

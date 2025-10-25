@@ -289,7 +289,40 @@ const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) 
         );
       }
 
-      const serviceAccount = JSON.parse(serviceAccountJson);
+      // Parse service account JSON with error handling
+      let serviceAccount;
+      try {
+        serviceAccount = JSON.parse(serviceAccountJson);
+
+        // Validate credential structure
+        if (
+          !serviceAccount ||
+          typeof serviceAccount !== 'object' ||
+          !serviceAccount.client_email ||
+          !serviceAccount.private_key
+        ) {
+          throw new Error('Invalid Google service account format - missing required fields');
+        }
+      } catch (parseError) {
+        serverLogger.error(
+          {
+            event: 'video.status.credentials_parse_error',
+            userId: user.id,
+            projectId: validProjectId,
+            error: parseError instanceof Error ? parseError.message : 'Unknown error',
+          },
+          'Failed to parse GOOGLE_SERVICE_ACCOUNT credentials'
+        );
+
+        if (parseError instanceof SyntaxError) {
+          throw new HttpError('Invalid GOOGLE_SERVICE_ACCOUNT JSON format', 500);
+        }
+        throw new HttpError(
+          `Invalid Google service account: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
+          500
+        );
+      }
+
       const auth = new GoogleAuth({
         credentials: serviceAccount,
         scopes: ['https://www.googleapis.com/auth/cloud-platform'],

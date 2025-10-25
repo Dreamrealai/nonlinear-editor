@@ -4,15 +4,9 @@
  */
 
 import type { Timeline as TimelineType, Clip } from '@/types/timeline';
-import { safeArrayGet, safeArrayLast } from '@/lib/utils/arrayUtils';
+import { safeArrayGet } from '@/lib/utils/arrayUtils';
 import { CLIP_CONSTANTS, THUMBNAIL_CONSTANTS } from '@/lib/constants';
 import type { AssetMetadata, AssetRow } from '@/types/assets';
-
-/** @deprecated Use CLIP_CONSTANTS.MIN_CLIP_DURATION instead */
-export const MIN_CLIP_DURATION = CLIP_CONSTANTS.MIN_CLIP_DURATION;
-
-/** @deprecated Use THUMBNAIL_CONSTANTS.THUMBNAIL_WIDTH instead */
-export const THUMBNAIL_WIDTH = THUMBNAIL_CONSTANTS.THUMBNAIL_WIDTH;
 
 const { MIN_CLIP_DURATION: MIN_DURATION } = CLIP_CONSTANTS;
 const { THUMBNAIL_WIDTH: THUMB_WIDTH, THUMBNAIL_QUALITY } = THUMBNAIL_CONSTANTS;
@@ -22,7 +16,7 @@ const { THUMBNAIL_WIDTH: THUMB_WIDTH, THUMBNAIL_QUALITY } = THUMBNAIL_CONSTANTS;
  * @param value - Value to check
  * @returns True if value is 'video', 'audio', or 'image'
  */
-export const isAssetType = (value: unknown): value is AssetRow['type'] =>
+const isAssetType = (value: unknown): value is AssetRow['type'] =>
   value === 'video' || value === 'audio' || value === 'image';
 
 /**
@@ -32,7 +26,7 @@ export const isAssetType = (value: unknown): value is AssetRow['type'] =>
  * @param value - Value to coerce (can be number, string, or other)
  * @returns Duration in seconds, or null if conversion fails
  */
-export const coerceDuration = (value: unknown): number | null => {
+const coerceDuration = (value: unknown): number | null => {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return value;
   }
@@ -136,7 +130,9 @@ export const enrichTimelineWithSourceDurations = (
  * @param storageUrl - Supabase storage URL
  * @returns Object with bucket and path, or null if invalid
  */
-export const extractStorageLocation = (storageUrl: string): { bucket: string; path: string } | null => {
+export const extractStorageLocation = (
+  storageUrl: string
+): { bucket: string; path: string } | null => {
   const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
   const parts = normalized.split('/');
   const bucket = safeArrayGet(parts, 0);
@@ -144,18 +140,6 @@ export const extractStorageLocation = (storageUrl: string): { bucket: string; pa
     return null;
   }
   return { bucket, path: parts.slice(1).join('/') };
-};
-
-/**
- * Extracts the file name from a storage URL.
- *
- * @param storageUrl - Full storage URL
- * @returns File name (last segment of the path)
- */
-export const extractFileName = (storageUrl: string): string => {
-  const normalized = storageUrl.replace(/^supabase:\/\//, '').replace(/^\/+/, '');
-  const segments = normalized.split('/');
-  return safeArrayLast(segments) ?? normalized;
 };
 
 /**
@@ -185,9 +169,7 @@ export const createEmptyTimeline = (projectId: string): TimelineType => ({
  * @param metadata - Raw metadata object from database
  * @returns Normalized AssetMetadata or null if empty
  */
-export const parseAssetMetadata = (
-  metadata: Record<string, unknown> | null
-): AssetMetadata | null => {
+const parseAssetMetadata = (metadata: Record<string, unknown> | null): AssetMetadata | null => {
   if (!metadata) {
     return null;
   }
@@ -397,11 +379,11 @@ export const audioBufferToWav = (buffer: AudioBuffer): ArrayBuffer => {
   let pos = 0;
 
   // Helper functions to write integers in little-endian format
-  const setUint16 = (data: number) => {
+  const setUint16 = (data: number): void => {
     view.setUint16(pos, data, true);
     pos += 2;
   };
-  const setUint32 = (data: number) => {
+  const setUint32 = (data: number): void => {
     view.setUint32(pos, data, true);
     pos += 4;
   };

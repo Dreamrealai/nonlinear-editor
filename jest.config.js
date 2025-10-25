@@ -1,6 +1,6 @@
-// CRITICAL: Set NODE_ENV before any module imports to ensure error messages are visible
-// This must be the FIRST thing in the file before any requires
-process.env.NODE_ENV = 'development';
+// CRITICAL: NODE_ENV is now set in jest.setup.js to 'test'
+// This was previously set to 'development' here, but that conflicts with test environment
+// The setup is now done in jest.setup.js where it belongs
 
 const nextJest = require('next/jest');
 

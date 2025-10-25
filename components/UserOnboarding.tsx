@@ -405,9 +405,9 @@ export function UserOnboarding({
 
             <div className="flex gap-1">
               {ONBOARDING_STEPS.map(
-                (step, index): React.ReactElement => (
+                (stepItem, index): React.ReactElement => (
                   <div
-                    key={step.id}
+                    key={stepItem.id}
                     className={cn(
                       'h-2 w-2 rounded-full transition-all',
                       index === currentStep

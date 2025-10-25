@@ -2,7 +2,7 @@ import type { Clip } from '@/types/timeline';
 import { safeArrayLast } from '@/lib/utils/arrayUtils';
 
 // Re-export time formatting utilities for backward compatibility
-export { formatTime, formatTimecode } from '@/lib/utils/timeFormatting';
+export { formatTimeMMSSCS as formatTime, formatTimecode } from '@/lib/utils/timeFormatting';
 
 /**
  * Extracts the filename from a clip's file path
@@ -133,7 +133,9 @@ export function calculateTimelineDuration(
   textOverlays: Array<{ timelinePosition: number; duration: number }>,
   minimumDuration = 30
 ): number {
-  const clipEndTimes = clips.length ? clips.map((c): number => c.timelinePosition + (c.end - c.start)) : [];
+  const clipEndTimes = clips.length
+    ? clips.map((c): number => c.timelinePosition + (c.end - c.start))
+    : [];
   const overlayEndTimes = textOverlays.length
     ? textOverlays.map((o): number => o.timelinePosition + o.duration)
     : [];

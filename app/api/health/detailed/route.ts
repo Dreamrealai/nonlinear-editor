@@ -19,6 +19,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { serverLogger } from '@/lib/serverLogger';
 import { withAdminAuth } from '@/lib/api/withAuth';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -609,6 +610,6 @@ export const GET = withAdminAuth(
   },
   {
     route: '/api/health/detailed',
-    rateLimit: { max: 60, windowMs: 60000 }, // 60 requests per minute
+    rateLimit: RATE_LIMITS.tier3_status_read, // 30 requests per minute for status checks
   }
 );
