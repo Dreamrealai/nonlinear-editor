@@ -19,7 +19,7 @@ if (process.env.NODE_ENV === 'development') {
   }
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // Generate CSP nonce for this request
   // Note: The nonce is generated per-request to allow Next.js inline scripts
   // The CSP header also includes 'unsafe-inline' (configured in next.config.ts)

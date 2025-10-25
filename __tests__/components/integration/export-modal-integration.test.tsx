@@ -330,56 +330,17 @@ describe('Integration: Export Modal Workflow', () => {
     it('should submit export request with correct parameters', async () => {
       const user = userEvent.setup();
 
-      // First call: fetch export presets (already mocked in beforeEach)
-      // Second call: submit export request
-      (global.fetch as jest.Mock)
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            data: {
-              presets: [
-                {
-                  id: '1080p',
-                  name: '1080p HD',
-                  resolution: '1920x1080',
-                  framerate: 30,
-                  format: 'MP4',
-                },
-                {
-                  id: '720p',
-                  name: '720p HD',
-                  resolution: '1280x720',
-                  framerate: 30,
-                  format: 'MP4',
-                },
-                {
-                  id: '480p',
-                  name: '480p SD',
-                  resolution: '854x480',
-                  framerate: 30,
-                  format: 'MP4',
-                },
-                {
-                  id: 'web',
-                  name: 'Web Optimized',
-                  resolution: '1280x720',
-                  framerate: 30,
-                  format: 'WEBM',
-                },
-              ],
-            },
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({ jobId: 'export-job-123', message: 'Export started' }),
-        });
-
       render(<ExportModal {...defaultProps} />);
 
-      // Wait for presets to load
+      // Wait for presets to load (from beforeEach mock)
       await waitFor(() => {
         expect(screen.getByText('1080p HD')).toBeInTheDocument();
+      });
+
+      // Mock export API response
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { jobId: 'export-job-123' }, message: 'Export started' }),
       });
 
       // Click add to queue
