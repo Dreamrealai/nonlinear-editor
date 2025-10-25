@@ -48,15 +48,24 @@ export const RATE_LIMIT_TIERS = {
     windowMs: 60 * 1000,
   } as RateLimitConfig,
 
-  // TIER 3: 30 requests per minute - for status checks and read operations
+  // TIER 3: 100 requests per minute - for status checks and read operations
+  // Increased from 30 to support loading timelines with many assets
   TIER_3_STATUS_READ: {
-    max: 30,
+    max: 100,
     windowMs: 60 * 1000,
   } as RateLimitConfig,
 
-  // TIER 4: 60 requests per minute - for general API operations
+  // TIER 4: 200 requests per minute - for general API operations
+  // Increased from 60 to support real-time chat and frequent updates
   TIER_4_GENERAL: {
-    max: 60,
+    max: 200,
+    windowMs: 60 * 1000,
+  } as RateLimitConfig,
+
+  // TIER 5: 500 requests per minute - for high-frequency operations like asset signing
+  // New tier for authenticated users performing asset-heavy operations
+  TIER_5_HIGH_FREQUENCY: {
+    max: 500,
     windowMs: 60 * 1000,
   } as RateLimitConfig,
 } as const;
@@ -80,7 +89,8 @@ export const ENDPOINT_RATE_LIMITS = {
   AUDIO_MUSIC: RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION,
   AUDIO_SFX: RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION,
 
-  // Asset Operations
+  // Asset Operations (High frequency - users may load timelines with 100+ assets)
+  ASSET_SIGN: RATE_LIMIT_TIERS.TIER_5_HIGH_FREQUENCY,
   ASSET_UPLOAD: RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION,
   ASSET_LIST: RATE_LIMIT_TIERS.TIER_3_STATUS_READ,
 
@@ -88,6 +98,7 @@ export const ENDPOINT_RATE_LIMITS = {
   PROJECT_CREATE: RATE_LIMIT_TIERS.TIER_2_RESOURCE_CREATION,
   PROJECT_LIST: RATE_LIMIT_TIERS.TIER_3_STATUS_READ,
   PROJECT_UPDATE: RATE_LIMIT_TIERS.TIER_4_GENERAL,
+  PROJECT_CHAT: RATE_LIMIT_TIERS.TIER_4_GENERAL, // Chat needs higher limits for real-time updates
 
   // Authentication & Payment
   STRIPE_CHECKOUT: RATE_LIMIT_TIERS.TIER_1_AUTH_PAYMENT,

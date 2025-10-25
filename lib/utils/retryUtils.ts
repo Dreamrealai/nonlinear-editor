@@ -49,6 +49,9 @@ const DEFAULT_RETRY_OPTIONS: Required<RetryOptions> = {
   shouldRetry: () => true,
   onRetry: () => {},
   enableLogging: false,
+  enableCircuitBreaker: false,
+  circuitBreakerThreshold: 5,
+  circuitBreakerTimeout: 60000,
 };
 
 /**
@@ -76,6 +79,152 @@ function calculateDelay(attempt: number, options: Required<RetryOptions>): numbe
  */
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Circuit breaker state management
+ */
+interface CircuitBreakerState {
+  failures: number;
+  lastFailureTime: number;
+  isOpen: boolean;
+}
+
+const circuitBreakers = new Map<string, CircuitBreakerState>();
+
+/**
+ * Get or create circuit breaker state for a given key
+ */
+function getCircuitBreakerState(key: string): CircuitBreakerState {
+  if (!circuitBreakers.has(key)) {
+    circuitBreakers.set(key, {
+      failures: 0,
+      lastFailureTime: 0,
+      isOpen: false,
+    });
+  }
+  return circuitBreakers.get(key)!;
+}
+
+/**
+ * Check if circuit breaker should allow request
+ */
+function shouldAllowRequest(key: string, options: Required<RetryOptions>): boolean {
+  if (!options.enableCircuitBreaker) {
+    return true;
+  }
+
+  const state = getCircuitBreakerState(key);
+
+  if (!state.isOpen) {
+    return true;
+  }
+
+  // Check if timeout has passed
+  const now = Date.now();
+  if (now - state.lastFailureTime >= options.circuitBreakerTimeout) {
+    // Reset circuit breaker
+    state.isOpen = false;
+    state.failures = 0;
+    if (options.enableLogging) {
+      browserLogger.info(
+        {
+          event: 'circuit_breaker.closed',
+          key,
+        },
+        'Circuit breaker closed after timeout'
+      );
+    }
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Record failure in circuit breaker
+ */
+function recordFailure(key: string, options: Required<RetryOptions>): void {
+  if (!options.enableCircuitBreaker) {
+    return;
+  }
+
+  const state = getCircuitBreakerState(key);
+  state.failures++;
+  state.lastFailureTime = Date.now();
+
+  if (state.failures >= options.circuitBreakerThreshold) {
+    state.isOpen = true;
+    if (options.enableLogging) {
+      browserLogger.warn(
+        {
+          event: 'circuit_breaker.opened',
+          key,
+          failures: state.failures,
+          threshold: options.circuitBreakerThreshold,
+        },
+        'Circuit breaker opened due to consecutive failures'
+      );
+    }
+  }
+}
+
+/**
+ * Record success in circuit breaker
+ */
+function recordSuccess(key: string): void {
+  const state = circuitBreakers.get(key);
+  if (state) {
+    state.failures = 0;
+    state.isOpen = false;
+  }
+}
+
+/**
+ * Extract Retry-After header from error response
+ */
+function getRetryAfterDelay(error: unknown): number | null {
+  if (!error || typeof error !== 'object') {
+    return null;
+  }
+
+  // Check if error has a response object with headers
+  const errorWithResponse = error as { response?: { headers?: Headers | Map<string, string> } };
+  const headers = errorWithResponse.response?.headers;
+
+  if (!headers) {
+    return null;
+  }
+
+  let retryAfter: string | null = null;
+
+  if (headers instanceof Headers) {
+    retryAfter = headers.get('retry-after');
+  } else if (headers instanceof Map) {
+    retryAfter = headers.get('retry-after');
+  } else if (typeof headers === 'object') {
+    // Handle plain object headers
+    retryAfter = (headers as Record<string, string>)['retry-after'] || null;
+  }
+
+  if (!retryAfter) {
+    return null;
+  }
+
+  // Try to parse as seconds (number)
+  const seconds = parseInt(retryAfter, 10);
+  if (!isNaN(seconds)) {
+    return seconds * 1000;
+  }
+
+  // Try to parse as HTTP date
+  try {
+    const date = new Date(retryAfter);
+    const delay = date.getTime() - Date.now();
+    return delay > 0 ? delay : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -111,10 +260,27 @@ function sleep(ms: number): Promise<void> {
  */
 export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
+  circuitBreakerKey?: string
 ): Promise<T> {
   const opts: Required<RetryOptions> = { ...DEFAULT_RETRY_OPTIONS, ...options };
   let lastError: unknown;
+
+  // Check circuit breaker before starting
+  const cbKey = circuitBreakerKey || 'default';
+  if (!shouldAllowRequest(cbKey, opts)) {
+    const error = new Error('Circuit breaker is open - too many consecutive failures');
+    if (opts.enableLogging) {
+      browserLogger.error(
+        {
+          event: 'retry.circuit_breaker_open',
+          key: cbKey,
+        },
+        'Circuit breaker is open, request blocked'
+      );
+    }
+    throw error;
+  }
 
   for (let attempt = 0; attempt <= opts.maxRetries; attempt++) {
     try {
@@ -129,9 +295,17 @@ export async function retryWithBackoff<T>(
         );
       }
 
-      return await fn();
+      const result = await fn();
+
+      // Success - record it for circuit breaker
+      recordSuccess(cbKey);
+
+      return result;
     } catch (error) {
       lastError = error;
+
+      // Record failure for circuit breaker
+      recordFailure(cbKey, opts);
 
       // Check if we should retry this error
       if (!opts.shouldRetry(error, attempt)) {
@@ -164,8 +338,28 @@ export async function retryWithBackoff<T>(
         break;
       }
 
-      // Calculate delay and wait before next attempt
-      const delay = calculateDelay(attempt, opts);
+      // Check for Retry-After header (especially for 429 errors)
+      const retryAfterDelay = getRetryAfterDelay(error);
+      let delay: number;
+
+      if (retryAfterDelay !== null) {
+        // Use Retry-After header value, but cap it at maxDelay
+        delay = Math.min(retryAfterDelay, opts.maxDelay);
+
+        if (opts.enableLogging) {
+          browserLogger.info(
+            {
+              event: 'retry.using_retry_after',
+              retryAfterDelay,
+              cappedDelay: delay,
+            },
+            'Using Retry-After header for delay'
+          );
+        }
+      } else {
+        // Calculate exponential backoff delay
+        delay = calculateDelay(attempt, opts);
+      }
 
       if (opts.enableLogging) {
         browserLogger.warn(
