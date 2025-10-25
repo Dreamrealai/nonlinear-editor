@@ -36,7 +36,7 @@
  */
 'use client';
 
-import React, {  useState, useEffect, useCallback  } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
@@ -55,6 +55,8 @@ interface EditorHeaderProps {
   projectId: string;
   currentTab: 'video-editor' | 'generate-video' | 'generate-audio' | 'image-editor';
   onExport?: () => void;
+  onExportProject?: (format: 'json' | 'edl' | 'xml') => void;
+  onImportProject?: () => void;
   lastSaved?: Date | null;
   isSaving?: boolean;
 }
@@ -68,6 +70,8 @@ export function EditorHeader({
   projectId,
   currentTab,
   onExport,
+  onExportProject,
+  onImportProject,
   lastSaved,
   isSaving,
 }: EditorHeaderProps): React.ReactElement {
@@ -80,6 +84,8 @@ export function EditorHeader({
   const [renameValue, setRenameValue] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isExportProjectDropdownOpen, setIsExportProjectDropdownOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const dashboard = useGenerationDashboardModal();
 
   useEffect((): void => {
@@ -279,60 +285,35 @@ export function EditorHeader({
                     {projects.length === 0 ? (
                       <div className="px-4 py-2 text-sm text-neutral-500">No projects found</div>
                     ) : (
-                      projects.map((project): React.ReactElement => (
-                        <div
-                          key={project.id}
-                          className={`w-full px-4 py-2 text-left text-sm hover:bg-neutral-50 transition-colors flex items-center justify-between group ${
-                            project.id === projectId
-                              ? 'bg-blue-50 text-blue-700 font-medium'
-                              : 'text-neutral-900'
-                          }`}
-                        >
-                          <button
-                            onClick={(): void =>
+                      projects.map(
+                        (project): React.ReactElement => (
+                          <div
+                            key={project.id}
+                            className={`w-full px-4 py-2 text-left text-sm hover:bg-neutral-50 transition-colors flex items-center justify-between group ${
                               project.id === projectId
-                                ? handleRenameClick()
-                                : handleProjectChange(project.id)
-                            }
-                            className="flex-1 text-left"
+                                ? 'bg-blue-50 text-blue-700 font-medium'
+                                : 'text-neutral-900'
+                            }`}
                           >
-                            <span>{project.title}</span>
-                          </button>
-                          {project.id === projectId && (
-                            <div className="flex items-center gap-1">
-                              <button
-                                onClick={handleRenameClick}
-                                className="p-1 rounded hover:bg-blue-100 transition-colors"
-                                title="Rename project"
-                              >
-                                <svg
-                                  className="h-3.5 w-3.5 text-blue-500 opacity-60 group-hover:opacity-100"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
+                            <button
+                              onClick={(): void =>
+                                project.id === projectId
+                                  ? handleRenameClick()
+                                  : handleProjectChange(project.id)
+                              }
+                              className="flex-1 text-left"
+                            >
+                              <span>{project.title}</span>
+                            </button>
+                            {project.id === projectId && (
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={handleRenameClick}
+                                  className="p-1 rounded hover:bg-blue-100 transition-colors"
+                                  title="Rename project"
                                 >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                                  />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={(e): void => {
-                                  e.stopPropagation();
-                                  void handleDeleteProject();
-                                }}
-                                disabled={isDeleting}
-                                className="p-1 rounded hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                title={isDeleting ? 'Deleting...' : 'Delete project'}
-                              >
-                                {isDeleting ? (
-                                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-red-500 border-t-transparent"></div>
-                                ) : (
                                   <svg
-                                    className="h-3.5 w-3.5 text-red-500 opacity-60 group-hover:opacity-100"
+                                    className="h-3.5 w-3.5 text-blue-500 opacity-60 group-hover:opacity-100"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     stroke="currentColor"
@@ -341,15 +322,42 @@ export function EditorHeader({
                                       strokeLinecap="round"
                                       strokeLinejoin="round"
                                       strokeWidth={2}
-                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
                                     />
                                   </svg>
-                                )}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))
+                                </button>
+                                <button
+                                  onClick={(e): void => {
+                                    e.stopPropagation();
+                                    void handleDeleteProject();
+                                  }}
+                                  disabled={isDeleting}
+                                  className="p-1 rounded hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                  title={isDeleting ? 'Deleting...' : 'Delete project'}
+                                >
+                                  {isDeleting ? (
+                                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-red-500 border-t-transparent"></div>
+                                  ) : (
+                                    <svg
+                                      className="h-3.5 w-3.5 text-red-500 opacity-60 group-hover:opacity-100"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                      />
+                                    </svg>
+                                  )}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      )
                     )}
                   </div>
                 </div>
@@ -465,6 +473,139 @@ export function EditorHeader({
                 </svg>
                 <span className="hidden sm:inline">Shortcuts</span>
               </button>
+              {/* Export Project Button with Dropdown */}
+              {onExportProject && (
+                <div className="relative">
+                  <button
+                    onClick={(): void =>
+                      setIsExportProjectDropdownOpen(!isExportProjectDropdownOpen)
+                    }
+                    className="rounded-lg border border-blue-600 bg-white px-4 py-2 text-sm font-semibold text-blue-600 shadow hover:bg-blue-50 transition-colors flex items-center gap-2"
+                    title="Export project in different formats"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <span className="hidden sm:inline">Export Project</span>
+                    <svg
+                      className={`h-3 w-3 transition-transform ${isExportProjectDropdownOpen ? 'rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  {isExportProjectDropdownOpen && (
+                    <>
+                      <button
+                        type="button"
+                        className="fixed inset-0 z-10"
+                        onClick={(): void => setIsExportProjectDropdownOpen(false)}
+                        aria-label="Close dropdown"
+                        style={{ background: 'transparent', border: 'none', cursor: 'default' }}
+                      />
+                      <div className="absolute right-0 top-full z-20 mt-2 w-56 rounded-lg border border-neutral-200 bg-white shadow-xl dark:border-neutral-700 dark:bg-neutral-800">
+                        <div className="py-1">
+                          <button
+                            onClick={(): void => {
+                              onExportProject('json');
+                              setIsExportProjectDropdownOpen(false);
+                            }}
+                            className="w-full px-4 py-2.5 text-left text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700 flex items-center gap-3 text-neutral-900 dark:text-neutral-100"
+                          >
+                            <svg
+                              className="h-4 w-4 text-blue-500"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                            <div>
+                              <div className="font-medium">JSON Format</div>
+                              <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                                Full project backup
+                              </div>
+                            </div>
+                          </button>
+                          <button
+                            onClick={(): void => {
+                              onExportProject('edl');
+                              setIsExportProjectDropdownOpen(false);
+                            }}
+                            className="w-full px-4 py-2.5 text-left text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700 flex items-center gap-3 text-neutral-900 dark:text-neutral-100"
+                          >
+                            <svg
+                              className="h-4 w-4 text-purple-500"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                              />
+                            </svg>
+                            <div>
+                              <div className="font-medium">EDL Format</div>
+                              <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                                DaVinci Resolve compatible
+                              </div>
+                            </div>
+                          </button>
+                          <button
+                            onClick={(): void => {
+                              onExportProject('xml');
+                              setIsExportProjectDropdownOpen(false);
+                            }}
+                            className="w-full px-4 py-2.5 text-left text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700 flex items-center gap-3 text-neutral-900 dark:text-neutral-100"
+                          >
+                            <svg
+                              className="h-4 w-4 text-orange-500"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                              />
+                            </svg>
+                            <div>
+                              <div className="font-medium">FCP XML</div>
+                              <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                                Final Cut Pro / Premiere
+                              </div>
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
               {onExport && (
                 <button
                   onClick={onExport}
@@ -481,6 +622,64 @@ export function EditorHeader({
                   </svg>
                   <span className="hidden sm:inline">Export Video</span>
                 </button>
+              )}
+
+              {/* More Menu with Import Project */}
+              {onImportProject && (
+                <div className="relative">
+                  <button
+                    onClick={(): void => setIsMoreMenuOpen(!isMoreMenuOpen)}
+                    className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 shadow-sm hover:bg-neutral-50 transition-colors flex items-center gap-2"
+                    title="More options"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                      />
+                    </svg>
+                  </button>
+
+                  {isMoreMenuOpen && (
+                    <>
+                      <button
+                        type="button"
+                        className="fixed inset-0 z-10"
+                        onClick={(): void => setIsMoreMenuOpen(false)}
+                        aria-label="Close menu"
+                        style={{ background: 'transparent', border: 'none', cursor: 'default' }}
+                      />
+                      <div className="absolute right-0 top-full z-20 mt-2 w-48 rounded-lg border border-neutral-200 bg-white shadow-xl dark:border-neutral-700 dark:bg-neutral-800">
+                        <div className="py-1">
+                          <button
+                            onClick={(): void => {
+                              onImportProject();
+                              setIsMoreMenuOpen(false);
+                            }}
+                            className="w-full px-4 py-2.5 text-left text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700 flex items-center gap-3 text-neutral-900 dark:text-neutral-100"
+                          >
+                            <svg
+                              className="h-4 w-4 text-green-500"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                              />
+                            </svg>
+                            <span className="font-medium">Import Project</span>
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
             </>
           )}
@@ -577,18 +776,20 @@ export function EditorHeader({
                   {isDropdownOpen && (
                     <div className="mt-2 border border-neutral-200 rounded-lg bg-white">
                       <div className="max-h-48 overflow-y-auto">
-                        {projects.map((project): React.ReactElement => (
-                          <button
-                            key={project.id}
-                            onClick={(): void => {
-                              handleProjectChange(project.id);
-                              setIsMobileMenuOpen(false);
-                            }}
-                            className={`w-full px-3 py-2 text-left text-sm hover:bg-neutral-50 ${project.id === projectId ? 'bg-blue-50 text-blue-700 font-medium' : 'text-neutral-900'}`}
-                          >
-                            {project.title}
-                          </button>
-                        ))}
+                        {projects.map(
+                          (project): React.ReactElement => (
+                            <button
+                              key={project.id}
+                              onClick={(): void => {
+                                handleProjectChange(project.id);
+                                setIsMobileMenuOpen(false);
+                              }}
+                              className={`w-full px-3 py-2 text-left text-sm hover:bg-neutral-50 ${project.id === projectId ? 'bg-blue-50 text-blue-700 font-medium' : 'text-neutral-900'}`}
+                            >
+                              {project.title}
+                            </button>
+                          )
+                        )}
                       </div>
                     </div>
                   )}
@@ -681,6 +882,54 @@ export function EditorHeader({
                     </svg>
                     Keyboard Shortcuts
                   </button>
+                  {onExportProject && (
+                    <>
+                      <button
+                        onClick={(): void => {
+                          onExportProject('json');
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="w-full rounded-lg border border-blue-600 bg-white px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 flex items-center justify-center gap-2"
+                      >
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                        Export Project (JSON)
+                      </button>
+                      <button
+                        onClick={(): void => {
+                          onExportProject('edl');
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="w-full rounded-lg border border-purple-600 bg-white px-3 py-2 text-sm font-medium text-purple-600 hover:bg-purple-50 flex items-center justify-center gap-2"
+                      >
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                          />
+                        </svg>
+                        Export for DaVinci (EDL)
+                      </button>
+                    </>
+                  )}
                   {onExport && (
                     <button
                       onClick={(): void => {
@@ -703,6 +952,30 @@ export function EditorHeader({
                         />
                       </svg>
                       Export Video
+                    </button>
+                  )}
+                  {onImportProject && (
+                    <button
+                      onClick={(): void => {
+                        onImportProject();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full rounded-lg border border-green-600 bg-white px-3 py-2 text-sm font-medium text-green-600 hover:bg-green-50 flex items-center justify-center gap-2"
+                    >
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        />
+                      </svg>
+                      Import Project
                     </button>
                   )}
                 </>

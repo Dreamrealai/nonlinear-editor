@@ -43,6 +43,7 @@
 import { serverLogger } from '@/lib/serverLogger';
 import { createServiceSupabaseClient, isSupabaseServiceConfigured } from '@/lib/supabase';
 import type { NextRequest } from 'next/server';
+import type { Json } from '@/types/supabase';
 
 /**
  * Comprehensive list of all auditable actions in the system
@@ -294,14 +295,12 @@ export async function auditLog(entry: AuditLogEntry): Promise<void> {
       status_code: entry.statusCode || null,
       error_message: entry.errorMessage || null,
       duration_ms: entry.durationMs || null,
-      metadata: entry.metadata || {},
+      metadata: (entry.metadata || {}) as Json,
       created_at: new Date().toISOString(),
     };
 
     // Insert audit log (non-blocking, fire-and-forget)
-    // Note: Type assertion needed because Supabase types are not generated for this project
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await supabase.from('audit_logs').insert(auditRecord as any);
+    const { error } = await supabase.from('audit_logs').insert(auditRecord);
 
     if (error) {
       // Log error but don't throw to avoid disrupting application flow

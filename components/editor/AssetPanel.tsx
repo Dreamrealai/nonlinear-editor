@@ -6,7 +6,7 @@
  */
 'use client';
 
-import React, {  type ChangeEvent, useRef, useState, useMemo, useCallback  } from 'react';
+import React, { type ChangeEvent, useRef, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { AssetRow } from '@/types/assets';
@@ -167,7 +167,9 @@ export function AssetPanel({
     if (selectedTags.size > 0) {
       filtered = filtered.filter((asset): boolean => {
         if (!asset.tags || asset.tags.length === 0) return false;
-        return Array.from(selectedTags).some((tag): boolean | undefined => asset.tags?.includes(tag));
+        return Array.from(selectedTags).some((tag): boolean | undefined =>
+          asset.tags?.includes(tag)
+        );
       });
     }
 
@@ -383,24 +385,26 @@ export function AssetPanel({
               Usage Status
             </label>
             <div className="flex gap-2">
-              {(['all', 'used', 'unused'] as UsageFilter[]).map((filter): React.ReactElement => (
-                <button
-                  key={filter}
-                  type="button"
-                  onClick={(): void => setUsageFilter(filter)}
-                  className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                    usageFilter === filter
-                      ? 'bg-purple-500 text-white'
-                      : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
-                  }`}
-                >
-                  {filter === 'all'
-                    ? 'All Assets'
-                    : filter === 'used'
-                      ? 'Used in Timeline'
-                      : 'Unused'}
-                </button>
-              ))}
+              {(['all', 'used', 'unused'] as UsageFilter[]).map(
+                (filter): React.ReactElement => (
+                  <button
+                    key={filter}
+                    type="button"
+                    onClick={(): void => setUsageFilter(filter)}
+                    className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                      usageFilter === filter
+                        ? 'bg-purple-500 text-white'
+                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                    }`}
+                  >
+                    {filter === 'all'
+                      ? 'All Assets'
+                      : filter === 'used'
+                        ? 'Used in Timeline'
+                        : 'Unused'}
+                  </button>
+                )
+              )}
             </div>
           </div>
 
@@ -411,28 +415,30 @@ export function AssetPanel({
                 Filter by Tags
               </label>
               <div className="flex flex-wrap gap-1.5">
-                {availableTags.map((tag): React.ReactElement => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={(): void => {
-                      const newTags = new Set(selectedTags);
-                      if (newTags.has(tag)) {
-                        newTags.delete(tag);
-                      } else {
-                        newTags.add(tag);
-                      }
-                      setSelectedTags(newTags);
-                    }}
-                    className={`rounded-md px-2 py-1 text-xs font-medium transition-colors ${
-                      selectedTags.has(tag)
-                        ? 'bg-purple-500 text-white'
-                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
-                    }`}
-                  >
-                    {tag}
-                  </button>
-                ))}
+                {availableTags.map(
+                  (tag): React.ReactElement => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={(): void => {
+                        const newTags = new Set(selectedTags);
+                        if (newTags.has(tag)) {
+                          newTags.delete(tag);
+                        } else {
+                          newTags.add(tag);
+                        }
+                        setSelectedTags(newTags);
+                      }}
+                      className={`rounded-md px-2 py-1 text-xs font-medium transition-colors ${
+                        selectedTags.has(tag)
+                          ? 'bg-purple-500 text-white'
+                          : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  )
+                )}
               </div>
             </div>
           )}
@@ -542,7 +548,7 @@ export function AssetPanel({
             className="min-h-[120px]"
           />
           <Link
-            href={`/video-gen?projectId=${projectId}`}
+            href={`/editor/${projectId}/generate-video`}
             className="group w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-xs font-semibold text-white text-center shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg"
           >
             <div className="flex items-center justify-center gap-2">
@@ -574,7 +580,7 @@ export function AssetPanel({
             className="min-h-[120px]"
           />
           <Link
-            href={`/image-gen?projectId=${projectId}`}
+            href={`/editor/${projectId}/image-editor`}
             className="group w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-xs font-semibold text-white text-center shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg"
           >
             <div className="flex items-center justify-center gap-2">
@@ -606,7 +612,7 @@ export function AssetPanel({
             className="min-h-[120px]"
           />
           <Link
-            href={`/audio-gen?projectId=${projectId}`}
+            href={`/editor/${projectId}/generate-audio`}
             className="group w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 text-xs font-semibold text-white text-center shadow-md transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-lg"
           >
             <div className="flex items-center justify-center gap-2">
@@ -682,120 +688,122 @@ export function AssetPanel({
                 : 'No audio assets yet. Upload or generate audio.'}
           </div>
         )}
-        {filteredAssets.map((asset): React.ReactElement => (
-          <div key={asset.id} className="group relative flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={(): undefined => void onAssetAdd(asset)}
-              onKeyDown={(e): void => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  void onAssetAdd(asset);
-                }
-              }}
-              aria-label={`Add ${asset.metadata?.filename ?? asset.type} to timeline`}
-              className="flex w-full items-center gap-3 rounded-lg border border-transparent bg-neutral-50 px-3 py-2 text-left transition hover:border-neutral-200 hover:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {asset.metadata?.thumbnail ? (
-                <Image
-                  src={asset.metadata.thumbnail}
-                  alt={asset.metadata?.filename ?? `${asset.type} asset`}
-                  title={asset.metadata?.filename}
-                  width={112}
-                  height={64}
-                  className="h-16 w-28 rounded-md object-cover transition-opacity duration-300"
-                  unoptimized
-                  loading="lazy"
-                  placeholder="blur"
-                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEyIiBoZWlnaHQ9IjY0IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMTIiIGhlaWdodD0iNjQiIGZpbGw9IiNlNWU3ZWIiLz48L3N2Zz4="
-                />
-              ) : (
-                <div className="flex h-16 w-28 items-center justify-center rounded-md bg-neutral-200 dark:bg-neutral-700 text-xs text-neutral-600 dark:text-neutral-400 animate-pulse">
-                  {asset.type.toUpperCase()}
-                </div>
-              )}
-              <div className="flex-1 text-xs">
-                <p className="font-medium text-neutral-900 dark:text-neutral-100">
-                  {asset.metadata?.filename ?? extractFileName(asset.storage_url)}
-                </p>
-                {/* Asset size badge */}
-                {(asset.metadata?.size || asset.metadata?.fileSize) && (
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                    {formatFileSize(Number(asset.metadata.size || asset.metadata.fileSize || 0))}
+        {filteredAssets.map(
+          (asset): React.ReactElement => (
+            <div key={asset.id} className="group relative flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={(): undefined => void onAssetAdd(asset)}
+                onKeyDown={(e): void => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    void onAssetAdd(asset);
+                  }
+                }}
+                aria-label={`Add ${asset.metadata?.filename ?? asset.type} to timeline`}
+                className="flex w-full items-center gap-3 rounded-lg border border-transparent bg-neutral-50 px-3 py-2 text-left transition hover:border-neutral-200 hover:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {asset.metadata?.thumbnail ? (
+                  <Image
+                    src={asset.metadata.thumbnail}
+                    alt={asset.metadata?.filename ?? `${asset.type} asset`}
+                    title={asset.metadata?.filename}
+                    width={112}
+                    height={64}
+                    className="h-16 w-28 rounded-md object-cover transition-opacity duration-300"
+                    unoptimized
+                    loading="lazy"
+                    placeholder="blur"
+                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEyIiBoZWlnaHQ9IjY0IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMTIiIGhlaWdodD0iNjQiIGZpbGw9IiNlNWU3ZWIiLz48L3N2Zz4="
+                  />
+                ) : (
+                  <div className="flex h-16 w-28 items-center justify-center rounded-md bg-neutral-200 dark:bg-neutral-700 text-xs text-neutral-600 dark:text-neutral-400 animate-pulse">
+                    {asset.type.toUpperCase()}
+                  </div>
+                )}
+                <div className="flex-1 text-xs">
+                  <p className="font-medium text-neutral-900 dark:text-neutral-100">
+                    {asset.metadata?.filename ?? extractFileName(asset.storage_url)}
                   </p>
-                )}
-                {/* Usage indicator */}
-                {usedAssetIds.has(asset.id) && (
-                  <span className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
-                    <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    In Timeline
-                  </span>
-                )}
+                  {/* Asset size badge */}
+                  {(asset.metadata?.size || asset.metadata?.fileSize) && (
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                      {formatFileSize(Number(asset.metadata.size || asset.metadata.fileSize || 0))}
+                    </p>
+                  )}
+                  {/* Usage indicator */}
+                  {usedAssetIds.has(asset.id) && (
+                    <span className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                      <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      In Timeline
+                    </span>
+                  )}
+                </div>
+              </button>
+
+              {/* Action buttons */}
+              <div className="absolute right-2 top-1 z-10 flex gap-1">
+                {/* Version history button */}
+                <button
+                  onClick={(e): void => {
+                    e.stopPropagation();
+                    setVersionHistoryAsset(asset);
+                  }}
+                  aria-label={`View version history for ${asset.metadata?.filename ?? asset.type}`}
+                  className="rounded-md bg-purple-500 p-1 text-white shadow-lg transition-all hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                  title="Version history"
+                >
+                  <svg
+                    className="h-3 w-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </button>
+
+                {/* Delete button */}
+                <button
+                  onClick={(e): void => {
+                    e.stopPropagation();
+                    void onAssetDelete(asset);
+                  }}
+                  aria-label={`Delete ${asset.metadata?.filename ?? asset.type}`}
+                  className="rounded-md bg-red-500 p-1 text-white shadow-lg transition-all hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                  title="Delete asset"
+                >
+                  <svg
+                    className="h-3 w-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
               </div>
-            </button>
-
-            {/* Action buttons */}
-            <div className="absolute right-2 top-1 z-10 flex gap-1">
-              {/* Version history button */}
-              <button
-                onClick={(e): void => {
-                  e.stopPropagation();
-                  setVersionHistoryAsset(asset);
-                }}
-                aria-label={`View version history for ${asset.metadata?.filename ?? asset.type}`}
-                className="rounded-md bg-purple-500 p-1 text-white shadow-lg transition-all hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                title="Version history"
-              >
-                <svg
-                  className="h-3 w-3"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </button>
-
-              {/* Delete button */}
-              <button
-                onClick={(e): void => {
-                  e.stopPropagation();
-                  void onAssetDelete(asset);
-                }}
-                aria-label={`Delete ${asset.metadata?.filename ?? asset.type}`}
-                className="rounded-md bg-red-500 p-1 text-white shadow-lg transition-all hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                title="Delete asset"
-              >
-                <svg
-                  className="h-3 w-3"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </button>
             </div>
-          </div>
-        ))}
+          )
+        )}
       </div>
 
       {/* Pagination Controls */}

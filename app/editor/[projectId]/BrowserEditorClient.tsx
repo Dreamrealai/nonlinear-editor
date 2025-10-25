@@ -39,10 +39,16 @@ import { safeArrayGet } from '@/lib/utils/arrayUtils';
 import { ResizableAssetPanel } from '@/components/editor/ResizableAssetPanel';
 import { AudioGenerationModal } from './AudioGenerationModal';
 import { VideoGenerationModal } from './VideoGenerationModal';
-import { ProjectExportImport } from '@/components/ProjectExportImport';
 import { useEditorHandlers } from './useEditorHandlers';
 import { useAssetList } from '@/lib/hooks/useAssetList';
 import type { AssetRow } from '@/types/assets';
+import {
+  exportProjectToJSON,
+  downloadProjectJSON,
+  importProjectFromFile,
+  type ExportedProject,
+} from '@/lib/utils/projectExportImport';
+import { downloadTimelineAsEDL, downloadTimelineAsFCPXML } from '@/lib/utils/davinciExport';
 import {
   enrichTimelineWithSourceDurations,
   createEmptyTimeline,
@@ -217,6 +223,104 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
     }
     setShowExportModal(true);
   }, [timeline]);
+
+  // Project export handler with format selection
+  const handleExportProject = useCallback(
+    (format: 'json' | 'edl' | 'xml'): void => {
+      if (!timeline) {
+        toast.error('No timeline to export');
+        return;
+      }
+
+      try {
+        const projectName = `project-${projectId.slice(0, 8)}`;
+
+        switch (format) {
+          case 'json': {
+            const exportedProject = exportProjectToJSON(projectId, projectName, timeline);
+            downloadProjectJSON(exportedProject, projectName);
+            toast.success('Project exported as JSON!');
+            break;
+          }
+          case 'edl': {
+            downloadTimelineAsEDL(projectName, timeline, timeline.output.fps || 30);
+            toast.success('Timeline exported as EDL for DaVinci Resolve!');
+            break;
+          }
+          case 'xml': {
+            downloadTimelineAsFCPXML(projectName, timeline);
+            toast.success('Timeline exported as Final Cut Pro XML!');
+            break;
+          }
+        }
+      } catch (error) {
+        console.error('Export error:', error);
+        toast.error('Failed to export project: ' + (error as Error).message);
+      }
+    },
+    [timeline, projectId]
+  );
+
+  // Import project handler
+  const importFileInputRef = useRef<HTMLInputElement>(null);
+
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importPreview, setImportPreview] = useState<ExportedProject | null>(null);
+
+  const handleImportProject = useCallback((): void => {
+    importFileInputRef.current?.click();
+  }, []);
+
+  const handleImportFileChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      try {
+        const result = await importProjectFromFile(file);
+
+        if (!result.success || !result.project) {
+          toast.error(result.error || 'Failed to import project');
+          return;
+        }
+
+        // Show import preview/confirmation
+        setImportPreview(result.project);
+        setShowImportModal(true);
+      } catch (error) {
+        console.error('Import error:', error);
+        toast.error('Failed to import project: ' + (error as Error).message);
+      } finally {
+        // Reset file input
+        if (importFileInputRef.current) {
+          importFileInputRef.current.value = '';
+        }
+      }
+    },
+    []
+  );
+
+  const handleConfirmImport = useCallback((): void => {
+    if (!importPreview || !timeline) {
+      toast.error('Invalid import state');
+      return;
+    }
+
+    try {
+      // Replace entire timeline
+      const importedTimeline = {
+        ...importPreview.timeline,
+        projectId: timeline.projectId, // Keep current project ID
+      };
+      setTimeline(importedTimeline);
+      toast.success('Project imported successfully!');
+      setShowImportModal(false);
+      setImportPreview(null);
+    } catch (error) {
+      console.error('Import confirmation error:', error);
+      toast.error('Failed to apply import: ' + (error as Error).message);
+    }
+  }, [importPreview, timeline, setTimeline, setShowImportModal, setImportPreview]);
 
   const handleShowShortcuts = useCallback((): void => {
     setShowShortcutsHelp(true);
@@ -606,6 +710,8 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
         projectId={projectId}
         currentTab="video-editor"
         onExport={handleExportClick}
+        onExportProject={handleExportProject}
+        onImportProject={handleImportProject}
         lastSaved={lastSaved}
         isSaving={isSaving}
       />
@@ -663,18 +769,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
             />
           </section>
 
-          {/* Project Export/Import - Below Timeline */}
-          <section className="rounded-lg lg:rounded-xl border border-neutral-200 bg-white p-2 lg:p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-semibold text-gray-900">Project Backup</h3>
-              <p className="text-xs text-gray-500">Export or import project as JSON</p>
-            </div>
-            <ProjectExportImport
-              projectId={projectId}
-              projectName={`project-${projectId.slice(0, 8)}`}
-            />
-          </section>
-
           <TimelineCorrectionsMenu />
         </main>
 
@@ -721,6 +815,129 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
           isOpen={showShortcutsHelp}
           onClose={() => setShowShortcutsHelp(false)}
         />
+
+        {/* Hidden File Input for Import Project */}
+        <input
+          ref={importFileInputRef}
+          type="file"
+          accept=".json,application/json"
+          onChange={handleImportFileChange}
+          className="hidden"
+          aria-label="Import project file"
+        />
+
+        {/* Import Confirmation Modal */}
+        {showImportModal && importPreview && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              {/* Header */}
+              <div className="border-b border-gray-200 dark:border-gray-700 p-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Import Project</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Review project details before importing
+                </p>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-6">
+                {/* Project Info */}
+                <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-start gap-3">
+                    <svg
+                      className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+                        {importPreview.projectName}
+                      </h3>
+                      <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                        Exported: {new Date(importPreview.exportDate).toLocaleString()}
+                      </p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                        Version: {importPreview.version}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Metadata */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {importPreview.metadata.clipCount}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Clips</div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {importPreview.metadata.tracks}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Tracks</div>
+                  </div>
+                </div>
+
+                {/* Warning */}
+                <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
+                  <div className="flex items-start gap-3">
+                    <svg
+                      className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                    <div>
+                      <h4 className="font-semibold text-yellow-900 dark:text-yellow-100">
+                        Warning
+                      </h4>
+                      <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                        This will replace your current timeline. Make sure you have saved or
+                        exported your current work.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="border-t border-gray-200 dark:border-gray-700 p-6 flex gap-3">
+                <button
+                  type="button"
+                  onClick={(): void => {
+                    setShowImportModal(false);
+                    setImportPreview(null);
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmImport}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  Import & Replace Timeline
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* User Onboarding Tour */}
         <UserOnboarding />

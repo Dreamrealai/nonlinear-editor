@@ -449,7 +449,6 @@ export interface Database {
           },
         ];
       };
-
       // ===================================================================
       // User Management & Subscriptions
       // ===================================================================
@@ -1236,6 +1235,58 @@ export interface Database {
           reset_at?: string;
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+
+      audit_logs: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          action: string;
+          resource_type: string | null;
+          resource_id: string | null;
+          ip_address: string | null;
+          user_agent: string | null;
+          http_method: string | null;
+          request_path: string | null;
+          status_code: number | null;
+          error_message: string | null;
+          duration_ms: number | null;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          action: string;
+          resource_type?: string | null;
+          resource_id?: string | null;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          http_method?: string | null;
+          request_path?: string | null;
+          status_code?: number | null;
+          error_message?: string | null;
+          duration_ms?: number | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          action?: string;
+          resource_type?: string | null;
+          resource_id?: string | null;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          http_method?: string | null;
+          request_path?: string | null;
+          status_code?: number | null;
+          error_message?: string | null;
+          duration_ms?: number | null;
+          metadata?: Json;
+          created_at?: string;
         };
         Relationships: [];
       };

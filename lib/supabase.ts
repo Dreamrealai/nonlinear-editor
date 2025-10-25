@@ -34,6 +34,8 @@
 import { createBrowserClient, createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import type { CookieOptions } from '@supabase/ssr';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/supabase';
 
 // Define Logger interface matching serverLogger structure
 interface Logger {
@@ -278,12 +280,12 @@ export const createServerSupabaseClient = async (): Promise<
  * // Process background task with full database access
  * await supabase.from('renders').insert({ ... });
  */
-export const createServiceSupabaseClient = (): ReturnType<typeof createClient> => {
+export const createServiceSupabaseClient = (): SupabaseClient<Database> => {
   if (!supabaseUrl || !supabaseServiceRoleKey) {
     throw new Error(missingServiceConfigMessage);
   }
 
-  return createClient(supabaseUrl, supabaseServiceRoleKey, {
+  return createClient<Database>(supabaseUrl, supabaseServiceRoleKey, {
     auth: {
       autoRefreshToken: false, // No token refresh (stateless operations)
       detectSessionInUrl: false, // No URL-based session detection (server-only)

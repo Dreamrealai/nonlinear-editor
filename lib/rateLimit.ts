@@ -158,9 +158,9 @@ function getSupabaseClient(): SupabaseClient | null {
 
 export interface RateLimitConfig {
   /** Maximum requests allowed in the window */
-  max: number;
+  readonly max: number;
   /** Time window in milliseconds */
-  windowMs: number;
+  readonly windowMs: number;
 }
 
 export interface RateLimitResult {

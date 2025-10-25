@@ -202,7 +202,7 @@ async function handleDeleteAccount(request: NextRequest, context: AuthContext): 
     );
 
     const { error: subscriptionsError } = await adminClient
-      .from('user_subscriptions')
+      .from('subscription_history')
       .delete()
       .eq('user_id', userId);
 
@@ -242,30 +242,15 @@ async function handleDeleteAccount(request: NextRequest, context: AuthContext): 
       );
     }
 
-    // Step 6: Delete user roles (non-critical, continue if fails)
+    // Step 6: User roles are stored in user_profiles.tier, no separate table to delete
+
     serverLogger.info(
       {
-        event: 'user.delete_account.deleting_roles',
+        event: 'user.delete_account.skipping_roles',
         userId,
       },
-      'Deleting user roles'
+      'Skipping user_roles deletion (roles stored in user_profiles)'
     );
-
-    const { error: rolesError } = await adminClient
-      .from('user_roles')
-      .delete()
-      .eq('user_id', userId);
-
-    if (rolesError) {
-      serverLogger.warn(
-        {
-          event: 'user.delete_account.roles_error',
-          userId,
-          error: rolesError.message,
-        },
-        'Failed to delete user roles (continuing)'
-      );
-    }
 
     // Step 7: Delete user account from auth (this is the final step)
     serverLogger.info(
