@@ -175,6 +175,9 @@ Two services needed coverage improvement:
 1. ✅ HTML Violation: Nested button in VideoGenerationForm
 2. ✅ Model Name Mismatches
 3. ✅ API Mocking Pattern
+4. ✅ Query Selector Ambiguity - "Found multiple elements" errors (Agent 33)
+5. ✅ Async Preset Loading - Missing waitFor in export modal tests (Agent 33)
+6. ✅ Invalid Duration Option - Test used unsupported duration value (Agent 33)
 
 **CRITICAL VERIFICATION FINDING:**
 
