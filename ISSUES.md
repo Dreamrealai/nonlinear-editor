@@ -288,22 +288,6 @@ Testing docs need updates with Round 3 lessons:
 
 ---
 
-### Issue #85: Google Cloud Storage Test Should Be Skipped or Better Mocked
-
-**Status:** Open
-**Priority:** P3 (Low - Single test)
-**Impact:** 1 integration test failing
-**Location:** `__tests__/integration/video-generation-flow.test.ts`
-**Reported:** 2025-10-24
-
-**Description:**
-One integration test attempts to use actual Google Cloud Storage credentials and fails.
-
-**Recommendation:**
-Either skip this test, mock GCS completely, or move to E2E test suite.
-
-**Estimated Effort:** 30 minutes
-
 ---
 
 ## Recently Resolved Issues (Archive)
