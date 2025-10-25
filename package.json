@@ -43,7 +43,10 @@
     "prepare": "husky",
     "benchmark": "tsx scripts/benchmark.ts",
     "perf:check": "tsx scripts/benchmark.ts",
-    "perf:timeline": "tsx scripts/test-timeline-performance.ts"
+    "perf:timeline": "tsx scripts/test-timeline-performance.ts",
+    "vercel:check": "bash scripts/check-vercel-link.sh",
+    "deploy:preview": "npm run vercel:check && vercel --prod=false",
+    "deploy:prod": "npm run vercel:check && vercel --prod"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.17.2",
