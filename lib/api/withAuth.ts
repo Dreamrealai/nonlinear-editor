@@ -28,6 +28,7 @@ import { serverLogger } from '@/lib/serverLogger';
 import { HttpStatusCode, isClientError, isServerError } from '../errors/errorCodes';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 import { auditSecurityEvent, auditRateLimitViolation, AuditAction } from '@/lib/auditLog';
+import type { RateLimitConfig } from '@/lib/rateLimit';
 
 export interface AuthContext {
   /** Authenticated user from Supabase */
@@ -40,10 +41,7 @@ export interface AuthOptions {
   /** Route path for logging context */
   route: string;
   /** Optional rate limiting configuration */
-  rateLimit?: {
-    max: number;
-    windowMs: number;
-  };
+  rateLimit?: RateLimitConfig;
 }
 
 export type AuthenticatedHandler<TParams = Record<string, never>> = (

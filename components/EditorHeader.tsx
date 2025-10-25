@@ -379,7 +379,7 @@ export function EditorHeader({
             Video Editor
           </Link>
           <Link
-            href={`/editor/${projectId}`}
+            href={`/editor/${projectId}/generate-video`}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
               currentTab === 'generate-video'
                 ? 'bg-white text-neutral-900 shadow-sm'
