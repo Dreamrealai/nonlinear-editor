@@ -20,8 +20,9 @@ serverLogger.info(
     event: 'route.init',
     route: '/api/assets/sign',
     timestamp: new Date().toISOString(),
+    deploymentVersion: '2025-10-25-fix',
   },
-  'Asset sign route module loaded'
+  'Asset sign route module loaded and ready'
 );
 
 type StorageLocation = {
@@ -433,6 +434,7 @@ serverLogger.info(
     method: 'GET',
     hasHandler: !!GET,
     timestamp: new Date().toISOString(),
+    deploymentVersion: '2025-10-25-fix',
   },
-  'GET handler exported for /api/assets/sign'
+  'GET handler exported successfully for /api/assets/sign'
 );
