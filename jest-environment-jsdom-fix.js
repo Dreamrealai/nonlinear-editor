@@ -51,8 +51,9 @@ class JSDOMEnvironmentWithCleanup extends JSDOMEnvironment {
     this.messagePorts = [];
 
     // Allow any pending microtasks to complete
+    // Use setTimeout instead of setImmediate (which is not available in jsdom)
     await new Promise((resolve) => {
-      setImmediate(resolve);
+      setTimeout(resolve, 0);
     });
 
     await super.teardown();

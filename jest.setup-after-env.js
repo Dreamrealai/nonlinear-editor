@@ -68,9 +68,9 @@ beforeAll(() => {
     if (
       typeof args[0] === 'string' &&
       (args[0].includes('Warning: An update to') ||
-       args[0].includes('Warning: useLayoutEffect') ||
-       args[0].includes('Web Vitals not available') ||
-       args[0].includes('[WARN]'))
+        args[0].includes('Warning: useLayoutEffect') ||
+        args[0].includes('Web Vitals not available') ||
+        args[0].includes('[WARN]'))
     ) {
       return;
     }
@@ -94,14 +94,21 @@ afterAll(async () => {
   });
 
   // Allow any pending MessagePort operations to complete
+  // Use setTimeout instead of setImmediate (which is not available in jsdom)
   await new Promise((resolve) => {
-    setImmediate(resolve);
+    setTimeout(resolve, 0);
   });
 });
 
 // Global cleanup after each test to prevent memory leaks
 afterEach(async () => {
-  // Clean up all mocks
+  // Run all pending timers to completion if mocked
+  if (jest.isMockFunction(setTimeout)) {
+    jest.runOnlyPendingTimers();
+  }
+
+  // Clean up all mocks and timers
+  jest.clearAllMocks();
   jest.clearAllTimers();
 
   // Flush all pending microtasks and timers to ensure React scheduler completes
@@ -109,9 +116,9 @@ afterEach(async () => {
     setTimeout(resolve, 0);
   });
 
-  // Run all pending timers to completion
+  // Restore real timers if they were mocked
   if (jest.isMockFunction(setTimeout)) {
-    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   }
 
   // Note: cleanup() is now automatically called by @testing-library/react
@@ -121,7 +128,7 @@ afterEach(async () => {
 
 // Mock File.prototype.arrayBuffer for file upload tests in Node.js environment
 if (typeof File !== 'undefined' && !File.prototype.arrayBuffer) {
-  File.prototype.arrayBuffer = async function() {
+  File.prototype.arrayBuffer = async function () {
     const text = await this.text();
     const encoder = new TextEncoder();
     return encoder.encode(text).buffer;

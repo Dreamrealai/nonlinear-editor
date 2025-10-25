@@ -135,24 +135,26 @@ describe('Integration: Export Modal Workflow', () => {
     (global.fetch as jest.Mock).mockReset();
 
     // Mock fetch to handle both presets and export endpoints intelligently
-    (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<{ ok: boolean; json: () => Promise<unknown> }> => {
-      // Always return presets for /api/export-presets
-      if (url === '/api/export-presets') {
+    (global.fetch as jest.Mock).mockImplementation(
+      async (url: string): Promise<{ ok: boolean; json: () => Promise<unknown> }> => {
+        // Always return presets for /api/export-presets
+        if (url === '/api/export-presets') {
+          return {
+            ok: true,
+            json: async (): Promise<{ data: { presets: typeof mockPresets } }> => ({
+              data: {
+                presets: mockPresets,
+              },
+            }),
+          };
+        }
+        // Default response for other endpoints (will be overridden by tests)
         return {
-          ok: true,
-          json: async (): Promise<{ data: { presets: typeof mockPresets } }> => ({
-            data: {
-              presets: mockPresets,
-            },
-          }),
+          ok: false,
+          json: async (): Promise<{ error: string }> => ({ error: 'Not mocked' }),
         };
       }
-      // Default response for other endpoints (will be overridden by tests)
-      return {
-        ok: false,
-        json: async (): Promise<{ error: string }> => ({ error: 'Not mocked' }),
-      };
-    });
+    );
   });
 
   describe('Modal Opening and Initial State', () => {
@@ -206,20 +208,6 @@ describe('Integration: Export Modal Workflow', () => {
         expect(screen.getByText('480p SD')).toBeInTheDocument();
         expect(screen.getByText('Web Optimized')).toBeInTheDocument();
       });
-    });
-
-    it.skip('should display timeline duration in modal', async () => {
-      // TODO: ExportModal doesn't currently display timeline duration
-      // This feature needs to be implemented
-      render(<ExportModal {...defaultProps} />);
-
-      // Wait for presets to load first
-      await waitFor(() => {
-        expect(screen.getByText('1080p HD')).toBeInTheDocument();
-      });
-
-      // Total timeline duration is 25 seconds (10s + 15s)
-      expect(screen.getByText(/25/)).toBeInTheDocument();
     });
   });
 

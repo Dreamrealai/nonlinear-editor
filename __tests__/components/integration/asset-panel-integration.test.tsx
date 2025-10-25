@@ -416,13 +416,22 @@ describe('Integration: Asset Panel Component', () => {
     });
   });
 
-  describe.skip('Filtering and Sorting', () => {
-    // TODO: Search/filter requires clicking the filter button first to show controls
-    it('should show search/filter input', () => {
+  describe('Filtering and Sorting', () => {
+    it('should show search/filter input after clicking filter button', async () => {
+      const user = userEvent.setup();
       render(<AssetPanel {...defaultProps} />);
 
-      const searchInput = screen.getByPlaceholderText(/search assets/i);
-      expect(searchInput).toBeInTheDocument();
+      // Initially, search input should not be visible
+      expect(screen.queryByPlaceholderText(/search videos/i)).not.toBeInTheDocument();
+
+      // Click the filter button to reveal controls
+      const filterButton = screen.getByRole('button', { name: /toggle filters/i });
+      await user.click(filterButton);
+
+      // Search input should now be visible
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/search videos/i)).toBeInTheDocument();
+      });
     });
 
     it('should filter assets as user types in search', async () => {
@@ -430,7 +439,12 @@ describe('Integration: Asset Panel Component', () => {
 
       render(<AssetPanel {...defaultProps} assets={mockVideoAssets} />);
 
-      const searchInput = screen.getByPlaceholderText(/search assets/i);
+      // Click filter button to show search input
+      const filterButton = screen.getByRole('button', { name: /toggle filters/i });
+      await user.click(filterButton);
+
+      // Wait for search input to appear and type
+      const searchInput = await screen.findByPlaceholderText(/search videos/i);
       await user.type(searchInput, 'video1');
 
       // After filtering, only matching assets should be visible
@@ -440,10 +454,18 @@ describe('Integration: Asset Panel Component', () => {
       });
     });
 
-    it('should show sort options dropdown', () => {
+    it('should show sort options dropdown after clicking filter button', async () => {
+      const user = userEvent.setup();
       render(<AssetPanel {...defaultProps} />);
 
-      expect(screen.getByLabelText(/sort by/i)).toBeInTheDocument();
+      // Click the filter button to reveal controls
+      const filterButton = screen.getByRole('button', { name: /toggle filters/i });
+      await user.click(filterButton);
+
+      // Sort dropdown should now be visible
+      await waitFor(() => {
+        expect(screen.getByDisplayValue(/sort by date/i)).toBeInTheDocument();
+      });
     });
 
     it('should sort assets when user changes sort option', async () => {
@@ -451,12 +473,19 @@ describe('Integration: Asset Panel Component', () => {
 
       render(<AssetPanel {...defaultProps} assets={mockVideoAssets} />);
 
-      const sortSelect = screen.getByLabelText(/sort by/i);
+      // Click filter button to show sort controls
+      const filterButton = screen.getByRole('button', { name: /toggle filters/i });
+      await user.click(filterButton);
+
+      // Find and change sort option
+      const sortSelect = await screen.findByDisplayValue(/sort by date/i);
       await user.selectOptions(sortSelect, 'name');
 
       // Assets should be reordered (verify in DOM order)
-      const assetNames = screen.getAllByText(/video\d\.mp4/).map((el) => el.textContent);
-      expect(assetNames).toEqual(['video1.mp4', 'video2.mp4']);
+      await waitFor(() => {
+        const assetNames = screen.getAllByText(/video\d\.mp4/).map((el) => el.textContent);
+        expect(assetNames).toEqual(['video1.mp4', 'video2.mp4']);
+      });
     });
 
     it('should filter by usage status (used/unused in timeline)', async () => {
@@ -465,14 +494,53 @@ describe('Integration: Asset Panel Component', () => {
 
       render(<AssetPanel {...defaultProps} usedAssetIds={usedAssetIds} />);
 
-      // Find usage filter
-      const usageFilter = screen.getByLabelText(/usage/i);
-      await user.selectOptions(usageFilter, 'used');
+      // Both assets should be visible initially
+      expect(screen.getByText('video1.mp4')).toBeInTheDocument();
+      expect(screen.getByText('video2.mp4')).toBeInTheDocument();
+
+      // Click filter button to show usage filter controls
+      const filterButton = screen.getByRole('button', { name: /toggle filters/i });
+      await user.click(filterButton);
+
+      // Click "Used in Timeline" button
+      const usedButton = await screen.findByRole('button', { name: /used in timeline/i });
+      await user.click(usedButton);
 
       // Should show only used assets
       await waitFor(() => {
         expect(screen.getByText('video1.mp4')).toBeInTheDocument();
         expect(screen.queryByText('video2.mp4')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should toggle between different usage filter states', async () => {
+      const user = userEvent.setup();
+      const usedAssetIds = new Set(['video-1']);
+
+      render(<AssetPanel {...defaultProps} usedAssetIds={usedAssetIds} />);
+
+      // Click filter button to show usage filter controls
+      const filterButton = screen.getByRole('button', { name: /toggle filters/i });
+      await user.click(filterButton);
+
+      // Click "Unused" button
+      const unusedButton = await screen.findByRole('button', { name: /^unused$/i });
+      await user.click(unusedButton);
+
+      // Should show only unused assets
+      await waitFor(() => {
+        expect(screen.queryByText('video1.mp4')).not.toBeInTheDocument();
+        expect(screen.getByText('video2.mp4')).toBeInTheDocument();
+      });
+
+      // Click "All Assets" button
+      const allButton = screen.getByRole('button', { name: /all assets/i });
+      await user.click(allButton);
+
+      // Should show all assets again
+      await waitFor(() => {
+        expect(screen.getByText('video1.mp4')).toBeInTheDocument();
+        expect(screen.getByText('video2.mp4')).toBeInTheDocument();
       });
     });
   });

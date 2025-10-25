@@ -206,34 +206,6 @@ describe('Integration: Timeline and Playback Controls', () => {
         { timeout: 3000 }
       );
     });
-
-    it.skip('should use spacebar to toggle play/pause', async () => {
-      // Keyboard shortcuts are not implemented in these isolated components
-      // This would need to be tested at a higher integration level
-      const user = userEvent.setup();
-      render(<PlaybackIntegrationWrapper />);
-
-      // Initially should show play button - wait for it to be visible
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Play video' })).toBeInTheDocument();
-      });
-
-      // Press spacebar
-      await user.keyboard(' ');
-
-      // Should toggle to playing state
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Pause video' })).toBeInTheDocument();
-      });
-
-      // Press spacebar again
-      await user.keyboard(' ');
-
-      // Should toggle back to paused
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Play video' })).toBeInTheDocument();
-      });
-    });
   });
 
   describe('Timeline Controls Integration', () => {
@@ -272,51 +244,9 @@ describe('Integration: Timeline and Playback Controls', () => {
         expect(currentZoom).toBeLessThan(initialZoom);
       });
     });
-
-    it.skip('should toggle snap when snap button is clicked', async () => {
-      // Snap toggle not in TimelineControls component
-      const user = userEvent.setup();
-      render(<PlaybackIntegrationWrapper />);
-
-      const snapButton = screen.getByRole('button', { name: /snap/i });
-
-      // Get initial snap state
-      const initialSnapEnabled = useEditorStore.getState().snapEnabled;
-
-      await user.click(snapButton);
-
-      await waitFor(() => {
-        const currentSnapEnabled = useEditorStore.getState().snapEnabled;
-        expect(currentSnapEnabled).toBe(!initialSnapEnabled);
-      });
-    });
   });
 
   describe('Playback State Synchronization', () => {
-    it.skip('should update current time when timeline is playing', async () => {
-      // Test wrapper doesn't have playback engine to advance time
-      const user = userEvent.setup();
-      render(<PlaybackIntegrationWrapper />);
-
-      // Start playback - wait for button to be visible
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Play video' })).toBeInTheDocument();
-      });
-      const playButton = screen.getByRole('button', { name: 'Play video' });
-      await user.click(playButton);
-
-      const initialTime = usePlaybackStore.getState().currentTime;
-
-      // Wait for time to advance
-      await waitFor(
-        () => {
-          const currentTime = usePlaybackStore.getState().currentTime;
-          expect(currentTime).toBeGreaterThan(initialTime);
-        },
-        { timeout: 1000 }
-      );
-    });
-
     it('should stop time advancement when paused', async () => {
       const user = userEvent.setup();
       render(<PlaybackIntegrationWrapper />);

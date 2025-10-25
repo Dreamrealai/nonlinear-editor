@@ -46,7 +46,10 @@ export interface ZoomSliceState {
   selectedClipIds: Set<string>;
 }
 
-export const createZoomSlice = (set: (fn: (state: ZoomSliceState) => void) => void, get: () => ZoomSliceState): ZoomSlice => ({
+export const createZoomSlice = (
+  set: (fn: (state: ZoomSliceState) => void) => void,
+  get: () => ZoomSliceState
+): ZoomSlice => ({
   zoom: DEFAULT_ZOOM,
   snapEnabled: true,
   snapGridInterval: 0.1,
@@ -73,7 +76,9 @@ export const createZoomSlice = (set: (fn: (state: ZoomSliceState) => void) => vo
     }
 
     const timelineDuration = Math.max(
-      ...state.timeline.clips.map((clip: Clip): number => clip.timelinePosition + (clip.end - clip.start))
+      ...state.timeline.clips.map(
+        (clip: Clip): number => clip.timelinePosition + (clip.end - clip.start)
+      )
     );
 
     const padding = 0.1;
@@ -97,7 +102,9 @@ export const createZoomSlice = (set: (fn: (state: ZoomSliceState) => void) => vo
       return state.zoom;
     }
 
-    const minPosition = Math.min(...selectedClips.map((clip: Clip): number => clip.timelinePosition));
+    const minPosition = Math.min(
+      ...selectedClips.map((clip: Clip): number => clip.timelinePosition)
+    );
     const maxPosition = Math.max(
       ...selectedClips.map((clip: Clip): number => clip.timelinePosition + (clip.end - clip.start))
     );
@@ -111,17 +118,19 @@ export const createZoomSlice = (set: (fn: (state: ZoomSliceState) => void) => vo
     return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, calculatedZoom));
   },
 
-  fitToTimeline: (viewportWidth: number): void => {
+  fitToTimeline(viewportWidth: number): void {
     const state = get();
-    const newZoom = state.calculateFitToTimelineZoom(viewportWidth);
+    const methods = state as unknown as ZoomSlice & ZoomSliceState;
+    const newZoom = methods.calculateFitToTimelineZoom(viewportWidth);
     set((s: ZoomSliceState): void => {
       s.zoom = newZoom;
     });
   },
 
-  fitToSelection: (viewportWidth: number): void => {
+  fitToSelection(viewportWidth: number): void {
     const state = get();
-    const newZoom = state.calculateFitToSelectionZoom(viewportWidth);
+    const methods = state as unknown as ZoomSlice & ZoomSliceState;
+    const newZoom = methods.calculateFitToSelectionZoom(viewportWidth);
     set((s: ZoomSliceState): void => {
       s.zoom = newZoom;
     });
