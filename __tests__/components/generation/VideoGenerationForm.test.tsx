@@ -9,8 +9,8 @@ jest.mock(
   'next/image',
   (): Record<string, unknown> => ({
     __esModule: true,
-    default: function MockImage({ src, alt }: any) {
-      return <img src={src} alt={alt} />;
+    default: function MockImage({ src, alt, width, height }: any) {
+      return <img src={src} alt={alt} width={width} height={height} />;
     },
   })
 );

@@ -14,7 +14,11 @@ const ChatBox = dynamic(
   }
 );
 
-export default function EditorLayout({ children }: { children: React.ReactNode }) {
+export default function EditorLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}): React.ReactElement {
   const params = useParams();
   const projectId = params.projectId as string;
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -64,6 +68,14 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
               <div
                 className="fixed inset-0 bg-black/50 z-40 lg:hidden"
                 onClick={() => setSidebarCollapsed(true)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    setSidebarCollapsed(true);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label="Close AI Assistant"
               />
               <div className="fixed bottom-0 inset-x-0 h-[60vh] bg-white shadow-xl z-50 lg:hidden overflow-hidden">
                 <ErrorBoundary

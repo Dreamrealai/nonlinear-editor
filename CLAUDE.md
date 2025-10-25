@@ -41,16 +41,19 @@ git push
 #### How It Works
 
 **✅ AUTOMATIC**:
+
 - Any push to `main` with changes in `supabase/migrations/**` triggers deployment
 - GitHub Actions runs `supabase db push --include-all`
 - Takes ~30 seconds
 
 **📊 Current Status**:
+
 - Workflow: **Active** (ID: 200877640)
 - Last Run: **Failed** (missing secret)
 - Location: `.github/workflows/supabase-migrations.yml`
 
 **🔗 Quick Links**:
+
 - [View Workflows](https://github.com/Dreamrealai/nonlinear-editor/actions)
 - [View Secrets](https://github.com/Dreamrealai/nonlinear-editor/settings/secrets/actions)
 - [Full Documentation](./SUPABASE_AUTO_DEPLOYMENT.md)

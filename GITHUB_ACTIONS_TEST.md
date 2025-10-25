@@ -38,17 +38,20 @@ After adding `SUPABASE_ACCESS_TOKEN` to GitHub Secrets, run through this checkli
 ### 🧪 Test 2: Automatic Trigger
 
 1. **Create a test migration**:
+
    ```bash
    cd /Users/davidchen/Projects/non-linear-editor
    supabase migration new test_github_actions
    ```
 
 2. **Edit the migration** (add a comment):
+
    ```bash
    echo "-- Test migration for GitHub Actions" > supabase/migrations/*_test_github_actions.sql
    ```
 
 3. **Commit and push**:
+
    ```bash
    git add supabase/migrations/
    git commit -m "Test: Trigger GitHub Actions auto-deployment"
@@ -96,6 +99,7 @@ All these should be true:
 **Congratulations!** Your GitHub Actions auto-deployment is fully working!
 
 From now on:
+
 - Just `git push` changes to `supabase/migrations/**`
 - GitHub Actions deploys them automatically
 - No manual `supabase db push` needed (but still available if you want it)
@@ -129,11 +133,13 @@ From now on:
 **View all runs**: https://github.com/Dreamrealai/nonlinear-editor/actions/workflows/supabase-migrations.yml
 
 **Check latest status**:
+
 ```bash
 gh run list --workflow=supabase-migrations.yml --limit 5
 ```
 
 **View logs of last run**:
+
 ```bash
 gh run view --log
 ```

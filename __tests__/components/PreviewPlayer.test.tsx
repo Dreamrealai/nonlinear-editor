@@ -92,10 +92,16 @@ jest.mock('@/components/preview/PlaybackControls', () => {
               </button>
               <div
                 className="bg-white/30"
-                onClick={() => onSeek && onSeek(currentTime)}
+                onClick={() => {
+                  if (onSeek) {
+                    onSeek(currentTime);
+                  }
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
-                    onSeek && onSeek(currentTime);
+                    if (onSeek) {
+                      onSeek(currentTime);
+                    }
                   }
                 }}
                 role="button"

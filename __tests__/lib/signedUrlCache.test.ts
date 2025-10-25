@@ -17,14 +17,8 @@ jest.mock(
   })
 );
 
-// Mock requestDeduplication
-jest.mock(
-  '@/lib/requestDeduplication',
-  (): Record<string, unknown> => ({
-    deduplicatedFetch: jest.fn(),
-    deduplicatedFetchJSON: jest.fn(),
-  })
-);
+// Mock requestDeduplication - uses __mocks__/lib/requestDeduplication.ts
+jest.mock('@/lib/requestDeduplication');
 
 import { deduplicatedFetch } from '@/lib/requestDeduplication';
 
