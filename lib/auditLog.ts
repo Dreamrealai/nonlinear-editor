@@ -301,7 +301,7 @@ export async function auditLog(entry: AuditLogEntry): Promise<void> {
 
     // Insert audit log with retry logic (non-blocking, fire-and-forget)
     let retryCount = 0;
-    const maxRetries = 2;
+    const maxRetries = 3; // Increased from 2 to 3
     let lastError = null;
 
     while (retryCount <= maxRetries) {
@@ -326,19 +326,47 @@ export async function auditLog(entry: AuditLogEntry): Promise<void> {
       lastError = error;
       retryCount++;
 
+      // Log retry attempt
+      serverLogger.warn(
+        {
+          event: 'audit.log.retry_attempt',
+          action: entry.action,
+          userId: entry.userId,
+          attempt: retryCount,
+          maxRetries,
+          error: error.message,
+          code: error.code,
+        },
+        `Audit log insert failed, retry ${retryCount}/${maxRetries}`
+      );
+
       // If this is a schema/permission error, don't retry
       if (
         error.code === '42501' || // insufficient_privilege
         error.code === '42P01' || // undefined_table
         error.code === '23502' || // not_null_violation
-        error.code === '23503' // foreign_key_violation
+        error.code === '23503' || // foreign_key_violation
+        error.code === '22P02' || // invalid_text_representation
+        error.code === '23505' // unique_violation
       ) {
+        serverLogger.error(
+          {
+            event: 'audit.log.non_retryable_error',
+            action: entry.action,
+            userId: entry.userId,
+            error: error.message,
+            code: error.code,
+            hint: error.hint,
+          },
+          'Non-retryable error in audit log insert'
+        );
         break;
       }
 
-      // Wait before retry (exponential backoff)
+      // Wait before retry (exponential backoff: 200ms, 400ms, 800ms)
       if (retryCount <= maxRetries) {
-        await new Promise((resolve) => setTimeout(resolve, 100 * Math.pow(2, retryCount - 1)));
+        const delay = 200 * Math.pow(2, retryCount - 1);
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 
@@ -353,6 +381,7 @@ export async function auditLog(entry: AuditLogEntry): Promise<void> {
         hint: lastError?.hint,
         details: lastError?.details,
         retries: retryCount - 1,
+        auditRecord: JSON.stringify(auditRecord).substring(0, 200), // Log first 200 chars
       },
       'Failed to insert audit log after retries'
     );

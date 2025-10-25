@@ -1,7 +1,6 @@
 import { safeArrayFirst } from '@/lib/utils/arrayUtils';
 import { serverLogger } from '@/lib/serverLogger';
 import {
-  notFoundResponse,
   forbiddenResponse,
   badRequestResponse,
   errorResponse,
@@ -154,17 +153,31 @@ const handleSignUrl: AuthenticatedHandler = async (request, { user, supabase }) 
         .eq('id', assetId)
         .maybeSingle();
 
-      if (assetError || !asset) {
+      if (assetError) {
+        serverLogger.error(
+          {
+            event: 'assets.sign.asset_lookup_error',
+            assetId,
+            userId: user.id,
+            error: assetError.message,
+            errorCode: assetError.code,
+          },
+          'Database error while fetching asset'
+        );
+        return errorResponse('Failed to lookup asset', 500);
+      }
+
+      if (!asset) {
+        // Asset not found - return 404
         serverLogger.warn(
           {
             event: 'assets.sign.asset_not_found',
             assetId,
             userId: user.id,
-            error: assetError?.message,
           },
           'Asset not found in database'
         );
-        return notFoundResponse('Asset');
+        return errorResponse('Asset not found', 404);
       }
 
       if (asset.user_id !== user.id) {
@@ -180,7 +193,7 @@ const handleSignUrl: AuthenticatedHandler = async (request, { user, supabase }) 
         return forbiddenResponse('Asset does not belong to user');
       }
 
-      storageUrl = asset.storage_url;
+      storageUrl = asset.storage_url || storageUrl;
       serverLogger.debug(
         {
           event: 'assets.sign.asset_fetched',

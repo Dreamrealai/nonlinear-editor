@@ -60,25 +60,58 @@ export class BackupService {
 
     const name = backupName || this.generateBackupName(backupType);
 
-    const { data, error } = await this.supabase
-      .from('project_backups')
-      .insert({
-        project_id: projectId,
-        user_id: projectData.user_id,
-        backup_name: name,
-        backup_type: backupType,
-        project_data: projectData,
-        timeline_data: timelineData,
-        assets_snapshot: assets,
-      })
-      .select()
-      .single();
+    // Retry logic with exponential backoff
+    let retryCount = 0;
+    const maxRetries = 3;
+    let lastError = null;
 
-    if (error) {
-      throw new HttpError('Failed to create backup', 500);
+    while (retryCount <= maxRetries) {
+      const { data, error } = await this.supabase
+        .from('project_backups')
+        .insert({
+          project_id: projectId,
+          user_id: projectData.user_id,
+          backup_name: name,
+          backup_type: backupType,
+          project_data: projectData,
+          timeline_data: timelineData,
+          assets_snapshot: assets,
+        })
+        .select()
+        .single();
+
+      if (!error && data) {
+        return data;
+      }
+
+      lastError = error;
+      retryCount++;
+
+      // Don't retry on schema/permission errors
+      if (
+        error?.code === '42501' || // insufficient_privilege
+        error?.code === '42P01' || // undefined_table
+        error?.code === '23502' || // not_null_violation
+        error?.code === '23503' || // foreign_key_violation
+        error?.code === '22P02' // invalid_text_representation
+      ) {
+        break;
+      }
+
+      // Wait before retry (exponential backoff: 100ms, 200ms, 400ms)
+      if (retryCount <= maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, 100 * Math.pow(2, retryCount - 1)));
+      }
     }
 
-    return data;
+    // All retries failed
+    const errorMessage = lastError?.message || 'Unknown error';
+    const errorCode = lastError?.code || 'unknown';
+
+    throw new HttpError(
+      `Failed to create backup after ${retryCount - 1} retries: ${errorMessage} (code: ${errorCode})`,
+      500
+    );
   }
 
   /**

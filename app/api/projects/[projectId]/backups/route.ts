@@ -114,7 +114,15 @@ async function handleCreateBackup(
       .eq('id', projectId)
       .single();
 
-    if (projectError || !project) {
+    if (projectError) {
+      return errorResponse('Project lookup failed', 500, undefined, {
+        projectId,
+        error: projectError.message,
+        code: projectError.code,
+      });
+    }
+
+    if (!project) {
       return errorResponse('Project not found', 404, undefined, { projectId });
     }
 
@@ -125,7 +133,15 @@ async function handleCreateBackup(
       .eq('project_id', projectId)
       .single();
 
-    if (timelineError || !timelineRow) {
+    if (timelineError) {
+      return errorResponse('Timeline lookup failed', 500, undefined, {
+        projectId,
+        error: timelineError.message,
+        code: timelineError.code,
+      });
+    }
+
+    if (!timelineRow) {
       return errorResponse('Timeline not found', 404, undefined, { projectId });
     }
 
@@ -136,10 +152,14 @@ async function handleCreateBackup(
       .eq('project_id', projectId);
 
     if (assetsError) {
-      return errorResponse('Failed to fetch assets', 500, undefined, { projectId });
+      return errorResponse('Failed to fetch assets', 500, undefined, {
+        projectId,
+        error: assetsError.message,
+        code: assetsError.code,
+      });
     }
 
-    // Create backup
+    // Create backup with retry logic built into service
     const backup = await backupService.createBackup({
       projectId,
       backupType,
@@ -161,7 +181,14 @@ async function handleCreateBackup(
       message: `${backupType === 'auto' ? 'Auto' : 'Manual'} backup created successfully`,
     });
   } catch (error) {
-    return errorResponse('Failed to create backup', 500, undefined, { error, projectId });
+    // Enhanced error logging with more context
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+
+    return errorResponse(`Failed to create ${backupType} backup`, 500, undefined, {
+      error: errorMsg,
+      projectId,
+      backupType,
+    });
   }
 }
 

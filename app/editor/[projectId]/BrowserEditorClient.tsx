@@ -562,28 +562,40 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
     }
 
     let cancelled = false;
+    let mounted = true;
 
     const loadTimelineData = async (): Promise<void> => {
       try {
         const timelineData = await loadTimeline(projectId);
 
-        if (cancelled) return;
+        if (cancelled || !mounted) return;
 
         if (timelineData) {
           const enriched = enrichTimelineWithSourceDurations(timelineData, assets);
-          setTimeline(enriched);
+          if (mounted) {
+            setTimeline(enriched);
+          }
         } else {
           const emptyTimeline = createEmptyTimeline(projectId);
-          setTimeline(emptyTimeline);
-          await saveTimeline(projectId, emptyTimeline);
+          if (mounted) {
+            setTimeline(emptyTimeline);
+          }
+          // Save timeline only if still mounted
+          if (mounted) {
+            await saveTimeline(projectId, emptyTimeline);
+          }
         }
 
-        setTimelineBootstrapped(true);
+        if (mounted) {
+          setTimelineBootstrapped(true);
+        }
       } catch (error) {
-        browserLogger.error({ error, projectId }, 'Failed to load timeline');
-        const emptyTimeline = createEmptyTimeline(projectId);
-        setTimeline(emptyTimeline);
-        setTimelineBootstrapped(true);
+        if (mounted) {
+          browserLogger.error({ error, projectId }, 'Failed to load timeline');
+          const emptyTimeline = createEmptyTimeline(projectId);
+          setTimeline(emptyTimeline);
+          setTimelineBootstrapped(true);
+        }
       }
     };
 
@@ -591,6 +603,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
 
     return (): void => {
       cancelled = true;
+      mounted = false;
     };
   }, [projectId, assets, assetsLoaded, timelineBootstrapped, setTimeline]);
 
@@ -614,14 +627,20 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
       return;
     }
 
+    let cancelled = false;
+
     void (async (): Promise<void> => {
       for (const asset of missingThumbnails) {
+        if (cancelled) break;
+
         try {
           const bucketName = safeArrayGet(
             asset.storage_url.replace('supabase://', '').split('/'),
             0
           );
           if (!bucketName) continue;
+
+          if (cancelled) break;
 
           const signedUrlResponse = await supabase.storage.from(bucketName).createSignedUrl(
             asset.storage_url
@@ -632,12 +651,15 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
             600
           );
 
-          if (!signedUrlResponse.data?.signedUrl) {
+          if (cancelled || !signedUrlResponse.data?.signedUrl) {
             continue;
           }
 
           const response = await fetch(signedUrlResponse.data.signedUrl);
+          if (cancelled) break;
+
           const blob = await response.blob();
+          if (cancelled) break;
 
           let thumbnail: string | null = null;
           if (asset.type === 'image') {
@@ -646,7 +668,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
             thumbnail = await createVideoThumbnail(blob);
           }
 
-          if (!thumbnail) continue;
+          if (cancelled || !thumbnail) continue;
 
           await supabase
             .from('assets')
@@ -657,6 +679,8 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
               },
             })
             .eq('id', asset.id);
+
+          if (cancelled) break;
 
           updateAsset(
             asset.id,
@@ -669,10 +693,16 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
             })
           );
         } catch (error) {
-          browserLogger.error({ error, assetId: asset.id }, 'Failed to generate thumbnail');
+          if (!cancelled) {
+            browserLogger.error({ error, assetId: asset.id }, 'Failed to generate thumbnail');
+          }
         }
       }
     })();
+
+    return (): void => {
+      cancelled = true;
+    };
   }, [assets, assetsLoaded, timeline, supabase, updateAsset]);
 
   // Autosave timeline
