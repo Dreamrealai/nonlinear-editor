@@ -131,3 +131,10 @@ local-scripts/
 test-results.txt
 test-summary.txt
 test-reports/
+
+# Reports and logs
+reports/
+
+# Backup files
+*.bak
+*.bk2
