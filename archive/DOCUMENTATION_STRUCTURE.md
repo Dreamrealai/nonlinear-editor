@@ -155,6 +155,7 @@
 ## Key Documents (⭐ = Essential Reading)
 
 ### For Developers
+
 1. **CLAUDE.md** - Project memory, coding guidelines, git workflow
 2. **ISSUES.md** - Canonical issue tracker (23 open, 51 fixed)
 3. **docs/ARCHITECTURE_OVERVIEW.md** - System architecture
@@ -163,21 +164,25 @@
 6. **docs/SERVICE_LAYER_GUIDE.md** - Business logic patterns
 
 ### For API Development
+
 1. **docs/api/API_DOCUMENTATION.md** - Complete API reference
 2. **docs/api/API_QUICK_START.md** - Getting started with APIs
 3. **docs/security/SECURITY_BEST_PRACTICES.md** - Security patterns
 
 ### For Setup & Deployment
+
 1. **docs/setup/ENVIRONMENT_VARIABLES.md** - Environment configuration
 2. **docs/setup/VERCEL_CONFIGURATION.md** - Deployment setup
 3. **docs/SUPABASE_SETUP.md** - Database setup
 
 ### For Testing
+
 1. **docs/TESTING.md** - Testing guidelines
 2. **docs/E2E_TESTING_GUIDE.md** - E2E testing
 3. **docs/MOCK_PATTERNS_DOCUMENTATION.md** - Mock patterns
 
 ### For Performance & Optimization
+
 1. **docs/guides/PERFORMANCE.md** - Performance optimization
 2. **docs/guides/CACHING.md** - Caching strategies
 3. **docs/MEMORY_OPTIMIZATION_GUIDE.md** - Memory optimization
@@ -204,17 +209,20 @@ Historical reports and outdated documentation preserved in:
 **From CLAUDE.md:**
 
 Before creating ANY new documentation:
+
 1. ✅ Check if ISSUES.md can be updated instead
 2. ✅ Search for existing documentation on the topic
 3. ✅ Verify this is not duplicate information
 4. ✅ Only create if truly necessary
 
 **Single Sources of Truth:**
+
 - **ISSUES.md** - ALL codebase issues (never create ISSUES_2.md)
 - **CLAUDE.md** - Project memory and guidelines
 - **docs/** - Permanent documentation organized by category
 
 **Archive Protocol:**
+
 - Historical reports → /archive/
 - Outdated analysis → /archive/
 - Completed work documentation → /archive/

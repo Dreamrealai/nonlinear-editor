@@ -24,13 +24,13 @@ Successfully fixed **22 integration test failures** (+85% improvement) through s
 
 **Per-File Results**:
 
-| Test File | Before | After | Improvement |
-|-----------|--------|-------|-------------|
-| video-generation-flow-ui.test.tsx | 15/21 (71%) | 15/21 (71%) | ✅ Maintained |
-| component-communication.test.tsx | 0/19 (0%) | 14/19 (74%) | **+14 tests** |
-| timeline-playback-integration.test.tsx | 0/25 (0%) | 3/25 (12%) | **+3 tests** |
-| export-modal-integration.test.tsx | 0/29 (0%) | 5/29 (17%) | **+5 tests** |
-| asset-panel-integration.test.tsx | 4/40 (10%) | 11/40 (28%) | +7 tests (estimated) |
+| Test File                              | Before      | After       | Improvement          |
+| -------------------------------------- | ----------- | ----------- | -------------------- |
+| video-generation-flow-ui.test.tsx      | 15/21 (71%) | 15/21 (71%) | ✅ Maintained        |
+| component-communication.test.tsx       | 0/19 (0%)   | 14/19 (74%) | **+14 tests**        |
+| timeline-playback-integration.test.tsx | 0/25 (0%)   | 3/25 (12%)  | **+3 tests**         |
+| export-modal-integration.test.tsx      | 0/29 (0%)   | 5/29 (17%)  | **+5 tests**         |
+| asset-panel-integration.test.tsx       | 4/40 (10%)  | 11/40 (28%) | +7 tests (estimated) |
 
 ## Bugs Fixed by Category
 
@@ -122,6 +122,7 @@ Tests were failing with "Found multiple elements with the role 'button' and name
 #### Root Cause
 
 Tests used overly broad regex patterns that matched multiple elements:
+
 - `/play/i` matched "Play video" and "Split clip at playhead"
 - `/pause/i` matched "Pause video" and other pause-related buttons
 
@@ -133,12 +134,12 @@ Replaced regex patterns with exact string matches:
 
 ```typescript
 // BEFORE (ambiguous)
-screen.getByRole('button', { name: /play/i })
-screen.getByRole('button', { name: /pause/i })
+screen.getByRole('button', { name: /play/i });
+screen.getByRole('button', { name: /pause/i });
 
 // AFTER (exact)
-screen.getByRole('button', { name: 'Play video' })
-screen.getByRole('button', { name: 'Pause video' })
+screen.getByRole('button', { name: 'Play video' });
+screen.getByRole('button', { name: 'Pause video' });
 ```
 
 Used `sed` to efficiently replace all occurrences:
@@ -166,6 +167,7 @@ sed -i '' "s/name: \/pause\/i/name: 'Pause video'/g" timeline-playback-integrati
 #### Remaining Work
 
 Timeline-playback tests still have 22/25 failures due to:
+
 - Component not properly connected to store (needs functional wrapper)
 - Auto-hide controls logic interfering with tests
 - Missing timeline data in store
@@ -221,6 +223,7 @@ import { ExportModal } from '@/components/ExportModal';
 **To prevent this issue**:
 
 1. **Check exports before writing tests**:
+
    ```bash
    grep -n "export" components/ComponentName.tsx
    ```
@@ -256,6 +259,7 @@ Integration tests were rendering presentational components without proper props 
 #### Example Fix
 
 **Before** (broken):
+
 ```typescript
 const Wrapper = () => {
   return (
@@ -268,6 +272,7 @@ const Wrapper = () => {
 ```
 
 **After** (working):
+
 ```typescript
 const Wrapper = () => {
   // Connect to stores
@@ -341,11 +346,13 @@ await waitFor(() => {
 **Current Status**: Partially fixed in video-generation tests
 
 **Issue**:
+
 - Missing fetch mocks for error scenarios
 - Incomplete polling API responses
 - No mocks for retry logic
 
 **Solution**:
+
 ```typescript
 // Mock fetch for API call
 beforeEach(() => {
@@ -370,11 +377,13 @@ beforeEach(() => {
 #### 2. Component State Management (~20 tests, 3-4h)
 
 **Issues**:
+
 - Components not re-rendering on store updates
 - Missing initial state setup
 - Auto-hide/show logic interfering with tests
 
 **Solution**:
+
 ```typescript
 // Set up initial store state
 beforeEach(() => {
@@ -398,22 +407,24 @@ jest.useRealTimers();
 **Current Status**: 5/29 passing (17%)
 
 **Remaining Issues**:
+
 - Missing export preset data
 - Fetch mock for `/api/export-presets`
 - Submit handler not properly mocked
 - Error state handling
 
 **Quick Wins**:
+
 ```typescript
 // Mock export presets fetch
 (global.fetch as jest.Mock).mockImplementation((url) => {
   if (url === '/api/export-presets') {
     return Promise.resolve({
       ok: true,
-      json: async () => ([
+      json: async () => [
         { id: '1080p', name: '1080p HD', format: 'mp4' },
         { id: '720p', name: '720p HD', format: 'mp4' },
-      ]),
+      ],
     });
   }
 });
@@ -424,11 +435,13 @@ jest.useRealTimers();
 **Current Status**: 11/40 passing (28%)
 
 **Issues**:
+
 - Missing asset data in props
 - File upload handlers not mocked
 - Pagination state not updating
 
 **Solution**:
+
 ```typescript
 const mockAssets = [
   { id: 'asset-1', type: 'video', url: 'video1.mp4', duration: 10 },
@@ -443,11 +456,13 @@ render(<AssetPanel assets={mockAssets} onFileSelect={mockOnFileSelect} />);
 #### 5. Act Warnings
 
 **Issue**:
+
 ```
 Warning: An update to Component inside a test was not wrapped in act(...)
 ```
 
 **Solution**:
+
 ```typescript
 // Wrap async operations in waitFor
 await waitFor(() => {
@@ -463,11 +478,13 @@ await act(async () => {
 #### 6. Timeline Playback Integration (~22 tests, 2-3h)
 
 **Issues**:
+
 - Auto-hide controls (timeout issues)
 - Missing timeline data
 - Keyboard event handling
 
 **Solution**:
+
 ```typescript
 // Use fake timers
 jest.useFakeTimers();
@@ -542,10 +559,10 @@ beforeEach(() => {
 
 ```typescript
 // 1. Prefer exact role + name
-screen.getByRole('button', { name: 'Submit Form' })
+screen.getByRole('button', { name: 'Submit Form' });
 
 // 2. Use test IDs for ambiguous elements
-screen.getByTestId('submit-button')
+screen.getByTestId('submit-button');
 
 // 3. Avoid regex unless necessary
 // ❌ screen.getByRole('button', { name: /submit/i })
@@ -577,22 +594,22 @@ screen.getByTestId('submit-button')
 
 ### Time Investment vs. Impact
 
-| Category | Time | Tests Fixed | ROI |
-|----------|------|-------------|-----|
-| Store Reset | 30 min | 14 tests | **28 tests/hour** ⭐ |
-| Import Fixes | 15 min | 5 tests | **20 tests/hour** ⭐ |
-| Query Selectors | 30 min | 3 tests | 6 tests/hour |
+| Category        | Time   | Tests Fixed | ROI                  |
+| --------------- | ------ | ----------- | -------------------- |
+| Store Reset     | 30 min | 14 tests    | **28 tests/hour** ⭐ |
+| Import Fixes    | 15 min | 5 tests     | **20 tests/hour** ⭐ |
+| Query Selectors | 30 min | 3 tests     | 6 tests/hour         |
 
 ### Category Progress
 
-| Category | Tests Affected | Fixed | Remaining | % Complete |
-|----------|----------------|-------|-----------|------------|
-| Store State | 20 | 20 | 0 | **100%** ✅ |
-| Query Ambiguity | 18 | 3 | 15 | 17% |
-| API Mocking | 15 | 4 | 11 | 27% |
-| Import/Export | 5 | 5 | 0 | **100%** ✅ |
-| Component Wiring | 20 | 0 | 20 | 0% |
-| Act Warnings | 10 | 0 | 10 | 0% |
+| Category         | Tests Affected | Fixed | Remaining | % Complete  |
+| ---------------- | -------------- | ----- | --------- | ----------- |
+| Store State      | 20             | 20    | 0         | **100%** ✅ |
+| Query Ambiguity  | 18             | 3     | 15        | 17%         |
+| API Mocking      | 15             | 4     | 11        | 27%         |
+| Import/Export    | 5              | 5     | 0         | **100%** ✅ |
+| Component Wiring | 20             | 0     | 20        | 0%          |
+| Act Warnings     | 10             | 0     | 10        | 0%          |
 
 ## Next Steps (For Future Agents)
 
@@ -635,11 +652,13 @@ screen.getByTestId('submit-button')
 ## Estimated Remaining Effort
 
 **To reach 60% pass rate (76-81 tests passing)**:
+
 - Time: 12-15 hours
 - Tests to fix: 28-33 tests
 - Priority: Focus on API mocking, Export Modal, Asset Panel
 
 **To reach 80% pass rate (107 tests passing)**:
+
 - Time: 20-25 hours
 - Tests to fix: 59 tests
 - Priority: All categories above + Timeline Playback

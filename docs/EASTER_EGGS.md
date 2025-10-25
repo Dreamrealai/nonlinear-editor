@@ -13,6 +13,7 @@ Easter eggs are hidden features, messages, or jokes that are intentionally place
 **Activation:** Press the following sequence: ↑ ↑ ↓ ↓ ← → ← → B A
 
 **Effect:**
+
 - Activates a rainbow gradient background animation
 - Spawns 50 colorful confetti pieces that fall from the top of the screen
 - Plays a secret sound effect (C note)
@@ -26,6 +27,7 @@ Easter eggs are hidden features, messages, or jokes that are intentionally place
 **Activation:** Press the "D" key 5 times quickly (within 2 seconds)
 
 **Effect:**
+
 - Enables advanced developer features
 - Adds a "DEV MODE" indicator badge in the top-right corner
 - Stores the state in localStorage (persists across sessions)
@@ -39,6 +41,7 @@ Easter eggs are hidden features, messages, or jokes that are intentionally place
 **Activation:** Press the "M" key 3 times quickly (within 2 seconds)
 
 **Effect:**
+
 - Creates a full-screen Matrix-style "digital rain" effect
 - Green characters cascade down the screen
 - Uses HTML5 Canvas for smooth animation
@@ -52,6 +55,7 @@ Easter eggs are hidden features, messages, or jokes that are intentionally place
 **Activation:** Type the word "disco" (d-i-s-c-o)
 
 **Effect:**
+
 - Background rapidly cycles through vibrant colors
 - Colors change every 200ms
 - Color palette: Red, Cyan, Blue, Yellow, Green, Purple
@@ -65,6 +69,7 @@ Easter eggs are hidden features, messages, or jokes that are intentionally place
 **Activation:** Type the word "gravity" (g-r-a-v-i-t-y)
 
 **Effect:**
+
 - Random elements (buttons, cards, images) fall off the screen
 - Elements rotate as they fall for added effect
 - Affects approximately 30% of page elements
@@ -95,6 +100,7 @@ Easter eggs are implemented using a custom React hook (`useEasterEggs`) that:
 ### Configuration
 
 Easter eggs can be:
+
 - **Enabled/disabled** via the `enabled` prop on `EasterEggProvider`
 - **Tracked** - the hook returns which easter eggs have been triggered
 - **Reset** - via the `resetEasterEggs()` function
@@ -119,6 +125,7 @@ Easter eggs can be:
 ### Discovery
 
 Easter eggs should be:
+
 - **Discoverable but not obvious** - Users should feel rewarded when they find them
 - **Non-intrusive** - They should never interfere with normal workflows
 - **Delightful** - They should bring joy and surprise
@@ -145,6 +152,7 @@ Easter eggs should be:
 ### Automated Testing
 
 Easter eggs are tested in:
+
 - **Unit tests** - Test the detection logic in isolation
 - **Integration tests** - Test the full activation flow
 - **E2E tests** - Verify effects render correctly in the browser

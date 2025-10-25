@@ -207,6 +207,15 @@ Essential guides and references in the docs directory:
 - [PROJECT_STATUS.md](./PROJECT_STATUS.md) - Comprehensive project status dashboard
 - [KEYBOARD_SHORTCUTS.md](./KEYBOARD_SHORTCUTS.md) - Editor keyboard shortcuts
 
+**Feature Documentation:**
+
+- [FEATURES_BACKLOG.md](./FEATURES_BACKLOG.md) - Feature requests and planned enhancements
+- [FEATURES_COMPREHENSIVE.md](./FEATURES_COMPREHENSIVE.md) - Complete feature documentation
+- [FEATURES_QUICK_REFERENCE.md](./FEATURES_QUICK_REFERENCE.md) - Quick feature reference
+- [USER_FEATURES_AND_FLOWS.md](./USER_FEATURES_AND_FLOWS.md) - User-facing features and workflows
+- [EASTER_EGGS.md](./EASTER_EGGS.md) - Hidden features and Easter eggs
+- [DEPLOYMENT_INSTRUCTIONS.md](./DEPLOYMENT_INSTRUCTIONS.md) - Deployment guide
+
 **Security & Compliance:**
 
 - [SECURITY_AUDIT_REPORT.md](./SECURITY_AUDIT_REPORT.md) - Security audit report
@@ -260,6 +269,11 @@ Return to the [main README](../README.md) for project overview and getting start
 
 ---
 
-**Last Updated**: 2025-10-24
-**Documentation Files**: 128 files
+**Last Updated**: 2025-10-25
+**Documentation Files**: 128+ files
 **Key Consolidations**: Performance (2→1), Caching (4→1), API providers (organized by vendor)
+**Recent Changes**:
+
+- Root directory cleaned up: 37 → 5 markdown files
+- Feature documentation moved from root to /docs
+- Temporary reports archived to /archive
