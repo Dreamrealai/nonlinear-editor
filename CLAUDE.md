@@ -303,3 +303,176 @@ This allows testing API routes without authentication.
 - Password: sc3p4sses
 
 **IMPORTANT**: Use production credentials only for testing the production deployment.
+
+## Supabase CLI Access
+
+**IMPORTANT**: This project has Supabase CLI installed and configured. Use it for database management, migrations, and remote project operations.
+
+### CLI Information
+
+- **Version**: 2.53.6
+- **Linked Project**: `nonlinearvideoeditor` (Reference ID: wrximmuaibfjmjrfriej)
+- **Region**: us-east-2
+- **Migrations Directory**: `/supabase/migrations/`
+- **Config File**: `/supabase/config.toml`
+
+### Common Supabase CLI Commands
+
+**Database Management:**
+
+```bash
+# Generate a new migration from schema changes
+supabase db diff -f <migration_name>
+
+# Diff local migrations against linked remote project
+supabase db diff --linked
+
+# Push local migrations to remote database
+supabase db push
+
+# Reset local database (requires Docker)
+supabase db reset
+
+# Create a new migration file
+supabase migration new <name>
+```
+
+**Project Management:**
+
+```bash
+# List all Supabase projects
+supabase projects list
+
+# Show current project status
+supabase status
+
+# Link to a different Supabase project
+supabase link --project-ref <project-ref>
+```
+
+**Storage Management:**
+
+```bash
+# List storage buckets
+supabase storage ls
+
+# Upload files to storage
+supabase storage cp <local-file> <bucket>/<path>
+
+# Download files from storage
+supabase storage cp <bucket>/<path> <local-file>
+```
+
+**Secrets Management:**
+
+```bash
+# List project secrets
+supabase secrets list
+
+# Set a secret
+supabase secrets set <NAME>=<value>
+
+# Unset a secret
+supabase secrets unset <NAME>
+```
+
+**Backups:**
+
+```bash
+# List available backups
+supabase backups list
+
+# Download a backup
+supabase backups download <backup-id>
+```
+
+**Functions (Edge Functions):**
+
+```bash
+# List edge functions
+supabase functions list
+
+# Deploy an edge function
+supabase functions deploy <function-name>
+
+# View function logs
+supabase functions logs <function-name>
+```
+
+### Important Notes
+
+1. **Local Development**: Local Supabase development requires Docker to be running. If Docker is not running, local commands will fail.
+
+2. **Remote Operations**: Commands that interact with the remote project (like `db push`, `secrets set`, `functions deploy`) work without Docker.
+
+3. **Migration Workflow**:
+   - Always create migrations for schema changes
+   - Test migrations locally first (if Docker available)
+   - Push to remote with `supabase db push` after testing
+   - Migrations are version-controlled in `/supabase/migrations/`
+
+4. **Security**:
+   - Never commit sensitive credentials to migrations
+   - Use `supabase secrets` for environment-specific values
+   - Always review `db diff` output before creating migrations
+
+5. **Storage Limits**:
+   - Verify storage bucket limits in Supabase dashboard
+   - Current file upload limit: 1GB (configured in application)
+   - Ensure Supabase storage bucket supports this limit
+
+### When to Use Supabase CLI
+
+**Use Supabase CLI when you need to:**
+
+- Create or modify database schemas
+- Generate migrations from schema changes
+- Push migrations to production
+- Manage storage buckets and files
+- Configure environment secrets
+- Deploy edge functions
+- Download database backups
+- Inspect database configuration
+
+**Example Workflow: Creating a New Migration**
+
+```bash
+# 1. Make schema changes in SQL
+supabase migration new add_new_feature
+
+# 2. Edit the migration file in /supabase/migrations/
+# 3. Test locally (if Docker available)
+supabase db reset
+
+# 4. Review the changes
+supabase db diff --linked
+
+# 5. Push to remote
+supabase db push
+```
+
+### Available Migrations
+
+The project currently has 29+ migrations in `/supabase/migrations/`, including:
+
+- Initial schema setup
+- User authentication and profiles
+- Projects and assets management
+- Timeline and clips storage
+- Processing jobs queue
+- Export functionality
+- Collaboration features
+- Backup and versioning
+- User preferences and onboarding
+- Performance indexes
+- Row Level Security (RLS) policies
+
+### Troubleshooting
+
+**"Cannot connect to Docker daemon"**: This is expected if Docker is not running. Remote operations (like `projects list`, `db push`) still work.
+
+**"Failed to link project"**: Ensure you're authenticated with `supabase login` and have access to the organization.
+
+**"Migration already exists"**: Check `/supabase/migrations/` for existing migrations with the same timestamp or name.
+
+For more information, run `supabase --help` or visit the [Supabase CLI documentation](https://supabase.com/docs/guides/cli).
