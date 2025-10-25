@@ -11,9 +11,13 @@ import {
   resetAllMocks,
 } from '@/__tests__/helpers/apiMocks';
 
-// Mock withAuth wrapper
+/**
+ * Mock withAuth to handle both 2-param and 3-param handler signatures
+ * - 2-param: handler(request, authContext) - for routes without params
+ * - 3-param: handler(request, authContext, routeContext) - for routes with params like [projectId]
+ */
 jest.mock('@/lib/api/withAuth', () => ({
-  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+  withAuth: (handler: any) => async (req: any, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
 
@@ -22,14 +26,21 @@ jest.mock('@/lib/api/withAuth', () => ({
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
     }
 
-    return handler(req, { user, supabase, params: context?.params || {} });
-  }),
+    const authContext = { user, supabase };
+
+    // Check if this is a dynamic route (has params)
+    if (context?.params !== undefined) {
+      // 3-param signature: handler(request, authContext, routeContext)
+      const routeContext = { params: context.params };
+      return handler(req, authContext, routeContext);
+    } else {
+      // 2-param signature: handler(request, authContext)
+      return handler(req, authContext);
+    }
+  },
 }));
 
 jest.mock('@/lib/supabase', () => ({

@@ -14,7 +14,13 @@
  * Follows AAA pattern (Arrange-Act-Assert)
  */
 
-import { sentryService, isSentryConfigured, type ErrorContext, type BreadcrumbData, type UserContext } from '@/lib/services/sentryService';
+import {
+  sentryService,
+  isSentryConfigured,
+  type ErrorContext,
+  type BreadcrumbData,
+  type UserContext,
+} from '@/lib/services/sentryService';
 import * as Sentry from '@sentry/nextjs';
 
 // Mock Sentry SDK
@@ -36,6 +42,13 @@ jest.mock('@sentry/nextjs', () => ({
     callback(scope);
   }),
 }));
+
+// Helper function to get fresh module imports (fixes Sentry mock scope issues)
+async function getModules() {
+  const { sentryService, isSentryConfigured } = await import('@/lib/services/sentryService');
+  const Sentry = await import('@sentry/nextjs');
+  return { sentryService, isSentryConfigured, Sentry };
+}
 
 describe('SentryService', () => {
   let originalEnv: string | undefined;
@@ -93,8 +106,10 @@ describe('SentryService', () => {
   });
 
   describe('captureError', () => {
-    it('should capture Error object with context', () => {
+    it('should capture Error object with context', async () => {
       // Arrange
+      jest.resetModules(); // Reset modules to ensure mocks are properly applied
+      const { sentryService, Sentry } = await getModules();
       const error = new Error('Test error');
       const context: ErrorContext = {
         userId: 'user-123',
@@ -111,8 +126,10 @@ describe('SentryService', () => {
       expect(Sentry.captureException).toHaveBeenCalledWith(error);
     });
 
-    it('should capture non-Error object as string', () => {
+    it('should capture non-Error object as string', async () => {
       // Arrange
+      jest.resetModules(); // Reset modules to ensure mocks are properly applied
+      const { sentryService, Sentry } = await getModules();
       const error = 'Simple string error';
       const context: ErrorContext = {
         userId: 'user-123',
@@ -299,8 +316,10 @@ describe('SentryService', () => {
       expect(Sentry.captureException).not.toHaveBeenCalled();
     });
 
-    it('should handle error capture without context', () => {
+    it('should handle error capture without context', async () => {
       // Arrange
+      jest.resetModules(); // Reset modules to ensure mocks are properly applied
+      const { sentryService, Sentry } = await getModules();
       const error = new Error('Test error');
 
       // Act
@@ -312,8 +331,10 @@ describe('SentryService', () => {
   });
 
   describe('captureMessage', () => {
-    it('should capture message with default level', () => {
+    it('should capture message with default level', async () => {
       // Arrange
+      jest.resetModules(); // Reset modules to ensure mocks are properly applied
+      const { sentryService, Sentry } = await getModules();
       const message = 'Test message';
 
       // Act
@@ -323,8 +344,10 @@ describe('SentryService', () => {
       expect(Sentry.captureMessage).toHaveBeenCalledWith(message, 'info');
     });
 
-    it('should capture message with custom level', () => {
+    it('should capture message with custom level', async () => {
       // Arrange
+      jest.resetModules(); // Reset modules to ensure mocks are properly applied
+      const { sentryService, Sentry } = await getModules();
       const message = 'Test error message';
 
       // Act
@@ -401,8 +424,10 @@ describe('SentryService', () => {
       expect(Sentry.captureMessage).not.toHaveBeenCalled();
     });
 
-    it('should handle all severity levels', () => {
+    it('should handle all severity levels', async () => {
       // Arrange & Act & Assert
+      jest.resetModules(); // Reset modules to ensure mocks are properly applied
+      const { sentryService, Sentry } = await getModules();
       sentryService.captureMessage('Fatal error', 'fatal');
       expect(Sentry.captureMessage).toHaveBeenCalledWith('Fatal error', 'fatal');
 
@@ -701,8 +726,10 @@ describe('SentryService', () => {
   });
 
   describe('Integration scenarios', () => {
-    it('should support complete error tracking workflow', () => {
+    it('should support complete error tracking workflow', async () => {
       // Arrange
+      jest.resetModules(); // Reset modules to ensure mocks are properly applied
+      const { sentryService, Sentry } = await getModules();
       const user: UserContext = {
         id: 'user-123',
         email: 'test@example.com',

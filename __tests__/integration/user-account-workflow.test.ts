@@ -542,7 +542,6 @@ describe('Integration: User Account Workflow', () => {
       };
 
       await workflow.updateTimelineWorkflow(project1.id, env.user.id, timeline1);
-      await projectService.updateProjectState(project1.id, env.user.id, timeline1);
 
       // Switch to project 2
       const asset2 = AssetFixtures.video(project2.id, env.user.id, { id: 'asset-2' });
@@ -554,7 +553,12 @@ describe('Integration: User Account Workflow', () => {
       };
 
       await workflow.updateTimelineWorkflow(project2.id, env.user.id, timeline2);
-      await projectService.updateProjectState(project2.id, env.user.id, timeline2);
+
+      // Clear cache to ensure we fetch fresh data and use our mocks
+      await cache.clear();
+
+      // Clear all previous mocks and set up fresh ones for the getProjectById calls
+      jest.clearAllMocks();
 
       // Verify both projects are independent
       env.mockSupabase.single

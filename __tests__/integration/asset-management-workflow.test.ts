@@ -35,6 +35,7 @@ import {
   assertAssetValid,
   assertProjectValid,
   cleanupTestData,
+  MockResponses,
 } from './helpers/integration-helpers';
 import { cache } from '@/lib/cache';
 
@@ -154,8 +155,24 @@ describe('Integration: Asset Management Workflow', () => {
         title: 'Image Upload Project',
       });
 
-      // Act - Upload image
-      const mockImageAsset = await workflow.uploadAssetWorkflow(project.id, env.user.id, 'image');
+      // Act - Upload image with metadata
+      // Mock the asset creation with correct filename
+      const mockImageAsset = AssetFixtures.image(project.id, env.user.id, {
+        metadata: {
+          filename: 'test-image.jpg',
+          mimeType: 'image/jpeg',
+          width: 1920,
+          height: 1080,
+          size: 2048000,
+        },
+      });
+
+      env.mockSupabase.storage.upload.mockResolvedValueOnce(MockResponses.assetUpload.storage);
+      env.mockSupabase.storage.getPublicUrl.mockReturnValue(MockResponses.assetUpload.publicUrl);
+      env.mockSupabase.single.mockResolvedValueOnce({
+        data: mockImageAsset,
+        error: null,
+      });
 
       const imageBuffer = Buffer.from('image-data');
       const imageAsset = await assetService.createImageAsset(env.user.id, project.id, imageBuffer, {
@@ -665,6 +682,10 @@ describe('Integration: Asset Management Workflow', () => {
 
       const mockAsset = await workflow.uploadAssetWorkflow(project.id, env.user.id, 'video');
 
+      // Override storage_url to match the format expected by assetService.deleteAsset
+      // The service expects 'supabase://assets/...' format
+      mockAsset.storage_url = 'supabase://assets/videos/sample.mp4';
+
       // Create timeline with same asset used multiple times
       const timeline = {
         projectId: project.id,
@@ -697,10 +718,9 @@ describe('Integration: Asset Management Workflow', () => {
       };
 
       await workflow.updateTimelineWorkflow(project.id, env.user.id, timeline);
-      await projectService.updateProjectState(project.id, env.user.id, timeline);
 
       // Act - Delete asset
-      // First call to .from() is for fetching the asset
+      // First call to .from() is for fetching the asset - mockAsset has storage_url set above
       env.mockSupabase.single.mockResolvedValueOnce({
         data: mockAsset,
         error: null,

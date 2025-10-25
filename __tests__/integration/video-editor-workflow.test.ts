@@ -107,13 +107,7 @@ describe('Integration: Video Editor Workflow', () => {
       // Step 3: Build timeline with multiple clips
       const timelineState = TimelineBuilders.singleTrack(project.id, [asset1, asset2, asset3]);
 
-      const updatedProject = await workflow.updateTimelineWorkflow(
-        project.id,
-        env.user.id,
-        timelineState
-      );
-
-      const projectWithTimeline = await projectService.updateProjectState(
+      const projectWithTimeline = await workflow.updateTimelineWorkflow(
         project.id,
         env.user.id,
         timelineState
@@ -138,11 +132,12 @@ describe('Integration: Video Editor Workflow', () => {
         trimmedTimeline
       );
 
-      await projectService.updateProjectState(project.id, env.user.id, trimmedTimeline);
-
       expect(trimmedProject.timeline_state_jsonb.clips[1].start).toBe(1000);
 
       // Step 5: Verify final state
+      // Clear cache to ensure we fetch fresh data
+      await cache.clear();
+
       env.mockSupabase.single.mockResolvedValueOnce({
         data: trimmedProject,
         error: null,
@@ -332,7 +327,6 @@ describe('Integration: Video Editor Workflow', () => {
       };
 
       await workflow.updateTimelineWorkflow(project.id, env.user.id, timeline);
-      await projectService.updateProjectState(project.id, env.user.id, timeline);
 
       // Act - Trim to middle 20 seconds
       const trimmedTimeline = {
@@ -346,8 +340,7 @@ describe('Integration: Video Editor Workflow', () => {
         ],
       };
 
-      await workflow.updateTimelineWorkflow(project.id, env.user.id, trimmedTimeline);
-      const updated = await projectService.updateProjectState(
+      const updated = await workflow.updateTimelineWorkflow(
         project.id,
         env.user.id,
         trimmedTimeline
@@ -388,7 +381,6 @@ describe('Integration: Video Editor Workflow', () => {
       };
 
       await workflow.updateTimelineWorkflow(project.id, env.user.id, timeline);
-      await projectService.updateProjectState(project.id, env.user.id, timeline);
 
       // Act - Split at 5 second mark
       const splitPoint = 5000;
@@ -414,12 +406,7 @@ describe('Integration: Video Editor Workflow', () => {
         ],
       };
 
-      await workflow.updateTimelineWorkflow(project.id, env.user.id, splitTimeline);
-      const updated = await projectService.updateProjectState(
-        project.id,
-        env.user.id,
-        splitTimeline
-      );
+      const updated = await workflow.updateTimelineWorkflow(project.id, env.user.id, splitTimeline);
 
       // Assert
       expect(updated.timeline_state_jsonb.clips).toHaveLength(2);
