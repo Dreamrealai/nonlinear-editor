@@ -90,6 +90,8 @@ const nextConfig: NextConfig = {
               // unsafe-inline required for PostHog's dynamically injected scripts (pushca, callable-future, etc.)
               // This is necessary for PostHog's real-time features to work properly
               "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://va.vercel-scripts.com https://cdn.vercel-insights.com https://us-assets.i.posthog.com https://us.i.posthog.com https://app.posthog.com",
+              // Allow web workers bundled as blob URLs (Next.js worker instantiation pattern)
+              "worker-src 'self' blob:",
               // Style sources - keep unsafe-inline only for Tailwind v4 CSS-in-JS
               // Google Fonts stylesheets allowed for next/font/google
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",

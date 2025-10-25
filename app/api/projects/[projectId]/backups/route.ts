@@ -167,5 +167,5 @@ async function handleCreateBackup(
 
 export const POST = withAuth(handleCreateBackup, {
   route: '/api/projects/[projectId]/backups',
-  rateLimit: RATE_LIMITS.tier2_resource_creation,
+  rateLimit: RATE_LIMITS.tier3_status_read, // Use tier3 (30/min) to accommodate auto-backups from multiple tabs
 });

@@ -14,18 +14,11 @@ import type { Clip, Timeline } from '@/types/timeline';
 import { CLIP_CONSTANTS, EDITOR_CONSTANTS } from '@/lib/constants';
 import { timelineAnnouncements } from '@/lib/utils/screenReaderAnnouncer';
 import { getClipFileName } from '@/lib/utils/timelineUtils';
+import { cloneTimeline, cloneClip } from '@/lib/utils/cloneUtils';
 import type { WritableDraft } from 'immer';
 
 const { MIN_CLIP_DURATION } = CLIP_CONSTANTS;
 const { MAX_HISTORY } = EDITOR_CONSTANTS;
-
-/**
- * Deep clones a timeline for history snapshots.
- */
-const cloneTimeline = (timeline: Timeline | null): Timeline | null => {
-  if (!timeline) return null;
-  return structuredClone(timeline);
-};
 
 /**
  * Removes duplicate clips from an array.
@@ -208,7 +201,7 @@ export const createClipsSlice = (set: SetState, _get?: GetState): ClipsSlice => 
       const newPosition = originalClip.timelinePosition + clipDuration;
 
       const duplicateClip: Clip = {
-        ...structuredClone(originalClip),
+        ...cloneClip(originalClip),
         id: `${id}-duplicate-${Date.now()}`,
         timelinePosition: newPosition,
         transitionToNext: { type: 'none', duration: 0 },
