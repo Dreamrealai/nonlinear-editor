@@ -159,7 +159,50 @@ Refactored using integration testing approach from `/docs/INTEGRATION_TESTING_GU
 
 **Remaining Work:**
 
-- `__tests__/api/ai/chat.test.ts` - Still needs comprehensive review (separate issue recommended)
+- `__tests__/api/ai/chat.test.ts` - Investigated by Agent 8, requires deeper fix (see analysis below)
+
+**Agent 8 Analysis (`__tests__/api/ai/chat.test.ts`):**
+
+**Status:** 🚧 **IN PROGRESS** - Complex mock interactions prevent simple fix
+**Investigation Date:** 2025-10-24
+**Time Spent:** 2 hours
+
+**Current State:**
+- Test Pass Rate: 5% (1/20 passing)
+- 19 tests failing with mock-related errors
+- Primary issue: Complex withAuth + Supabase + rate limiting mock chain
+
+**Root Causes Identified:**
+1. **Mock Chain Complexity**: withAuth dynamically imports rate limiting, which bypasses Jest mocks
+2. **Supabase Client Mocking**: Test utilities don't properly integrate with real withAuth middleware
+3. **NODE_ENV Dependency**: Rate limiting behavior depends on NODE_ENV ('test' vs 'development')
+
+**Attempted Solutions:**
+1. ✅ Added rate limiting mock - Partially worked
+2. ✅ Set NODE_ENV='test' to disable rate limiting - Fixed some tests
+3. ❌ Refactored to use test utilities - Broke existing tests (complex)
+4. ❌ Centralized Supabase mocking - Mock timing issues
+
+**Recommended Path Forward:**
+1. **Option A (Quick Fix)**: Keep existing withAuth mock, fix individual test failures
+   - Pros: Minimal changes, likely works
+   - Cons: Doesn't follow integration testing guide
+
+2. **Option B (Proper Fix)**: Create dedicated test wrapper for FormData routes
+   - Pros: Follows best practices, reusable
+   - Cons: Requires 4-6 hours additional work
+
+3. **Option C (Defer)**: Mark as technical debt, prioritize other issues
+   - Pros: Focus on higher-value work
+   - Cons: Test coverage gap remains
+
+**Decision Needed:** Product owner should choose option based on priority
+
+**Files Analyzed:**
+- `__tests__/api/ai/chat.test.ts` (624 lines)
+- `/docs/INTEGRATION_TESTING_GUIDE.md`
+- `/test-utils/testWithAuth.ts`
+- `/lib/api/withAuth.ts`
 
 ---
 
