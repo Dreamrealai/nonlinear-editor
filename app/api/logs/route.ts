@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
-import { withAuth, type AuthContext } from '@/lib/api/withAuth';
-import { RATE_LIMITS } from '@/lib/rateLimit';
+import { withOptionalAuth, type OptionalAuthContext } from '@/lib/api/withOptionalAuth';
 import { serverLogger } from '@/lib/serverLogger';
 import { validationError, errorResponse, successResponse } from '@/lib/api/response';
 import { validateInteger, ValidationError } from '@/lib/validation';
@@ -20,8 +19,10 @@ const MAX_LOG_ENTRY_SIZE = 10 * 1024;
 // Maximum total request size (100KB)
 const MAX_REQUEST_SIZE = 100 * 1024;
 
-async function handleLogsPost(request: NextRequest, context: AuthContext): Promise<Response> {
+async function handleLogsPost(request: NextRequest, context: OptionalAuthContext): Promise<Response> {
   const { user } = context;
+  const userId = user?.id ?? 'anonymous';
+
   try {
     const { logs } = (await request.json()) as { logs: LogEntry[] };
 
@@ -65,36 +66,25 @@ async function handleLogsPost(request: NextRequest, context: AuthContext): Promi
     const axiomDataset = process.env['AXIOM_DATASET'];
 
     // Add user ID to all logs for tracking
-    const enrichedLogs = logs.map((log): { userId: string; level: string; timestamp: string; message: string; data?: Record<string, unknown>; userAgent?: string; url?: string; } => ({
+    const enrichedLogs = logs.map((log) => ({
       ...log,
-      userId: user.id,
+      userId,
     }));
 
     if (!axiomToken || !axiomDataset) {
       // In development or if Axiom not configured, just log to console
       if (process.env['NODE_ENV'] === 'development') {
-        enrichedLogs.forEach((log): void => {
+        enrichedLogs.forEach((log) => {
           const level = log.level;
+          const logData = { ...log.data, timestamp: log.timestamp, userId: log.userId };
           if (level === 'error') {
-            serverLogger.error(
-              { ...log.data, timestamp: log.timestamp, userId: log.userId },
-              log.message
-            );
+            serverLogger.error(logData, log.message);
           } else if (level === 'warn') {
-            serverLogger.warn(
-              { ...log.data, timestamp: log.timestamp, userId: log.userId },
-              log.message
-            );
+            serverLogger.warn(logData, log.message);
           } else if (level === 'debug') {
-            serverLogger.debug(
-              { ...log.data, timestamp: log.timestamp, userId: log.userId },
-              log.message
-            );
+            serverLogger.debug(logData, log.message);
           } else {
-            serverLogger.info(
-              { ...log.data, timestamp: log.timestamp, userId: log.userId },
-              log.message
-            );
+            serverLogger.info(logData, log.message);
           }
         });
       }
@@ -109,7 +99,7 @@ async function handleLogsPost(request: NextRequest, context: AuthContext): Promi
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(
-        enrichedLogs.map((log): { _time: string; source: string; userId: string; level: string; timestamp: string; message: string; data?: Record<string, unknown>; userAgent?: string; url?: string; } => ({
+        enrichedLogs.map((log) => ({
           ...log,
           _time: log.timestamp,
           source: 'browser',
@@ -119,20 +109,18 @@ async function handleLogsPost(request: NextRequest, context: AuthContext): Promi
 
     if (!response.ok) {
       const errorText = await response.text();
-      serverLogger.error({ errorText, userId: user.id }, 'Axiom ingest failed');
+      serverLogger.error({ errorText, userId }, 'Axiom ingest failed');
       return successResponse({ success: false, error: 'Failed to send logs to Axiom' });
     }
 
     return successResponse({ success: true, count: logs.length });
   } catch (error) {
-    serverLogger.error({ error }, 'Log endpoint error');
+    serverLogger.error({ error, userId }, 'Log endpoint error');
     return errorResponse('Internal server error', 500);
   }
 }
 
-// Export authenticated POST handler with rate limiting
-// Rate limit: 100 logs per minute per user
-export const POST = withAuth(handleLogsPost, {
+// Export public POST handler
+export const POST = withOptionalAuth(handleLogsPost, {
   route: '/api/logs',
-  rateLimit: RATE_LIMITS.tier4_general, // TIER 4: 60 requests per minute (reduced from 100/min)
 });
