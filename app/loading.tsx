@@ -1,4 +1,4 @@
-export default function Loading() {
+export default function Loading(): React.JSX.Element {
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
       <div className="text-center">

@@ -8,6 +8,7 @@ import { getClipFileName, formatTimecode } from '@/lib/utils/timelineUtils';
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
 import { useEditorStore } from '@/state/useEditorStore';
 import type { TrimPreviewInfo } from './TimelineTrimOverlay';
+import { signedUrlCache } from '@/lib/signedUrlCache';
 
 const { TRACK_HEIGHT } = TIMELINE_CONSTANTS;
 
@@ -43,11 +44,42 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
   }): React.ReactElement {
     const [isHovered, setIsHovered] = React.useState(false);
     const [hoverX, setHoverX] = React.useState<number | null>(null);
-    const toggleClipLock = useEditorStore((state): (id: string) => void => state.toggleClipLock);
+    const [assetError, setAssetError] = React.useState<boolean>(false);
+    const toggleClipLock = useEditorStore((state): ((id: string) => void) => state.toggleClipLock);
     const timeline = useEditorStore((state): Timeline | null => state.timeline);
 
+    // Check if asset exists by attempting to get signed URL
+    React.useEffect((): (() => void) => {
+      let isMounted = true;
+
+      const checkAsset = async (): Promise<void> => {
+        try {
+          await signedUrlCache.get(clip.assetId);
+          if (isMounted) {
+            setAssetError(false);
+          }
+        } catch {
+          // Asset doesn't exist or failed to load
+          if (isMounted) {
+            setAssetError(true);
+          }
+        }
+      };
+
+      void checkAsset();
+
+      return (): void => {
+        isMounted = false;
+      };
+    }, [clip.assetId]);
+
     // Memoize expensive calculations to prevent recalculation on every render
-    const clipMetrics = React.useMemo((): { duration: number; width: number; left: number; top: number; } => {
+    const clipMetrics = React.useMemo((): {
+      duration: number;
+      width: number;
+      left: number;
+      top: number;
+    } => {
       const duration = clip.end - clip.start;
       return {
         duration,
@@ -73,27 +105,33 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
     }, [clip.groupId, timeline?.groups]);
 
     // Calculate timecode values (memoized)
-    const timecodes = React.useMemo((): { in: string; out: string; start: string; end: string; } => ({
-      in: formatTimecode(clip.start),
-      out: formatTimecode(clip.end),
-      start: formatTimecode(clip.timelinePosition),
-      end: formatTimecode(clip.timelinePosition + clipMetrics.duration),
-    }), [clip.start, clip.end, clip.timelinePosition, clipMetrics.duration]);
+    const timecodes = React.useMemo(
+      (): { in: string; out: string; start: string; end: string } => ({
+        in: formatTimecode(clip.start),
+        out: formatTimecode(clip.end),
+        start: formatTimecode(clip.timelinePosition),
+        end: formatTimecode(clip.timelinePosition + clipMetrics.duration),
+      }),
+      [clip.start, clip.end, clip.timelinePosition, clipMetrics.duration]
+    );
 
     // Calculate scrub position timecode based on hover position
     const scrubTimecode = React.useMemo((): string | null => {
       if (hoverX === null) return null;
       const relativeX = hoverX / clipMetrics.width;
-      const scrubTime = clip.start + (clipMetrics.duration * relativeX);
+      const scrubTime = clip.start + clipMetrics.duration * relativeX;
       return formatTimecode(scrubTime);
     }, [hoverX, clipMetrics.width, clipMetrics.duration, clip.start]);
 
     // Memoize event handlers to prevent re-renders
-    const handleLockToggle = React.useCallback((e: React.MouseEvent): void => {
-      e.stopPropagation();
-      e.preventDefault();
-      toggleClipLock(clip.id);
-    }, [toggleClipLock, clip.id]);
+    const handleLockToggle = React.useCallback(
+      (e: React.MouseEvent): void => {
+        e.stopPropagation();
+        e.preventDefault();
+        toggleClipLock(clip.id);
+      },
+      [toggleClipLock, clip.id]
+    );
 
     // Handle mouse move for scrubbing preview
     const handleMouseMove = React.useCallback((e: React.MouseEvent<HTMLDivElement>): void => {
@@ -118,10 +156,10 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
           isSelected
             ? 'border-yellow-400 ring-2 ring-yellow-400/50'
             : groupInfo.isGrouped
-            ? `border-[${groupInfo.groupColor}] hover:brightness-110`
-            : isLocked
-            ? 'border-gray-400'
-            : 'border-blue-500 hover:border-blue-600'
+              ? `border-[${groupInfo.groupColor}] hover:brightness-110`
+              : isLocked
+                ? 'border-gray-400'
+                : 'border-blue-500 hover:border-blue-600'
         }`}
         style={{
           left: clipMetrics.left,
@@ -129,7 +167,10 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
           width: clipMetrics.width,
           height: TRACK_HEIGHT - 16,
           ...(groupInfo.isGrouped && !isSelected
-            ? { borderColor: groupInfo.groupColor, boxShadow: `0 0 0 1px ${groupInfo.groupColor}80` }
+            ? {
+                borderColor: groupInfo.groupColor,
+                boxShadow: `0 0 0 1px ${groupInfo.groupColor}80`,
+              }
             : {}),
         }}
         onMouseDown={(e): void => onMouseDown(e, clip)}
@@ -149,13 +190,47 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
         aria-label={`Timeline clip: ${getClipFileName(clip)}${groupInfo.isGrouped ? ` (${groupInfo.group?.name || 'Grouped'})` : ''}`}
       >
         <div className="relative h-full w-full select-none">
+          {/* Asset Error Overlay */}
+          {assetError && (
+            <div className="absolute inset-0 z-30 bg-red-500/30 backdrop-blur-sm flex flex-col items-center justify-center gap-2 pointer-events-auto">
+              <svg
+                className="h-8 w-8 text-red-600 drop-shadow-lg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-xs font-bold text-white drop-shadow-lg">Asset Missing</span>
+                <span className="text-[10px] text-white/90 drop-shadow text-center px-2">
+                  This asset may have been deleted
+                </span>
+              </div>
+              <button
+                onClick={(e): void => {
+                  e.stopPropagation();
+                  onRemove(clip.id);
+                }}
+                className="mt-1 px-3 py-1 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded shadow-lg transition-colors"
+              >
+                Remove Clip
+              </button>
+            </div>
+          )}
+
           {/* Color Label Indicator */}
           {clip.color && (
             <div
               className="absolute left-0 top-0 bottom-0 w-1 z-10"
               style={{
                 backgroundColor: clip.color,
-                boxShadow: `0 0 8px ${clip.color}80`
+                boxShadow: `0 0 8px ${clip.color}80`,
               }}
               title={`Color: ${clip.color}`}
             />
@@ -182,7 +257,7 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
           {/* Trim Preview Overlay - Shows trimmed-off portions during trimming */}
           {trimPreviewInfo && (
             <>
-              {trimPreviewInfo.handle === "left" && (
+              {trimPreviewInfo.handle === 'left' && (
                 <div
                   className="pointer-events-none absolute left-0 top-0 bottom-0 bg-red-500/40 z-10"
                   style={{
@@ -190,7 +265,7 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
                   }}
                 />
               )}
-              {trimPreviewInfo.handle === "right" && (
+              {trimPreviewInfo.handle === 'right' && (
                 <div
                   className="pointer-events-none absolute right-0 top-0 bottom-0 bg-red-500/40 z-10"
                   style={{
@@ -363,7 +438,12 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
                   </div>
                   {isLocked && (
                     <div className="flex items-center gap-1 text-yellow-400">
-                      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg
+                        className="h-3 w-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -431,7 +511,9 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
                   />
                 </svg>
                 <span>{clip.transitionToNext.type}</span>
-                <span className="text-purple-200">{clip.transitionToNext.duration.toFixed(1)}s</span>
+                <span className="text-purple-200">
+                  {clip.transitionToNext.duration.toFixed(1)}s
+                </span>
               </div>
             )}
           </div>

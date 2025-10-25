@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/Input';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Eye, EyeOff } from 'lucide-react';
 
-export default function SignUpPage() {
+export default function SignUpPage(): React.JSX.Element {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');

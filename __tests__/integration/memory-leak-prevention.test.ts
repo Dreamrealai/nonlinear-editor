@@ -69,7 +69,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
         json: async () => ({ done: false, progress: 10 }),
       });
 
-      const poll = async () => {
+      const poll = async (): Promise<void> => {
         if (!isMounted) return;
 
         attempts++;
@@ -158,7 +158,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
         json: async () => ({ done: false }),
       });
 
-      const poll = async () => {
+      const poll = async (): Promise<void> => {
         if (!isMounted) return;
 
         attempts++;
@@ -198,7 +198,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
       let progress = 25;
 
       // Simulate cancel button click
-      const handleCancel = () => {
+      const handleCancel = (): void => {
         if (timeoutId) {
           clearTimeout(timeoutId);
           timeoutId = null;
@@ -229,7 +229,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
         }),
       });
 
-      const poll = async () => {
+      const poll = async (): Promise<void> => {
         if (!isMounted) return;
 
         try {
@@ -279,7 +279,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
       let isMounted = true;
       let controller: AbortController | null = null;
 
-      const poll = async () => {
+      const poll = async (): Promise<void> => {
         if (!isMounted) return;
 
         controller = new AbortController();
@@ -341,7 +341,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
         }),
       });
 
-      const poll = async () => {
+      const poll = async (): Promise<void> => {
         if (!isMounted) return;
 
         attempts++;
@@ -387,7 +387,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
           json: async () => ({ done: false }),
         });
 
-        const poll = async () => {
+        const poll = async (): Promise<void> => {
           if (!isMounted) return;
 
           try {
@@ -435,7 +435,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
       test('should abort ongoing fetch on unmount', async () => {
         const controllers = new Set<AbortController>();
 
-        const poll = async () => {
+        const poll = async (): Promise<void> => {
           const controller = new AbortController();
           controllers.add(controller);
 
@@ -467,7 +467,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
           json: async () => ({ done: false }),
         });
 
-        const poll = async () => {
+        const poll = async (): Promise<void> => {
           attempts++;
           if (attempts > maxAttempts) {
             timedOut = true;
@@ -514,7 +514,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
           }),
         });
 
-        const poll = async () => {
+        const poll = async (): Promise<void> => {
           attempts++;
           if (attempts > maxAttempts) {
             return;
@@ -553,7 +553,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
           json: async () => ({ status: 'processing' }),
         });
 
-        const poll = async () => {
+        const poll = async (): Promise<void> => {
           await fetch('/api/video/generate-audio-status');
 
           const timeout = setTimeout(poll, 5000);
@@ -659,7 +659,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
         json: async () => ({ done: false }),
       });
 
-      const poll = async () => {
+      const poll = async (): Promise<void> => {
         if (!isMounted) return;
 
         iterations++;
@@ -707,7 +707,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
         json: async () => ({ done: false }),
       });
 
-      const poll = async () => {
+      const poll = async (): Promise<void> => {
         if (!isMounted) return;
 
         try {
@@ -768,7 +768,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
 
       fetchMock.mockRejectedValue(new Error('Network error'));
 
-      const poll = async () => {
+      const poll = async (): Promise<void> => {
         if (!isMounted) return;
 
         try {
@@ -805,7 +805,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
         json: async () => ({ error: 'Generation failed' }),
       });
 
-      const poll = async () => {
+      const poll = async (): Promise<void> => {
         if (!isMounted) return;
 
         try {
@@ -864,7 +864,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
           json: async () => ({ done: true, asset: { id: '123' } }),
         });
 
-      const poll = async () => {
+      const poll = async (): Promise<void> => {
         if (!isMounted) return;
 
         attempts++;

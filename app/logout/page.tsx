@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 
-export default function LogoutPage() {
+export default function LogoutPage(): React.JSX.Element {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -22,7 +22,8 @@ export default function LogoutPage() {
         <div className="max-w-md rounded-xl border border-neutral-200 bg-white p-8 text-center shadow-sm">
           <h1 className="text-2xl font-bold text-neutral-900">Supabase Not Configured</h1>
           <p className="mt-4 text-neutral-600">
-            Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables to enable authentication.
+            Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables to
+            enable authentication.
           </p>
         </div>
       </div>
@@ -52,18 +53,14 @@ export default function LogoutPage() {
     <div className="flex min-h-screen items-center justify-center bg-neutral-50">
       <div className="w-full max-w-md space-y-8 rounded-xl border border-neutral-200 bg-white p-8 shadow-sm">
         <div>
-          <h2 className="text-center text-3xl font-bold text-neutral-900">
-            Sign Out
-          </h2>
+          <h2 className="text-center text-3xl font-bold text-neutral-900">Sign Out</h2>
           <p className="mt-2 text-center text-sm text-neutral-600">
             Are you sure you want to sign out?
           </p>
         </div>
 
         {error && (
-          <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
-            {error}
-          </div>
+          <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
         )}
 
         <div className="flex gap-3">

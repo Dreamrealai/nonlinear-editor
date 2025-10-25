@@ -9,25 +9,31 @@ import type { Clip, Timeline } from '@/types/timeline';
 jest.mock('@/state/useEditorStore');
 
 // Mock the video hooks
-jest.mock('@/lib/hooks/useVideoManager', (): Record<string, unknown> => ({
-  useVideoManager: (): Record<string, unknown> => ({
-    videoMapRef: { current: new Map() },
-    ensureClipElement: jest.fn(),
-    cleanupVideo: jest.fn(),
-  }),
-}));
+jest.mock(
+  '@/lib/hooks/useVideoManager',
+  (): Record<string, unknown> => ({
+    useVideoManager: (): Record<string, unknown> => ({
+      videoMapRef: { current: new Map() },
+      ensureClipElement: jest.fn(),
+      cleanupVideo: jest.fn(),
+    }),
+  })
+);
 
-jest.mock('@/lib/hooks/useVideoPlayback', (): Record<string, unknown> => ({
-  useVideoPlayback: () => {
-    const [isPlaying, setIsPlaying] = require('react').useState(false);
-    return {
-      isPlaying,
-      stopPlayback: jest.fn(),
-      togglePlayPause: () => setIsPlaying((prev: boolean) => !prev),
-      syncClipsAtTime: jest.fn(),
-    };
-  },
-}));
+jest.mock(
+  '@/lib/hooks/useVideoPlayback',
+  (): Record<string, unknown> => ({
+    useVideoPlayback: (): void => {
+      const [isPlaying, setIsPlaying] = require('react').useState(false);
+      return {
+        isPlaying,
+        stopPlayback: jest.fn(),
+        togglePlayPause: () => setIsPlaying((prev: boolean) => !prev),
+        syncClipsAtTime: jest.fn(),
+      };
+    },
+  })
+);
 
 // Mock child components with named exports
 jest.mock('@/components/TextOverlayRenderer', () => {

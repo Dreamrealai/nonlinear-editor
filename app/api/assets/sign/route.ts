@@ -169,7 +169,7 @@ const handleSignUrl: AuthenticatedHandler = async (request, { user, supabase }) 
       }
 
       if (!asset) {
-        // Asset not found - return 404
+        // Asset not found - return 404 with helpful context
         serverLogger.warn(
           {
             event: 'assets.sign.asset_not_found',
@@ -178,7 +178,12 @@ const handleSignUrl: AuthenticatedHandler = async (request, { user, supabase }) 
           },
           'Asset not found in database'
         );
-        return errorResponse('Asset not found', 404);
+        return errorResponse('Asset not found', 404, 'assetId', {
+          assetId,
+          message: 'This asset may have been deleted or does not exist.',
+          suggestion: 'Try refreshing the page or removing this clip from your timeline.',
+          userFriendlyMessage: 'Asset not found - it may have been deleted',
+        });
       }
 
       if (asset.user_id !== user.id) {

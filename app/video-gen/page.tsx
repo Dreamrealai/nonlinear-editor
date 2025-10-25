@@ -10,7 +10,7 @@ import { browserLogger } from '@/lib/browserLogger';
 // Maximum polling attempts before timing out (60 attempts * 10s = 10 minutes)
 const MAX_POLLING_ATTEMPTS = 60;
 
-export default function VideoGenPage() {
+export default function VideoGenPage(): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const projectId = searchParams.get('projectId');
@@ -37,7 +37,11 @@ export default function VideoGenPage() {
     };
   }, []);
 
-  const handleGenerateVideo = async (formData: { prompt: string; aspectRatio?: '9:16' | '16:9' | '1:1'; duration?: number }) => {
+  const handleGenerateVideo = async (formData: {
+    prompt: string;
+    aspectRatio?: '9:16' | '16:9' | '1:1';
+    duration?: number;
+  }) => {
     if (!projectId) {
       toast.error('No project selected');
       return;
@@ -48,7 +52,9 @@ export default function VideoGenPage() {
 
     try {
       const supabase = createBrowserSupabaseClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       const res = await fetch('/api/video/generate', {
@@ -67,7 +73,9 @@ export default function VideoGenPage() {
       }
 
       setVideoOperationName(json.operationName);
-      toast.loading('Video generation in progress... This may take several minutes.', { id: 'generate-video' });
+      toast.loading('Video generation in progress... This may take several minutes.', {
+        id: 'generate-video',
+      });
 
       // Reset polling attempts counter
       pollingAttemptsRef.current = 0;
@@ -85,7 +93,10 @@ export default function VideoGenPage() {
 
         // Check if max attempts exceeded
         if (pollingAttemptsRef.current > MAX_POLLING_ATTEMPTS) {
-          toast.error('Video generation timed out after 10 minutes. Please try again or contact support.', { id: 'generate-video' });
+          toast.error(
+            'Video generation timed out after 10 minutes. Please try again or contact support.',
+            { id: 'generate-video' }
+          );
           if (isMountedRef.current) {
             setVideoGenPending(false);
             setVideoOperationName(null);
@@ -94,7 +105,9 @@ export default function VideoGenPage() {
         }
 
         try {
-          const statusRes = await fetch(`/api/video/status?operationName=${encodeURIComponent(json.operationName)}&projectId=${projectId}`);
+          const statusRes = await fetch(
+            `/api/video/status?operationName=${encodeURIComponent(json.operationName)}&projectId=${projectId}`
+          );
           const statusJson = await statusRes.json();
 
           // Check again if component is still mounted before updating state
@@ -126,9 +139,15 @@ export default function VideoGenPage() {
             pollingTimeoutRef.current = setTimeout(poll, pollInterval);
           }
         } catch (pollError) {
-          browserLogger.error({ error: pollError, operationName: json.operationName, projectId }, 'Video generation polling failed');
+          browserLogger.error(
+            { error: pollError, operationName: json.operationName, projectId },
+            'Video generation polling failed'
+          );
           if (isMountedRef.current) {
-            toast.error(pollError instanceof Error ? pollError.message : 'Video generation failed', { id: 'generate-video' });
+            toast.error(
+              pollError instanceof Error ? pollError.message : 'Video generation failed',
+              { id: 'generate-video' }
+            );
             setVideoGenPending(false);
             setVideoOperationName(null);
             setProgress(0);
@@ -141,7 +160,9 @@ export default function VideoGenPage() {
       pollingTimeoutRef.current = setTimeout(poll, pollInterval);
     } catch (error) {
       browserLogger.error({ error, projectId, formData }, 'Video generation failed');
-      toast.error(error instanceof Error ? error.message : 'Video generation failed', { id: 'generate-video' });
+      toast.error(error instanceof Error ? error.message : 'Video generation failed', {
+        id: 'generate-video',
+      });
       setVideoGenPending(false);
     }
   };
@@ -198,7 +219,10 @@ export default function VideoGenPage() {
             className="space-y-6"
           >
             <div>
-              <label htmlFor="video-prompt" className="block text-sm font-medium text-neutral-700 mb-2">
+              <label
+                htmlFor="video-prompt"
+                className="block text-sm font-medium text-neutral-700 mb-2"
+              >
                 Video Description *
               </label>
               <textarea
@@ -216,7 +240,10 @@ export default function VideoGenPage() {
             </div>
 
             <div>
-              <label htmlFor="video-aspect-ratio" className="block text-sm font-medium text-neutral-700 mb-2">
+              <label
+                htmlFor="video-aspect-ratio"
+                className="block text-sm font-medium text-neutral-700 mb-2"
+              >
                 Aspect Ratio
               </label>
               <select
@@ -232,7 +259,10 @@ export default function VideoGenPage() {
             </div>
 
             <div>
-              <label htmlFor="video-duration" className="block text-sm font-medium text-neutral-700 mb-2">
+              <label
+                htmlFor="video-duration"
+                className="block text-sm font-medium text-neutral-700 mb-2"
+              >
                 Duration (seconds)
               </label>
               <select
@@ -242,7 +272,9 @@ export default function VideoGenPage() {
                 className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <option value="5">5 seconds</option>
-                <option value="8" selected>8 seconds</option>
+                <option value="8" selected>
+                  8 seconds
+                </option>
               </select>
             </div>
 

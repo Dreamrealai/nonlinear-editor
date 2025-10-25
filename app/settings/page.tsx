@@ -7,27 +7,9 @@ import dynamic from 'next/dynamic';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import toast, { Toaster } from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
+import { LazySubscriptionManager, LazyActivityHistory } from '@/components/LazyComponents';
 
-// Lazy load heavy components that aren't immediately visible
-const SubscriptionManager = dynamic(
-  () =>
-    import('@/components/SubscriptionManager').then((mod) => ({
-      default: mod.SubscriptionManager,
-    })),
-  {
-    loading: () => <div className="h-32 animate-pulse rounded-2xl bg-neutral-100" />,
-    ssr: false,
-  }
-);
-
-const ActivityHistory = dynamic(
-  () => import('@/components/ActivityHistory').then((mod) => ({ default: mod.ActivityHistory })),
-  {
-    loading: () => <div className="h-64 animate-pulse rounded-2xl bg-neutral-100" />,
-    ssr: false,
-  }
-);
-
+// Lazy load KeyboardShortcutsPanel (not in LazyComponents yet, keep local)
 const KeyboardShortcutsPanel = dynamic(
   () =>
     import('@/components/settings/KeyboardShortcutsPanel').then((mod) => ({
@@ -39,7 +21,7 @@ const KeyboardShortcutsPanel = dynamic(
   }
 );
 
-export default function SettingsPage() {
+export default function SettingsPage(): React.JSX.Element {
   const router = useRouter();
   const { supabaseClient } = useSupabase();
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -253,7 +235,7 @@ export default function SettingsPage() {
 
         {/* Subscription Manager with enhanced styling */}
         <div className="mb-8">
-          <SubscriptionManager />
+          <LazySubscriptionManager />
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
@@ -381,7 +363,7 @@ export default function SettingsPage() {
 
         {/* Activity History - Full width */}
         <div className="mt-8">
-          <ActivityHistory />
+          <LazyActivityHistory />
         </div>
 
         {/* Keyboard Shortcuts - Full width */}

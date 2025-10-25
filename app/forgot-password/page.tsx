@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { createBrowserSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 import Link from 'next/link';
 
-export default function ForgotPasswordPage() {
+export default function ForgotPasswordPage(): React.JSX.Element {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -23,7 +23,8 @@ export default function ForgotPasswordPage() {
         <div className="max-w-md rounded-xl border border-neutral-200 bg-white p-8 text-center shadow-sm">
           <h1 className="text-2xl font-bold text-neutral-900">Supabase Not Configured</h1>
           <p className="mt-4 text-neutral-600">
-            Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables to enable authentication.
+            Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables to
+            enable authentication.
           </p>
         </div>
       </div>
@@ -57,9 +58,7 @@ export default function ForgotPasswordPage() {
     <div className="flex min-h-screen items-center justify-center bg-neutral-50">
       <div className="w-full max-w-md space-y-8 rounded-xl border border-neutral-200 bg-white p-8 shadow-sm">
         <div>
-          <h2 className="text-center text-3xl font-bold text-neutral-900">
-            Forgot Password?
-          </h2>
+          <h2 className="text-center text-3xl font-bold text-neutral-900">Forgot Password?</h2>
           <p className="mt-2 text-center text-sm text-neutral-600">
             No worries! Enter your email and we&apos;ll send you reset instructions.
           </p>
@@ -68,7 +67,8 @@ export default function ForgotPasswordPage() {
         {success ? (
           <div className="space-y-6">
             <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-600">
-              Password reset link sent! Please check your email (including spam folder) for instructions.
+              Password reset link sent! Please check your email (including spam folder) for
+              instructions.
             </div>
             <div className="text-center">
               <Link
@@ -100,9 +100,7 @@ export default function ForgotPasswordPage() {
             </div>
 
             {error && (
-              <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
-                {error}
-              </div>
+              <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
             )}
 
             <button

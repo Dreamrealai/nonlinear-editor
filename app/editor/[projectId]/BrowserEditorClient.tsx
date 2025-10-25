@@ -19,6 +19,7 @@ import {
   LazyPreviewPlayer,
   LazyExportModal,
   LazyClipPropertiesPanel,
+  LazyUserOnboarding,
 } from '@/components/LazyComponents';
 import { EditorHeader } from '@/components/EditorHeader';
 import { TimelineCorrectionsMenu } from '@/components/editor/TimelineCorrectionsMenu';
@@ -55,7 +56,6 @@ import {
   createImageThumbnail,
   createVideoThumbnail,
 } from './editorUtils';
-import { UserOnboarding } from '@/components/UserOnboarding';
 import { useEasterEggs } from '@/lib/hooks/useEasterEggs';
 
 type BrowserEditorClientProps = {
@@ -1006,7 +1006,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
         )}
 
         {/* User Onboarding Tour */}
-        <UserOnboarding />
+        <LazyUserOnboarding />
       </main>
     </div>
   );

@@ -34,7 +34,7 @@ describe('Polling Cleanup Patterns', () => {
       let isMounted = true;
       let timeoutId: NodeJS.Timeout | null = null;
 
-      const poll = () => {
+      const poll = (): void => {
         if (!isMounted) return;
 
         // Schedule next poll
@@ -164,7 +164,7 @@ describe('Polling Cleanup Patterns', () => {
       let isPending = true;
       let timeoutId: NodeJS.Timeout | null = null;
 
-      const cleanup = () => {
+      const cleanup = (): void => {
         isPending = false;
         if (timeoutId) {
           clearTimeout(timeoutId);
@@ -256,7 +256,7 @@ describe('Polling Cleanup Patterns', () => {
         json: async () => ({ done: false }),
       });
 
-      const cleanup = () => {
+      const cleanup = (): void => {
         isMounted = false;
         if (timeoutId) {
           clearTimeout(timeoutId);
@@ -320,7 +320,7 @@ describe('Polling Cleanup Patterns', () => {
 
       fetchMock.mockRejectedValue(new Error('Network error'));
 
-      const cleanup = () => {
+      const cleanup = (): void => {
         isMounted = false;
         if (timeoutId) {
           clearTimeout(timeoutId);

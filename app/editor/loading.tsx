@@ -1,4 +1,4 @@
-export default function EditorLoading() {
+export default function EditorLoading(): React.JSX.Element {
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-900">
       <div className="text-center">

@@ -31,7 +31,7 @@ describe('Integration: Component Communication Patterns', () => {
 
   describe('Parent-Child Communication', () => {
     it('should pass props from parent to child correctly', () => {
-      const Parent = () => {
+      const Parent = (): void => {
         return (
           <Button variant="primary" size="lg" disabled={false}>
             Test Button
@@ -52,7 +52,7 @@ describe('Integration: Component Communication Patterns', () => {
       const user = userEvent.setup();
       const handleClick = jest.fn();
 
-      const Parent = () => {
+      const Parent = (): void => {
         return <Button onClick={handleClick}>Click Me</Button>;
       };
 
@@ -67,7 +67,7 @@ describe('Integration: Component Communication Patterns', () => {
     it('should pass updated props when parent state changes', async () => {
       const user = userEvent.setup();
 
-      const Parent = () => {
+      const Parent = (): void => {
         const [disabled, setDisabled] = useState(false);
 
         return (
@@ -100,7 +100,7 @@ describe('Integration: Component Communication Patterns', () => {
     it('should support ref forwarding from parent to child', () => {
       const inputRef = React.createRef<HTMLInputElement>();
 
-      const Parent = () => {
+      const Parent = (): void => {
         return <Input ref={inputRef} placeholder="Test input" />;
       };
 
@@ -111,7 +111,7 @@ describe('Integration: Component Communication Patterns', () => {
     });
 
     it('should render children prop correctly', () => {
-      const Parent = () => {
+      const Parent = (): void => {
         return (
           <Button>
             <span>Child 1</span>
@@ -140,7 +140,7 @@ describe('Integration: Component Communication Patterns', () => {
         return <Grandchild onClick={onClick} />;
       };
 
-      const Parent = () => {
+      const Parent = (): void => {
         return <Child onClick={rootCallback} />;
       };
 
@@ -156,7 +156,7 @@ describe('Integration: Component Communication Patterns', () => {
       const user = userEvent.setup();
       const handleSubmit = jest.fn();
 
-      const Parent = () => {
+      const Parent = (): void => {
         return (
           <form
             onSubmit={(e) => {
@@ -184,10 +184,10 @@ describe('Integration: Component Communication Patterns', () => {
         return 'completed';
       });
 
-      const Parent = () => {
+      const Parent = (): void => {
         const [status, setStatus] = useState('idle');
 
-        const handleClick = async () => {
+        const handleClick = async (): Promise<void> => {
           setStatus('loading');
           await asyncCallback();
           setStatus('completed');
@@ -224,7 +224,7 @@ describe('Integration: Component Communication Patterns', () => {
       const parentClick = jest.fn();
       const childClick = jest.fn();
 
-      const Parent = () => {
+      const Parent = (): void => {
         return (
           <div onClick={parentClick}>
             <Button onClick={childClick}>Child</Button>
@@ -249,7 +249,7 @@ describe('Integration: Component Communication Patterns', () => {
         e.stopPropagation();
       });
 
-      const Parent = () => {
+      const Parent = (): void => {
         return (
           <div onClick={parentClick}>
             <Button onClick={childClick}>Child</Button>
@@ -273,7 +273,7 @@ describe('Integration: Component Communication Patterns', () => {
         e.preventDefault();
       });
 
-      const Parent = () => {
+      const Parent = (): void => {
         return (
           <form onSubmit={handleSubmit}>
             <Button type="submit">Submit</Button>
@@ -295,7 +295,7 @@ describe('Integration: Component Communication Patterns', () => {
     it('should synchronize state between sibling components through parent', async () => {
       const user = userEvent.setup();
 
-      const Parent = () => {
+      const Parent = (): void => {
         const [sharedValue, setSharedValue] = useState('');
 
         return (
@@ -319,7 +319,7 @@ describe('Integration: Component Communication Patterns', () => {
     it('should maintain state consistency across re-renders', async () => {
       const user = userEvent.setup();
 
-      const Parent = () => {
+      const Parent = (): void => {
         const [count, setCount] = useState(0);
         const [dummy, setDummy] = useState(0);
 
@@ -353,7 +353,7 @@ describe('Integration: Component Communication Patterns', () => {
     it('should share state between components via Zustand store', async () => {
       const user = userEvent.setup();
 
-      const ComponentA = () => {
+      const ComponentA = (): void => {
         const currentTime = useEditorStore((state) => state.currentTime);
         const setCurrentTime = useEditorStore((state) => state.setCurrentTime);
 
@@ -365,13 +365,13 @@ describe('Integration: Component Communication Patterns', () => {
         );
       };
 
-      const ComponentB = () => {
+      const ComponentB = (): void => {
         const currentTime = useEditorStore((state) => state.currentTime);
 
         return <div data-testid="time-b">Time: {currentTime}</div>;
       };
 
-      const Parent = () => {
+      const Parent = (): void => {
         return (
           <div>
             <ComponentA />
@@ -400,7 +400,7 @@ describe('Integration: Component Communication Patterns', () => {
     it('should handle multiple store subscriptions correctly', async () => {
       const user = userEvent.setup();
 
-      const Component = () => {
+      const Component = (): void => {
         const editorTime = useEditorStore((state) => state.currentTime);
         const playbackState = usePlaybackStore((state) => state.isPlaying);
         const setEditorTime = useEditorStore((state) => state.setCurrentTime);
@@ -444,7 +444,7 @@ describe('Integration: Component Communication Patterns', () => {
         componentB: 0,
       };
 
-      const ComponentA = () => {
+      const ComponentA = (): void => {
         renderCounts.componentA++;
         const currentTime = useEditorStore((state) => state.currentTime);
         const setCurrentTime = useEditorStore((state) => state.setCurrentTime);
@@ -457,14 +457,14 @@ describe('Integration: Component Communication Patterns', () => {
         );
       };
 
-      const ComponentB = () => {
+      const ComponentB = (): void => {
         renderCounts.componentB++;
         const zoom = useEditorStore((state) => state.zoom);
 
         return <div data-testid="zoom">{zoom}</div>;
       };
 
-      const Parent = () => {
+      const Parent = (): void => {
         return (
           <div>
             <ComponentA />
@@ -497,7 +497,7 @@ describe('Integration: Component Communication Patterns', () => {
     it('should communicate state between trigger and dialog', async () => {
       const user = userEvent.setup();
 
-      const Parent = () => {
+      const Parent = (): void => {
         const [isOpen, setIsOpen] = useState(false);
 
         return (
@@ -544,7 +544,7 @@ describe('Integration: Component Communication Patterns', () => {
       const user = userEvent.setup();
       const handleSubmit = jest.fn();
 
-      const Parent = () => {
+      const Parent = (): void => {
         const [isOpen, setIsOpen] = useState(true);
         const [value, setValue] = useState('');
 
@@ -596,11 +596,11 @@ describe('Integration: Component Communication Patterns', () => {
       const originalError = console.error;
       console.error = jest.fn();
 
-      const ErrorChild = () => {
+      const ErrorChild = (): void => {
         throw new Error('Test error');
       };
 
-      const Parent = () => {
+      const Parent = (): void => {
         return (
           <div>
             <ErrorChild />

@@ -3,6 +3,7 @@
 import type { Timeline } from '@/types/timeline';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { browserLogger } from '@/lib/browserLogger';
+import toast from 'react-hot-toast';
 
 export async function loadTimeline(projectId: string): Promise<Timeline | null> {
   const startTime = Date.now();
@@ -113,6 +114,16 @@ export async function loadTimeline(projectId: string): Promise<Timeline | null> 
               remainingCount: validClips.length,
             },
             `Removed ${removedCount} orphaned clip(s) with missing assets`
+          );
+
+          // Show user-friendly notification
+          toast.error(
+            `${removedCount} clip${removedCount > 1 ? 's' : ''} removed due to missing assets`,
+            {
+              duration: 5000,
+              icon: '🗑️',
+              id: 'missing-assets-removed',
+            }
           );
 
           // Auto-save the cleaned timeline to prevent loading orphaned clips again

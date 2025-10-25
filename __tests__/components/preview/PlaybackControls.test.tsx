@@ -4,14 +4,17 @@ import '@testing-library/jest-dom';
 import { PlaybackControls } from '@/components/preview/PlaybackControls';
 
 // Mock video utils
-jest.mock('@/lib/utils/videoUtils', (): Record<string, unknown> => ({
-  clamp: (value: number, min: number, max: number) => Math.min(Math.max(value, min), max),
-  formatTimecode: (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  },
-}));
+jest.mock(
+  '@/lib/utils/videoUtils',
+  (): Record<string, unknown> => ({
+    clamp: (value: number, min: number, max: number) => Math.min(Math.max(value, min), max),
+    formatTimecode: (seconds: number) => {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    },
+  })
+);
 
 describe('PlaybackControls', () => {
   const defaultProps = {
@@ -36,7 +39,7 @@ describe('PlaybackControls', () => {
     jest.useRealTimers();
     // Wait for any pending async operations to complete
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     });
   });
 
@@ -169,7 +172,7 @@ describe('PlaybackControls', () => {
         height: 20,
         x: 0,
         y: 0,
-        toJSON: () => {},
+        toJSON: (): void => {},
       }));
 
       fireEvent.mouseDown(progressBar, { clientX: 500 });
@@ -192,7 +195,7 @@ describe('PlaybackControls', () => {
         height: 20,
         x: 0,
         y: 0,
-        toJSON: () => {},
+        toJSON: (): void => {},
       }));
 
       // Click at 50% of the width (500px out of 1000px)
@@ -227,7 +230,7 @@ describe('PlaybackControls', () => {
         height: 20,
         x: 0,
         y: 0,
-        toJSON: () => {},
+        toJSON: (): void => {},
       }));
 
       // Start dragging
@@ -405,7 +408,7 @@ describe('PlaybackControls', () => {
         height: 20,
         x: 0,
         y: 0,
-        toJSON: () => {},
+        toJSON: (): void => {},
       }));
 
       // Click beyond the progress bar (1500px when width is 1000px)
@@ -430,7 +433,7 @@ describe('PlaybackControls', () => {
         height: 20,
         x: 100,
         y: 0,
-        toJSON: () => {},
+        toJSON: (): void => {},
       }));
 
       // Click before the progress bar starts

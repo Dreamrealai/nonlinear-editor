@@ -9,7 +9,7 @@ import { browserLogger } from '@/lib/browserLogger';
 
 type AudioGenMode = 'suno' | 'elevenlabs' | null;
 
-export default function AudioGenPage() {
+export default function AudioGenPage(): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const projectId = searchParams.get('projectId');

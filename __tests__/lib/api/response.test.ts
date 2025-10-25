@@ -19,26 +19,29 @@ import {
 import { HttpStatusCode } from '@/lib/errors/errorCodes';
 
 // Mock NextResponse for Jest environment
-jest.mock('next/server', (): Record<string, unknown> => ({
-  NextResponse: {
-    json: (body: unknown, init?: { status?: number; headers?: Record<string, string> }) => {
-      // Create a mock response object without using Response constructor
-      const mockHeaders = new Map(Object.entries(init?.headers || {}));
-      mockHeaders.set('Content-Type', 'application/json');
+jest.mock(
+  'next/server',
+  (): Record<string, unknown> => ({
+    NextResponse: {
+      json: (body: unknown, init?: { status?: number; headers?: Record<string, string> }) => {
+        // Create a mock response object without using Response constructor
+        const mockHeaders = new Map(Object.entries(init?.headers || {}));
+        mockHeaders.set('Content-Type', 'application/json');
 
-      return {
-        status: init?.status || 200,
-        headers: {
-          get: (name: string) => mockHeaders.get(name) || null,
-          has: (name: string) => mockHeaders.has(name),
-          entries: () => mockHeaders.entries(),
-        },
-        json: () => Promise.resolve(body),
-        ok: (init?.status || 200) >= 200 && (init?.status || 200) < 300,
-      };
+        return {
+          status: init?.status || 200,
+          headers: {
+            get: (name: string) => mockHeaders.get(name) || null,
+            has: (name: string) => mockHeaders.has(name),
+            entries: () => mockHeaders.entries(),
+          },
+          json: () => Promise.resolve(body),
+          ok: (init?.status || 200) >= 200 && (init?.status || 200) < 300,
+        };
+      },
     },
-  },
-}));
+  })
+);
 
 describe('API Response Utilities', () => {
   describe('errorResponse', () => {
@@ -330,7 +333,7 @@ describe('API Response Utilities', () => {
     });
 
     it('should catch errors and return 500', async () => {
-      const handler = async () => {
+      const handler = async (): Promise<void> => {
         throw new Error('Test error');
       };
       const wrappedHandler = withErrorHandling(handler);
@@ -343,7 +346,7 @@ describe('API Response Utilities', () => {
     });
 
     it('should handle non-Error throws', async () => {
-      const handler = async () => {
+      const handler = async (): Promise<void> => {
         throw 'String error';
       };
       const wrappedHandler = withErrorHandling(handler);
@@ -369,11 +372,14 @@ describe('API Response Utilities', () => {
     it('should log errors using serverLogger', async () => {
       // Mock the serverLogger module
       const mockServerLogger = { error: jest.fn() };
-      jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-        serverLogger: mockServerLogger,
-      }));
+      jest.mock(
+        '@/lib/serverLogger',
+        (): Record<string, unknown> => ({
+          serverLogger: mockServerLogger,
+        })
+      );
 
-      const handler = async () => {
+      const handler = async (): Promise<void> => {
         throw new Error('Test error');
       };
       const wrappedHandler = withErrorHandling(handler);

@@ -5,22 +5,17 @@ import {
   checkRateLimitSync,
 } from '@/lib/rateLimit';
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    error: jest.fn(),
-    warn: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      error: jest.fn(),
+      warn: jest.fn(),
+    },
+  })
+);
 
 describe('Rate Limiting', () => {
-  beforeEach((): void => {
-    jest.useFakeTimers();
-  });
-
-  afterEach((): void => {
-    jest.useRealTimers();
-  });
-
   describe('checkRateLimit', () => {
     it('should allow first request', async () => {
       const uniqueUser = `user-${Date.now()}-${Math.random()}`;

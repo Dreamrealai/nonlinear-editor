@@ -10,7 +10,7 @@ import {
 } from '@/lib/validation/password';
 import Link from 'next/link';
 
-export default function ResetPasswordPage() {
+export default function ResetPasswordPage(): React.JSX.Element {
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

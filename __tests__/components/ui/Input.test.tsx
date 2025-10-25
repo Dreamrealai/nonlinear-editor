@@ -188,7 +188,7 @@ describe('Input', () => {
   describe('Controlled Input', () => {
     it('should work as controlled component', async () => {
       const user = userEvent.setup();
-      const ControlledInput = () => {
+      const ControlledInput = (): void => {
         const [value, setValue] = React.useState('');
         return <Input value={value} onChange={(e) => setValue(e.target.value)} />;
       };

@@ -15,11 +15,14 @@ import {
 } from '@/lib/performance';
 
 // Mock browserLogger
-jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
-  browserLogger: {
-    warn: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/browserLogger',
+  (): Record<string, unknown> => ({
+    browserLogger: {
+      warn: jest.fn(),
+    },
+  })
+);
 
 describe('Performance Monitoring', () => {
   beforeEach((): void => {
@@ -97,7 +100,7 @@ describe('Performance Monitoring', () => {
   describe('measurePerformance', () => {
     it('should measure synchronous function', async () => {
       // Arrange
-      const fn = () => {
+      const fn = (): void => {
         let sum = 0;
         for (let i = 0; i < 1000; i++) {
           sum += i;
@@ -122,7 +125,7 @@ describe('Performance Monitoring', () => {
 
     it('should measure asynchronous function', async () => {
       // Arrange
-      const fn = async () => {
+      const fn = async (): Promise<void> => {
         await new Promise((resolve) => setTimeout(resolve, 10));
         return 'done';
       };
@@ -139,7 +142,7 @@ describe('Performance Monitoring', () => {
 
     it('should record metric even when function throws', async () => {
       // Arrange
-      const fn = () => {
+      const fn = (): void => {
         throw new Error('Test error');
       };
 

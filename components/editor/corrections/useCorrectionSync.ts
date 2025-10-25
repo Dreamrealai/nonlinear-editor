@@ -5,7 +5,7 @@ import type { Clip } from '@/types/timeline';
 /**
  * Custom hook to manage local state and debounced updates for corrections
  */
-export function useCorrectionSync(selectedClip: Clip | null): void {
+export function useCorrectionSync(selectedClip: Clip | null) {
   // Local state for immediate feedback
   const [localBrightness, setLocalBrightness] = useState(100);
   const [localContrast, setLocalContrast] = useState(100);

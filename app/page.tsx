@@ -17,7 +17,7 @@ import { serverLogger } from '@/lib/serverLogger';
  */
 export const dynamic = 'force-dynamic';
 
-export default async function HomePage() {
+export default async function HomePage(): Promise<React.JSX.Element> {
   // Handle case where Supabase is not configured
   if (!isSupabaseConfigured()) {
     return (

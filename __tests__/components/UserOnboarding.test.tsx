@@ -12,21 +12,24 @@ import { UserOnboarding } from '@/components/UserOnboarding';
 import { analyticsService, AnalyticsEvents } from '@/lib/services/analyticsService';
 
 // Mock analytics service
-jest.mock('@/lib/services/analyticsService', (): Record<string, unknown> => ({
-  analyticsService: {
-    track: jest.fn(),
-  },
-  AnalyticsEvents: {
-    ONBOARDING_STARTED: 'onboarding_started',
-    ONBOARDING_STEP_VIEWED: 'onboarding_step_viewed',
-    ONBOARDING_STEP_COMPLETED: 'onboarding_step_completed',
-    ONBOARDING_COMPLETED: 'onboarding_completed',
-    ONBOARDING_SKIPPED: 'onboarding_skipped',
-  },
-}));
+jest.mock(
+  '@/lib/services/analyticsService',
+  (): Record<string, unknown> => ({
+    analyticsService: {
+      track: jest.fn(),
+    },
+    AnalyticsEvents: {
+      ONBOARDING_STARTED: 'onboarding_started',
+      ONBOARDING_STEP_VIEWED: 'onboarding_step_viewed',
+      ONBOARDING_STEP_COMPLETED: 'onboarding_step_completed',
+      ONBOARDING_COMPLETED: 'onboarding_completed',
+      ONBOARDING_SKIPPED: 'onboarding_skipped',
+    },
+  })
+);
 
 // Mock localStorage
-const localStorageMock = (() => {
+const localStorageMock = ((): void => {
   let store: Record<string, string> = {};
 
   return {
@@ -37,7 +40,7 @@ const localStorageMock = (() => {
     removeItem: (key: string) => {
       delete store[key];
     },
-    clear: () => {
+    clear: (): void => {
       store = {};
     },
   };

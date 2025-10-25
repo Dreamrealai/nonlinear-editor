@@ -84,7 +84,7 @@ export default [
     ],
   },
   {
-    files: ['__tests__/**/*.{ts,tsx,js,jsx}', 'jest.setup.js', 'jest.setup-after-env.js'],
+    files: ['__tests__/**/*.{ts,tsx,js,jsx}', 'test-utils/**/*.{ts,tsx,js,jsx}', 'jest.setup.js', 'jest.setup-after-env.js'],
     ...jestPlugin.configs['flat/recommended'],
     languageOptions: {
       globals: {
@@ -96,6 +96,7 @@ export default [
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
       // Add or override jest rules if needed
     },
   },

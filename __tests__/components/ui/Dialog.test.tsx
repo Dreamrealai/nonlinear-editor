@@ -204,7 +204,7 @@ describe('Dialog', () => {
   describe('Controlled State', () => {
     it('should work as controlled component', async () => {
       const user = userEvent.setup();
-      const ControlledDialog = () => {
+      const ControlledDialog = (): void => {
         const [open, setOpen] = React.useState(false);
         return (
           <>
