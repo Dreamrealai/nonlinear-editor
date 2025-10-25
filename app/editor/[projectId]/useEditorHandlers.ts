@@ -202,11 +202,11 @@ export function useEditorHandlers({
       };
 
       addClip(clip);
-      setTimeline({
-        ...timeline,
-        clips: [...timeline.clips, clip],
-      });
-      toast.success('Clip added to timeline');
+      // Note: addClip already updates the timeline in the Zustand store
+      // No need to call setTimeline here as it would create a race condition
+      toast.success(
+        `Clip ${asset.metadata?.filename || asset.storage_url.split('/').pop()} added to track ${clip.trackIndex + 1}`
+      );
     },
     [timeline, addClip, setTimeline]
   );

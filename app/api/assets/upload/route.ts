@@ -19,7 +19,7 @@ const VALID_ASSET_TYPES = ['image', 'video', 'audio'] as const;
  *
  * @route POST /api/assets/upload
  *
- * @param {File} request.formData.file - The file to upload (max 100MB)
+ * @param {File} request.formData.file - The file to upload (max 1GB)
  * @param {string} request.formData.projectId - UUID of the project to upload to
  * @param {string} request.formData.type - Asset type ('image', 'video', or 'audio')
  *
@@ -32,7 +32,7 @@ const VALID_ASSET_TYPES = ['image', 'video', 'audio'] as const;
  * @throws {401} Unauthorized - User not authenticated
  * @throws {403} Forbidden - User doesn't own the specified project
  * @throws {400} Bad Request - No file provided, invalid project ID, or invalid type
- * @throws {413} Payload Too Large - File exceeds 100MB limit
+ * @throws {413} Payload Too Large - File exceeds 1GB limit
  * @throws {415} Unsupported Media Type - File MIME type not allowed for asset type
  * @throws {429} Too Many Requests - Rate limit exceeded (10 requests per minute)
  * @throws {500} Internal Server Error - Storage or database error
@@ -42,7 +42,7 @@ const VALID_ASSET_TYPES = ['image', 'video', 'audio'] as const;
  * @authentication Required - Session cookie (supabase-auth-token)
  *
  * @security
- * - File size limited to 100MB
+ * - File size limited to 1GB
  * - MIME type validation per asset type
  * - Ownership verification for project access
  * - Unique filenames with UUID to prevent collisions
@@ -149,8 +149,8 @@ const handleAssetUpload: AuthenticatedHandler = async (request, { user, supabase
     return errorResponse(projectVerification.error!, projectVerification.status!);
   }
 
-  // SECURITY: File size validation (100MB max)
-  const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+  // SECURITY: File size validation (1GB max)
+  const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1GB
   if (file.size > MAX_FILE_SIZE) {
     serverLogger.warn(
       {
@@ -163,7 +163,7 @@ const handleAssetUpload: AuthenticatedHandler = async (request, { user, supabase
       },
       `File size ${file.size} exceeds maximum ${MAX_FILE_SIZE}`
     );
-    return badRequestResponse('File too large - maximum file size is 100MB');
+    return badRequestResponse('File too large - maximum file size is 1GB');
   }
 
   // SECURITY: MIME type validation

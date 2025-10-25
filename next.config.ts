@@ -147,7 +147,7 @@ const nextConfig: NextConfig = {
     optimizeCss: true,
     // Enable server actions for better data fetching
     serverActions: {
-      bodySizeLimit: '2mb',
+      bodySizeLimit: '1gb',
     },
   },
 

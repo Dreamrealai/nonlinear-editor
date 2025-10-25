@@ -93,7 +93,8 @@ export class BackupService {
         error?.code === '42P01' || // undefined_table
         error?.code === '23502' || // not_null_violation
         error?.code === '23503' || // foreign_key_violation
-        error?.code === '22P02' // invalid_text_representation
+        error?.code === '22P02' || // invalid_text_representation
+        error?.code === 'PGRST204' // PostgREST: undefined column
       ) {
         break;
       }
