@@ -169,15 +169,19 @@ describe('Integration: Export Modal Workflow', () => {
         expect(screen.getByText('1080p HD')).toBeInTheDocument();
       });
 
-      // Default preset should be highlighted
-      const preset1080p = screen.getByText('1080p HD').closest('button');
-      expect(preset1080p).toHaveClass('border-blue-500');
+      // Default preset should be highlighted - wait for styling to apply
+      await waitFor(() => {
+        const preset1080p = screen.getByText('1080p HD').closest('button');
+        expect(preset1080p).toHaveClass('border-blue-500');
+      });
 
-      // Settings should show 1080p values
-      expect(screen.getByText('1920x1080')).toBeInTheDocument();
-      const fpsElements = screen.getAllByText(/30fps/i);
-      expect(fpsElements.length).toBeGreaterThan(0);
-      expect(screen.getByText('MP4')).toBeInTheDocument();
+      // Settings should show 1080p values - wait for all elements
+      await waitFor(() => {
+        expect(screen.getByText('1920x1080')).toBeInTheDocument();
+        const fpsElements = screen.getAllByText(/30fps/i);
+        expect(fpsElements.length).toBeGreaterThan(0);
+        expect(screen.getByText('MP4')).toBeInTheDocument();
+      });
     });
 
     it('should show all available export presets', async () => {
@@ -217,17 +221,24 @@ describe('Integration: Export Modal Workflow', () => {
         expect(screen.getByText('1080p HD')).toBeInTheDocument();
       });
 
-      // Initially 1080p
-      expect(screen.getByText('1920x1080')).toBeInTheDocument();
+      // Wait for initial settings to render
+      await waitFor(() => {
+        expect(screen.getByText('1920x1080')).toBeInTheDocument();
+      });
 
       // Click 720p preset
+      await waitFor(() => {
+        const preset720p = screen.getByText('720p HD').closest('button');
+        expect(preset720p).toBeInTheDocument();
+      });
+
       const preset720p = screen.getByText('720p HD').closest('button');
       await user.click(preset720p!);
 
       // Settings should update
       await waitFor(() => {
         expect(screen.getByText('1280x720')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
     });
 
     it('should highlight selected preset', async () => {
@@ -239,18 +250,25 @@ describe('Integration: Export Modal Workflow', () => {
         expect(screen.getByText('480p SD')).toBeInTheDocument();
       });
 
-      // Click 480p preset
+      // Click 480p preset - wait for it to be clickable
+      await waitFor(() => {
+        const preset480p = screen.getByText('480p SD').closest('button');
+        expect(preset480p).toBeInTheDocument();
+      });
+
       const preset480p = screen.getByText('480p SD').closest('button');
       await user.click(preset480p!);
 
       // Should be highlighted
       await waitFor(() => {
         expect(preset480p).toHaveClass('border-blue-500');
-      });
+      }, { timeout: 3000 });
 
-      // Previous preset should not be highlighted
-      const preset1080p = screen.getByText('1080p HD').closest('button');
-      expect(preset1080p).not.toHaveClass('border-blue-500');
+      // Previous preset should not be highlighted - wait for update
+      await waitFor(() => {
+        const preset1080p = screen.getByText('1080p HD').closest('button');
+        expect(preset1080p).not.toHaveClass('border-blue-500');
+      });
     });
 
     it('should show different format for Web Optimized preset', async () => {
