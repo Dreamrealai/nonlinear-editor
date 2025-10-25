@@ -74,14 +74,27 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     // Update state with error info for display
     this.setState({ errorInfo });
 
+    // Truncate component stack if too large to prevent 400 errors from /api/logs
+    // Component stacks can be very large (10KB+), especially in production with minified code
+    const MAX_STACK_LENGTH = 2000; // Limit component stack to 2KB
+    const truncatedComponentStack =
+      errorInfo.componentStack && errorInfo.componentStack.length > MAX_STACK_LENGTH
+        ? errorInfo.componentStack.substring(0, MAX_STACK_LENGTH) +
+          '\n... (truncated, stack too large)'
+        : errorInfo.componentStack;
+
     // Build context for logging
     const logContext = {
       error: {
         name: error.name,
         message: error.message,
-        stack: error.stack,
+        // Truncate error stack as well to prevent payload bloat
+        stack:
+          error.stack && error.stack.length > MAX_STACK_LENGTH
+            ? error.stack.substring(0, MAX_STACK_LENGTH) + '\n... (truncated)'
+            : error.stack,
       },
-      componentStack: errorInfo.componentStack,
+      componentStack: truncatedComponentStack,
       boundaryName: this.props.name || 'Unknown',
       type: 'react_error_boundary',
       url: typeof window !== 'undefined' ? window.location.href : undefined,

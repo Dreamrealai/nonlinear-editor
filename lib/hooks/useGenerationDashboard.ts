@@ -150,150 +150,185 @@ export function useGenerationDashboard({
   }, []);
 
   // Check status of a single job
-  const checkJobStatus = useCallback(async (job: GenerationJob): Promise<Partial<GenerationJob> | null> => {
-    try {
-      let endpoint = '';
-      const queryParams = new URLSearchParams();
+  const checkJobStatus = useCallback(
+    async (job: GenerationJob): Promise<Partial<GenerationJob> | null> => {
+      try {
+        let endpoint = '';
+        const queryParams = new URLSearchParams();
 
-      // Determine endpoint based on job type
-      if (job.type === 'video') {
-        endpoint = '/api/video/status';
-        queryParams.append('operationName', job.operationName);
-        queryParams.append('projectId', job.projectId);
-      } else if (job.type === 'audio') {
-        // Determine audio endpoint based on operation name
-        if (job.operationName.startsWith('suno:')) {
-          endpoint = '/api/audio/suno/status';
-          const taskId = job.operationName.replace('suno:', '');
-          queryParams.append('taskId', taskId);
+        // Determine endpoint based on job type
+        if (job.type === 'video') {
+          endpoint = '/api/video/status';
+          queryParams.append('operationName', job.operationName);
           queryParams.append('projectId', job.projectId);
-        } else if (job.operationName.startsWith('elevenlabs:')) {
-          endpoint = '/api/audio/elevenlabs/status';
-          const requestId = job.operationName.replace('elevenlabs:', '');
-          queryParams.append('requestId', requestId);
+        } else if (job.type === 'audio') {
+          // Determine audio endpoint based on operation name
+          if (job.operationName.startsWith('suno:')) {
+            endpoint = '/api/audio/suno/status';
+            const taskId = job.operationName.replace('suno:', '');
+            queryParams.append('taskId', taskId);
+            queryParams.append('projectId', job.projectId);
+          } else if (job.operationName.startsWith('elevenlabs:')) {
+            endpoint = '/api/audio/elevenlabs/status';
+            const requestId = job.operationName.replace('elevenlabs:', '');
+            queryParams.append('requestId', requestId);
+            queryParams.append('projectId', job.projectId);
+          } else {
+            return null;
+          }
+        } else if (job.type === 'image') {
+          // Image generation status endpoint (if exists)
+          endpoint = '/api/image/status';
+          queryParams.append('operationName', job.operationName);
           queryParams.append('projectId', job.projectId);
-        } else {
-          return null;
         }
-      } else if (job.type === 'image') {
-        // Image generation status endpoint (if exists)
-        endpoint = '/api/image/status';
-        queryParams.append('operationName', job.operationName);
-        queryParams.append('projectId', job.projectId);
-      }
 
-      const response = await fetch(`${endpoint}?${queryParams.toString()}`);
+        const response = await fetch(`${endpoint}?${queryParams.toString()}`);
 
-      if (!response.ok) {
-        throw new Error(`Status check failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      // Parse response based on type
-      if (job.type === 'video') {
-        if (data.done) {
-          return {
-            status: data.error ? 'failed' : 'completed',
-            progress: 100,
-            completedAt: new Date(),
-            error: data.error,
-            assetId: data.asset?.id,
-            resultUrl: data.asset?.storage_url,
-          };
-        } else {
-          return {
-            status: 'processing',
-            progress: data.progress || 0,
-          };
+        if (!response.ok) {
+          throw new Error(`Status check failed: ${response.status}`);
         }
-      } else if (job.type === 'audio') {
-        // Suno response
-        if (data.tasks && data.tasks.length > 0) {
-          const task = data.tasks[0];
-          if (task.status === 'completed' || task.audioUrl) {
+
+        const data = await response.json();
+
+        // Parse response based on type
+        if (job.type === 'video') {
+          if (data.done) {
             return {
-              status: 'completed',
+              status: data.error ? 'failed' : 'completed',
               progress: 100,
               completedAt: new Date(),
-              resultUrl: task.audioUrl,
-            };
-          } else if (task.status === 'failed') {
-            return {
-              status: 'failed',
-              progress: 0,
-              completedAt: new Date(),
-              error: 'Audio generation failed',
+              error: data.error,
+              assetId: data.asset?.id,
+              resultUrl: data.asset?.storage_url,
             };
           } else {
             return {
               status: 'processing',
-              progress: task.status === 'processing' ? 50 : 0,
+              progress: data.progress || 0,
             };
           }
+        } else if (job.type === 'audio') {
+          // Suno response
+          if (data.tasks && data.tasks.length > 0) {
+            const task = data.tasks[0];
+            if (task.status === 'completed' || task.audioUrl) {
+              return {
+                status: 'completed',
+                progress: 100,
+                completedAt: new Date(),
+                resultUrl: task.audioUrl,
+              };
+            } else if (task.status === 'failed') {
+              return {
+                status: 'failed',
+                progress: 0,
+                completedAt: new Date(),
+                error: 'Audio generation failed',
+              };
+            } else {
+              return {
+                status: 'processing',
+                progress: task.status === 'processing' ? 50 : 0,
+              };
+            }
+          }
         }
-      }
 
-      return null;
-    } catch (err) {
-      console.error(`Error checking status for job ${job.id}:`, err);
-      return null;
-    }
-  }, []);
+        return null;
+      } catch (err) {
+        console.error(`Error checking status for job ${job.id}:`, err);
+        return null;
+      }
+    },
+    []
+  );
 
   // Refresh all job statuses
+  // NOTE: Fixed circular dependency - use setJobs callback to access current jobs instead of depending on jobs state
   const refresh = useCallback(async (): Promise<void> => {
-    if (jobs.length === 0) return;
-
     setIsLoading(true);
     setError(null);
 
     try {
-      const updates = await Promise.all(
-        jobs
-          .filter((job): boolean => job.status === 'processing' || job.status === 'queued')
-          .map(async (job): Promise<{ jobId: string; update: Partial<GenerationJob> | null; }> => {
-            const update = await checkJobStatus(job);
-            return { jobId: job.id, update };
-          })
-      );
-
-      // Apply updates
-      setJobs((prev): GenerationJob[] =>
-        prev.map((job): GenerationJob => {
-          const updateEntry = updates.find((u): boolean => u.jobId === job.id);
-          if (updateEntry && updateEntry.update) {
-            const updatedJob = { ...job, ...updateEntry.update };
-
-            // Set auto-remove timer for completed jobs
-            if (
-              autoRemoveCompletedAfter &&
-              (updatedJob.status === 'completed' || updatedJob.status === 'failed') &&
-              !autoRemoveTimers.current.has(job.id)
-            ) {
-              const timer = setTimeout((): void => {
-                removeJob(job.id);
-              }, autoRemoveCompletedAfter);
-              autoRemoveTimers.current.set(job.id, timer);
-            }
-
-            return updatedJob;
+      // Use setJobs callback to get current jobs state without adding to dependencies
+      await new Promise<void>((resolve) => {
+        setJobs((currentJobs): GenerationJob[] => {
+          // If no jobs, skip refresh
+          if (currentJobs.length === 0) {
+            setIsLoading(false);
+            resolve();
+            return currentJobs;
           }
-          return job;
-        })
-      );
+
+          // Process job updates asynchronously
+          void (async (): Promise<void> => {
+            try {
+              const updates = await Promise.all(
+                currentJobs
+                  .filter((job): boolean => job.status === 'processing' || job.status === 'queued')
+                  .map(
+                    async (
+                      job
+                    ): Promise<{ jobId: string; update: Partial<GenerationJob> | null }> => {
+                      const update = await checkJobStatus(job);
+                      return { jobId: job.id, update };
+                    }
+                  )
+              );
+
+              // Apply updates
+              setJobs((prev): GenerationJob[] =>
+                prev.map((job): GenerationJob => {
+                  const updateEntry = updates.find((u): boolean => u.jobId === job.id);
+                  if (updateEntry && updateEntry.update) {
+                    const updatedJob = { ...job, ...updateEntry.update };
+
+                    // Set auto-remove timer for completed jobs
+                    if (
+                      autoRemoveCompletedAfter &&
+                      (updatedJob.status === 'completed' || updatedJob.status === 'failed') &&
+                      !autoRemoveTimers.current.has(job.id)
+                    ) {
+                      const timer = setTimeout((): void => {
+                        removeJob(job.id);
+                      }, autoRemoveCompletedAfter);
+                      autoRemoveTimers.current.set(job.id, timer);
+                    }
+
+                    return updatedJob;
+                  }
+                  return job;
+                })
+              );
+            } catch (err) {
+              const errorMessage =
+                err instanceof Error ? err.message : 'Failed to refresh job statuses';
+              setError(errorMessage);
+              console.error('Error refreshing job statuses:', err);
+            } finally {
+              setIsLoading(false);
+              resolve();
+            }
+          })();
+
+          return currentJobs;
+        });
+      });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to refresh job statuses';
       setError(errorMessage);
       console.error('Error refreshing job statuses:', err);
-    } finally {
       setIsLoading(false);
     }
-  }, [jobs, checkJobStatus, autoRemoveCompletedAfter, removeJob]);
+  }, [checkJobStatus, autoRemoveCompletedAfter, removeJob]);
 
   // Use polling for automatic refresh when jobs are active
   useEffect(() => {
-    if (!enabled || !jobs.some((j): boolean => j.status === 'processing' || j.status === 'queued')) {
+    if (
+      !enabled ||
+      !jobs.some((j): boolean => j.status === 'processing' || j.status === 'queued')
+    ) {
       return;
     }
 
@@ -310,12 +345,14 @@ export function useGenerationDashboard({
   const imageJobs = jobs.filter((j): boolean => j.type === 'image');
 
   // Filter by status
-  const activeJobs = jobs.filter((j): boolean => j.status === 'processing' || j.status === 'queued');
+  const activeJobs = jobs.filter(
+    (j): boolean => j.status === 'processing' || j.status === 'queued'
+  );
   const completedJobs = jobs.filter((j): boolean => j.status === 'completed');
   const failedJobs = jobs.filter((j): boolean => j.status === 'failed');
 
   // Cleanup timers on unmount
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     return (): void => {
       autoRemoveTimers.current.forEach((timer): void => clearTimeout(timer));
       autoRemoveTimers.current.clear();
@@ -327,9 +364,15 @@ export function useGenerationDashboard({
     videoJobs: projectId ? videoJobs.filter((j): boolean => j.projectId === projectId) : videoJobs,
     audioJobs: projectId ? audioJobs.filter((j): boolean => j.projectId === projectId) : audioJobs,
     imageJobs: projectId ? imageJobs.filter((j): boolean => j.projectId === projectId) : imageJobs,
-    activeJobs: projectId ? activeJobs.filter((j): boolean => j.projectId === projectId) : activeJobs,
-    completedJobs: projectId ? completedJobs.filter((j): boolean => j.projectId === projectId) : completedJobs,
-    failedJobs: projectId ? failedJobs.filter((j): boolean => j.projectId === projectId) : failedJobs,
+    activeJobs: projectId
+      ? activeJobs.filter((j): boolean => j.projectId === projectId)
+      : activeJobs,
+    completedJobs: projectId
+      ? completedJobs.filter((j): boolean => j.projectId === projectId)
+      : completedJobs,
+    failedJobs: projectId
+      ? failedJobs.filter((j): boolean => j.projectId === projectId)
+      : failedJobs,
     addJob,
     removeJob,
     clearCompleted,

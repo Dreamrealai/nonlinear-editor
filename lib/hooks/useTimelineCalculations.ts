@@ -29,13 +29,17 @@ export function useTimelineCalculations({
   scrollLeft,
   viewportWidth,
   zoom,
-}: UseTimelineCalculationsOptions): { timelineDuration: number; numTracks: number; visibleClips: Clip[]; calculationError: string | null; } {
+}: UseTimelineCalculationsOptions): {
+  timelineDuration: number;
+  numTracks: number;
+  visibleClips: Clip[];
+  calculationError: string | null;
+} {
   const [calculationError, setCalculationError] = useState<string | null>(null);
 
   // Calculate timeline duration
   const timelineDuration = useMemo((): number => {
     try {
-      setCalculationError(null);
       const textOverlays = timeline?.textOverlays ?? [];
       const clipEndTimes = timeline?.clips.length
         ? timeline.clips.map((c): number => c.timelinePosition + (c.end - c.start))
@@ -47,7 +51,7 @@ export function useTimelineCalculations({
       return allEndTimes.length ? Math.max(...allEndTimes, 30) : 30;
     } catch (error) {
       browserLogger.error({ error, timeline }, 'Failed to calculate timeline duration');
-      setCalculationError('Failed to calculate timeline duration');
+      // NOTE: Do NOT call setCalculationError here - setState in useMemo causes infinite loops (React error #185)
       return 30; // Default fallback
     }
   }, [timeline]);
@@ -61,7 +65,7 @@ export function useTimelineCalculations({
       return Math.max(maxTrack + 1, MIN_TRACKS, forcedTrackCount ?? 0);
     } catch (error) {
       browserLogger.error({ error, timeline }, 'Failed to calculate number of tracks');
-      setCalculationError('Failed to calculate number of tracks');
+      // NOTE: Do NOT call setCalculationError here - setState in useMemo causes infinite loops (React error #185)
       return MIN_TRACKS; // Default fallback
     }
   }, [timeline, forcedTrackCount]);
@@ -79,7 +83,9 @@ export function useTimelineCalculations({
       // For large clip arrays (50+), use sorted + binary search for better performance
       if (timeline.clips.length > 50) {
         // Sort clips by timeline position (cached via sortedClips reference)
-        const sortedClips = [...timeline.clips].sort((a, b): number => a.timelinePosition - b.timelinePosition);
+        const sortedClips = [...timeline.clips].sort(
+          (a, b): number => a.timelinePosition - b.timelinePosition
+        );
 
         // Binary search to find first visible clip
         let left = 0;
@@ -128,8 +134,11 @@ export function useTimelineCalculations({
         return clipEnd >= viewportStartTime && clipStart <= viewportEndTime;
       });
     } catch (error) {
-      browserLogger.error({ error, timeline, scrollLeft, zoom }, 'Failed to calculate visible clips');
-      setCalculationError('Failed to calculate visible clips');
+      browserLogger.error(
+        { error, timeline, scrollLeft, zoom },
+        'Failed to calculate visible clips'
+      );
+      // NOTE: Do NOT call setCalculationError here - setState in useMemo causes infinite loops (React error #185)
       return [];
     }
   }, [timeline?.clips, scrollLeft, viewportWidth, zoom]);
