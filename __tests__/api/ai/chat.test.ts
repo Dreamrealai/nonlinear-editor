@@ -7,12 +7,9 @@
  * - Only mocks external services (Gemini AI, logger)
  * - Tests real business logic
  * - Uses FormData helper utilities for cleaner test code
+ *
+ * Note: NODE_ENV=test and BYPASS_AUTH=false are set globally in jest.setup.js
  */
-
-// Set NODE_ENV to test to disable rate limiting
-process.env.NODE_ENV = 'test';
-// Disable auth bypass for tests (tests control auth via mocks)
-process.env.BYPASS_AUTH = 'false';
 
 import { NextRequest } from 'next/server';
 import { createTestUser, createTestSupabaseClient } from '@/test-utils/testWithAuth';
@@ -48,7 +45,7 @@ jest.mock('@/lib/supabase', () => {
   const { createTestSupabaseClient } = jest.requireActual('@/test-utils/testWithAuth');
 
   return {
-    createServerSupabaseClient: jest.fn(async () => {
+    createServerSupabaseClient: jest.fn(async (): Promise<any> => {
       // Access currentTestUser via the module - it will be defined by the test
       const currentUser = (global as any).__currentTestUser__;
 
@@ -56,7 +53,10 @@ jest.mock('@/lib/supabase', () => {
         // Return a client that will fail auth
         return {
           auth: {
-            getUser: async () => ({ data: { user: null }, error: { message: 'Not authenticated' } }),
+            getUser: async (): Promise<any> => ({
+              data: { user: null },
+              error: { message: 'Not authenticated' },
+            }),
           },
         };
       }
