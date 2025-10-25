@@ -1,9 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { ChatBox } from '@/components/editor/ChatBox';
+import dynamic from 'next/dynamic';
 import { useParams } from 'next/navigation';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+
+// Lazy load ChatBox since it's only shown when user clicks the chat button
+const ChatBox = dynamic(
+  () => import('@/components/editor/ChatBox').then((mod) => ({ default: mod.ChatBox })),
+  {
+    loading: () => <div className="h-full w-80 animate-pulse bg-neutral-100 dark:bg-neutral-800" />,
+    ssr: false,
+  }
+);
 
 export default function EditorLayout({ children }: { children: React.ReactNode }) {
   const params = useParams();
@@ -19,14 +28,19 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
       {projectId && (
         <>
           {/* Desktop Sidebar */}
-          <div className={`hidden lg:block ${sidebarCollapsed ? 'w-0' : 'w-96'}`} style={{ transition: 'width 0.3s' }}>
+          <div
+            className={`hidden lg:block ${sidebarCollapsed ? 'w-0' : 'w-96'}`}
+            style={{ transition: 'width 0.3s' }}
+          >
             <ErrorBoundary
               name="AIAssistant"
               context={{ projectId, component: 'ChatBox' }}
               fallback={
                 <div className="flex h-full items-center justify-center bg-white border-l border-neutral-200 p-4">
                   <div className="max-w-sm rounded-lg border border-orange-200 bg-orange-50 p-6 text-center">
-                    <h3 className="text-lg font-semibold text-orange-900 mb-2">AI Assistant Error</h3>
+                    <h3 className="text-lg font-semibold text-orange-900 mb-2">
+                      AI Assistant Error
+                    </h3>
                     <p className="text-sm text-orange-700 mb-4">
                       The AI assistant encountered an error. Your project is safe.
                     </p>
@@ -58,7 +72,9 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
                   fallback={
                     <div className="flex h-full items-center justify-center bg-white p-4">
                       <div className="max-w-sm rounded-lg border border-orange-200 bg-orange-50 p-6 text-center">
-                        <h3 className="text-lg font-semibold text-orange-900 mb-2">AI Assistant Error</h3>
+                        <h3 className="text-lg font-semibold text-orange-900 mb-2">
+                          AI Assistant Error
+                        </h3>
                         <p className="text-sm text-orange-700 mb-4">
                           The AI assistant encountered an error. Your project is safe.
                         </p>
@@ -79,8 +95,18 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
                         onClick={() => setSidebarCollapsed(true)}
                         className="p-2 rounded-lg hover:bg-neutral-100"
                       >
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -131,12 +157,7 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
         className="fixed right-4 bottom-4 z-50 rounded-full bg-purple-600 p-4 shadow-lg hover:bg-purple-700 lg:hidden"
         title={sidebarCollapsed ? 'Show AI Assistant' : 'Hide AI Assistant'}
       >
-        <svg
-          className="h-6 w-6 text-white"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
+        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"

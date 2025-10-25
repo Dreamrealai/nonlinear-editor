@@ -130,6 +130,8 @@ const nextConfig: NextConfig = {
     optimizePackageImports: [
       '@supabase/supabase-js',
       '@supabase/ssr',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-tooltip',
       'zustand',
       'clsx',
       'lucide-react',
@@ -138,6 +140,8 @@ const nextConfig: NextConfig = {
       'immer',
       'uuid',
       'pino',
+      'posthog-js',
+      '@sentry/nextjs',
     ],
     // Enable optimized CSS loading
     optimizeCss: true,
@@ -173,6 +177,71 @@ const nextConfig: NextConfig = {
 
   // Standalone output for smaller production builds
   output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
+
+  // Webpack optimizations (for webpack builds)
+  webpack: (config, { isServer }) => {
+    // Only apply client-side optimizations
+    if (!isServer) {
+      // Improve code splitting for better caching
+      config.optimization = {
+        ...config.optimization,
+        moduleIds: 'deterministic',
+        runtimeChunk: 'single',
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            // Vendor code splitting
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name(module: { context: string }): string {
+                // Get package name from module context
+                const packageName = module.context.match(
+                  /[\\/]node_modules[\\/](.*?)([\\/]|$)/
+                )?.[1];
+                return `vendor.${packageName?.replace('@', '')}`;
+              },
+              priority: 10,
+            },
+            // Framework code (React, Next.js)
+            framework: {
+              test: /[\\/]node_modules[\\/](react|react-dom|next|scheduler)[\\/]/,
+              name: 'framework',
+              priority: 20,
+              reuseExistingChunk: true,
+            },
+            // Common code shared between pages
+            commons: {
+              minChunks: 2,
+              priority: 5,
+              reuseExistingChunk: true,
+            },
+            // Large libraries that should be split separately
+            supabase: {
+              test: /[\\/]node_modules[\\/]@supabase[\\/]/,
+              name: 'supabase',
+              priority: 15,
+            },
+            posthog: {
+              test: /[\\/]node_modules[\\/]posthog-js[\\/]/,
+              name: 'posthog',
+              priority: 15,
+            },
+            sentry: {
+              test: /[\\/]node_modules[\\/]@sentry[\\/]/,
+              name: 'sentry',
+              priority: 15,
+            },
+            google: {
+              test: /[\\/]node_modules[\\/]@google[\\/]/,
+              name: 'google',
+              priority: 15,
+            },
+          },
+        },
+      };
+    }
+    return config;
+  },
 };
 
 // Sentry configuration options

@@ -3,12 +3,41 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
-import { SubscriptionManager } from '@/components/SubscriptionManager';
-import { ActivityHistory } from '@/components/ActivityHistory';
-import { KeyboardShortcutsPanel } from '@/components/settings/KeyboardShortcutsPanel';
 import toast, { Toaster } from 'react-hot-toast';
 import { browserLogger } from '@/lib/browserLogger';
+
+// Lazy load heavy components that aren't immediately visible
+const SubscriptionManager = dynamic(
+  () =>
+    import('@/components/SubscriptionManager').then((mod) => ({
+      default: mod.SubscriptionManager,
+    })),
+  {
+    loading: () => <div className="h-32 animate-pulse rounded-2xl bg-neutral-100" />,
+    ssr: false,
+  }
+);
+
+const ActivityHistory = dynamic(
+  () => import('@/components/ActivityHistory').then((mod) => ({ default: mod.ActivityHistory })),
+  {
+    loading: () => <div className="h-64 animate-pulse rounded-2xl bg-neutral-100" />,
+    ssr: false,
+  }
+);
+
+const KeyboardShortcutsPanel = dynamic(
+  () =>
+    import('@/components/settings/KeyboardShortcutsPanel').then((mod) => ({
+      default: mod.KeyboardShortcutsPanel,
+    })),
+  {
+    loading: () => <div className="h-48 animate-pulse rounded-2xl bg-neutral-100" />,
+    ssr: false,
+  }
+);
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -147,8 +176,14 @@ export default function SettingsPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-neutral-50 via-neutral-50 to-neutral-100 dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-800">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 motion-reduce:animate-none motion-reduce:border-t-8 dark:border-purple-800 dark:border-t-purple-400" role="status" aria-label="Loading settings"></div>
-          <div className="text-sm font-medium text-neutral-600 dark:text-neutral-400">Loading your settings...</div>
+          <div
+            className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 motion-reduce:animate-none motion-reduce:border-t-8 dark:border-purple-800 dark:border-t-purple-400"
+            role="status"
+            aria-label="Loading settings"
+          ></div>
+          <div className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+            Loading your settings...
+          </div>
         </div>
       </div>
     );
