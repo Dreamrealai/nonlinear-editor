@@ -17,8 +17,9 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import sharp from 'sharp';
 
 // Mock errorTracking
+const mockTrackError = jest.fn();
 jest.mock('@/lib/errorTracking', () => ({
-  trackError: jest.fn(),
+  trackError: mockTrackError,
   ErrorCategory: {
     EXTERNAL_SERVICE: 'EXTERNAL_SERVICE',
   },
@@ -29,26 +30,10 @@ jest.mock('@/lib/errorTracking', () => ({
   },
 }));
 
-// Mock child_process - declare mockExec first
+// Mock child_process
 const mockExec = jest.fn();
 jest.mock('child_process', () => ({
   exec: mockExec,
-}));
-
-jest.mock('util', () => ({
-  promisify: (fn: any) => {
-    return (...args: any[]) => {
-      return new Promise((resolve, reject) => {
-        fn(...args, (error: Error | null, stdout?: string, stderr?: string) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve({ stdout: stdout || '', stderr: stderr || '' });
-          }
-        });
-      });
-    };
-  },
 }));
 
 // Mock fs
@@ -96,11 +81,9 @@ describe('ThumbnailService', () => {
   describe('checkFFmpegAvailable', () => {
     it('should return true if FFmpeg is available', async () => {
       // Arrange
-      mockExec.mockImplementationOnce(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          callback(null, 'ffmpeg version 4.4.0', '');
-        }
-      );
+      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
+        callback(null, 'ffmpeg version 4.4.0', '');
+      });
 
       // Act
       const available = await service.checkFFmpegAvailable();
@@ -112,11 +95,9 @@ describe('ThumbnailService', () => {
 
     it('should return false if FFmpeg is not available', async () => {
       // Arrange
-      mockExec.mockImplementationOnce(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          callback(new Error('Command not found'), '', '');
-        }
-      );
+      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
+        callback(new Error('Command not found'), '', '');
+      });
 
       // Act
       const available = await service.checkFFmpegAvailable();
@@ -124,20 +105,32 @@ describe('ThumbnailService', () => {
       // Assert
       expect(available).toBe(false);
     });
+
+    it('should track error when FFmpeg not available', async () => {
+      // Arrange
+      const error = new Error('Command not found');
+      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
+        callback(error, '', '');
+      });
+
+      // Act
+      await service.checkFFmpegAvailable();
+
+      // Assert
+      expect(mockTrackError).toHaveBeenCalled();
+    });
   });
 
   describe('generateVideoThumbnail', () => {
     it('should generate video thumbnail with default options', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            callback(null, '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          callback(null, '', '');
         }
-      );
+      });
 
       // Act
       const result = await service.generateVideoThumbnail(testImageBuffer);
@@ -153,11 +146,9 @@ describe('ThumbnailService', () => {
 
     it('should throw error if FFmpeg not available', async () => {
       // Arrange
-      mockExec.mockImplementationOnce(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          callback(new Error('Command not found'), '', '');
-        }
-      );
+      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
+        callback(new Error('Command not found'), '', '');
+      });
 
       // Act & Assert
       await expect(service.generateVideoThumbnail(testImageBuffer)).rejects.toThrow(
@@ -167,16 +158,14 @@ describe('ThumbnailService', () => {
 
     it('should use custom timestamp', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            expect(cmd).toContain('-ss 5.5');
-            callback(null, '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          expect(cmd).toContain('-ss 5.5');
+          callback(null, '', '');
         }
-      );
+      });
 
       // Act
       const result = await service.generateVideoThumbnail(testImageBuffer, {
@@ -189,16 +178,14 @@ describe('ThumbnailService', () => {
 
     it('should use custom width', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            expect(cmd).toContain('scale=640:-1');
-            callback(null, '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          expect(cmd).toContain('scale=640:-1');
+          callback(null, '', '');
         }
-      );
+      });
 
       // Act
       await service.generateVideoThumbnail(testImageBuffer, {
@@ -214,16 +201,14 @@ describe('ThumbnailService', () => {
 
     it('should use custom width and height', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            expect(cmd).toContain('scale=800:600');
-            callback(null, '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          expect(cmd).toContain('scale=800:600');
+          callback(null, '', '');
         }
-      );
+      });
 
       // Act
       await service.generateVideoThumbnail(testImageBuffer, {
@@ -240,17 +225,15 @@ describe('ThumbnailService', () => {
 
     it('should use custom quality setting', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            // Quality 100 should result in q:v 2 (best quality)
-            expect(cmd).toContain('-q:v 2');
-            callback(null, '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          // Quality 100 should result in q:v 2 (best quality)
+          expect(cmd).toContain('-q:v 2');
+          callback(null, '', '');
         }
-      );
+      });
 
       // Act
       await service.generateVideoThumbnail(testImageBuffer, {
@@ -266,17 +249,15 @@ describe('ThumbnailService', () => {
 
     it('should use low quality setting', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            // Quality 1 should result in q:v 31 (worst quality)
-            expect(cmd).toMatch(/-q:v (30|31)/);
-            callback(null, '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          // Quality 1 should result in q:v 31 (worst quality)
+          expect(cmd).toMatch(/-q:v (30|31)/);
+          callback(null, '', '');
         }
-      );
+      });
 
       // Act
       await service.generateVideoThumbnail(testImageBuffer, {
@@ -289,15 +270,13 @@ describe('ThumbnailService', () => {
 
     it('should clean up temp files on success', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            callback(null, '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          callback(null, '', '');
         }
-      );
+      });
 
       // Act
       await service.generateVideoThumbnail(testImageBuffer);
@@ -309,15 +288,13 @@ describe('ThumbnailService', () => {
 
     it('should clean up temp files on error', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            callback(new Error('FFmpeg failed'), '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          callback(new Error('FFmpeg failed'), '', '');
         }
-      );
+      });
 
       // Act & Assert
       await expect(service.generateVideoThumbnail(testImageBuffer)).rejects.toThrow(
@@ -328,15 +305,13 @@ describe('ThumbnailService', () => {
 
     it('should handle cleanup errors gracefully', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            callback(null, '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          callback(null, '', '');
         }
-      );
+      });
       mockUnlink.mockRejectedValueOnce(new Error('Cleanup failed'));
 
       // Act
@@ -348,15 +323,13 @@ describe('ThumbnailService', () => {
 
     it('should handle missing file during cleanup', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            callback(null, '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          callback(null, '', '');
         }
-      );
+      });
       mockExistsSync.mockReturnValue(false);
 
       // Act
@@ -368,15 +341,13 @@ describe('ThumbnailService', () => {
 
     it('should handle FFmpeg execution error', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            callback(new Error('FFmpeg execution failed'));
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          callback(new Error('FFmpeg execution failed'), '', '');
         }
-      );
+      });
 
       // Act & Assert
       await expect(service.generateVideoThumbnail(testImageBuffer)).rejects.toThrow(
@@ -386,11 +357,9 @@ describe('ThumbnailService', () => {
 
     it('should handle file write error', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          callback(null, 'ffmpeg version 4.4.0', '');
-        }
-      );
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        callback(null, 'ffmpeg version 4.4.0', '');
+      });
       mockWriteFile.mockRejectedValueOnce(new Error('Write failed'));
 
       // Act & Assert
@@ -401,15 +370,13 @@ describe('ThumbnailService', () => {
 
     it('should handle file read error', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            callback(null, '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          callback(null, '', '');
         }
-      );
+      });
       mockReadFile.mockRejectedValueOnce(new Error('Read failed'));
 
       // Act & Assert
@@ -422,15 +389,13 @@ describe('ThumbnailService', () => {
   describe('generateVideoThumbnailSequence', () => {
     it('should generate multiple thumbnails at different timestamps', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            callback(null, '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          callback(null, '', '');
         }
-      );
+      });
 
       // Act
       const results = await service.generateVideoThumbnailSequence(testImageBuffer, [1, 5, 10]);
@@ -445,21 +410,19 @@ describe('ThumbnailService', () => {
     it('should continue on individual failures', async () => {
       // Arrange
       let callCount = 0;
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          callCount++;
+          if (callCount === 2) {
+            // Fail the second timestamp
+            callback(new Error('FFmpeg failed'), '', '');
           } else {
-            callCount++;
-            if (callCount === 2) {
-              // Fail the second timestamp
-              callback(new Error('FFmpeg failed'));
-            } else {
-              callback(null, { stdout: '' });
-            }
+            callback(null, '', '');
           }
         }
-      );
+      });
 
       // Act
       const results = await service.generateVideoThumbnailSequence(testImageBuffer, [1, 5, 10]);
@@ -470,15 +433,13 @@ describe('ThumbnailService', () => {
 
     it('should return empty array if all fail', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            callback(new Error('FFmpeg failed'), '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          callback(new Error('FFmpeg failed'), '', '');
         }
-      );
+      });
 
       // Act
       const results = await service.generateVideoThumbnailSequence(testImageBuffer, [1, 5]);
@@ -489,16 +450,14 @@ describe('ThumbnailService', () => {
 
     it('should pass custom options to each thumbnail', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            expect(cmd).toContain('scale=480:-1');
-            callback(null, '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          expect(cmd).toContain('scale=480:-1');
+          callback(null, '', '');
         }
-      );
+      });
 
       // Act
       await service.generateVideoThumbnailSequence(testImageBuffer, [1, 2], {
@@ -602,11 +561,9 @@ describe('ThumbnailService', () => {
   describe('getVideoDuration', () => {
     it('should return video duration', async () => {
       // Arrange
-      mockExec.mockImplementationOnce(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          callback(null, '120.50\n', '');
-        }
-      );
+      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
+        callback(null, '120.50\n', '');
+      });
 
       // Act
       const duration = await service.getVideoDuration(testImageBuffer);
@@ -619,11 +576,9 @@ describe('ThumbnailService', () => {
 
     it('should return 0 on error', async () => {
       // Arrange
-      mockExec.mockImplementationOnce(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          callback(new Error('FFprobe failed'), '', '');
-        }
-      );
+      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
+        callback(new Error('FFprobe failed'), '', '');
+      });
 
       // Act
       const duration = await service.getVideoDuration(testImageBuffer);
@@ -634,11 +589,9 @@ describe('ThumbnailService', () => {
 
     it('should return 0 for invalid duration', async () => {
       // Arrange
-      mockExec.mockImplementationOnce(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          callback(null, 'invalid\n', '');
-        }
-      );
+      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
+        callback(null, 'invalid\n', '');
+      });
 
       // Act
       const duration = await service.getVideoDuration(testImageBuffer);
@@ -649,11 +602,9 @@ describe('ThumbnailService', () => {
 
     it('should clean up temp file even on error', async () => {
       // Arrange
-      mockExec.mockImplementationOnce(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          callback(new Error('FFprobe failed'), '', '');
-        }
-      );
+      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
+        callback(new Error('FFprobe failed'), '', '');
+      });
 
       // Act
       await service.getVideoDuration(testImageBuffer);
@@ -664,11 +615,9 @@ describe('ThumbnailService', () => {
 
     it('should ignore cleanup errors', async () => {
       // Arrange
-      mockExec.mockImplementationOnce(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          callback(null, '60.0\n', '');
-        }
-      );
+      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
+        callback(null, '60.0\n', '');
+      });
       mockUnlink.mockRejectedValueOnce(new Error('Cleanup failed'));
 
       // Act
@@ -680,11 +629,9 @@ describe('ThumbnailService', () => {
 
     it('should handle empty output', async () => {
       // Arrange
-      mockExec.mockImplementationOnce(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          callback(null, '', '');
-        }
-      );
+      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
+        callback(null, '', '');
+      });
 
       // Act
       const duration = await service.getVideoDuration(testImageBuffer);
@@ -695,11 +642,9 @@ describe('ThumbnailService', () => {
 
     it('should handle whitespace output', async () => {
       // Arrange
-      mockExec.mockImplementationOnce(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          callback(null, '   \n', '');
-        }
-      );
+      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
+        callback(null, '   \n', '');
+      });
 
       // Act
       const duration = await service.getVideoDuration(testImageBuffer);
@@ -710,11 +655,9 @@ describe('ThumbnailService', () => {
 
     it('should handle missing file during cleanup', async () => {
       // Arrange
-      mockExec.mockImplementationOnce(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          callback(null, '30.0\n', '');
-        }
-      );
+      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
+        callback(null, '30.0\n', '');
+      });
       mockExistsSync.mockReturnValue(false);
 
       // Act
@@ -724,20 +667,31 @@ describe('ThumbnailService', () => {
       expect(duration).toBe(30);
       // Cleanup should be skipped for non-existent file
     });
+
+    it('should handle fractional duration', async () => {
+      // Arrange
+      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
+        callback(null, '0.123456\n', '');
+      });
+
+      // Act
+      const duration = await service.getVideoDuration(testImageBuffer);
+
+      // Assert
+      expect(duration).toBeCloseTo(0.123456, 5);
+    });
   });
 
   describe('generateVideoThumbnailDataURL', () => {
     it('should generate base64 data URL from video', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            callback(null, '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          callback(null, '', '');
         }
-      );
+      });
 
       // Act
       const dataURL = await service.generateVideoThumbnailDataURL(testImageBuffer);
@@ -749,16 +703,14 @@ describe('ThumbnailService', () => {
 
     it('should pass through options', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            expect(cmd).toContain('-ss 3.5');
-            callback(null, '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          expect(cmd).toContain('-ss 3.5');
+          callback(null, '', '');
         }
-      );
+      });
 
       // Act
       await service.generateVideoThumbnailDataURL(testImageBuffer, {
@@ -775,11 +727,9 @@ describe('ThumbnailService', () => {
 
     it('should propagate errors from generateVideoThumbnail', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          callback(new Error('FFmpeg not found'), '', '');
-        }
-      );
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        callback(new Error('FFmpeg not found'), '', '');
+      });
 
       // Act & Assert
       await expect(service.generateVideoThumbnailDataURL(testImageBuffer)).rejects.toThrow();
@@ -814,9 +764,7 @@ describe('ThumbnailService', () => {
       const invalidBuffer = Buffer.from('invalid');
 
       // Act & Assert
-      await expect(
-        service.generateImageThumbnailDataURL(invalidBuffer)
-      ).rejects.toThrow();
+      await expect(service.generateImageThumbnailDataURL(invalidBuffer)).rejects.toThrow();
     });
   });
 
@@ -858,16 +806,14 @@ describe('ThumbnailService', () => {
 
     it('should handle zero timestamp for video', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            expect(cmd).toContain('-ss 0');
-            callback(null, '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          expect(cmd).toContain('-ss 0');
+          callback(null, '', '');
         }
-      );
+      });
 
       // Act
       await service.generateVideoThumbnail(testImageBuffer, {
@@ -903,16 +849,14 @@ describe('ThumbnailService', () => {
 
     it('should handle very high timestamp', async () => {
       // Arrange
-      mockExec.mockImplementation(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          if (cmd.includes('ffmpeg -version')) {
-            callback(null, 'ffmpeg version 4.4.0', '');
-          } else {
-            expect(cmd).toContain('-ss 3600');
-            callback(null, '', '');
-          }
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          expect(cmd).toContain('-ss 3600');
+          callback(null, '', '');
         }
-      );
+      });
 
       // Act
       await service.generateVideoThumbnail(testImageBuffer, {
@@ -921,21 +865,6 @@ describe('ThumbnailService', () => {
 
       // Assert
       expect(mockExec).toHaveBeenCalled();
-    });
-
-    it('should handle fractional duration', async () => {
-      // Arrange
-      mockExec.mockImplementationOnce(
-        (cmd: string, callback: (error: Error | null, stdout?: string, stderr?: string) => void) => {
-          callback(null, '0.123456\n', '');
-        }
-      );
-
-      // Act
-      const duration = await service.getVideoDuration(testImageBuffer);
-
-      // Assert
-      expect(duration).toBeCloseTo(0.123456, 5);
     });
   });
 });

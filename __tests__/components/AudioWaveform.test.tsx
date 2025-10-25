@@ -43,6 +43,25 @@ const mockAudioBuffer = {
 const originalAudioContext = global.AudioContext;
 
 describe('AudioWaveform', () => {
+  // Use a counter to ensure unique URLs for each test to avoid cache hits
+  let testCounter = 0;
+
+  const getMockClipWithAudio = (): Clip => ({
+    id: `clip-${testCounter}`,
+    assetId: 'asset-1',
+    trackIndex: 0,
+    timelinePosition: 0,
+    start: 0,
+    end: 10,
+    filePath: `https://example.com/video-${testCounter}.mp4`,
+    previewUrl: `https://example.com/preview-${testCounter}.mp4`,
+    thumbnailUrl: 'thumbnail.jpg',
+    speed: 1.0,
+    volume: 1.0,
+    opacity: 1.0,
+    hasAudio: true,
+  });
+
   const mockClipWithAudio: Clip = {
     id: 'clip-1',
     assetId: 'asset-1',
@@ -76,6 +95,7 @@ describe('AudioWaveform', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    testCounter++; // Increment counter to ensure unique cache keys per test
 
     // Suppress expected Worker error logs during tests
     const { browserLogger } = require('@/lib/browserLogger');
@@ -247,9 +267,8 @@ describe('AudioWaveform', () => {
     });
 
     it('should decode audio data', async () => {
-      const { unmount } = render(
-        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
-      );
+      const clip = getMockClipWithAudio();
+      const { unmount } = render(<AudioWaveform clip={clip} width={200} height={50} />);
 
       await waitFor(() => {
         expect(mockAudioContext.decodeAudioData).toHaveBeenCalled();
@@ -257,7 +276,7 @@ describe('AudioWaveform', () => {
 
       // Wait for async operations
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 50));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       });
       unmount();
     });
@@ -275,9 +294,8 @@ describe('AudioWaveform', () => {
     });
 
     it('should extract channel data from audio buffer', async () => {
-      const { unmount } = render(
-        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
-      );
+      const clip = getMockClipWithAudio();
+      const { unmount } = render(<AudioWaveform clip={clip} width={200} height={50} />);
 
       await waitFor(() => {
         expect(mockAudioBuffer.getChannelData).toHaveBeenCalledWith(0);
@@ -285,7 +303,7 @@ describe('AudioWaveform', () => {
 
       // Wait for async operations
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 50));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       });
       unmount();
     });
@@ -309,9 +327,8 @@ describe('AudioWaveform', () => {
 
   describe('Canvas Rendering', () => {
     it('should get 2d context from canvas', async () => {
-      const { unmount } = render(
-        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
-      );
+      const clip = getMockClipWithAudio();
+      const { unmount } = render(<AudioWaveform clip={clip} width={200} height={50} />);
 
       await waitFor(
         () => {
@@ -328,6 +345,7 @@ describe('AudioWaveform', () => {
     });
 
     it('should scale context by device pixel ratio', async () => {
+      const clip = getMockClipWithAudio();
       const mockScale = jest.fn();
       mockGetContext.mockReturnValue({
         clearRect: jest.fn(),
@@ -341,9 +359,7 @@ describe('AudioWaveform', () => {
         value: 2,
       });
 
-      const { unmount } = render(
-        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
-      );
+      const { unmount } = render(<AudioWaveform clip={clip} width={200} height={50} />);
 
       await waitFor(
         () => {
@@ -360,6 +376,7 @@ describe('AudioWaveform', () => {
     });
 
     it('should clear canvas before drawing', async () => {
+      const clip = getMockClipWithAudio();
       const mockClearRect = jest.fn();
       mockGetContext.mockReturnValue({
         clearRect: mockClearRect,
@@ -368,9 +385,7 @@ describe('AudioWaveform', () => {
         fillStyle: '',
       });
 
-      const { unmount } = render(
-        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
-      );
+      const { unmount } = render(<AudioWaveform clip={clip} width={200} height={50} />);
 
       await waitFor(
         () => {
@@ -387,6 +402,7 @@ describe('AudioWaveform', () => {
     });
 
     it('should draw waveform bars', async () => {
+      const clip = getMockClipWithAudio();
       const mockFillRect = jest.fn();
       mockGetContext.mockReturnValue({
         clearRect: jest.fn(),
@@ -395,9 +411,7 @@ describe('AudioWaveform', () => {
         fillStyle: '',
       });
 
-      const { unmount } = render(
-        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
-      );
+      const { unmount } = render(<AudioWaveform clip={clip} width={200} height={50} />);
 
       await waitFor(
         () => {
@@ -414,6 +428,7 @@ describe('AudioWaveform', () => {
     });
 
     it('should use correct fill color for waveform', async () => {
+      const clip = getMockClipWithAudio();
       const mockContext = {
         clearRect: jest.fn(),
         fillRect: jest.fn(),
@@ -422,9 +437,7 @@ describe('AudioWaveform', () => {
       };
       mockGetContext.mockReturnValue(mockContext);
 
-      const { unmount } = render(
-        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
-      );
+      const { unmount } = render(<AudioWaveform clip={clip} width={200} height={50} />);
 
       await waitFor(
         () => {
@@ -471,12 +484,11 @@ describe('AudioWaveform', () => {
     });
 
     it('should log errors when extraction fails', async () => {
+      const clip = getMockClipWithAudio();
       const { browserLogger } = await import('@/lib/browserLogger');
       mockFetch.mockRejectedValue(new Error('Network error'));
 
-      const { unmount } = render(
-        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
-      );
+      const { unmount } = render(<AudioWaveform clip={clip} width={200} height={50} />);
 
       await waitFor(() => {
         expect(browserLogger.error).toHaveBeenCalled();
@@ -533,6 +545,7 @@ describe('AudioWaveform', () => {
     });
 
     it('should re-render when width changes', async () => {
+      const clip = getMockClipWithAudio();
       const mockFillRect = jest.fn();
       mockGetContext.mockReturnValue({
         clearRect: jest.fn(),
@@ -541,9 +554,7 @@ describe('AudioWaveform', () => {
         fillStyle: '',
       });
 
-      const { rerender, unmount } = render(
-        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
-      );
+      const { rerender, unmount } = render(<AudioWaveform clip={clip} width={200} height={50} />);
 
       await waitFor(
         () => {
@@ -559,7 +570,7 @@ describe('AudioWaveform', () => {
 
       mockFillRect.mockClear();
 
-      rerender(<AudioWaveform clip={mockClipWithAudio} width={400} height={50} />);
+      rerender(<AudioWaveform clip={clip} width={400} height={50} />);
 
       await waitFor(
         () => {
@@ -575,7 +586,9 @@ describe('AudioWaveform', () => {
   describe('Edge Cases', () => {
     it('should handle clip without previewUrl', async () => {
       const clipNoPreview = { ...mockClipWithAudio, previewUrl: undefined };
-      const { container, unmount } = render(<AudioWaveform clip={clipNoPreview} width={200} height={50} />);
+      const { container, unmount } = render(
+        <AudioWaveform clip={clipNoPreview} width={200} height={50} />
+      );
 
       // Canvas may be rendered initially, but no waveform data should be extracted
       // The component still renders the container for consistency
@@ -624,9 +637,8 @@ describe('AudioWaveform', () => {
     });
 
     it('should cap samples at 1000 for performance', async () => {
-      const { unmount } = render(
-        <AudioWaveform clip={mockClipWithAudio} width={10000} height={50} />
-      );
+      const clip = getMockClipWithAudio();
+      const { unmount } = render(<AudioWaveform clip={clip} width={10000} height={50} />);
 
       await waitFor(
         () => {
@@ -664,20 +676,23 @@ describe('AudioWaveform', () => {
     });
 
     it('should handle missing canvas context', async () => {
+      const clip = getMockClipWithAudio();
       mockGetContext.mockReturnValue(null);
 
-      const { unmount } = render(
-        <AudioWaveform clip={mockClipWithAudio} width={200} height={50} />
-      );
+      const { unmount } = render(<AudioWaveform clip={clip} width={200} height={50} />);
 
       // Wait for component to mount and attempt extraction
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 200));
       });
 
-      // getContext might not be called if waveformData is not set yet
-      // The important test is that it doesn't throw an error
-      expect(mockGetContext).toHaveBeenCalled();
+      // Wait for waveform data to be extracted
+      await waitFor(
+        () => {
+          expect(mockGetContext).toHaveBeenCalled();
+        },
+        { timeout: 5000 }
+      );
 
       // Should not throw error
       unmount();
