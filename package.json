@@ -115,7 +115,7 @@
     "axe-core": "^4.11.0",
     "axe-playwright": "^2.2.2",
     "dotenv": "^17.2.3",
-    "eslint": "^9",
+    "eslint": "^9.38.0",
     "eslint-plugin-jest": "^29.0.1",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
@@ -146,15 +146,6 @@
   },
   "overrides": {
     "prismjs": "^1.30.0",
-    "gaxios@^7.0.0": {
-      "node-fetch": "file:vendor/node-fetch"
-    },
-    "google-gax": {
-      "node-fetch": "file:vendor/node-fetch"
-    },
-    "teeny-request@^10.0.0": {
-      "node-fetch": "file:vendor/node-fetch"
-    },
     "test-exclude": "^7.0.1"
   }
 }
