@@ -23,13 +23,20 @@ import { usePlaybackStore } from '@/state/usePlaybackStore';
 import { useEditorStore } from '@/state/useEditorStore';
 
 // Mock Next.js Image
-jest.mock('next/image', (): Record<string, unknown> => ({
-  __esModule: true,
-  default: function MockImage({ src, alt, ...props }: any): JSX.Element {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={src} alt={alt} {...props} />;
-  },
-}));
+jest.mock(
+  'next/image',
+  (): Record<string, unknown> => ({
+    __esModule: true,
+    default: function MockImage({
+      src,
+      alt,
+      ...props
+    }: React.ImgHTMLAttributes<HTMLImageElement> & { src: string; alt: string }): JSX.Element {
+      // eslint-disable-next-line @next/next/no-img-element
+      return <img src={src} alt={alt} {...props} />;
+    },
+  })
+);
 
 // Create a wrapper component to test integration
 const PlaybackIntegrationWrapper = (): JSX.Element => {

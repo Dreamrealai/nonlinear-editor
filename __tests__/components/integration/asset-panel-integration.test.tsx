@@ -21,22 +21,32 @@ import { AssetPanel } from '@/components/editor/AssetPanel';
 import type { AssetRow } from '@/types/assets';
 
 // Mock Next.js Image component
-jest.mock('next/image', (): Record<string, unknown> => ({
-  __esModule: true,
-  default: function MockImage({ src, alt, ...props }: any) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={src} alt={alt} {...props} />;
-  },
-}));
+jest.mock(
+  'next/image',
+  (): Record<string, unknown> => ({
+    __esModule: true,
+    default: function MockImage({
+      src,
+      alt,
+      ...props
+    }: React.ImgHTMLAttributes<HTMLImageElement> & { src: string; alt: string }) {
+      // eslint-disable-next-line @next/next/no-img-element
+      return <img src={src} alt={alt} {...props} />;
+    },
+  })
+);
 
 // Mock browser logger
-jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
-  browserLogger: {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/browserLogger',
+  (): Record<string, unknown> => ({
+    browserLogger: {
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+    },
+  })
+);
 
 describe('Integration: Asset Panel Component', () => {
   const projectId = 'test-project-123';

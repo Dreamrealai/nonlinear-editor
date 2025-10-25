@@ -21,15 +21,24 @@ import { ExportModal } from '@/components/ExportModal';
 import toast from 'react-hot-toast';
 import type { Timeline } from '@/types/timeline';
 
+// Type for mock fetch responses
+interface MockResponse {
+  ok: boolean;
+  json: () => Promise<Record<string, unknown>>;
+}
+
 // Mock dependencies
 jest.mock('react-hot-toast');
-jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
-  browserLogger: {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/browserLogger',
+  (): Record<string, unknown> => ({
+    browserLogger: {
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+    },
+  })
+);
 
 // Mock fetch
 global.fetch = jest.fn();
@@ -345,23 +354,28 @@ describe('Integration: Export Modal Workflow', () => {
       const user = userEvent.setup();
 
       // Mock the export endpoint response (presets already mocked in beforeEach)
-      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<any> => {
+      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<MockResponse> => {
         if (url === '/api/export-presets') {
           return {
             ok: true,
-            json: async (): Promise<any> => ({ data: { presets: mockPresets } }),
+            json: async (): Promise<Record<string, unknown>> => ({
+              data: { presets: mockPresets },
+            }),
           };
         }
         if (url === '/api/export') {
           return {
             ok: true,
-            json: async (): Promise<any> => ({
+            json: async (): Promise<Record<string, unknown>> => ({
               data: { jobId: 'export-job-123' },
               message: 'Export started',
             }),
           };
         }
-        return { ok: false, json: async (): Promise<any> => ({ error: 'Not mocked' }) };
+        return {
+          ok: false,
+          json: async (): Promise<Record<string, unknown>> => ({ error: 'Not mocked' }),
+        };
       });
 
       await act(async () => {
@@ -393,23 +407,23 @@ describe('Integration: Export Modal Workflow', () => {
     it('should show success message on successful export', async () => {
       const user = userEvent.setup();
 
-      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<any> => {
+      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<MockResponse> => {
         if (url === '/api/export-presets') {
           return {
             ok: true,
-            json: async (): Promise<any> => ({ data: { presets: mockPresets } }),
+            json: async (): Promise<MockResponse> => ({ data: { presets: mockPresets } }),
           };
         }
         if (url === '/api/export') {
           return {
             ok: true,
-            json: async (): Promise<any> => ({
+            json: async (): Promise<MockResponse> => ({
               data: { jobId: 'export-job-123' },
               message: 'Export started',
             }),
           };
         }
-        return { ok: false, json: async (): Promise<any> => ({ error: 'Not mocked' }) };
+        return { ok: false, json: async (): Promise<MockResponse> => ({ error: 'Not mocked' }) };
       });
 
       await act(async () => {
@@ -434,20 +448,22 @@ describe('Integration: Export Modal Workflow', () => {
     it('should show error message on export failure', async () => {
       const user = userEvent.setup();
 
-      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<any> => {
+      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<MockResponse> => {
         if (url === '/api/export-presets') {
           return {
             ok: true,
-            json: async (): Promise<any> => ({ data: { presets: mockPresets } }),
+            json: async (): Promise<MockResponse> => ({ data: { presets: mockPresets } }),
           };
         }
         if (url === '/api/export') {
           return {
             ok: false,
-            json: async (): Promise<any> => ({ error: 'Export failed: insufficient credits' }),
+            json: async (): Promise<MockResponse> => ({
+              error: 'Export failed: insufficient credits',
+            }),
           };
         }
-        return { ok: false, json: async (): Promise<any> => ({ error: 'Not mocked' }) };
+        return { ok: false, json: async (): Promise<MockResponse> => ({ error: 'Not mocked' }) };
       });
 
       await act(async () => {
@@ -472,22 +488,22 @@ describe('Integration: Export Modal Workflow', () => {
     it('should disable buttons during export submission', async () => {
       const user = userEvent.setup();
 
-      let resolveExportPromise: (value: any) => void;
+      let resolveExportPromise: (value: MockResponse) => void;
       const pendingExportPromise = new Promise((resolve) => {
         resolveExportPromise = resolve;
       });
 
-      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<any> => {
+      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<MockResponse> => {
         if (url === '/api/export-presets') {
           return {
             ok: true,
-            json: async (): Promise<any> => ({ data: { presets: mockPresets } }),
+            json: async (): Promise<MockResponse> => ({ data: { presets: mockPresets } }),
           };
         }
         if (url === '/api/export') {
           return pendingExportPromise;
         }
-        return { ok: false, json: async (): Promise<any> => ({ error: 'Not mocked' }) };
+        return { ok: false, json: async (): Promise<MockResponse> => ({ error: 'Not mocked' }) };
       });
 
       await act(async () => {
@@ -527,22 +543,22 @@ describe('Integration: Export Modal Workflow', () => {
     it('should show loading spinner during export', async () => {
       const user = userEvent.setup();
 
-      let resolveExportPromise: (value: any) => void;
+      let resolveExportPromise: (value: MockResponse) => void;
       const pendingExportPromise = new Promise((resolve) => {
         resolveExportPromise = resolve;
       });
 
-      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<any> => {
+      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<MockResponse> => {
         if (url === '/api/export-presets') {
           return {
             ok: true,
-            json: async (): Promise<any> => ({ data: { presets: mockPresets } }),
+            json: async (): Promise<MockResponse> => ({ data: { presets: mockPresets } }),
           };
         }
         if (url === '/api/export') {
           return pendingExportPromise;
         }
-        return { ok: false, json: async (): Promise<any> => ({ error: 'Not mocked' }) };
+        return { ok: false, json: async (): Promise<MockResponse> => ({ error: 'Not mocked' }) };
       });
 
       await act(async () => {
@@ -668,11 +684,11 @@ describe('Integration: Export Modal Workflow', () => {
       const user = userEvent.setup();
 
       let firstAttempt = true;
-      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<any> => {
+      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<MockResponse> => {
         if (url === '/api/export-presets') {
           return {
             ok: true,
-            json: async (): Promise<any> => ({ data: { presets: mockPresets } }),
+            json: async (): Promise<MockResponse> => ({ data: { presets: mockPresets } }),
           };
         }
         if (url === '/api/export') {
@@ -680,19 +696,19 @@ describe('Integration: Export Modal Workflow', () => {
             firstAttempt = false;
             return {
               ok: false,
-              json: async (): Promise<any> => ({ error: 'Network error' }),
+              json: async (): Promise<MockResponse> => ({ error: 'Network error' }),
             };
           } else {
             return {
               ok: true,
-              json: async (): Promise<any> => ({
+              json: async (): Promise<MockResponse> => ({
                 data: { jobId: 'export-job-123' },
                 message: 'Export started',
               }),
             };
           }
         }
-        return { ok: false, json: async (): Promise<any> => ({ error: 'Not mocked' }) };
+        return { ok: false, json: async (): Promise<MockResponse> => ({ error: 'Not mocked' }) };
       });
 
       await act(async () => {
@@ -730,11 +746,11 @@ describe('Integration: Export Modal Workflow', () => {
       const user = userEvent.setup();
 
       let firstAttempt = true;
-      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<any> => {
+      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<MockResponse> => {
         if (url === '/api/export-presets') {
           return {
             ok: true,
-            json: async (): Promise<any> => ({ data: { presets: mockPresets } }),
+            json: async (): Promise<MockResponse> => ({ data: { presets: mockPresets } }),
           };
         }
         if (url === '/api/export') {
@@ -742,19 +758,19 @@ describe('Integration: Export Modal Workflow', () => {
             firstAttempt = false;
             return {
               ok: false,
-              json: async (): Promise<any> => ({ error: 'First error' }),
+              json: async (): Promise<MockResponse> => ({ error: 'First error' }),
             };
           } else {
             return {
               ok: true,
-              json: async (): Promise<any> => ({
+              json: async (): Promise<MockResponse> => ({
                 data: { jobId: 'export-job-123' },
                 message: 'Export started',
               }),
             };
           }
         }
-        return { ok: false, json: async (): Promise<any> => ({ error: 'Not mocked' }) };
+        return { ok: false, json: async (): Promise<MockResponse> => ({ error: 'Not mocked' }) };
       });
 
       await act(async () => {
@@ -831,23 +847,23 @@ describe('Integration: Export Modal Workflow', () => {
     it('should announce export status changes', async () => {
       const user = userEvent.setup();
 
-      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<any> => {
+      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<MockResponse> => {
         if (url === '/api/export-presets') {
           return {
             ok: true,
-            json: async (): Promise<any> => ({ data: { presets: mockPresets } }),
+            json: async (): Promise<MockResponse> => ({ data: { presets: mockPresets } }),
           };
         }
         if (url === '/api/export') {
           return {
             ok: true,
-            json: async (): Promise<any> => ({
+            json: async (): Promise<MockResponse> => ({
               data: { jobId: 'export-job-123' },
               message: 'Export started',
             }),
           };
         }
-        return { ok: false, json: async (): Promise<any> => ({ error: 'Not mocked' }) };
+        return { ok: false, json: async (): Promise<MockResponse> => ({ error: 'Not mocked' }) };
       });
 
       await act(async () => {
@@ -873,17 +889,17 @@ describe('Integration: Export Modal Workflow', () => {
     it('should handle network errors gracefully', async () => {
       const user = userEvent.setup();
 
-      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<any> => {
+      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<MockResponse> => {
         if (url === '/api/export-presets') {
           return {
             ok: true,
-            json: async (): Promise<any> => ({ data: { presets: mockPresets } }),
+            json: async (): Promise<MockResponse> => ({ data: { presets: mockPresets } }),
           };
         }
         if (url === '/api/export') {
           throw new Error('Network error');
         }
-        return { ok: false, json: async (): Promise<any> => ({ error: 'Not mocked' }) };
+        return { ok: false, json: async (): Promise<MockResponse> => ({ error: 'Not mocked' }) };
       });
 
       await act(async () => {
@@ -906,21 +922,21 @@ describe('Integration: Export Modal Workflow', () => {
     it('should handle invalid API responses', async () => {
       const user = userEvent.setup();
 
-      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<any> => {
+      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<MockResponse> => {
         if (url === '/api/export-presets') {
           return {
             ok: true,
-            json: async (): Promise<any> => ({ data: { presets: mockPresets } }),
+            json: async (): Promise<MockResponse> => ({ data: { presets: mockPresets } }),
           };
         }
         if (url === '/api/export') {
           return {
             ok: false,
             status: 500,
-            json: async (): Promise<any> => ({ error: 'Internal server error' }),
+            json: async (): Promise<MockResponse> => ({ error: 'Internal server error' }),
           };
         }
-        return { ok: false, json: async (): Promise<any> => ({ error: 'Not mocked' }) };
+        return { ok: false, json: async (): Promise<MockResponse> => ({ error: 'Not mocked' }) };
       });
 
       await act(async () => {
@@ -943,20 +959,20 @@ describe('Integration: Export Modal Workflow', () => {
     it('should handle malformed export data', async () => {
       const user = userEvent.setup();
 
-      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<any> => {
+      (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<MockResponse> => {
         if (url === '/api/export-presets') {
           return {
             ok: true,
-            json: async (): Promise<any> => ({ data: { presets: mockPresets } }),
+            json: async (): Promise<MockResponse> => ({ data: { presets: mockPresets } }),
           };
         }
         if (url === '/api/export') {
           return {
             ok: true,
-            json: async (): Promise<any> => ({ jobId: null }),
+            json: async (): Promise<MockResponse> => ({ jobId: null }),
           };
         }
-        return { ok: false, json: async (): Promise<any> => ({ error: 'Not mocked' }) };
+        return { ok: false, json: async (): Promise<MockResponse> => ({ error: 'Not mocked' }) };
       });
 
       await act(async () => {

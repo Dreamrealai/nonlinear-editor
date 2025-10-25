@@ -20,6 +20,12 @@ import '@testing-library/jest-dom';
 import { GenerateVideoTab } from '@/components/generation/GenerateVideoTab';
 import toast from 'react-hot-toast';
 
+// Type for mock fetch response
+interface MockFetchResponse {
+  ok: boolean;
+  json: () => Promise<Record<string, unknown>>;
+}
+
 // Mock only external dependencies, not our components
 jest.mock('react-hot-toast');
 jest.mock(
@@ -330,8 +336,8 @@ describe('Integration: Video Generation Flow (UI)', () => {
       const user = userEvent.setup();
 
       // Mock slow API response
-      let resolvePromise: (value: any) => void;
-      const pendingPromise = new Promise((resolve) => {
+      let resolvePromise: (value: MockFetchResponse) => void;
+      const pendingPromise = new Promise<MockFetchResponse>((resolve) => {
         resolvePromise = resolve;
       });
       (global.fetch as jest.Mock).mockImplementationOnce(() => pendingPromise);
