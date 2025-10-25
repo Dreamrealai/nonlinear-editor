@@ -29,9 +29,14 @@
 // Lazy-load Sentry to avoid bundling if not configured
 let sentryService: typeof import('./services/sentryService').sentryService | null = null;
 if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  import('./services/sentryService').then((module): void => {
-    sentryService = module.sentryService;
-  });
+  import('./services/sentryService')
+    .then((module): void => {
+      sentryService = module.sentryService;
+    })
+    .catch((error): void => {
+      // Sentry is optional - log error but don't throw
+      console.warn('Failed to load Sentry service:', error);
+    });
 }
 
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
