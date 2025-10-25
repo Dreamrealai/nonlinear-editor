@@ -68,6 +68,9 @@ let globalHandlersInstalled = false;
 // Must be stored at module level before interception
 const originalConsoleError = console.error;
 const originalConsoleWarn = console.warn;
+const originalConsoleLog = console.log;
+const originalConsoleDebug = console.debug;
+const originalConsoleInfo = console.info;
 
 // Generate a unique session ID for tracking user sessions
 const sessionId =
@@ -237,9 +240,29 @@ class BrowserLogger {
     }
 
     // In development, also log to console
+    // CRITICAL: Use original console methods to prevent infinite recursion
+    // The console methods are intercepted below (lines 478-539), so calling
+    // console.error/warn would trigger browserLogger.error/warn again
     if (isDevelopment) {
-      const consoleMethod = level === 'fatal' ? 'error' : level === 'trace' ? 'debug' : level;
-      console[consoleMethod](`[${level.toUpperCase()}]`, message, data || '');
+      const prefix = `[${level.toUpperCase()}]`;
+      switch (level) {
+        case 'fatal':
+        case 'error':
+          originalConsoleError(prefix, message, data || '');
+          break;
+        case 'warn':
+          originalConsoleWarn(prefix, message, data || '');
+          break;
+        case 'info':
+          originalConsoleInfo(prefix, message, data || '');
+          break;
+        case 'debug':
+        case 'trace':
+          originalConsoleDebug(prefix, message, data || '');
+          break;
+        default:
+          originalConsoleLog(prefix, message, data || '');
+      }
     }
 
     // Add to queue
