@@ -305,13 +305,72 @@ export function useVideoPlayback({
         return;
       }
 
-      await Promise.all(
-        sortedClips.map((clip): Promise<void | HTMLVideoElement> =>
-          ensureClipElement(clip).catch((error): void => {
-            browserLogger.error({ clipId: clip.id, error }, 'Failed to prepare clip for preview');
-          })
-        )
+      // Prepare all clips for playback with detailed error tracking
+      const prepareResults = await Promise.allSettled(
+        sortedClips.map((clip): Promise<HTMLVideoElement> => ensureClipElement(clip))
       );
+
+      // Track which clips failed to prepare
+      const failedClips: Array<{ clipId: string; assetId: string; error: unknown }> = [];
+      prepareResults.forEach((result, index): void => {
+        const clip = sortedClips[index];
+        if (!clip) return;
+
+        if (result.status === 'rejected') {
+          const error = result.reason;
+          const errorMessage = error instanceof Error ? error.message : String(error);
+
+          failedClips.push({
+            clipId: clip.id,
+            assetId: clip.assetId,
+            error,
+          });
+
+          browserLogger.error(
+            {
+              clipId: clip.id,
+              assetId: clip.assetId,
+              clipName: clip.name,
+              trackIndex: clip.trackIndex,
+              error,
+              errorMessage,
+              totalClips: sortedClips.length,
+              failedCount: failedClips.length,
+            },
+            `Failed to prepare clip for preview: ${errorMessage}`
+          );
+        }
+      });
+
+      // If all clips failed, abort playback
+      if (failedClips.length === sortedClips.length && sortedClips.length > 0) {
+        browserLogger.error(
+          {
+            totalClips: sortedClips.length,
+            failedClips: failedClips.map((f): { clipId: string; assetId: string } => ({
+              clipId: f.clipId,
+              assetId: f.assetId,
+            })),
+          },
+          'All clips failed to prepare - aborting playback'
+        );
+        throw new Error('Unable to prepare any clips for playback. Please check your video files.');
+      }
+
+      // Log warning if some clips failed
+      if (failedClips.length > 0) {
+        browserLogger.warn(
+          {
+            totalClips: sortedClips.length,
+            successfulClips: sortedClips.length - failedClips.length,
+            failedClips: failedClips.map((f): { clipId: string; assetId: string } => ({
+              clipId: f.clipId,
+              assetId: f.assetId,
+            })),
+          },
+          `${failedClips.length} of ${sortedClips.length} clips failed to prepare - continuing with available clips`
+        );
+      }
 
       const start = clamp(currentTime, 0, totalDuration);
       syncClipsAtTime(start, false);

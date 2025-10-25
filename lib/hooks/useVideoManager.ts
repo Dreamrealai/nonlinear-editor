@@ -188,33 +188,99 @@ export function useVideoManager({
 
               // Store error handler for cleanup
               const errorHandler = (error: Event): void => {
+                const videoErrorDetails = video.error;
+                let errorCategory = 'unknown';
+                let errorMessage = 'Unknown video error';
+                let userFriendlyMessage = 'Unable to play video. Please try again.';
+
+                // Categorize error based on video.error.code
+                // https://developer.mozilla.org/en-US/docs/Web/API/MediaError
+                if (videoErrorDetails) {
+                  switch (videoErrorDetails.code) {
+                    case 1: // MEDIA_ERR_ABORTED
+                      errorCategory = 'aborted';
+                      errorMessage = 'Video loading was aborted';
+                      userFriendlyMessage = 'Video loading was cancelled. Please try again.';
+                      break;
+                    case 2: // MEDIA_ERR_NETWORK
+                      errorCategory = 'network';
+                      errorMessage = 'Network error while loading video';
+                      userFriendlyMessage =
+                        'Network error. Please check your connection and try again.';
+                      break;
+                    case 3: // MEDIA_ERR_DECODE
+                      errorCategory = 'decode';
+                      errorMessage = 'Video decoding failed (unsupported format or corrupted file)';
+                      userFriendlyMessage =
+                        'Unable to play this video format. Please try a different file.';
+                      break;
+                    case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
+                      errorCategory = 'unsupported';
+                      errorMessage = 'Video source not supported or not found';
+                      userFriendlyMessage =
+                        'This video format is not supported or the file was not found.';
+                      break;
+                  }
+                }
+
+                // Log detailed error information
                 browserLogger.error(
                   {
                     clipId: clip.id,
+                    assetId: clip.assetId,
                     src: source,
                     error,
-                    videoError: video.error,
+                    errorCategory,
+                    errorCode: videoErrorDetails?.code,
+                    errorMessage: videoErrorDetails?.message,
                     readyState: video.readyState,
                     networkState: video.networkState,
+                    currentSrc: video.currentSrc,
                   },
-                  'Video playback error'
+                  `Video playback error: ${errorMessage}`
                 );
+
+                // Set user-friendly error message
+                setVideoError(userFriendlyMessage);
               };
               video.addEventListener('error', errorHandler);
               videoErrorHandlersRef.current.set(clip.id, errorHandler);
 
               // Wait for video to buffer enough data for smooth playback
               await ensureBuffered(video).catch((bufferError): never => {
+                const errorMessage =
+                  bufferError instanceof Error ? bufferError.message : String(bufferError);
+                const isTimeout = errorMessage.includes('timeout');
+                const isLoadError = errorMessage.includes('loading error');
+
                 browserLogger.error(
                   {
                     clipId: clip.id,
+                    assetId: clip.assetId,
                     src: source,
                     error: bufferError,
+                    errorType: isTimeout
+                      ? 'buffering_timeout'
+                      : isLoadError
+                        ? 'loading_error'
+                        : 'buffering_error',
                     readyState: video.readyState,
                     networkState: video.networkState,
+                    videoError: video.error?.code,
+                    currentSrc: video.currentSrc,
                   },
-                  'Video buffering failed'
+                  `Video buffering failed: ${errorMessage}`
                 );
+
+                // Set user-friendly error message
+                if (isTimeout) {
+                  setVideoError('Video is taking too long to load. Please check your connection.');
+                } else if (isLoadError) {
+                  setVideoError('Failed to load video. The file may be corrupted or inaccessible.');
+                } else {
+                  setVideoError('Unable to prepare video for playback. Please try again.');
+                }
+
                 throw bufferError;
               });
 
@@ -222,13 +288,36 @@ export function useVideoManager({
               container.appendChild(video);
               return video;
             } catch (error) {
+              const errorMessage = error instanceof Error ? error.message : String(error);
+              const isContainerError = errorMessage.includes('container not mounted');
+              const isSourceError = errorMessage.includes('locate clip source');
+
               browserLogger.error(
                 {
                   clipId: clip.id,
+                  assetId: clip.assetId,
                   error,
+                  errorType: isContainerError
+                    ? 'container_not_mounted'
+                    : isSourceError
+                      ? 'source_location_failed'
+                      : 'element_creation_failed',
+                  containerMounted: !!containerRef.current,
                 },
-                'Failed to create video element for clip'
+                `Failed to create video element for clip: ${errorMessage}`
               );
+
+              // Set user-friendly error message
+              if (isContainerError) {
+                setVideoError('Video player not ready. Please refresh the page.');
+              } else if (isSourceError) {
+                setVideoError(
+                  'Failed to access video file. It may have been deleted or is inaccessible.'
+                );
+              } else {
+                setVideoError('Failed to initialize video player. Please try again.');
+              }
+
               throw error;
             }
           })();

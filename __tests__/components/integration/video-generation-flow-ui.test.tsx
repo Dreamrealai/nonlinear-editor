@@ -67,8 +67,9 @@ describe('Integration: Video Generation Flow (UI)', () => {
       expect(screen.getByLabelText('Duration')).toBeInTheDocument();
       expect(screen.getByLabelText('Video Description *')).toBeInTheDocument();
 
-      // Verify queue section
-      expect(screen.getByText(/videos in queue/)).toBeInTheDocument();
+      // Verify queue section - use getAllByText and check first match
+      const queueTexts = screen.getAllByText(/videos in queue/);
+      expect(queueTexts.length).toBeGreaterThan(0);
 
       // Verify submit button
       expect(screen.getByRole('button', { name: /Add to Queue/i })).toBeInTheDocument();
@@ -154,12 +155,12 @@ describe('Integration: Video Generation Flow (UI)', () => {
       const durationSelect = screen.getByLabelText('Duration') as HTMLSelectElement;
       expect(durationSelect.value).toBe('8');
 
-      // Change duration
-      await user.selectOptions(durationSelect, '10');
+      // Change duration to a valid option for default model (Veo 3.1 supports 4, 5, 6, 8)
+      await user.selectOptions(durationSelect, '5');
 
       // Duration should update
       await waitFor(() => {
-        expect(durationSelect.value).toBe('10');
+        expect(durationSelect.value).toBe('5');
       });
     });
   });
@@ -284,14 +285,14 @@ describe('Integration: Video Generation Flow (UI)', () => {
       const submitButton = screen.getByRole('button', { name: /Add to Queue/i });
       await user.click(submitButton);
 
-      // Wait for API call
-      await waitFor(() => {
-        expect(global.fetch).toHaveBeenCalled();
-      });
-
-      // Verify error toast
+      // Wait for error toast and state updates to complete
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalled();
+      });
+
+      // Wait for generating state to be set back to false
+      await waitFor(() => {
+        expect(submitButton).not.toBeDisabled();
       });
 
       // Form should not be reset on error
@@ -329,10 +330,21 @@ describe('Integration: Video Generation Flow (UI)', () => {
       expect(screen.getByLabelText('Duration')).toBeDisabled();
       expect(promptField).toBeDisabled();
 
-      // Cleanup
+      // Resolve promise to complete the async operation
       resolvePromise!({
         ok: true,
-        json: async () => ({ videoId: 'video-123', status: 'pending' }),
+        json: async () => ({ operationName: 'operation-video-123' }),
+      });
+
+      // Mock polling response
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({ done: false }),
+      });
+
+      // Wait for all state updates to complete
+      await waitFor(() => {
+        expect(submitButton).not.toBeDisabled();
       });
     });
   });
@@ -533,14 +545,18 @@ describe('Integration: Video Generation Flow (UI)', () => {
       const submitButton = screen.getByRole('button', { name: /Add to Queue/i });
       await user.click(submitButton);
 
-      // Wait for error handling
+      // Wait for error handling and all state updates to complete
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalled();
       });
 
+      // Wait for form to be re-enabled
+      await waitFor(() => {
+        expect(submitButton).not.toBeDisabled();
+      });
+
       // Form should still be usable
       expect(promptField).not.toBeDisabled();
-      expect(submitButton).not.toBeDisabled();
     });
 
     it('should handle invalid API responses', async () => {
@@ -563,9 +579,14 @@ describe('Integration: Video Generation Flow (UI)', () => {
       const submitButton = screen.getByRole('button', { name: /Add to Queue/i });
       await user.click(submitButton);
 
-      // Wait for error handling
+      // Wait for error handling and all state updates
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalled();
+      });
+
+      // Wait for form to be re-enabled
+      await waitFor(() => {
+        expect(submitButton).not.toBeDisabled();
       });
     });
   });

@@ -18,9 +18,9 @@
  */
 'use client';
 
-import React, {  useCallback, useEffect, useMemo, useRef, useState  } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
-import type { Timeline } from '@/types/timeline';
+import type { Timeline, Clip } from '@/types/timeline';
 import { TextOverlayRenderer } from './TextOverlayRenderer';
 import { TextOverlayEditor } from './TextOverlayEditor';
 import { PlaybackControls } from './preview/PlaybackControls';
@@ -32,7 +32,7 @@ import { useVideoPlayback } from '@/lib/hooks/useVideoPlayback';
 export function PreviewPlayer(): React.ReactElement | null {
   const timeline = useEditorStore((state): Timeline | null => state.timeline);
   const currentTime = useEditorStore((state): number => state.currentTime);
-  const setCurrentTime = useEditorStore((state): (time: number) => void => state.setCurrentTime);
+  const setCurrentTime = useEditorStore((state): ((time: number) => void) => state.setCurrentTime);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -40,13 +40,16 @@ export function PreviewPlayer(): React.ReactElement | null {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Sort clips by timeline position
-  const sortedClips = useMemo((): any[] => {
+  const sortedClips = useMemo((): Clip[] => {
     if (!timeline) return [];
     return [...timeline.clips].sort((a, b): number => a.timelinePosition - b.timelinePosition);
   }, [timeline]);
 
   // Compute clip metadata (fades, crossfades, etc.)
-  const clipMetas = useMemo((): Map<string, ClipMeta> => computeClipMetas(sortedClips), [sortedClips]);
+  const clipMetas = useMemo(
+    (): Map<string, ClipMeta> => computeClipMetas(sortedClips),
+    [sortedClips]
+  );
 
   // Calculate total duration
   const totalDuration = useMemo((): number => {
@@ -106,7 +109,7 @@ export function PreviewPlayer(): React.ReactElement | null {
   );
 
   // Handle fullscreen change events
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     const handleFullscreenChange = (): void => {
       setIsFullscreen(!!document.fullscreenElement);
     };
@@ -118,7 +121,7 @@ export function PreviewPlayer(): React.ReactElement | null {
   }, []);
 
   // Handle keyboard shortcuts (Space = play/pause)
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     const handleKeyPress = (event: KeyboardEvent): void => {
       if (event.code === 'Space' && event.target === document.body) {
         event.preventDefault();
@@ -148,13 +151,59 @@ export function PreviewPlayer(): React.ReactElement | null {
           return localProgress >= -2 && localProgress <= meta.length + 2;
         });
 
-        await Promise.all(
-          targets.map((clip): Promise<void | HTMLVideoElement> =>
-            ensureClipElement(clip).catch((error): void => {
-              browserLogger.error({ clipId: clip.id, error }, 'Failed to warm clip for preview');
-            })
-          )
+        // Warm clips near current time with detailed error tracking
+        const warmResults = await Promise.allSettled(
+          targets.map((clip): Promise<HTMLVideoElement> => ensureClipElement(clip))
         );
+
+        // Track which clips failed to warm
+        const failedWarmups: Array<{ clipId: string; assetId: string; error: unknown }> = [];
+        warmResults.forEach((result, index): void => {
+          const clip = targets[index];
+          if (!clip) return;
+
+          if (result.status === 'rejected') {
+            const error = result.reason;
+            const errorMessage = error instanceof Error ? error.message : String(error);
+
+            failedWarmups.push({
+              clipId: clip.id,
+              assetId: clip.assetId,
+              error,
+            });
+
+            browserLogger.error(
+              {
+                clipId: clip.id,
+                assetId: clip.assetId,
+                clipName: clip.name,
+                trackIndex: clip.trackIndex,
+                error,
+                errorMessage,
+                currentTime,
+                totalTargets: targets.length,
+                failedCount: failedWarmups.length,
+              },
+              `Failed to warm clip for preview: ${errorMessage}`
+            );
+          }
+        });
+
+        // Log summary if any clips failed to warm
+        if (failedWarmups.length > 0) {
+          browserLogger.warn(
+            {
+              totalTargets: targets.length,
+              successfulWarmups: targets.length - failedWarmups.length,
+              failedWarmups: failedWarmups.map((f): { clipId: string; assetId: string } => ({
+                clipId: f.clipId,
+                assetId: f.assetId,
+              })),
+              currentTime,
+            },
+            `${failedWarmups.length} of ${targets.length} clips failed to warm - they may not display correctly`
+          );
+        }
 
         if (cancelled) {
           return;

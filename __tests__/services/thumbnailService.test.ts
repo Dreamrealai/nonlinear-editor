@@ -30,8 +30,19 @@ jest.mock('@/lib/errorTracking', () => ({
   },
 }));
 
-// Mock child_process
+// Mock child_process and util.promisify
 const mockExec = jest.fn();
+const mockExecAsync = jest.fn();
+
+jest.mock('util', () => ({
+  promisify: (fn: any) => {
+    if (fn.name === 'exec') {
+      return mockExecAsync;
+    }
+    return jest.requireActual('util').promisify(fn);
+  },
+}));
+
 jest.mock('child_process', () => ({
   exec: mockExec,
 }));
@@ -81,23 +92,19 @@ describe('ThumbnailService', () => {
   describe('checkFFmpegAvailable', () => {
     it('should return true if FFmpeg is available', async () => {
       // Arrange
-      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
-        callback(null, 'ffmpeg version 4.4.0', '');
-      });
+      mockExecAsync.mockResolvedValueOnce({ stdout: 'ffmpeg version 4.4.0', stderr: '' });
 
       // Act
       const available = await service.checkFFmpegAvailable();
 
       // Assert
       expect(available).toBe(true);
-      expect(mockExec).toHaveBeenCalledWith('ffmpeg -version', expect.any(Function));
+      expect(mockExecAsync).toHaveBeenCalledWith('ffmpeg -version');
     });
 
     it('should return false if FFmpeg is not available', async () => {
       // Arrange
-      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
-        callback(new Error('Command not found'), '', '');
-      });
+      mockExecAsync.mockRejectedValueOnce(new Error('Command not found'));
 
       // Act
       const available = await service.checkFFmpegAvailable();
@@ -109,9 +116,7 @@ describe('ThumbnailService', () => {
     it('should track error when FFmpeg not available', async () => {
       // Arrange
       const error = new Error('Command not found');
-      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
-        callback(error, '', '');
-      });
+      mockExecAsync.mockRejectedValueOnce(error);
 
       // Act
       await service.checkFFmpegAvailable();
@@ -765,6 +770,101 @@ describe('ThumbnailService', () => {
 
       // Act & Assert
       await expect(service.generateImageThumbnailDataURL(invalidBuffer)).rejects.toThrow();
+    });
+  });
+
+  describe('Error tracking', () => {
+    it('should track cleanup errors in generateVideoThumbnail', async () => {
+      // Arrange
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          callback(null, '', '');
+        }
+      });
+      mockUnlink.mockRejectedValueOnce(new Error('Permission denied'));
+
+      // Act
+      await service.generateVideoThumbnail(testImageBuffer);
+
+      // Assert - should track the cleanup error
+      expect(mockTrackError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          category: 'EXTERNAL_SERVICE',
+          severity: 'LOW',
+        })
+      );
+    });
+
+    it('should track individual failures in generateVideoThumbnailSequence', async () => {
+      // Arrange
+      let callCount = 0;
+      mockExec.mockImplementation((cmd: string, callback: any) => {
+        if (cmd.includes('ffmpeg -version')) {
+          callback(null, 'ffmpeg version 4.4.0', '');
+        } else {
+          callCount++;
+          if (callCount === 1) {
+            callback(new Error('FFmpeg processing failed'), '', '');
+          } else {
+            callback(null, '', '');
+          }
+        }
+      });
+      mockTrackError.mockClear();
+
+      // Act
+      const results = await service.generateVideoThumbnailSequence(testImageBuffer, [1, 2]);
+
+      // Assert - should track error for first timestamp failure
+      expect(mockTrackError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          category: 'EXTERNAL_SERVICE',
+          severity: 'MEDIUM',
+          context: expect.objectContaining({ timestamp: 1 }),
+        })
+      );
+      expect(results).toHaveLength(1); // Only second succeeded
+    });
+
+    it('should track error in generateImageThumbnail', async () => {
+      // Arrange
+      const invalidBuffer = Buffer.from('not-an-image');
+      mockTrackError.mockClear();
+
+      // Act & Assert
+      await expect(service.generateImageThumbnail(invalidBuffer)).rejects.toThrow();
+      expect(mockTrackError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          category: 'EXTERNAL_SERVICE',
+          severity: 'HIGH',
+        })
+      );
+    });
+
+    it('should track error in getVideoDuration', async () => {
+      // Arrange
+      mockExec.mockImplementationOnce((cmd: string, callback: any) => {
+        callback(new Error('FFprobe not found'), '', '');
+      });
+      mockTrackError.mockClear();
+
+      // Act
+      const duration = await service.getVideoDuration(testImageBuffer);
+
+      // Assert
+      expect(duration).toBe(0);
+      expect(mockTrackError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          category: 'EXTERNAL_SERVICE',
+          severity: 'MEDIUM',
+        })
+      );
     });
   });
 

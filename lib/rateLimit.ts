@@ -244,12 +244,18 @@ export async function checkRateLimit(
     } as unknown as never);
 
     if (error) {
+      // Enhanced error logging to help diagnose production issues
       serverLogger.error(
         {
           event: 'rateLimit.check_failed',
           identifier,
           error: error.message,
           code: error.code,
+          hint: error.hint,
+          details: error.details,
+          // Check if the function exists (PGRST202 = function not found)
+          likelyMissingMigration:
+            error.code === 'PGRST202' || error.message?.includes('does not exist'),
         },
         'Rate limit check failed, using in-memory fallback'
       );
@@ -312,7 +318,9 @@ export async function checkRateLimit(
 /**
  * Rate limit middleware helper for API routes
  */
-export function createRateLimiter(config: RateLimitConfig): (identifier: string) => Promise<RateLimitResult> {
+export function createRateLimiter(
+  config: RateLimitConfig
+): (identifier: string) => Promise<RateLimitResult> {
   return (identifier: string): Promise<RateLimitResult> => {
     return checkRateLimit(identifier, config);
   };

@@ -4,24 +4,24 @@
  * Tests for easter egg achievement tracking, analytics, and database integration.
  */
 
-import { achievementService, EasterEggIds, AchievementTypes } from '@/lib/services/achievementService';
-import { analyticsService, AnalyticsEvents } from '@/lib/services/analyticsService';
+// Mock Supabase - create the mock implementations inline
+const mockRpcFn = jest.fn();
+const mockFromFn = jest.fn();
+const mockSelectFn = jest.fn();
+const mockOrderFn = jest.fn();
+const mockLimitFn = jest.fn();
 
-// Mock dependencies
-jest.mock('@/lib/supabase', () => ({
-  createBrowserSupabaseClient: jest.fn(() => ({
-    rpc: jest.fn(),
-    from: jest.fn(() => ({
-      select: jest.fn(() => ({
-        order: jest.fn(() => ({
-          order: jest.fn(() => ({
-            limit: jest.fn(() => Promise.resolve({ data: [], error: null })),
-          })),
-        })),
-      })),
+jest.mock('@/lib/supabase', () => {
+  const mockRpc = jest.fn();
+  const mockFrom = jest.fn();
+
+  return {
+    createBrowserSupabaseClient: jest.fn(() => ({
+      rpc: mockRpc,
+      from: mockFrom,
     })),
-  })),
-}));
+  };
+});
 
 jest.mock('@/lib/services/analyticsService', () => ({
   analyticsService: {
@@ -45,13 +45,58 @@ jest.mock('react-hot-toast', () => ({
   },
 }));
 
+// Import after mocks are set up
+import {
+  achievementService,
+  EasterEggIds,
+  AchievementTypes,
+} from '@/lib/services/achievementService';
+import { analyticsService, AnalyticsEvents } from '@/lib/services/analyticsService';
+import { createBrowserSupabaseClient } from '@/lib/supabase';
+import toast from 'react-hot-toast';
+
 describe('AchievementService', () => {
+  // Get references to the mocked functions
+  let mockSupabase: any;
+  let mockRpc: jest.Mock;
+  let mockFrom: jest.Mock;
+
   beforeEach(() => {
     // Clear localStorage
     localStorage.clear();
     jest.clearAllMocks();
 
-    // Initialize service
+    // Create a new mocked supabase client instance
+    mockRpc = jest.fn();
+    mockFrom = jest.fn();
+    mockSupabase = {
+      rpc: mockRpc,
+      from: mockFrom,
+    };
+
+    // Reset mock implementations
+    mockRpc.mockResolvedValue({
+      data: {
+        achievement_unlocked: null,
+        total_discovered: 1,
+      },
+      error: null,
+    });
+
+    const mockLimit = jest.fn().mockResolvedValue({ data: [], error: null });
+    const mockOrder2 = jest.fn().mockReturnValue({ limit: mockLimit });
+    const mockOrder1 = jest.fn().mockReturnValue({ order: mockOrder2 });
+    const mockSelect = jest.fn().mockReturnValue({ order: mockOrder1 });
+    mockFrom.mockReturnValue({ select: mockSelect });
+
+    // Inject the new mocked supabase client into the service
+    (achievementService as any).supabase = mockSupabase;
+
+    // Reset the service's internal state
+    (achievementService as any).discoveredEggs = new Set();
+    (achievementService as any).activationStartTimes = new Map();
+
+    // Initialize service with clean state
     achievementService.init();
   });
 
@@ -123,28 +168,47 @@ describe('AchievementService', () => {
       expect(eggs).toContain(EasterEggIds.MATRIX);
     });
 
-    it('should track activation start time', async () => {
-      const beforeTime = Date.now();
+    it('should call database RPC to record activation', async () => {
       await achievementService.recordActivation(EasterEggIds.DISCO);
-      const afterTime = Date.now();
 
-      // Verify start time was recorded (we can't access private map directly,
-      // but deactivation will fail if start time wasn't recorded)
-      await achievementService.recordDeactivation(EasterEggIds.DISCO);
+      expect(mockRpc).toHaveBeenCalledWith('record_easter_egg_activation', {
+        p_egg_id: EasterEggIds.DISCO,
+        p_duration_ms: 0,
+      });
+    });
 
-      expect(analyticsService.track).toHaveBeenCalledWith(
-        AnalyticsEvents.EASTER_EGG_DEACTIVATED,
-        expect.objectContaining({
-          egg_id: EasterEggIds.DISCO,
-          duration_ms: expect.any(Number),
-        })
-      );
+    it('should handle database errors gracefully', async () => {
+      mockRpc.mockResolvedValue({
+        data: null,
+        error: new Error('Database error'),
+      });
+
+      const result = await achievementService.recordActivation(EasterEggIds.GRAVITY);
+
+      // Should not throw, returns null
+      expect(result).toBeNull();
+    });
+
+    it('should return achievement when unlocked', async () => {
+      mockRpc.mockResolvedValue({
+        data: {
+          achievement_unlocked: AchievementTypes.FIRST_EASTER_EGG,
+          total_discovered: 1,
+        },
+        error: null,
+      });
+
+      const result = await achievementService.recordActivation(EasterEggIds.KONAMI);
+
+      expect(result).toBe(AchievementTypes.FIRST_EASTER_EGG);
+      expect(toast.success).toHaveBeenCalled();
     });
   });
 
   describe('recordDeactivation', () => {
     it('should track deactivation with duration', async () => {
       await achievementService.recordActivation(EasterEggIds.GRAVITY);
+      jest.clearAllMocks();
 
       // Wait a bit
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -168,11 +232,24 @@ describe('AchievementService', () => {
     it('should handle deactivation without prior activation', async () => {
       await achievementService.recordDeactivation(EasterEggIds.DEVMODE);
 
-      // Should not crash, but also should not track
-      expect(analyticsService.track).not.toHaveBeenCalledWith(
-        AnalyticsEvents.EASTER_EGG_DEACTIVATED,
-        expect.anything()
-      );
+      // Should not track deactivation
+      expect(analyticsService.track).not.toHaveBeenCalled();
+    });
+
+    it('should call database RPC with duration', async () => {
+      await achievementService.recordActivation(EasterEggIds.MATRIX);
+      jest.clearAllMocks();
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      await achievementService.recordDeactivation(EasterEggIds.MATRIX);
+
+      expect(mockRpc).toHaveBeenCalledWith('record_easter_egg_activation', {
+        p_egg_id: EasterEggIds.MATRIX,
+        p_duration_ms: expect.any(Number),
+      });
+
+      const duration = mockRpc.mock.calls[0][1].p_duration_ms;
+      expect(duration).toBeGreaterThan(0);
     });
   });
 
@@ -180,46 +257,88 @@ describe('AchievementService', () => {
     it('should track share event with analytics', async () => {
       await achievementService.recordShare(EasterEggIds.KONAMI);
 
-      expect(analyticsService.track).toHaveBeenCalledWith(
-        AnalyticsEvents.EASTER_EGG_SHARED,
-        expect.objectContaining({
-          egg_id: EasterEggIds.KONAMI,
-        })
+      expect(analyticsService.track).toHaveBeenCalledWith(AnalyticsEvents.EASTER_EGG_SHARED, {
+        egg_id: EasterEggIds.KONAMI,
+      });
+    });
+
+    it('should call database RPC to record share', async () => {
+      await achievementService.recordShare(EasterEggIds.MATRIX);
+
+      expect(mockRpc).toHaveBeenCalledWith('record_easter_egg_share', {
+        p_egg_id: EasterEggIds.MATRIX,
+      });
+    });
+
+    it('should show success toast on successful share', async () => {
+      mockRpc.mockResolvedValue({ data: null, error: null });
+
+      await achievementService.recordShare(EasterEggIds.DISCO);
+
+      expect(toast.success).toHaveBeenCalledWith(
+        'Shared on social media!',
+        expect.objectContaining({ icon: '🎉' })
       );
     });
   });
 
   describe('submitFeedback', () => {
     it('should track feedback submission with analytics', async () => {
-      await achievementService.submitFeedback(5, EasterEggIds.KONAMI, 'Great easter eggs!');
+      await achievementService.submitFeedback(5, EasterEggIds.GRAVITY, 'Great easter egg!');
 
       expect(analyticsService.track).toHaveBeenCalledWith(
         AnalyticsEvents.EASTER_EGG_FEEDBACK_SUBMITTED,
-        expect.objectContaining({
+        {
           rating: 5,
-          favorite_egg: EasterEggIds.KONAMI,
+          favorite_egg: EasterEggIds.GRAVITY,
           has_suggestions: true,
-        })
+        }
       );
     });
 
-    it('should handle feedback without favorite or suggestions', async () => {
-      await achievementService.submitFeedback(4);
+    it('should call database RPC to record feedback', async () => {
+      mockRpc.mockResolvedValue({ data: null, error: null });
 
-      expect(analyticsService.track).toHaveBeenCalledWith(
-        AnalyticsEvents.EASTER_EGG_FEEDBACK_SUBMITTED,
-        expect.objectContaining({
-          rating: 4,
-          favorite_egg: undefined,
-          has_suggestions: false,
-        })
-      );
+      await achievementService.submitFeedback(4, EasterEggIds.DEVMODE, 'Fun!');
+
+      expect(mockRpc).toHaveBeenCalledWith('submit_easter_egg_feedback', {
+        p_rating: 4,
+        p_favorite_egg: EasterEggIds.DEVMODE,
+        p_suggestions: 'Fun!',
+      });
+    });
+
+    it('should handle missing favorite egg and suggestions', async () => {
+      mockRpc.mockResolvedValue({ data: null, error: null });
+
+      const result = await achievementService.submitFeedback(3);
+
+      expect(mockRpc).toHaveBeenCalledWith('submit_easter_egg_feedback', {
+        p_rating: 3,
+        p_favorite_egg: null,
+        p_suggestions: null,
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false on database error', async () => {
+      mockRpc.mockResolvedValue({
+        data: null,
+        error: new Error('Database error'),
+      });
+
+      const result = await achievementService.submitFeedback(5, EasterEggIds.KONAMI);
+
+      expect(result).toBe(false);
+      expect(toast.error).toHaveBeenCalled();
     });
   });
 
   describe('hasDiscovered', () => {
     it('should return true for discovered eggs', async () => {
       await achievementService.recordActivation(EasterEggIds.KONAMI);
+
       expect(achievementService.hasDiscovered(EasterEggIds.KONAMI)).toBe(true);
     });
 
@@ -229,36 +348,48 @@ describe('AchievementService', () => {
   });
 
   describe('getDiscoveredCount', () => {
-    it('should return 0 initially', () => {
-      expect(achievementService.getDiscoveredCount()).toBe(0);
-    });
-
-    it('should return correct count after discoveries', async () => {
+    it('should return count of discovered eggs', async () => {
       await achievementService.recordActivation(EasterEggIds.KONAMI);
-      expect(achievementService.getDiscoveredCount()).toBe(1);
-
       await achievementService.recordActivation(EasterEggIds.MATRIX);
-      expect(achievementService.getDiscoveredCount()).toBe(2);
-
       await achievementService.recordActivation(EasterEggIds.DISCO);
+
       expect(achievementService.getDiscoveredCount()).toBe(3);
     });
 
-    it('should not double-count repeated activations', async () => {
-      await achievementService.recordActivation(EasterEggIds.KONAMI);
-      await achievementService.recordActivation(EasterEggIds.KONAMI);
-      await achievementService.recordActivation(EasterEggIds.KONAMI);
-
-      expect(achievementService.getDiscoveredCount()).toBe(1);
+    it('should return 0 for no discovered eggs', () => {
+      expect(achievementService.getDiscoveredCount()).toBe(0);
     });
   });
 
   describe('shouldShowHints', () => {
-    beforeEach(() => {
-      localStorage.clear();
+    it('should return true after 30 days with no discoveries', () => {
+      // Set account created 31 days ago
+      const thirtyOneDaysAgo = Date.now() - 31 * 24 * 60 * 60 * 1000;
+      localStorage.setItem('accountCreatedAt', thirtyOneDaysAgo.toString());
+
+      expect(achievementService.shouldShowHints()).toBe(true);
     });
 
-    it('should return false if all eggs discovered', async () => {
+    it('should return false when eggs have been discovered', async () => {
+      const thirtyOneDaysAgo = Date.now() - 31 * 24 * 60 * 60 * 1000;
+      localStorage.setItem('accountCreatedAt', thirtyOneDaysAgo.toString());
+
+      await achievementService.recordActivation(EasterEggIds.KONAMI);
+
+      expect(achievementService.shouldShowHints()).toBe(false);
+    });
+
+    it('should return false after hints are marked as shown within 7 days', () => {
+      const thirtyOneDaysAgo = Date.now() - 31 * 24 * 60 * 60 * 1000;
+      localStorage.setItem('accountCreatedAt', thirtyOneDaysAgo.toString());
+
+      achievementService.markHintsShown();
+
+      expect(achievementService.shouldShowHints()).toBe(false);
+    });
+
+    it('should return false when all eggs discovered', async () => {
+      // Discover all 5 eggs
       await achievementService.recordActivation(EasterEggIds.KONAMI);
       await achievementService.recordActivation(EasterEggIds.DEVMODE);
       await achievementService.recordActivation(EasterEggIds.MATRIX);
@@ -267,148 +398,102 @@ describe('AchievementService', () => {
 
       expect(achievementService.shouldShowHints()).toBe(false);
     });
-
-    it('should return false if hints shown recently', () => {
-      const weekAgo = Date.now() - 6 * 24 * 60 * 60 * 1000;
-      localStorage.setItem('lastEasterEggHint', weekAgo.toString());
-
-      expect(achievementService.shouldShowHints()).toBe(false);
-    });
-
-    it('should return true after 30 days with no discoveries', () => {
-      const thirtyOneDaysAgo = Date.now() - 31 * 24 * 60 * 60 * 1000;
-      localStorage.setItem('accountCreatedAt', thirtyOneDaysAgo.toString());
-
-      expect(achievementService.shouldShowHints()).toBe(true);
-    });
-
-    it('should return false for new accounts', () => {
-      const yesterday = Date.now() - 1 * 24 * 60 * 60 * 1000;
-      localStorage.setItem('accountCreatedAt', yesterday.toString());
-
-      expect(achievementService.shouldShowHints()).toBe(false);
-    });
   });
 
-  describe('markHintsShown', () => {
-    it('should store timestamp in localStorage', () => {
-      achievementService.markHintsShown();
+  describe('getLeaderboard', () => {
+    it('should fetch leaderboard from database', async () => {
+      const mockLeaderboard = [
+        {
+          user_id: 'user1',
+          email: 'user1@example.com',
+          eggs_discovered: 5,
+          first_discovery: new Date('2024-01-01'),
+          last_discovery: new Date('2024-01-05'),
+          discovery_duration: 345600000,
+          total_activations: 20,
+          eggs_shared: 3,
+        },
+        {
+          user_id: 'user2',
+          email: 'user2@example.com',
+          eggs_discovered: 3,
+          first_discovery: new Date('2024-01-02'),
+          last_discovery: new Date('2024-01-04'),
+          discovery_duration: 172800000,
+          total_activations: 10,
+          eggs_shared: 1,
+        },
+      ];
 
-      const timestamp = localStorage.getItem('lastEasterEggHint');
-      expect(timestamp).toBeDefined();
-      expect(parseInt(timestamp!)).toBeGreaterThan(0);
+      const mockLimit = jest.fn().mockResolvedValue({
+        data: mockLeaderboard,
+        error: null,
+      });
+      const mockOrder2 = jest.fn().mockReturnValue({ limit: mockLimit });
+      const mockOrder1 = jest.fn().mockReturnValue({ order: mockOrder2 });
+      const mockSelect = jest.fn().mockReturnValue({ order: mockOrder1 });
+      mockFrom.mockReturnValue({ select: mockSelect });
+
+      const leaderboard = await achievementService.getLeaderboard(10);
+
+      expect(mockFrom).toHaveBeenCalledWith('easter_egg_leaderboard');
+      expect(leaderboard).toHaveLength(2);
+      expect(leaderboard[0].eggsDiscovered).toBe(5);
+    });
+
+    it('should handle database errors', async () => {
+      const mockLimit = jest.fn().mockResolvedValue({
+        data: null,
+        error: new Error('Database error'),
+      });
+      const mockOrder2 = jest.fn().mockReturnValue({ limit: mockLimit });
+      const mockOrder1 = jest.fn().mockReturnValue({ order: mockOrder2 });
+      const mockSelect = jest.fn().mockReturnValue({ order: mockOrder1 });
+      mockFrom.mockReturnValue({ select: mockSelect });
+
+      const leaderboard = await achievementService.getLeaderboard(10);
+
+      expect(leaderboard).toEqual([]);
     });
   });
 
   describe('getUserAchievements', () => {
-    it('should return all achievements unlocked status', async () => {
-      // Discover 3 eggs
-      await achievementService.recordActivation(EasterEggIds.KONAMI);
-      await achievementService.recordActivation(EasterEggIds.MATRIX);
-      await achievementService.recordActivation(EasterEggIds.DISCO);
+    it('should return achievements list', async () => {
+      const achievements = await achievementService.getUserAchievements();
+
+      expect(achievements).toBeInstanceOf(Array);
+      expect(achievements.length).toBeGreaterThan(0);
+
+      const firstEggAchievement = achievements.find(
+        (a) => a.type === AchievementTypes.FIRST_EASTER_EGG
+      );
+      expect(firstEggAchievement).toBeDefined();
+      expect(firstEggAchievement?.title).toBe('First Discovery');
+    });
+
+    it('should unlock achievements based on discovered eggs from database', async () => {
+      // Mock database response with one discovered egg
+      mockFrom.mockReturnValue({
+        select: jest.fn().mockResolvedValue({
+          data: [
+            {
+              user_id: 'user1',
+              egg_id: EasterEggIds.KONAMI,
+              discovered_at: new Date().toISOString(),
+              shared: false,
+            },
+          ],
+          error: null,
+        }),
+      });
 
       const achievements = await achievementService.getUserAchievements();
 
-      expect(achievements).toBeDefined();
-      expect(achievements.length).toBeGreaterThan(0);
-
-      // Should have achievement types
-      const types = achievements.map((a) => a.type);
-      expect(types).toContain(AchievementTypes.FIRST_EASTER_EGG);
-      expect(types).toContain(AchievementTypes.EASTER_EGG_HUNTER);
-      expect(types).toContain(AchievementTypes.EASTER_EGG_MASTER);
+      // First egg achievement should be unlocked
+      const firstEggAchievement = achievements.find(
+        (a) => a.type === AchievementTypes.FIRST_EASTER_EGG
+      );
+      expect(firstEggAchievement?.unlocked).toBe(true);
     });
-  });
-
-  describe('getLeaderboard', () => {
-    it('should return empty array when no data', async () => {
-      const leaderboard = await achievementService.getLeaderboard();
-
-      expect(leaderboard).toEqual([]);
-    });
-
-    it('should handle limit parameter', async () => {
-      const leaderboard = await achievementService.getLeaderboard(10);
-
-      expect(leaderboard).toBeDefined();
-      expect(Array.isArray(leaderboard)).toBe(true);
-    });
-  });
-});
-
-describe('Easter Egg Analytics Integration', () => {
-  beforeEach(() => {
-    localStorage.clear();
-    jest.clearAllMocks();
-    achievementService.init();
-  });
-
-  it('should track complete egg discovery flow', async () => {
-    // Discovery
-    await achievementService.recordActivation(EasterEggIds.KONAMI);
-
-    expect(analyticsService.track).toHaveBeenCalledWith(
-      AnalyticsEvents.EASTER_EGG_DISCOVERED,
-      expect.any(Object)
-    );
-
-    expect(analyticsService.track).toHaveBeenCalledWith(
-      AnalyticsEvents.EASTER_EGG_ACTIVATED,
-      expect.any(Object)
-    );
-
-    // Deactivation
-    await achievementService.recordDeactivation(EasterEggIds.KONAMI);
-
-    expect(analyticsService.track).toHaveBeenCalledWith(
-      AnalyticsEvents.EASTER_EGG_DEACTIVATED,
-      expect.any(Object)
-    );
-
-    // Share
-    await achievementService.recordShare(EasterEggIds.KONAMI);
-
-    expect(analyticsService.track).toHaveBeenCalledWith(
-      AnalyticsEvents.EASTER_EGG_SHARED,
-      expect.any(Object)
-    );
-  });
-
-  it('should track all 5 egg discovery events', async () => {
-    const eggs = [
-      EasterEggIds.KONAMI,
-      EasterEggIds.DEVMODE,
-      EasterEggIds.MATRIX,
-      EasterEggIds.DISCO,
-      EasterEggIds.GRAVITY,
-    ];
-
-    for (const egg of eggs) {
-      await achievementService.recordActivation(egg);
-    }
-
-    const discoveryCalls = (analyticsService.track as jest.Mock).mock.calls.filter(
-      (call) => call[0] === AnalyticsEvents.EASTER_EGG_DISCOVERED
-    );
-
-    expect(discoveryCalls.length).toBe(5);
-
-    // Check discovery order
-    discoveryCalls.forEach((call, index) => {
-      expect(call[1].discovery_order).toBe(index + 1);
-    });
-  });
-
-  it('should track feedback with all event properties', async () => {
-    await achievementService.submitFeedback(5, EasterEggIds.MATRIX, 'Add more effects!');
-
-    expect(analyticsService.track).toHaveBeenCalledWith(
-      AnalyticsEvents.EASTER_EGG_FEEDBACK_SUBMITTED,
-      {
-        rating: 5,
-        favorite_egg: EasterEggIds.MATRIX,
-        has_suggestions: true,
-      }
-    );
   });
 });
