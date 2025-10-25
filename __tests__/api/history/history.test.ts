@@ -15,47 +15,55 @@ import {
 } from '@/test-utils';
 
 // Mock modules
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
-  createServerSupabaseClient: jest.fn(),
-}));
+jest.mock(
+  '@/lib/supabase',
+  (): Record<string, unknown> => ({
+    createServerSupabaseClient: jest.fn(),
+  })
+);
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
-  withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
-    const { createServerSupabaseClient } = require('@/lib/supabase');
-    const supabase = await createServerSupabaseClient();
+jest.mock(
+  '@/lib/api/withAuth',
+  (): Record<string, unknown> => ({
+    withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
+      const { createServerSupabaseClient } = require('@/lib/supabase');
+      const supabase = await createServerSupabaseClient();
 
-    if (!supabase || !supabase.auth) {
-      return new Response(JSON.stringify({ error: 'Internal server error' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+      if (!supabase || !supabase.auth) {
+        return new Response(JSON.stringify({ error: 'Internal server error' }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+      if (!user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
 
-    return handler(req, { user, supabase, params: context?.params || {} });
-  }),
-}));
+      return handler(req, { user, supabase, params: context?.params || {} });
+    }),
+  })
+);
 
-
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
-  serverLogger: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/serverLogger',
+  (): Record<string, unknown> => ({
+    serverLogger: {
+      info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 jest.mock('@/lib/api/response', () => {
   const actual = jest.requireActual('@/lib/api/response');
@@ -65,17 +73,20 @@ jest.mock('@/lib/api/response', () => {
   };
 });
 
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
-  checkRateLimit: jest.fn().mockResolvedValue({
-    success: true,
-    limit: 30,
-    remaining: 29,
-    resetAt: Date.now() + 60000,
-  }),
-  RATE_LIMITS: {
-    tier3_status_read: { requests: 30, window: 60 },
-  },
-}));
+jest.mock(
+  '@/lib/rateLimit',
+  (): Record<string, unknown> => ({
+    checkRateLimit: jest.fn().mockResolvedValue({
+      success: true,
+      limit: 30,
+      remaining: 29,
+      resetAt: Date.now() + 60000,
+    }),
+    RATE_LIMITS: {
+      tier3_status_read: { requests: 30, window: 60 },
+    },
+  })
+);
 
 describe('GET /api/history', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
@@ -351,7 +362,9 @@ describe('GET /api/history', () => {
 
       expect(response.status).toBe(500);
       const data = await response.json();
-      expect(data.error).toBe('Failed to fetch activity history');
+      expect(data.error).toBe(
+        'Unable to load your activity history. Please refresh the page and try again.'
+      );
     });
 
     it('should handle empty results gracefully', async () => {
@@ -448,7 +461,9 @@ describe('DELETE /api/history', () => {
 
       expect(response.status).toBe(500);
       const data = await response.json();
-      expect(data.error).toBe('Failed to clear activity history');
+      expect(data.error).toBe(
+        'Unable to clear your activity history. Please try again or contact support if the problem persists.'
+      );
     });
   });
 });
@@ -717,7 +732,9 @@ describe('POST /api/history', () => {
 
       expect(response.status).toBe(500);
       const data = await response.json();
-      expect(data.error).toBe('Failed to add activity history entry');
+      expect(data.error).toBe(
+        'Unable to record this activity in your history. The activity was completed successfully, but logging failed.'
+      );
     });
   });
 });
