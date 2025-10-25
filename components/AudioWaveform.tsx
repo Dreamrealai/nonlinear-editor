@@ -3,6 +3,8 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import type { Clip } from '@/types/timeline';
 import { browserLogger } from '@/lib/browserLogger';
+import { isSupabasePublicAssetUrl } from '@/lib/utils/assetUtils';
+import { signedUrlCache } from '@/lib/signedUrlCache';
 
 type AudioWaveformProps = {
   clip: Clip;
@@ -99,8 +101,35 @@ export const AudioWaveform = React.memo<AudioWaveformProps>(function AudioWavefo
 
     const extractWaveform = async (): Promise<void> => {
       try {
+        // Resolve URL - handle Supabase signed URLs if needed
+        let fetchUrl = clip.previewUrl!;
+
+        // Check if URL is a Supabase public asset URL that requires signing
+        if (isSupabasePublicAssetUrl(fetchUrl)) {
+          try {
+            // Get signed URL for Supabase storage
+            fetchUrl = await signedUrlCache.get(clip.assetId, fetchUrl);
+          } catch (signError) {
+            browserLogger.error(
+              {
+                error: signError,
+                clipId: clip.id,
+                assetId: clip.assetId,
+                previewUrl: clip.previewUrl,
+              },
+              'Failed to get signed URL for audio waveform'
+            );
+            throw new Error('Failed to get signed URL for audio file');
+          }
+        }
+
         // Fetch audio file
-        const response = await fetch(clip.previewUrl!);
+        const response = await fetch(fetchUrl);
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch audio: ${response.status} ${response.statusText}`);
+        }
+
         const arrayBuffer = await response.arrayBuffer();
 
         if (isCancelled) return;

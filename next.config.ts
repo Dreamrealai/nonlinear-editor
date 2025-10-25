@@ -111,8 +111,8 @@ const nextConfig: NextConfig = {
               "frame-ancestors 'none'",
               // Force HTTPS for all resources
               'upgrade-insecure-requests',
-              // Block all plugins (Flash, Java, Silverlight, etc.)
-              "plugin-types 'none'",
+              // Note: plugin-types directive has been removed from CSP spec
+              // Use object-src 'none' instead (already set above) to block plugins
               // Require SRI for scripts and styles (when using external CDNs)
               // Disabled for now as Next.js handles bundling
               // "require-sri-for script style",
