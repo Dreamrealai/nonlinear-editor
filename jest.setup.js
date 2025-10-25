@@ -1,5 +1,4 @@
 /* eslint-env node, jest */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable no-undef */
 
 // CRITICAL: Set NODE_ENV to 'test' for proper test environment
