@@ -1,6 +1,15 @@
 /**
  * Common Mock Utilities
  *
+ * @deprecated This legacy mock utilities module is deprecated.
+ * Please migrate to modern utilities:
+ * - `mockFetch` → Use `/test-utils/mockFetch.ts`
+ * - `createMockFile` → Use `/test-utils/testHelpers.ts`
+ * - `mockLocalStorage`, `mockIntersectionObserver`, etc. → Use `/test-utils/testHelpers.ts` `setupTestEnvironment()`
+ *
+ * **Migration Guide:** See `/docs/TESTING_UTILITIES.md` section "Migrating from Legacy Test Utilities"
+ * **Issue:** #83
+ *
  * General-purpose mocking utilities for browser APIs, files, and
  * common global objects. These mocks help simulate browser environments
  * and external dependencies in tests.
@@ -8,10 +17,11 @@
  * @module __tests__/helpers/mocks
  * @example
  * ```typescript
- * import { mockFetch, createMockFile, mockLocalStorage } from '@/__tests__/helpers/mocks';
+ * // DEPRECATED:
+ * import { mockFetch, createMockFile } from '@/test-utils/legacy-helpers/mocks';
  *
- * mockFetch([{ data: { success: true } }]);
- * const file = createMockFile('test.mp4', 'video/mp4', 1024);
+ * // NEW:
+ * import { mockFetch, createMockFile } from '@/test-utils';
  * ```
  */
 

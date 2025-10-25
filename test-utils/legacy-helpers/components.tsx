@@ -1,6 +1,28 @@
 /**
  * Component Test Helpers
  *
+ * @deprecated This legacy component helper module is deprecated.
+ * Please migrate to modern utilities:
+ * - `renderWithProviders()` → Use `render()` from `/test-utils/render.tsx`
+ * - `waitForLoadingToFinish()` → Use `waitFor()` from `@testing-library/react`
+ * - `setupUserEvent()` → Use `userEvent` from `@testing-library/user-event`
+ * - `createMockRouter()` → Available in `/test-utils/testHelpers.ts`
+ *
+ * **Migration:**
+ * ```typescript
+ * // OLD:
+ * import { renderWithProviders } from '@/test-utils/legacy-helpers/components';
+ * const { getByText } = renderWithProviders(<MyComponent />);
+ *
+ * // NEW:
+ * import { render, screen } from '@/test-utils';
+ * render(<MyComponent />);
+ * const element = screen.getByText('Hello');
+ * ```
+ *
+ * **Migration Guide:** See `/docs/TESTING_UTILITIES.md` section "Component Testing"
+ * **Issue:** #83
+ *
  * Utilities for testing React components with Testing Library.
  * Provides helpers for rendering with providers, waiting for states,
  * setting up user interactions, and common component patterns.
@@ -8,10 +30,11 @@
  * @module __tests__/helpers/components
  * @example
  * ```typescript
- * import { renderWithProviders, waitForLoadingToFinish } from '@/__tests__/helpers/components';
+ * // DEPRECATED:
+ * import { renderWithProviders } from '@/test-utils/legacy-helpers/components';
  *
- * const { getByText } = renderWithProviders(<MyComponent />);
- * await waitForLoadingToFinish();
+ * // NEW:
+ * import { render, screen } from '@/test-utils';
  * ```
  */
 

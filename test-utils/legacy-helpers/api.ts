@@ -1,6 +1,25 @@
 /**
  * API Test Helpers
  *
+ * @deprecated This legacy API test helper module is deprecated.
+ * Please migrate to modern utilities:
+ * - `createAuthenticatedRequest` → Create `NextRequest` directly with proper mocks
+ * - `expectSuccessResponse`, `expectErrorResponse` → Use standard Jest expectations
+ * - `createMockResponse` → Use `mockApiResponse` from `/test-utils/mockApiResponse.ts`
+ *
+ * **Migration Pattern:**
+ * ```typescript
+ * // OLD:
+ * const request = createAuthenticatedRequest('user-123', { method: 'POST' });
+ *
+ * // NEW:
+ * const request = new NextRequest('http://localhost:3000/api/test', { method: 'POST' });
+ * mockAuthenticatedUser(mockSupabase, { id: 'user-123' });
+ * ```
+ *
+ * **Migration Guide:** See `/docs/TESTING_UTILITIES.md` section "API Route Testing"
+ * **Issue:** #83
+ *
  * Utilities for testing Next.js API routes and HTTP requests.
  * Provides helpers for creating authenticated requests, mocking responses,
  * and asserting on API response formats.
@@ -8,14 +27,12 @@
  * @module __tests__/helpers/api
  * @example
  * ```typescript
- * import { createAuthenticatedRequest, expectSuccessResponse } from '@/__tests__/helpers/api';
+ * // DEPRECATED:
+ * import { createAuthenticatedRequest } from '@/test-utils/legacy-helpers/api';
  *
- * const request = createAuthenticatedRequest('user-123', {
- *   method: 'POST',
- *   body: JSON.stringify({ title: 'Test' })
- * });
- * const response = await POST(request);
- * expectSuccessResponse(response, { id: expect.any(String) });
+ * // NEW:
+ * import { NextRequest } from 'next/server';
+ * import { mockAuthenticatedUser } from '@/test-utils';
  * ```
  */
 

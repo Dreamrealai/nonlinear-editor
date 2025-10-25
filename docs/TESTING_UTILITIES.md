@@ -165,14 +165,17 @@ describe('Video Editor Workflow', () => {
 
 ### 3. Legacy Helpers (`/test-utils/legacy-helpers/`)
 
-**Note**: These are being consolidated but remain available for backward compatibility.
+**DEPRECATED**: These utilities are deprecated as of Issue #83. Please migrate to modern utilities.
 
-| File             | Purpose            | Key Exports                                           |
-| ---------------- | ------------------ | ----------------------------------------------------- |
-| `api.ts`         | API testing        | `createAuthenticatedRequest`, `expectSuccessResponse` |
-| `components.tsx` | Component helpers  | `renderWithProviders`, `waitForLoadingToFinish`       |
-| `mocks.ts`       | Browser API mocks  | `mockIntersectionObserver`, `mockLocalStorage`        |
-| `supabase.ts`    | Supabase utilities | Detailed Supabase mocking                             |
+| File             | Purpose            | Modern Replacement                             | Migration Status |
+| ---------------- | ------------------ | ---------------------------------------------- | ---------------- |
+| `api.ts`         | API testing        | Use `NextRequest` + modern mocks               | Deprecated       |
+| `components.tsx` | Component helpers  | Use `/test-utils/render.tsx`                   | Deprecated       |
+| `mocks.ts`       | Browser API mocks  | Use `/test-utils/testHelpers.ts`               | Deprecated       |
+| `supabase.ts`    | Supabase utilities | Use `/test-utils/mockSupabase.ts`              | Deprecated       |
+| `index.ts`       | Main export        | Use `/test-utils/index.ts`                     | Deprecated       |
+
+**See:** [Migrating from Legacy Test Utilities](#migrating-from-legacy-test-utilities) section below for detailed migration instructions.
 
 ### 4. Integration Helpers (`/__tests__/integration/helpers/`)
 
@@ -1316,6 +1319,395 @@ mockEnv({
   NEXT_PUBLIC_API_URL: 'http://test.com',
 });
 ```
+
+---
+
+## Migrating from Legacy Test Utilities
+
+**Issue:** #83 - Deprecate Legacy Test Utilities
+**Status:** In Progress
+**Timeline:** Legacy utilities will be removed in Q2 2025
+
+This section provides step-by-step migration instructions for moving from legacy test utilities to modern ones.
+
+### Why Migrate?
+
+The modern test utilities offer:
+- Better TypeScript support and type safety
+- Simplified API with less boilerplate
+- Better compatibility with Next.js 14+ patterns
+- Centralized imports from a single entry point
+- Improved documentation and examples
+- Active maintenance and bug fixes
+
+### Migration Checklist
+
+For each test file using legacy utilities:
+
+- [ ] Update imports to use modern utilities
+- [ ] Replace legacy function calls with modern equivalents
+- [ ] Run tests to verify functionality
+- [ ] Remove any legacy-specific workarounds
+- [ ] Update test structure if needed (AAA pattern recommended)
+
+### Quick Reference: Legacy → Modern Mapping
+
+| Legacy Import                                                | Modern Import                                  |
+| ------------------------------------------------------------ | ---------------------------------------------- |
+| `from '@/test-utils/legacy-helpers'`                         | `from '@/test-utils'`                          |
+| `from '@/test-utils/legacy-helpers/supabase'`                | `from '@/test-utils/mockSupabase'`             |
+| `from '@/test-utils/legacy-helpers/api'`                     | `from '@/test-utils'` (use NextRequest)        |
+| `from '@/test-utils/legacy-helpers/components'`              | `from '@/test-utils'` (use render)             |
+| `from '@/test-utils/legacy-helpers/mocks'`                   | `from '@/test-utils'` (use modern equivalents) |
+
+### Migration Guide by Category
+
+#### 1. Supabase Mocking
+
+**Legacy Pattern:**
+```typescript
+import {
+  createMockSupabaseClient,
+  mockAuthenticatedUser,
+  mockQuerySuccess
+} from '@/test-utils/legacy-helpers/supabase';
+
+const mockSupabase = createMockSupabaseClient();
+mockAuthenticatedUser(mockSupabase);
+mockQuerySuccess(mockSupabase, [{ id: '1' }]);
+```
+
+**Modern Pattern:**
+```typescript
+import {
+  createMockSupabaseClient,
+  mockAuthenticatedUser,
+  mockQuerySuccess
+} from '@/test-utils';
+
+const mockSupabase = createMockSupabaseClient();
+mockAuthenticatedUser(mockSupabase);
+mockQuerySuccess(mockSupabase, [{ id: '1' }]);
+```
+
+**Changes:**
+- Import from `@/test-utils` instead of `@/test-utils/legacy-helpers/supabase`
+- API is identical, just the import path changes
+- Modern version has better TypeScript types
+
+#### 2. Component Testing
+
+**Legacy Pattern:**
+```typescript
+import { renderWithProviders, waitForLoadingToFinish } from '@/test-utils/legacy-helpers/components';
+
+const { getByText, user } = renderWithProviders(<MyComponent />);
+await waitForLoadingToFinish();
+const button = getByText('Submit');
+```
+
+**Modern Pattern:**
+```typescript
+import { render, screen, waitFor } from '@/test-utils';
+
+render(<MyComponent />);
+await waitFor(() => {
+  expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+});
+const button = screen.getByText('Submit');
+```
+
+**Changes:**
+- Use `render()` instead of `renderWithProviders()`
+- Use `screen` for queries instead of destructuring
+- Use `waitFor()` with explicit condition instead of `waitForLoadingToFinish()`
+- Modern pattern follows React Testing Library best practices
+
+#### 3. API Route Testing
+
+**Legacy Pattern:**
+```typescript
+import { createAuthenticatedRequest, expectSuccessResponse } from '@/test-utils/legacy-helpers/api';
+
+const request = createAuthenticatedRequest('user-123', {
+  method: 'POST',
+  body: JSON.stringify({ title: 'Test' })
+});
+
+const response = await POST(request);
+await expectSuccessResponse(response, { id: expect.any(String) });
+```
+
+**Modern Pattern:**
+```typescript
+import { NextRequest } from 'next/server';
+import { createMockSupabaseClient, mockAuthenticatedUser } from '@/test-utils';
+
+const mockSupabase = createMockSupabaseClient();
+mockAuthenticatedUser(mockSupabase, { id: 'user-123' });
+
+const request = new NextRequest('http://localhost:3000/api/test', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ title: 'Test' })
+});
+
+const response = await POST(request);
+expect(response.status).toBe(200);
+const data = await response.json();
+expect(data).toMatchObject({ id: expect.any(String) });
+```
+
+**Changes:**
+- Create `NextRequest` directly instead of using `createAuthenticatedRequest()`
+- Mock authentication through Supabase client, not through request
+- Use standard Jest expectations instead of custom expectation helpers
+- More explicit and follows Next.js patterns
+
+#### 4. Browser API Mocking
+
+**Legacy Pattern:**
+```typescript
+import {
+  mockIntersectionObserver,
+  mockLocalStorage,
+  mockFetch
+} from '@/test-utils/legacy-helpers/mocks';
+
+mockIntersectionObserver(true);
+mockLocalStorage();
+mockFetch([{ data: { success: true } }]);
+```
+
+**Modern Pattern:**
+```typescript
+import {
+  setupTestEnvironment,
+  mockFetch,
+  mockFetchSuccess
+} from '@/test-utils';
+
+// Setup all browser APIs at once
+setupTestEnvironment();
+
+// Or mock fetch specifically
+mockFetchSuccess({ success: true });
+```
+
+**Changes:**
+- Use `setupTestEnvironment()` to mock all browser APIs at once
+- Use simplified `mockFetchSuccess()` / `mockFetchError()` for fetch
+- Modern version handles more edge cases
+
+#### 5. File Creation
+
+**Legacy Pattern:**
+```typescript
+import { createMockFile, createMockFiles } from '@/test-utils/legacy-helpers/mocks';
+
+const file = createMockFile('video.mp4', 'video/mp4', 1024);
+const files = createMockFiles([
+  { name: 'video1.mp4', type: 'video/mp4' },
+  { name: 'video2.mp4', type: 'video/mp4' }
+]);
+```
+
+**Modern Pattern:**
+```typescript
+import { createMockFile } from '@/test-utils';
+
+const file = createMockFile('video.mp4', 'video/mp4', 1024);
+// For multiple files, just call multiple times
+const file1 = createMockFile('video1.mp4', 'video/mp4');
+const file2 = createMockFile('video2.mp4', 'video/mp4');
+```
+
+**Changes:**
+- Import from `@/test-utils` instead of legacy path
+- `createMockFiles()` batch helper removed (just call `createMockFile()` multiple times)
+- Simpler, more explicit
+
+### Step-by-Step Migration Example
+
+Let's migrate a complete test file:
+
+**Before (Legacy):**
+```typescript
+import { renderWithProviders, waitForLoadingToFinish } from '@/test-utils/legacy-helpers/components';
+import { createMockSupabaseClient, mockAuthenticatedUser } from '@/test-utils/legacy-helpers/supabase';
+
+describe('MyComponent', () => {
+  it('loads user data', async () => {
+    const mockSupabase = createMockSupabaseClient();
+    mockAuthenticatedUser(mockSupabase, { email: 'test@example.com' });
+
+    mockSupabase.single.mockResolvedValue({
+      data: { id: '1', name: 'John' },
+      error: null
+    });
+
+    const { getByText } = renderWithProviders(<MyComponent />);
+
+    await waitForLoadingToFinish();
+
+    expect(getByText('John')).toBeTruthy();
+  });
+});
+```
+
+**After (Modern):**
+```typescript
+import { render, screen, waitFor, createMockSupabaseClient, mockAuthenticatedUser } from '@/test-utils';
+
+describe('MyComponent', () => {
+  it('loads user data', async () => {
+    const mockSupabase = createMockSupabaseClient();
+    mockAuthenticatedUser(mockSupabase, { email: 'test@example.com' });
+
+    mockSupabase.mockResolvedValue({
+      data: { id: '1', name: 'John' },
+      error: null
+    });
+
+    render(<MyComponent />, { mockSupabase });
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByText('John')).toBeInTheDocument();
+  });
+});
+```
+
+**Changes Made:**
+1. Combined imports from single entry point `@/test-utils`
+2. Replaced `renderWithProviders` with `render`
+3. Replaced destructured queries with `screen`
+4. Replaced `waitForLoadingToFinish()` with explicit `waitFor()`
+5. Used `.toBeInTheDocument()` matcher instead of `.toBeTruthy()`
+
+### Common Migration Patterns
+
+#### Pattern 1: Multiple Mock Setup
+
+**Legacy:**
+```typescript
+import { mockIntersectionObserver, mockResizeObserver, mockMatchMedia } from '@/test-utils/legacy-helpers/mocks';
+
+beforeEach(() => {
+  mockIntersectionObserver();
+  mockResizeObserver();
+  mockMatchMedia(false);
+});
+```
+
+**Modern:**
+```typescript
+import { setupTestEnvironment } from '@/test-utils';
+
+beforeAll(() => {
+  setupTestEnvironment();
+});
+```
+
+#### Pattern 2: Form Testing
+
+**Legacy:**
+```typescript
+import { renderWithProviders, fillForm, clickButton } from '@/test-utils/legacy-helpers/components';
+
+const { user } = renderWithProviders(<Form />);
+await fillForm(user, { email: 'test@example.com' });
+await clickButton(user, 'Submit');
+```
+
+**Modern:**
+```typescript
+import { render, screen } from '@/test-utils';
+import userEvent from '@testing-library/user-event';
+
+render(<Form />);
+const user = userEvent.setup();
+
+await user.type(screen.getByLabelText('Email'), 'test@example.com');
+await user.click(screen.getByRole('button', { name: 'Submit' }));
+```
+
+#### Pattern 3: API Error Testing
+
+**Legacy:**
+```typescript
+import { expectErrorResponse, expectBadRequest } from '@/test-utils/legacy-helpers/api';
+
+const response = await POST(request);
+await expectBadRequest(response, 'Invalid input');
+```
+
+**Modern:**
+```typescript
+const response = await POST(request);
+expect(response.status).toBe(400);
+const data = await response.json();
+expect(data.error).toBe('Invalid input');
+```
+
+### Testing Your Migration
+
+After migrating a test file:
+
+1. **Run the specific test:**
+   ```bash
+   npm test path/to/your.test.ts
+   ```
+
+2. **Verify all tests pass:**
+   ```bash
+   npm test
+   ```
+
+3. **Check for TypeScript errors:**
+   ```bash
+   npm run type-check
+   ```
+
+4. **Look for deprecation warnings** in console output
+
+### Bulk Migration Strategy
+
+For migrating multiple test files:
+
+1. **Start with simple files** (5-10 tests, minimal legacy usage)
+2. **Create a migration branch** per component/feature area
+3. **Migrate in batches** of 5-10 files at a time
+4. **Run full test suite** after each batch
+5. **Commit frequently** with clear messages
+
+### Estimated Migration Time
+
+| File Complexity    | Number of Tests | Estimated Time |
+| ------------------ | --------------- | -------------- |
+| Simple (API)       | 1-5             | 5-10 minutes   |
+| Medium (Component) | 5-15            | 15-30 minutes  |
+| Complex (E2E)      | 15+             | 30-60 minutes  |
+
+### Getting Help
+
+If you encounter issues during migration:
+
+1. Check this guide for common patterns
+2. Look at recently migrated test files for examples
+3. Search for similar usage in modern test files
+4. Consult `/docs/TESTING_UTILITIES.md` for API documentation
+5. Ask in team chat or create an issue
+
+### Migration Progress Tracking
+
+Track your migration progress:
+
+- Total test files: ~75 files
+- Files migrated: 0 (starting point)
+- Target: Complete by Q2 2025
 
 ---
 

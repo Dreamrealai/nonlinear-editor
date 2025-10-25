@@ -1,6 +1,28 @@
 /**
  * Supabase Test Helpers
  *
+ * @deprecated This legacy Supabase helper module is deprecated.
+ * Please migrate to the modern module: `/test-utils/mockSupabase.ts`
+ *
+ * **All exports are available with the same API:**
+ * - `createMockSupabaseClient()` - Same function, improved implementation
+ * - `mockAuthenticatedUser()` - Same function
+ * - `mockQuerySuccess()` - Same function
+ * - All other helpers work identically
+ *
+ * **Migration:**
+ * ```typescript
+ * // OLD:
+ * import { createMockSupabaseClient } from '@/test-utils/legacy-helpers/supabase';
+ *
+ * // NEW:
+ * import { createMockSupabaseClient } from '@/test-utils';
+ * // or
+ * import { createMockSupabaseClient } from '@/test-utils/mockSupabase';
+ * ```
+ *
+ * **Issue:** #83
+ *
  * Standardized utilities for mocking Supabase clients and responses in tests.
  * These helpers provide consistent, type-safe mocks for database operations,
  * authentication, storage, and query building.
@@ -8,10 +30,11 @@
  * @module __tests__/helpers/supabase
  * @example
  * ```typescript
- * import { createMockSupabaseClient, mockAuthenticatedUser } from '@/__tests__/helpers/supabase';
+ * // DEPRECATED:
+ * import { createMockSupabaseClient } from '@/test-utils/legacy-helpers/supabase';
  *
- * const mockSupabase = createMockSupabaseClient();
- * const user = mockAuthenticatedUser(mockSupabase);
+ * // NEW:
+ * import { createMockSupabaseClient } from '@/test-utils';
  * ```
  */
 

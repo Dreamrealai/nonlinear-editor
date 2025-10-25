@@ -291,12 +291,14 @@ When `BYPASS_AUTH=true` is set in `.env.local`, authentication is bypassed for l
 This allows testing API routes without authentication.
 
 **Local Testing Credentials** (for manual login testing):
+
 - Email: test@example.com
 - Password: test_password_123
 
 ### Production Site Testing
 
 **Production Credentials**:
+
 - Email: david@dreamreal.ai
 - Password: sc3p4sses
 

@@ -1,18 +1,27 @@
 /**
  * Test Helpers - Main Export
  *
+ * @deprecated This legacy test helper module is deprecated and will be removed in a future version.
+ * Please migrate to the modern test utilities in `/test-utils/`.
+ *
+ * **Migration Guide:**
+ * - Instead of: `import { ... } from '@/test-utils/legacy-helpers'`
+ * - Use: `import { ... } from '@/test-utils'`
+ *
+ * **See:** `/docs/TESTING_UTILITIES.md` for migration instructions
+ * **See:** Issue #83 for deprecation timeline
+ *
  * Central export point for all test utilities. Import helpers from this file
  * to access the full suite of testing utilities.
  *
  * @module __tests__/helpers
  * @example
  * ```typescript
- * // Import specific helpers
- * import { createMockSupabaseClient, mockFetch } from '@/__tests__/helpers';
+ * // DEPRECATED - Old way:
+ * import { createMockSupabaseClient, mockFetch } from '@/test-utils/legacy-helpers';
  *
- * // Or import by category
- * import * as supabaseHelpers from '@/__tests__/helpers/supabase';
- * import * as apiHelpers from '@/__tests__/helpers/api';
+ * // NEW - Modern way:
+ * import { createMockSupabaseClient, mockFetch } from '@/test-utils';
  * ```
  */
 

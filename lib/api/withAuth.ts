@@ -87,10 +87,7 @@ export function withAuth<TParams = Record<string, never>>(
   handler: AuthenticatedHandler<TParams>,
   options: AuthOptions
 ): (request: NextRequest, context: { params: Promise<TParams> }) => Promise<Response> {
-  return async (
-    request: NextRequest,
-    context: { params: Promise<TParams> }
-  ): Promise<Response> => {
+  return async (request: NextRequest, context: { params: Promise<TParams> }): Promise<Response> => {
     const startTime = Date.now();
     const { route, rateLimit } = options;
 
