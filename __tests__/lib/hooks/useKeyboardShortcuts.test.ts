@@ -84,7 +84,7 @@ describe('useKeyboardShortcuts', () => {
     return event;
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     // Setup default store mock

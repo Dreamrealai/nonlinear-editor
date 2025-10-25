@@ -23,7 +23,7 @@ jest.mock('@/lib/supabase', () => {
   };
 });
 
-jest.mock('@/lib/services/analyticsService', () => ({
+jest.mock('@/lib/services/analyticsService', (): Record<string, unknown> => ({
   analyticsService: {
     track: jest.fn(),
   },
@@ -37,7 +37,7 @@ jest.mock('@/lib/services/analyticsService', () => ({
   },
 }));
 
-jest.mock('react-hot-toast', () => ({
+jest.mock('react-hot-toast', (): Record<string, unknown> => ({
   __esModule: true,
   default: {
     success: jest.fn(),
@@ -61,7 +61,7 @@ describe('AchievementService', () => {
   let mockRpc: jest.Mock;
   let mockFrom: jest.Mock;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Clear localStorage
     localStorage.clear();
     jest.clearAllMocks();

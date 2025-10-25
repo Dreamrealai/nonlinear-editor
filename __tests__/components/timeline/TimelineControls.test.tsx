@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 import { TimelineControls } from '@/components/timeline/TimelineControls';
 
 // Mock formatTime utility
-jest.mock('@/lib/utils/timelineUtils', () => ({
+jest.mock('@/lib/utils/timelineUtils', (): Record<string, unknown> => ({
   formatTime: (seconds: number) =>
     `${Math.floor(seconds)}:${Math.floor((seconds % 1) * 60)
       .toString()
@@ -26,7 +26,7 @@ describe('TimelineControls', () => {
     onSplitAtPlayhead: jest.fn(),
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

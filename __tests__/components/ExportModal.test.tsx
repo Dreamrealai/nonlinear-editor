@@ -7,7 +7,7 @@ import type { Timeline } from '@/types/timeline';
 
 // Mock dependencies
 jest.mock('react-hot-toast');
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     info: jest.fn(),
     error: jest.fn(),
@@ -41,18 +41,18 @@ describe('ExportModal', () => {
     timeline: mockTimeline,
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockClear();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.restoreAllMocks();
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockClear();
   });
 
-  afterAll(() => {
+  afterAll((): void => {
     jest.restoreAllMocks();
   });
 

@@ -7,7 +7,7 @@
 import { cache, CacheKeys, CacheTTL } from '@/lib/cache';
 
 // Mock serverLogger to avoid actual logging in tests
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     debug: jest.fn(),
     info: jest.fn(),
@@ -16,12 +16,12 @@ jest.mock('@/lib/serverLogger', () => ({
 }));
 
 describe('Cache', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     // Clear cache before each test
     cache.clear();
   });
 
-  afterAll(() => {
+  afterAll((): void => {
     // Stop cleanup interval
     cache.stop();
   });

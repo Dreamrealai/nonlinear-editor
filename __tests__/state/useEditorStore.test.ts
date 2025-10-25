@@ -32,7 +32,7 @@ describe('useEditorStore', () => {
     ...overrides,
   })
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Reset store before each test
     const { result } = renderHook(() => useEditorStore())
     act(() => {

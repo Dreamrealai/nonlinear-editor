@@ -165,12 +165,12 @@ describe('Webhook Utilities', () => {
   describe('deliverWebhook', () => {
     const webhookUrl = 'https://example.com/webhook';
 
-    beforeEach(() => {
+    beforeEach((): void => {
       // Reset fetch mock before each test
       global.fetch = jest.fn();
     });
 
-    afterEach(() => {
+    afterEach((): void => {
       jest.restoreAllMocks();
     });
 

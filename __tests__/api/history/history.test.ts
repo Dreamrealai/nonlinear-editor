@@ -12,15 +12,15 @@ import {
   createMockUser,
   mockAuthenticatedUser,
   mockUnauthenticatedUser,
-} from '@/__tests__/helpers/apiMocks';
+} from '@/test-utils';
 
 // Mock modules
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -48,7 +48,7 @@ jest.mock('@/lib/api/withAuth', () => ({
 }));
 
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -65,7 +65,7 @@ jest.mock('@/lib/api/response', () => {
   };
 });
 
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   checkRateLimit: jest.fn().mockResolvedValue({
     success: true,
     limit: 30,
@@ -81,7 +81,7 @@ describe('GET /api/history', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   let mockRequest: NextRequest;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
@@ -92,7 +92,7 @@ describe('GET /api/history', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
   });
 
@@ -376,7 +376,7 @@ describe('DELETE /api/history', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   let mockRequest: NextRequest;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
@@ -387,7 +387,7 @@ describe('DELETE /api/history', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
   });
 
@@ -457,14 +457,14 @@ describe('POST /api/history', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   let mockRequest: NextRequest;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
   });
 

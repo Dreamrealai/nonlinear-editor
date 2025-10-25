@@ -7,12 +7,12 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 // Mock Next.js router
-jest.mock('next/navigation', () => ({
+jest.mock('next/navigation', (): Record<string, unknown> => ({
   useRouter: jest.fn(),
 }));
 
 // Mock browserLogger
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     error: jest.fn(),
   },
@@ -22,7 +22,7 @@ jest.mock('@/lib/browserLogger', () => ({
 global.fetch = jest.fn();
 
 // Mock toast
-jest.mock('react-hot-toast', () => ({
+jest.mock('react-hot-toast', (): Record<string, unknown> => ({
   __esModule: true,
   default: {
     success: jest.fn(),
@@ -33,7 +33,7 @@ jest.mock('react-hot-toast', () => ({
 describe('CreateProjectButton', () => {
   const mockPush = jest.fn();
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     (useRouter as jest.Mock).mockReturnValue({
       push: mockPush,
@@ -41,7 +41,7 @@ describe('CreateProjectButton', () => {
     (global.fetch as jest.Mock).mockReset();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
   });
 

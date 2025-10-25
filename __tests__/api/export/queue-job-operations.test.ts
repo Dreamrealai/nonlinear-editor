@@ -17,7 +17,7 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -29,11 +29,11 @@ jest.mock('@/lib/api/withAuth', () => ({
   }),
 }));
 
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -42,7 +42,7 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   RATE_LIMITS: { tier2_resource_creation: { requests: 10, window: 60 } },
 }));
 
@@ -50,14 +50,14 @@ describe('POST /api/export/queue/[jobId]/pause', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   const validJobId = '123e4567-e89b-12d3-a456-426614174000';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks();
   });
 
@@ -193,14 +193,14 @@ describe('POST /api/export/queue/[jobId]/resume', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   const validJobId = '123e4567-e89b-12d3-a456-426614174000';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks();
   });
 
@@ -271,14 +271,14 @@ describe('PATCH /api/export/queue/[jobId]/priority', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   const validJobId = '123e4567-e89b-12d3-a456-426614174000';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks();
   });
 

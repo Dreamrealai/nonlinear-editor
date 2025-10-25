@@ -20,7 +20,7 @@ describe('useHistoryStore', () => {
     },
   });
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Reset store before each test
     const { result } = renderHook(() => useHistoryStore());
     act(() => {
@@ -234,11 +234,11 @@ describe('useHistoryStore', () => {
   });
 
   describe('Debounced Save', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       jest.useFakeTimers();
     });
 
-    afterEach(() => {
+    afterEach((): void => {
       jest.useRealTimers();
     });
 

@@ -9,7 +9,7 @@ process.env.STRIPE_SECRET_KEY = 'sk_test_123';
 
 // Mock Stripe SDK
 jest.mock('stripe');
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     error: jest.fn(),
     warn: jest.fn(),
@@ -34,7 +34,7 @@ const resumeSubscription = stripeModule.resumeSubscription;
 const createPremiumProduct = stripeModule.createPremiumProduct;
 
 describe('Stripe Configuration', () => {
-  beforeAll(() => {
+  beforeAll((): void => {
     // Set up stripe mock object
     (stripe as any).customers = {};
     (stripe as any).checkout = {};
@@ -52,7 +52,7 @@ describe('Stripe Configuration', () => {
 describe('getOrCreateStripeCustomer', () => {
   let mockCustomers: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockCustomers = {
@@ -162,7 +162,7 @@ describe('getOrCreateStripeCustomer', () => {
 describe('createCheckoutSession', () => {
   let mockCheckout: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockCheckout = {
@@ -235,7 +235,7 @@ describe('createCheckoutSession', () => {
 describe('createBillingPortalSession', () => {
   let mockBillingPortal: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockBillingPortal = {
@@ -286,7 +286,7 @@ describe('createBillingPortalSession', () => {
 describe('cancelSubscriptionAtPeriodEnd', () => {
   let mockSubscriptions: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockSubscriptions = {
@@ -328,7 +328,7 @@ describe('cancelSubscriptionAtPeriodEnd', () => {
 describe('resumeSubscription', () => {
   let mockSubscriptions: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockSubscriptions = {
@@ -371,7 +371,7 @@ describe('createPremiumProduct', () => {
   let mockProducts: any;
   let mockPrices: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockProducts = {

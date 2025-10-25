@@ -12,7 +12,7 @@ import {
   resetAllMocks,
 } from '@/__tests__/helpers/apiMocks';
 
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -24,14 +24,14 @@ jest.mock('@/lib/api/withAuth', () => ({
   }),
 }));
 
-jest.mock('@/lib/supabase', () => ({ createServerSupabaseClient: jest.fn() }));
-jest.mock('@/lib/serverLogger', () => ({ serverLogger: { info: jest.fn(), error: jest.fn() } }));
-jest.mock('@/lib/rateLimit', () => ({ RATE_LIMITS: { tier3_status_read: { requests: 60, window: 60 }, tier2_resource_creation: { requests: 10, window: 60 } } }));
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({ createServerSupabaseClient: jest.fn() }));
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({ serverLogger: { info: jest.fn(), error: jest.fn() } }));
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({ RATE_LIMITS: { tier3_status_read: { requests: 60, window: 60 }, tier2_resource_creation: { requests: 10, window: 60 } } }));
 
 describe('GET /api/export-presets', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
@@ -46,7 +46,7 @@ describe('GET /api/export-presets', () => {
     });
   });
 
-  afterEach(() => resetAllMocks());
+  afterEach((): void => resetAllMocks());
 
   it('should return 401 when not authenticated', async () => {
     mockUnauthenticatedUser(mockSupabase);
@@ -81,7 +81,7 @@ describe('GET /api/export-presets', () => {
 describe('POST /api/export-presets', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
@@ -93,7 +93,7 @@ describe('POST /api/export-presets', () => {
     });
   });
 
-  afterEach(() => resetAllMocks());
+  afterEach((): void => resetAllMocks());
 
   it('should return 401 when not authenticated', async () => {
     mockUnauthenticatedUser(mockSupabase);

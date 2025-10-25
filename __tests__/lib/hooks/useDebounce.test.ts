@@ -6,12 +6,12 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useDebounce, useDebouncedCallback } from '@/lib/hooks/useDebounce';
 
 describe('useDebounce', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllTimers();
     jest.useRealTimers();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
   });
 
@@ -339,12 +339,12 @@ describe('useDebounce', () => {
 });
 
 describe('useDebouncedCallback', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllTimers();
     jest.useRealTimers();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
   });
 

@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useSelectionStore } from '@/state/useSelectionStore';
 
 describe('useSelectionStore', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     // Reset store before each test
     const { result } = renderHook(() => useSelectionStore());
     act(() => {

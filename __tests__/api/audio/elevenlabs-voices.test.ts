@@ -12,7 +12,7 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -24,11 +24,11 @@ jest.mock('@/lib/api/withAuth', () => ({
   }),
 }));
 
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     warn: jest.fn(),
@@ -42,7 +42,7 @@ global.fetch = jest.fn();
 describe('GET /api/audio/elevenlabs/voices', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
@@ -75,7 +75,7 @@ describe('GET /api/audio/elevenlabs/voices', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
     delete process.env['ELEVENLABS_API_KEY'];
     jest.restoreAllMocks();

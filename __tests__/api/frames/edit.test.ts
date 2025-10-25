@@ -12,11 +12,11 @@ import {
 } from '@/test-utils/mockSupabase';
 
 // Mock the Supabase module
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
-jest.mock('@google/generative-ai', () => ({
+jest.mock('@google/generative-ai', (): Record<string, unknown> => ({
   GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
     getGenerativeModel: jest.fn().mockReturnValue({
       generateContent: jest.fn(),
@@ -24,7 +24,7 @@ jest.mock('@google/generative-ai', () => ({
   })),
 }));
 
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   checkRateLimit: jest.fn().mockResolvedValue({
     success: true,
     limit: 10,
@@ -36,7 +36,7 @@ jest.mock('@/lib/rateLimit', () => ({
   },
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     error: jest.fn(),
@@ -44,7 +44,7 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
-jest.mock('@/lib/auditLog', () => ({
+jest.mock('@/lib/auditLog', (): Record<string, unknown> => ({
   auditLog: jest.fn().mockResolvedValue(undefined),
   auditSecurityEvent: jest.fn().mockResolvedValue(undefined),
   AuditAction: {
@@ -55,7 +55,7 @@ jest.mock('@/lib/auditLog', () => ({
   },
 }));
 
-jest.mock('uuid', () => ({
+jest.mock('uuid', (): Record<string, unknown> => ({
   v4: jest.fn(() => 'mock-edit-id'),
 }));
 
@@ -79,7 +79,7 @@ describe('POST /api/frames/[frameId]/edit', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   let mockGenerateContent: jest.Mock;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     // IMPORTANT: Re-setup Supabase mock after clearAllMocks
@@ -137,7 +137,7 @@ describe('POST /api/frames/[frameId]/edit', () => {
     process.env['AISTUDIO_API_KEY'] = 'test-api-key';
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
     delete process.env['AISTUDIO_API_KEY'];
     delete process.env['GEMINI_API_KEY'];
@@ -449,7 +449,7 @@ describe('POST /api/frames/[frameId]/edit', () => {
   });
 
   describe('Success Cases - Global Mode', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       mockAuthenticatedUser(mockSupabase);
 
       // Setup mock for frame query (first from('scene_frames'))
@@ -613,7 +613,7 @@ describe('POST /api/frames/[frameId]/edit', () => {
   });
 
   describe('Success Cases - Crop Mode', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       mockAuthenticatedUser(mockSupabase);
     });
 
@@ -750,7 +750,7 @@ describe('POST /api/frames/[frameId]/edit', () => {
   });
 
   describe('Reference Images', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       mockAuthenticatedUser(mockSupabase);
     });
 
@@ -1013,7 +1013,7 @@ describe('POST /api/frames/[frameId]/edit', () => {
   });
 
   describe('Audit Logging', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       mockAuthenticatedUser(mockSupabase);
 
       // Setup mock for frame query

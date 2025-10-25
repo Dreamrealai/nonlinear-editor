@@ -17,13 +17,13 @@ import * as frameUtils from '@/lib/utils/frameUtils';
 
 describe('frameUtils utilities', () => {
   // Clear all mocks and free memory after each test
-  afterEach(() => {
+  afterEach((): void => {
     jest.restoreAllMocks();
     jest.clearAllMocks();
   });
 
   // Clean up global state after all tests
-  afterAll(() => {
+  afterAll((): void => {
     jest.restoreAllMocks();
   });
 

@@ -22,7 +22,7 @@ import {
 import posthog from 'posthog-js';
 
 // Mock PostHog
-jest.mock('posthog-js', () => ({
+jest.mock('posthog-js', (): Record<string, unknown> => ({
   init: jest.fn(),
   capture: jest.fn(),
   identify: jest.fn(),
@@ -43,7 +43,7 @@ describe('AnalyticsService', () => {
   let originalEnv: NodeJS.ProcessEnv;
   let originalWindow: typeof global.window;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Save original environment
     originalEnv = { ...process.env };
     originalWindow = global.window;
@@ -63,7 +63,7 @@ describe('AnalyticsService', () => {
     (analyticsService as never)['initialized'] = false;
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     // Restore original environment
     process.env = originalEnv;
     global.window = originalWindow;
@@ -218,7 +218,7 @@ describe('AnalyticsService', () => {
   });
 
   describe('track', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       process.env.NEXT_PUBLIC_POSTHOG_KEY = 'test-key';
       process.env.NEXT_PUBLIC_POSTHOG_HOST = 'https://test.posthog.com';
       (analyticsService as never)['initialized'] = true;
@@ -276,7 +276,7 @@ describe('AnalyticsService', () => {
   });
 
   describe('identify', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       process.env.NEXT_PUBLIC_POSTHOG_KEY = 'test-key';
       process.env.NEXT_PUBLIC_POSTHOG_HOST = 'https://test.posthog.com';
       (analyticsService as never)['initialized'] = true;
@@ -321,7 +321,7 @@ describe('AnalyticsService', () => {
   });
 
   describe('reset', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       process.env.NEXT_PUBLIC_POSTHOG_KEY = 'test-key';
       process.env.NEXT_PUBLIC_POSTHOG_HOST = 'https://test.posthog.com';
       (analyticsService as never)['initialized'] = true;
@@ -348,7 +348,7 @@ describe('AnalyticsService', () => {
   });
 
   describe('trackPageView', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       process.env.NEXT_PUBLIC_POSTHOG_KEY = 'test-key';
       process.env.NEXT_PUBLIC_POSTHOG_HOST = 'https://test.posthog.com';
       (analyticsService as never)['initialized'] = true;
@@ -412,7 +412,7 @@ describe('AnalyticsService', () => {
   });
 
   describe('setUserProperties', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       process.env.NEXT_PUBLIC_POSTHOG_KEY = 'test-key';
       process.env.NEXT_PUBLIC_POSTHOG_HOST = 'https://test.posthog.com';
       (analyticsService as never)['initialized'] = true;
@@ -445,7 +445,7 @@ describe('AnalyticsService', () => {
   });
 
   describe('isFeatureEnabled', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       process.env.NEXT_PUBLIC_POSTHOG_KEY = 'test-key';
       process.env.NEXT_PUBLIC_POSTHOG_HOST = 'https://test.posthog.com';
       (analyticsService as never)['initialized'] = true;
@@ -499,7 +499,7 @@ describe('AnalyticsService', () => {
   });
 
   describe('getFeatureFlag', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       process.env.NEXT_PUBLIC_POSTHOG_KEY = 'test-key';
       process.env.NEXT_PUBLIC_POSTHOG_HOST = 'https://test.posthog.com';
       (analyticsService as never)['initialized'] = true;
@@ -542,7 +542,7 @@ describe('AnalyticsService', () => {
   });
 
   describe('Session recording', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       process.env.NEXT_PUBLIC_POSTHOG_KEY = 'test-key';
       process.env.NEXT_PUBLIC_POSTHOG_HOST = 'https://test.posthog.com';
       (analyticsService as never)['initialized'] = true;
@@ -577,7 +577,7 @@ describe('AnalyticsService', () => {
   });
 
   describe('Privacy controls', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       process.env.NEXT_PUBLIC_POSTHOG_KEY = 'test-key';
       process.env.NEXT_PUBLIC_POSTHOG_HOST = 'https://test.posthog.com';
       (analyticsService as never)['initialized'] = true;

@@ -12,7 +12,7 @@ import { UserOnboarding } from '@/components/UserOnboarding';
 import { analyticsService, AnalyticsEvents } from '@/lib/services/analyticsService';
 
 // Mock analytics service
-jest.mock('@/lib/services/analyticsService', () => ({
+jest.mock('@/lib/services/analyticsService', (): Record<string, unknown> => ({
   analyticsService: {
     track: jest.fn(),
   },
@@ -51,13 +51,13 @@ Object.defineProperty(window, 'localStorage', {
 jest.useFakeTimers();
 
 describe('UserOnboarding', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     // Clear mocks and localStorage before each test
     jest.clearAllMocks();
     localStorageMock.clear();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllTimers();
   });
 

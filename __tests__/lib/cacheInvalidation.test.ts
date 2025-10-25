@@ -30,7 +30,7 @@ import { cache, CacheKeys } from '@/lib/cache';
 import { serverLogger } from '@/lib/serverLogger';
 
 // Mock dependencies
-jest.mock('@/lib/cache', () => ({
+jest.mock('@/lib/cache', (): Record<string, unknown> => ({
   cache: {
     del: jest.fn(),
     delPattern: jest.fn(),
@@ -50,7 +50,7 @@ jest.mock('@/lib/cache', () => ({
   },
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -63,7 +63,7 @@ describe('CacheInvalidation', () => {
   let mockCache: jest.Mocked<typeof cache>;
   let mockLogger: jest.Mocked<typeof serverLogger>;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     mockCache = cache as jest.Mocked<typeof cache>;
     mockLogger = serverLogger as jest.Mocked<typeof serverLogger>;
     jest.clearAllMocks();

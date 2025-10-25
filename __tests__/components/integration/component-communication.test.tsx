@@ -23,7 +23,7 @@ import { useEditorStore } from '@/state/useEditorStore';
 import { usePlaybackStore } from '@/state/usePlaybackStore';
 
 describe('Integration: Component Communication Patterns', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     // Reset stores
     useEditorStore.getState().reset();
     usePlaybackStore.getState().reset();

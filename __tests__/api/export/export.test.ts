@@ -11,7 +11,7 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -39,11 +39,11 @@ jest.mock('@/lib/api/withAuth', () => ({
 }));
 
 
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     warn: jest.fn(),
@@ -59,14 +59,14 @@ jest.mock('@/lib/api/response', () => {
   };
 });
 
-jest.mock('@/lib/api/project-verification', () => ({
+jest.mock('@/lib/api/project-verification', (): Record<string, unknown> => ({
   verifyProjectOwnership: jest.fn(),
 }));
 
 describe('POST /api/export', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Clear all mock calls BEFORE setting up new mocks
     jest.clearAllMocks();
 
@@ -81,7 +81,7 @@ describe('POST /api/export', () => {
     process.env['VIDEO_EXPORT_ENABLED'] = 'true';
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
     delete process.env['VIDEO_EXPORT_ENABLED'];
   });
@@ -1317,7 +1317,7 @@ describe('POST /api/export', () => {
 describe('GET /api/export', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Clear all mock calls BEFORE setting up new mocks
     jest.clearAllMocks();
 
@@ -1327,7 +1327,7 @@ describe('GET /api/export', () => {
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
   });
 

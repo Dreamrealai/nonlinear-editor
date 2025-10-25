@@ -13,7 +13,7 @@ describe('TimelineContextMenu', () => {
     onClose: jest.fn(),
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

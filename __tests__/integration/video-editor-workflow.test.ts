@@ -38,7 +38,7 @@ import {
 import { cache } from '@/lib/cache';
 
 // Mock error tracking
-jest.mock('@/lib/errorTracking', () => ({
+jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
   trackError: jest.fn(),
   ErrorCategory: {
     DATABASE: 'database',
@@ -51,7 +51,7 @@ jest.mock('@/lib/errorTracking', () => ({
 }));
 
 // Mock cache invalidation
-jest.mock('@/lib/cacheInvalidation', () => ({
+jest.mock('@/lib/cacheInvalidation', (): Record<string, unknown> => ({
   invalidateProjectCache: jest.fn(),
   invalidateUserProjects: jest.fn(),
 }));
@@ -62,7 +62,7 @@ describe('Integration: Video Editor Workflow', () => {
   let assetService: AssetService;
   let workflow: IntegrationWorkflow;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     env = createTestEnvironment('proTierUser');
     projectService = new ProjectService(env.mockSupabase as unknown as SupabaseClient);
@@ -70,7 +70,7 @@ describe('Integration: Video Editor Workflow', () => {
     workflow = new IntegrationWorkflow(env.mockSupabase);
   });
 
-  afterEach(async () => {
+  afterEach(async (): Promise<void> => {
     resetAllMocks(env.mockSupabase);
     cleanupTestData(env.mockSupabase);
     await cache.clear();

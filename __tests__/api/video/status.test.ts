@@ -9,10 +9,10 @@ import {
   mockAuthenticatedUser,
   mockUnauthenticatedUser,
   resetAllMocks,
-} from '@/__tests__/helpers/apiMocks';
+} from '@/test-utils';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -26,7 +26,7 @@ jest.mock('@/lib/api/withAuth', () => ({
 
 // Mock modules
 jest.mock('@/lib/supabase', () => {
-  const { createMockSupabaseClient } = jest.requireActual('@/__tests__/helpers/apiMocks');
+  const { createMockSupabaseClient } = jest.requireActual('@/test-utils');
   const mockClient = createMockSupabaseClient();
 
   return {
@@ -37,15 +37,15 @@ jest.mock('@/lib/supabase', () => {
   };
 });
 
-jest.mock('@/lib/veo', () => ({
+jest.mock('@/lib/veo', (): Record<string, unknown> => ({
   checkOperationStatus: jest.fn(),
 }));
 
-jest.mock('@/lib/fal-video', () => ({
+jest.mock('@/lib/fal-video', (): Record<string, unknown> => ({
   checkFalVideoStatus: jest.fn(),
 }));
 
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   checkRateLimit: jest.fn().mockResolvedValue({
     success: true,
     limit: 30,
@@ -77,7 +77,7 @@ jest.mock('@/lib/api/response', () => {
   };
 });
 
-jest.mock('uuid', () => ({
+jest.mock('uuid', (): Record<string, unknown> => ({
   v4: jest.fn(() => 'mock-uuid'),
 }));
 
@@ -92,7 +92,7 @@ describe('GET /api/video/status', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   let mockRequest: NextRequest;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     // IMPORTANT: Re-setup Supabase mock after clearAllMocks
@@ -146,7 +146,7 @@ describe('GET /api/video/status', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
   });
 

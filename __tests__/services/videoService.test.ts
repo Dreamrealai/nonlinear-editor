@@ -8,7 +8,7 @@ import * as veo from '@/lib/veo';
 import * as falVideo from '@/lib/fal-video';
 
 // Mock external modules
-jest.mock('@/lib/errorTracking', () => ({
+jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
   trackError: jest.fn(),
   ErrorCategory: {
     EXTERNAL_SERVICE: 'external_service',
@@ -20,24 +20,24 @@ jest.mock('@/lib/errorTracking', () => ({
   },
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     error: jest.fn(),
   },
 }));
 
-jest.mock('@/lib/veo', () => ({
+jest.mock('@/lib/veo', (): Record<string, unknown> => ({
   generateVideo: jest.fn(),
   checkOperationStatus: jest.fn(),
 }));
 
-jest.mock('@/lib/fal-video', () => ({
+jest.mock('@/lib/fal-video', (): Record<string, unknown> => ({
   generateFalVideo: jest.fn(),
   checkFalVideoStatus: jest.fn(),
 }));
 
-jest.mock('uuid', () => ({
+jest.mock('uuid', (): Record<string, unknown> => ({
   v4: () => 'test-uuid-1234',
 }));
 
@@ -45,7 +45,7 @@ describe('VideoService', () => {
   let mockSupabase: jest.Mocked<SupabaseClient>;
   let videoService: VideoService;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Create mock Supabase client
     mockSupabase = {
       from: jest.fn().mockReturnThis(),

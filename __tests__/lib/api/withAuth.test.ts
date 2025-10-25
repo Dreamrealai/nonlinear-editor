@@ -30,7 +30,7 @@ describe('withAuth Middleware', () => {
   let mockSupabase: any;
   let mockRequest: NextRequest;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     // Mock Supabase client
@@ -329,7 +329,7 @@ describe('withAdminAuth Middleware', () => {
   let mockSupabase: any;
   let mockRequest: NextRequest;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockSupabase = {
@@ -444,7 +444,7 @@ describe('withAdminAuth Middleware', () => {
 describe('logAdminAction', () => {
   let mockSupabase: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockSupabase = {

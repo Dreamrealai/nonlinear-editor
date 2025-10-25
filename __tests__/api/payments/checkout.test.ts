@@ -22,12 +22,12 @@ import {
 import { handleStripeCheckout } from '@/app/api/stripe/checkout/route';
 
 // Mock external services only
-jest.mock('@/lib/stripe', () => ({
+jest.mock('@/lib/stripe', (): Record<string, unknown> => ({
   createCheckoutSession: jest.fn(),
   getOrCreateStripeCustomer: jest.fn(),
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -37,7 +37,7 @@ jest.mock('@/lib/serverLogger', () => ({
 }));
 
 // Mock rate limiting - always allow requests to pass
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   checkRateLimit: jest.fn().mockResolvedValue({
     success: true,
     limit: 5,
@@ -52,13 +52,13 @@ jest.mock('@/lib/rateLimit', () => ({
 describe('POST /api/stripe/checkout - Integration Tests', () => {
   const { createCheckoutSession, getOrCreateStripeCustomer } = require('@/lib/stripe');
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     process.env.STRIPE_PREMIUM_PRICE_ID = 'price_test_premium';
     process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3000';
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     delete process.env.STRIPE_PREMIUM_PRICE_ID;
     delete process.env.NEXT_PUBLIC_BASE_URL;
   });

@@ -3,7 +3,7 @@
  */
 
 // Mock external modules BEFORE imports
-jest.mock('@/lib/errorTracking', () => ({
+jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
   trackError: jest.fn(),
   ErrorCategory: {
     DATABASE: 'database',
@@ -35,7 +35,7 @@ describe('ProjectService', () => {
   let mockSupabase: jest.Mocked<SupabaseClient>;
   let projectService: ProjectService;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Create mock Supabase client
     mockSupabase = {
       from: jest.fn().mockReturnThis(),
@@ -51,7 +51,7 @@ describe('ProjectService', () => {
     projectService = new ProjectService(mockSupabase);
   });
 
-  afterEach(async () => {
+  afterEach(async (): Promise<void> => {
     jest.clearAllMocks();
     await cache.clear();
   });

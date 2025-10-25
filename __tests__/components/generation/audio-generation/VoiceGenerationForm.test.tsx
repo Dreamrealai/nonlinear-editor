@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 import { VoiceGenerationForm } from '@/components/generation/audio-generation/VoiceGenerationForm';
 
 // Mock VoiceSelector component
-jest.mock('@/components/generation/audio-generation/VoiceSelector', () => ({
+jest.mock('@/components/generation/audio-generation/VoiceSelector', (): Record<string, unknown> => ({
   VoiceSelector: ({
     voices,
     selectedVoice,
@@ -61,7 +61,7 @@ describe('VoiceGenerationForm', () => {
     onSubmit: mockOnSubmit,
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

@@ -15,13 +15,13 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock modules
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
   createServiceSupabaseClient: jest.fn(),
 }));
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -49,7 +49,7 @@ jest.mock('@/lib/api/withAuth', () => ({
 }));
 
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -66,7 +66,7 @@ jest.mock('@/lib/api/response', () => {
   };
 });
 
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   checkRateLimit: jest.fn().mockResolvedValue({
     success: true,
     limit: 5,
@@ -83,7 +83,7 @@ describe('DELETE /api/user/delete-account', () => {
   let mockAdminClient: ReturnType<typeof createMockSupabaseClient>;
   let mockRequest: NextRequest;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockSupabase = createMockSupabaseClient();
@@ -121,7 +121,7 @@ describe('DELETE /api/user/delete-account', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
     jest.clearAllMocks();
   });

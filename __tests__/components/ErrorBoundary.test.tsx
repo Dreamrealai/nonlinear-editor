@@ -11,7 +11,7 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
 };
 
 // Mock browserLogger
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     error: jest.fn(),
   },
@@ -20,20 +20,20 @@ jest.mock('@/lib/browserLogger', () => ({
 describe('ErrorBoundary', () => {
   // Suppress console.error for these tests
   const originalError = console.error;
-  beforeAll(() => {
+  beforeAll((): void => {
     console.error = jest.fn();
   });
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.restoreAllMocks();
     jest.clearAllMocks();
   });
 
-  afterAll(() => {
+  afterAll((): void => {
     console.error = originalError;
     jest.restoreAllMocks();
   });

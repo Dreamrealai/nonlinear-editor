@@ -18,7 +18,7 @@ import { NextRequest } from 'next/server';
  * - 2-param: handler(request, authContext) - for static routes
  * - 3-param: handler(request, authContext, routeContext) - for dynamic routes
  */
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: (handler: any) => async (req: any, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -48,20 +48,20 @@ jest.mock('@/lib/api/withAuth', () => ({
 /**
  * Mock Supabase - will be configured in beforeEach
  */
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
 /**
  * Mock serverLogger - inline definition
  */
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     error: jest.fn(),
     warn: jest.fn(),
     debug: jest.fn(),
-    child: jest.fn(() => ({
+    child: jest.fn((): Record<string, unknown> => ({
       info: jest.fn(),
       error: jest.fn(),
       warn: jest.fn(),
@@ -73,7 +73,7 @@ jest.mock('@/lib/serverLogger', () => ({
 /**
  * Mock rate limiting
  */
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   RATE_LIMITS: {
     tier3_status_read: { requests: 60, window: 60 },
     tier2_resource_creation: { requests: 10, window: 60 },
@@ -83,7 +83,7 @@ jest.mock('@/lib/rateLimit', () => ({
 /**
  * Mock audit log
  */
-jest.mock('@/lib/auditLog', () => ({
+jest.mock('@/lib/auditLog', (): Record<string, unknown> => ({
   auditSecurityEvent: jest.fn().mockResolvedValue(undefined),
   auditRateLimitViolation: jest.fn().mockResolvedValue(undefined),
   AuditAction: { SECURITY_UNAUTHORIZED_ACCESS: 'security.unauthorized_access' },
@@ -92,7 +92,7 @@ jest.mock('@/lib/auditLog', () => ({
 /**
  * Mock BackupService (example)
  */
-jest.mock('@/lib/services/backupService', () => ({
+jest.mock('@/lib/services/backupService', (): Record<string, unknown> => ({
   BackupService: jest.fn().mockImplementation(() => ({
     listBackups: jest.fn().mockResolvedValue([
       {
@@ -112,7 +112,7 @@ import { GET } from '@/app/api/projects/[projectId]/backups/route';
 describe('EXAMPLE: withAuth Mock Pattern', () => {
   const validProjectId = '123e4567-e89b-12d3-a456-426614174000';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     // Configure Supabase mock (created in jest.mock above)
@@ -141,7 +141,7 @@ describe('EXAMPLE: withAuth Mock Pattern', () => {
   });
 
   describe('Authenticated requests', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       // Reconfigure mock for authenticated user
       const { createServerSupabaseClient } = require('@/lib/supabase');
       createServerSupabaseClient.mockResolvedValue({

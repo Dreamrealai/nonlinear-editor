@@ -9,7 +9,7 @@ describe('Navigation', () => {
     let originalWindow: typeof global.window;
     let originalLocation: Location;
 
-    beforeEach(() => {
+    beforeEach((): void => {
       originalWindow = global.window;
       originalLocation = window.location;
 
@@ -18,7 +18,7 @@ describe('Navigation', () => {
       window.location = { href: '' } as Location;
     });
 
-    afterEach(() => {
+    afterEach((): void => {
       window.location = originalLocation;
       global.window = originalWindow;
     });

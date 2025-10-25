@@ -10,13 +10,13 @@ import { RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateEnum, validateUUID, ValidationError } from '@/lib/validation';
 import { validationError } from '@/lib/api/response';
-import type { ShareProjectRequest } from '@/types/collaboration';
+import type { ShareProjectRequest, ProjectInvite } from '@/types/collaboration';
 
 /**
  * GET - List all invites for a project
  */
 export const GET = withAuth<{ projectId: string }>(
-  async (_req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ invites: any[]; }>> => {
+  async (_req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ invites: ProjectInvite[]; }>> => {
     const params = await routeContext?.params;
     const projectId = params?.projectId;
 
@@ -68,7 +68,7 @@ export const GET = withAuth<{ projectId: string }>(
  * POST - Create a new invite
  */
 export const POST = withAuth<{ projectId: string }>(
-  async (req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ invite: any; message: string; }>> => {
+  async (req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ invite: ProjectInvite; message: string; }>> => {
     const params = await routeContext?.params;
     const projectId = params?.projectId;
 

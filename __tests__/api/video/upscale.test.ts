@@ -13,7 +13,7 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -36,7 +36,7 @@ jest.mock('@/lib/supabase', () => {
   };
 });
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     warn: jest.fn(),
@@ -44,11 +44,11 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
-jest.mock('@/lib/fetchWithTimeout', () => ({
+jest.mock('@/lib/fetchWithTimeout', (): Record<string, unknown> => ({
   fetchWithTimeout: jest.fn(),
 }));
 
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   checkRateLimit: jest.fn(),
   RATE_LIMITS: {
     tier2_resource_creation: { requests: 10, window: 60000 },
@@ -64,7 +64,7 @@ jest.mock('@/lib/api/response', () => {
   };
 });
 
-jest.mock('@/lib/api/project-verification', () => ({
+jest.mock('@/lib/api/project-verification', (): Record<string, unknown> => ({
   verifyAssetOwnership: jest.fn(),
 }));
 
@@ -75,7 +75,7 @@ const { fetchWithTimeout } = require('@/lib/fetchWithTimeout');
 describe('POST /api/video/upscale', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     // IMPORTANT: Re-setup Supabase mock after clearAllMocks
@@ -101,7 +101,7 @@ describe('POST /api/video/upscale', () => {
     process.env['FAL_API_KEY'] = 'test-fal-key';
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
     delete process.env['FAL_API_KEY'];
   });

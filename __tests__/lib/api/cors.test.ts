@@ -11,13 +11,13 @@ import { corsMiddleware, withCORS, CORSPresets, type CORSOptions } from '@/lib/a
 const originalEnv = process.env;
 
 describe('corsMiddleware', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.resetModules();
     process.env = { ...originalEnv };
     process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3000';
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     process.env = originalEnv;
   });
 
@@ -318,7 +318,7 @@ describe('corsMiddleware', () => {
 });
 
 describe('withCORS Higher-Order Function', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3000';
   });
 
@@ -448,7 +448,7 @@ describe('CORSPresets', () => {
 });
 
 describe('Edge Cases', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3000';
   });
 

@@ -12,12 +12,12 @@ import {
 } from '@/test-utils/mockSupabase';
 
 // Mock the Supabase module
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     warn: jest.fn(),
@@ -26,7 +26,7 @@ jest.mock('@/lib/serverLogger', () => ({
 }));
 
 // Mock validation
-jest.mock('@/lib/validation', () => ({
+jest.mock('@/lib/validation', (): Record<string, unknown> => ({
   validateUUID: jest.fn((id: string, field: string) => {
     if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
       const error = new Error(`${field} must be a valid UUID`);
@@ -47,14 +47,14 @@ describe('DELETE /api/projects/[projectId]', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   const validProjectId = '550e8400-e29b-41d4-a716-446655440000';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
   });
 

@@ -12,10 +12,10 @@ import { browserLogger } from '@/lib/browserLogger';
 jest.mock('react-hot-toast');
 jest.mock('@/lib/supabase');
 jest.mock('@/lib/browserLogger');
-jest.mock('uuid', () => ({
+jest.mock('uuid', (): Record<string, unknown> => ({
   v4: jest.fn(() => 'mock-uuid'),
 }));
-jest.mock('@/lib/hooks/useAssetThumbnails', () => ({
+jest.mock('@/lib/hooks/useAssetThumbnails', (): Record<string, unknown> => ({
   createImageThumbnail: jest.fn(),
   createVideoThumbnail: jest.fn(),
 }));
@@ -33,7 +33,7 @@ describe('useAssetUpload', () => {
 
   let mockSupabase: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockToast.success = jest.fn();
@@ -80,7 +80,7 @@ describe('useAssetUpload', () => {
     createVideoThumbnail.mockResolvedValue('video-thumbnail-data-url');
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
   });
 

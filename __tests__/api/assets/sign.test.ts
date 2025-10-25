@@ -13,7 +13,7 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -26,12 +26,12 @@ jest.mock('@/lib/api/withAuth', () => ({
 }));
 
 // Mock modules
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
   ensureHttpsProtocol: jest.fn((url) => url),
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     error: jest.fn(),
@@ -53,7 +53,7 @@ describe('GET /api/assets/sign', () => {
   let mockRequest: NextRequest;
   const VALID_ASSET_ID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
@@ -67,7 +67,7 @@ describe('GET /api/assets/sign', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
   });
 

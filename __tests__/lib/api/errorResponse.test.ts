@@ -14,7 +14,7 @@ import {
 import { serverLogger } from '@/lib/serverLogger';
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     error: jest.fn(),
     warn: jest.fn(),
@@ -24,7 +24,7 @@ jest.mock('@/lib/serverLogger', () => ({
 }));
 
 describe('errorResponse', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 
@@ -128,7 +128,7 @@ describe('errorResponse', () => {
 });
 
 describe('ErrorResponses Presets', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

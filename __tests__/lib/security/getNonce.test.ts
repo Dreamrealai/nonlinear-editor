@@ -9,14 +9,14 @@ import { CSP_NONCE_HEADER } from '@/lib/security/csp';
 import { headers } from 'next/headers';
 
 // Mock next/headers
-jest.mock('next/headers', () => ({
+jest.mock('next/headers', (): Record<string, unknown> => ({
   headers: jest.fn(),
 }));
 
 const mockHeaders = headers as jest.MockedFunction<typeof headers>;
 
 describe('getNonce', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

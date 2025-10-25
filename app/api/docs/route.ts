@@ -21,7 +21,7 @@ export const dynamic = 'force-dynamic';
  * Returns the OpenAPI specification in JSON or YAML format.
  * Add ?format=yaml query parameter to get YAML format.
  */
-export const GET = withErrorHandling(async (request: NextRequest): Promise<NextResponse<any>> => {
+export const GET = withErrorHandling(async (request: NextRequest): Promise<NextResponse<unknown>> => {
   const { searchParams } = new URL(request.url);
   const format = searchParams.get('format') || 'json';
 

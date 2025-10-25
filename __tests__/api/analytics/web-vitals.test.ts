@@ -6,7 +6,7 @@ import { NextRequest } from 'next/server';
 import { POST, GET } from '@/app/api/analytics/web-vitals/route';
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -19,7 +19,7 @@ describe('POST /api/analytics/web-vitals', () => {
   let mockRequest: NextRequest;
   const { serverLogger } = require('@/lib/serverLogger');
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

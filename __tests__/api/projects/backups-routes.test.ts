@@ -18,7 +18,7 @@ import {
  * - 2-param: handler(request, authContext) - for routes without params
  * - 3-param: handler(request, authContext, routeContext) - for routes with params like [projectId]
  */
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: (handler: any) => async (req: any, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -50,16 +50,16 @@ jest.mock('@/lib/api/withAuth', () => ({
  * However, jest.fn() returns a mock that CAN be configured later in beforeEach.
  * This is why we use jest.fn() here and then configure it with mockResolvedValue in beforeEach.
  */
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(), // This jest.fn() will be configured in beforeEach
 }));
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     error: jest.fn(),
     warn: jest.fn(),
     debug: jest.fn(),
-    child: jest.fn(() => ({
+    child: jest.fn((): Record<string, unknown> => ({
       info: jest.fn(),
       error: jest.fn(),
       warn: jest.fn(),
@@ -67,18 +67,18 @@ jest.mock('@/lib/serverLogger', () => ({
     })),
   },
 }));
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   RATE_LIMITS: {
     tier3_status_read: { requests: 60, window: 60 },
     tier2_resource_creation: { requests: 10, window: 60 },
   },
 }));
-jest.mock('@/lib/auditLog', () => ({
+jest.mock('@/lib/auditLog', (): Record<string, unknown> => ({
   auditSecurityEvent: jest.fn().mockResolvedValue(undefined),
   auditRateLimitViolation: jest.fn().mockResolvedValue(undefined),
   AuditAction: { SECURITY_UNAUTHORIZED_ACCESS: 'security.unauthorized_access' },
 }));
-jest.mock('@/lib/services/backupService', () => ({
+jest.mock('@/lib/services/backupService', (): Record<string, unknown> => ({
   BackupService: jest.fn().mockImplementation(() => ({
     listBackups: jest.fn().mockResolvedValue([
       {
@@ -103,14 +103,14 @@ const validBackupId = '456e7890-e89b-12d3-a456-426614174000';
 describe('GET /api/projects/[projectId]/backups', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => resetAllMocks());
+  afterEach((): void => resetAllMocks());
 
   it('should return 401 when not authenticated', async () => {
     mockUnauthenticatedUser(mockSupabase);
@@ -159,14 +159,14 @@ describe('GET /api/projects/[projectId]/backups', () => {
 describe('POST /api/projects/[projectId]/backups', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => resetAllMocks());
+  afterEach((): void => resetAllMocks());
 
   it('should return 401 when not authenticated', async () => {
     mockUnauthenticatedUser(mockSupabase);
@@ -210,14 +210,14 @@ describe('POST /api/projects/[projectId]/backups', () => {
 describe('POST /api/projects/[projectId]/backups/[backupId]/restore', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => resetAllMocks());
+  afterEach((): void => resetAllMocks());
 
   it('should return 401 when not authenticated', async () => {
     mockUnauthenticatedUser(mockSupabase);

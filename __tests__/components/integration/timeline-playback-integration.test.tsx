@@ -23,7 +23,7 @@ import { usePlaybackStore } from '@/state/usePlaybackStore';
 import { useEditorStore } from '@/state/useEditorStore';
 
 // Mock Next.js Image
-jest.mock('next/image', () => ({
+jest.mock('next/image', (): Record<string, unknown> => ({
   __esModule: true,
   default: function MockImage({ src, alt, ...props }: any): JSX.Element {
     // eslint-disable-next-line @next/next/no-img-element
@@ -96,7 +96,7 @@ const PlaybackIntegrationWrapper = (): JSX.Element => {
 };
 
 describe('Integration: Timeline and Playback Controls', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     // Reset stores before each test - wrap in act to avoid act() warnings
     act(() => {
       usePlaybackStore.getState().reset();
@@ -136,7 +136,7 @@ describe('Integration: Timeline and Playback Controls', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
   });
 

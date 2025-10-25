@@ -6,7 +6,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { usePolling, useSimplePolling } from '@/lib/hooks/usePolling';
 
 // Mock the browser logger
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     info: jest.fn(),
     warn: jest.fn(),
@@ -16,12 +16,12 @@ jest.mock('@/lib/browserLogger', () => ({
 }));
 
 describe('usePolling', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllTimers();
     jest.useRealTimers();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
     jest.clearAllTimers();
   });
@@ -611,12 +611,12 @@ describe('usePolling', () => {
 });
 
 describe('useSimplePolling', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllTimers();
     jest.useRealTimers();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
     jest.clearAllTimers();
   });

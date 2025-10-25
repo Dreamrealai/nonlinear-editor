@@ -7,7 +7,7 @@ import { DragDropZone } from '@/components/ui/DragDropZone';
 describe('DragDropZone', () => {
   const mockOnFilesSelected = jest.fn();
 
-  beforeEach(() => {
+  beforeEach((): void => {
     mockOnFilesSelected.mockClear();
   });
 

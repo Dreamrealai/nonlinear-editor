@@ -11,7 +11,7 @@ describe('SectionTabs', () => {
     onSectionChange: jest.fn(),
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

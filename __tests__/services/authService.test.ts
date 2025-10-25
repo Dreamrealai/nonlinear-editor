@@ -17,7 +17,7 @@ import { cache, CacheKeys, CacheTTL } from '@/lib/cache';
 import { invalidateUserCache, invalidateUserProfile } from '@/lib/cacheInvalidation';
 
 // Mock external modules
-jest.mock('@/lib/errorTracking', () => ({
+jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
   trackError: jest.fn(),
   ErrorCategory: {
     AUTH: 'auth',
@@ -31,7 +31,7 @@ jest.mock('@/lib/errorTracking', () => ({
   },
 }));
 
-jest.mock('@/lib/cache', () => ({
+jest.mock('@/lib/cache', (): Record<string, unknown> => ({
   cache: {
     get: jest.fn(),
     set: jest.fn(),
@@ -52,7 +52,7 @@ jest.mock('@/lib/cache', () => ({
   },
 }));
 
-jest.mock('@/lib/cacheInvalidation', () => ({
+jest.mock('@/lib/cacheInvalidation', (): Record<string, unknown> => ({
   invalidateUserCache: jest.fn(),
   invalidateUserProfile: jest.fn(),
 }));
@@ -78,7 +78,7 @@ describe('AuthService', () => {
     subscription_status: null,
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Create mock Supabase client
     mockSupabase = {
       auth: {

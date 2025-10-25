@@ -17,7 +17,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { DEFAULT_KEYBOARD_SHORTCUTS, KeyboardShortcutConfig } from '@/types/userPreferences';
 
 // Mock browser logger
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     error: jest.fn(),
     info: jest.fn(),
@@ -31,7 +31,7 @@ describe('UserPreferencesService', () => {
 
   const mockUserId = '550e8400-e29b-41d4-a716-446655440000';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Create mock Supabase client
     mockSupabase = {
       from: jest.fn().mockReturnThis(),

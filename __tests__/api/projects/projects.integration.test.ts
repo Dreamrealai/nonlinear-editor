@@ -28,7 +28,7 @@ import {
 } from '@/test-utils/testWithAuth';
 
 // Mock external services only
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -38,12 +38,12 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
-jest.mock('@/lib/cacheInvalidation', () => ({
+jest.mock('@/lib/cacheInvalidation', (): Record<string, unknown> => ({
   invalidateUserProjects: jest.fn().mockResolvedValue(undefined),
 }));
 
 // Mock Supabase to use test implementation
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
@@ -51,7 +51,7 @@ describe('POST /api/projects - Integration Tests', () => {
   const { serverLogger } = require('@/lib/serverLogger');
   const { createServerSupabaseClient } = require('@/lib/supabase');
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     clearTestDatabase();
 
@@ -63,7 +63,7 @@ describe('POST /api/projects - Integration Tests', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     clearTestDatabase();
   });
 

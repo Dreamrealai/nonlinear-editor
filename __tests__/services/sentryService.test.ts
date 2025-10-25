@@ -24,7 +24,7 @@ import {
 import * as Sentry from '@sentry/nextjs';
 
 // Mock Sentry SDK
-jest.mock('@sentry/nextjs', () => ({
+jest.mock('@sentry/nextjs', (): Record<string, unknown> => ({
   captureException: jest.fn(),
   captureMessage: jest.fn(),
   addBreadcrumb: jest.fn(),
@@ -53,11 +53,11 @@ async function getModules() {
 describe('SentryService', () => {
   let originalEnv: string | undefined;
 
-  beforeAll(() => {
+  beforeAll((): void => {
     originalEnv = process.env.NEXT_PUBLIC_SENTRY_DSN;
   });
 
-  afterAll(() => {
+  afterAll((): void => {
     if (originalEnv) {
       process.env.NEXT_PUBLIC_SENTRY_DSN = originalEnv;
     } else {
@@ -65,7 +65,7 @@ describe('SentryService', () => {
     }
   });
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     process.env.NEXT_PUBLIC_SENTRY_DSN = 'https://example@sentry.io/123456';
   });

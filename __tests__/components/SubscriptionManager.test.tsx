@@ -14,18 +14,18 @@ const mockSupabaseClient = {
   from: jest.fn(),
 };
 
-jest.mock('@/lib/navigation', () => ({
+jest.mock('@/lib/navigation', (): Record<string, unknown> => ({
   redirectToUrl: jest.fn(),
 }));
 
-jest.mock('@/components/providers/SupabaseProvider', () => ({
-  useSupabase: () => ({
+jest.mock('@/components/providers/SupabaseProvider', (): Record<string, unknown> => ({
+  useSupabase: (): Record<string, unknown> => ({
     supabaseClient: mockSupabaseClient,
   }),
 }));
 
 // Mock react-hot-toast
-jest.mock('react-hot-toast', () => ({
+jest.mock('react-hot-toast', (): Record<string, unknown> => ({
   __esModule: true,
   default: {
     error: jest.fn(),
@@ -81,7 +81,7 @@ const mockAdminProfile: UserProfile = {
 };
 
 describe('SubscriptionManager', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockReset();
     (redirectToUrl as jest.Mock).mockClear();

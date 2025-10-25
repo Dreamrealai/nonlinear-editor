@@ -14,21 +14,21 @@ const mockChannel = {
 
 const mockSupabaseClient = createMockSupabaseClient();
 
-jest.mock('@/components/providers/SupabaseProvider', () => ({
-  useSupabase: () => ({
+jest.mock('@/components/providers/SupabaseProvider', (): Record<string, unknown> => ({
+  useSupabase: (): Record<string, unknown> => ({
     supabaseClient: mockSupabaseClient,
   }),
 }));
 
 // Mock browserLogger
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     error: jest.fn(),
   },
 }));
 
 // Mock Next.js Image component
-jest.mock('next/image', () => ({
+jest.mock('next/image', (): Record<string, unknown> => ({
   __esModule: true,
   default: (props: any) => {
     // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
@@ -75,7 +75,7 @@ describe('ChatBox', () => {
     URL as unknown as { revokeObjectURL?: typeof URL.revokeObjectURL }
   ).revokeObjectURL;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
@@ -154,13 +154,13 @@ describe('ChatBox', () => {
     );
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     mockCreateObjectURL.mockClear();
     mockRevokeObjectURL.mockClear();
     scrollIntoViewMock.mockClear();
   });
 
-  afterAll(() => {
+  afterAll((): void => {
     Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
       configurable: true,
       value: originalScrollIntoView,

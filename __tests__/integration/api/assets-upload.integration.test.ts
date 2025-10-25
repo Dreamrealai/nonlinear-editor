@@ -24,7 +24,7 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth - simple inline version (avoids timeout issues)
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: (handler: any) => async (req: any, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -36,12 +36,12 @@ jest.mock('@/lib/api/withAuth', () => ({
   },
 }));
 
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
   ensureHttpsProtocol: jest.fn((url) => url),
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -58,11 +58,11 @@ jest.mock('@/lib/api/response', () => {
   };
 });
 
-jest.mock('crypto', () => ({
+jest.mock('crypto', (): Record<string, unknown> => ({
   randomUUID: jest.fn(() => 'mock-uuid-123'),
 }));
 
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   checkRateLimit: jest.fn().mockResolvedValue({
     success: true,
     limit: 10,
@@ -74,7 +74,7 @@ jest.mock('@/lib/rateLimit', () => ({
   },
 }));
 
-jest.mock('@/lib/api/project-verification', () => ({
+jest.mock('@/lib/api/project-verification', (): Record<string, unknown> => ({
   verifyProjectOwnership: jest.fn(),
 }));
 
@@ -82,7 +82,7 @@ describe('POST /api/assets/upload - Integration Test', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   let mockRequest: NextRequest;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
@@ -102,7 +102,7 @@ describe('POST /api/assets/upload - Integration Test', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
   });
 

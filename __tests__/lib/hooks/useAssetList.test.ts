@@ -44,7 +44,7 @@ describe('useAssetList', () => {
     },
   ];
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockSupabase = {

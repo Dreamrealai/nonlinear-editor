@@ -5,7 +5,7 @@ import {
   checkRateLimitSync,
 } from '@/lib/rateLimit';
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     error: jest.fn(),
     warn: jest.fn(),
@@ -13,11 +13,11 @@ jest.mock('@/lib/serverLogger', () => ({
 }));
 
 describe('Rate Limiting', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.useFakeTimers();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.useRealTimers();
   });
 

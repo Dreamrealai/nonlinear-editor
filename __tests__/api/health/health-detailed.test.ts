@@ -5,7 +5,7 @@
 import { GET } from '@/app/api/health/detailed/route';
 
 // Mock createClient from Supabase
-jest.mock('@supabase/supabase-js', () => ({
+jest.mock('@supabase/supabase-js', (): Record<string, unknown> => ({
   createClient: jest.fn(() => ({
     from: jest.fn(() => ({
       select: jest.fn(() => ({
@@ -17,7 +17,7 @@ jest.mock('@supabase/supabase-js', () => ({
   })),
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     warn: jest.fn(),
@@ -26,7 +26,7 @@ jest.mock('@/lib/serverLogger', () => ({
 }));
 
 describe('GET /api/health/detailed', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';

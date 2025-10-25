@@ -11,7 +11,7 @@ import {
   resetAllMocks,
 } from '@/__tests__/helpers/apiMocks';
 
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -23,25 +23,25 @@ jest.mock('@/lib/api/withAuth', () => ({
   }),
 }));
 
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     error: jest.fn(),
   },
 }));
 
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   RATE_LIMITS: { tier3_status_read: { requests: 60, window: 60 } },
 }));
 
 describe('GET /api/export/queue', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
@@ -79,7 +79,7 @@ describe('GET /api/export/queue', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks();
   });
 

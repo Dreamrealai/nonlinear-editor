@@ -13,7 +13,7 @@ import {
 } from '@/lib/utils/retryUtils';
 
 // Mock browserLogger
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     debug: jest.fn(),
     warn: jest.fn(),
@@ -22,12 +22,12 @@ jest.mock('@/lib/browserLogger', () => ({
 }));
 
 describe('retryUtils', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     jest.useFakeTimers();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.useRealTimers();
   });
 
@@ -295,11 +295,11 @@ describe('retryUtils', () => {
   });
 
   describe('retryableFetch', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       global.fetch = jest.fn();
     });
 
-    afterEach(() => {
+    afterEach((): void => {
       jest.restoreAllMocks();
     });
 

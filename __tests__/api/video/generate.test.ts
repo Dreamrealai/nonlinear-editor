@@ -16,7 +16,7 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -38,15 +38,15 @@ jest.mock('@/lib/supabase', () => {
   };
 });
 
-jest.mock('@/lib/veo', () => ({
+jest.mock('@/lib/veo', (): Record<string, unknown> => ({
   generateVideo: jest.fn(),
 }));
 
-jest.mock('@/lib/fal-video', () => ({
+jest.mock('@/lib/fal-video', (): Record<string, unknown> => ({
   generateFalVideo: jest.fn(),
 }));
 
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   checkRateLimit: jest.fn(),
   RATE_LIMITS: {
     tier2_resource_creation: { max: 10, windowMs: 60000 },
@@ -55,7 +55,7 @@ jest.mock('@/lib/rateLimit', () => ({
   },
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -72,7 +72,7 @@ jest.mock('@/lib/api/response', () => {
     withErrorHandling: jest.fn((handler) => handler),
   };
 });
-jest.mock('@/lib/api/validation', () => ({
+jest.mock('@/lib/api/validation', (): Record<string, unknown> => ({
   validateString: jest.fn((_value: unknown) => ({ valid: true })),
   validateUUID: jest.fn((_value: unknown) => ({ valid: true })),
   validateAspectRatio: jest.fn((_value: unknown) => ({ valid: true })),
@@ -82,7 +82,7 @@ jest.mock('@/lib/api/validation', () => ({
   validateAll: jest.fn(() => ({ valid: true, errors: [] })),
 }));
 
-jest.mock('@/lib/api/project-verification', () => ({
+jest.mock('@/lib/api/project-verification', (): Record<string, unknown> => ({
   verifyProjectOwnership: jest.fn(),
   verifyAssetOwnership: jest.fn(),
 }));
@@ -97,7 +97,7 @@ describe('POST /api/video/generate', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   let mockRequest: NextRequest;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     // IMPORTANT: Re-setup Supabase mock after clearAllMocks
@@ -119,7 +119,7 @@ describe('POST /api/video/generate', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
   });
 

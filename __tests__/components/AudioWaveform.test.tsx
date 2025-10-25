@@ -12,7 +12,7 @@ const mockBrowserLogger = {
   debug: jest.fn(),
 };
 
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: mockBrowserLogger,
 }));
 
@@ -94,7 +94,7 @@ describe('AudioWaveform', () => {
   let mockFetch: jest.Mock;
   let mockGetContext: jest.Mock;
 
-  beforeAll(() => {
+  beforeAll((): void => {
     // Mock AudioContext globally with a trackable constructor
     mockAudioContextConstructor.mockImplementation(function (this: any) {
       this.decodeAudioData = mockAudioContext.decodeAudioData;

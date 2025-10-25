@@ -9,15 +9,15 @@ import type { Clip, Timeline } from '@/types/timeline';
 jest.mock('@/state/useEditorStore');
 
 // Mock the video hooks
-jest.mock('@/lib/hooks/useVideoManager', () => ({
-  useVideoManager: () => ({
+jest.mock('@/lib/hooks/useVideoManager', (): Record<string, unknown> => ({
+  useVideoManager: (): Record<string, unknown> => ({
     videoMapRef: { current: new Map() },
     ensureClipElement: jest.fn(),
     cleanupVideo: jest.fn(),
   }),
 }));
 
-jest.mock('@/lib/hooks/useVideoPlayback', () => ({
+jest.mock('@/lib/hooks/useVideoPlayback', (): Record<string, unknown> => ({
   useVideoPlayback: () => {
     const [isPlaying, setIsPlaying] = require('react').useState(false);
     return {
@@ -143,7 +143,7 @@ describe('PreviewPlayer', () => {
   let performanceNowSpy: jest.SpyInstance<number, []>;
 
   // Mock HTMLVideoElement methods
-  beforeAll(() => {
+  beforeAll((): void => {
     HTMLMediaElement.prototype.play = jest.fn(() => Promise.resolve());
     HTMLMediaElement.prototype.pause = jest.fn();
     HTMLMediaElement.prototype.load = jest.fn();
@@ -162,12 +162,12 @@ describe('PreviewPlayer', () => {
         getEntriesByType: () => [],
         getEntriesByName: () => [],
         timeOrigin: Date.now(),
-        toJSON: () => ({}),
+        toJSON: (): Record<string, unknown> => ({}),
       } as unknown as Performance;
     }
   });
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     (useEditorStore as unknown as jest.Mock).mockImplementation((selector) => {
       const state = {
@@ -212,7 +212,7 @@ describe('PreviewPlayer', () => {
     }) as typeof globalThis.cancelAnimationFrame;
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     performanceNowSpy?.mockRestore();
     globalThis.requestAnimationFrame = originalRequestAnimationFrame;
     globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
@@ -227,7 +227,7 @@ describe('PreviewPlayer', () => {
     }
   });
 
-  afterAll(() => {
+  afterAll((): void => {
     globalThis.requestAnimationFrame = originalRequestAnimationFrame;
     globalThis.cancelAnimationFrame = originalCancelAnimationFrame;
     if (originalPerformance) {

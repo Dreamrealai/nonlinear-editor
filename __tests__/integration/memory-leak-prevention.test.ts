@@ -28,7 +28,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
   let abortMock: jest.Mock;
   let abortControllerMock: jest.Mock;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.useFakeTimers();
 
     // Spy on timeout functions
@@ -48,7 +48,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
     global.fetch = fetchMock as any;
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.useRealTimers();
     setTimeoutSpy.mockRestore();
     clearTimeoutSpy.mockRestore();

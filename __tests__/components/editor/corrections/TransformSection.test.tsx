@@ -20,7 +20,7 @@ describe('TransformSection', () => {
     onReset: mockOnReset,
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

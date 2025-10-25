@@ -11,12 +11,12 @@ import {
   resetAllMocks,
 } from '@/test-utils/mockSupabase';
 
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
   isSupabaseServiceConfigured: jest.fn(() => true),
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     warn: jest.fn(),
@@ -24,7 +24,7 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
-jest.mock('@/lib/auditLog', () => ({
+jest.mock('@/lib/auditLog', (): Record<string, unknown> => ({
   auditLog: jest.fn(),
   auditSecurityEvent: jest.fn(),
   AuditAction: {
@@ -35,7 +35,7 @@ jest.mock('@/lib/auditLog', () => ({
   },
 }));
 
-jest.mock('@google/generative-ai', () => ({
+jest.mock('@google/generative-ai', (): Record<string, unknown> => ({
   GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
     getGenerativeModel: jest.fn().mockReturnValue({
       generateContent: jest.fn().mockResolvedValue({
@@ -55,7 +55,7 @@ describe('POST /api/frames/[frameId]/edit', () => {
   const validProjectId = '550e8400-e29b-41d4-a716-446655440000';
   const validAssetId = '550e8400-e29b-41d4-a716-446655440002';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
@@ -70,7 +70,7 @@ describe('POST /api/frames/[frameId]/edit', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
     delete process.env['AISTUDIO_API_KEY'];
     delete process.env['GEMINI_API_KEY'];

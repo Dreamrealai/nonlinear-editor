@@ -29,7 +29,7 @@ describe('useGlobalKeyboardShortcuts', () => {
     },
   ];
 
-  beforeEach(() => {
+  beforeEach((): void => {
     mockAction1.mockClear();
     mockAction2.mockClear();
   });

@@ -26,12 +26,12 @@ if (typeof Response === 'undefined') {
 }
 
 describe('Fetch Utilities', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks()
     jest.useFakeTimers()
   })
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.useRealTimers()
   })
 

@@ -16,7 +16,7 @@ import { AssetVersionService, type AssetVersion } from '@/lib/services/assetVers
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 // Mock serverLogger
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     error: jest.fn(),
@@ -64,7 +64,7 @@ describe('AssetVersionService', () => {
     created_at: '2025-10-24T00:00:00.000Z',
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Create mock Supabase client with proper chaining
     const mockChain = {
       select: jest.fn().mockReturnThis(),

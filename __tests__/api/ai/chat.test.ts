@@ -22,14 +22,14 @@ import {
 } from '@/test-utils/formDataHelpers';
 
 // Mock external services only
-jest.mock('@/lib/gemini', () => ({
+jest.mock('@/lib/gemini', (): Record<string, unknown> => ({
   chat: jest.fn(),
 }));
 
 // serverLogger is mocked globally in __mocks__/lib/serverLogger.ts
 
 // Mock audit log
-jest.mock('@/lib/auditLog', () => ({
+jest.mock('@/lib/auditLog', (): Record<string, unknown> => ({
   auditSecurityEvent: jest.fn(),
   auditRateLimitViolation: jest.fn(),
   AuditAction: {
@@ -92,13 +92,13 @@ describe('POST /api/ai/chat - Integration Tests', () => {
     });
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     currentTestUser = null;
     (global as any).__currentTestUser__ = null;
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
     currentTestUser = null;
     (global as any).__currentTestUser__ = null;

@@ -15,14 +15,14 @@ import {
 } from '@/lib/performance';
 
 // Mock browserLogger
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     warn: jest.fn(),
   },
 }));
 
 describe('Performance Monitoring', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     clearPerformanceMetrics();
     jest.clearAllMocks();
   });

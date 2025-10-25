@@ -3,12 +3,12 @@
  */
 
 // Mock uuid BEFORE any imports that use it
-jest.mock('uuid', () => ({
+jest.mock('uuid', (): Record<string, unknown> => ({
   v4: () => 'test-uuid-1234',
 }));
 
 // Mock errorTracking BEFORE imports
-jest.mock('@/lib/errorTracking', () => ({
+jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
   trackError: jest.fn(),
   ErrorCategory: {
     EXTERNAL_SERVICE: 'external_service',
@@ -27,7 +27,7 @@ describe('AssetService', () => {
   let mockSupabase: jest.Mocked<SupabaseClient>;
   let assetService: AssetService;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Create mock Supabase client
     mockSupabase = {
       from: jest.fn().mockReturnThis(),

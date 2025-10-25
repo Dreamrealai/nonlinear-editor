@@ -177,15 +177,16 @@ export function EditorHeader({
   }, [supabaseClient, projectId, currentProject?.title, router]);
 
   return (
-    <header className="border-b border-neutral-200 bg-white px-3 sm:px-6 py-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+    <header className="border-b border-neutral-200 bg-white px-3 sm:px-6 py-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900" role="banner">
       <div className="flex items-center justify-between">
         {/* Mobile Menu Button */}
         <button
           onClick={(): void => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="lg:hidden rounded-lg border border-neutral-300 bg-white p-2 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-          aria-label="Toggle menu"
+          aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={isMobileMenuOpen}
         >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             {isMobileMenuOpen ? (
               <path
                 strokeLinecap="round"
@@ -237,12 +238,16 @@ export function EditorHeader({
               <button
                 onClick={(): void => setIsDropdownOpen(!isDropdownOpen)}
                 className="flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 transition-colors"
+                aria-label="Select project"
+                aria-haspopup="true"
+                aria-expanded={isDropdownOpen}
               >
                 <svg
                   className="h-4 w-4 text-neutral-500"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -257,6 +262,7 @@ export function EditorHeader({
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -367,7 +373,7 @@ export function EditorHeader({
         </div>
 
         {/* Navigation Tabs - Desktop */}
-        <nav className="hidden lg:flex items-center gap-1 rounded-lg bg-neutral-100 p-1">
+        <nav className="hidden lg:flex items-center gap-1 rounded-lg bg-neutral-100 p-1" role="navigation" aria-label="Editor navigation">
           <Link
             href={`/editor/${projectId}/timeline`}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
@@ -375,6 +381,7 @@ export function EditorHeader({
                 ? 'bg-white text-neutral-900 shadow-sm'
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
+            aria-current={currentTab === 'video-editor' ? 'page' : undefined}
           >
             Video Editor
           </Link>
@@ -385,6 +392,7 @@ export function EditorHeader({
                 ? 'bg-white text-neutral-900 shadow-sm'
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
+            aria-current={currentTab === 'generate-video' ? 'page' : undefined}
           >
             Generate Video
           </Link>
@@ -395,6 +403,7 @@ export function EditorHeader({
                 ? 'bg-white text-neutral-900 shadow-sm'
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
+            aria-current={currentTab === 'generate-audio' ? 'page' : undefined}
           >
             Generate Audio
           </Link>
@@ -405,6 +414,7 @@ export function EditorHeader({
                 ? 'bg-white text-neutral-900 shadow-sm'
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
+            aria-current={currentTab === 'image-editor' ? 'page' : undefined}
           >
             Image Editor
           </Link>
@@ -416,7 +426,7 @@ export function EditorHeader({
           <button
             onClick={dashboard.open}
             className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 shadow-sm hover:bg-neutral-50 transition-colors flex items-center gap-2"
-            title="View all AI generations"
+            aria-label="View all AI generations"
           >
             <svg
               className="h-4 w-4"
@@ -424,6 +434,7 @@ export function EditorHeader({
               viewBox="0 0 24 24"
               stroke="currentColor"
               strokeWidth={2}
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -456,7 +467,7 @@ export function EditorHeader({
                   window.dispatchEvent(new CustomEvent('show-shortcuts-help'));
                 }}
                 className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 shadow-sm hover:bg-neutral-50 transition-colors flex items-center gap-2"
-                title="View keyboard shortcuts (Cmd+?)"
+                aria-label="View keyboard shortcuts"
               >
                 <svg
                   className="h-4 w-4"
@@ -464,6 +475,7 @@ export function EditorHeader({
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                   strokeWidth={2}
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -481,9 +493,11 @@ export function EditorHeader({
                       setIsExportProjectDropdownOpen(!isExportProjectDropdownOpen)
                     }
                     className="rounded-lg border border-blue-600 bg-white px-4 py-2 text-sm font-semibold text-blue-600 shadow hover:bg-blue-50 transition-colors flex items-center gap-2"
-                    title="Export project in different formats"
+                    aria-label="Export project in different formats"
+                    aria-haspopup="true"
+                    aria-expanded={isExportProjectDropdownOpen}
                   >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -497,6 +511,7 @@ export function EditorHeader({
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"

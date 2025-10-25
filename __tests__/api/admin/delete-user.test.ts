@@ -7,12 +7,12 @@ import { POST } from '@/app/api/admin/delete-user/route';
 import { createMockSupabaseClient, resetAllMocks } from '@/test-utils/mockSupabase';
 
 // Mock service Supabase client
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServiceSupabaseClient: jest.fn(),
 }));
 
 // Mock withAdminAuth wrapper
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAdminAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const mockAdmin = {
       id: 'admin-123',
@@ -25,7 +25,7 @@ jest.mock('@/lib/api/withAuth', () => ({
 }));
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     warn: jest.fn(),
@@ -34,7 +34,7 @@ jest.mock('@/lib/serverLogger', () => ({
 }));
 
 // Mock validation
-jest.mock('@/lib/api/validation', () => ({
+jest.mock('@/lib/api/validation', (): Record<string, unknown> => ({
   validateUUID: jest.fn((id: string, field: string) => {
     if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
       return { valid: false, errors: [{ field, message: `${field} must be a valid UUID` }] };
@@ -52,14 +52,14 @@ describe('POST /api/admin/delete-user', () => {
   const validUserId = '550e8400-e29b-41d4-a716-446655440000';
   const adminId = 'admin-123';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServiceSupabaseClient } = require('@/lib/supabase');
     createServiceSupabaseClient.mockReturnValue(mockSupabase);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
   });
 

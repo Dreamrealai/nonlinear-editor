@@ -43,7 +43,7 @@ describe('HorizontalTimeline', () => {
   const mockCanUndo = jest.fn(() => false);
   const mockCanRedo = jest.fn(() => false);
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     (useEditorStore as unknown as jest.Mock).mockImplementation((selector) => {
       const state = {
@@ -69,12 +69,12 @@ describe('HorizontalTimeline', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.restoreAllMocks();
     jest.clearAllMocks();
   });
 
-  afterAll(() => {
+  afterAll((): void => {
     jest.restoreAllMocks();
   });
 

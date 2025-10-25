@@ -7,11 +7,11 @@ import toast from 'react-hot-toast';
 import type { Project } from '@/components/ProjectList';
 
 // Mock dependencies
-jest.mock('next/navigation', () => ({
+jest.mock('next/navigation', (): Record<string, unknown> => ({
   useRouter: jest.fn(),
 }));
 
-jest.mock('next/link', () => ({
+jest.mock('next/link', (): Record<string, unknown> => ({
   __esModule: true,
   default: function MockLink({ children, href }: any) {
     return <a href={href}>{children}</a>;
@@ -20,7 +20,7 @@ jest.mock('next/link', () => ({
 
 jest.mock('react-hot-toast');
 
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     error: jest.fn(),
   },
@@ -54,7 +54,7 @@ describe('ProjectList', () => {
     },
   ];
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     (useRouter as jest.Mock).mockReturnValue({
       push: mockPush,

@@ -68,7 +68,7 @@ describe('BackupService', () => {
     created_at: '2025-10-24T00:00:00.000Z',
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Create mock Supabase client
     mockSupabase = {
       from: jest.fn().mockReturnThis(),

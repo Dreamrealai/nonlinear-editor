@@ -8,14 +8,14 @@ import toast from 'react-hot-toast';
 // Mock the SupabaseProvider
 const mockSupabaseClient = {};
 
-jest.mock('@/components/providers/SupabaseProvider', () => ({
-  useSupabase: () => ({
+jest.mock('@/components/providers/SupabaseProvider', (): Record<string, unknown> => ({
+  useSupabase: (): Record<string, unknown> => ({
     supabaseClient: mockSupabaseClient,
   }),
 }));
 
 // Mock react-hot-toast
-jest.mock('react-hot-toast', () => ({
+jest.mock('react-hot-toast', (): Record<string, unknown> => ({
   __esModule: true,
   default: {
     success: jest.fn(),
@@ -66,7 +66,7 @@ const mockHistory = [
 ];
 
 describe('ActivityHistory', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockReset();
   });
@@ -149,7 +149,7 @@ describe('ActivityHistory', () => {
   });
 
   describe('Activity Display', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ history: mockHistory }),
@@ -228,7 +228,7 @@ describe('ActivityHistory', () => {
   });
 
   describe('Relative Time Display', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ history: mockHistory }),
@@ -255,7 +255,7 @@ describe('ActivityHistory', () => {
   });
 
   describe('Clear History', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ history: mockHistory }),

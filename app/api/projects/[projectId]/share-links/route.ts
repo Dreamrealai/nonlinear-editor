@@ -10,13 +10,13 @@ import { RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateEnum, validateUUID, validateInteger, ValidationError } from '@/lib/validation';
 import { validationError } from '@/lib/api/response';
-import type { CreateShareLinkRequest, CreateShareLinkResponse } from '@/types/collaboration';
+import type { CreateShareLinkRequest, CreateShareLinkResponse, ShareLink } from '@/types/collaboration';
 
 /**
  * GET - List all share links for a project
  */
 export const GET = withAuth<{ projectId: string }>(
-  async (_req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ links: any[]; }>> => {
+  async (_req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ links: ShareLink[]; }>> => {
     const params = await routeContext?.params;
     const projectId = params?.projectId;
 

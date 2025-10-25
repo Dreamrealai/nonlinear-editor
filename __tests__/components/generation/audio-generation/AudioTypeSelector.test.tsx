@@ -6,7 +6,7 @@ import { AudioTypeSelector } from '@/components/generation/audio-generation/Audi
 describe('AudioTypeSelector', () => {
   const mockOnTypeChange = jest.fn();
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

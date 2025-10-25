@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import { WebVitals } from '@/components/WebVitals';
 
 // Mock the webVitals module
-jest.mock('@/lib/webVitals', () => ({
+jest.mock('@/lib/webVitals', (): Record<string, unknown> => ({
   initWebVitals: jest.fn(),
 }));
 
@@ -11,7 +11,7 @@ jest.mock('@/lib/webVitals', () => ({
 const { initWebVitals: mockInitWebVitals } = jest.requireMock('@/lib/webVitals');
 
 describe('WebVitals', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

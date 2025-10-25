@@ -39,7 +39,7 @@ import {
 import { cache } from '@/lib/cache';
 
 // Mock error tracking
-jest.mock('@/lib/errorTracking', () => ({
+jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
   trackError: jest.fn(),
   ErrorCategory: {
     DATABASE: 'database',
@@ -52,7 +52,7 @@ jest.mock('@/lib/errorTracking', () => ({
 }));
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -62,13 +62,13 @@ jest.mock('@/lib/serverLogger', () => ({
 }));
 
 // Mock video generation
-jest.mock('@/lib/veo', () => ({
+jest.mock('@/lib/veo', (): Record<string, unknown> => ({
   generateVideo: jest.fn(),
   checkOperationStatus: jest.fn(),
 }));
 
 // Mock FAL video
-jest.mock('@/lib/fal-video', () => ({
+jest.mock('@/lib/fal-video', (): Record<string, unknown> => ({
   generateFalVideo: jest.fn(),
   checkFalVideoStatus: jest.fn(),
 }));
@@ -80,7 +80,7 @@ describe('Integration: Complete AI Generation Workflows', () => {
   let projectService: ProjectService;
   let workflow: IntegrationWorkflow;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     env = createTestEnvironment('proTierUser');
     videoService = new VideoService(env.mockSupabase as unknown as SupabaseClient);
@@ -89,7 +89,7 @@ describe('Integration: Complete AI Generation Workflows', () => {
     workflow = new IntegrationWorkflow(env.mockSupabase);
   });
 
-  afterEach(async () => {
+  afterEach(async (): Promise<void> => {
     resetAllMocks(env.mockSupabase);
     cleanupTestData(env.mockSupabase);
     await cache.clear();

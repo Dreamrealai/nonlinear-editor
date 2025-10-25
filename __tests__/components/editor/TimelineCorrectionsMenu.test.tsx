@@ -8,8 +8,8 @@ import { useEditorStore } from '@/state/useEditorStore';
 jest.mock('@/state/useEditorStore');
 
 // Mock the correction hooks
-jest.mock('@/components/editor/corrections/useCorrectionSync', () => ({
-  useCorrectionSync: () => ({
+jest.mock('@/components/editor/corrections/useCorrectionSync', (): Record<string, unknown> => ({
+  useCorrectionSync: (): Record<string, unknown> => ({
     local: {
       brightness: 100,
       contrast: 100,
@@ -49,8 +49,8 @@ jest.mock('@/components/editor/corrections/useCorrectionSync', () => ({
   }),
 }));
 
-jest.mock('@/components/editor/corrections/useCorrectionHandlers', () => ({
-  useCorrectionHandlers: () => ({
+jest.mock('@/components/editor/corrections/useCorrectionHandlers', (): Record<string, unknown> => ({
+  useCorrectionHandlers: (): Record<string, unknown> => ({
     updateTransform: jest.fn(),
     updateAudioEffects: jest.fn(),
     resetColorCorrection: jest.fn(),
@@ -92,7 +92,7 @@ describe('TimelineCorrectionsMenu', () => {
     },
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

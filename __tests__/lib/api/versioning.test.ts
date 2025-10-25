@@ -23,7 +23,7 @@ import { serverLogger } from '@/lib/serverLogger';
 jest.mock('@/lib/serverLogger');
 
 describe('getAPIVersion', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 
@@ -184,7 +184,7 @@ describe('addVersionHeaders', () => {
 });
 
 describe('withVersioning', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 
@@ -360,7 +360,7 @@ describe('versionedSuccessResponse', () => {
 });
 
 describe('deprecateVersion', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

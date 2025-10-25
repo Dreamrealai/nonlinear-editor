@@ -16,12 +16,12 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock the Supabase module
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     warn: jest.fn(),
@@ -30,7 +30,7 @@ jest.mock('@/lib/serverLogger', () => ({
 }));
 
 // Mock validation
-jest.mock('@/lib/validation', () => ({
+jest.mock('@/lib/validation', (): Record<string, unknown> => ({
   validateUUID: jest.fn((id: string, field: string) => {
     if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
       const error = new Error(`${field} must be a valid UUID`);
@@ -52,7 +52,7 @@ jest.mock('@/lib/validation', () => ({
  * - 2-param: handler(request, authContext) - for routes without params
  * - 3-param: handler(request, authContext, routeContext) - for routes with params like [projectId]
  */
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: (handler: any) => async (req: any, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -99,14 +99,14 @@ describe('GET /api/projects/[projectId]/chat', () => {
     },
   ];
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
   });
 
@@ -305,14 +305,14 @@ describe('DELETE /api/projects/[projectId]/chat', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   const validProjectId = '550e8400-e29b-41d4-a716-446655440000';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
   });
 

@@ -11,7 +11,7 @@ import {
   resetAllMocks,
 } from '@/__tests__/helpers/apiMocks';
 
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase/server');
     const supabase = await createServerSupabaseClient();
@@ -31,11 +31,11 @@ jest.mock('@/lib/api/withAuth', () => ({
   }),
 }));
 
-jest.mock('@/lib/supabase/server', () => ({
+jest.mock('@/lib/supabase/server', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     error: jest.fn(),
@@ -45,14 +45,14 @@ jest.mock('@/lib/serverLogger', () => ({
 describe('GET /api/templates', () => {
   let mockSupabase: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase/server');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks();
   });
 
@@ -176,14 +176,14 @@ describe('GET /api/templates', () => {
 describe('POST /api/templates', () => {
   let mockSupabase: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase/server');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks();
   });
 

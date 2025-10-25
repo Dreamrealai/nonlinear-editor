@@ -10,7 +10,7 @@ describe('TimelinePlayhead', () => {
     onMouseDown: jest.fn(),
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

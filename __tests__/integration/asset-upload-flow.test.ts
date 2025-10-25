@@ -31,7 +31,7 @@ import {
 import { cache } from '@/lib/cache';
 
 // Mock the error tracking module
-jest.mock('@/lib/errorTracking', () => ({
+jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
   trackError: jest.fn(),
   ErrorCategory: {
     DATABASE: 'database',
@@ -50,7 +50,7 @@ describe('Integration: Asset Upload Flow', () => {
   let mockUser: ReturnType<typeof createMockUser>;
   let mockProject: ReturnType<typeof createMockProject>;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     assetService = new AssetService(mockSupabase as unknown as SupabaseClient);
@@ -59,7 +59,7 @@ describe('Integration: Asset Upload Flow', () => {
     mockProject = createMockProject({ user_id: mockUser.id });
   });
 
-  afterEach(async () => {
+  afterEach(async (): Promise<void> => {
     resetAllMocks(mockSupabase);
     await cache.clear();
   });

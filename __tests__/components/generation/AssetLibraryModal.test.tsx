@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 import { AssetLibraryModal } from '@/components/generation/AssetLibraryModal';
 
 // Mock Next.js Image component
-jest.mock('next/image', () => ({
+jest.mock('next/image', (): Record<string, unknown> => ({
   __esModule: true,
   default: ({
     src,
@@ -22,7 +22,7 @@ jest.mock('next/image', () => ({
 }));
 
 // Mock LoadingSpinner
-jest.mock('@/components/LoadingSpinner', () => ({
+jest.mock('@/components/LoadingSpinner', (): Record<string, unknown> => ({
   LoadingSpinner: ({ size }: { size?: string }) => (
     <div data-testid="loading-spinner" data-size={size}>
       Loading...
@@ -31,7 +31,7 @@ jest.mock('@/components/LoadingSpinner', () => ({
 }));
 
 // Mock browserLogger
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     error: jest.fn(),
   },
@@ -64,7 +64,7 @@ describe('AssetLibraryModal', () => {
 
   let mockFetch: jest.Mock;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     // Mock fetch
@@ -453,7 +453,7 @@ describe('AssetLibraryModal', () => {
   });
 
   describe('Pagination', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       mockFetch.mockResolvedValue({
         ok: true,
         json: () =>

@@ -14,7 +14,7 @@
 import { AssetOptimizationService } from '@/lib/services/assetOptimizationService';
 
 // Mock serverLogger
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     error: jest.fn(),
@@ -51,7 +51,7 @@ jest.mock('sharp', () => {
 const mockGenerateVideoThumbnailDataURL = jest.fn();
 const mockGetVideoDuration = jest.fn();
 
-jest.mock('@/lib/services/thumbnailService', () => ({
+jest.mock('@/lib/services/thumbnailService', (): Record<string, unknown> => ({
   ThumbnailService: jest.fn().mockImplementation(() => ({
     generateVideoThumbnailDataURL: mockGenerateVideoThumbnailDataURL,
     getVideoDuration: mockGetVideoDuration,
@@ -60,18 +60,18 @@ jest.mock('@/lib/services/thumbnailService', () => ({
 
 // Mock child_process
 const mockExec = jest.fn();
-jest.mock('child_process', () => ({
+jest.mock('child_process', (): Record<string, unknown> => ({
   exec: mockExec,
 }));
 
-jest.mock('util', () => ({
+jest.mock('util', (): Record<string, unknown> => ({
   promisify: (fn: any) => fn,
 }));
 
 // Mock fs/promises
 const mockWriteFile = jest.fn();
 const mockUnlink = jest.fn();
-jest.mock('fs/promises', () => ({
+jest.mock('fs/promises', (): Record<string, unknown> => ({
   writeFile: mockWriteFile,
   unlink: mockUnlink,
 }));
@@ -79,7 +79,7 @@ jest.mock('fs/promises', () => ({
 describe('AssetOptimizationService', () => {
   let service: AssetOptimizationService;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     service = new AssetOptimizationService();
 

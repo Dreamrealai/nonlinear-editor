@@ -20,7 +20,7 @@ jest.mock('@/lib/api/validation');
 describe('verifyProjectOwnership', () => {
   let mockSupabase: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockSupabase = {
@@ -258,7 +258,7 @@ describe('verifyProjectOwnership', () => {
 describe('verifyProjectExists', () => {
   let mockSupabase: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockSupabase = {
@@ -329,7 +329,7 @@ describe('verifyProjectExists', () => {
 describe('verifyAssetOwnership', () => {
   let mockSupabase: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockSupabase = {
@@ -401,7 +401,7 @@ describe('verifyAssetOwnership', () => {
 describe('verifyMultipleProjects', () => {
   let mockSupabase: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockSupabase = {
@@ -570,7 +570,7 @@ describe('verifyMultipleProjects', () => {
 describe('Edge Cases', () => {
   let mockSupabase: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     mockSupabase = {
       from: jest.fn(),
     };

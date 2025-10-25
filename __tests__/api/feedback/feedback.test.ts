@@ -5,14 +5,14 @@
 import { NextRequest } from 'next/server';
 import { POST, GET } from '@/app/api/feedback/route';
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     error: jest.fn(),
   },
 }));
 
-jest.mock('@supabase/supabase-js', () => ({
+jest.mock('@supabase/supabase-js', (): Record<string, unknown> => ({
   createClient: jest.fn(() => ({
     auth: {
       getUser: jest.fn().mockResolvedValue({
@@ -34,7 +34,7 @@ jest.mock('@supabase/supabase-js', () => ({
 }));
 
 describe('POST /api/feedback', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
@@ -246,7 +246,7 @@ describe('POST /api/feedback', () => {
 });
 
 describe('GET /api/feedback', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';

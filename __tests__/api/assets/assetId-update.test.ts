@@ -14,7 +14,7 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -27,12 +27,12 @@ jest.mock('@/lib/api/withAuth', () => ({
 }));
 
 // Mock modules
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
   ensureHttpsProtocol: jest.fn((url) => url),
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -41,7 +41,7 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   checkRateLimit: jest.fn().mockResolvedValue({
     success: true,
     limit: 10,
@@ -53,11 +53,11 @@ jest.mock('@/lib/rateLimit', () => ({
   },
 }));
 
-jest.mock('@/lib/api/project-verification', () => ({
+jest.mock('@/lib/api/project-verification', (): Record<string, unknown> => ({
   verifyProjectOwnership: jest.fn(),
 }));
 
-jest.mock('@/lib/services/assetVersionService', () => ({
+jest.mock('@/lib/services/assetVersionService', (): Record<string, unknown> => ({
   AssetVersionService: jest.fn().mockImplementation(() => ({
     createVersion: jest.fn().mockResolvedValue({
       versionId: 'version-123',
@@ -66,7 +66,7 @@ jest.mock('@/lib/services/assetVersionService', () => ({
   })),
 }));
 
-jest.mock('crypto', () => ({
+jest.mock('crypto', (): Record<string, unknown> => ({
   randomUUID: jest.fn(() => 'mock-uuid-456'),
 }));
 
@@ -77,7 +77,7 @@ describe('PUT /api/assets/[assetId]/update', () => {
   let mockRequest: NextRequest;
   const validAssetId = '123e4567-e89b-12d3-a456-426614174000';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
@@ -101,7 +101,7 @@ describe('PUT /api/assets/[assetId]/update', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks();
   });
 

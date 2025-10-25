@@ -11,7 +11,7 @@ import {
   resetAllMocks,
 } from '@/__tests__/helpers/apiMocks';
 
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -31,11 +31,11 @@ jest.mock('@/lib/api/withAuth', () => ({
   }),
 }));
 
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     error: jest.fn(),
@@ -46,14 +46,14 @@ describe('GET /api/projects/[projectId]/share-links', () => {
   let mockSupabase: any;
   const projectId = 'test-project-id';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks();
   });
 
@@ -152,7 +152,7 @@ describe('POST /api/projects/[projectId]/share-links', () => {
   let mockSupabase: any;
   const projectId = 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
@@ -160,7 +160,7 @@ describe('POST /api/projects/[projectId]/share-links', () => {
     process.env.NEXT_PUBLIC_APP_URL = 'https://example.com';
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks();
   });
 

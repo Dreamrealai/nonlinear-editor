@@ -7,7 +7,7 @@
 import { SignedUrlCacheManager, signedUrlCache } from '@/lib/signedUrlCache';
 
 // Mock browserLogger
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     debug: jest.fn(),
     error: jest.fn(),
@@ -15,7 +15,7 @@ jest.mock('@/lib/browserLogger', () => ({
 }));
 
 // Mock requestDeduplication
-jest.mock('@/lib/requestDeduplication', () => ({
+jest.mock('@/lib/requestDeduplication', (): Record<string, unknown> => ({
   deduplicatedFetchJSON: jest.fn(),
 }));
 
@@ -28,7 +28,7 @@ const mockDeduplicatedFetchJSON = deduplicatedFetchJSON as jest.MockedFunction<
 describe('SignedUrlCacheManager', () => {
   let cacheManager: SignedUrlCacheManager;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     cacheManager = new SignedUrlCacheManager({
       defaultTTL: 3600,
@@ -38,7 +38,7 @@ describe('SignedUrlCacheManager', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     cacheManager.clear();
   });
 

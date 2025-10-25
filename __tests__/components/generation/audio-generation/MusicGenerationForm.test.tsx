@@ -27,7 +27,7 @@ describe('MusicGenerationForm', () => {
     onSubmit: mockOnSubmit,
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 
@@ -205,7 +205,7 @@ describe('MusicGenerationForm', () => {
   });
 
   describe('Mode Selection', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       render(<MusicGenerationForm {...defaultProps} />);
       const advancedButton = screen.getByText('Advanced Settings');
       fireEvent.click(advancedButton);
@@ -258,7 +258,7 @@ describe('MusicGenerationForm', () => {
   });
 
   describe('Style Input (Custom Mode)', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       render(<MusicGenerationForm {...defaultProps} customMode={true} />);
       const advancedButton = screen.getByText('Advanced Settings');
       fireEvent.click(advancedButton);
@@ -317,7 +317,7 @@ describe('MusicGenerationForm', () => {
   });
 
   describe('Instrumental Checkbox', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       render(<MusicGenerationForm {...defaultProps} />);
       const advancedButton = screen.getByText('Advanced Settings');
       fireEvent.click(advancedButton);

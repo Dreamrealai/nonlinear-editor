@@ -12,7 +12,7 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -25,11 +25,11 @@ jest.mock('@/lib/api/withAuth', () => ({
 }));
 
 // Mock dependencies
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     warn: jest.fn(),
@@ -54,7 +54,7 @@ describe('GET /api/video/generate-audio-status', () => {
   const validProjectId = '550e8400-e29b-41d4-a716-446655440000';
   const validAssetId = '550e8400-e29b-41d4-a716-446655440001';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
@@ -71,7 +71,7 @@ describe('GET /api/video/generate-audio-status', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
     delete process.env['FAL_API_KEY'];
     jest.restoreAllMocks();

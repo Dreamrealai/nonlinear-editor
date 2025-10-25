@@ -1,17 +1,17 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act, cleanup, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { DeleteAccountModal } from '@/components/DeleteAccountModal';
 
 // Mock browserLogger
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     error: jest.fn(),
   },
 }));
 
 // Mock Dialog component
-jest.mock('@/components/ui/Dialog', () => ({
+jest.mock('@/components/ui/Dialog', (): Record<string, unknown> => ({
   Dialog: ({ children, open, onOpenChange }: { children: React.ReactNode; open: boolean; onOpenChange: (open: boolean) => void }) => (
     open ? <div data-testid="dialog" onClick={() => onOpenChange(false)} onKeyDown={(e) => e.key === 'Escape' && onOpenChange(false)} role="dialog" tabIndex={-1}>{children}</div> : null
   ),
@@ -36,9 +36,17 @@ describe('DeleteAccountModal', () => {
   const mockOnOpenChange = jest.fn();
   const mockOnConfirm = jest.fn();
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockOnConfirm.mockResolvedValue(undefined);
+  });
+
+  afterEach(async (): Promise<void> => {
+    cleanup();
+    // Wait for any pending async operations to complete
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    });
   });
 
   describe('Rendering', () => {
@@ -46,14 +54,6 @@ describe('DeleteAccountModal', () => {
       render(
         <DeleteAccountModal
           open={false}
-
-  afterEach(async () => {
-    cleanup();
-    // Wait for any pending async operations to complete
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 100));
-    });
-  });
           onOpenChange={mockOnOpenChange}
           onConfirm={mockOnConfirm}
           loading={false}
@@ -199,7 +199,7 @@ describe('DeleteAccountModal', () => {
   });
 
   describe('Confirmation Step', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       render(
         <DeleteAccountModal
           open={true}

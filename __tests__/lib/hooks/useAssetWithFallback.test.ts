@@ -11,7 +11,7 @@ import type { AssetRow } from '@/types/assets';
 
 // Mock dependencies
 jest.mock('@/lib/signedUrlCache');
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     debug: jest.fn(),
     info: jest.fn(),
@@ -19,7 +19,7 @@ jest.mock('@/lib/browserLogger', () => ({
     error: jest.fn(),
   },
 }));
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createBrowserSupabaseClient: jest.fn(() => ({
     storage: {
       from: jest.fn(() => ({
@@ -45,7 +45,7 @@ describe('useAssetWithFallback', () => {
     metadata: {},
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

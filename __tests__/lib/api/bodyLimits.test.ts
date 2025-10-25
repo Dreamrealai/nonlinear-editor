@@ -33,7 +33,7 @@ describe('BODY_SIZE_LIMITS Constants', () => {
 });
 
 describe('validateBodySize', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 
@@ -176,7 +176,7 @@ describe('validateBodySize', () => {
 });
 
 describe('safeParseJSON', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 
@@ -326,7 +326,7 @@ describe('safeParseJSON', () => {
 });
 
 describe('withBodySizeLimit', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

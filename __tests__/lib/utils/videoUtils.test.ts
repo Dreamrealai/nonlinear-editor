@@ -544,7 +544,7 @@ describe('videoUtils', () => {
   describe('ensureBuffered', () => {
     let mockVideo: Partial<HTMLVideoElement>;
 
-    beforeEach(() => {
+    beforeEach((): void => {
       mockVideo = {
         readyState: 0,
         addEventListener: jest.fn(),

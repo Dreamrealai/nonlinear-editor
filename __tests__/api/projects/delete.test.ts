@@ -12,13 +12,13 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock the Supabase module
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
   ensureHttpsProtocol: jest.fn((url) => url),
 }));
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -28,7 +28,7 @@ jest.mock('@/lib/serverLogger', () => ({
 }));
 
 // Mock validation
-jest.mock('@/lib/validation', () => ({
+jest.mock('@/lib/validation', (): Record<string, unknown> => ({
   validateUUID: jest.fn((id: string) => {
     if (!id || typeof id !== 'string' || id.length < 10) {
       const error = new Error('Invalid UUID format');
@@ -49,7 +49,7 @@ jest.mock('@/lib/validation', () => ({
  * - 2-param: handler(request, authContext) - for routes without params
  * - 3-param: handler(request, authContext, routeContext) - for routes with params like [projectId]
  */
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: (handler: any) => async (req: any, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -80,7 +80,7 @@ describe('DELETE /api/projects/[projectId]', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   let mockRequest: NextRequest;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Create and configure mock Supabase client
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
@@ -88,7 +88,7 @@ describe('DELETE /api/projects/[projectId]', () => {
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
   });
 

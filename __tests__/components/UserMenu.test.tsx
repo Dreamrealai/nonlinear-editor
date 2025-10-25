@@ -7,12 +7,12 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 // Mock Next.js router
-jest.mock('next/navigation', () => ({
+jest.mock('next/navigation', (): Record<string, unknown> => ({
   useRouter: jest.fn(),
 }));
 
 // Mock Next.js Link
-jest.mock('next/link', () => ({
+jest.mock('next/link', (): Record<string, unknown> => ({
   __esModule: true,
   default: ({ children, href, ...props }: any) => (
     <a href={href} {...props}>
@@ -29,14 +29,14 @@ const mockSupabaseClient = {
   },
 };
 
-jest.mock('@/components/providers/SupabaseProvider', () => ({
-  useSupabase: () => ({
+jest.mock('@/components/providers/SupabaseProvider', (): Record<string, unknown> => ({
+  useSupabase: (): Record<string, unknown> => ({
     supabaseClient: mockSupabaseClient,
   }),
 }));
 
 // Mock react-hot-toast
-jest.mock('react-hot-toast', () => ({
+jest.mock('react-hot-toast', (): Record<string, unknown> => ({
   __esModule: true,
   default: {
     success: jest.fn(),
@@ -45,7 +45,7 @@ jest.mock('react-hot-toast', () => ({
 }));
 
 // Mock browserLogger
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     error: jest.fn(),
   },
@@ -55,7 +55,7 @@ describe('UserMenu', () => {
   const mockPush = jest.fn();
   const mockRefresh = jest.fn();
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     (useRouter as jest.Mock).mockReturnValue({
       push: mockPush,

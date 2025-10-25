@@ -275,12 +275,12 @@ describe('VOICE_SETTINGS', () => {
 });
 
 describe('calculateRetryDelay', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     // Mock Math.random for predictable tests
     jest.spyOn(Math, 'random').mockReturnValue(0.5);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.restoreAllMocks();
   });
 

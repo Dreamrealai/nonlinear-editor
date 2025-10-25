@@ -19,13 +19,13 @@ global.URL.revokeObjectURL = jest.fn();
 global.fetch = jest.fn();
 
 describe('useImageInput', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockToast.success = jest.fn();
     mockToast.error = jest.fn();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
   });
 

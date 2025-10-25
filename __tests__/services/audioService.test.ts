@@ -6,7 +6,7 @@ import { AudioService } from '@/lib/services/audioService';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 // Mock external modules
-jest.mock('@/lib/errorTracking', () => ({
+jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
   trackError: jest.fn(),
   ErrorCategory: {
     EXTERNAL_SERVICE: 'external_service',
@@ -18,7 +18,7 @@ jest.mock('@/lib/errorTracking', () => ({
   },
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     error: jest.fn(),
@@ -30,7 +30,7 @@ describe('AudioService', () => {
   let audioService: AudioService;
   const originalEnv = process.env;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Create mock Supabase client
     mockSupabase = {
       from: jest.fn().mockReturnThis(),
@@ -56,7 +56,7 @@ describe('AudioService', () => {
     jest.clearAllMocks();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     process.env = originalEnv;
     jest.restoreAllMocks();
   });

@@ -27,7 +27,7 @@ jest.mock('@/lib/supabase', () => {
 });
 
 // Mock Stripe
-jest.mock('@/lib/stripe', () => ({
+jest.mock('@/lib/stripe', (): Record<string, unknown> => ({
   stripe: {
     webhooks: {
       constructEvent: jest.fn(),
@@ -39,12 +39,12 @@ jest.mock('@/lib/stripe', () => ({
 }));
 
 // Mock cache invalidation
-jest.mock('@/lib/cacheInvalidation', () => ({
+jest.mock('@/lib/cacheInvalidation', (): Record<string, unknown> => ({
   invalidateOnStripeWebhook: jest.fn(),
 }));
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -62,7 +62,7 @@ describe('POST /api/stripe/webhook', () => {
   let mockRetrieveSubscription: jest.Mock;
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Ensure env vars are set before each test
     process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_secret';
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';

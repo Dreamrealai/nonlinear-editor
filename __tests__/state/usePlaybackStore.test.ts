@@ -5,7 +5,7 @@ import { ZOOM_CONSTANTS } from '@/lib/constants';
 const { MIN_ZOOM, MAX_ZOOM, DEFAULT_ZOOM } = ZOOM_CONSTANTS;
 
 describe('usePlaybackStore', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     // Reset store before each test
     const { result } = renderHook(() => usePlaybackStore());
     act(() => {

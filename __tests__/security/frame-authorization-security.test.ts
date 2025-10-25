@@ -28,17 +28,17 @@ let mockAuditSecurityEvent: jest.Mock;
 let mockCheckRateLimit: jest.Mock;
 
 // Mock modules
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(() => Promise.resolve(mockSupabaseForAuth)),
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),
-    child: jest.fn(() => ({
+    child: jest.fn((): Record<string, unknown> => ({
       debug: jest.fn(),
       info: jest.fn(),
       warn: jest.fn(),
@@ -47,7 +47,7 @@ jest.mock('@/lib/serverLogger', () => ({
   },
 }));
 
-jest.mock('@/lib/auditLog', () => ({
+jest.mock('@/lib/auditLog', (): Record<string, unknown> => ({
   auditLog: jest.fn().mockResolvedValue(undefined),
   auditSecurityEvent: jest.fn().mockResolvedValue(undefined),
   AuditAction: {
@@ -59,7 +59,7 @@ jest.mock('@/lib/auditLog', () => ({
   },
 }));
 
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   checkRateLimit: jest.fn().mockResolvedValue({
     success: true,
     limit: 10,
@@ -71,7 +71,7 @@ jest.mock('@/lib/rateLimit', () => ({
   },
 }));
 
-jest.mock('@google/generative-ai', () => ({
+jest.mock('@google/generative-ai', (): Record<string, unknown> => ({
   GoogleGenerativeAI: jest.fn(() => ({
     getGenerativeModel: jest.fn(() => ({
       generateContent: jest.fn(() =>
@@ -85,7 +85,7 @@ jest.mock('@google/generative-ai', () => ({
   })),
 }));
 
-jest.mock('uuid', () => ({
+jest.mock('uuid', (): Record<string, unknown> => ({
   v4: jest.fn(() => 'mock-uuid-123'),
 }));
 
@@ -107,7 +107,7 @@ describe('Frame Authorization Security Tests (NEW-MED-003)', () => {
   const mockUser = createMockUser();
   const mockProject = createMockProject();
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     mockSupabaseForAuth = mockSupabase;
@@ -136,7 +136,7 @@ describe('Frame Authorization Security Tests (NEW-MED-003)', () => {
     mockAuthenticatedUser(mockSupabase, mockUser);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
     delete process.env.GEMINI_API_KEY;
   });

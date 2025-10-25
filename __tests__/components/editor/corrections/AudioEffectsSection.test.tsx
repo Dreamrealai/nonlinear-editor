@@ -32,11 +32,11 @@ describe('AudioEffectsSection', () => {
     onReset: mockOnReset,
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 
-  afterEach(async () => {
+  afterEach(async (): Promise<void> => {
     cleanup();
     // Wait for any pending async operations to complete
     await act(async () => {

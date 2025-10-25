@@ -16,7 +16,7 @@ import {
  * - 2-param: handler(request, authContext) - for routes without params
  * - 3-param: handler(request, authContext, routeContext) - for routes with params like [projectId]
  */
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: (handler: any) => async (req: any, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -44,12 +44,12 @@ jest.mock('@/lib/api/withAuth', () => ({
 }));
 
 // Mock the Supabase module
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -62,14 +62,14 @@ describe('GET /api/projects/[projectId]/activity', () => {
   let mockSupabase: any;
   const projectId = 'test-project-id';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks();
   });
 

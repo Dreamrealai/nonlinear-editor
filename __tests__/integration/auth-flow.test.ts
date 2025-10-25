@@ -30,7 +30,7 @@ import {
 import { cache } from '@/lib/cache';
 
 // Mock the error tracking module
-jest.mock('@/lib/errorTracking', () => ({
+jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
   trackError: jest.fn(),
   ErrorCategory: {
     AUTH: 'auth',
@@ -44,7 +44,7 @@ jest.mock('@/lib/errorTracking', () => ({
 }));
 
 // Mock cache invalidation
-jest.mock('@/lib/cacheInvalidation', () => ({
+jest.mock('@/lib/cacheInvalidation', (): Record<string, unknown> => ({
   invalidateUserCache: jest.fn(),
   invalidateUserProfile: jest.fn(),
 }));
@@ -53,13 +53,13 @@ describe('Integration: Authentication Flow', () => {
   let mockSupabase: MockSupabaseChain;
   let authService: AuthService;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     authService = new AuthService(mockSupabase as unknown as SupabaseClient);
   });
 
-  afterEach(async () => {
+  afterEach(async (): Promise<void> => {
     resetAllMocks(mockSupabase);
     await cache.clear();
   });

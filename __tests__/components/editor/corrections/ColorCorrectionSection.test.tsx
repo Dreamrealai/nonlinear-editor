@@ -22,7 +22,7 @@ describe('ColorCorrectionSection', () => {
     onReset: mockOnReset,
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

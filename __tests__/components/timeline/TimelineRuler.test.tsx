@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 import { TimelineRuler } from '@/components/timeline/TimelineRuler';
 
 // Mock TIMELINE_CONSTANTS
-jest.mock('@/lib/constants/ui', () => ({
+jest.mock('@/lib/constants/ui', (): Record<string, unknown> => ({
   TIMELINE_CONSTANTS: {
     RULER_HEIGHT: 40,
   },
@@ -18,7 +18,7 @@ describe('TimelineRuler', () => {
     onPlayheadMouseDown: jest.fn(),
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

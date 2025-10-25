@@ -11,7 +11,7 @@ import {
 } from '@/test-utils/mockSupabase';
 
 // Mock the Supabase module
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
@@ -64,7 +64,7 @@ describe('POST /api/audio/elevenlabs/generate', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   const mockHandler = createMockHandler();
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Clear all mock calls BEFORE setting up new mocks
     jest.clearAllMocks();
 
@@ -75,7 +75,7 @@ describe('POST /api/audio/elevenlabs/generate', () => {
     createServerSupabaseClient.mockImplementation(() => Promise.resolve(mockSupabase));
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
   });
 

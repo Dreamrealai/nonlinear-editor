@@ -30,7 +30,7 @@ import {
 import { cache } from '@/lib/cache';
 
 // Mock the error tracking module
-jest.mock('@/lib/errorTracking', () => ({
+jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
   trackError: jest.fn(),
   ErrorCategory: {
     DATABASE: 'database',
@@ -43,7 +43,7 @@ jest.mock('@/lib/errorTracking', () => ({
 }));
 
 // Mock cache invalidation
-jest.mock('@/lib/cacheInvalidation', () => ({
+jest.mock('@/lib/cacheInvalidation', (): Record<string, unknown> => ({
   invalidateProjectCache: jest.fn(),
   invalidateUserProjects: jest.fn(),
 }));
@@ -54,7 +54,7 @@ describe('Integration: Project Workflow', () => {
   let assetService: AssetService;
   let mockUser: ReturnType<typeof createMockUser>;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     projectService = new ProjectService(mockSupabase as unknown as SupabaseClient);
@@ -62,7 +62,7 @@ describe('Integration: Project Workflow', () => {
     mockUser = mockAuthenticatedUser(mockSupabase);
   });
 
-  afterEach(async () => {
+  afterEach(async (): Promise<void> => {
     resetAllMocks(mockSupabase);
     await cache.clear();
   });

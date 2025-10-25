@@ -14,7 +14,7 @@ import {
 } from '@/lib/requestDeduplication';
 
 // Mock browserLogger
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     debug: jest.fn(),
     error: jest.fn(),
@@ -25,12 +25,12 @@ jest.mock('@/lib/browserLogger', () => ({
 global.fetch = jest.fn();
 
 describe('Request Deduplication', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     clearRequestTracking();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     clearRequestTracking();
   });
 

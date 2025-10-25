@@ -5,7 +5,7 @@ import '@testing-library/jest-dom';
 import { VideoQueueItem } from '@/components/generation/VideoQueueItem';
 import { browserLogger } from '@/lib/browserLogger';
 
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     info: jest.fn(),
     warn: jest.fn(),
@@ -23,7 +23,7 @@ describe('VideoQueueItem', () => {
     onRemove: mockOnRemove,
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockOnRemove.mockReset();
   });

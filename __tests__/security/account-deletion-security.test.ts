@@ -18,12 +18,12 @@ import {
 } from '@/test-utils/mockSupabase';
 
 // Mock modules
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
   createServiceSupabaseClient: jest.fn(),
 }));
 
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -40,7 +40,7 @@ jest.mock('@/lib/api/response', () => {
   };
 });
 
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   checkRateLimit: jest.fn().mockResolvedValue({
     success: true,
     limit: 5,
@@ -57,7 +57,7 @@ describe('Account Deletion Security Tests (NEW-MED-002)', () => {
   let mockAdminClient: ReturnType<typeof createMockSupabaseClient>;
   let mockRequest: NextRequest;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockSupabase = createMockSupabaseClient();
@@ -95,7 +95,7 @@ describe('Account Deletion Security Tests (NEW-MED-002)', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
     resetAllMocks(mockAdminClient);
   });

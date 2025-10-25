@@ -12,7 +12,7 @@ import {
 } from '@/test-utils/mockSupabase';
 
 // Mock rate limiting
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   checkRateLimit: jest.fn(),
   RATE_LIMITS: {
     tier2_resource_creation: { max: 10, windowMs: 60000 },
@@ -20,17 +20,17 @@ jest.mock('@/lib/rateLimit', () => ({
 }));
 
 // Mock project verification
-jest.mock('@/lib/api/project-verification', () => ({
+jest.mock('@/lib/api/project-verification', (): Record<string, unknown> => ({
   verifyProjectOwnership: jest.fn(),
 }));
 
 // Mock the Supabase module
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -91,7 +91,7 @@ describe('POST /api/audio/suno/generate', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   const validProjectId = '550e8400-e29b-41d4-a716-446655440000';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
@@ -109,7 +109,7 @@ describe('POST /api/audio/suno/generate', () => {
     verifyProjectOwnership.mockResolvedValue({ hasAccess: true });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
     delete process.env['COMET_API_KEY'];
   });

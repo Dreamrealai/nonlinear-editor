@@ -45,7 +45,7 @@ describe('useAssetDeletion', () => {
 
   const mockSetTimeline = jest.fn();
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockSupabase = {

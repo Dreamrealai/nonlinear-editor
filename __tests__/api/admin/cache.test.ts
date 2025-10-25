@@ -9,13 +9,13 @@ import { NextRequest } from 'next/server';
 import { GET, DELETE } from '@/app/api/admin/cache/route';
 
 // Mock cache invalidation functions
-jest.mock('@/lib/cacheInvalidation', () => ({
+jest.mock('@/lib/cacheInvalidation', (): Record<string, unknown> => ({
   getCacheStats: jest.fn(),
   clearAllCaches: jest.fn(),
 }));
 
 // Mock withAdminAuth wrapper
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAdminAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const mockAdmin = {
       id: 'admin-123',
@@ -27,7 +27,7 @@ jest.mock('@/lib/api/withAuth', () => ({
 }));
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     warn: jest.fn(),
@@ -36,7 +36,7 @@ jest.mock('@/lib/serverLogger', () => ({
 }));
 
 describe('GET /api/admin/cache', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 
@@ -122,7 +122,7 @@ describe('GET /api/admin/cache', () => {
 });
 
 describe('DELETE /api/admin/cache', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

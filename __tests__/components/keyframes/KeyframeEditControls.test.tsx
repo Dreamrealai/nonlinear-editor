@@ -5,7 +5,7 @@ import { EditControls } from '@/components/keyframes/components/EditControls';
 import type { SceneFrameRow } from '@/components/keyframes/hooks/useFramesData';
 
 // Mock Next.js Image component
-jest.mock('next/image', () => ({
+jest.mock('next/image', (): Record<string, unknown> => ({
   __esModule: true,
   default: ({ src, alt, ...props }: { src: string; alt: string }): JSX.Element => {
     // eslint-disable-next-line @next/next/no-img-element
@@ -14,7 +14,7 @@ jest.mock('next/image', () => ({
 }));
 
 // Mock LoadingSpinner
-jest.mock('@/components/LoadingSpinner', () => ({
+jest.mock('@/components/LoadingSpinner', (): Record<string, unknown> => ({
   LoadingSpinner: ({ size }: { size?: string }): JSX.Element => (
     <div data-testid="loading-spinner" data-size={size}>
       Loading...
@@ -64,7 +64,7 @@ describe('EditControls', () => {
     clampCrop: mockClampCrop,
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

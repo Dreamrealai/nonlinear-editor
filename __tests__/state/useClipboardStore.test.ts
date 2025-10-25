@@ -18,7 +18,7 @@ describe('useClipboardStore', () => {
     ...overrides,
   });
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Reset store before each test
     const { result } = renderHook(() => useClipboardStore());
     act(() => {

@@ -7,7 +7,7 @@ const { MIN_CLIP_DURATION } = CLIP_CONSTANTS;
 
 describe('useTimelineStore', () => {
   // Clear store and mocks after each test
-  afterEach(() => {
+  afterEach((): void => {
     // Reset the store to initial state
     const { result } = renderHook(() => useTimelineStore());
     act(() => {
@@ -17,7 +17,7 @@ describe('useTimelineStore', () => {
     jest.restoreAllMocks();
   });
 
-  afterAll(() => {
+  afterAll((): void => {
     jest.restoreAllMocks();
   });
 
@@ -72,7 +72,7 @@ describe('useTimelineStore', () => {
     ...overrides,
   });
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Reset store before each test
     const { result } = renderHook(() => useTimelineStore());
     act(() => {

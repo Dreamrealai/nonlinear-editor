@@ -20,7 +20,7 @@ const mockCreateBrowserSupabaseClient = createBrowserSupabaseClient as jest.Mock
 describe('loadTimeline', () => {
   let mockSupabase: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockSupabase = {
@@ -189,7 +189,7 @@ describe('loadTimeline', () => {
 describe('saveTimeline', () => {
   let mockSupabase: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockSupabase = {
@@ -203,7 +203,7 @@ describe('saveTimeline', () => {
     jest.setSystemTime(new Date('2024-01-01T00:00:00Z'));
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.useRealTimers();
   });
 

@@ -19,7 +19,7 @@ global.crypto = {
 } as any;
 
 describe('generateNonce', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     // Mock crypto.getRandomValues to return predictable values
     mockGetRandomValues.mockImplementation((array: Uint8Array) => {
@@ -79,7 +79,7 @@ describe('generateNonce', () => {
 });
 
 describe('buildCSPHeader', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 

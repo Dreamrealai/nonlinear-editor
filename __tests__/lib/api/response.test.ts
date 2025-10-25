@@ -19,7 +19,7 @@ import {
 import { HttpStatusCode } from '@/lib/errors/errorCodes';
 
 // Mock NextResponse for Jest environment
-jest.mock('next/server', () => ({
+jest.mock('next/server', (): Record<string, unknown> => ({
   NextResponse: {
     json: (body: unknown, init?: { status?: number; headers?: Record<string, string> }) => {
       // Create a mock response object without using Response constructor
@@ -253,7 +253,7 @@ describe('API Response Utilities', () => {
   describe('internalServerError', () => {
     const originalEnv = process.env.NODE_ENV;
 
-    afterEach(() => {
+    afterEach((): void => {
       process.env.NODE_ENV = originalEnv;
     });
 
@@ -369,7 +369,7 @@ describe('API Response Utilities', () => {
     it('should log errors using serverLogger', async () => {
       // Mock the serverLogger module
       const mockServerLogger = { error: jest.fn() };
-      jest.mock('@/lib/serverLogger', () => ({
+      jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
         serverLogger: mockServerLogger,
       }));
 

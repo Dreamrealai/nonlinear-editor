@@ -13,13 +13,13 @@ import {
 } from '@/test-utils/mockSupabase';
 
 // Mock the Supabase module
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
   isSupabaseConfigured: jest.fn(() => true),
 }));
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     warn: jest.fn(),
@@ -34,7 +34,7 @@ describe('POST /api/auth/signout', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   let mockRequest: NextRequest;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Clear all mock calls BEFORE setting up new mocks
     jest.clearAllMocks();
 
@@ -52,7 +52,7 @@ describe('POST /api/auth/signout', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
   });
 

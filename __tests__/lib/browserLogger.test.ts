@@ -33,7 +33,7 @@ if (typeof window !== 'undefined') {
 import { browserLogger, generateCorrelationId } from '@/lib/browserLogger';
 
 describe('BrowserLogger', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
@@ -50,11 +50,11 @@ describe('BrowserLogger', () => {
     jest.spyOn(console, 'error').mockImplementation();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.useRealTimers();
   });
 
-  afterAll(() => {
+  afterAll((): void => {
     // Restore originals
     global.fetch = originalFetch;
     if (typeof window !== 'undefined' && originalAddEventListener) {

@@ -26,7 +26,7 @@ describe('useVideoGeneration', () => {
   const mockStartPolling = jest.fn();
   const mockStopPolling = jest.fn();
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
 
     mockToast.loading = jest.fn();
@@ -47,7 +47,7 @@ describe('useVideoGeneration', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
   });
 

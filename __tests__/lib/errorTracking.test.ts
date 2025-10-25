@@ -13,7 +13,7 @@ import {
 import { browserLogger } from '@/lib/browserLogger';
 
 // Mock the browserLogger
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     fatal: jest.fn(),
     error: jest.fn(),
@@ -23,16 +23,16 @@ jest.mock('@/lib/browserLogger', () => ({
 }));
 
 describe('Error Tracking', () => {
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.restoreAllMocks();
     jest.clearAllMocks();
   });
 
-  afterAll(() => {
+  afterAll((): void => {
     jest.restoreAllMocks();
   });
 

@@ -8,7 +8,7 @@ describe('Polling Cleanup Patterns', () => {
   let clearTimeoutSpy: jest.SpyInstance;
   let fetchMock: jest.Mock;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.useFakeTimers();
     setTimeoutSpy = jest.spyOn(global, 'setTimeout');
     clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
@@ -21,7 +21,7 @@ describe('Polling Cleanup Patterns', () => {
     global.fetch = fetchMock as any;
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.useRealTimers();
     setTimeoutSpy.mockRestore();
     clearTimeoutSpy.mockRestore();

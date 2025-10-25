@@ -11,7 +11,7 @@ import { VertexAI } from '@google-cloud/vertexai';
 // Mock the AI SDKs
 jest.mock('@google/generative-ai');
 jest.mock('@google-cloud/vertexai');
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     error: jest.fn(),
     warn: jest.fn(),
@@ -26,7 +26,7 @@ const MockVertexAI = VertexAI as jest.MockedClass<typeof VertexAI>;
 describe('makeAIClient', () => {
   const originalEnv = process.env;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
     // Clear all AI-related env vars
@@ -35,7 +35,7 @@ describe('makeAIClient', () => {
     delete process.env.GOOGLE_SERVICE_ACCOUNT;
   });
 
-  afterAll(() => {
+  afterAll((): void => {
     process.env = originalEnv;
   });
 
@@ -150,13 +150,13 @@ describe('makeAIClient', () => {
 describe('chat', () => {
   const originalEnv = process.env;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
     process.env.AISTUDIO_API_KEY = 'test-api-key';
   });
 
-  afterAll(() => {
+  afterAll((): void => {
     process.env = originalEnv;
   });
 
@@ -287,7 +287,7 @@ describe('chat', () => {
   });
 
   describe('Vertex AI Chat', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
       delete process.env.AISTUDIO_API_KEY;
       delete process.env.GEMINI_API_KEY;
       process.env.GOOGLE_SERVICE_ACCOUNT = JSON.stringify({

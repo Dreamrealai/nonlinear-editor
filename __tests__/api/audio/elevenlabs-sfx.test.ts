@@ -12,7 +12,7 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -25,12 +25,12 @@ jest.mock('@/lib/api/withAuth', () => ({
 }));
 
 // Mock fetchWithTimeout
-jest.mock('@/lib/fetchWithTimeout', () => ({
+jest.mock('@/lib/fetchWithTimeout', (): Record<string, unknown> => ({
   fetchWithTimeout: jest.fn(),
 }));
 
 // Mock rate limiting
-jest.mock('@/lib/rateLimit', () => ({
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
   checkRateLimit: jest.fn(),
   RATE_LIMITS: {
     tier2_resource_creation: { max: 10, windowMs: 60000 },
@@ -38,17 +38,17 @@ jest.mock('@/lib/rateLimit', () => ({
 }));
 
 // Mock project verification
-jest.mock('@/lib/api/project-verification', () => ({
+jest.mock('@/lib/api/project-verification', (): Record<string, unknown> => ({
   verifyProjectOwnership: jest.fn(),
 }));
 
 // Mock the Supabase module
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
 // Mock server logger
-jest.mock('@/lib/serverLogger', () => ({
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -90,7 +90,7 @@ describe('POST /api/audio/elevenlabs/sfx', () => {
   const validProjectId = '550e8400-e29b-41d4-a716-446655440000';
   const mockAudioBuffer = new ArrayBuffer(1024);
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
@@ -108,7 +108,7 @@ describe('POST /api/audio/elevenlabs/sfx', () => {
     verifyProjectOwnership.mockResolvedValue({ hasAccess: true });
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     resetAllMocks(mockSupabase);
     delete process.env['ELEVENLABS_API_KEY'];
   });

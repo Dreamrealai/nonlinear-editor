@@ -22,7 +22,7 @@ import {
 import { analyticsService } from '@/lib/services/analyticsService';
 
 // Mock analytics service
-jest.mock('@/lib/services/analyticsService', () => ({
+jest.mock('@/lib/services/analyticsService', (): Record<string, unknown> => ({
   analyticsService: {
     getFeatureFlag: jest.fn(),
     isFeatureEnabled: jest.fn(),
@@ -35,7 +35,7 @@ describe('ABTestingService', () => {
   let mockIsFeatureEnabled: jest.MockedFunction<typeof analyticsService.isFeatureEnabled>;
   let mockTrack: jest.MockedFunction<typeof analyticsService.track>;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     mockGetFeatureFlag = analyticsService.getFeatureFlag as jest.MockedFunction<
       typeof analyticsService.getFeatureFlag
     >;

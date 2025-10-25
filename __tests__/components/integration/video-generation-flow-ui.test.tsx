@@ -22,7 +22,7 @@ import toast from 'react-hot-toast';
 
 // Mock only external dependencies, not our components
 jest.mock('react-hot-toast');
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     info: jest.fn(),
     error: jest.fn(),
@@ -31,7 +31,7 @@ jest.mock('@/lib/browserLogger', () => ({
 }));
 
 // Mock Next.js Image component
-jest.mock('next/image', () => ({
+jest.mock('next/image', (): Record<string, unknown> => ({
   __esModule: true,
   default: function MockImage({
     src,
@@ -53,12 +53,12 @@ global.fetch = jest.fn();
 describe('Integration: Video Generation Flow (UI)', () => {
   const projectId = 'test-project-123';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockReset();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
   });
 
@@ -312,11 +312,14 @@ describe('Integration: Video Generation Flow (UI)', () => {
         { timeout: 3000 }
       );
 
-      // Form should not be reset on error - check current value
-      const currentPromptField = screen.getByLabelText(
-        'Video Description *'
-      ) as HTMLTextAreaElement;
-      expect(currentPromptField.value).toBe('Test video');
+      // Form should not be reset on error - verify field still has value
+      // Wait for the error to be fully processed and state to settle
+      await waitFor(() => {
+        const currentPromptField = screen.getByLabelText(
+          'Video Description *'
+        ) as HTMLTextAreaElement;
+        expect(currentPromptField.value).toBe('Test video');
+      }, { timeout: 2000 });
     });
 
     it('should disable form during submission', async () => {

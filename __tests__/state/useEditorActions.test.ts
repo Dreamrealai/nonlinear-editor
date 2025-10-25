@@ -78,7 +78,7 @@ describe('useEditorActions', () => {
     ...overrides,
   });
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Reset all stores before each test
     act(() => {
       useTimelineStore.getState().setTimeline(null);

@@ -20,7 +20,7 @@ describe('generateVideo', () => {
   let mockAuth: any;
   let mockClient: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     process.env = { ...originalEnv };
@@ -42,11 +42,11 @@ describe('generateVideo', () => {
     MockGoogleAuth.mockImplementation(() => mockAuth);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.useRealTimers();
   });
 
-  afterAll(() => {
+  afterAll((): void => {
     process.env = originalEnv;
   });
 
@@ -314,7 +314,7 @@ describe('checkOperationStatus', () => {
   let mockAuth: any;
   let mockClient: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     process.env = { ...originalEnv };
@@ -333,11 +333,11 @@ describe('checkOperationStatus', () => {
     MockGoogleAuth.mockImplementation(() => mockAuth);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.useRealTimers();
   });
 
-  afterAll(() => {
+  afterAll((): void => {
     process.env = originalEnv;
   });
 
@@ -548,7 +548,7 @@ describe('cancelOperation', () => {
   let mockAuth: any;
   let mockClient: any;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     process.env = { ...originalEnv };
@@ -567,11 +567,11 @@ describe('cancelOperation', () => {
     MockGoogleAuth.mockImplementation(() => mockAuth);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.useRealTimers();
   });
 
-  afterAll(() => {
+  afterAll((): void => {
     process.env = originalEnv;
   });
 

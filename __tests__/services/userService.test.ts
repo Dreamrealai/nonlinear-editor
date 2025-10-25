@@ -6,7 +6,7 @@ import { UserService } from '@/lib/services/userService';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 // Mock external modules
-jest.mock('@/lib/errorTracking', () => ({
+jest.mock('@/lib/errorTracking', (): Record<string, unknown> => ({
   trackError: jest.fn(),
   ErrorCategory: {
     DATABASE: 'database',
@@ -22,7 +22,7 @@ describe('UserService', () => {
   let mockSupabase: jest.Mocked<SupabaseClient>;
   let userService: UserService;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Create mock Supabase client
     mockSupabase = {
       from: jest.fn().mockReturnThis(),

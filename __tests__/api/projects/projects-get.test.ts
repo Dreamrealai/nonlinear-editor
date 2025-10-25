@@ -12,7 +12,7 @@ import {
   resetAllMocks,
 } from '@/__tests__/helpers/apiMocks';
 
-jest.mock('@/lib/api/withAuth', () => ({
+jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -24,10 +24,10 @@ jest.mock('@/lib/api/withAuth', () => ({
   }),
 }));
 
-jest.mock('@/lib/supabase', () => ({ createServerSupabaseClient: jest.fn() }));
-jest.mock('@/lib/serverLogger', () => ({ serverLogger: { info: jest.fn(), error: jest.fn() } }));
-jest.mock('@/lib/rateLimit', () => ({ RATE_LIMITS: { tier1_data_read: { requests: 60, window: 60 } } }));
-jest.mock('@/lib/services/projectService', () => ({
+jest.mock('@/lib/supabase', (): Record<string, unknown> => ({ createServerSupabaseClient: jest.fn() }));
+jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({ serverLogger: { info: jest.fn(), error: jest.fn() } }));
+jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({ RATE_LIMITS: { tier1_data_read: { requests: 60, window: 60 } } }));
+jest.mock('@/lib/services/projectService', (): Record<string, unknown> => ({
   ProjectService: jest.fn().mockImplementation(() => ({
     listProjects: jest.fn().mockResolvedValue([
       createMockProject({ id: 'project-1', title: 'Project 1' }),
@@ -39,14 +39,14 @@ jest.mock('@/lib/services/projectService', () => ({
 describe('GET /api/projects', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     const { createServerSupabaseClient } = require('@/lib/supabase');
     createServerSupabaseClient.mockResolvedValue(mockSupabase);
   });
 
-  afterEach(() => resetAllMocks());
+  afterEach((): void => resetAllMocks());
 
   it('should return 401 when not authenticated', async () => {
     mockUnauthenticatedUser(mockSupabase);

@@ -10,12 +10,12 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 // Mock fs module
-jest.mock('fs', () => ({
+jest.mock('fs', (): Record<string, unknown> => ({
   readFileSync: jest.fn(),
 }));
 
 // Mock yaml parser
-jest.mock('yaml', () => ({
+jest.mock('yaml', (): Record<string, unknown> => ({
   parse: jest.fn(),
 }));
 
@@ -46,7 +46,7 @@ paths:
     },
   };
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllMocks();
     (readFileSync as jest.Mock).mockReturnValue(mockYamlContent);
   });

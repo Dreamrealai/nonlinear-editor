@@ -8,17 +8,17 @@ import { useEditorStore } from '@/state/useEditorStore';
 import type { Timeline } from '@/types/timeline';
 
 // Mock dependencies
-jest.mock('@/lib/saveLoad', () => ({
+jest.mock('@/lib/saveLoad', (): Record<string, unknown> => ({
   saveTimeline: jest.fn(),
 }));
 
-jest.mock('@/lib/browserLogger', () => ({
+jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
   browserLogger: {
     error: jest.fn(),
   },
 }));
 
-jest.mock('@/state/useEditorStore', () => ({
+jest.mock('@/state/useEditorStore', (): Record<string, unknown> => ({
   useEditorStore: jest.fn(),
 }));
 
@@ -34,7 +34,7 @@ describe('useAutosave', () => {
 
   const mockProjectId = 'project-123';
 
-  beforeEach(() => {
+  beforeEach((): void => {
     jest.clearAllTimers();
     jest.useRealTimers();
     jest.clearAllMocks();
@@ -47,7 +47,7 @@ describe('useAutosave', () => {
     mockSaveTimeline.mockResolvedValue(undefined);
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     jest.clearAllMocks();
   });
 
