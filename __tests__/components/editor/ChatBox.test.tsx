@@ -16,8 +16,8 @@ const mockSupabaseClient = createMockSupabaseClient();
 
 jest.mock(
   '@/components/providers/SupabaseProvider',
-  (): Record<string, unknown> => ({
-    useSupabase: (): Record<string, unknown> => ({
+  () => ({
+    useSupabase: () => ({
       supabaseClient: mockSupabaseClient,
     }),
   })
@@ -26,7 +26,7 @@ jest.mock(
 // Mock browserLogger
 jest.mock(
   '@/lib/browserLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     browserLogger: {
       error: jest.fn(),
     },
@@ -36,7 +36,7 @@ jest.mock(
 // Mock Next.js Image component
 jest.mock(
   'next/image',
-  (): Record<string, unknown> => ({
+  () => ({
     __esModule: true,
     default: (props: any) => {
       // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text

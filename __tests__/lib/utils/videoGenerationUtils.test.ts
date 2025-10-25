@@ -24,7 +24,7 @@ import { VIDEO_MODEL_CONFIGS } from '@/lib/config/models';
 // Mock config
 jest.mock(
   '@/lib/config',
-  (): Record<string, unknown> => ({
+  () => ({
     NUMERIC_LIMITS: {
       VIDEO_QUEUE_MAX: 3,
     },
@@ -33,7 +33,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/config/models',
-  (): Record<string, unknown> => ({
+  () => ({
     VIDEO_MODEL_CONFIGS: {
       'veo-002': {
         supportedAspectRatios: ['16:9', '9:16', '1:1'],

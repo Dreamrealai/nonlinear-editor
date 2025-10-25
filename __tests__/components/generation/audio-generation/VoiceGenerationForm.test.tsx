@@ -6,7 +6,7 @@ import { VoiceGenerationForm } from '@/components/generation/audio-generation/Vo
 // Mock VoiceSelector component
 jest.mock(
   '@/components/generation/audio-generation/VoiceSelector',
-  (): Record<string, unknown> => ({
+  () => ({
     VoiceSelector: ({
       voices,
       selectedVoice,

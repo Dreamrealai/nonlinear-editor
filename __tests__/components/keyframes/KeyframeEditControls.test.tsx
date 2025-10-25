@@ -7,7 +7,7 @@ import type { SceneFrameRow } from '@/components/keyframes/hooks/useFramesData';
 // Mock Next.js Image component
 jest.mock(
   'next/image',
-  (): Record<string, unknown> => ({
+  () => ({
     __esModule: true,
     default: ({ src, alt, ...props }: { src: string; alt: string }): JSX.Element => {
       // eslint-disable-next-line @next/next/no-img-element
@@ -19,7 +19,7 @@ jest.mock(
 // Mock LoadingSpinner
 jest.mock(
   '@/components/LoadingSpinner',
-  (): Record<string, unknown> => ({
+  () => ({
     LoadingSpinner: ({ size }: { size?: string }): JSX.Element => (
       <div data-testid="loading-spinner" data-size={size}>
         Loading...

@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 // Mock Next.js router
 jest.mock(
   'next/navigation',
-  (): Record<string, unknown> => ({
+  () => ({
     useRouter: jest.fn(),
   })
 );
@@ -17,7 +17,7 @@ jest.mock(
 // Mock browserLogger
 jest.mock(
   '@/lib/browserLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     browserLogger: {
       error: jest.fn(),
     },
@@ -30,7 +30,7 @@ global.fetch = jest.fn();
 // Mock toast
 jest.mock(
   'react-hot-toast',
-  (): Record<string, unknown> => ({
+  () => ({
     __esModule: true,
     default: {
       success: jest.fn(),

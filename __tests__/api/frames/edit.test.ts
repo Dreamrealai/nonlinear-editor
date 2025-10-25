@@ -14,14 +14,14 @@ import {
 // Mock the Supabase module
 jest.mock(
   '@/lib/supabase',
-  (): Record<string, unknown> => ({
+  () => ({
     createServerSupabaseClient: jest.fn(),
   })
 );
 
 jest.mock(
   '@google/generative-ai',
-  (): Record<string, unknown> => ({
+  () => ({
     GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
       getGenerativeModel: jest.fn().mockReturnValue({
         generateContent: jest.fn(),
@@ -32,7 +32,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/rateLimit',
-  (): Record<string, unknown> => ({
+  () => ({
     checkRateLimit: jest.fn().mockResolvedValue({
       success: true,
       limit: 10,
@@ -47,7 +47,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       error: jest.fn(),
@@ -58,7 +58,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/auditLog',
-  (): Record<string, unknown> => ({
+  () => ({
     auditLog: jest.fn().mockResolvedValue(undefined),
     auditSecurityEvent: jest.fn().mockResolvedValue(undefined),
     AuditAction: {
@@ -72,7 +72,7 @@ jest.mock(
 
 jest.mock(
   'uuid',
-  (): Record<string, unknown> => ({
+  () => ({
     v4: jest.fn(() => 'mock-edit-id'),
   })
 );

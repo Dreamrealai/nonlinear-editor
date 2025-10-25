@@ -15,7 +15,7 @@ import {
 // Mock withAuth wrapper
 jest.mock(
   '@/lib/api/withAuth',
-  (): Record<string, unknown> => ({
+  () => ({
     withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
       const { createServerSupabaseClient } = require('@/lib/supabase');
       const supabase = await createServerSupabaseClient();
@@ -41,7 +41,7 @@ jest.mock('@/lib/supabase', () => {
 
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       warn: jest.fn(),
@@ -52,14 +52,14 @@ jest.mock(
 
 jest.mock(
   '@/lib/fetchWithTimeout',
-  (): Record<string, unknown> => ({
+  () => ({
     fetchWithTimeout: jest.fn(),
   })
 );
 
 jest.mock(
   '@/lib/rateLimit',
-  (): Record<string, unknown> => ({
+  () => ({
     checkRateLimit: jest.fn(),
     RATE_LIMITS: {
       tier2_resource_creation: { requests: 10, window: 60000 },
@@ -78,7 +78,7 @@ jest.mock('@/lib/api/response', () => {
 
 jest.mock(
   '@/lib/api/project-verification',
-  (): Record<string, unknown> => ({
+  () => ({
     verifyAssetOwnership: jest.fn(),
   })
 );

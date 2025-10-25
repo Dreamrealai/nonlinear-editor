@@ -7,7 +7,7 @@ import { POST, GET } from '@/app/api/feedback/route';
 
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       error: jest.fn(),
@@ -17,7 +17,7 @@ jest.mock(
 
 jest.mock(
   '@supabase/supabase-js',
-  (): Record<string, unknown> => ({
+  () => ({
     createClient: jest.fn(() => ({
       auth: {
         getUser: jest.fn().mockResolvedValue({

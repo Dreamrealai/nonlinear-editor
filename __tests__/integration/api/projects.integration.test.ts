@@ -26,7 +26,7 @@ import {
 // Mock withAuth wrapper - simplified version
 jest.mock(
   '@/lib/api/withAuth',
-  (): Record<string, unknown> => ({
+  () => ({
     withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
       const { createServerSupabaseClient } = require('@/lib/supabase');
       const supabase = await createServerSupabaseClient();
@@ -57,7 +57,7 @@ jest.mock(
 // Mock the Supabase module
 jest.mock(
   '@/lib/supabase',
-  (): Record<string, unknown> => ({
+  () => ({
     createServerSupabaseClient: jest.fn(),
     ensureHttpsProtocol: jest.fn((url) => url),
   })
@@ -66,7 +66,7 @@ jest.mock(
 // Mock server logger - minimal mocking
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       debug: jest.fn(),
@@ -79,7 +79,7 @@ jest.mock(
 // Mock cache invalidation - external dependency
 jest.mock(
   '@/lib/cacheInvalidation',
-  (): Record<string, unknown> => ({
+  () => ({
     invalidateUserProjects: jest.fn().mockResolvedValue(undefined),
     invalidateProjectCache: jest.fn().mockResolvedValue(undefined),
   })
@@ -88,7 +88,7 @@ jest.mock(
 // Mock error tracking - external dependency
 jest.mock(
   '@/lib/errorTracking',
-  (): Record<string, unknown> => ({
+  () => ({
     trackError: jest.fn(),
     ErrorCategory: { DATABASE: 'DATABASE' },
     ErrorSeverity: { HIGH: 'HIGH', MEDIUM: 'MEDIUM' },
@@ -98,7 +98,7 @@ jest.mock(
 // Mock cache - external dependency
 jest.mock(
   '@/lib/cache',
-  (): Record<string, unknown> => ({
+  () => ({
     cache: {
       get: jest.fn().mockResolvedValue(null),
       set: jest.fn().mockResolvedValue(undefined),

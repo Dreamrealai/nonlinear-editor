@@ -9,21 +9,21 @@ import toast from 'react-hot-toast';
 // Mock dependencies
 jest.mock(
   'next/navigation',
-  (): Record<string, unknown> => ({
+  () => ({
     useRouter: jest.fn(),
   })
 );
 
 jest.mock(
   '@/components/providers/SupabaseProvider',
-  (): Record<string, unknown> => ({
+  () => ({
     useSupabase: jest.fn(),
   })
 );
 
 jest.mock(
   '@/components/UserMenu',
-  (): Record<string, unknown> => ({
+  () => ({
     UserMenu: function MockUserMenu(): JSX.Element {
       return <div data-testid="user-menu">User Menu</div>;
     },
@@ -32,7 +32,7 @@ jest.mock(
 
 jest.mock(
   '@/components/ui/Tooltip',
-  (): Record<string, unknown> => ({
+  () => ({
     TooltipProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
     Tooltip: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
     TooltipTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -42,7 +42,7 @@ jest.mock(
 
 jest.mock(
   'react-hot-toast',
-  (): Record<string, unknown> => ({
+  () => ({
     success: jest.fn(),
     error: jest.fn(),
   })

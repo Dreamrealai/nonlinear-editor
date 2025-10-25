@@ -6,7 +6,7 @@ import { TimelineRuler } from '@/components/timeline/TimelineRuler';
 // Mock TIMELINE_CONSTANTS
 jest.mock(
   '@/lib/constants/ui',
-  (): Record<string, unknown> => ({
+  () => ({
     TIMELINE_CONSTANTS: {
       RULER_HEIGHT: 40,
     },

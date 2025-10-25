@@ -14,7 +14,7 @@ import {
 // Mock withAuth wrapper
 jest.mock(
   '@/lib/api/withAuth',
-  (): Record<string, unknown> => ({
+  () => ({
     withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
       const { createServerSupabaseClient } = require('@/lib/supabase');
       const supabase = await createServerSupabaseClient();
@@ -30,7 +30,7 @@ jest.mock(
 // Mock project verification
 jest.mock(
   '@/lib/api/project-verification',
-  (): Record<string, unknown> => ({
+  () => ({
     verifyProjectOwnership: jest.fn(),
   })
 );
@@ -38,7 +38,7 @@ jest.mock(
 // Mock the Supabase module
 jest.mock(
   '@/lib/supabase',
-  (): Record<string, unknown> => ({
+  () => ({
     createServerSupabaseClient: jest.fn(),
   })
 );
@@ -46,7 +46,7 @@ jest.mock(
 // Mock server logger
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       warn: jest.fn(),

@@ -24,7 +24,7 @@ import {
 // Mock external services only
 jest.mock(
   '@/lib/gemini',
-  (): Record<string, unknown> => ({
+  () => ({
     chat: jest.fn(),
   })
 );
@@ -34,7 +34,7 @@ jest.mock(
 // Mock audit log
 jest.mock(
   '@/lib/auditLog',
-  (): Record<string, unknown> => ({
+  () => ({
     auditSecurityEvent: jest.fn(),
     auditRateLimitViolation: jest.fn(),
     AuditAction: {

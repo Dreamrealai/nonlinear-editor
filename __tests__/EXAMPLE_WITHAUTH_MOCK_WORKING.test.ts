@@ -20,7 +20,7 @@ import { NextRequest } from 'next/server';
  */
 jest.mock(
   '@/lib/api/withAuth',
-  (): Record<string, unknown> => ({
+  () => ({
     withAuth: (handler: any) => async (req: any, context: any) => {
       const { createServerSupabaseClient } = require('@/lib/supabase');
       const supabase = await createServerSupabaseClient();
@@ -53,7 +53,7 @@ jest.mock(
  */
 jest.mock(
   '@/lib/supabase',
-  (): Record<string, unknown> => ({
+  () => ({
     createServerSupabaseClient: jest.fn(),
   })
 );
@@ -63,14 +63,14 @@ jest.mock(
  */
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
       child: jest.fn(
-        (): Record<string, unknown> => ({
+        () => ({
           info: jest.fn(),
           error: jest.fn(),
           warn: jest.fn(),
@@ -86,7 +86,7 @@ jest.mock(
  */
 jest.mock(
   '@/lib/rateLimit',
-  (): Record<string, unknown> => ({
+  () => ({
     RATE_LIMITS: {
       tier3_status_read: { requests: 60, window: 60 },
       tier2_resource_creation: { requests: 10, window: 60 },
@@ -99,7 +99,7 @@ jest.mock(
  */
 jest.mock(
   '@/lib/auditLog',
-  (): Record<string, unknown> => ({
+  () => ({
     auditSecurityEvent: jest.fn().mockResolvedValue(undefined),
     auditRateLimitViolation: jest.fn().mockResolvedValue(undefined),
     AuditAction: { SECURITY_UNAUTHORIZED_ACCESS: 'security.unauthorized_access' },
@@ -111,7 +111,7 @@ jest.mock(
  */
 jest.mock(
   '@/lib/services/backupService',
-  (): Record<string, unknown> => ({
+  () => ({
     BackupService: jest.fn().mockImplementation(() => ({
       listBackups: jest.fn().mockResolvedValue([
         {

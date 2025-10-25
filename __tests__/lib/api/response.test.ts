@@ -21,7 +21,7 @@ import { HttpStatusCode } from '@/lib/errors/errorCodes';
 // Mock NextResponse for Jest environment
 jest.mock(
   'next/server',
-  (): Record<string, unknown> => ({
+  () => ({
     NextResponse: {
       json: (body: unknown, init?: { status?: number; headers?: Record<string, string> }) => {
         // Create a mock response object without using Response constructor
@@ -374,7 +374,7 @@ describe('API Response Utilities', () => {
       const mockServerLogger = { error: jest.fn() };
       jest.mock(
         '@/lib/serverLogger',
-        (): Record<string, unknown> => ({
+        () => ({
           serverLogger: mockServerLogger,
         })
       );

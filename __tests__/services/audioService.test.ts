@@ -8,7 +8,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 // Mock external modules
 jest.mock(
   '@/lib/errorTracking',
-  (): Record<string, unknown> => ({
+  () => ({
     trackError: jest.fn(),
     ErrorCategory: {
       EXTERNAL_SERVICE: 'external_service',
@@ -23,7 +23,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       error: jest.fn(),

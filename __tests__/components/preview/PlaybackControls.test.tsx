@@ -6,7 +6,7 @@ import { PlaybackControls } from '@/components/preview/PlaybackControls';
 // Mock video utils
 jest.mock(
   '@/lib/utils/videoUtils',
-  (): Record<string, unknown> => ({
+  () => ({
     clamp: (value: number, min: number, max: number) => Math.min(Math.max(value, min), max),
     formatTimecode: (seconds: number) => {
       const mins = Math.floor(seconds / 60);

@@ -5,7 +5,7 @@
 // Mock uuid BEFORE any imports that use it
 jest.mock(
   'uuid',
-  (): Record<string, unknown> => ({
+  () => ({
     v4: () => 'test-uuid-1234',
   })
 );
@@ -13,7 +13,7 @@ jest.mock(
 // Mock errorTracking BEFORE imports
 jest.mock(
   '@/lib/errorTracking',
-  (): Record<string, unknown> => ({
+  () => ({
     trackError: jest.fn(),
     ErrorCategory: {
       EXTERNAL_SERVICE: 'external_service',

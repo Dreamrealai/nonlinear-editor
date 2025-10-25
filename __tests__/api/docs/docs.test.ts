@@ -12,7 +12,7 @@ import { join } from 'path';
 // Mock fs module
 jest.mock(
   'fs',
-  (): Record<string, unknown> => ({
+  () => ({
     readFileSync: jest.fn(),
   })
 );
@@ -20,7 +20,7 @@ jest.mock(
 // Mock yaml parser
 jest.mock(
   'yaml',
-  (): Record<string, unknown> => ({
+  () => ({
     parse: jest.fn(),
   })
 );

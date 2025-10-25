@@ -24,7 +24,7 @@ import { handleStripeCheckout } from '@/app/api/stripe/checkout/route';
 // Mock external services only
 jest.mock(
   '@/lib/stripe',
-  (): Record<string, unknown> => ({
+  () => ({
     createCheckoutSession: jest.fn(),
     getOrCreateStripeCustomer: jest.fn(),
   })
@@ -32,7 +32,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       debug: jest.fn(),
@@ -45,7 +45,7 @@ jest.mock(
 // Mock rate limiting - always allow requests to pass
 jest.mock(
   '@/lib/rateLimit',
-  (): Record<string, unknown> => ({
+  () => ({
     checkRateLimit: jest.fn().mockResolvedValue({
       success: true,
       limit: 5,

@@ -9,7 +9,7 @@ import { SignedUrlCacheManager, signedUrlCache } from '@/lib/signedUrlCache';
 // Mock browserLogger
 jest.mock(
   '@/lib/browserLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     browserLogger: {
       debug: jest.fn(),
       error: jest.fn(),

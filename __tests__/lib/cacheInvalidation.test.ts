@@ -32,7 +32,7 @@ import { serverLogger } from '@/lib/serverLogger';
 // Mock dependencies
 jest.mock(
   '@/lib/cache',
-  (): Record<string, unknown> => ({
+  () => ({
     cache: {
       del: jest.fn(),
       delPattern: jest.fn(),
@@ -56,7 +56,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       debug: jest.fn(),

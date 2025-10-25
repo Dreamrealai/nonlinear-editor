@@ -34,7 +34,7 @@ import { cache } from '@/lib/cache';
 // Mock the error tracking module
 jest.mock(
   '@/lib/errorTracking',
-  (): Record<string, unknown> => ({
+  () => ({
     trackError: jest.fn(),
     ErrorCategory: {
       DATABASE: 'database',
@@ -50,7 +50,7 @@ jest.mock(
 // Mock serverLogger
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       debug: jest.fn(),
@@ -63,7 +63,7 @@ jest.mock(
 // Mock video generation modules
 jest.mock(
   '@/lib/veo',
-  (): Record<string, unknown> => ({
+  () => ({
     generateVideo: jest.fn(),
     checkOperationStatus: jest.fn(),
   })
@@ -71,7 +71,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/fal-video',
-  (): Record<string, unknown> => ({
+  () => ({
     generateFalVideo: jest.fn(),
     checkFalVideoStatus: jest.fn(),
   })
@@ -80,7 +80,7 @@ jest.mock(
 // Mock Google Auth Library to avoid real JWT signing
 jest.mock(
   'google-auth-library',
-  (): Record<string, unknown> => ({
+  () => ({
     GoogleAuth: jest.fn().mockImplementation(() => ({
       getClient: jest.fn().mockResolvedValue({
         getAccessToken: jest.fn().mockResolvedValue({
@@ -94,7 +94,7 @@ jest.mock(
 // Mock Google Cloud Storage for GCS video download tests
 jest.mock(
   '@google-cloud/storage',
-  (): Record<string, unknown> => ({
+  () => ({
     Storage: jest.fn().mockImplementation(() => ({
       bucket: jest.fn().mockReturnValue({
         file: jest.fn().mockReturnValue({

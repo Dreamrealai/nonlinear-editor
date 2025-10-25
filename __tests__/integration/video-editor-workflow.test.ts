@@ -40,7 +40,7 @@ import { cache } from '@/lib/cache';
 // Mock error tracking
 jest.mock(
   '@/lib/errorTracking',
-  (): Record<string, unknown> => ({
+  () => ({
     trackError: jest.fn(),
     ErrorCategory: {
       DATABASE: 'database',
@@ -56,7 +56,7 @@ jest.mock(
 // Mock cache invalidation
 jest.mock(
   '@/lib/cacheInvalidation',
-  (): Record<string, unknown> => ({
+  () => ({
     invalidateProjectCache: jest.fn(),
     invalidateUserProjects: jest.fn(),
   })

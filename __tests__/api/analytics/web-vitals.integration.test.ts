@@ -16,7 +16,7 @@ import { POST, GET } from '@/app/api/analytics/web-vitals/route';
 // Only mock the logger (external service we don't want to actually call)
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       debug: jest.fn(),

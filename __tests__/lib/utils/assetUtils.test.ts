@@ -17,7 +17,7 @@ import {
 // Mock the supabase module
 jest.mock(
   '@/lib/supabase',
-  (): Record<string, unknown> => ({
+  () => ({
     ensureHttpsProtocol: jest.fn((url: string) => {
       if (!url.startsWith('http://') && !url.startsWith('https://')) {
         return `https://${url}`;

@@ -7,7 +7,7 @@ import { GET } from '@/app/api/health/detailed/route';
 // Mock createClient from Supabase
 jest.mock(
   '@supabase/supabase-js',
-  (): Record<string, unknown> => ({
+  () => ({
     createClient: jest.fn(() => ({
       from: jest.fn(() => ({
         select: jest.fn(() => ({
@@ -22,7 +22,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       warn: jest.fn(),

@@ -11,7 +11,7 @@ import { GET, DELETE } from '@/app/api/admin/cache/route';
 // Mock cache invalidation functions
 jest.mock(
   '@/lib/cacheInvalidation',
-  (): Record<string, unknown> => ({
+  () => ({
     getCacheStats: jest.fn(),
     clearAllCaches: jest.fn(),
   })
@@ -20,7 +20,7 @@ jest.mock(
 // Mock withAdminAuth wrapper
 jest.mock(
   '@/lib/api/withAuth',
-  (): Record<string, unknown> => ({
+  () => ({
     withAdminAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
       const mockAdmin = {
         id: 'admin-123',
@@ -35,7 +35,7 @@ jest.mock(
 // Mock server logger
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       warn: jest.fn(),

@@ -7,7 +7,7 @@ import { DeleteAccountModal } from '@/components/DeleteAccountModal';
 // Mock browserLogger
 jest.mock(
   '@/lib/browserLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     browserLogger: {
       error: jest.fn(),
     },
@@ -17,7 +17,7 @@ jest.mock(
 // Mock Dialog component
 jest.mock(
   '@/components/ui/Dialog',
-  (): Record<string, unknown> => ({
+  () => ({
     Dialog: ({
       children,
       open,

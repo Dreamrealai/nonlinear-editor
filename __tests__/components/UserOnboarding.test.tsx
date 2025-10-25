@@ -14,7 +14,7 @@ import { analyticsService, AnalyticsEvents } from '@/lib/services/analyticsServi
 // Mock analytics service
 jest.mock(
   '@/lib/services/analyticsService',
-  (): Record<string, unknown> => ({
+  () => ({
     analyticsService: {
       track: jest.fn(),
     },

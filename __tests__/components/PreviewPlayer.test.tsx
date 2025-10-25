@@ -11,8 +11,8 @@ jest.mock('@/state/useEditorStore');
 // Mock the video hooks
 jest.mock(
   '@/lib/hooks/useVideoManager',
-  (): Record<string, unknown> => ({
-    useVideoManager: (): Record<string, unknown> => ({
+  () => ({
+    useVideoManager: () => ({
       videoMapRef: { current: new Map() },
       ensureClipElement: jest.fn(),
       cleanupVideo: jest.fn(),
@@ -22,7 +22,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/hooks/useVideoPlayback',
-  (): Record<string, unknown> => ({
+  () => ({
     useVideoPlayback: (): void => {
       const [isPlaying, setIsPlaying] = require('react').useState(false);
       return {
@@ -184,7 +184,7 @@ describe('PreviewPlayer', () => {
         getEntriesByType: () => [],
         getEntriesByName: () => [],
         timeOrigin: Date.now(),
-        toJSON: (): Record<string, unknown> => ({}),
+        toJSON: () => ({}),
       } as unknown as Performance;
     }
   });

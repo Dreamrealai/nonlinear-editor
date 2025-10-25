@@ -10,8 +10,8 @@ const mockSupabaseClient = {};
 
 jest.mock(
   '@/components/providers/SupabaseProvider',
-  (): Record<string, unknown> => ({
-    useSupabase: (): Record<string, unknown> => ({
+  () => ({
+    useSupabase: () => ({
       supabaseClient: mockSupabaseClient,
     }),
   })
@@ -20,7 +20,7 @@ jest.mock(
 // Mock react-hot-toast
 jest.mock(
   'react-hot-toast',
-  (): Record<string, unknown> => ({
+  () => ({
     __esModule: true,
     default: {
       success: jest.fn(),

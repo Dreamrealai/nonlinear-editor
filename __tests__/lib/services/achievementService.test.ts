@@ -25,7 +25,7 @@ jest.mock('@/lib/supabase', () => {
 
 jest.mock(
   '@/lib/services/analyticsService',
-  (): Record<string, unknown> => ({
+  () => ({
     analyticsService: {
       track: jest.fn(),
     },
@@ -42,7 +42,7 @@ jest.mock(
 
 jest.mock(
   'react-hot-toast',
-  (): Record<string, unknown> => ({
+  () => ({
     __esModule: true,
     default: {
       success: jest.fn(),

@@ -10,7 +10,7 @@ jest.mock('@/lib/hooks/useVideoGenerationQueue');
 jest.mock('react-hot-toast');
 jest.mock(
   '@/components/generation/VideoGenerationForm',
-  (): Record<string, unknown> => ({
+  () => ({
     VideoGenerationForm: function MockVideoGenerationForm({ onSubmit }: any) {
       return (
         <form data-testid="video-generation-form" onSubmit={onSubmit}>
@@ -22,7 +22,7 @@ jest.mock(
 );
 jest.mock(
   '@/components/generation/VideoGenerationSettings',
-  (): Record<string, unknown> => ({
+  () => ({
     VideoGenerationSettings: function MockVideoGenerationSettings() {
       return <div data-testid="video-generation-settings">Settings</div>;
     },
@@ -30,7 +30,7 @@ jest.mock(
 );
 jest.mock(
   '@/components/generation/VideoGenerationQueue',
-  (): Record<string, unknown> => ({
+  () => ({
     VideoGenerationQueue: function MockVideoGenerationQueue() {
       return <div data-testid="video-generation-queue">Queue</div>;
     },

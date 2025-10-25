@@ -20,7 +20,7 @@ import {
  */
 jest.mock(
   '@/lib/api/withAuth',
-  (): Record<string, unknown> => ({
+  () => ({
     withAuth: (handler: any) => async (req: any) => {
       const { createServerSupabaseClient } = require('@/lib/supabase');
       const supabase = await createServerSupabaseClient();
@@ -40,14 +40,14 @@ jest.mock(
 
 jest.mock(
   '@/lib/supabase',
-  (): Record<string, unknown> => ({
+  () => ({
     createServerSupabaseClient: jest.fn(),
   })
 );
 
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       error: jest.fn(),
@@ -59,7 +59,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/rateLimit',
-  (): Record<string, unknown> => ({
+  () => ({
     RATE_LIMITS: {
       tier2_resource_creation: { requests: 10, window: 60 },
       tier3_status_read: { requests: 60, window: 60 },
@@ -69,7 +69,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/api/project-verification',
-  (): Record<string, unknown> => ({
+  () => ({
     verifyProjectOwnership: jest.fn().mockResolvedValue({
       hasAccess: true,
       status: 200,

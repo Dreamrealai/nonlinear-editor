@@ -14,14 +14,14 @@ import {
 
 jest.mock(
   '@/lib/supabase',
-  (): Record<string, unknown> => ({
+  () => ({
     createServiceSupabaseClient: jest.fn(),
   })
 );
 
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       debug: jest.fn(),
@@ -36,7 +36,7 @@ const OTHER_USER_ID = '550e8400-e29b-41d4-a716-446655440001';
 
 jest.mock(
   '@/lib/api/withAuth',
-  (): Record<string, unknown> => ({
+  () => ({
     withAdminAuth: jest.fn((handler) => async (req: NextRequest) => {
       const mockUser = createMockUser({ id: ADMIN_ID, email: 'admin@example.com' });
       return handler(req, { user: mockUser, supabase: null });
@@ -56,7 +56,7 @@ jest.mock('@/lib/api/response', () => {
 
 jest.mock(
   '@/lib/services/userService',
-  (): Record<string, unknown> => ({
+  () => ({
     UserService: jest.fn().mockImplementation(() => ({
       getUserProfile: jest.fn().mockResolvedValue({ tier: 'free' }),
       updateUserTier: jest.fn().mockResolvedValue(undefined),
@@ -66,7 +66,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/cacheInvalidation',
-  (): Record<string, unknown> => ({
+  () => ({
     invalidateUserProfile: jest.fn(),
   })
 );

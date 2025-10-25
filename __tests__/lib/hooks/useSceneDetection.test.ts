@@ -11,7 +11,7 @@ import type { AssetRow, Timeline } from '@/types';
 // Mock dependencies
 jest.mock('react-hot-toast');
 jest.mock('@/lib/browserLogger');
-jest.mock('uuid', (): Record<string, unknown> => ({ v4: () => 'mock-uuid' }));
+jest.mock('uuid', () => ({ v4: () => 'mock-uuid' }));
 
 const mockToast = toast as jest.Mocked<typeof toast>;
 const mockBrowserLogger = browserLogger as jest.Mocked<typeof browserLogger>;

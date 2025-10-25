@@ -13,7 +13,7 @@ jest.mock('@google/generative-ai');
 jest.mock('@google-cloud/vertexai');
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       error: jest.fn(),
       warn: jest.fn(),

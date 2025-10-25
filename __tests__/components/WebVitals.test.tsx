@@ -5,7 +5,7 @@ import { WebVitals } from '@/components/WebVitals';
 // Mock the webVitals module
 jest.mock(
   '@/lib/webVitals',
-  (): Record<string, unknown> => ({
+  () => ({
     initWebVitals: jest.fn(),
   })
 );

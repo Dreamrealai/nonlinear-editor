@@ -15,7 +15,7 @@ import {
 // Mock the Supabase module
 jest.mock(
   '@/lib/supabase',
-  (): Record<string, unknown> => ({
+  () => ({
     createServerSupabaseClient: jest.fn(),
     isSupabaseConfigured: jest.fn(() => true),
   })
@@ -24,7 +24,7 @@ jest.mock(
 // Mock server logger
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       warn: jest.fn(),

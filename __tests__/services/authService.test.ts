@@ -19,7 +19,7 @@ import { invalidateUserCache, invalidateUserProfile } from '@/lib/cacheInvalidat
 // Mock external modules
 jest.mock(
   '@/lib/errorTracking',
-  (): Record<string, unknown> => ({
+  () => ({
     trackError: jest.fn(),
     ErrorCategory: {
       AUTH: 'auth',
@@ -36,7 +36,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/cache',
-  (): Record<string, unknown> => ({
+  () => ({
     cache: {
       get: jest.fn(),
       set: jest.fn(),
@@ -60,7 +60,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/cacheInvalidation',
-  (): Record<string, unknown> => ({
+  () => ({
     invalidateUserCache: jest.fn(),
     invalidateUserProfile: jest.fn(),
   })

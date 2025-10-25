@@ -14,7 +14,7 @@ import {
 // Mock the Supabase module
 jest.mock(
   '@/lib/supabase',
-  (): Record<string, unknown> => ({
+  () => ({
     createServerSupabaseClient: jest.fn(),
     ensureHttpsProtocol: jest.fn((url) => url),
   })
@@ -23,7 +23,7 @@ jest.mock(
 // Mock server logger
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       debug: jest.fn(),
@@ -36,7 +36,7 @@ jest.mock(
 // Mock validation
 jest.mock(
   '@/lib/validation',
-  (): Record<string, unknown> => ({
+  () => ({
     validateUUID: jest.fn((id: string) => {
       if (!id || typeof id !== 'string' || id.length < 10) {
         const error = new Error('Invalid UUID format');
@@ -60,7 +60,7 @@ jest.mock(
  */
 jest.mock(
   '@/lib/api/withAuth',
-  (): Record<string, unknown> => ({
+  () => ({
     withAuth: (handler: any) => async (req: any, context: any) => {
       const { createServerSupabaseClient } = require('@/lib/supabase');
       const supabase = await createServerSupabaseClient();

@@ -10,7 +10,7 @@ import * as falVideo from '@/lib/fal-video';
 // Mock external modules
 jest.mock(
   '@/lib/errorTracking',
-  (): Record<string, unknown> => ({
+  () => ({
     trackError: jest.fn(),
     ErrorCategory: {
       EXTERNAL_SERVICE: 'external_service',
@@ -25,7 +25,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       error: jest.fn(),
@@ -35,7 +35,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/veo',
-  (): Record<string, unknown> => ({
+  () => ({
     generateVideo: jest.fn(),
     checkOperationStatus: jest.fn(),
   })
@@ -43,7 +43,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/fal-video',
-  (): Record<string, unknown> => ({
+  () => ({
     generateFalVideo: jest.fn(),
     checkFalVideoStatus: jest.fn(),
   })
@@ -51,7 +51,7 @@ jest.mock(
 
 jest.mock(
   'uuid',
-  (): Record<string, unknown> => ({
+  () => ({
     v4: () => 'test-uuid-1234',
   })
 );

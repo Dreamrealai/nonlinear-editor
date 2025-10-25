@@ -16,7 +16,7 @@ import { AssetOptimizationService } from '@/lib/services/assetOptimizationServic
 // Mock serverLogger
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       error: jest.fn(),
@@ -56,7 +56,7 @@ const mockGetVideoDuration = jest.fn();
 
 jest.mock(
   '@/lib/services/thumbnailService',
-  (): Record<string, unknown> => ({
+  () => ({
     ThumbnailService: jest.fn().mockImplementation(() => ({
       generateVideoThumbnailDataURL: mockGenerateVideoThumbnailDataURL,
       getVideoDuration: mockGetVideoDuration,
@@ -68,14 +68,14 @@ jest.mock(
 const mockExec = jest.fn();
 jest.mock(
   'child_process',
-  (): Record<string, unknown> => ({
+  () => ({
     exec: mockExec,
   })
 );
 
 jest.mock(
   'util',
-  (): Record<string, unknown> => ({
+  () => ({
     promisify: (fn: any) => fn,
   })
 );
@@ -85,7 +85,7 @@ const mockWriteFile = jest.fn();
 const mockUnlink = jest.fn();
 jest.mock(
   'fs/promises',
-  (): Record<string, unknown> => ({
+  () => ({
     writeFile: mockWriteFile,
     unlink: mockUnlink,
   })

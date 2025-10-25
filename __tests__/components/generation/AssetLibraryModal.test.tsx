@@ -6,7 +6,7 @@ import { AssetLibraryModal } from '@/components/generation/AssetLibraryModal';
 // Mock Next.js Image component
 jest.mock(
   'next/image',
-  (): Record<string, unknown> => ({
+  () => ({
     __esModule: true,
     default: ({
       src,
@@ -27,7 +27,7 @@ jest.mock(
 // Mock LoadingSpinner
 jest.mock(
   '@/components/LoadingSpinner',
-  (): Record<string, unknown> => ({
+  () => ({
     LoadingSpinner: ({ size }: { size?: string }) => (
       <div data-testid="loading-spinner" data-size={size}>
         Loading...
@@ -39,7 +39,7 @@ jest.mock(
 // Mock browserLogger
 jest.mock(
   '@/lib/browserLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     browserLogger: {
       error: jest.fn(),
     },

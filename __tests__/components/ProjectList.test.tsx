@@ -9,14 +9,14 @@ import type { Project } from '@/components/ProjectList';
 // Mock dependencies
 jest.mock(
   'next/navigation',
-  (): Record<string, unknown> => ({
+  () => ({
     useRouter: jest.fn(),
   })
 );
 
 jest.mock(
   'next/link',
-  (): Record<string, unknown> => ({
+  () => ({
     __esModule: true,
     default: function MockLink({ children, href }: any) {
       return <a href={href}>{children}</a>;
@@ -28,7 +28,7 @@ jest.mock('react-hot-toast');
 
 jest.mock(
   '@/lib/browserLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     browserLogger: {
       error: jest.fn(),
     },

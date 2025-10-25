@@ -9,7 +9,7 @@ import { cache, CacheKeys, CacheTTL } from '@/lib/cache';
 // Mock serverLogger to avoid actual logging in tests
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       debug: jest.fn(),
       info: jest.fn(),

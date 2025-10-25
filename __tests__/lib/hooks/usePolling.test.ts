@@ -8,7 +8,7 @@ import { usePolling, useSimplePolling } from '@/lib/hooks/usePolling';
 // Mock the browser logger
 jest.mock(
   '@/lib/browserLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     browserLogger: {
       info: jest.fn(),
       warn: jest.fn(),

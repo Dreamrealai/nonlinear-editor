@@ -19,7 +19,7 @@ import { DEFAULT_KEYBOARD_SHORTCUTS, KeyboardShortcutConfig } from '@/types/user
 // Mock browser logger
 jest.mock(
   '@/lib/browserLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     browserLogger: {
       error: jest.fn(),
       info: jest.fn(),

@@ -14,7 +14,7 @@ import {
 // Mock withAuth wrapper
 jest.mock(
   '@/lib/api/withAuth',
-  (): Record<string, unknown> => ({
+  () => ({
     withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
       const { createServerSupabaseClient } = require('@/lib/supabase');
       const supabase = await createServerSupabaseClient();
@@ -29,14 +29,14 @@ jest.mock(
 
 jest.mock(
   '@/lib/supabase',
-  (): Record<string, unknown> => ({
+  () => ({
     createServerSupabaseClient: jest.fn(),
   })
 );
 
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       warn: jest.fn(),
@@ -57,7 +57,7 @@ jest.mock('@/lib/api/response', () => {
 // Mock Google Cloud libraries
 jest.mock(
   '@google-cloud/video-intelligence',
-  (): Record<string, unknown> => ({
+  () => ({
     VideoIntelligenceServiceClient: jest.fn(() => ({
       annotateVideo: jest.fn(),
     })),
@@ -79,7 +79,7 @@ jest.mock(
 
 jest.mock(
   '@google-cloud/storage',
-  (): Record<string, unknown> => ({
+  () => ({
     Storage: jest.fn(() => ({
       bucket: jest.fn(() => ({
         exists: jest.fn().mockResolvedValue([true]),

@@ -41,7 +41,7 @@ import { cache } from '@/lib/cache';
 // Mock error tracking
 jest.mock(
   '@/lib/errorTracking',
-  (): Record<string, unknown> => ({
+  () => ({
     trackError: jest.fn(),
     ErrorCategory: {
       DATABASE: 'database',
@@ -57,7 +57,7 @@ jest.mock(
 // Mock server logger
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       debug: jest.fn(),
@@ -70,7 +70,7 @@ jest.mock(
 // Mock video generation
 jest.mock(
   '@/lib/veo',
-  (): Record<string, unknown> => ({
+  () => ({
     generateVideo: jest.fn(),
     checkOperationStatus: jest.fn(),
   })
@@ -79,7 +79,7 @@ jest.mock(
 // Mock FAL video
 jest.mock(
   '@/lib/fal-video',
-  (): Record<string, unknown> => ({
+  () => ({
     generateFalVideo: jest.fn(),
     checkFalVideoStatus: jest.fn(),
   })

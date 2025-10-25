@@ -5,7 +5,7 @@
 // Mock external modules BEFORE imports
 jest.mock(
   '@/lib/errorTracking',
-  (): Record<string, unknown> => ({
+  () => ({
     trackError: jest.fn(),
     ErrorCategory: {
       DATABASE: 'database',

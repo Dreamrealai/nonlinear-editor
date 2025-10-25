@@ -30,7 +30,7 @@ interface MockFetchResponse {
 jest.mock('react-hot-toast');
 jest.mock(
   '@/lib/browserLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     browserLogger: {
       info: jest.fn(),
       error: jest.fn(),
@@ -42,7 +42,7 @@ jest.mock(
 // Mock Next.js Image component
 jest.mock(
   'next/image',
-  (): Record<string, unknown> => ({
+  () => ({
     __esModule: true,
     default: function MockImage({
       src,

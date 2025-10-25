@@ -20,7 +20,7 @@ import sharp from 'sharp';
 const mockTrackError = jest.fn();
 jest.mock(
   '@/lib/errorTracking',
-  (): Record<string, unknown> => ({
+  () => ({
     trackError: mockTrackError,
     ErrorCategory: {
       EXTERNAL_SERVICE: 'EXTERNAL_SERVICE',
@@ -39,7 +39,7 @@ const mockExecAsync = jest.fn();
 
 jest.mock(
   'util',
-  (): Record<string, unknown> => ({
+  () => ({
     promisify: (fn: any): any => {
       if (fn.name === 'exec') {
         return mockExecAsync;
@@ -51,7 +51,7 @@ jest.mock(
 
 jest.mock(
   'child_process',
-  (): Record<string, unknown> => ({
+  () => ({
     exec: mockExec,
   })
 );
@@ -64,7 +64,7 @@ const mockExistsSync = jest.fn();
 
 jest.mock(
   'fs',
-  (): Record<string, unknown> => ({
+  () => ({
     promises: {
       writeFile: mockWriteFile,
       readFile: mockReadFile,

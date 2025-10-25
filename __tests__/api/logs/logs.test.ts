@@ -15,12 +15,12 @@ import {
 } from '@/__tests__/helpers/apiMocks';
 
 // Mock modules
-jest.mock('@/lib/supabase', (): Record<string, unknown> => ({
+jest.mock('@/lib/supabase', () => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
 // Mock withAuth wrapper
-jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
+jest.mock('@/lib/api/withAuth', () => ({
   withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
     const { createServerSupabaseClient } = require('@/lib/supabase');
     const supabase = await createServerSupabaseClient();
@@ -48,7 +48,7 @@ jest.mock('@/lib/api/withAuth', (): Record<string, unknown> => ({
 }));
 
 
-jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
+jest.mock('@/lib/serverLogger', () => ({
   serverLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -57,7 +57,7 @@ jest.mock('@/lib/serverLogger', (): Record<string, unknown> => ({
   },
 }));
 
-jest.mock('@/lib/rateLimit', (): Record<string, unknown> => ({
+jest.mock('@/lib/rateLimit', () => ({
   checkRateLimit: jest.fn().mockResolvedValue({
     success: true,
     limit: 60,

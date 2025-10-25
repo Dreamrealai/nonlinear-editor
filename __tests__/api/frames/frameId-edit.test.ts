@@ -13,7 +13,7 @@ import {
 
 jest.mock(
   '@/lib/supabase',
-  (): Record<string, unknown> => ({
+  () => ({
     createServerSupabaseClient: jest.fn(),
     isSupabaseServiceConfigured: jest.fn(() => true),
   })
@@ -21,7 +21,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       warn: jest.fn(),
@@ -32,7 +32,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/auditLog',
-  (): Record<string, unknown> => ({
+  () => ({
     auditLog: jest.fn(),
     auditSecurityEvent: jest.fn(),
     AuditAction: {
@@ -46,7 +46,7 @@ jest.mock(
 
 jest.mock(
   '@google/generative-ai',
-  (): Record<string, unknown> => ({
+  () => ({
     GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
       getGenerativeModel: jest.fn().mockReturnValue({
         generateContent: jest.fn().mockResolvedValue({

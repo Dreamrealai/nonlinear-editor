@@ -11,7 +11,7 @@ process.env.STRIPE_SECRET_KEY = 'sk_test_123';
 jest.mock('stripe');
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       error: jest.fn(),
       warn: jest.fn(),

@@ -8,7 +8,7 @@ import { POST, GET } from '@/app/api/analytics/web-vitals/route';
 // Mock server logger
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       debug: jest.fn(),

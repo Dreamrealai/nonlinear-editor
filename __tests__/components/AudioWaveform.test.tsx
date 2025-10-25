@@ -14,7 +14,7 @@ const mockBrowserLogger = {
 
 jest.mock(
   '@/lib/browserLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     browserLogger: mockBrowserLogger,
   })
 );

@@ -13,7 +13,7 @@ import type { AssetRow } from '@/types/assets';
 jest.mock('@/lib/signedUrlCache');
 jest.mock(
   '@/lib/browserLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     browserLogger: {
       debug: jest.fn(),
       info: jest.fn(),
@@ -24,7 +24,7 @@ jest.mock(
 );
 jest.mock(
   '@/lib/supabase',
-  (): Record<string, unknown> => ({
+  () => ({
     createBrowserSupabaseClient: jest.fn(() => ({
       storage: {
         from: jest.fn(() => ({

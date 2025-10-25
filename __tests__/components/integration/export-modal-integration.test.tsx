@@ -31,7 +31,7 @@ interface MockResponse {
 jest.mock('react-hot-toast');
 jest.mock(
   '@/lib/browserLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     browserLogger: {
       info: jest.fn(),
       error: jest.fn(),

@@ -20,7 +20,7 @@ import {
 // Mock modules
 jest.mock(
   '@/lib/supabase',
-  (): Record<string, unknown> => ({
+  () => ({
     createServerSupabaseClient: jest.fn(),
     createServiceSupabaseClient: jest.fn(),
   })
@@ -28,7 +28,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       debug: jest.fn(),
@@ -48,7 +48,7 @@ jest.mock('@/lib/api/response', () => {
 
 jest.mock(
   '@/lib/rateLimit',
-  (): Record<string, unknown> => ({
+  () => ({
     checkRateLimit: jest.fn().mockResolvedValue({
       success: true,
       limit: 5,

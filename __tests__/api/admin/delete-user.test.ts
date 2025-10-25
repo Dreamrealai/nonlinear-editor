@@ -9,7 +9,7 @@ import { createMockSupabaseClient, resetAllMocks } from '@/test-utils/mockSupaba
 // Mock service Supabase client
 jest.mock(
   '@/lib/supabase',
-  (): Record<string, unknown> => ({
+  () => ({
     createServiceSupabaseClient: jest.fn(),
   })
 );
@@ -17,7 +17,7 @@ jest.mock(
 // Mock withAdminAuth wrapper
 jest.mock(
   '@/lib/api/withAuth',
-  (): Record<string, unknown> => ({
+  () => ({
     withAdminAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
       const mockAdmin = {
         id: 'admin-123',
@@ -33,7 +33,7 @@ jest.mock(
 // Mock server logger
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       warn: jest.fn(),
@@ -45,7 +45,7 @@ jest.mock(
 // Mock validation
 jest.mock(
   '@/lib/api/validation',
-  (): Record<string, unknown> => ({
+  () => ({
     validateUUID: jest.fn((id: string, field: string) => {
       if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
         return { valid: false, errors: [{ field, message: `${field} must be a valid UUID` }] };

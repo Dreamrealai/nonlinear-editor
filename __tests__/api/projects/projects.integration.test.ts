@@ -30,7 +30,7 @@ import {
 // Mock external services only
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       debug: jest.fn(),
@@ -43,7 +43,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/cacheInvalidation',
-  (): Record<string, unknown> => ({
+  () => ({
     invalidateUserProjects: jest.fn().mockResolvedValue(undefined),
   })
 );
@@ -51,7 +51,7 @@ jest.mock(
 // Mock Supabase to use test implementation
 jest.mock(
   '@/lib/supabase',
-  (): Record<string, unknown> => ({
+  () => ({
     createServerSupabaseClient: jest.fn(),
   })
 );

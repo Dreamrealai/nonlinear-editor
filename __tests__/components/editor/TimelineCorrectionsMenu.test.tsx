@@ -10,8 +10,8 @@ jest.mock('@/state/useEditorStore');
 // Mock the correction hooks
 jest.mock(
   '@/components/editor/corrections/useCorrectionSync',
-  (): Record<string, unknown> => ({
-    useCorrectionSync: (): Record<string, unknown> => ({
+  () => ({
+    useCorrectionSync: () => ({
       local: {
         brightness: 100,
         contrast: 100,
@@ -54,8 +54,8 @@ jest.mock(
 
 jest.mock(
   '@/components/editor/corrections/useCorrectionHandlers',
-  (): Record<string, unknown> => ({
-    useCorrectionHandlers: (): Record<string, unknown> => ({
+  () => ({
+    useCorrectionHandlers: () => ({
       updateTransform: jest.fn(),
       updateAudioEffects: jest.fn(),
       resetColorCorrection: jest.fn(),

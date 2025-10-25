@@ -16,7 +16,7 @@ import { serverLogger } from '@/lib/serverLogger';
 // Mock server logger
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       error: jest.fn(),
       warn: jest.fn(),

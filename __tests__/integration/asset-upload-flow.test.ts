@@ -33,7 +33,7 @@ import { cache } from '@/lib/cache';
 // Mock the error tracking module
 jest.mock(
   '@/lib/errorTracking',
-  (): Record<string, unknown> => ({
+  () => ({
     trackError: jest.fn(),
     ErrorCategory: {
       DATABASE: 'database',

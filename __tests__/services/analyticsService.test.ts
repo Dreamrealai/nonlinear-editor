@@ -24,7 +24,7 @@ import posthog from 'posthog-js';
 // Mock PostHog
 jest.mock(
   'posthog-js',
-  (): Record<string, unknown> => ({
+  () => ({
     init: jest.fn(),
     capture: jest.fn(),
     identify: jest.fn(),

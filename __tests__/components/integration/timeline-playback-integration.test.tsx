@@ -25,7 +25,7 @@ import { useEditorStore } from '@/state/useEditorStore';
 // Mock Next.js Image
 jest.mock(
   'next/image',
-  (): Record<string, unknown> => ({
+  () => ({
     __esModule: true,
     default: function MockImage({
       src,

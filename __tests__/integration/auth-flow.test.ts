@@ -32,7 +32,7 @@ import { cache } from '@/lib/cache';
 // Mock the error tracking module
 jest.mock(
   '@/lib/errorTracking',
-  (): Record<string, unknown> => ({
+  () => ({
     trackError: jest.fn(),
     ErrorCategory: {
       AUTH: 'auth',
@@ -49,7 +49,7 @@ jest.mock(
 // Mock cache invalidation
 jest.mock(
   '@/lib/cacheInvalidation',
-  (): Record<string, unknown> => ({
+  () => ({
     invalidateUserCache: jest.fn(),
     invalidateUserProfile: jest.fn(),
   })

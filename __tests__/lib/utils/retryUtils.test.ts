@@ -15,7 +15,7 @@ import {
 // Mock browserLogger
 jest.mock(
   '@/lib/browserLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     browserLogger: {
       debug: jest.fn(),
       warn: jest.fn(),

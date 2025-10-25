@@ -11,7 +11,7 @@ import { headers } from 'next/headers';
 // Mock next/headers
 jest.mock(
   'next/headers',
-  (): Record<string, unknown> => ({
+  () => ({
     headers: jest.fn(),
   })
 );

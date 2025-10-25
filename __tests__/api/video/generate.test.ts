@@ -18,7 +18,7 @@ import {
 // Mock withAuth wrapper
 jest.mock(
   '@/lib/api/withAuth',
-  (): Record<string, unknown> => ({
+  () => ({
     withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
       const { createServerSupabaseClient } = require('@/lib/supabase');
       const supabase = await createServerSupabaseClient();
@@ -45,21 +45,21 @@ jest.mock('@/lib/supabase', () => {
 
 jest.mock(
   '@/lib/veo',
-  (): Record<string, unknown> => ({
+  () => ({
     generateVideo: jest.fn(),
   })
 );
 
 jest.mock(
   '@/lib/fal-video',
-  (): Record<string, unknown> => ({
+  () => ({
     generateFalVideo: jest.fn(),
   })
 );
 
 jest.mock(
   '@/lib/rateLimit',
-  (): Record<string, unknown> => ({
+  () => ({
     checkRateLimit: jest.fn(),
     RATE_LIMITS: {
       tier2_resource_creation: { max: 10, windowMs: 60000 },
@@ -71,7 +71,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       debug: jest.fn(),
@@ -91,7 +91,7 @@ jest.mock('@/lib/api/response', () => {
 });
 jest.mock(
   '@/lib/api/validation',
-  (): Record<string, unknown> => ({
+  () => ({
     validateString: jest.fn((_value: unknown) => ({ valid: true })),
     validateUUID: jest.fn((_value: unknown) => ({ valid: true })),
     validateAspectRatio: jest.fn((_value: unknown) => ({ valid: true })),
@@ -104,7 +104,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/api/project-verification',
-  (): Record<string, unknown> => ({
+  () => ({
     verifyProjectOwnership: jest.fn(),
     verifyAssetOwnership: jest.fn(),
   })

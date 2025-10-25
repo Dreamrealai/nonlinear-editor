@@ -18,7 +18,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 // Mock serverLogger
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       error: jest.fn(),

@@ -29,7 +29,7 @@ jest.mock('@/lib/supabase', () => {
 // Mock Stripe
 jest.mock(
   '@/lib/stripe',
-  (): Record<string, unknown> => ({
+  () => ({
     stripe: {
       webhooks: {
         constructEvent: jest.fn(),
@@ -44,7 +44,7 @@ jest.mock(
 // Mock cache invalidation
 jest.mock(
   '@/lib/cacheInvalidation',
-  (): Record<string, unknown> => ({
+  () => ({
     invalidateOnStripeWebhook: jest.fn(),
   })
 );
@@ -52,7 +52,7 @@ jest.mock(
 // Mock server logger
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       debug: jest.fn(),

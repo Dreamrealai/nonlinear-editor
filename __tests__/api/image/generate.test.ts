@@ -14,7 +14,7 @@ import {
 // Mock withAuth wrapper
 jest.mock(
   '@/lib/api/withAuth',
-  (): Record<string, unknown> => ({
+  () => ({
     withAuth: jest.fn((handler) => async (req: NextRequest, context: any) => {
       const { createServerSupabaseClient } = require('@/lib/supabase');
       const supabase = await createServerSupabaseClient();
@@ -30,7 +30,7 @@ jest.mock(
 // Mock dependencies
 jest.mock(
   '@/lib/supabase',
-  (): Record<string, unknown> => ({
+  () => ({
     createServerSupabaseClient: jest.fn(),
     ensureHttpsProtocol: jest.fn((url) => url),
   })
@@ -38,7 +38,7 @@ jest.mock(
 
 jest.mock(
   '@/lib/serverLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     serverLogger: {
       info: jest.fn(),
       debug: jest.fn(),
@@ -50,14 +50,14 @@ jest.mock(
 
 jest.mock(
   '@/lib/imagen',
-  (): Record<string, unknown> => ({
+  () => ({
     generateImage: jest.fn(),
   })
 );
 
 jest.mock(
   '@/lib/rateLimit',
-  (): Record<string, unknown> => ({
+  () => ({
     checkRateLimit: jest.fn(),
     RATE_LIMITS: {
       tier2_resource_creation: { requests: 10, window: 60000 },
@@ -75,7 +75,7 @@ jest.mock('@/lib/api/response', () => {
 
 jest.mock(
   '@/lib/api/project-verification',
-  (): Record<string, unknown> => ({
+  () => ({
     verifyProjectOwnership: jest.fn(),
   })
 );

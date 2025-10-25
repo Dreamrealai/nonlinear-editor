@@ -14,13 +14,13 @@ jest.mock('@/lib/supabase');
 jest.mock('@/lib/browserLogger');
 jest.mock(
   'uuid',
-  (): Record<string, unknown> => ({
+  () => ({
     v4: jest.fn(() => 'mock-uuid'),
   })
 );
 jest.mock(
   '@/lib/hooks/useAssetThumbnails',
-  (): Record<string, unknown> => ({
+  () => ({
     createImageThumbnail: jest.fn(),
     createVideoThumbnail: jest.fn(),
   })

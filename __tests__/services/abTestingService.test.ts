@@ -24,7 +24,7 @@ import { analyticsService } from '@/lib/services/analyticsService';
 // Mock analytics service
 jest.mock(
   '@/lib/services/analyticsService',
-  (): Record<string, unknown> => ({
+  () => ({
     analyticsService: {
       getFeatureFlag: jest.fn(),
       isFeatureEnabled: jest.fn(),

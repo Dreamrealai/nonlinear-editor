@@ -23,7 +23,7 @@ import type { AssetRow } from '@/types/assets';
 // Mock Next.js Image component
 jest.mock(
   'next/image',
-  (): Record<string, unknown> => ({
+  () => ({
     __esModule: true,
     default: function MockImage({
       src,
@@ -39,7 +39,7 @@ jest.mock(
 // Mock browser logger
 jest.mock(
   '@/lib/browserLogger',
-  (): Record<string, unknown> => ({
+  () => ({
     browserLogger: {
       info: jest.fn(),
       error: jest.fn(),

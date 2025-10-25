@@ -6,7 +6,7 @@ import { TimelineControls } from '@/components/timeline/TimelineControls';
 // Mock formatTime utility
 jest.mock(
   '@/lib/utils/timelineUtils',
-  (): Record<string, unknown> => ({
+  () => ({
     formatTime: (seconds: number) =>
       `${Math.floor(seconds)}:${Math.floor((seconds % 1) * 60)
         .toString()

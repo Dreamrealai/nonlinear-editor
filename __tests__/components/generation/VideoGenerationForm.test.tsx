@@ -7,7 +7,7 @@ import { VIDEO_MODELS, VIDEO_MODEL_CONFIGS } from '@/lib/config/models';
 // Mock Next.js Image component
 jest.mock(
   'next/image',
-  (): Record<string, unknown> => ({
+  () => ({
     __esModule: true,
     default: function MockImage({ src, alt, width, height }: any) {
       return <img src={src} alt={alt} width={width} height={height} />;
@@ -18,7 +18,7 @@ jest.mock(
 // Mock AssetLibraryModal
 jest.mock(
   '@/components/generation/AssetLibraryModal',
-  (): Record<string, unknown> => ({
+  () => ({
     __esModule: true,
     default: function MockAssetLibraryModal({ onClose, onSelect }: any) {
       return (

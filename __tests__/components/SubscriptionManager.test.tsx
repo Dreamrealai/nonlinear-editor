@@ -16,15 +16,15 @@ const mockSupabaseClient = {
 
 jest.mock(
   '@/lib/navigation',
-  (): Record<string, unknown> => ({
+  () => ({
     redirectToUrl: jest.fn(),
   })
 );
 
 jest.mock(
   '@/components/providers/SupabaseProvider',
-  (): Record<string, unknown> => ({
-    useSupabase: (): Record<string, unknown> => ({
+  () => ({
+    useSupabase: () => ({
       supabaseClient: mockSupabaseClient,
     }),
   })
@@ -33,7 +33,7 @@ jest.mock(
 // Mock react-hot-toast
 jest.mock(
   'react-hot-toast',
-  (): Record<string, unknown> => ({
+  () => ({
     __esModule: true,
     default: {
       error: jest.fn(),
