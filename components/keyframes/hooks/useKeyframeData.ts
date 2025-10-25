@@ -174,7 +174,7 @@ export function useFrameEdits({
         return;
       }
       const editsWithUrls = await Promise.all(
-        (data ?? []).map(async (row): Promise<{ url: string | null; id: any; frame_id: any; version: any; output_storage_path: any; created_at: any; prompt: any; }> => ({
+        (data ?? []).map(async (row: FrameEditRow) => ({
           ...row,
           url: await signStoragePath(row.output_storage_path),
         }))

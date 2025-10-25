@@ -124,8 +124,8 @@ export function createTestSupabaseClient(userId: string): SupabaseClient {
   // Create a mock Supabase client with functional query builder
   const client: any = {
     from: (table: string) => {
-      let currentTable = table;
-      let currentFilters: Array<(item: any) => boolean> = [];
+      const currentTable = table;
+      const currentFilters: Array<(item: any) => boolean> = [];
       let selectColumns = '*';
       let singleResult = false;
 
@@ -221,7 +221,7 @@ export function createTestSupabaseClient(userId: string): SupabaseClient {
           return builder;
         },
         then: (resolve: any) => {
-          let data = db.query(currentTable, (item) =>
+          const data = db.query(currentTable, (item) =>
             currentFilters.every((filter) => filter(item))
           );
 

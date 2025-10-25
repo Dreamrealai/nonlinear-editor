@@ -157,7 +157,9 @@ describe('Integration: Export Modal Workflow', () => {
 
   describe('Modal Opening and Initial State', () => {
     it('should render modal when isOpen is true', async () => {
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       expect(screen.getByText('Export Video')).toBeInTheDocument();
 
@@ -167,14 +169,18 @@ describe('Integration: Export Modal Workflow', () => {
       });
     });
 
-    it('should not render modal when isOpen is false', () => {
-      render(<ExportModal {...defaultProps} isOpen={false} />);
+    it('should not render modal when isOpen is false', async () => {
+      await act(async () => {
+        render(<ExportModal {...defaultProps} isOpen={false} />);
+      });
 
       expect(screen.queryByText('Export Video')).not.toBeInTheDocument();
     });
 
     it('should display default preset selected (1080p HD)', async () => {
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {
@@ -197,7 +203,9 @@ describe('Integration: Export Modal Workflow', () => {
     });
 
     it('should show all available export presets', async () => {
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for all presets to load
       await waitFor(() => {
@@ -212,7 +220,9 @@ describe('Integration: Export Modal Workflow', () => {
   describe('Preset Selection Workflow', () => {
     it('should update settings when user selects different preset', async () => {
       const user = userEvent.setup();
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {
@@ -244,7 +254,9 @@ describe('Integration: Export Modal Workflow', () => {
 
     it('should highlight selected preset', async () => {
       const user = userEvent.setup();
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {
@@ -277,7 +289,9 @@ describe('Integration: Export Modal Workflow', () => {
 
     it('should show different format for Web Optimized preset', async () => {
       const user = userEvent.setup();
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {
@@ -304,7 +318,9 @@ describe('Integration: Export Modal Workflow', () => {
 
     it('should navigate presets with keyboard', async () => {
       const user = userEvent.setup();
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {
@@ -345,7 +361,9 @@ describe('Integration: Export Modal Workflow', () => {
         return { ok: false, json: async () => ({ error: 'Not mocked' }) };
       });
 
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {
@@ -388,7 +406,9 @@ describe('Integration: Export Modal Workflow', () => {
         return { ok: false, json: async () => ({ error: 'Not mocked' }) };
       });
 
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {
@@ -424,7 +444,9 @@ describe('Integration: Export Modal Workflow', () => {
         return { ok: false, json: async () => ({ error: 'Not mocked' }) };
       });
 
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {
@@ -462,7 +484,9 @@ describe('Integration: Export Modal Workflow', () => {
         return { ok: false, json: async () => ({ error: 'Not mocked' }) };
       });
 
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {
@@ -515,7 +539,9 @@ describe('Integration: Export Modal Workflow', () => {
         return { ok: false, json: async () => ({ error: 'Not mocked' }) };
       });
 
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {
@@ -544,8 +570,10 @@ describe('Integration: Export Modal Workflow', () => {
       });
     });
 
-    it('should disable export when no timeline is present', () => {
-      render(<ExportModal {...defaultProps} timeline={null} />);
+    it('should disable export when no timeline is present', async () => {
+      await act(async () => {
+        render(<ExportModal {...defaultProps} timeline={null} />);
+      });
 
       const exportButton = screen.getByRole('button', { name: /add to queue/i });
       expect(exportButton).toBeDisabled();
@@ -554,7 +582,9 @@ describe('Integration: Export Modal Workflow', () => {
     it('should show warning when timeline is empty', async () => {
       const emptyTimeline: Timeline = { clips: [] } as Timeline;
 
-      render(<ExportModal {...defaultProps} timeline={emptyTimeline} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} timeline={emptyTimeline} />);
+      });
 
       // Wait for presets to load first
       await waitFor(() => {
@@ -573,7 +603,9 @@ describe('Integration: Export Modal Workflow', () => {
       const user = userEvent.setup();
       const onClose = jest.fn();
 
-      render(<ExportModal {...defaultProps} onClose={onClose} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} onClose={onClose} />);
+      });
 
       const cancelButton = screen.getByRole('button', { name: /cancel/i });
       await user.click(cancelButton);
@@ -585,7 +617,9 @@ describe('Integration: Export Modal Workflow', () => {
       const user = userEvent.setup();
       const onClose = jest.fn();
 
-      render(<ExportModal {...defaultProps} onClose={onClose} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} onClose={onClose} />);
+      });
 
       // Click on backdrop
       const backdrop = screen.getByRole('dialog').parentElement;
@@ -599,7 +633,9 @@ describe('Integration: Export Modal Workflow', () => {
       const user = userEvent.setup();
       const onClose = jest.fn();
 
-      render(<ExportModal {...defaultProps} onClose={onClose} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} onClose={onClose} />);
+      });
 
       await user.keyboard('{Escape}');
 
@@ -610,13 +646,27 @@ describe('Integration: Export Modal Workflow', () => {
       const user = userEvent.setup();
       const onClose = jest.fn();
 
-      let resolvePromise: (value: any) => void;
-      const pendingPromise = new Promise((resolve) => {
-        resolvePromise = resolve;
+      let resolveExportPromise: (value: any) => void;
+      const pendingExportPromise = new Promise((resolve) => {
+        resolveExportPromise = resolve;
       });
-      (global.fetch as jest.Mock).mockImplementationOnce(() => pendingPromise);
 
-      render(<ExportModal {...defaultProps} onClose={onClose} />);
+      (global.fetch as jest.Mock).mockImplementation(async (url: string) => {
+        if (url === '/api/export-presets') {
+          return {
+            ok: true,
+            json: async () => ({ data: { presets: mockPresets } }),
+          };
+        }
+        if (url === '/api/export') {
+          return pendingExportPromise;
+        }
+        return { ok: false, json: async () => ({ error: 'Not mocked' }) };
+      });
+
+      await act(async () => {
+        render(<ExportModal {...defaultProps} onClose={onClose} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {
@@ -634,9 +684,9 @@ describe('Integration: Export Modal Workflow', () => {
 
       // Resolve promise and wait for state updates - wrap in act
       await act(async () => {
-        resolvePromise!({
+        resolveExportPromise!({
           ok: true,
-          json: async () => ({ jobId: 'export-job-123' }),
+          json: async () => ({ data: { jobId: 'export-job-123' }, message: 'Export started' }),
         });
       });
 
@@ -651,13 +701,34 @@ describe('Integration: Export Modal Workflow', () => {
     it('should allow retry after export failure', async () => {
       const user = userEvent.setup();
 
-      // First attempt fails
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false,
-        json: async () => ({ error: 'Network error' }),
+      let firstAttempt = true;
+      (global.fetch as jest.Mock).mockImplementation(async (url: string) => {
+        if (url === '/api/export-presets') {
+          return {
+            ok: true,
+            json: async () => ({ data: { presets: mockPresets } }),
+          };
+        }
+        if (url === '/api/export') {
+          if (firstAttempt) {
+            firstAttempt = false;
+            return {
+              ok: false,
+              json: async () => ({ error: 'Network error' }),
+            };
+          } else {
+            return {
+              ok: true,
+              json: async () => ({ data: { jobId: 'export-job-123' }, message: 'Export started' }),
+            };
+          }
+        }
+        return { ok: false, json: async () => ({ error: 'Not mocked' }) };
       });
 
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {
@@ -671,35 +742,48 @@ describe('Integration: Export Modal Workflow', () => {
         expect(screen.getByText('Export Failed')).toBeInTheDocument();
       });
 
-      // Second attempt succeeds
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ jobId: 'export-job-123' }),
-      });
-
+      // Second attempt succeeds (already mocked above)
       await user.click(exportButton);
 
       await waitFor(() => {
         expect(screen.getByText('Export Started')).toBeInTheDocument();
       });
 
-      expect(global.fetch).toHaveBeenCalledTimes(2);
+      // Should have called fetch: 1 for presets, 2 for exports
+      expect(global.fetch).toHaveBeenCalledTimes(3);
     });
 
     it('should clear previous error state on new export attempt', async () => {
       const user = userEvent.setup();
 
-      (global.fetch as jest.Mock)
-        .mockResolvedValueOnce({
-          ok: false,
-          json: async () => ({ error: 'First error' }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({ jobId: 'export-job-123' }),
-        });
+      let firstAttempt = true;
+      (global.fetch as jest.Mock).mockImplementation(async (url: string) => {
+        if (url === '/api/export-presets') {
+          return {
+            ok: true,
+            json: async () => ({ data: { presets: mockPresets } }),
+          };
+        }
+        if (url === '/api/export') {
+          if (firstAttempt) {
+            firstAttempt = false;
+            return {
+              ok: false,
+              json: async () => ({ error: 'First error' }),
+            };
+          } else {
+            return {
+              ok: true,
+              json: async () => ({ data: { jobId: 'export-job-123' }, message: 'Export started' }),
+            };
+          }
+        }
+        return { ok: false, json: async () => ({ error: 'Not mocked' }) };
+      });
 
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {
@@ -725,7 +809,9 @@ describe('Integration: Export Modal Workflow', () => {
 
   describe('Accessibility', () => {
     it('should have proper dialog role and labels', async () => {
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       await waitFor(() => {
         const dialog = screen.getByRole('dialog');
@@ -736,7 +822,9 @@ describe('Integration: Export Modal Workflow', () => {
 
     it('should trap focus within modal', async () => {
       const user = userEvent.setup();
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for modal to be ready
       await waitFor(() => {
@@ -754,7 +842,9 @@ describe('Integration: Export Modal Workflow', () => {
     });
 
     it('should have descriptive button labels', async () => {
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /add to queue/i })).toHaveAccessibleName();
@@ -765,12 +855,25 @@ describe('Integration: Export Modal Workflow', () => {
     it('should announce export status changes', async () => {
       const user = userEvent.setup();
 
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ jobId: 'export-job-123' }),
+      (global.fetch as jest.Mock).mockImplementation(async (url: string) => {
+        if (url === '/api/export-presets') {
+          return {
+            ok: true,
+            json: async () => ({ data: { presets: mockPresets } }),
+          };
+        }
+        if (url === '/api/export') {
+          return {
+            ok: true,
+            json: async () => ({ data: { jobId: 'export-job-123' }, message: 'Export started' }),
+          };
+        }
+        return { ok: false, json: async () => ({ error: 'Not mocked' }) };
       });
 
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {
@@ -791,9 +894,22 @@ describe('Integration: Export Modal Workflow', () => {
     it('should handle network errors gracefully', async () => {
       const user = userEvent.setup();
 
-      (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+      (global.fetch as jest.Mock).mockImplementation(async (url: string) => {
+        if (url === '/api/export-presets') {
+          return {
+            ok: true,
+            json: async () => ({ data: { presets: mockPresets } }),
+          };
+        }
+        if (url === '/api/export') {
+          throw new Error('Network error');
+        }
+        return { ok: false, json: async () => ({ error: 'Not mocked' }) };
+      });
 
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {
@@ -811,13 +927,26 @@ describe('Integration: Export Modal Workflow', () => {
     it('should handle invalid API responses', async () => {
       const user = userEvent.setup();
 
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        json: async () => ({ error: 'Internal server error' }),
+      (global.fetch as jest.Mock).mockImplementation(async (url: string) => {
+        if (url === '/api/export-presets') {
+          return {
+            ok: true,
+            json: async () => ({ data: { presets: mockPresets } }),
+          };
+        }
+        if (url === '/api/export') {
+          return {
+            ok: false,
+            status: 500,
+            json: async () => ({ error: 'Internal server error' }),
+          };
+        }
+        return { ok: false, json: async () => ({ error: 'Not mocked' }) };
       });
 
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {
@@ -835,12 +964,25 @@ describe('Integration: Export Modal Workflow', () => {
     it('should handle malformed export data', async () => {
       const user = userEvent.setup();
 
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ jobId: null }), // Invalid response
+      (global.fetch as jest.Mock).mockImplementation(async (url: string) => {
+        if (url === '/api/export-presets') {
+          return {
+            ok: true,
+            json: async () => ({ data: { presets: mockPresets } }),
+          };
+        }
+        if (url === '/api/export') {
+          return {
+            ok: true,
+            json: async () => ({ jobId: null }),
+          };
+        }
+        return { ok: false, json: async () => ({ error: 'Not mocked' }) };
       });
 
-      render(<ExportModal {...defaultProps} />);
+      await act(async () => {
+        render(<ExportModal {...defaultProps} />);
+      });
 
       // Wait for presets to load
       await waitFor(() => {

@@ -11,6 +11,8 @@
 
 // Set NODE_ENV to test to disable rate limiting
 process.env.NODE_ENV = 'test';
+// Disable auth bypass for tests (tests control auth via mocks)
+process.env.BYPASS_AUTH = 'false';
 
 import { NextRequest } from 'next/server';
 import { createTestUser, createTestSupabaseClient } from '@/test-utils/testWithAuth';
@@ -27,21 +29,7 @@ jest.mock('@/lib/gemini', () => ({
   chat: jest.fn(),
 }));
 
-jest.mock('@/lib/serverLogger', () => {
-  const mockLogger = {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
-    child: jest.fn(),
-  };
-  // Make child() return a logger with the same interface
-  mockLogger.child.mockReturnValue(mockLogger);
-
-  return {
-    serverLogger: mockLogger,
-  };
-});
+// serverLogger is mocked globally in __mocks__/lib/serverLogger.ts
 
 // Mock audit log
 jest.mock('@/lib/auditLog', () => ({
@@ -56,19 +44,26 @@ jest.mock('@/lib/auditLog', () => ({
 let currentTestUser: ReturnType<typeof createTestUser> | null = null;
 
 // Mock Supabase client creation to return test client
-jest.mock('@/lib/supabase', () => ({
-  createServerSupabaseClient: jest.fn().mockImplementation(async () => {
-    if (!currentTestUser) {
-      // Return a client that will fail auth
-      return {
-        auth: {
-          getUser: async (): Promise<{ data: { user: null }; error: { message: string } }> => ({ data: { user: null }, error: { message: 'Not authenticated' } }),
-        },
-      };
-    }
-    return createTestSupabaseClient(currentTestUser.id);
-  }),
-}));
+jest.mock('@/lib/supabase', () => {
+  const { createTestSupabaseClient } = jest.requireActual('@/test-utils/testWithAuth');
+
+  return {
+    createServerSupabaseClient: jest.fn(async () => {
+      // Access currentTestUser via the module - it will be defined by the test
+      const currentUser = (global as any).__currentTestUser__;
+
+      if (!currentUser) {
+        // Return a client that will fail auth
+        return {
+          auth: {
+            getUser: async () => ({ data: { user: null }, error: { message: 'Not authenticated' } }),
+          },
+        };
+      }
+      return createTestSupabaseClient(currentUser.id);
+    }),
+  };
+});
 
 // Import route handler AFTER mocks are set up
 import { POST } from '@/app/api/ai/chat/route';
@@ -81,6 +76,7 @@ describe('POST /api/ai/chat - Integration Tests', () => {
   const createAuthRequest = (formData: FormData): NextRequest => {
     const user = createTestUser();
     currentTestUser = user;
+    (global as any).__currentTestUser__ = user;
     const { request } = createAuthFormDataRequest(formData, {
       url: 'http://localhost/api/ai/chat',
     });
@@ -90,6 +86,7 @@ describe('POST /api/ai/chat - Integration Tests', () => {
   // Helper to create unauthenticated request from FormData
   const createUnauthRequest = (formData: FormData): NextRequest => {
     currentTestUser = null;
+    (global as any).__currentTestUser__ = null;
     return createUnauthFormDataRequest(formData, {
       url: 'http://localhost/api/ai/chat',
     });
@@ -98,11 +95,13 @@ describe('POST /api/ai/chat - Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     currentTestUser = null;
+    (global as any).__currentTestUser__ = null;
   });
 
   afterEach(() => {
     jest.clearAllMocks();
     currentTestUser = null;
+    (global as any).__currentTestUser__ = null;
   });
 
   describe('Authentication', () => {

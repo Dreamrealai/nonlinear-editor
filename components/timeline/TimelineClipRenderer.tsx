@@ -2,7 +2,7 @@
 import React from 'react';
 
 import Image from 'next/image';
-import type { Clip, Timeline } from '@/types/timeline';
+import type { Clip, ClipGroup, Timeline } from '@/types/timeline';
 import { AudioWaveform } from '../AudioWaveform';
 import { getClipFileName, formatTimecode } from '@/lib/utils/timelineUtils';
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
@@ -61,7 +61,11 @@ export const TimelineClipRenderer = React.memo<TimelineClipRendererProps>(
     const isLocked = clip.locked ?? false;
 
     // Check if clip is grouped (memoized)
-    const groupInfo = React.useMemo((): { isGrouped: boolean; group: any; groupColor: any; } => {
+    const groupInfo = React.useMemo((): {
+      isGrouped: boolean;
+      group: ClipGroup | undefined;
+      groupColor: string;
+    } => {
       const isGrouped = Boolean(clip.groupId);
       const group = timeline?.groups?.find((g): boolean => g.id === clip.groupId);
       const groupColor = group?.color || '#8b5cf6';

@@ -1,3 +1,5 @@
+/* eslint-env jest */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /**
  * Mock Canvas API for Jest tests
  */

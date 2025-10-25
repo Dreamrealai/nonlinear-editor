@@ -109,7 +109,7 @@ function createWrapper(options: CustomRenderOptions = {}): React.ComponentType<{
     } = routerProps;
 
     // Mock useRouter
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     jest.mocked(useRouter).mockReturnValue({
       push,
       replace,
@@ -120,7 +120,7 @@ function createWrapper(options: CustomRenderOptions = {}): React.ComponentType<{
       pathname,
       query,
       asPath,
-    } as unknown as ReturnType<typeof useRouter>); // eslint-disable-line @typescript-eslint/no-explicit-any
+    } as unknown as ReturnType<typeof useRouter>);  
 
     // Mock usePathname
     jest.mocked(usePathname).mockReturnValue(pathname);

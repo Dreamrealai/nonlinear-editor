@@ -1,3 +1,5 @@
+/* eslint-env jest */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /**
  * Mock Observer APIs (IntersectionObserver, ResizeObserver, MutationObserver) for Jest tests
  */

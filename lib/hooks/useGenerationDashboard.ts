@@ -153,7 +153,7 @@ export function useGenerationDashboard({
   const checkJobStatus = useCallback(async (job: GenerationJob): Promise<Partial<GenerationJob> | null> => {
     try {
       let endpoint = '';
-      let queryParams = new URLSearchParams();
+      const queryParams = new URLSearchParams();
 
       // Determine endpoint based on job type
       if (job.type === 'video') {

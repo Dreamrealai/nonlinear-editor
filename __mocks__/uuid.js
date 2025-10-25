@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /**
  * Mock for uuid package
  * Provides stable UUIDs for testing

@@ -32,12 +32,6 @@ describe('VideoGenerationQueue', () => {
     jest.clearAllMocks();
   });
 
-  describe('Rendering', () => {
-    it('should render queue header', () => {
-      render(
-        <VideoGenerationQueue
-          videoQueue={[]}
-
   afterEach(async () => {
     cleanup();
     // Wait for any pending async operations to complete
@@ -45,6 +39,12 @@ describe('VideoGenerationQueue', () => {
       await new Promise(resolve => setTimeout(resolve, 100));
     });
   });
+
+  describe('Rendering', () => {
+    it('should render queue header', () => {
+      render(
+        <VideoGenerationQueue
+          videoQueue={[]}
           onRemove={mockOnRemove}
           onClearCompleted={mockOnClearCompleted}
         />

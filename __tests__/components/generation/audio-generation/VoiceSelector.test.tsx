@@ -16,12 +16,6 @@ describe('VoiceSelector', () => {
     jest.clearAllMocks();
   });
 
-  describe('Rendering', () => {
-    it('should render voice selector container', () => {
-      render(
-        <VoiceSelector
-          voices={mockVoices}
-
   afterEach(async () => {
     cleanup();
     // Wait for any pending async operations to complete
@@ -29,6 +23,12 @@ describe('VoiceSelector', () => {
       await new Promise(resolve => setTimeout(resolve, 100));
     });
   });
+
+  describe('Rendering', () => {
+    it('should render voice selector container', () => {
+      render(
+        <VoiceSelector
+          voices={mockVoices}
           selectedVoice="voice-1"
           onVoiceChange={mockOnVoiceChange}
           loadingVoices={false}

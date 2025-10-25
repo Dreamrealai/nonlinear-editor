@@ -143,6 +143,7 @@ async function handleChatPost(
       );
       return errorResponse(error.message, 400, error.field);
     }
+    // Re-throw other errors to be handled by withAuth middleware
     throw error;
   }
 }

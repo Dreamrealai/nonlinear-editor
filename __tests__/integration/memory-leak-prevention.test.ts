@@ -147,7 +147,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
     });
 
     test('should enforce max polling attempts (10 minutes)', async () => {
-      let isMounted = true;
+      const isMounted = true;
       let timeoutId: NodeJS.Timeout | null = null;
       let attempts = 0;
       const maxAttempts = 60; // 60 attempts * 10s = 10 minutes
@@ -329,7 +329,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
     });
 
     test('should enforce max attempts (5 minutes)', async () => {
-      let isMounted = true;
+      const isMounted = true;
       let attempts = 0;
       const maxAttempts = 60; // 60 * 5s = 5 minutes
       let timedOut = false;
@@ -762,7 +762,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
 
   describe('Error Handling with Cleanup', () => {
     test('should cleanup on fetch errors', async () => {
-      let isMounted = true;
+      const isMounted = true;
       let timeoutId: NodeJS.Timeout | null = null;
       let errorHandled = false;
 
@@ -797,7 +797,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
     });
 
     test('should cleanup on API error responses', async () => {
-      let isMounted = true;
+      const isMounted = true;
       let timeoutId: NodeJS.Timeout | null = null;
 
       fetchMock.mockResolvedValue({
@@ -839,7 +839,7 @@ describe('Memory Leak Prevention - Integration Tests', () => {
 
   describe('Complete Lifecycle Tests', () => {
     test('should handle complete video generation lifecycle', async () => {
-      let isMounted = true;
+      const isMounted = true;
       let timeoutId: NodeJS.Timeout | null = null;
       let controller: AbortController | null = null;
       let attempts = 0;

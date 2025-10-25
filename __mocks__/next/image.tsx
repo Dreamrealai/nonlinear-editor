@@ -16,6 +16,6 @@ export default function Image({
   height?: number;
   [key: string]: any;
 }) {
-  // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+  // eslint-disable-next-line @next/next/no-img-element
   return <img src={src} alt={alt} width={width} height={height} {...props} />;
 }

@@ -120,8 +120,19 @@ export const createZoomSlice = (
 
   fitToTimeline(viewportWidth: number): void {
     const state = get();
-    const methods = state as unknown as ZoomSlice & ZoomSliceState;
-    const newZoom = methods.calculateFitToTimelineZoom(viewportWidth);
+    if (!state.timeline || state.timeline.clips.length === 0 || viewportWidth <= 0) {
+      return;
+    }
+
+    const timelineDuration = Math.max(
+      ...state.timeline.clips.map((clip: Clip): number => clip.timelinePosition + (clip.end - clip.start))
+    );
+
+    const padding = 0.1;
+    const effectiveWidth = viewportWidth * (1 - 2 * padding);
+    const calculatedZoom = effectiveWidth / timelineDuration;
+    const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, calculatedZoom));
+
     set((s: ZoomSliceState): void => {
       s.zoom = newZoom;
     });
@@ -129,8 +140,30 @@ export const createZoomSlice = (
 
   fitToSelection(viewportWidth: number): void {
     const state = get();
-    const methods = state as unknown as ZoomSlice & ZoomSliceState;
-    const newZoom = methods.calculateFitToSelectionZoom(viewportWidth);
+    if (!state.timeline || state.selectedClipIds.size === 0 || viewportWidth <= 0) {
+      return;
+    }
+
+    const selectedClips = state.timeline.clips.filter((clip: Clip): boolean =>
+      state.selectedClipIds.has(clip.id)
+    );
+
+    if (selectedClips.length === 0) {
+      return;
+    }
+
+    const minPosition = Math.min(...selectedClips.map((clip: Clip): number => clip.timelinePosition));
+    const maxPosition = Math.max(
+      ...selectedClips.map((clip: Clip): number => clip.timelinePosition + (clip.end - clip.start))
+    );
+
+    const selectionDuration = maxPosition - minPosition;
+
+    const padding = 0.1;
+    const effectiveWidth = viewportWidth * (1 - 2 * padding);
+    const calculatedZoom = effectiveWidth / selectionDuration;
+    const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, calculatedZoom));
+
     set((s: ZoomSliceState): void => {
       s.zoom = newZoom;
     });

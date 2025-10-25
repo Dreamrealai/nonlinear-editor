@@ -1,3 +1,5 @@
+/* eslint-env jest */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /**
  * Mock Media Element (Audio/Video) API for Jest tests
  */
