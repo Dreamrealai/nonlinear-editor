@@ -324,11 +324,11 @@ export function useGenerationDashboard({
   }, [checkJobStatus, autoRemoveCompletedAfter, removeJob]);
 
   // Use polling for automatic refresh when jobs are active
+  // CRITICAL FIX: Removed 'jobs' from dependencies to prevent interval cascade
+  // Instead of depending on 'jobs', the interval always runs when enabled,
+  // and refresh() internally checks if there are jobs to process
   useEffect(() => {
-    if (
-      !enabled ||
-      !jobs.some((j): boolean => j.status === 'processing' || j.status === 'queued')
-    ) {
+    if (!enabled) {
       return;
     }
 
@@ -337,7 +337,7 @@ export function useGenerationDashboard({
     }, pollingInterval);
 
     return () => clearInterval(intervalId);
-  }, [enabled, jobs, pollingInterval, refresh]);
+  }, [enabled, pollingInterval, refresh]);
 
   // Filter jobs by type
   const videoJobs = jobs.filter((j): boolean => j.type === 'video');
