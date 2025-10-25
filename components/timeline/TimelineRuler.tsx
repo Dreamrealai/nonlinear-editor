@@ -213,13 +213,18 @@ export const TimelineRuler = React.memo<TimelineRulerProps>(function TimelineRul
       >
         <div className="relative h-full" style={{ width: timelineWidth }}>
           {/* Adaptive time markers with major (labeled) and minor (tick) marks */}
+          {/*
+            Key strategy: Use index as primary key since markers are generated in order
+            and represent fixed positions in the timeline. The time value alone could
+            theoretically have duplicates due to floating point precision.
+          */}
           {markers.map((marker, index): React.ReactElement => {
             const position = marker.time * zoom;
             const isMajor = marker.type === 'major';
 
             return (
               <div
-                key={`marker-${marker.time}-${index}`}
+                key={`ruler-marker-${index}`}
                 className={`absolute top-0 border-l ${
                   isMajor ? 'h-full border-neutral-400' : 'h-2 border-neutral-300'
                 }`}

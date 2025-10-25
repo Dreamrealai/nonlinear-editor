@@ -448,9 +448,13 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
           {showColorSubmenu && (
             <div className="absolute left-full top-0 ml-1 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md shadow-lg p-2 min-w-[180px] z-50">
               <div className="grid grid-cols-4 gap-2 mb-2">
+                {/*
+                  Key strategy: Use color name as key since it's unique in CLIP_COLORS object.
+                  The name property is guaranteed unique by the object structure.
+                */}
                 {Object.entries(CLIP_COLORS).map(([name, hex]) => (
                   <button
-                    key={name}
+                    key={`color-${name}`}
                     className={`w-10 h-10 rounded border-2 transition-all hover:scale-110 ${
                       currentColor === hex
                         ? 'border-white ring-2 ring-offset-2 ring-offset-neutral-100 dark:ring-offset-neutral-800 ring-blue-500'

@@ -74,13 +74,18 @@ export const TimelineSnapGuides = React.memo<TimelineSnapGuidesProps>(function T
         )}
 
         {/* Render snap candidate guidelines */}
-        {visibleCandidates.map((candidate): React.ReactElement => {
+        {/*
+          Key strategy: Use index-based composite key since snap candidates are
+          numeric positions that could theoretically have duplicates. The array
+          is regenerated on each render based on visible candidates.
+        */}
+        {visibleCandidates.map((candidate, candidateIndex): React.ReactElement => {
           const x = candidate * zoom;
           const isActiveSnap = isSnapping && Math.abs(candidate - snapPosition) < 0.001;
 
           return (
             <div
-              key={candidate}
+              key={`snap-guide-${candidateIndex}-${candidate.toFixed(3)}`}
               className={`absolute top-0 transition-all duration-150 ${
                 isActiveSnap
                   ? 'border-l-2 border-yellow-400 opacity-100 shadow-lg'

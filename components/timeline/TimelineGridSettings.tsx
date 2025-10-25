@@ -116,9 +116,13 @@ export function TimelineGridSettings({ className }: TimelineGridSettingsProps): 
             <div className="p-4 space-y-2">
               <p className="text-xs font-semibold text-neutral-700 mb-2">Preset Intervals</p>
               <div className="space-y-1">
+                {/*
+                  Key strategy: Use preset label since it's guaranteed unique in PRESET_INTERVALS.
+                  Each preset has a unique label value.
+                */}
                 {PRESET_INTERVALS.map((preset): React.ReactElement => (
                   <button
-                    key={preset.value}
+                    key={`preset-${preset.label}`}
                     onClick={(): void => handlePresetClick(preset.value)}
                     className={cn(
                       'w-full flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors',

@@ -9,6 +9,7 @@
 
 import { browserLogger } from './browserLogger';
 import { deduplicatedFetch } from './requestDeduplication';
+import { retryWithBackoff, ASSET_RETRY_OPTIONS } from './utils/retryUtils';
 
 /**
  * Signed URL cache entry
@@ -36,6 +37,8 @@ export interface SignedUrlCacheOptions {
   maxCacheSize?: number;
   /** Whether to enable logging */
   enableLogging?: boolean;
+  /** Enable automatic retries for failed requests (default: true) */
+  enableRetry?: boolean;
 }
 
 /**
@@ -60,6 +63,7 @@ class SignedUrlCacheManager {
       expiryBuffer: options.expiryBuffer ?? 300000, // 5 minutes
       maxCacheSize: options.maxCacheSize ?? 1000,
       enableLogging: options.enableLogging ?? false,
+      enableRetry: options.enableRetry ?? true,
     };
   }
 
@@ -177,40 +181,75 @@ class SignedUrlCacheManager {
     params.set('ttl', String(effectiveTTL));
 
     try {
-      // Use request deduplication to prevent duplicate sign requests
-      const fetchResponse = await deduplicatedFetch(
-        `/api/assets/sign?${params.toString()}`,
-        undefined,
-        {
-          enableLogging: this.config.enableLogging,
-          logContext: { assetId, storageUrl },
-        }
-      );
-
-      // Handle non-OK responses gracefully
-      if (!fetchResponse.ok) {
-        const errorData = await fetchResponse.json().catch(() => ({ error: 'Unknown error' }));
-
-        // 404 is expected for deleted assets - log as warning, not error
-        if (fetchResponse.status === 404) {
-          browserLogger.warn(
-            {
-              event: 'signed_url_cache.asset_not_found',
-              key: cacheKey,
-              assetId,
-              status: 404,
-            },
-            'Asset not found - may have been deleted'
-          );
-
-          // Return null to indicate asset doesn't exist
-          return null;
-        }
-
-        // For other errors, throw
-        throw new Error(
-          `Failed to sign URL (${fetchResponse.status}): ${errorData.error || 'Unknown error'}`
+      // Wrap fetch in retry logic if enabled
+      const fetchWithRetry = async (): Promise<Response> => {
+        const fetchResponse = await deduplicatedFetch(
+          `/api/assets/sign?${params.toString()}`,
+          undefined,
+          {
+            enableLogging: this.config.enableLogging,
+            logContext: { assetId, storageUrl },
+          }
         );
+
+        // Handle non-OK responses gracefully
+        if (!fetchResponse.ok) {
+          const errorData = await fetchResponse.json().catch(() => ({ error: 'Unknown error' }));
+
+          // 404 is expected for deleted assets - log as warning, not error
+          if (fetchResponse.status === 404) {
+            browserLogger.warn(
+              {
+                event: 'signed_url_cache.asset_not_found',
+                key: cacheKey,
+                assetId,
+                status: 404,
+              },
+              'Asset not found - may have been deleted'
+            );
+
+            // Return null to indicate asset doesn't exist by throwing special error
+            const error = new Error('Asset not found') as Error & { status: number };
+            error.status = 404;
+            throw error;
+          }
+
+          // For other errors, throw with status
+          const error = new Error(
+            `Failed to sign URL (${fetchResponse.status}): ${errorData.error || 'Unknown error'}`
+          ) as Error & { status: number };
+          error.status = fetchResponse.status;
+          throw error;
+        }
+
+        return fetchResponse;
+      };
+
+      // Execute fetch with or without retry based on config
+      let fetchResponse: Response;
+      if (this.config.enableRetry) {
+        try {
+          fetchResponse = await retryWithBackoff(fetchWithRetry, {
+            ...ASSET_RETRY_OPTIONS,
+            enableLogging: this.config.enableLogging,
+          });
+        } catch (error) {
+          // Check if this is a 404 error
+          if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 404) {
+            return null;
+          }
+          throw error;
+        }
+      } else {
+        try {
+          fetchResponse = await fetchWithRetry();
+        } catch (error) {
+          // Check if this is a 404 error
+          if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 404) {
+            return null;
+          }
+          throw error;
+        }
       }
 
       const response = (await fetchResponse.json()) as SignedUrlResponse;

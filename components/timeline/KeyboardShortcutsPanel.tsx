@@ -174,15 +174,20 @@ export function KeyboardShortcutsPanel({
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
+          {/*
+            Key strategy: Use category title as key since each category has a unique title.
+            For shortcuts, use composite key with description to ensure uniqueness even if
+            multiple shortcuts share the same key combination.
+          */}
           {KEYBOARD_SHORTCUTS.map(
             (category): React.ReactElement => (
-              <div key={category.title}>
+              <div key={`category-${category.title}`}>
                 <h3 className="text-sm font-semibold text-neutral-900 mb-3">{category.title}</h3>
                 <div className="space-y-2">
                   {category.shortcuts.map(
-                    (shortcut): React.ReactElement => (
+                    (shortcut, shortcutIndex): React.ReactElement => (
                       <div
-                        key={shortcut.keys.join('-')}
+                        key={`shortcut-${category.title}-${shortcutIndex}`}
                         className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-neutral-50 transition-colors"
                       >
                         <div className="flex-1">
