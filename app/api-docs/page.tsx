@@ -21,7 +21,7 @@ const ApiReferenceReact = dynamic(
 
 // Note: @scalar/api-reference-react includes its own CSS automatically
 
-export default function APIDocsPage() {
+export default function APIDocsPage(): React.JSX.Element {
   return (
     <div className="min-h-screen bg-white">
       <ApiReferenceReact

@@ -227,14 +227,14 @@ export function useAssetWithFallback(
   // Use ref to track if component is mounted
   const isMountedRef = useRef(true);
 
-  useEffect(() => {
+  useEffect((): (() => void) => {
     isMountedRef.current = true;
-    return () => {
+    return (): void => {
       isMountedRef.current = false;
     };
   }, []);
 
-  const loadAssetUrl = useCallback(async () => {
+  const loadAssetUrl = useCallback(async (): Promise<void> => {
     if (!asset) {
       setState('idle');
       setUrl(null);
