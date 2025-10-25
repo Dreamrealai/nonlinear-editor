@@ -1,12 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { validateEnv } from './lib/validateEnv';
-import {
-  getSecurityHeaders,
-  generateNonce,
-  buildCSPHeader,
-  CSP_NONCE_HEADER,
-} from './lib/security/csp';
+import { getSecurityHeaders } from './lib/security/csp';
 
 // Validate environment variables on startup (development only)
 // This runs once when the middleware module is first loaded
@@ -20,16 +15,10 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export async function proxy(request: NextRequest) {
-  // Generate CSP nonce for this request
-  // Note: The nonce is generated per-request to allow Next.js inline scripts
-  // The CSP header also includes 'unsafe-inline' (configured in next.config.ts)
-  // to allow PostHog's dynamically injected scripts (pushca.min.js, callable-future.js, etc.)
-  // that don't have nonce attributes.
-  const nonce = generateNonce();
-  const cspHeader = buildCSPHeader({
-    nonce,
-    isDevelopment: process.env.NODE_ENV === 'development',
-  });
+  // Note: CSP is configured in next.config.ts with 'unsafe-inline' to support PostHog scripts
+  // We don't use nonces here because when nonces are present, browsers ignore 'unsafe-inline'
+  // and PostHog's dynamically injected scripts (pushca.min.js, callable-future.js, etc.)
+  // don't have nonce attributes, causing them to be blocked.
 
   // Check if Supabase is configured - if not, allow all requests through
   // This enables development without Supabase and build-time checks
@@ -45,9 +34,7 @@ export async function proxy(request: NextRequest) {
       },
     });
 
-    // Apply security headers even when Supabase is not configured
-    response.headers.set('Content-Security-Policy', cspHeader);
-    response.headers.set(CSP_NONCE_HEADER, nonce);
+    // Apply additional security headers (CSP is in next.config.ts)
     getSecurityHeaders().forEach(({ key, value }) => {
       response.headers.set(key, value);
     });
@@ -55,13 +42,9 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
-  // Create request headers with CSP nonce
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set(CSP_NONCE_HEADER, nonce);
-
   let response = NextResponse.next({
     request: {
-      headers: requestHeaders,
+      headers: request.headers,
     },
   });
 
@@ -114,9 +97,7 @@ export async function proxy(request: NextRequest) {
   // Protect /editor routes
   if (request.nextUrl.pathname.startsWith('/editor') && !user) {
     const redirectResponse = NextResponse.redirect(new URL('/signin', request.url));
-    // Apply security headers to redirect
-    redirectResponse.headers.set('Content-Security-Policy', cspHeader);
-    redirectResponse.headers.set(CSP_NONCE_HEADER, nonce);
+    // Apply additional security headers (CSP is in next.config.ts)
     getSecurityHeaders().forEach(({ key, value }) => {
       redirectResponse.headers.set(key, value);
     });
@@ -126,18 +107,14 @@ export async function proxy(request: NextRequest) {
   // Redirect authenticated users away from signin
   if (request.nextUrl.pathname === '/signin' && user) {
     const redirectResponse = NextResponse.redirect(new URL('/', request.url));
-    // Apply security headers to redirect
-    redirectResponse.headers.set('Content-Security-Policy', cspHeader);
-    redirectResponse.headers.set(CSP_NONCE_HEADER, nonce);
+    // Apply additional security headers (CSP is in next.config.ts)
     getSecurityHeaders().forEach(({ key, value }) => {
       redirectResponse.headers.set(key, value);
     });
     return redirectResponse;
   }
 
-  // Apply security headers to response
-  response.headers.set('Content-Security-Policy', cspHeader);
-  response.headers.set(CSP_NONCE_HEADER, nonce);
+  // Apply additional security headers (CSP is in next.config.ts)
   getSecurityHeaders().forEach(({ key, value }) => {
     response.headers.set(key, value);
   });
@@ -146,8 +123,8 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Apply middleware to all routes for CSP nonce generation
-  // Exclude static files, API routes handled separately
+  // Apply middleware to all routes for authentication and security headers
+  // Exclude static files
   matcher: [
     /*
      * Match all request paths except:
