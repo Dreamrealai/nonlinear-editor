@@ -1,8 +1,8 @@
 # Codebase Issues Tracker
 
-**Last Updated:** 2025-10-24 (Documentation Cleanup - Archived Fixed Issues)
+**Last Updated:** 2025-10-24 (Issue #80 Fixed - Test Monitoring Implemented)
 **Status:** ✅ **BUILD PASSING - All Critical Issues Resolved**
-**Active Issues:** P0: 0 | P1: 5 | P2: 1 | P3: 3 | **Total: 9 open issues**
+**Active Issues:** P0: 0 | P1: 5 | P2: 0 | P3: 3 | **Total: 8 open issues**
 
 > **Note:** Fixed/verified issues have been moved to the "Recently Resolved Issues" section at the bottom.
 
@@ -181,10 +181,11 @@ Two services need coverage improvement:
 
 ### Issue #80: Test Execution Time and Flakiness Not Monitored
 
-**Status:** Open
+**Status:** ✅ Fixed (Agent 30)
 **Priority:** P2 (Medium - Test quality)
-**Impact:** Unknown test stability and performance
+**Impact:** Test health monitoring now available
 **Reported:** 2025-10-24
+**Fixed:** 2025-10-24
 
 **Description:**
 No monitoring for:
@@ -194,12 +195,52 @@ No monitoring for:
 - Slow tests identification
 - Performance trends
 
-**Recommendation:**
+**Solution Implemented:**
 
-1. Implement flaky test detection
-2. Track test execution time per test
-3. Set up alerts for slow tests (>5s)
-4. Monitor pass rate trends over time
+1. ✅ Created `scripts/detect-flaky-tests.ts` - TypeScript flaky test detection
+2. ✅ Created `scripts/test-performance.ts` - Test performance monitoring
+3. ✅ Added npm scripts: `test:flaky` and `test:perf`
+4. ✅ Created `test-reports/` directory for monitoring output
+5. ✅ Updated `/docs/TESTING_BEST_PRACTICES.md` with comprehensive monitoring documentation
+
+**Features:**
+
+**Flaky Test Detection:**
+
+- Runs tests N times (default: 10, configurable 2-20)
+- Tracks pass/fail status for each test
+- Identifies tests with inconsistent results
+- Generates JSON report: `test-reports/flaky-tests.json`
+- Provides recommendations for fixing flaky tests
+
+**Test Performance Monitoring:**
+
+- Collects execution time for each test
+- Identifies slow tests (default threshold: 5000ms, configurable)
+- Calculates statistics (avg, median, p95, p99)
+- Ranks slowest test suites
+- Generates JSON report: `test-reports/test-performance.json`
+
+**Usage:**
+
+```bash
+# Detect flaky tests (10 iterations)
+npm run test:flaky
+
+# Monitor test performance (5s threshold)
+npm run test:perf
+
+# Custom settings
+npm run test:flaky 5 "api/**"
+npm run test:perf 3000
+```
+
+**Documentation:**
+
+- Complete guide in TESTING_BEST_PRACTICES.md
+- Report format specifications
+- CI/CD integration examples
+- Fixing recommendations
 
 **Estimated Effort:** 4-6 hours
 

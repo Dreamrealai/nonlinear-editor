@@ -25,6 +25,8 @@
     "test:coverage": "NODE_OPTIONS='--max-old-space-size=4096' jest --coverage --maxWorkers=3 --workerIdleMemoryLimit=1024MB",
     "test:check-pass-rate": "npm run test:coverage -- --json --outputFile=/tmp/test-results.json && node scripts/check-pass-rate.js 75",
     "test:detect-flaky": "node scripts/detect-flaky-tests.js 3",
+    "test:flaky": "tsx scripts/detect-flaky-tests.ts",
+    "test:perf": "tsx scripts/test-performance.ts",
     "test:report": "node scripts/generate-test-report.js",
     "test:collect": "node scripts/collect-test-metrics.js",
     "test:dashboard": "node scripts/generate-dashboard.js",

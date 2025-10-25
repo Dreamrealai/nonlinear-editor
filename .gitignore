@@ -130,3 +130,4 @@ lerna-debug.log*
 local-scripts/
 test-results.txt
 test-summary.txt
+test-reports/
