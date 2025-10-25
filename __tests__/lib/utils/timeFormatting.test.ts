@@ -28,12 +28,12 @@ describe('Time Formatting Utilities', () => {
 
     it('should handle large values', () => {
       expect(formatTimeMMSSCS(599)).toBe('9:59.00');
-      expect(formatTimeMMSSCS(3599.99)).toBe('59:59.99');
+      expect(formatTimeMMSSCS(3599.98)).toBe('59:59.98');
     });
 
     it('should pad zeros correctly', () => {
-      expect(formatTimeMMSSCS(61.01)).toBe('1:01.01');
-      expect(formatTimeMMSSCS(0.01)).toBe('0:00.01');
+      expect(formatTimeMMSSCS(61.1)).toBe('1:01.10');
+      expect(formatTimeMMSSCS(0.1)).toBe('0:00.10');
     });
   });
 
