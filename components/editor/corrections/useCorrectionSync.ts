@@ -2,10 +2,67 @@ import { useEffect, useState } from 'react';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 import type { Clip } from '@/types/timeline';
 
+interface CorrectionSync {
+  local: {
+    brightness: number;
+    contrast: number;
+    saturation: number;
+    hue: number;
+    blur: number;
+    rotation: number;
+    scale: number;
+    volume: number;
+    fadeIn: number;
+    fadeOut: number;
+    bassGain: number;
+    midGain: number;
+    trebleGain: number;
+    compression: number;
+    opacity: number;
+    speed: number;
+  };
+  setters: {
+    setBrightness: React.Dispatch<React.SetStateAction<number>>;
+    setContrast: React.Dispatch<React.SetStateAction<number>>;
+    setSaturation: React.Dispatch<React.SetStateAction<number>>;
+    setHue: React.Dispatch<React.SetStateAction<number>>;
+    setBlur: React.Dispatch<React.SetStateAction<number>>;
+    setRotation: React.Dispatch<React.SetStateAction<number>>;
+    setScale: React.Dispatch<React.SetStateAction<number>>;
+    setVolume: React.Dispatch<React.SetStateAction<number>>;
+    setFadeIn: React.Dispatch<React.SetStateAction<number>>;
+    setFadeOut: React.Dispatch<React.SetStateAction<number>>;
+    setBassGain: React.Dispatch<React.SetStateAction<number>>;
+    setMidGain: React.Dispatch<React.SetStateAction<number>>;
+    setTrebleGain: React.Dispatch<React.SetStateAction<number>>;
+    setCompression: React.Dispatch<React.SetStateAction<number>>;
+    setOpacity: React.Dispatch<React.SetStateAction<number>>;
+    setSpeed: React.Dispatch<React.SetStateAction<number>>;
+  };
+  debounced: {
+    brightness: number;
+    contrast: number;
+    saturation: number;
+    hue: number;
+    blur: number;
+    rotation: number;
+    scale: number;
+    volume: number;
+    fadeIn: number;
+    fadeOut: number;
+    bassGain: number;
+    midGain: number;
+    trebleGain: number;
+    compression: number;
+    opacity: number;
+    speed: number;
+  };
+}
+
 /**
  * Custom hook to manage local state and debounced updates for corrections
  */
-export function useCorrectionSync(selectedClip: Clip | null) {
+export function useCorrectionSync(selectedClip: Clip | null): CorrectionSync {
   // Local state for immediate feedback
   const [localBrightness, setLocalBrightness] = useState(100);
   const [localContrast, setLocalContrast] = useState(100);

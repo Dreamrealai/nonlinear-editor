@@ -29,12 +29,27 @@ const defaultCrop = (width?: number | null, height?: number | null): CropState =
   return { x: 0, y: 0, size: size > 0 ? size : 256 };
 };
 
+interface FramesData {
+  scenes: SceneRow[];
+  frames: SceneFrameRow[];
+  frameUrls: Record<string, string>;
+  selectedFrameId: string | null;
+  selectedFrameUrl: string | null;
+  selectedFrame: SceneFrameRow | null;
+  crop: CropState;
+  setCrop: React.Dispatch<React.SetStateAction<CropState>>;
+  groupedFrames: Map<string, SceneFrameRow[]>;
+  clampCrop: (next: CropState, frame: SceneFrameRow | null) => CropState;
+  handleFrameSelect: (frame: SceneFrameRow) => Promise<void>;
+  defaultCrop: (width?: number | null, height?: number | null) => CropState;
+}
+
 export function useFramesData(
   supabase: SupabaseClient,
   selectedAssetId: string | null,
   refreshToken: number,
   signStoragePath: (path: string) => Promise<string | null>
-) {
+): FramesData {
   const [scenes, setScenes] = useState<SceneRow[]>([]);
   const [frames, setFrames] = useState<SceneFrameRow[]>([]);
   const [frameUrls, setFrameUrls] = useState<Record<string, string>>({});

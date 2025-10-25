@@ -12,9 +12,39 @@ interface UseAudioGenerationProps {
   projectId: string;
 }
 
+interface AudioGeneration {
+  generating: boolean;
+  taskId: string | null;
+  audioType: 'music' | 'voice' | 'sfx';
+  setAudioType: React.Dispatch<React.SetStateAction<'music' | 'voice' | 'sfx'>>;
+  prompt: string;
+  setPrompt: React.Dispatch<React.SetStateAction<string>>;
+  style: string;
+  setStyle: React.Dispatch<React.SetStateAction<string>>;
+  title: string;
+  setTitle: React.Dispatch<React.SetStateAction<string>>;
+  customMode: boolean;
+  setCustomMode: React.Dispatch<React.SetStateAction<boolean>>;
+  instrumental: boolean;
+  setInstrumental: React.Dispatch<React.SetStateAction<boolean>>;
+  voiceText: string;
+  setVoiceText: React.Dispatch<React.SetStateAction<string>>;
+  voices: Voice[];
+  selectedVoice: string;
+  setSelectedVoice: React.Dispatch<React.SetStateAction<string>>;
+  loadingVoices: boolean;
+  sfxPrompt: string;
+  setSfxPrompt: React.Dispatch<React.SetStateAction<string>>;
+  sfxDuration: number;
+  setSfxDuration: React.Dispatch<React.SetStateAction<number>>;
+  handleGenerateMusic: (e: React.FormEvent) => Promise<void>;
+  handleGenerateVoice: (e: React.FormEvent) => Promise<void>;
+  handleGenerateSFX: (e: React.FormEvent) => Promise<void>;
+}
+
 const MAX_RETRIES = 120; // Maximum 120 retries (10 minutes at 5s intervals)
 
-export function useAudioGeneration({ projectId }: UseAudioGenerationProps) {
+export function useAudioGeneration({ projectId }: UseAudioGenerationProps): AudioGeneration {
   const [generating, setGenerating] = useState(false);
   const [taskId, setTaskId] = useState<string | null>(null);
   const [audioType, setAudioType] = useState<'music' | 'voice' | 'sfx'>('music');

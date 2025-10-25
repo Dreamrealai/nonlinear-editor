@@ -11,7 +11,7 @@ import {
   getPasswordStrengthColor,
 } from '@/lib/validation/password';
 
-export default function PasswordSettingsPage() {
+export default function PasswordSettingsPage(): React.JSX.Element {
   const { supabaseClient } = useSupabase();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

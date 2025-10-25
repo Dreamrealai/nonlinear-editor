@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 
-export default function LogoutPage() {
+export default function LogoutPage(): React.JSX.Element {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogout = async () => {
+  const handleLogout = async (): Promise<void> => {
     setLoading(true);
     setError('');
 

@@ -146,6 +146,9 @@
   },
   "overrides": {
     "prismjs": "^1.30.0",
+    "node-fetch@^3.0.0": {
+      "fetch-blob": "file:vendor/fetch-blob"
+    },
     "test-exclude": "^7.0.1"
   }
 }

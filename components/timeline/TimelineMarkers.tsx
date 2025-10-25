@@ -126,7 +126,6 @@ export const TimelineMarkers = React.memo<TimelineMarkersProps>(function Timelin
                     if (e.key === 'Escape') handleCancelEdit();
                   }}
                   className="w-full px-2 py-1 text-xs border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
-                  autoFocus
                 />
                 <div className="flex gap-1 mt-1">
                   <button

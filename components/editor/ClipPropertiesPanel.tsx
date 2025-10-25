@@ -288,7 +288,7 @@ export function ClipPropertiesPanel(): React.ReactElement {
         <div className="space-y-3">
           {/* Color Presets */}
           <div>
-            <label className="text-xs text-gray-400 mb-2 block">Preset Colors</label>
+            <label htmlFor="color-presets" className="text-xs text-gray-400 mb-2 block">Preset Colors</label>
             <div className="grid grid-cols-5 gap-2">
               {[
                 { name: 'None', value: undefined, color: 'transparent' },

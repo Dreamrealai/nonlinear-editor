@@ -5,13 +5,19 @@ import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { useEffect, useState } from 'react';
 import PasswordSettingsPage from '../auth/password-settings/page';
 
-export default function SettingsPage() {
+import { User } from '@supabase/supabase-js';
+
+export default function SettingsPage(): React.JSX.Element | null {
   const { supabaseClient } = useSupabase();
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
+      if (!supabaseClient) {
+        router.push('/auth/sign-in');
+        return;
+      }
       const { data, error } = await supabaseClient.auth.getUser();
       if (error || !data.user) {
         router.push('/auth/sign-in');

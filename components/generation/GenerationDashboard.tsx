@@ -279,7 +279,7 @@ export function GenerationDashboard({
       <div className="p-4 border-b border-neutral-200 space-y-3">
         {/* Type Filter */}
         <div>
-          <label className="text-xs font-semibold text-neutral-700 mb-2 block">Type</label>
+          <label htmlFor="type-filter" className="text-xs font-semibold text-neutral-700 mb-2 block">Type</label>
           <div className="flex gap-2">
             <Button
               variant={typeFilter === 'all' ? 'default' : 'secondary'}
@@ -317,7 +317,7 @@ export function GenerationDashboard({
 
         {/* Status Filter */}
         <div>
-          <label className="text-xs font-semibold text-neutral-700 mb-2 block">Status</label>
+          <label htmlFor="status-filter" className="text-xs font-semibold text-neutral-700 mb-2 block">Status</label>
           <div className="flex gap-2">
             <Button
               variant={statusFilter === 'all' ? 'default' : 'secondary'}

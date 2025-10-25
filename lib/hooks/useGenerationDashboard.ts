@@ -327,7 +327,7 @@ export function useGenerationDashboard({
   // CRITICAL FIX: Removed 'jobs' from dependencies to prevent interval cascade
   // Instead of depending on 'jobs', the interval always runs when enabled,
   // and refresh() internally checks if there are jobs to process
-  useEffect(() => {
+  useEffect((): (() => void) | void => {
     if (!enabled) {
       return;
     }

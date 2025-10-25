@@ -9,6 +9,6 @@ export default function SettingsLayout({
   children,
 }: { 
   children: React.ReactNode;
-}) {
+}): React.ReactNode {
   return <>{children}</>;
 }

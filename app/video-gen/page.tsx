@@ -207,7 +207,7 @@ export default function VideoGenPage(): React.JSX.Element {
           </div>
 
           <form
-            onSubmit={(e) => {
+            onSubmit={(e): void => {
               e.preventDefault();
               const formData = new FormData(e.currentTarget);
               void handleGenerateVideo({

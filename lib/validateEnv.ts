@@ -138,7 +138,7 @@ const ENV_VARS: EnvVarConfig[] = [
     name: 'GOOGLE_SERVICE_ACCOUNT',
     required: false,
     description: 'Google Cloud service account JSON for Vertex AI, GCS, and Video Intelligence',
-    validator: (val) => {
+    validator: (val): boolean => {
       try {
         const parsed = JSON.parse(val);
         return parsed.type === 'service_account' && parsed.project_id && parsed.private_key;

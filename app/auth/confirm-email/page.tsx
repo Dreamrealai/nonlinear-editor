@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-export default function ConfirmEmailPage() {
+export default function ConfirmEmailPage(): React.JSX.Element {
   return (
     <div className="space-y-6 text-center">
       <div>

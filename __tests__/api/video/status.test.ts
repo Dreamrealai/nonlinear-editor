@@ -22,7 +22,15 @@ jest.mock(
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-      return handler(req, { user, supabase, params: context?.params || {} });
+
+      try {
+        return await handler(req, { user, supabase, params: context?.params || {} });
+      } catch (error: any) {
+        // Handle HttpError with status property
+        const status = error.status || 500;
+        const message = error.message || 'Internal server error';
+        return new Response(JSON.stringify({ error: message }), { status });
+      }
     }),
   })
 );

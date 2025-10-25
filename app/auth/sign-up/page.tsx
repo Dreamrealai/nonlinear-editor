@@ -12,7 +12,7 @@ import {
   getPasswordStrengthColor,
 } from '@/lib/validation/password';
 
-export default function SignUpPage() {
+export default function SignUpPage(): React.JSX.Element {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

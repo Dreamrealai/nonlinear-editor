@@ -381,7 +381,7 @@ export function AssetPanel({
 
           {/* Usage Filter */}
           <div>
-            <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5 block">
+            <label htmlFor="usage-filter" className="text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5 block">
               Usage Status
             </label>
             <div className="flex gap-2">
@@ -411,7 +411,7 @@ export function AssetPanel({
           {/* Tag Filter */}
           {availableTags.length > 0 && (
             <div>
-              <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5 block">
+              <label htmlFor="tag-filter" className="text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5 block">
                 Filter by Tags
               </label>
               <div className="flex flex-wrap gap-1.5">

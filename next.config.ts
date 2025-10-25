@@ -9,7 +9,7 @@ const withBundleAnalyzer =
         enabled: true,
         openAnalyzer: true,
       })
-    : (config: NextConfig) => config;
+    : (config: NextConfig): NextConfig => config;
 
 const nextConfig: NextConfig = {
   // TypeScript type checking enabled (runs during build)

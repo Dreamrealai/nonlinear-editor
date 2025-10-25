@@ -5,7 +5,7 @@ import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
-export default function ResendEmailPage() {
+export default function ResendEmailPage(): React.JSX.Element {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');

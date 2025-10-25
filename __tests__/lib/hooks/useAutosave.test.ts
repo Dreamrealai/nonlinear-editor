@@ -272,29 +272,33 @@ describe('useAutosave', () => {
 
   describe('Error Handling', () => {
     it('should handle save errors', async () => {
-      jest.useFakeTimers();
+      // Use real timers for this test due to async import() calls in the hook
+      // Fake timers don't properly handle Promise microtasks from dynamic imports
+      jest.useRealTimers();
 
       const saveError = new Error('Save failed');
       mockSaveTimeline.mockRejectedValueOnce(saveError);
 
       const { result } = renderHook(() => useAutosave(mockProjectId, 2000));
 
-      act(() => {
-        jest.advanceTimersByTime(2000);
-      });
-
-      // Wait for error to be set
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      expect(result.current.saveError).toBe('Save failed');
-      expect(mockBrowserLogger.error).toHaveBeenCalledWith(
-        { error: saveError, projectId: mockProjectId },
-        'Autosave failed'
+      // Wait for the autosave to trigger and error to be set (2 second delay + processing time)
+      await waitFor(
+        () => {
+          expect(result.current.saveError).toBe('Save failed');
+        },
+        { timeout: 5000 }
       );
 
-      jest.useRealTimers();
+      // Verify the browserLogger.error was called with correct arguments
+      expect(mockBrowserLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: saveError,
+          projectId: mockProjectId,
+          errorType: 'Error',
+          errorMessage: 'Save failed',
+        }),
+        'Autosave failed'
+      );
     });
 
     it('should clear error after 5 seconds', async () => {

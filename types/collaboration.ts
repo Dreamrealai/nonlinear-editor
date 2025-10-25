@@ -115,7 +115,7 @@ export const COLLABORATOR_PERMISSIONS = {
   },
 } as const;
 
-export function getPermissions(role: CollaboratorRole) {
+export function getPermissions(role: CollaboratorRole): (typeof COLLABORATOR_PERMISSIONS)[CollaboratorRole] {
   return COLLABORATOR_PERMISSIONS[role];
 }
 

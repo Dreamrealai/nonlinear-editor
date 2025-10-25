@@ -79,7 +79,7 @@ export function useEditorHandlers({
    * Uploads a media file using the centralized API endpoint.
    */
   const uploadAsset = useCallback(
-    async ({ file, assetType }: { file: File; assetType: AssetRow['type'] }) => {
+    async ({ file, assetType }: { file: File; assetType: AssetRow['type'] }): Promise<AssetRow> => {
       // Create FormData for multipart upload
       const formData = new FormData();
       formData.append('file', file);
@@ -116,7 +116,7 @@ export function useEditorHandlers({
   );
 
   const handleAssetUpload = useCallback(
-    async (file: File) => {
+    async (file: File): Promise<void> => {
       const type: AssetRow['type'] = file.type.startsWith('audio')
         ? 'audio'
         : file.type.startsWith('image')
@@ -135,7 +135,7 @@ export function useEditorHandlers({
   );
 
   const handleFileSelect = useCallback(
-    async (event: ChangeEvent<HTMLInputElement>) => {
+    async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
       const files = Array.from(event.target.files ?? []);
       if (files.length === 0) {
         return;
@@ -156,7 +156,7 @@ export function useEditorHandlers({
   );
 
   const handleAssetDelete = useCallback(
-    async (asset: AssetRow) => {
+    async (asset: AssetRow): Promise<void> => {
       if (!confirm(`Delete "${asset.metadata?.filename ?? asset.id}"?`)) {
         return;
       }
@@ -198,7 +198,7 @@ export function useEditorHandlers({
   );
 
   const handleClipAdd = useCallback(
-    async (asset: AssetRow) => {
+    async (asset: AssetRow): Promise<void> => {
       if (!timeline) {
         toast.error('Timeline not ready');
         return;
@@ -253,7 +253,7 @@ export function useEditorHandlers({
     [timeline, addClip]
   );
 
-  const handleDetectScenes = useCallback(async () => {
+  const handleDetectScenes = useCallback(async (): Promise<void> => {
     const latestVideo = assets.find((asset) => asset.type === 'video');
     if (!latestVideo) {
       toast.error('Upload a video before detecting scenes');
@@ -326,7 +326,7 @@ export function useEditorHandlers({
     }
   }, [assets, projectId, timeline, setTimeline]);
 
-  const handleAddText = useCallback(() => {
+  const handleAddText = useCallback((): void => {
     const addTextOverlay = useEditorStore.getState().addTextOverlay;
     const currentTime = useEditorStore.getState().currentTime;
     addTextOverlay({
@@ -346,7 +346,7 @@ export function useEditorHandlers({
     toast.success('Text overlay added at playhead');
   }, []);
 
-  const handleAddTransition = useCallback(() => {
+  const handleAddTransition = useCallback((): void => {
     const addTransitionToSelectedClips = useEditorStore.getState().addTransitionToSelectedClips;
     const selectedClipIds = useEditorStore.getState().selectedClipIds;
     if (selectedClipIds.size === 0) {
@@ -364,7 +364,7 @@ export function useEditorHandlers({
       title?: string;
       customMode?: boolean;
       instrumental?: boolean;
-    }) => {
+    }): Promise<void> => {
       toast.loading('Generating audio with Suno V5...', { id: 'generate-suno' });
 
       try {
@@ -484,7 +484,7 @@ export function useEditorHandlers({
   );
 
   const handleGenerateElevenLabs = useCallback(
-    async (formData: { text: string; voiceId?: string; modelId?: string }) => {
+    async (formData: { text: string; voiceId?: string; modelId?: string }): Promise<void> => {
       toast.loading('Generating audio with ElevenLabs...', { id: 'generate-elevenlabs' });
 
       try {
@@ -530,7 +530,7 @@ export function useEditorHandlers({
       prompt: string;
       aspectRatio?: '9:16' | '16:9' | '1:1';
       duration?: number;
-    }) => {
+    }): Promise<string | null> => {
       toast.loading('Generating video with Veo 3.1...', { id: 'generate-video' });
 
       try {
@@ -624,7 +624,7 @@ export function useEditorHandlers({
   );
 
   const handleSplitAudio = useCallback(
-    async (asset: AssetRow) => {
+    async (asset: AssetRow): Promise<void> => {
       toast.loading('Extracting audio from video...', { id: 'split-audio' });
 
       try {
@@ -741,7 +741,7 @@ export function useEditorHandlers({
   );
 
   const handleSplitScenes = useCallback(
-    async (asset: AssetRow) => {
+    async (asset: AssetRow): Promise<void> => {
       toast.loading('Splitting video into scenes...', { id: 'split-scenes' });
 
       try {
@@ -781,7 +781,7 @@ export function useEditorHandlers({
   );
 
   const handleUpscaleVideo = useCallback(
-    async (asset: AssetRow) => {
+    async (asset: AssetRow): Promise<void> => {
       toast.loading('Upscaling video with Topaz AI...', { id: 'upscale-video' });
 
       try {
@@ -861,7 +861,7 @@ export function useEditorHandlers({
   );
 
   const handleGenerateAudioFromClip = useCallback(
-    async (clipId: string) => {
+    async (clipId: string): Promise<void> => {
       if (!timeline) return;
       const clip = timeline.clips.find((c) => c.id === clipId);
       if (!clip) return;
@@ -949,7 +949,7 @@ export function useEditorHandlers({
   );
 
   const handleSplitAudioFromClip = useCallback(
-    async (clipId: string) => {
+    async (clipId: string): Promise<void> => {
       if (!timeline) return;
       const clip = timeline.clips.find((c) => c.id === clipId);
       if (!clip) return;
@@ -973,7 +973,7 @@ export function useEditorHandlers({
   );
 
   const handleSplitScenesFromClip = useCallback(
-    async (clipId: string) => {
+    async (clipId: string): Promise<void> => {
       if (!timeline) return;
       const clip = timeline.clips.find((c) => c.id === clipId);
       if (!clip) return;
@@ -996,7 +996,7 @@ export function useEditorHandlers({
     [timeline, assets, handleSplitScenes]
   );
 
-  const handleUpscaleVideoFromTimeline = useCallback(async () => {
+  const handleUpscaleVideoFromTimeline = useCallback(async (): Promise<void> => {
     if (!timeline) return;
 
     // Get the first selected clip or error if no selection

@@ -27,10 +27,30 @@ import {
   useClipboardStore,
 } from './index';
 
+interface EditorActions {
+  addClip: (clip: Clip) => void;
+  updateClip: (id: string, patch: Partial<Clip>) => void;
+  removeClip: (id: string) => void;
+  reorderClips: (ids: string[]) => void;
+  splitClipAtTime: (clipId: string, time: number) => void;
+  addMarker: (marker: Marker) => void;
+  removeMarker: (id: string) => void;
+  updateMarker: (id: string, patch: Partial<Marker>) => void;
+  addTextOverlay: (textOverlay: TextOverlay) => void;
+  removeTextOverlay: (id: string) => void;
+  updateTextOverlay: (id: string, patch: Partial<TextOverlay>) => void;
+  addTransitionToSelectedClips: (transitionType: TransitionType, duration: number) => void;
+  copySelectedClips: () => void;
+  pasteClipsAtCurrentTime: () => void;
+  undo: () => void;
+  redo: () => void;
+  initializeEditor: (timeline: Timeline | null) => void;
+}
+
 /**
  * High-level editor actions with history integration
  */
-export const useEditorActions = () => {
+export const useEditorActions = (): EditorActions => {
   // ===== Timeline Actions with History =====
 
   const addClipWithHistory = (clip: Clip): void => {

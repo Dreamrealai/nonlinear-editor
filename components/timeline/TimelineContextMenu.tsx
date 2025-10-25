@@ -625,26 +625,26 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({
   const duration = clip.end - clip.start;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={onClose}
-      onKeyDown={(e): void => {
-        if (e.key === 'Escape') {
-          onClose();
-        }
-      }}
-      role="button"
-      tabIndex={0}
-      aria-label="Close clip properties dialog"
-    >
       <div
-        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        onClick={onClose}
+        onKeyDown={(e): void => {
+          if (e.key === 'Escape') {
+            onClose();
+          }
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="clip-properties-title"
-        onClick={(e): void => e.stopPropagation()}
-        onKeyDown={(e): void => e.stopPropagation()}
+        tabIndex={-1}
       >
+        <div
+          className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+          role="document"
+          aria-labelledby="clip-properties-title"
+          onClick={(e): void => e.stopPropagation()}
+          onKeyDown={(e): void => e.stopPropagation()}
+        >
         <div className="flex items-center justify-between mb-4">
           <h2 id="clip-properties-title" className="text-lg font-semibold text-neutral-900">
             Clip Properties
@@ -749,7 +749,7 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </button>
   );
 };
 
