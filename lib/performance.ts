@@ -6,7 +6,6 @@
  */
 
 import { browserLogger } from './browserLogger';
-import { PERFORMANCE_CONSTANTS } from './constants';
 
 /**
  * Performance metric categories
@@ -38,9 +37,18 @@ const MAX_METRICS = 100;
 
 /**
  * Slow operation thresholds (milliseconds)
+ * Updated to align with Google Web Vitals standards:
+ * - Component renders: 100ms (INP - Interaction to Next Paint good threshold)
+ * - Database queries: 100ms (reasonable for DB roundtrip)
+ * - API requests: 500ms (network latency allowance)
+ * - Asset processing: 1000ms (heavy processing operations)
+ * - Waveform generation: 2000ms (computationally expensive)
+ *
+ * Note: 16ms (60fps frame time) is only used for animation frame callbacks,
+ * not general component renders. Most user interactions tolerate 100ms well.
  */
 const SLOW_THRESHOLDS: Record<PerformanceCategory, number> = {
-  [PerformanceCategory.COMPONENT_RENDER]: PERFORMANCE_CONSTANTS.FRAME_TIME_60FPS,
+  [PerformanceCategory.COMPONENT_RENDER]: 100, // Google INP "good" threshold
   [PerformanceCategory.DATABASE_QUERY]: 100,
   [PerformanceCategory.API_REQUEST]: 500,
   [PerformanceCategory.ASSET_PROCESSING]: 1000,
@@ -120,7 +128,7 @@ export function createPerformanceTimer(
   category: PerformanceCategory,
   name: string,
   metadata?: Record<string, unknown>
-): { end: () => number; } {
+): { end: () => number } {
   const start = performance.now();
 
   return {
@@ -135,7 +143,20 @@ export function createPerformanceTimer(
 /**
  * Get performance statistics for a category
  */
-export function getPerformanceStats(category: PerformanceCategory): { count: number; avg: number; min: number; max: number; p50: number | undefined; p90: number | undefined; p95: number | undefined; p99: number | undefined; threshold: number; slowOperations: number; } | null {
+export function getPerformanceStats(
+  category: PerformanceCategory
+): {
+  count: number;
+  avg: number;
+  min: number;
+  max: number;
+  p50: number | undefined;
+  p90: number | undefined;
+  p95: number | undefined;
+  p99: number | undefined;
+  threshold: number;
+  slowOperations: number;
+} | null {
   const categoryMetrics = performanceMetrics.filter((m): boolean => m.category === category);
 
   if (categoryMetrics.length === 0) {
@@ -165,7 +186,8 @@ export function getPerformanceStats(category: PerformanceCategory): { count: num
     p95,
     p99,
     threshold: SLOW_THRESHOLDS[category],
-    slowOperations: categoryMetrics.filter((m): boolean => m.duration > SLOW_THRESHOLDS[category]).length,
+    slowOperations: categoryMetrics.filter((m): boolean => m.duration > SLOW_THRESHOLDS[category])
+      .length,
   };
 }
 
@@ -191,7 +213,24 @@ export function exportPerformanceReport(): string {
     timestamp: new Date().toISOString(),
     metrics: performanceMetrics,
     stats: Object.values(PerformanceCategory).reduce(
-      (acc, category): Record<string, { count: number; avg: number; min: number; max: number; p50: number | undefined; p90: number | undefined; p95: number | undefined; p99: number | undefined; threshold: number; slowOperations: number; } | null> => {
+      (
+        acc,
+        category
+      ): Record<
+        string,
+        {
+          count: number;
+          avg: number;
+          min: number;
+          max: number;
+          p50: number | undefined;
+          p90: number | undefined;
+          p95: number | undefined;
+          p99: number | undefined;
+          threshold: number;
+          slowOperations: number;
+        } | null
+      > => {
         const stats = getPerformanceStats(category);
         if (stats) {
           acc[category] = stats;
@@ -237,7 +276,18 @@ export const browserPerformance = {
   /**
    * Get navigation timing metrics
    */
-  getNavigationTiming: (): { domContentLoaded: number; domInteractive: number; domComplete: number; loadComplete: number; dns: number; tcp: number; request: number; response: number; domProcessing: number; rendering: number; } | null => {
+  getNavigationTiming: (): {
+    domContentLoaded: number;
+    domInteractive: number;
+    domComplete: number;
+    loadComplete: number;
+    dns: number;
+    tcp: number;
+    request: number;
+    response: number;
+    domProcessing: number;
+    rendering: number;
+  } | null => {
     if (typeof window === 'undefined' || !window.performance) {
       return null;
     }
@@ -265,23 +315,30 @@ export const browserPerformance = {
   /**
    * Get resource timing metrics
    */
-  getResourceTiming: (): { name: string; duration: number; size: number; type: string; }[] => {
+  getResourceTiming: (): { name: string; duration: number; size: number; type: string }[] => {
     if (typeof window === 'undefined' || !window.performance) {
       return [];
     }
 
-    return window.performance.getEntriesByType('resource').map((entry): { name: string; duration: number; size: number; type: string; } => ({
-      name: (entry as PerformanceResourceTiming).name,
-      duration: entry.duration,
-      size: (entry as PerformanceResourceTiming).transferSize,
-      type: (entry as PerformanceResourceTiming).initiatorType,
-    }));
+    return window.performance
+      .getEntriesByType('resource')
+      .map((entry): { name: string; duration: number; size: number; type: string } => ({
+        name: (entry as PerformanceResourceTiming).name,
+        duration: entry.duration,
+        size: (entry as PerformanceResourceTiming).transferSize,
+        type: (entry as PerformanceResourceTiming).initiatorType,
+      }));
   },
 
   /**
    * Get memory usage (Chrome only)
    */
-  getMemoryUsage: (): { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number; usedPercentage: number; } | null => {
+  getMemoryUsage: (): {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+    usedPercentage: number;
+  } | null => {
     if (typeof window === 'undefined') {
       return null;
     }

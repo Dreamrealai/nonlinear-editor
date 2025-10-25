@@ -29,11 +29,13 @@ import { Writable } from 'stream';
 // Lazy-load Sentry service to avoid circular dependencies
 let sentryService: typeof import('./services/sentryService').sentryService | null = null;
 if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  try {
-    sentryService = require('./services/sentryService').sentryService;
-  } catch {
-    // Sentry not available, continue without it
-  }
+  import('./services/sentryService')
+    .then((module) => {
+      sentryService = module.sentryService;
+    })
+    .catch(() => {
+      // Sentry not available, continue without it
+    });
 }
 
 const isDevelopment = process.env.NODE_ENV === 'development';
@@ -51,9 +53,13 @@ class AxiomStream extends Writable {
         axiomTransport.write(log);
 
         // Send errors and warnings to Sentry
-        if (sentryService && (log.level === 'error' || log.level === 'warn' || log.level === 'fatal')) {
+        if (
+          sentryService &&
+          (log.level === 'error' || log.level === 'warn' || log.level === 'fatal')
+        ) {
           const error = log.err || log.error;
-          const level = log.level === 'fatal' ? 'fatal' : log.level === 'error' ? 'error' : 'warning';
+          const level =
+            log.level === 'fatal' ? 'fatal' : log.level === 'error' ? 'error' : 'warning';
 
           if (error && error.message) {
             // Convert Pino error object to Error instance
@@ -69,7 +75,7 @@ class AxiomStream extends Writable {
               metadata: log,
               tags: {
                 level,
-                service: log.service || 'genai-video-production',
+                service: log.service || 'nonlinear-editor',
               },
             });
           } else if (log.msg) {
@@ -107,7 +113,7 @@ const baseLogger = pino(
     // Base metadata
     base: {
       env: process.env.NODE_ENV,
-      service: 'genai-video-production',
+      service: 'nonlinear-editor',
     },
 
     // Timestamp configuration

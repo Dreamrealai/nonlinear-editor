@@ -56,6 +56,11 @@ const LOG_ENDPOINT = '/api/logs';
 const BATCH_SIZE = 10;
 const BATCH_INTERVAL_MS = 5000;
 
+// Maximum sizes for log data to prevent Axiom ingestion errors
+const MAX_MESSAGE_LENGTH = 2000; // Max characters for message
+const MAX_STACK_TRACE_LENGTH = 5000; // Max characters for stack traces
+const MAX_DATA_SIZE = 10000; // Max characters for serialized data object
+
 // Track if global handlers are installed (singleton)
 let globalHandlersInstalled = false;
 
@@ -140,7 +145,18 @@ class BrowserLogger {
   }
 
   /**
+   * Truncate a string to a maximum length with ellipsis
+   */
+  private truncateString(str: string, maxLength: number): string {
+    if (str.length <= maxLength) {
+      return str;
+    }
+    return str.substring(0, maxLength - 3) + '...';
+  }
+
+  /**
    * Serialize data for JSON transport (handle Errors, etc.)
+   * Includes truncation to prevent oversized log entries
    */
   private serializeData(data: Record<string, unknown>): Record<string, unknown> {
     const serialized: Record<string, unknown> = {};
@@ -149,17 +165,34 @@ class BrowserLogger {
       if (value instanceof Error) {
         serialized[key] = {
           name: value.name,
-          message: value.message,
-          stack: value.stack,
+          message: this.truncateString(value.message, MAX_MESSAGE_LENGTH),
+          stack: value.stack ? this.truncateString(value.stack, MAX_STACK_TRACE_LENGTH) : undefined,
+          truncated:
+            value.message.length > MAX_MESSAGE_LENGTH ||
+            (value.stack?.length || 0) > MAX_STACK_TRACE_LENGTH,
         };
       } else if (typeof value === 'object' && value !== null) {
         try {
           // Try to JSON serialize (will fail on circular refs)
-          JSON.stringify(value);
-          serialized[key] = value;
+          const serializedValue = JSON.stringify(value);
+          if (serializedValue.length > MAX_DATA_SIZE) {
+            // Truncate large objects
+            serialized[key] = {
+              _truncated: true,
+              _originalSize: serializedValue.length,
+              _preview: this.truncateString(serializedValue, MAX_DATA_SIZE),
+            };
+          } else {
+            serialized[key] = value;
+          }
         } catch {
-          serialized[key] = String(value);
+          // Handle circular references or non-serializable objects
+          const stringValue = String(value);
+          serialized[key] = this.truncateString(stringValue, MAX_MESSAGE_LENGTH);
         }
+      } else if (typeof value === 'string') {
+        // Truncate long strings
+        serialized[key] = this.truncateString(value, MAX_MESSAGE_LENGTH);
       } else {
         serialized[key] = value;
       }
@@ -174,14 +207,21 @@ class BrowserLogger {
   private log(level: LogLevel, ...args: unknown[]): void {
     const { message, data } = this.formatArgs(args);
 
+    // Truncate message if too long
+    const truncatedMessage =
+      message.length > MAX_MESSAGE_LENGTH
+        ? this.truncateString(message, MAX_MESSAGE_LENGTH)
+        : message;
+
     const entry: LogEntry = {
       level,
       timestamp: new Date().toISOString(),
-      message,
+      message: truncatedMessage,
       data: {
         ...this.baseContext,
         ...data,
         sessionId, // Add session tracking
+        messageTruncated: message.length > MAX_MESSAGE_LENGTH,
       },
     };
 

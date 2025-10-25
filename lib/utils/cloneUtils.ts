@@ -91,13 +91,14 @@ export function cloneTimeline(timeline: Timeline | null): Timeline | null {
   } catch (error) {
     // If structuredClone fails (e.g., due to non-cloneable properties),
     // fall back to our custom deep clone
-    // Only log in development to avoid console noise in production
+    // Silently fall back in production to avoid console noise
     if (process.env.NODE_ENV === 'development') {
       browserLogger.debug(
         { error },
         'structuredClone failed for timeline, using fallback clone method'
       );
     }
+    // In production, silently use fallback without logging
     return deepClone(timeline);
   }
 }
@@ -115,13 +116,14 @@ export function cloneClip(clip: Clip): Clip {
     return structuredClone(clip);
   } catch (error) {
     // If structuredClone fails, fall back to our custom deep clone
-    // Only log in development to avoid console noise in production
+    // Silently fall back in production to avoid console noise
     if (process.env.NODE_ENV === 'development') {
       browserLogger.debug(
         { error },
         'structuredClone failed for clip, using fallback clone method'
       );
     }
+    // In production, silently use fallback without logging
     return deepClone(clip);
   }
 }
@@ -139,13 +141,14 @@ export function cloneClips(clips: Clip[]): Clip[] {
     return structuredClone(clips);
   } catch (error) {
     // If structuredClone fails, fall back to our custom deep clone
-    // Only log in development to avoid console noise in production
+    // Silently fall back in production to avoid console noise
     if (process.env.NODE_ENV === 'development') {
       browserLogger.debug(
         { error },
         'structuredClone failed for clips array, using fallback clone method'
       );
     }
+    // In production, silently use fallback without logging
     return deepClone(clips);
   }
 }

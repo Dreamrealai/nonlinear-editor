@@ -270,7 +270,38 @@ const handleSignUrl: AuthenticatedHandler = async (request, { user, supabase }) 
       'Creating signed URL with Supabase Storage'
     );
 
-    const { data, error } = await storageClient.storage.from(bucket).createSignedUrl(path, ttl);
+    // Retry logic with exponential backoff
+    let retryCount = 0;
+    const maxRetries = 3;
+    let data = null;
+    let error = null;
+
+    while (retryCount <= maxRetries) {
+      const result = await storageClient.storage.from(bucket).createSignedUrl(path, ttl);
+      data = result.data;
+      error = result.error;
+
+      if (!error) {
+        // Success
+        break;
+      }
+
+      retryCount++;
+
+      // Don't retry on permission/not found errors
+      if (
+        error.message?.includes('not found') ||
+        error.message?.includes('permission') ||
+        error.message?.includes('unauthorized')
+      ) {
+        break;
+      }
+
+      // Wait before retry (exponential backoff: 100ms, 200ms, 400ms)
+      if (retryCount <= maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, 100 * Math.pow(2, retryCount - 1)));
+      }
+    }
 
     if (error) {
       serverLogger.error(
@@ -282,9 +313,10 @@ const handleSignUrl: AuthenticatedHandler = async (request, { user, supabase }) 
           ttl,
           assetId: assetId || 'none',
           userId: user.id,
+          retries: retryCount - 1,
           event: 'assets.sign.storage_error',
         },
-        'Failed to sign URL with Supabase Storage'
+        'Failed to sign URL with Supabase Storage after retries'
       );
 
       // Fallback: Return the storage URL directly if it's already public
@@ -318,12 +350,26 @@ const handleSignUrl: AuthenticatedHandler = async (request, { user, supabase }) 
       return errorResponse(error.message, 500);
     }
 
+    // TypeScript guard - data should be non-null after error handling
+    if (!data || !data.signedUrl) {
+      serverLogger.error(
+        {
+          bucket,
+          path: path.substring(0, 50) + '...',
+          event: 'assets.sign.no_data',
+        },
+        'No signed URL data received despite no error'
+      );
+      return errorResponse('Failed to generate signed URL', 500);
+    }
+
     serverLogger.info(
       {
         bucket,
         ttl,
         assetId: assetId || 'none',
         userId: user.id,
+        retries: retryCount,
         event: 'assets.sign.success',
       },
       'Signed URL created successfully'

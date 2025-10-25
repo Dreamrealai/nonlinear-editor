@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { chat } from '@/lib/gemini';
 import { serverLogger } from '@/lib/serverLogger';
-import {
-  errorResponse,
-  successResponse,
-  serviceUnavailableResponse,
-} from '@/lib/api/response';
+import { errorResponse, successResponse, serviceUnavailableResponse } from '@/lib/api/response';
 import { validateString, validateUUID, ValidationError } from '@/lib/validation';
 import { withAuth, type AuthContext } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
@@ -23,10 +19,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB per file
 const MAX_FILES = 5;
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 
-async function handleChatPost(
-  request: NextRequest,
-  context: AuthContext
-): Promise<NextResponse> {
+async function handleChatPost(request: NextRequest, context: AuthContext): Promise<NextResponse> {
   const { user } = context;
 
   try {
@@ -93,10 +86,12 @@ async function handleChatPost(
     }
 
     // Convert chat history to Gemini format
-    const history = chatHistory.map((msg): { role: "user" | "model"; parts: { text: string; }[]; } => ({
-      role: (msg.role === 'user' ? 'user' : 'model') as 'user' | 'model',
-      parts: [{ text: msg.content }],
-    }));
+    const history = chatHistory.map(
+      (msg): { role: 'user' | 'model'; parts: { text: string }[] } => ({
+        role: (msg.role === 'user' ? 'user' : 'model') as 'user' | 'model',
+        parts: [{ text: msg.content }],
+      })
+    );
 
     // Call Gemini (will use GEMINI_API_KEY or GOOGLE_SERVICE_ACCOUNT)
     try {
@@ -143,8 +138,28 @@ async function handleChatPost(
       );
       return errorResponse(error.message, 400, error.field);
     }
-    // Re-throw other errors to be handled by withAuth middleware
-    throw error;
+
+    // Log all errors for debugging
+    serverLogger.error(
+      {
+        event: 'ai.chat.unhandled_error',
+        userId: user.id,
+        error: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack : undefined,
+        errorName: error instanceof Error ? error.name : 'Unknown',
+      },
+      'Unhandled error in chat endpoint'
+    );
+
+    // Return a generic error response instead of re-throwing
+    // This prevents 500 errors from crashing the endpoint
+    if (error instanceof Error) {
+      return errorResponse(`Chat request failed: ${error.message}`, 500, undefined, {
+        errorType: error.name,
+      });
+    }
+
+    return errorResponse('An unexpected error occurred', 500);
   }
 }
 

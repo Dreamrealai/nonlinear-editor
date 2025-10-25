@@ -299,33 +299,63 @@ export async function auditLog(entry: AuditLogEntry): Promise<void> {
       created_at: new Date().toISOString(),
     };
 
-    // Insert audit log (non-blocking, fire-and-forget)
-    const { error } = await supabase.from('audit_logs').insert(auditRecord);
+    // Insert audit log with retry logic (non-blocking, fire-and-forget)
+    let retryCount = 0;
+    const maxRetries = 2;
+    let lastError = null;
 
-    if (error) {
-      // Log error but don't throw to avoid disrupting application flow
-      serverLogger.error(
-        {
-          event: 'audit.log.insert_failed',
-          action: entry.action,
-          userId: entry.userId,
-          error: error.message,
-          code: error.code,
-        },
-        'Failed to insert audit log'
-      );
-    } else {
-      serverLogger.debug(
-        {
-          event: 'audit.log.success',
-          action: entry.action,
-          userId: entry.userId,
-          resourceType: entry.resourceType,
-          resourceId: entry.resourceId,
-        },
-        `Audit log recorded: ${entry.action}`
-      );
+    while (retryCount <= maxRetries) {
+      const { error } = await supabase.from('audit_logs').insert(auditRecord);
+
+      if (!error) {
+        // Success
+        serverLogger.debug(
+          {
+            event: 'audit.log.success',
+            action: entry.action,
+            userId: entry.userId,
+            resourceType: entry.resourceType,
+            resourceId: entry.resourceId,
+            retries: retryCount,
+          },
+          `Audit log recorded: ${entry.action}`
+        );
+        return;
+      }
+
+      lastError = error;
+      retryCount++;
+
+      // If this is a schema/permission error, don't retry
+      if (
+        error.code === '42501' || // insufficient_privilege
+        error.code === '42P01' || // undefined_table
+        error.code === '23502' || // not_null_violation
+        error.code === '23503' // foreign_key_violation
+      ) {
+        break;
+      }
+
+      // Wait before retry (exponential backoff)
+      if (retryCount <= maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, 100 * Math.pow(2, retryCount - 1)));
+      }
     }
+
+    // Log error after all retries failed
+    serverLogger.error(
+      {
+        event: 'audit.log.insert_failed',
+        action: entry.action,
+        userId: entry.userId,
+        error: lastError?.message,
+        code: lastError?.code,
+        hint: lastError?.hint,
+        details: lastError?.details,
+        retries: retryCount - 1,
+      },
+      'Failed to insert audit log after retries'
+    );
   } catch (error) {
     // Catch-all to prevent audit logging from breaking the application
     serverLogger.error(
