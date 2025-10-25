@@ -477,11 +477,21 @@ describe('Integration: Asset Panel Component', () => {
       const filterButton = screen.getByRole('button', { name: /toggle filters/i });
       await user.click(filterButton);
 
-      // Find and change sort option
+      // Find and change sort option to name
       const sortSelect = await screen.findByDisplayValue(/sort by date/i);
       await user.selectOptions(sortSelect, 'name');
 
-      // Assets should be reordered (verify in DOM order)
+      // Default sort direction is 'desc', so names should be in reverse alphabetical order
+      await waitFor(() => {
+        const assetNames = screen.getAllByText(/video\d\.mp4/).map((el) => el.textContent);
+        expect(assetNames).toEqual(['video2.mp4', 'video1.mp4']);
+      });
+
+      // Click sort direction button to change to ascending
+      const sortDirectionButton = screen.getByRole('button', { name: /sort descending/i });
+      await user.click(sortDirectionButton);
+
+      // Now names should be in alphabetical order
       await waitFor(() => {
         const assetNames = screen.getAllByText(/video\d\.mp4/).map((el) => el.textContent);
         expect(assetNames).toEqual(['video1.mp4', 'video2.mp4']);
