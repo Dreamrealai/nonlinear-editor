@@ -176,7 +176,6 @@ export function PreviewPlayer(): React.ReactElement | null {
               {
                 clipId: clip.id,
                 assetId: clip.assetId,
-                clipName: clip.name,
                 trackIndex: clip.trackIndex,
                 error,
                 errorMessage,

@@ -330,7 +330,6 @@ export function useVideoPlayback({
             {
               clipId: clip.id,
               assetId: clip.assetId,
-              clipName: clip.name,
               trackIndex: clip.trackIndex,
               error,
               errorMessage,
