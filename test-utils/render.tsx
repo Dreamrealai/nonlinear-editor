@@ -131,7 +131,7 @@ function createWrapper(
     const searchParams = new URLSearchParams(
       Object.entries(query).map(([key, value]) => [key, Array.isArray(value) ? value[0] : value])
     );
-     
+
     jest.mocked(useSearchParams).mockReturnValue(searchParams as any);
   }
 
@@ -165,7 +165,6 @@ export function render(
 
   // If mockSupabase is provided, set it globally for the test
   if (mockSupabase) {
-     
     (globalThis as any).__TEST_SUPABASE_CLIENT__ = mockSupabase;
   }
 
@@ -188,7 +187,6 @@ export function renderHook<TResult, TProps>(
 
   // If mockSupabase is provided, set it globally for the test
   if (mockSupabase) {
-     
     (globalThis as any).__TEST_SUPABASE_CLIENT__ = mockSupabase;
   }
 

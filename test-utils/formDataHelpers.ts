@@ -124,7 +124,7 @@ export function createAuthFormDataRequest(
   });
 
   // Attach user to request for test auth to pick up
-  (request as any).__testUser = user;  
+  (request as any).__testUser = user;
 
   return { request, user };
 }

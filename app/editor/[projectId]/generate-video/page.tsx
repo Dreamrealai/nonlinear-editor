@@ -22,7 +22,7 @@ export default async function GenerateVideoPage({
   params,
 }: {
   params: Promise<{ projectId: string }>;
-}): Promise<JSX.Element> {
+}): Promise<React.JSX.Element> {
   // Redirect to home if Supabase not configured
   if (!isSupabaseConfigured()) {
     redirect('/');

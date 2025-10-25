@@ -1,5 +1,3 @@
-
-
 interface ExportModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -16,9 +14,7 @@ export function ExportModal({ isOpen, onClose, onExport }: ExportModalProps) {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full">
         <div className="border-b border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Export</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Choose an export format
-          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Choose an export format</p>
         </div>
         <div className="p-6 space-y-4">
           <button
@@ -42,7 +38,12 @@ export function ExportModal({ isOpen, onClose, onExport }: ExportModalProps) {
             onClick={() => onExport('json')}
             className="w-full px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium transition-colors text-left flex items-center gap-3"
           >
-            <svg className="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg
+              className="h-5 w-5 text-blue-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -59,7 +60,12 @@ export function ExportModal({ isOpen, onClose, onExport }: ExportModalProps) {
             onClick={() => onExport('edl')}
             className="w-full px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium transition-colors text-left flex items-center gap-3"
           >
-            <svg className="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg
+              className="h-5 w-5 text-purple-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -69,14 +75,21 @@ export function ExportModal({ isOpen, onClose, onExport }: ExportModalProps) {
             </svg>
             <div>
               <div className="font-semibold">Export for DaVinci (EDL)</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">DaVinci Resolve compatible.</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                DaVinci Resolve compatible.
+              </div>
             </div>
           </button>
           <button
             onClick={() => onExport('xml')}
             className="w-full px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium transition-colors text-left flex items-center gap-3"
           >
-            <svg className="h-5 w-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg
+              className="h-5 w-5 text-orange-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -86,7 +99,9 @@ export function ExportModal({ isOpen, onClose, onExport }: ExportModalProps) {
             </svg>
             <div>
               <div className="font-semibold">Export for Final Cut (XML)</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Final Cut Pro / Premiere.</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                Final Cut Pro / Premiere.
+              </div>
             </div>
           </button>
         </div>

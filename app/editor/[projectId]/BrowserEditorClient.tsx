@@ -3,12 +3,6 @@
  *
  * Main client-side video editor interface that has been refactored into smaller components.
  * This file now acts as an orchestrator, delegating to specialized components.
- *
- * Keyboard Shortcuts Integration:
- * - Uses useGlobalKeyboardShortcuts for centralized shortcut management
- * - Supports comprehensive editing shortcuts (undo, redo, copy, paste, delete, etc.)
- * - Includes playback shortcuts (space for play/pause)
- * - Features help modal (Cmd/Ctrl + ?) to display all available shortcuts
  */
 'use client';
 
@@ -123,16 +117,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
   const timeline = useEditorStore((state) => state.timeline);
   const setTimeline = useEditorStore((state) => state.setTimeline);
   const addClip = useEditorStore((state) => state.addClip);
-  const selectedClipIds = useEditorStore((state) => state.selectedClipIds);
-  const undo = useEditorStore((state) => state.undo);
-  const redo = useEditorStore((state) => state.redo);
-  const canUndo = useEditorStore((state) => state.canUndo);
-  const canRedo = useEditorStore((state) => state.canRedo);
-  const removeClip = useEditorStore((state) => state.removeClip);
-  const copyClips = useEditorStore((state) => state.copyClips);
-  const pasteClips = useEditorStore((state) => state.pasteClips);
-  const selectClip = useEditorStore((state) => state.selectClip);
-  const clearSelection = useEditorStore((state) => state.clearSelection);
 
   // Easter eggs hook
   useEasterEggs({ enabled: true });
@@ -149,11 +133,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
     }
     return ids;
   }, [timeline]);
-
-  // Play/pause state ref for keyboard shortcuts
-  const playPauseStateRef = useRef<{ isPlaying: boolean; togglePlayPause: () => void } | null>(
-    null
-  );
 
   const handleExport = useCallback(
     (format: 'json' | 'edl' | 'xml' | 'video'): void => {
@@ -588,10 +567,8 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
       <EditorHeader
         projectId={projectId}
         currentTab="video-editor"
-        onExport={() => handleExport('video')}
+        onExport={() => setShowExportModal(true)}
         onImportProject={handleImportProject}
-        lastSaved={null}
-        isSaving={false}
       />
       <main id="main-content" className="flex h-full gap-3 lg:gap-6 p-3 lg:p-6" role="main">
         <Toaster position="bottom-right" />
@@ -685,7 +662,7 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
         <ExportModal
           isOpen={showExportModal}
           onClose={() => setShowExportModal(false)}
-          onExport={(format) => handleExport(format)}
+          onExport={handleExport}
         />
 
         {/* Hidden File Input for Import Project */}

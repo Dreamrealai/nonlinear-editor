@@ -27,8 +27,6 @@ const LoadingFallback = (): React.ReactElement => (
   </div>
 );
 
-
-
 /**
  * Lazy-loaded ClipPropertiesPanel component
  * Only loaded when a clip is selected

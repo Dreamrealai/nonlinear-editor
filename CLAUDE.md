@@ -1,5 +1,92 @@
 # Project Memory
 
+## 🤖 Supabase Auto-Deployment (GitHub Actions)
+
+**STATUS**: ✅ Configured | ⚠️ Secret Required | 📋 [Full Guide](./SUPABASE_AUTO_DEPLOYMENT.md)
+
+### Quick Setup (5 minutes)
+
+Your Supabase migrations now auto-deploy on every push to `main`! But you need to add one secret first:
+
+#### Step 1: Get Your Supabase Access Token
+
+1. Go to: https://supabase.com/dashboard/account/tokens
+2. Click **"Generate new token"**
+3. Name: `GitHub Actions`
+4. **Copy the token** (you'll only see it once!)
+
+#### Step 2: Add Token to GitHub Secrets
+
+1. Go to: https://github.com/Dreamrealai/nonlinear-editor/settings/secrets/actions
+2. Click **"New repository secret"**
+3. Name: `SUPABASE_ACCESS_TOKEN`
+4. Paste your token
+5. Click **"Add secret"**
+
+#### Step 3: Test It!
+
+```bash
+# Option A: Trigger manually via GitHub UI
+# Go to: https://github.com/Dreamrealai/nonlinear-editor/actions
+# Click "Deploy Supabase Migrations" → "Run workflow"
+
+# Option B: Trigger by pushing a migration
+supabase migration new test_deployment
+git add supabase/migrations/
+git commit -m "Test auto-deployment"
+git push
+# Watch it deploy: https://github.com/Dreamrealai/nonlinear-editor/actions
+```
+
+#### How It Works
+
+**✅ AUTOMATIC**:
+- Any push to `main` with changes in `supabase/migrations/**` triggers deployment
+- GitHub Actions runs `supabase db push --include-all`
+- Takes ~30 seconds
+
+**📊 Current Status**:
+- Workflow: **Active** (ID: 200877640)
+- Last Run: **Failed** (missing secret)
+- Location: `.github/workflows/supabase-migrations.yml`
+
+**🔗 Quick Links**:
+- [View Workflows](https://github.com/Dreamrealai/nonlinear-editor/actions)
+- [View Secrets](https://github.com/Dreamrealai/nonlinear-editor/settings/secrets/actions)
+- [Full Documentation](./SUPABASE_AUTO_DEPLOYMENT.md)
+
+### Migration Workflow (After Setup)
+
+```bash
+# 1. Create migration
+supabase migration new add_my_feature
+
+# 2. Edit the SQL file
+vim supabase/migrations/20251025120000_add_my_feature.sql
+
+# 3. Commit and push
+git add supabase/migrations/
+git commit -m "Add my feature to database"
+git push
+
+# 4. Done! GitHub Actions deploys it automatically 🚀
+# Watch progress: https://github.com/Dreamrealai/nonlinear-editor/actions
+```
+
+### Manual Deployment (Still Available)
+
+You can still use the CLI if you prefer:
+
+```bash
+# Deploy immediately without waiting for CI/CD
+supabase db push --include-all
+
+# Check status
+supabase migration list
+```
+
+---
+
 ## Git Workflow
 
 **IMPORTANT**: After every code update or change:
@@ -307,6 +394,10 @@ This allows testing API routes without authentication.
 ## Supabase CLI Access
 
 **IMPORTANT**: This project has Supabase CLI installed and configured. Use it for database management, migrations, and remote project operations.
+
+**✅ ALL MIGRATIONS APPLIED**: All 27 local migrations are successfully synchronized with production (as of 2025-10-25).
+
+**🤖 AUTO-DEPLOYMENT ENABLED**: GitHub Actions automatically deploys migrations on push (see section above).
 
 ### CLI Information
 

@@ -90,7 +90,17 @@ jest.mock('@/components/preview/PlaybackControls', () => {
               >
                 {isPlaying ? 'Pause' : 'Play'}
               </button>
-              <div className="bg-white/30" onClick={() => onSeek && onSeek(currentTime)}>
+              <div
+                className="bg-white/30"
+                onClick={() => onSeek && onSeek(currentTime)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    onSeek && onSeek(currentTime);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+              >
                 <div className="bg-white transition-all" style={{ width: `${progress}%` }} />
               </div>
               <div>

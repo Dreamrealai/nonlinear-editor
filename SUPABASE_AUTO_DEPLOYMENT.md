@@ -11,10 +11,12 @@ Your Supabase migrations will now automatically deploy to production whenever yo
 **GitHub Actions Workflow**: `.github/workflows/supabase-migrations.yml`
 
 **Triggers**:
+
 - ✅ Automatic: When you push to `main` branch with changes to `supabase/migrations/**`
 - ✅ Manual: Via GitHub Actions UI (workflow_dispatch)
 
 **What It Does**:
+
 1. Checks out your code
 2. Installs Supabase CLI
 3. Links to your Supabase project (`wrximmuaibfjmjrfriej`)
@@ -168,11 +170,13 @@ ALTER TABLE my_table ADD COLUMN new_column text;  -- Fails if exists
 ### GitHub Action Fails
 
 **Check**:
+
 1. Is `SUPABASE_ACCESS_TOKEN` secret set correctly?
 2. View the action logs: https://github.com/Dreamrealai/nonlinear-editor/actions
 3. Look for error messages in the "Deploy migrations" step
 
 **Common Issues**:
+
 - **"unauthorized"**: Token is missing or invalid
 - **"connection refused"**: Supabase service temporarily unavailable (retry)
 - **SQL error**: Migration has syntax error or references missing objects
@@ -210,6 +214,7 @@ git push
 ✅ **All 27 migrations successfully applied to production**
 
 **Applied Migrations**:
+
 - Initial schema (projects, assets, timelines, scenes, etc.)
 - Processing jobs (exports, video generation, etc.)
 - User subscription system
@@ -227,6 +232,7 @@ git push
 - Performance indexes
 
 **Database Health**:
+
 - ✅ No schema errors
 - ✅ No missing tables
 - ✅ No missing columns
@@ -250,6 +256,7 @@ git push
 If you prefer to **NOT** use GitHub Actions:
 
 1. Delete the workflow file:
+
    ```bash
    rm .github/workflows/supabase-migrations.yml
    git commit -m "Remove Supabase auto-deployment"
@@ -266,10 +273,12 @@ If you prefer to **NOT** use GitHub Actions:
 ## Support
 
 **Documentation**:
+
 - Supabase CLI: https://supabase.com/docs/guides/cli
 - GitHub Actions: https://docs.github.com/en/actions
 
 **Troubleshooting**:
+
 - Check Supabase project logs: https://supabase.com/dashboard/project/wrximmuaibfjmjrfriej/logs
 - Check GitHub Actions logs: https://github.com/Dreamrealai/nonlinear-editor/actions
 - Check Axiom logs: https://app.axiom.co/
