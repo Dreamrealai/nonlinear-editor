@@ -18,6 +18,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { serverLogger } from '@/lib/serverLogger';
+import { withAdminAuth } from '@/lib/api/withAuth';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -519,89 +520,95 @@ function getOverallStatus(
   return 'healthy';
 }
 
-export async function GET(): Promise<
-  | NextResponse<HealthCheckResult>
-  | NextResponse<{ status: string; timestamp: string; error: string }>
-> {
-  const start = Date.now();
+export const GET = withAdminAuth(
+  async (): Promise<
+    | NextResponse<HealthCheckResult>
+    | NextResponse<{ status: string; timestamp: string; error: string }>
+  > => {
+    const start = Date.now();
 
-  try {
-    // Run all health checks in parallel
-    const [database, supabase, axiom, posthog, redis] = await Promise.all([
-      checkDatabase(),
-      checkSupabase(),
-      checkAxiom(),
-      checkPostHog(),
-      checkRedis(),
-    ]);
+    try {
+      // Run all health checks in parallel
+      const [database, supabase, axiom, posthog, redis] = await Promise.all([
+        checkDatabase(),
+        checkSupabase(),
+        checkAxiom(),
+        checkPostHog(),
+        checkRedis(),
+      ]);
 
-    const [onboarding, timeline, assets, backup, analytics] = await Promise.all([
-      checkOnboardingSystem(),
-      checkTimelineFeatures(),
-      checkAssetSystem(),
-      checkBackupSystem(),
-      checkAnalyticsSystem(),
-    ]);
+      const [onboarding, timeline, assets, backup, analytics] = await Promise.all([
+        checkOnboardingSystem(),
+        checkTimelineFeatures(),
+        checkAssetSystem(),
+        checkBackupSystem(),
+        checkAnalyticsSystem(),
+      ]);
 
-    const checks = { database, supabase, axiom, posthog, redis };
-    const features = { onboarding, timeline, assets, backup, analytics };
+      const checks = { database, supabase, axiom, posthog, redis };
+      const features = { onboarding, timeline, assets, backup, analytics };
 
-    const healthData: HealthCheckResult = {
-      status: getOverallStatus(checks, features),
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      environment: process.env.NODE_ENV || 'unknown',
-      version: process.env.npm_package_version || 'unknown',
-      checks,
-      features,
-      system: {
-        memory: {
-          used: process.memoryUsage().heapUsed,
-          total: process.memoryUsage().heapTotal,
-          percentage: (process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100,
-        },
-        uptime: process.uptime(),
-      },
-    };
-
-    const totalLatency = Date.now() - start;
-
-    // Log health check results
-    serverLogger.info(
-      {
-        status: healthData.status,
-        latency: totalLatency,
-        checks: Object.fromEntries(
-          Object.entries(healthData.checks).map(
-            ([key, value]): [string, 'healthy' | 'degraded' | 'unhealthy'] => [key, value.status]
-          )
-        ),
-        features: Object.fromEntries(
-          Object.entries(healthData.features).map(
-            ([key, value]): [string, 'healthy' | 'degraded' | 'unhealthy'] => [key, value.status]
-          )
-        ),
-      },
-      'Health check completed'
-    );
-
-    // Return appropriate status code based on health
-    const statusCode =
-      healthData.status === 'healthy' ? 200 : healthData.status === 'degraded' ? 207 : 503;
-
-    return NextResponse.json(healthData, { status: statusCode });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
-    serverLogger.error({ error }, 'Health check failed');
-
-    return NextResponse.json(
-      {
-        status: 'unhealthy',
+      const healthData: HealthCheckResult = {
+        status: getOverallStatus(checks, features),
         timestamp: new Date().toISOString(),
-        error: errorMessage,
-      },
-      { status: 503 }
-    );
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'unknown',
+        version: process.env.npm_package_version || 'unknown',
+        checks,
+        features,
+        system: {
+          memory: {
+            used: process.memoryUsage().heapUsed,
+            total: process.memoryUsage().heapTotal,
+            percentage: (process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100,
+          },
+          uptime: process.uptime(),
+        },
+      };
+
+      const totalLatency = Date.now() - start;
+
+      // Log health check results
+      serverLogger.info(
+        {
+          status: healthData.status,
+          latency: totalLatency,
+          checks: Object.fromEntries(
+            Object.entries(healthData.checks).map(
+              ([key, value]): [string, 'healthy' | 'degraded' | 'unhealthy'] => [key, value.status]
+            )
+          ),
+          features: Object.fromEntries(
+            Object.entries(healthData.features).map(
+              ([key, value]): [string, 'healthy' | 'degraded' | 'unhealthy'] => [key, value.status]
+            )
+          ),
+        },
+        'Health check completed'
+      );
+
+      // Return appropriate status code based on health
+      const statusCode =
+        healthData.status === 'healthy' ? 200 : healthData.status === 'degraded' ? 207 : 503;
+
+      return NextResponse.json(healthData, { status: statusCode });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      serverLogger.error({ error }, 'Health check failed');
+
+      return NextResponse.json(
+        {
+          status: 'unhealthy',
+          timestamp: new Date().toISOString(),
+          error: errorMessage,
+        },
+        { status: 503 }
+      );
+    }
+  },
+  {
+    route: '/api/health/detailed',
+    rateLimit: { max: 60, windowMs: 60000 }, // 60 requests per minute
   }
-}
+);

@@ -77,6 +77,7 @@ export default [
       'e2e/**',
       'k6/**',
       'scripts/**',
+      '__mocks__/**',
       'jest.config.js',
       'tailwind.config.js',
       'postcss.config.js',
