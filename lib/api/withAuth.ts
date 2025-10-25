@@ -131,10 +131,40 @@ export function withAuth<TParams = Record<string, never>>(
 
       // Create Supabase client and verify authentication
       const supabase = await createServerSupabaseClient();
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
+
+      // Auth bypass for local development/testing
+      const bypassAuth = process.env.BYPASS_AUTH === 'true';
+
+      let user: User | null = null;
+      let authError = null;
+
+      if (bypassAuth) {
+        // When auth is bypassed, create a mock user for testing
+        serverLogger.warn(
+          {
+            event: 'api.auth_bypassed',
+            route,
+            method: request.method,
+          },
+          `${request.method} ${route} - Auth bypassed for local testing`
+        );
+
+        // Mock user object for bypass mode
+        // Using a valid UUID format for database compatibility
+        user = {
+          id: '00000000-0000-0000-0000-000000000000',
+          email: 'bypass@local.test',
+          aud: 'authenticated',
+          role: 'authenticated',
+          created_at: new Date().toISOString(),
+          app_metadata: {},
+          user_metadata: {},
+        } as User;
+      } else {
+        const result = await supabase.auth.getUser();
+        user = result.data.user;
+        authError = result.error;
+      }
 
       if (authError || !user) {
         const duration = Date.now() - startTime;

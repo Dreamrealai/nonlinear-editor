@@ -285,7 +285,19 @@ Checklist:
 
 ## Test Credentials
 
-**IMPORTANT**: These credentials are for testing purposes only.
+### Local Development (Auth Bypass)
 
+When `BYPASS_AUTH=true` is set in `.env.local`, authentication is bypassed for local testing.
+This allows testing API routes without authentication.
+
+**Local Testing Credentials** (for manual login testing):
 - Email: test@example.com
 - Password: test_password_123
+
+### Production Site Testing
+
+**Production Credentials**:
+- Email: david@dreamreal.ai
+- Password: sc3p4sses
+
+**IMPORTANT**: Use production credentials only for testing the production deployment.
