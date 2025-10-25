@@ -190,7 +190,9 @@ function printFlakyTestReport(flakyTests, iterations) {
 
     console.log(`${index + 1}. ${colors.bright}${test.suite}${colors.reset}`);
     console.log(`   ${test.name}`);
-    console.log(`   ${colors[reliability]}Pass Rate: ${test.passRate.toFixed(1)}% (${test.passCount}/${test.totalRuns})${colors.reset}`);
+    console.log(
+      `   ${colors[reliability]}Pass Rate: ${test.passRate.toFixed(1)}% (${test.passCount}/${test.totalRuns})${colors.reset}`
+    );
     console.log(`   Average Duration: ${test.avgDuration.toFixed(0)}ms`);
     console.log(`   Results: ${test.statuses.map((s) => (s === 'passed' ? '✓' : '✗')).join(' ')}`);
     console.log('');

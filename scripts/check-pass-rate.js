@@ -112,12 +112,15 @@ function printMetrics(metrics) {
   console.log('');
   console.log(`  Total Tests:     ${metrics.total}`);
   console.log(`  Passed:          ${colors.green}${metrics.passed}${colors.reset}`);
-  console.log(`  Failed:          ${metrics.failed > 0 ? colors.red : ''}${metrics.failed}${colors.reset}`);
+  console.log(
+    `  Failed:          ${metrics.failed > 0 ? colors.red : ''}${metrics.failed}${colors.reset}`
+  );
   console.log(`  Pending/Skipped: ${colors.yellow}${metrics.pending}${colors.reset}`);
   console.log(`  Active Tests:    ${metrics.active}`);
   console.log('');
 
-  const passRateColor = metrics.passRate >= 75 ? 'green' : metrics.passRate >= 50 ? 'yellow' : 'red';
+  const passRateColor =
+    metrics.passRate >= 75 ? 'green' : metrics.passRate >= 50 ? 'yellow' : 'red';
   print(`  Pass Rate: ${formatPercent(metrics.passRate)}`, passRateColor);
 
   print('═══════════════════════════════════════════\n', 'cyan');
@@ -130,13 +133,22 @@ function checkPassRate(metrics, threshold) {
   const { passRate } = metrics;
 
   if (passRate >= threshold) {
-    print(`✅ PASS: Test pass rate ${formatPercent(passRate)} meets threshold ${formatPercent(threshold)}`, 'green');
+    print(
+      `✅ PASS: Test pass rate ${formatPercent(passRate)} meets threshold ${formatPercent(threshold)}`,
+      'green'
+    );
     return true;
   } else {
     const deficit = threshold - passRate;
-    print(`❌ FAIL: Test pass rate ${formatPercent(passRate)} is below threshold ${formatPercent(threshold)}`, 'red');
+    print(
+      `❌ FAIL: Test pass rate ${formatPercent(passRate)} is below threshold ${formatPercent(threshold)}`,
+      'red'
+    );
     print(`         Deficit: ${formatPercent(deficit)}`, 'red');
-    print(`         Need ${Math.ceil((threshold / 100 * metrics.active) - metrics.passed)} more tests to pass`, 'yellow');
+    print(
+      `         Need ${Math.ceil((threshold / 100) * metrics.active - metrics.passed)} more tests to pass`,
+      'yellow'
+    );
     return false;
   }
 }
@@ -149,9 +161,7 @@ function printTestSuiteSummary(results) {
     return;
   }
 
-  const failedSuites = results.testResults.filter(
-    (suite) => suite.numFailingTests > 0
-  );
+  const failedSuites = results.testResults.filter((suite) => suite.numFailingTests > 0);
 
   if (failedSuites.length === 0) {
     return;

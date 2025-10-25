@@ -45,7 +45,11 @@ jest.mock('@/lib/api/withAuth', () => ({
   },
 }));
 
-jest.mock('@/lib/supabase', () => ({ createServerSupabaseClient: jest.fn() }));
+// IMPORTANT: Mock factory functions CANNOT access external variables!
+// All mocks must be defined inline within the factory function.
+jest.mock('@/lib/supabase', () => ({
+  createServerSupabaseClient: jest.fn(),
+}));
 jest.mock('@/lib/serverLogger', () => ({
   serverLogger: {
     info: jest.fn(),

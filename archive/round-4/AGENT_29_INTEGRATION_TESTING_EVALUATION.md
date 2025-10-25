@@ -16,6 +16,7 @@
 **Recommendation:** **ADOPT** the new testing pattern for authenticated API routes. **Migrate** the 49 tests affected by withAuth timeout issues as Priority 1.
 
 **Expected Impact:**
+
 - ✅ **Eliminates P0 timeout issue** affecting 49 test files
 - ✅ **Reduces mock complexity** by 70% (5-10 mocks → 1-2 mocks)
 - ✅ **Improves test reliability** (survives refactoring)
@@ -43,6 +44,7 @@
 ### Problem Statement
 
 From ISSUES.md #75:
+
 - **Priority:** P0 (CRITICAL)
 - **Impact:** 49 test files with withAuth mocks timing out
 - **Current Approach:** Complex mocking of withAuth middleware
@@ -53,6 +55,7 @@ From ISSUES.md #75:
 Agent 21 may fix the withAuth mock issues, but there's a better long-term approach: reduce mocking complexity altogether.
 
 **Mission Goal:** Explore integration testing as an alternative that:
+
 1. Tests real routes with actual HTTP requests
 2. Uses test database (or properly mocked Supabase)
 3. Handles authentication realistically
@@ -127,6 +130,7 @@ export function createTestAuthHandler(handler) {
 ```
 
 **Benefits:**
+
 - ✅ Same API as production withAuth
 - ✅ No complex mock coordination
 - ✅ No timeout issues
@@ -140,7 +144,9 @@ Instead of mocking Supabase queries, provide a **functional test client**:
 export function createTestSupabaseClient(userId) {
   return {
     from: (table) => ({
-      select: () => ({ /* query builder */ }),
+      select: () => ({
+        /* query builder */
+      }),
       insert: (data) => {
         const id = uuidv4();
         testDatabase.set(table, id, data);
@@ -149,13 +155,14 @@ export function createTestSupabaseClient(userId) {
       // ... other methods
     }),
     auth: {
-      getUser: () => ({ data: { user: testUser }, error: null })
-    }
+      getUser: () => ({ data: { user: testUser }, error: null }),
+    },
   };
 }
 ```
 
 **Benefits:**
+
 - ✅ Real query builder implementation
 - ✅ In-memory database (fast, isolated)
 - ✅ Tests actual query logic
@@ -171,13 +178,13 @@ const user = createTestUser({ email: 'test@example.com', tier: 'pro' });
 const { request, user } = createAuthenticatedRequest({
   method: 'POST',
   url: '/api/projects',
-  body: { title: 'Test' }
+  body: { title: 'Test' },
 });
 
 // Create unauthenticated request
 const request = createUnauthenticatedRequest({
   method: 'GET',
-  url: '/api/projects'
+  url: '/api/projects',
 });
 ```
 
@@ -240,13 +247,13 @@ Time:        0.428 s
 
 For the web-vitals endpoint:
 
-| Metric | Unit Test | Integration Test |
-|--------|-----------|------------------|
-| **Tests** | 16 tests | 9 tests |
-| **Mocks** | 1 (logger) | 1 (logger) |
-| **Lines of Code** | 365 lines | 180 lines |
-| **Timeout Issues** | None (public endpoint) | None |
-| **Real Logic Tested** | 100% | 100% |
+| Metric                | Unit Test              | Integration Test |
+| --------------------- | ---------------------- | ---------------- |
+| **Tests**             | 16 tests               | 9 tests          |
+| **Mocks**             | 1 (logger)             | 1 (logger)       |
+| **Lines of Code**     | 365 lines              | 180 lines        |
+| **Timeout Issues**    | None (public endpoint) | None             |
+| **Real Logic Tested** | 100%                   | 100%             |
 
 **Verdict:** For **public endpoints**, both approaches are similar. The real benefit comes with **authenticated endpoints**.
 
@@ -258,29 +265,42 @@ For the web-vitals endpoint:
 
 Example: `POST /api/projects`
 
-| Metric | Unit Testing (Current) | Integration Testing (New) |
-|--------|------------------------|---------------------------|
-| **Mocks Required** | 7 mocks | 2 mocks |
-| **Lines of Setup** | 30-50 lines | 5-10 lines |
-| **Mock Complexity** | High (withAuth → Supabase → Services) | Low (logger, cache) |
-| **Timeout Risk** | ❌ HIGH (P0 issue) | ✅ NONE |
-| **Real Logic Tested** | ~30% (services mocked) | ~95% (real services) |
-| **Execution Speed** | ⚡ ~50ms/test | 🐌 ~200ms/test (4x slower) |
-| **Maintenance Burden** | ❌ HIGH (update mocks on refactor) | ✅ LOW (use real code) |
-| **Confidence Level** | ⚠️ MEDIUM (mocks may diverge) | ✅ HIGH (tests real code) |
-| **Debug Difficulty** | ❌ HARD (mock complexity) | ✅ EASY (real stack traces) |
-| **Test Reliability** | ❌ BRITTLE (breaks on refactor) | ✅ ROBUST (survives refactor) |
+| Metric                 | Unit Testing (Current)                | Integration Testing (New)     |
+| ---------------------- | ------------------------------------- | ----------------------------- |
+| **Mocks Required**     | 7 mocks                               | 2 mocks                       |
+| **Lines of Setup**     | 30-50 lines                           | 5-10 lines                    |
+| **Mock Complexity**    | High (withAuth → Supabase → Services) | Low (logger, cache)           |
+| **Timeout Risk**       | ❌ HIGH (P0 issue)                    | ✅ NONE                       |
+| **Real Logic Tested**  | ~30% (services mocked)                | ~95% (real services)          |
+| **Execution Speed**    | ⚡ ~50ms/test                         | 🐌 ~200ms/test (4x slower)    |
+| **Maintenance Burden** | ❌ HIGH (update mocks on refactor)    | ✅ LOW (use real code)        |
+| **Confidence Level**   | ⚠️ MEDIUM (mocks may diverge)         | ✅ HIGH (tests real code)     |
+| **Debug Difficulty**   | ❌ HARD (mock complexity)             | ✅ EASY (real stack traces)   |
+| **Test Reliability**   | ❌ BRITTLE (breaks on refactor)       | ✅ ROBUST (survives refactor) |
 
 ### Code Comparison
 
 **Unit Test (Current - 90 lines):**
+
 ```typescript
-jest.mock('@/lib/api/withAuth', () => ({ /* 15 lines */ }));
-jest.mock('@/lib/supabase', () => ({ /* 10 lines */ }));
-jest.mock('@/lib/services/projectService', () => ({ /* 15 lines */ }));
-jest.mock('@/lib/serverLogger', () => ({ /* 5 lines */ }));
-jest.mock('@/lib/rateLimit', () => ({ /* 5 lines */ }));
-jest.mock('@/lib/cacheInvalidation', () => ({ /* 5 lines */ }));
+jest.mock('@/lib/api/withAuth', () => ({
+  /* 15 lines */
+}));
+jest.mock('@/lib/supabase', () => ({
+  /* 10 lines */
+}));
+jest.mock('@/lib/services/projectService', () => ({
+  /* 15 lines */
+}));
+jest.mock('@/lib/serverLogger', () => ({
+  /* 5 lines */
+}));
+jest.mock('@/lib/rateLimit', () => ({
+  /* 5 lines */
+}));
+jest.mock('@/lib/cacheInvalidation', () => ({
+  /* 5 lines */
+}));
 
 describe('POST /api/projects', () => {
   let mockSupabase;
@@ -295,10 +315,13 @@ describe('POST /api/projects', () => {
 ```
 
 **Integration Test (New - 40 lines):**
+
 ```typescript
 import { createTestUser, createTestSupabaseClient } from '@/test-utils/testWithAuth';
 
-jest.mock('@/lib/serverLogger', () => ({ /* 5 lines */ }));
+jest.mock('@/lib/serverLogger', () => ({
+  /* 5 lines */
+}));
 
 describe('POST /api/projects - Integration', () => {
   it('should create project', async () => {
@@ -315,6 +338,7 @@ describe('POST /api/projects - Integration', () => {
 ```
 
 **Improvement:**
+
 - ✅ **55% less code** (90 → 40 lines)
 - ✅ **71% fewer mocks** (7 → 2)
 - ✅ **100% elimination of timeout risk**
@@ -328,6 +352,7 @@ describe('POST /api/projects - Integration', () => {
 **Recommendation:** **STRONGLY RECOMMENDED**
 
 **Rationale:**
+
 - Eliminates P0 timeout issue
 - Reduces maintenance burden significantly
 - Tests real business logic
@@ -338,16 +363,19 @@ describe('POST /api/projects - Integration', () => {
 ### 2. Migration Priority
 
 **Phase 1 (Week 1): High Priority - P0 Timeout Fixes**
+
 - Migrate 49 test files affected by withAuth timeout issue
 - Expected effort: 2-3 hours per file → 100-150 hours total
 - Can be parallelized across multiple agents
 
 **Phase 2 (Week 2-3): Medium Priority - Complex Mocking**
+
 - Migrate tests with heavy mocking (5+ mocks)
 - Tests that break frequently on refactors
 - Estimated: 30-40 additional test files
 
 **Phase 3 (Month 2): Low Priority - Leave Simple Tests**
+
 - Public endpoints can stay as-is
 - Simple unit tests that work well can remain
 - Focus on problem areas only
@@ -355,22 +383,26 @@ describe('POST /api/projects - Integration', () => {
 ### 3. Team Adoption Strategy
 
 **Week 1:**
+
 - ✅ Share INTEGRATION_TESTING_GUIDE.md with team
 - ✅ Review web-vitals.integration.test.ts example
 - ✅ Get feedback on approach
 
 **Week 2:**
+
 - Migrate 5-10 problematic tests
 - Measure: time saved, reliability improvement
 - Adjust approach based on findings
 
 **Week 3:**
+
 - If successful (>80% tests passing, no timeouts):
   - Begin full migration of authenticated route tests
   - Create migration script/template
   - Update TESTING_BEST_PRACTICES.md
 
 **Month 1:**
+
 - Complete migration of P0 timeout tests
 - Document lessons learned
 - Establish new testing standards
@@ -398,6 +430,7 @@ describe('POST /api/projects - Integration', () => {
 ### Step-by-Step Migration
 
 #### Step 1: Setup Test Utils (DONE ✅)
+
 - Created `/test-utils/testWithAuth.ts`
 - Created `/test-utils/apiIntegration.ts`
 - Created documentation guide
@@ -407,10 +440,17 @@ describe('POST /api/projects - Integration', () => {
 Example: `/__tests__/api/projects/create.test.ts`
 
 **Before:**
+
 ```typescript
-jest.mock('@/lib/api/withAuth', () => ({ /* 15 lines */ }));
-jest.mock('@/lib/supabase', () => ({ /* 10 lines */ }));
-jest.mock('@/lib/services/projectService', () => ({ /* 15 lines */ }));
+jest.mock('@/lib/api/withAuth', () => ({
+  /* 15 lines */
+}));
+jest.mock('@/lib/supabase', () => ({
+  /* 10 lines */
+}));
+jest.mock('@/lib/services/projectService', () => ({
+  /* 15 lines */
+}));
 // ... 4 more mocks
 
 describe('POST /api/projects', () => {
@@ -422,10 +462,13 @@ describe('POST /api/projects', () => {
 ```
 
 **After:**
+
 ```typescript
 import { createTestUser, createTestSupabaseClient } from '@/test-utils/testWithAuth';
 
-jest.mock('@/lib/serverLogger', () => ({ /* 5 lines */ }));
+jest.mock('@/lib/serverLogger', () => ({
+  /* 5 lines */
+}));
 
 describe('POST /api/projects - Integration', () => {
   it('should create project', async () => {
@@ -441,6 +484,7 @@ describe('POST /api/projects - Integration', () => {
 #### Step 3: Validate Results
 
 After migration:
+
 - ✅ All tests pass
 - ✅ No timeout issues
 - ✅ Tests are more readable
@@ -450,12 +494,14 @@ After migration:
 #### Step 4: Scale Up
 
 Create migration template:
+
 ```bash
 # Migration Template
 scripts/migrate-api-test.sh <test-file>
 ```
 
 Parallelize across agents:
+
 - Agent A: Migrate `/api/projects/*.test.ts`
 - Agent B: Migrate `/api/assets/*.test.ts`
 - Agent C: Migrate `/api/export/*.test.ts`
@@ -468,12 +514,14 @@ Parallelize across agents:
 ### 1. Test Utilities
 
 ✅ **`/test-utils/testWithAuth.ts`** (340 lines)
+
 - Test authentication wrapper (`createTestAuthHandler`)
 - Test Supabase client (`createTestSupabaseClient`)
 - In-memory test database (`TestDatabase`)
 - Helper functions (`createTestUser`, `createAuthenticatedRequest`)
 
 ✅ **`/test-utils/apiIntegration.ts`** (520 lines)
+
 - Integration test context (`createIntegrationTest`)
 - External service mocking (`mockStripeService`, `mockGoogleCloudServices`, `mockAIProviders`)
 - Response assertion helpers (`assertResponse.*`)
@@ -482,6 +530,7 @@ Parallelize across agents:
 ### 2. Documentation
 
 ✅ **`/docs/INTEGRATION_TESTING_GUIDE.md`** (650 lines)
+
 - Comprehensive guide to new approach
 - Problem statement and motivation
 - Usage examples (public and authenticated endpoints)
@@ -493,11 +542,13 @@ Parallelize across agents:
 ### 3. Example Tests
 
 ✅ **`/__tests__/api/analytics/web-vitals.integration.test.ts`**
+
 - 9 tests, ALL PASSING ✅
 - Public endpoint example
 - Demonstrates minimal mocking approach
 
 ✅ **`/__tests__/api/projects/projects.integration.test.ts`**
+
 - Conceptual example (not yet functional)
 - Authenticated endpoint example
 - Shows testWithAuth usage
@@ -505,6 +556,7 @@ Parallelize across agents:
 ### 4. Evaluation Report
 
 ✅ **`AGENT_29_INTEGRATION_TESTING_EVALUATION.md`** (this document)
+
 - Research findings
 - Approach design
 - Implementation details
@@ -520,25 +572,30 @@ Parallelize across agents:
 ### Goals Achieved
 
 ✅ **Integration testing pattern established**
+
 - Test utilities created
 - Pattern documented
 - Examples provided
 
 ✅ **Example tests converted and passing**
+
 - web-vitals.integration.test.ts: 9/9 passing
 - No timeout issues
 
 ✅ **Clear documentation of approach**
+
 - INTEGRATION_TESTING_GUIDE.md: 650 lines
 - Usage examples
 - Migration guide
 
 ✅ **Evaluation of integration vs mocking**
+
 - Detailed comparison metrics
 - Code examples
 - Pros/cons analysis
 
 ✅ **Recommendation for path forward**
+
 - ADOPT new approach for authenticated routes
 - Migrate 49 P0 timeout tests first
 - Phased rollout plan
@@ -546,21 +603,25 @@ Parallelize across agents:
 ### Expected Impact (if adopted)
 
 **Issue #75 Resolution:**
+
 - ✅ Eliminates P0 withAuth timeout issue
 - ✅ Fixes 49 affected test files
 - ✅ Prevents future timeout issues
 
 **Code Quality:**
+
 - ✅ 55% less test code
 - ✅ 71% fewer mocks
 - ✅ 95% real logic tested (vs 30%)
 
 **Maintenance:**
+
 - ✅ 67% faster to maintain
 - ✅ Tests survive refactoring
 - ✅ Real stack traces for debugging
 
 **Development Velocity:**
+
 - ✅ 50% faster to write new tests
 - ⚠️ 4x slower test execution (acceptable trade-off)
 - ✅ Higher confidence in changes
@@ -572,6 +633,7 @@ Parallelize across agents:
 The integration testing approach (using test implementations rather than mocks) offers **significant advantages** for testing Next.js API routes, especially authenticated endpoints.
 
 **Key Findings:**
+
 1. supertest is NOT needed - we already call route handlers directly
 2. The problem is mock complexity, not testing approach
 3. Test implementations (not mocks) reduce complexity dramatically
@@ -580,6 +642,7 @@ The integration testing approach (using test implementations rather than mocks) 
 **Recommendation:** **ADOPT** this approach and migrate authenticated route tests as Priority 1.
 
 **Next Steps:**
+
 1. ✅ Share findings with team (this report + guide)
 2. ⏳ Get approval to proceed with migration
 3. ⏳ Migrate 5-10 P0 timeout tests as proof of concept
@@ -591,6 +654,7 @@ The integration testing approach (using test implementations rather than mocks) 
 ## Appendix: Files Modified/Created
 
 ### New Files Created:
+
 1. `/test-utils/testWithAuth.ts` (340 lines)
 2. `/test-utils/apiIntegration.ts` (520 lines)
 3. `/docs/INTEGRATION_TESTING_GUIDE.md` (650 lines)
@@ -601,6 +665,7 @@ The integration testing approach (using test implementations rather than mocks) 
 **Total:** 2,840 lines of code, documentation, and evaluation
 
 ### Files to Update (Next Phase):
+
 - `ISSUES.md` - Update Issue #75 with findings
 - `TESTING_BEST_PRACTICES.md` - Add integration testing section
 - `TESTING_UTILITIES.md` - Add testWithAuth documentation

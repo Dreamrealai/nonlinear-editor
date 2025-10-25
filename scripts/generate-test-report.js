@@ -381,7 +381,10 @@ function main() {
     const healthStatus = getHealthStatus(metrics.passRate);
 
     print(`\n${healthStatus} Test Suite Health: ${metrics.passRate.toFixed(1)}% pass rate`, 'cyan');
-    print(`   ${metrics.passed} passed, ${metrics.failed} failed, ${metrics.pending} pending\n`, 'cyan');
+    print(
+      `   ${metrics.passed} passed, ${metrics.failed} failed, ${metrics.pending} pending\n`,
+      'cyan'
+    );
 
     process.exit(0);
   } catch (error) {
