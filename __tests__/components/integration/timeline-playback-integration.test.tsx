@@ -35,8 +35,8 @@ jest.mock('next/image', () => ({
 const PlaybackIntegrationWrapper = (): JSX.Element => {
   const isPlaying = usePlaybackStore((state) => state.isPlaying);
   const currentTime = usePlaybackStore((state) => state.currentTime);
+  const zoom = usePlaybackStore((state) => state.zoom);
   const timeline = useEditorStore((state) => state.timeline);
-  const zoom = useEditorStore((state) => state.zoom);
   const hasClips = timeline !== null && timeline.clips.length > 0;
   const totalDuration = timeline?.duration || 0;
 
@@ -53,13 +53,13 @@ const PlaybackIntegrationWrapper = (): JSX.Element => {
   };
 
   const handleZoomIn = (): void => {
-    const currentZoom = useEditorStore.getState().zoom;
-    useEditorStore.getState().setZoom(currentZoom * 1.2);
+    const currentZoom = usePlaybackStore.getState().zoom;
+    usePlaybackStore.getState().setZoom(currentZoom * 1.2);
   };
 
   const handleZoomOut = (): void => {
-    const currentZoom = useEditorStore.getState().zoom;
-    useEditorStore.getState().setZoom(currentZoom / 1.2);
+    const currentZoom = usePlaybackStore.getState().zoom;
+    usePlaybackStore.getState().setZoom(currentZoom / 1.2);
   };
 
   const handleSplitAtPlayhead = (): void => {
@@ -97,41 +97,43 @@ const PlaybackIntegrationWrapper = (): JSX.Element => {
 
 describe('Integration: Timeline and Playback Controls', () => {
   beforeEach(() => {
-    // Reset stores before each test
-    usePlaybackStore.getState().reset();
-    useEditorStore.getState().reset();
+    // Reset stores before each test - wrap in act to avoid act() warnings
+    act(() => {
+      usePlaybackStore.getState().reset();
+      useEditorStore.getState().reset();
 
-    // Set up a timeline with clips for tests
-    useEditorStore.getState().setTimeline({
-      id: 'test-timeline',
-      projectId: 'test-project',
-      duration: 30,
-      clips: [
-        {
-          id: 'clip-1',
-          type: 'video',
-          assetId: 'asset-1',
-          start: 0,
-          end: 10,
-          timelinePosition: 0,
-          trackIndex: 0,
-          url: 'https://example.com/video1.mp4',
-          thumbnailUrl: 'https://example.com/thumb1.jpg',
-        },
-        {
-          id: 'clip-2',
-          type: 'video',
-          assetId: 'asset-2',
-          start: 0,
-          end: 15,
-          timelinePosition: 10,
-          trackIndex: 0,
-          url: 'https://example.com/video2.mp4',
-          thumbnailUrl: 'https://example.com/thumb2.jpg',
-        },
-      ],
-      tracks: [{ id: 'track-1', type: 'video', clips: [] }],
-    } as any);
+      // Set up a timeline with clips for tests
+      useEditorStore.getState().setTimeline({
+        id: 'test-timeline',
+        projectId: 'test-project',
+        duration: 30,
+        clips: [
+          {
+            id: 'clip-1',
+            type: 'video',
+            assetId: 'asset-1',
+            start: 0,
+            end: 10,
+            timelinePosition: 0,
+            trackIndex: 0,
+            url: 'https://example.com/video1.mp4',
+            thumbnailUrl: 'https://example.com/thumb1.jpg',
+          },
+          {
+            id: 'clip-2',
+            type: 'video',
+            assetId: 'asset-2',
+            start: 0,
+            end: 15,
+            timelinePosition: 10,
+            trackIndex: 0,
+            url: 'https://example.com/video2.mp4',
+            thumbnailUrl: 'https://example.com/thumb2.jpg',
+          },
+        ],
+        tracks: [{ id: 'track-1', type: 'video', clips: [] }],
+      } as any);
+    });
   });
 
   afterEach(() => {
@@ -239,13 +241,13 @@ describe('Integration: Timeline and Playback Controls', () => {
       const user = userEvent.setup();
       render(<PlaybackIntegrationWrapper />);
 
-      const initialZoom = useEditorStore.getState().zoom;
+      const initialZoom = usePlaybackStore.getState().zoom;
 
       const zoomInButton = screen.getByRole('button', { name: /zoom in/i });
       await user.click(zoomInButton);
 
       await waitFor(() => {
-        const currentZoom = useEditorStore.getState().zoom;
+        const currentZoom = usePlaybackStore.getState().zoom;
         expect(currentZoom).toBeGreaterThan(initialZoom);
       });
     });
@@ -253,18 +255,20 @@ describe('Integration: Timeline and Playback Controls', () => {
     it('should zoom out when zoom out button is clicked', async () => {
       const user = userEvent.setup();
 
-      // Set initial zoom higher than default
-      useEditorStore.getState().setZoom(100);
+      // Set initial zoom higher than default - wrap in act
+      act(() => {
+        usePlaybackStore.getState().setZoom(100);
+      });
 
       render(<PlaybackIntegrationWrapper />);
 
-      const initialZoom = useEditorStore.getState().zoom;
+      const initialZoom = usePlaybackStore.getState().zoom;
 
       const zoomOutButton = screen.getByRole('button', { name: /zoom out/i });
       await user.click(zoomOutButton);
 
       await waitFor(() => {
-        const currentZoom = useEditorStore.getState().zoom;
+        const currentZoom = usePlaybackStore.getState().zoom;
         expect(currentZoom).toBeLessThan(initialZoom);
       });
     });
@@ -327,9 +331,22 @@ describe('Integration: Timeline and Playback Controls', () => {
       // Wait a bit
       await new Promise((resolve) => setTimeout(resolve, 100));
 
+      // Wait for playback to start
+      await waitFor(
+        () => {
+          expect(screen.getByRole('button', { name: 'Pause video' })).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
+
       // Pause
       const pauseButton = screen.getByRole('button', { name: 'Pause video' });
       await user.click(pauseButton);
+
+      // Wait for pause to take effect
+      await waitFor(() => {
+        expect(usePlaybackStore.getState().isPlaying).toBe(false);
+      });
 
       const timeWhenPaused = usePlaybackStore.getState().currentTime;
 
@@ -427,46 +444,46 @@ describe('Integration: Timeline and Playback Controls', () => {
 
     it('should skip forward with arrow right', async () => {
       const user = userEvent.setup();
-      useEditorStore.getState().setCurrentTime(5);
+      usePlaybackStore.getState().setCurrentTime(5);
 
       render(<PlaybackIntegrationWrapper />);
 
-      const initialTime = useEditorStore.getState().currentTime;
+      const initialTime = usePlaybackStore.getState().currentTime;
 
       await user.keyboard('{ArrowRight}');
 
       await waitFor(() => {
-        const currentTime = useEditorStore.getState().currentTime;
+        const currentTime = usePlaybackStore.getState().currentTime;
         expect(currentTime).toBeGreaterThan(initialTime);
       });
     });
 
     it('should skip backward with arrow left', async () => {
       const user = userEvent.setup();
-      useEditorStore.getState().setCurrentTime(10);
+      usePlaybackStore.getState().setCurrentTime(10);
 
       render(<PlaybackIntegrationWrapper />);
 
-      const initialTime = useEditorStore.getState().currentTime;
+      const initialTime = usePlaybackStore.getState().currentTime;
 
       await user.keyboard('{ArrowLeft}');
 
       await waitFor(() => {
-        const currentTime = useEditorStore.getState().currentTime;
+        const currentTime = usePlaybackStore.getState().currentTime;
         expect(currentTime).toBeLessThan(initialTime);
       });
     });
 
     it('should go to start with Home key', async () => {
       const user = userEvent.setup();
-      useEditorStore.getState().setCurrentTime(20);
+      usePlaybackStore.getState().setCurrentTime(20);
 
       render(<PlaybackIntegrationWrapper />);
 
       await user.keyboard('{Home}');
 
       await waitFor(() => {
-        const currentTime = useEditorStore.getState().currentTime;
+        const currentTime = usePlaybackStore.getState().currentTime;
         expect(currentTime).toBe(0);
       });
     });
@@ -475,28 +492,28 @@ describe('Integration: Timeline and Playback Controls', () => {
       const user = userEvent.setup();
       render(<PlaybackIntegrationWrapper />);
 
-      const initialZoom = useEditorStore.getState().zoom;
+      const initialZoom = usePlaybackStore.getState().zoom;
 
       await user.keyboard('+');
 
       await waitFor(() => {
-        const currentZoom = useEditorStore.getState().zoom;
+        const currentZoom = usePlaybackStore.getState().zoom;
         expect(currentZoom).toBeGreaterThan(initialZoom);
       });
     });
 
     it('should zoom out with - key', async () => {
       const user = userEvent.setup();
-      useEditorStore.getState().setZoom(2);
+      usePlaybackStore.getState().setZoom(2);
 
       render(<PlaybackIntegrationWrapper />);
 
-      const initialZoom = useEditorStore.getState().zoom;
+      const initialZoom = usePlaybackStore.getState().zoom;
 
       await user.keyboard('-');
 
       await waitFor(() => {
-        const currentZoom = useEditorStore.getState().zoom;
+        const currentZoom = usePlaybackStore.getState().zoom;
         expect(currentZoom).toBeLessThan(initialZoom);
       });
     });
@@ -528,7 +545,7 @@ describe('Integration: Timeline and Playback Controls', () => {
       (usePlaybackStore.getState() as any).setLoop?.(true);
 
       // Set time near end of a short timeline
-      useEditorStore.getState().setCurrentTime(9.9);
+      usePlaybackStore.getState().setCurrentTime(9.9);
 
       render(<PlaybackIntegrationWrapper />);
 
@@ -542,7 +559,7 @@ describe('Integration: Timeline and Playback Controls', () => {
       // Wait for loop to occur
       await waitFor(
         () => {
-          const currentTime = useEditorStore.getState().currentTime;
+          const currentTime = usePlaybackStore.getState().currentTime;
           // Should have looped back to near zero
           expect(currentTime).toBeLessThan(1);
         },
@@ -627,8 +644,10 @@ describe('Integration: Timeline and Playback Controls', () => {
 
   describe('Error Handling', () => {
     it('should handle missing timeline gracefully', async () => {
-      // Clear timeline
-      useEditorStore.getState().setTimeline(null);
+      // Clear timeline - wrap in act
+      act(() => {
+        useEditorStore.getState().setTimeline(null);
+      });
 
       render(<PlaybackIntegrationWrapper />);
 

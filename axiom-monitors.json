@@ -3,7 +3,7 @@
     {
       "name": "High Error Rate Alert",
       "description": "Triggers when error rate exceeds 5% of total requests",
-      "apl_query": "['logs'] | where ['level'] == 'error' | summarize error_count=count() by bin(_time, 5m) | extend total_errors = sum(error_count) | where total_errors > 10",
+      "apl_query": "['nonlinear-editor'] | where ['level'] == 'error' | summarize error_count=count() by bin(_time, 5m) | extend total_errors = sum(error_count) | where total_errors > 10",
       "interval": "5m",
       "threshold": {
         "operator": ">",
@@ -16,7 +16,7 @@
     {
       "name": "API Latency P95 Alert",
       "description": "Alert when API response time P95 exceeds 3 seconds",
-      "apl_query": "['logs'] | where ['request'] != null | extend duration = todouble(['response.duration']) | summarize p95=percentile(duration, 95) by bin(_time, 5m) | where p95 > 3000",
+      "apl_query": "['nonlinear-editor'] | where ['request'] != null | extend duration = todouble(['response.duration']) | summarize p95=percentile(duration, 95) by bin(_time, 5m) | where p95 > 3000",
       "interval": "5m",
       "threshold": {
         "operator": ">",
@@ -30,7 +30,7 @@
     {
       "name": "Failed Authentication Attempts",
       "description": "Alert when there are more than 50 failed auth attempts in 10 minutes",
-      "apl_query": "['logs'] | where ['message'] contains 'authentication failed' or ['message'] contains 'invalid credentials' | summarize failed_attempts=count() by bin(_time, 10m) | where failed_attempts > 50",
+      "apl_query": "['nonlinear-editor'] | where ['message'] contains 'authentication failed' or ['message'] contains 'invalid credentials' | summarize failed_attempts=count() by bin(_time, 10m) | where failed_attempts > 50",
       "interval": "10m",
       "threshold": {
         "operator": ">",
@@ -43,7 +43,7 @@
     {
       "name": "AI Generation Service Failures",
       "description": "Monitor failures in AI generation services (Gemini, FAL, ElevenLabs, Suno)",
-      "apl_query": "['logs'] | where ['service'] in ('gemini', 'fal-ai', 'elevenlabs', 'suno') and ['status'] == 'failed' | summarize failures=count() by ['service'], bin(_time, 15m) | where failures > 5",
+      "apl_query": "['nonlinear-editor'] | where ['service'] in ('gemini', 'fal-ai', 'elevenlabs', 'suno') and ['status'] == 'failed' | summarize failures=count() by ['service'], bin(_time, 15m) | where failures > 5",
       "interval": "15m",
       "threshold": {
         "operator": ">",
@@ -56,7 +56,7 @@
     {
       "name": "Database Connection Errors",
       "description": "Alert on database connection failures",
-      "apl_query": "['logs'] | where ['category'] == 'DATABASE' and ['level'] == 'error' | summarize db_errors=count() by bin(_time, 5m) | where db_errors > 3",
+      "apl_query": "['nonlinear-editor'] | where ['category'] == 'DATABASE' and ['level'] == 'error' | summarize db_errors=count() by bin(_time, 5m) | where db_errors > 3",
       "interval": "5m",
       "threshold": {
         "operator": ">",
@@ -69,7 +69,7 @@
     {
       "name": "Rate Limit Excessive Hits",
       "description": "Alert when rate limiting is being hit frequently",
-      "apl_query": "['logs'] | where ['response.status'] == 429 | summarize rate_limit_hits=count() by bin(_time, 10m) | where rate_limit_hits > 100",
+      "apl_query": "['nonlinear-editor'] | where ['response.status'] == 429 | summarize rate_limit_hits=count() by bin(_time, 10m) | where rate_limit_hits > 100",
       "interval": "10m",
       "threshold": {
         "operator": ">",
@@ -82,7 +82,7 @@
     {
       "name": "Export Job Failures",
       "description": "Monitor video export job failures",
-      "apl_query": "['logs'] | where ['route'] == '/api/export' and ['level'] == 'error' | summarize export_failures=count() by bin(_time, 30m) | where export_failures > 2",
+      "apl_query": "['nonlinear-editor'] | where ['route'] == '/api/export' and ['level'] == 'error' | summarize export_failures=count() by bin(_time, 30m) | where export_failures > 2",
       "interval": "30m",
       "threshold": {
         "operator": ">",
@@ -95,7 +95,7 @@
     {
       "name": "Client-Side Error Spike",
       "description": "Alert on sudden increase in browser console errors",
-      "apl_query": "['logs'] | where ['source'] == 'browser' and ['level'] == 'error' | summarize browser_errors=count() by bin(_time, 10m) | where browser_errors > 50",
+      "apl_query": "['nonlinear-editor'] | where ['source'] == 'browser' and ['level'] == 'error' | summarize browser_errors=count() by bin(_time, 10m) | where browser_errors > 50",
       "interval": "10m",
       "threshold": {
         "operator": ">",
@@ -108,7 +108,7 @@
     {
       "name": "Storage Upload Failures",
       "description": "Monitor asset upload failures to Supabase Storage",
-      "apl_query": "['logs'] | where ['route'] == '/api/assets/upload' and ['level'] == 'error' | summarize upload_failures=count() by bin(_time, 15m) | where upload_failures > 5",
+      "apl_query": "['nonlinear-editor'] | where ['route'] == '/api/assets/upload' and ['level'] == 'error' | summarize upload_failures=count() by bin(_time, 15m) | where upload_failures > 5",
       "interval": "15m",
       "threshold": {
         "operator": ">",
@@ -135,7 +135,7 @@
     {
       "name": "No Activity Alert",
       "description": "Alert if no logs received for 30 minutes (potential logging system failure)",
-      "apl_query": "['logs'] | summarize log_count=count() by bin(_time, 30m) | where log_count == 0",
+      "apl_query": "['nonlinear-editor'] | summarize log_count=count() by bin(_time, 30m) | where log_count == 0",
       "interval": "30m",
       "threshold": {
         "operator": "==",
@@ -153,27 +153,27 @@
       "widgets": [
         {
           "title": "Request Rate",
-          "query": "['logs'] | where ['request'] != null | summarize requests=count() by bin(_time, 1m)",
+          "query": "['nonlinear-editor'] | where ['request'] != null | summarize requests=count() by bin(_time, 1m)",
           "visualization": "timeseries"
         },
         {
           "title": "Error Rate",
-          "query": "['logs'] | where ['level'] == 'error' | summarize errors=count() by bin(_time, 1m)",
+          "query": "['nonlinear-editor'] | where ['level'] == 'error' | summarize errors=count() by bin(_time, 1m)",
           "visualization": "timeseries"
         },
         {
           "title": "P50, P95, P99 Latency",
-          "query": "['logs'] | where ['response.duration'] != null | extend duration = todouble(['response.duration']) | summarize p50=percentile(duration, 50), p95=percentile(duration, 95), p99=percentile(duration, 99) by bin(_time, 5m)",
+          "query": "['nonlinear-editor'] | where ['response.duration'] != null | extend duration = todouble(['response.duration']) | summarize p50=percentile(duration, 50), p95=percentile(duration, 95), p99=percentile(duration, 99) by bin(_time, 5m)",
           "visualization": "timeseries"
         },
         {
           "title": "Top Endpoints by Request Count",
-          "query": "['logs'] | where ['route'] != null | summarize requests=count() by ['route'] | top 10 by requests",
+          "query": "['nonlinear-editor'] | where ['route'] != null | summarize requests=count() by ['route'] | top 10 by requests",
           "visualization": "bar"
         },
         {
           "title": "Status Code Distribution",
-          "query": "['logs'] | where ['response.status'] != null | summarize count() by ['response.status']",
+          "query": "['nonlinear-editor'] | where ['response.status'] != null | summarize count() by ['response.status']",
           "visualization": "pie"
         }
       ]
@@ -184,17 +184,17 @@
       "widgets": [
         {
           "title": "AI Service Success Rate",
-          "query": "['logs'] | where ['service'] in ('gemini', 'fal-ai', 'elevenlabs', 'suno') | summarize total=count(), successful=countif(['status'] == 'success') by ['service'] | extend success_rate = (successful * 100.0) / total",
+          "query": "['nonlinear-editor'] | where ['service'] in ('gemini', 'fal-ai', 'elevenlabs', 'suno') | summarize total=count(), successful=countif(['status'] == 'success') by ['service'] | extend success_rate = (successful * 100.0) / total",
           "visualization": "bar"
         },
         {
           "title": "Generation Response Times",
-          "query": "['logs'] | where ['service'] in ('gemini', 'fal-ai', 'elevenlabs', 'suno') | extend duration = todouble(['duration']) | summarize avg_duration=avg(duration), p95_duration=percentile(duration, 95) by ['service'], bin(_time, 10m)",
+          "query": "['nonlinear-editor'] | where ['service'] in ('gemini', 'fal-ai', 'elevenlabs', 'suno') | extend duration = todouble(['duration']) | summarize avg_duration=avg(duration), p95_duration=percentile(duration, 95) by ['service'], bin(_time, 10m)",
           "visualization": "timeseries"
         },
         {
           "title": "AI Service Errors",
-          "query": "['logs'] | where ['service'] in ('gemini', 'fal-ai', 'elevenlabs', 'suno') and ['level'] == 'error' | summarize errors=count() by ['service'], bin(_time, 15m)",
+          "query": "['nonlinear-editor'] | where ['service'] in ('gemini', 'fal-ai', 'elevenlabs', 'suno') and ['level'] == 'error' | summarize errors=count() by ['service'], bin(_time, 15m)",
           "visualization": "timeseries"
         }
       ]
@@ -205,22 +205,22 @@
       "widgets": [
         {
           "title": "Active Users",
-          "query": "['logs'] | where ['user_id'] != null | summarize active_users=dcount(['user_id']) by bin_auto(_time)",
+          "query": "['nonlinear-editor'] | where ['user_id'] != null | summarize active_users=dcount(['user_id']) by bin_auto(_time)",
           "visualization": "timeseries"
         },
         {
           "title": "Projects Created",
-          "query": "['logs'] | where ['route'] == '/api/projects' and ['request.method'] == 'POST' | summarize projects=count() by bin(_time, 1h)",
+          "query": "['nonlinear-editor'] | where ['route'] == '/api/projects' and ['request.method'] == 'POST' | summarize projects=count() by bin(_time, 1h)",
           "visualization": "timeseries"
         },
         {
           "title": "Assets Uploaded",
-          "query": "['logs'] | where ['route'] == '/api/assets/upload' | summarize uploads=count() by ['asset_type'], bin(_time, 1h)",
+          "query": "['nonlinear-editor'] | where ['route'] == '/api/assets/upload' | summarize uploads=count() by ['asset_type'], bin(_time, 1h)",
           "visualization": "timeseries"
         },
         {
           "title": "Video Exports",
-          "query": "['logs'] | where ['route'] == '/api/export' | summarize exports=count() by bin(_time, 1h)",
+          "query": "['nonlinear-editor'] | where ['route'] == '/api/export' | summarize exports=count() by bin(_time, 1h)",
           "visualization": "timeseries"
         }
       ]

@@ -24,7 +24,7 @@ import type { AssetRow } from '@/types/assets';
 jest.mock('next/image', () => ({
   __esModule: true,
   default: function MockImage({ src, alt, ...props }: any) {
-    // eslint-disable-next-line @next/next/no-img-element
+    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
     return <img src={src} alt={alt} {...props} />;
   },
 }));
@@ -385,7 +385,12 @@ describe('Integration: Asset Panel Component', () => {
       const onNextPage = jest.fn();
 
       render(
-        <AssetPanel {...defaultProps} hasNextPage={true} onNextPage={onNextPage} totalPages={2} />
+        <AssetPanel
+          {...defaultProps}
+          hasNextPage={true}
+          onNextPage={onNextPage}
+          totalPages={2}
+        />
       );
 
       const nextButton = screen.getByRole('button', { name: /next/i });
@@ -416,6 +421,7 @@ describe('Integration: Asset Panel Component', () => {
   });
 
   describe('Filtering and Sorting', () => {
+    // TODO: These tests assume functionality not present in current AssetPanel implementation
     it('should show search/filter input', () => {
       render(<AssetPanel {...defaultProps} />);
 
@@ -453,7 +459,9 @@ describe('Integration: Asset Panel Component', () => {
       await user.selectOptions(sortSelect, 'name');
 
       // Assets should be reordered (verify in DOM order)
-      const assetNames = screen.getAllByText(/video\d\.mp4/).map((el) => el.textContent);
+      const assetNames = screen
+        .getAllByText(/video\d\.mp4/)
+        .map((el) => el.textContent);
       expect(assetNames).toEqual(['video1.mp4', 'video2.mp4']);
     });
 

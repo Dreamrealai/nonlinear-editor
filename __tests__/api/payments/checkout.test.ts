@@ -18,8 +18,8 @@ import {
   getTestDatabase,
 } from '@/test-utils/testWithAuth';
 
-// Import the actual handler
-import { POST } from '@/app/api/stripe/checkout/route';
+// Import the actual handler (unwrapped version for testing)
+import { handleStripeCheckout } from '@/app/api/stripe/checkout/route';
 
 // Mock external services only
 jest.mock('@/lib/stripe', () => ({
@@ -71,7 +71,7 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
         body: {},
       });
 
-      const handler = createTestAuthHandler(POST);
+      const handler = createTestAuthHandler(handleStripeCheckout);
       const response = await handler(request, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(401);
@@ -92,7 +92,7 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
       const db = getTestDatabase();
       db.delete('user_profiles', user.id);
 
-      const handler = createTestAuthHandler(POST);
+      const handler = createTestAuthHandler(handleStripeCheckout);
       const response = await handler(request, { params: Promise.resolve({}) });
 
       // The test database returns null when profile not found, which causes handler to throw
@@ -121,7 +121,7 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
         updated_at: new Date().toISOString(),
       });
 
-      const handler = createTestAuthHandler(POST);
+      const handler = createTestAuthHandler(handleStripeCheckout);
       const response = await handler(request, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
@@ -154,7 +154,7 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
         url: 'https://checkout.stripe.com/test',
       });
 
-      const handler = createTestAuthHandler(POST);
+      const handler = createTestAuthHandler(handleStripeCheckout);
       const response = await handler(request, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
@@ -187,7 +187,7 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
         url: 'https://checkout.stripe.com/test',
       });
 
-      const handler = createTestAuthHandler(POST);
+      const handler = createTestAuthHandler(handleStripeCheckout);
       const response = await handler(request, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
@@ -221,7 +221,7 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
         customer: 'cus_new_123',
       });
 
-      const handler = createTestAuthHandler(POST);
+      const handler = createTestAuthHandler(handleStripeCheckout);
       const response = await handler(request, { params: Promise.resolve({}) });
 
       expect(getOrCreateStripeCustomer).toHaveBeenCalledWith({
@@ -263,7 +263,7 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
 
       const initialProfile = db.get('user_profiles', user.id);
 
-      const handler = createTestAuthHandler(POST);
+      const handler = createTestAuthHandler(handleStripeCheckout);
       await handler(request, { params: Promise.resolve({}) });
 
       expect(getOrCreateStripeCustomer).toHaveBeenCalledWith({
@@ -280,11 +280,14 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
 
   describe('Checkout Session Creation', () => {
     it('should create checkout session with default price', async () => {
-      const user = createTestUser();
-      const supabase = createTestSupabaseClient(user.id);
+      const { request, user } = createAuthenticatedRequest({
+        method: 'POST',
+        url: '/api/stripe/checkout',
+        body: {},
+      });
 
       // Set up user profile
-      const db = require('@/test-utils/testWithAuth').getTestDatabase();
+      const db = getTestDatabase();
       db.set('user_profiles', user.id, {
         id: user.id,
         email: user.email,
@@ -301,13 +304,8 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
         url: 'https://checkout.stripe.com/test456',
       });
 
-      const request = new NextRequest('http://localhost/api/stripe/checkout', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-      (request as any).__testUser = user;
-
-      const response = await POST(request, { params: Promise.resolve({}) });
+      const handler = createTestAuthHandler(handleStripeCheckout);
+      const response = await handler(request, { params: Promise.resolve({}) });
 
       expect(createCheckoutSession).toHaveBeenCalledWith({
         customerId: 'cus_test_123',
@@ -324,11 +322,14 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
     });
 
     it('should create checkout session with custom price', async () => {
-      const user = createTestUser();
-      const supabase = createTestSupabaseClient(user.id);
+      const { request, user } = createAuthenticatedRequest({
+        method: 'POST',
+        url: '/api/stripe/checkout',
+        body: { priceId: 'price_custom_123' },
+      });
 
       // Set up user profile
-      const db = require('@/test-utils/testWithAuth').getTestDatabase();
+      const db = getTestDatabase();
       db.set('user_profiles', user.id, {
         id: user.id,
         email: user.email,
@@ -345,13 +346,8 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
         url: 'https://checkout.stripe.com/test',
       });
 
-      const request = new NextRequest('http://localhost/api/stripe/checkout', {
-        method: 'POST',
-        body: JSON.stringify({ priceId: 'price_custom_123' }),
-      });
-      (request as any).__testUser = user;
-
-      await POST(request, { params: Promise.resolve({}) });
+      const handler = createTestAuthHandler(handleStripeCheckout);
+      await handler(request, { params: Promise.resolve({}) });
 
       expect(createCheckoutSession).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -363,11 +359,14 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
     it('should return 500 when price ID not configured', async () => {
       delete process.env.STRIPE_PREMIUM_PRICE_ID;
 
-      const user = createTestUser();
-      const supabase = createTestSupabaseClient(user.id);
+      const { request, user } = createAuthenticatedRequest({
+        method: 'POST',
+        url: '/api/stripe/checkout',
+        body: {},
+      });
 
       // Set up user profile
-      const db = require('@/test-utils/testWithAuth').getTestDatabase();
+      const db = getTestDatabase();
       db.set('user_profiles', user.id, {
         id: user.id,
         email: user.email,
@@ -380,13 +379,8 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
 
       getOrCreateStripeCustomer.mockResolvedValue('cus_test_123');
 
-      const request = new NextRequest('http://localhost/api/stripe/checkout', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-      (request as any).__testUser = user;
-
-      const response = await POST(request, { params: Promise.resolve({}) });
+      const handler = createTestAuthHandler(handleStripeCheckout);
+      const response = await handler(request, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -396,11 +390,14 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
 
   describe('Error Handling', () => {
     it('should return 500 when Stripe API fails', async () => {
-      const user = createTestUser();
-      const supabase = createTestSupabaseClient(user.id);
+      const { request, user } = createAuthenticatedRequest({
+        method: 'POST',
+        url: '/api/stripe/checkout',
+        body: {},
+      });
 
       // Set up user profile
-      const db = require('@/test-utils/testWithAuth').getTestDatabase();
+      const db = getTestDatabase();
       db.set('user_profiles', user.id, {
         id: user.id,
         email: user.email,
@@ -414,13 +411,8 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
       getOrCreateStripeCustomer.mockResolvedValue('cus_test_123');
       createCheckoutSession.mockRejectedValue(new Error('Stripe API error'));
 
-      const request = new NextRequest('http://localhost/api/stripe/checkout', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-      (request as any).__testUser = user;
-
-      const response = await POST(request, { params: Promise.resolve({}) });
+      const handler = createTestAuthHandler(handleStripeCheckout);
+      const response = await handler(request, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -428,11 +420,14 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
     });
 
     it('should handle malformed JSON body', async () => {
-      const user = createTestUser();
-      const supabase = createTestSupabaseClient(user.id);
+      const { request, user } = createAuthenticatedRequest({
+        method: 'POST',
+        url: '/api/stripe/checkout',
+        body: {},
+      });
 
       // Set up user profile
-      const db = require('@/test-utils/testWithAuth').getTestDatabase();
+      const db = getTestDatabase();
       db.set('user_profiles', user.id, {
         id: user.id,
         email: user.email,
@@ -443,13 +438,15 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
         updated_at: new Date().toISOString(),
       });
 
-      const request = new NextRequest('http://localhost/api/stripe/checkout', {
+      // Override the request body with invalid JSON
+      const badRequest = new (request.constructor as any)(request.url, {
         method: 'POST',
         body: 'invalid json',
       });
-      (request as any).__testUser = user;
+      (badRequest as any).__testUser = user;
 
-      const response = await POST(request, { params: Promise.resolve({}) });
+      const handler = createTestAuthHandler(handleStripeCheckout);
+      const response = await handler(badRequest, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(500);
     });
@@ -457,11 +454,14 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
 
   describe('Response Format', () => {
     it('should return sessionId and url', async () => {
-      const user = createTestUser();
-      const supabase = createTestSupabaseClient(user.id);
+      const { request, user } = createAuthenticatedRequest({
+        method: 'POST',
+        url: '/api/stripe/checkout',
+        body: {},
+      });
 
       // Set up user profile
-      const db = require('@/test-utils/testWithAuth').getTestDatabase();
+      const db = getTestDatabase();
       db.set('user_profiles', user.id, {
         id: user.id,
         email: user.email,
@@ -478,13 +478,8 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
         url: 'https://checkout.stripe.com/test456',
       });
 
-      const request = new NextRequest('http://localhost/api/stripe/checkout', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-      (request as any).__testUser = user;
-
-      const response = await POST(request, { params: Promise.resolve({}) });
+      const handler = createTestAuthHandler(handleStripeCheckout);
+      const response = await handler(request, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(data).toHaveProperty('sessionId', 'cs_test_456');
@@ -496,11 +491,14 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
     it('should use NEXT_PUBLIC_BASE_URL when available', async () => {
       process.env.NEXT_PUBLIC_BASE_URL = 'https://example.com';
 
-      const user = createTestUser();
-      const supabase = createTestSupabaseClient(user.id);
+      const { request, user } = createAuthenticatedRequest({
+        method: 'POST',
+        url: '/api/stripe/checkout',
+        body: {},
+      });
 
       // Set up user profile
-      const db = require('@/test-utils/testWithAuth').getTestDatabase();
+      const db = getTestDatabase();
       db.set('user_profiles', user.id, {
         id: user.id,
         email: user.email,
@@ -517,13 +515,8 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
         url: 'https://checkout.stripe.com/test',
       });
 
-      const request = new NextRequest('http://localhost/api/stripe/checkout', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-      (request as any).__testUser = user;
-
-      await POST(request, { params: Promise.resolve({}) });
+      const handler = createTestAuthHandler(handleStripeCheckout);
+      await handler(request, { params: Promise.resolve({}) });
 
       expect(createCheckoutSession).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -536,11 +529,14 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
     it('should fallback to request origin when BASE_URL not set', async () => {
       delete process.env.NEXT_PUBLIC_BASE_URL;
 
-      const user = createTestUser();
-      const supabase = createTestSupabaseClient(user.id);
+      const { request, user } = createAuthenticatedRequest({
+        method: 'POST',
+        url: '/api/stripe/checkout',
+        body: {},
+      });
 
       // Set up user profile
-      const db = require('@/test-utils/testWithAuth').getTestDatabase();
+      const db = getTestDatabase();
       db.set('user_profiles', user.id, {
         id: user.id,
         email: user.email,
@@ -557,13 +553,8 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
         url: 'https://checkout.stripe.com/test',
       });
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/checkout', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-      (request as any).__testUser = user;
-
-      await POST(request, { params: Promise.resolve({}) });
+      const handler = createTestAuthHandler(handleStripeCheckout);
+      await handler(request, { params: Promise.resolve({}) });
 
       expect(createCheckoutSession).toHaveBeenCalledWith(
         expect.objectContaining({
