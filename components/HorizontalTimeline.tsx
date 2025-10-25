@@ -13,7 +13,7 @@
 
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
-import type { Clip, TextOverlay, Timeline, ClipGroup, Marker } from '@/types/timeline';
+import type { Clip, TextOverlay, Marker } from '@/types/timeline';
 import { useTimelineScroll } from './VirtualizedClipRenderer';
 import { TIMELINE_CONSTANTS } from '@/lib/constants/ui';
 
@@ -60,60 +60,7 @@ type HorizontalTimelineProps = {
 // DO NOT use `?? []` inline as it creates new array references on every call
 const EMPTY_CLIPS: Clip[] = [];
 const EMPTY_TEXT_OVERLAYS: TextOverlay[] = [];
-const EMPTY_GROUPS: ClipGroup[] = [];
 const EMPTY_MARKERS: Marker[] = [];
-
-// Optimized shallow selector - only re-render when clips/textOverlays array changes
-// This prevents re-renders when clip properties change (handled by React.memo in TimelineClipRenderer)
-const selectTimelineData = (state: ReturnType<typeof useEditorStore.getState>): { timeline: Timeline | null; clips: Clip[]; textOverlays: TextOverlay[]; groups: ClipGroup[]; markers: Marker[]; } => ({
-  timeline: state.timeline,
-  clips: state.timeline?.clips ?? EMPTY_CLIPS,
-  textOverlays: state.timeline?.textOverlays ?? EMPTY_TEXT_OVERLAYS,
-  groups: state.timeline?.groups ?? EMPTY_GROUPS,
-  markers: state.timeline?.markers ?? EMPTY_MARKERS,
-});
-
-// Separate selector for frequently changing values to minimize re-renders
-const selectPlaybackState = (state: ReturnType<typeof useEditorStore.getState>): { currentTime: number; zoom: number; autoScrollEnabled: boolean; } => ({
-  currentTime: state.currentTime,
-  zoom: state.zoom,
-  autoScrollEnabled: state.autoScrollEnabled,
-});
-
-// Selector for selection state
-const selectSelectionState = (state: ReturnType<typeof useEditorStore.getState>): { selectedClipIds: Set<string>; } => ({
-  selectedClipIds: state.selectedClipIds,
-});
-
-// Selector for actions (stable references)
-const selectActions = (state: ReturnType<typeof useEditorStore.getState>) => ({
-  setCurrentTime: state.setCurrentTime,
-  setZoom: state.setZoom,
-  updateClip: state.updateClip,
-  removeClip: state.removeClip,
-  selectClip: state.selectClip,
-  clearSelection: state.clearSelection,
-  splitClipAtTime: state.splitClipAtTime,
-  copyClips: state.copyClips,
-  pasteClips: state.pasteClips,
-  undo: state.undo,
-  redo: state.redo,
-  removeTextOverlay: state.removeTextOverlay,
-  updateTextOverlay: state.updateTextOverlay,
-  toggleClipLock: state.toggleClipLock,
-  toggleAutoScroll: state.toggleAutoScroll,
-  toggleSnap: state.toggleSnap,
-  addMarker: state.addMarker,
-  selectClipsInRange: state.selectClipsInRange,
-  selectAllClips: state.selectAllClips,
-  selectAllClipsInTrack: state.selectAllClipsInTrack,
-});
-
-// Selector for undo/redo state
-const selectHistoryState = (state: ReturnType<typeof useEditorStore.getState>): { canUndo: boolean; canRedo: boolean; } => ({
-  canUndo: state.canUndo(),
-  canRedo: state.canRedo(),
-});
 
 export function HorizontalTimeline({
   onDetectScenes,
@@ -128,33 +75,39 @@ export function HorizontalTimeline({
   splitAudioPending = false,
   splitScenesPending = false,
 }: HorizontalTimelineProps = {}): React.ReactElement {
-  // Optimized store subscriptions - separate selectors to minimize re-renders
-  const { timeline, clips, textOverlays, markers } = useEditorStore(selectTimelineData);
-  const { currentTime, zoom, autoScrollEnabled } = useEditorStore(selectPlaybackState);
-  const { selectedClipIds } = useEditorStore(selectSelectionState);
-  const { canUndo, canRedo } = useEditorStore(selectHistoryState);
-  const {
-    setCurrentTime,
-    setZoom,
-    updateClip,
-    removeClip,
-    selectClip,
-    clearSelection,
-    splitClipAtTime,
-    copyClips,
-    pasteClips,
-    undo,
-    redo,
-    removeTextOverlay,
-    updateTextOverlay,
-    toggleClipLock,
-    toggleAutoScroll,
-    toggleSnap,
-    addMarker,
-    selectClipsInRange,
-    selectAllClips,
-    selectAllClipsInTrack,
-  } = useEditorStore(selectActions);
+  // Optimized store subscriptions - pull individual slices to avoid unnecessary re-renders
+  const timeline = useEditorStore((state) => state.timeline);
+  const clips = useEditorStore((state) => state.timeline?.clips ?? EMPTY_CLIPS);
+  const textOverlays = useEditorStore(
+    (state) => state.timeline?.textOverlays ?? EMPTY_TEXT_OVERLAYS
+  );
+  const markers = useEditorStore((state) => state.timeline?.markers ?? EMPTY_MARKERS);
+  const currentTime = useEditorStore((state) => state.currentTime);
+  const zoom = useEditorStore((state) => state.zoom);
+  const autoScrollEnabled = useEditorStore((state) => state.autoScrollEnabled);
+  const selectedClipIds = useEditorStore((state) => state.selectedClipIds);
+  const canUndo = useEditorStore((state) => state.canUndo());
+  const canRedo = useEditorStore((state) => state.canRedo());
+  const setCurrentTime = useEditorStore((state) => state.setCurrentTime);
+  const setZoom = useEditorStore((state) => state.setZoom);
+  const updateClip = useEditorStore((state) => state.updateClip);
+  const removeClip = useEditorStore((state) => state.removeClip);
+  const selectClip = useEditorStore((state) => state.selectClip);
+  const clearSelection = useEditorStore((state) => state.clearSelection);
+  const splitClipAtTime = useEditorStore((state) => state.splitClipAtTime);
+  const copyClips = useEditorStore((state) => state.copyClips);
+  const pasteClips = useEditorStore((state) => state.pasteClips);
+  const undo = useEditorStore((state) => state.undo);
+  const redo = useEditorStore((state) => state.redo);
+  const removeTextOverlay = useEditorStore((state) => state.removeTextOverlay);
+  const updateTextOverlay = useEditorStore((state) => state.updateTextOverlay);
+  const toggleClipLock = useEditorStore((state) => state.toggleClipLock);
+  const toggleAutoScroll = useEditorStore((state) => state.toggleAutoScroll);
+  const toggleSnap = useEditorStore((state) => state.toggleSnap);
+  const addMarker = useEditorStore((state) => state.addMarker);
+  const selectClipsInRange = useEditorStore((state) => state.selectClipsInRange);
+  const selectAllClips = useEditorStore((state) => state.selectAllClips);
+  const selectAllClipsInTrack = useEditorStore((state) => state.selectAllClipsInTrack);
 
   // Playback state for auto-scroll
   const isPlaying = usePlaybackStore((state): boolean => state.isPlaying);
@@ -553,19 +506,21 @@ export function HorizontalTimeline({
             />
 
             {/* Clips - Virtualized rendering */}
-            {visibleClips.map((clip): React.ReactElement => (
-              <TimelineClipRenderer
-                key={clip.id}
-                clip={clip}
-                zoom={zoom}
-                isSelected={selectedClipIds.has(clip.id)}
-                onMouseDown={handleClipMouseDown}
-                onClick={handleClipClick}
-                onContextMenu={handleClipContextMenu}
-                onTrimHandleMouseDown={handleTrimHandleMouseDown}
-                onRemove={removeClip}
-              />
-            ))}
+            {visibleClips.map(
+              (clip): React.ReactElement => (
+                <TimelineClipRenderer
+                  key={clip.id}
+                  clip={clip}
+                  zoom={zoom}
+                  isSelected={selectedClipIds.has(clip.id)}
+                  onMouseDown={handleClipMouseDown}
+                  onClick={handleClipClick}
+                  onContextMenu={handleClipContextMenu}
+                  onTrimHandleMouseDown={handleTrimHandleMouseDown}
+                  onRemove={removeClip}
+                />
+              )
+            )}
 
             {/* Playhead */}
             <TimelinePlayhead
