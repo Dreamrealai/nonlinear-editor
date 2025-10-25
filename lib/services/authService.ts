@@ -108,7 +108,7 @@ export class AuthService {
 
       // Fetch from database
       const { data: profile, error: dbError } = await this.supabase
-        .from('users')
+        .from('user_profiles')
         .select('*')
         .eq('id', userId)
         .single();
@@ -291,7 +291,7 @@ export class AuthService {
   async updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<UserProfile> {
     try {
       const { data: profile, error: dbError } = await this.supabase
-        .from('users')
+        .from('user_profiles')
         .update(updates)
         .eq('id', userId)
         .select()

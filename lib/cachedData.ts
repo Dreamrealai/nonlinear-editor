@@ -76,19 +76,25 @@ export async function getCachedUserProfile(
     const cached = await cache.get<UserProfile>(cacheKey);
     if (cached) {
       const duration = Date.now() - startTime;
-      serverLogger.debug({
-        event: 'cache.hit',
-        key: cacheKey,
-        duration,
-      }, `Cache hit: user profile ${userId} (${duration}ms)`);
+      serverLogger.debug(
+        {
+          event: 'cache.hit',
+          key: cacheKey,
+          duration,
+        },
+        `Cache hit: user profile ${userId} (${duration}ms)`
+      );
       return cached;
     }
 
     // Cache miss - fetch from database
-    serverLogger.debug({
-      event: 'cache.miss',
-      key: cacheKey,
-    }, `Cache miss: fetching user profile ${userId} from database`);
+    serverLogger.debug(
+      {
+        event: 'cache.miss',
+        key: cacheKey,
+      },
+      `Cache miss: fetching user profile ${userId} from database`
+    );
 
     const { data: profile, error } = await supabase
       .from('user_profiles')
@@ -98,12 +104,15 @@ export async function getCachedUserProfile(
 
     if (error || !profile) {
       const duration = Date.now() - startTime;
-      serverLogger.warn({
-        event: 'cachedData.user_profile.not_found',
-        userId,
-        error: error?.message,
-        duration,
-      }, `User profile not found: ${userId}`);
+      serverLogger.warn(
+        {
+          event: 'cachedData.user_profile.not_found',
+          userId,
+          error: error?.message,
+          duration,
+        },
+        `User profile not found: ${userId}`
+      );
       return null;
     }
 
@@ -111,21 +120,27 @@ export async function getCachedUserProfile(
     await cache.set(cacheKey, profile, CacheTTL.userProfile);
 
     const duration = Date.now() - startTime;
-    serverLogger.debug({
-      event: 'cachedData.user_profile.fetched',
-      userId,
-      duration,
-    }, `User profile fetched and cached (${duration}ms)`);
+    serverLogger.debug(
+      {
+        event: 'cachedData.user_profile.fetched',
+        userId,
+        duration,
+      },
+      `User profile fetched and cached (${duration}ms)`
+    );
 
     return profile as UserProfile;
   } catch (error) {
     const duration = Date.now() - startTime;
-    serverLogger.error({
-      event: 'cachedData.user_profile.error',
-      userId,
-      error,
-      duration,
-    }, 'Error fetching user profile');
+    serverLogger.error(
+      {
+        event: 'cachedData.user_profile.error',
+        userId,
+        error,
+        duration,
+      },
+      'Error fetching user profile'
+    );
     return null;
   }
 }
@@ -145,19 +160,25 @@ export async function getCachedUserSubscription(
     const cached = await cache.get<UserSubscription>(cacheKey);
     if (cached) {
       const duration = Date.now() - startTime;
-      serverLogger.debug({
-        event: 'cache.hit',
-        key: cacheKey,
-        duration,
-      }, `Cache hit: user subscription ${userId} (${duration}ms)`);
+      serverLogger.debug(
+        {
+          event: 'cache.hit',
+          key: cacheKey,
+          duration,
+        },
+        `Cache hit: user subscription ${userId} (${duration}ms)`
+      );
       return cached;
     }
 
     // Cache miss - fetch from database
-    serverLogger.debug({
-      event: 'cache.miss',
-      key: cacheKey,
-    }, `Cache miss: fetching user subscription ${userId} from database`);
+    serverLogger.debug(
+      {
+        event: 'cache.miss',
+        key: cacheKey,
+      },
+      `Cache miss: fetching user subscription ${userId} from database`
+    );
 
     const { data: subscription, error } = await supabase
       .from('user_subscriptions')
@@ -168,11 +189,14 @@ export async function getCachedUserSubscription(
     if (error || !subscription) {
       // No subscription is normal for free users
       const duration = Date.now() - startTime;
-      serverLogger.debug({
-        event: 'cachedData.user_subscription.not_found',
-        userId,
-        duration,
-      }, `No subscription found for user ${userId}`);
+      serverLogger.debug(
+        {
+          event: 'cachedData.user_subscription.not_found',
+          userId,
+          duration,
+        },
+        `No subscription found for user ${userId}`
+      );
       return null;
     }
 
@@ -180,21 +204,27 @@ export async function getCachedUserSubscription(
     await cache.set(cacheKey, subscription, CacheTTL.userSubscription);
 
     const duration = Date.now() - startTime;
-    serverLogger.debug({
-      event: 'cachedData.user_subscription.fetched',
-      userId,
-      duration,
-    }, `User subscription fetched and cached (${duration}ms)`);
+    serverLogger.debug(
+      {
+        event: 'cachedData.user_subscription.fetched',
+        userId,
+        duration,
+      },
+      `User subscription fetched and cached (${duration}ms)`
+    );
 
     return subscription as UserSubscription;
   } catch (error) {
     const duration = Date.now() - startTime;
-    serverLogger.error({
-      event: 'cachedData.user_subscription.error',
-      userId,
-      error,
-      duration,
-    }, 'Error fetching user subscription');
+    serverLogger.error(
+      {
+        event: 'cachedData.user_subscription.error',
+        userId,
+        error,
+        duration,
+      },
+      'Error fetching user subscription'
+    );
     return null;
   }
 }
@@ -216,29 +246,38 @@ export async function getCachedProjectMetadata(
     if (cached) {
       // Verify ownership if userId provided
       if (userId && cached.user_id !== userId) {
-        serverLogger.warn({
-          event: 'cachedData.project_metadata.access_denied',
-          projectId,
-          userId,
-          ownerId: cached.user_id,
-        }, `User ${userId} attempted to access project ${projectId} owned by ${cached.user_id}`);
+        serverLogger.warn(
+          {
+            event: 'cachedData.project_metadata.access_denied',
+            projectId,
+            userId,
+            ownerId: cached.user_id,
+          },
+          `User ${userId} attempted to access project ${projectId} owned by ${cached.user_id}`
+        );
         return null;
       }
 
       const duration = Date.now() - startTime;
-      serverLogger.debug({
-        event: 'cache.hit',
-        key: cacheKey,
-        duration,
-      }, `Cache hit: project metadata ${projectId} (${duration}ms)`);
+      serverLogger.debug(
+        {
+          event: 'cache.hit',
+          key: cacheKey,
+          duration,
+        },
+        `Cache hit: project metadata ${projectId} (${duration}ms)`
+      );
       return cached;
     }
 
     // Cache miss - fetch from database
-    serverLogger.debug({
-      event: 'cache.miss',
-      key: cacheKey,
-    }, `Cache miss: fetching project metadata ${projectId} from database`);
+    serverLogger.debug(
+      {
+        event: 'cache.miss',
+        key: cacheKey,
+      },
+      `Cache miss: fetching project metadata ${projectId} from database`
+    );
 
     let query = supabase
       .from('projects')
@@ -254,13 +293,16 @@ export async function getCachedProjectMetadata(
 
     if (error || !project) {
       const duration = Date.now() - startTime;
-      serverLogger.warn({
-        event: 'cachedData.project_metadata.not_found',
-        projectId,
-        userId,
-        error: error?.message,
-        duration,
-      }, `Project metadata not found: ${projectId}`);
+      serverLogger.warn(
+        {
+          event: 'cachedData.project_metadata.not_found',
+          projectId,
+          userId,
+          error: error?.message,
+          duration,
+        },
+        `Project metadata not found: ${projectId}`
+      );
       return null;
     }
 
@@ -268,21 +310,27 @@ export async function getCachedProjectMetadata(
     await cache.set(cacheKey, project, CacheTTL.projectMetadata);
 
     const duration = Date.now() - startTime;
-    serverLogger.debug({
-      event: 'cachedData.project_metadata.fetched',
-      projectId,
-      duration,
-    }, `Project metadata fetched and cached (${duration}ms)`);
+    serverLogger.debug(
+      {
+        event: 'cachedData.project_metadata.fetched',
+        projectId,
+        duration,
+      },
+      `Project metadata fetched and cached (${duration}ms)`
+    );
 
     return project as ProjectMetadata;
   } catch (error) {
     const duration = Date.now() - startTime;
-    serverLogger.error({
-      event: 'cachedData.project_metadata.error',
-      projectId,
-      error,
-      duration,
-    }, 'Error fetching project metadata');
+    serverLogger.error(
+      {
+        event: 'cachedData.project_metadata.error',
+        projectId,
+        error,
+        duration,
+      },
+      'Error fetching project metadata'
+    );
     return null;
   }
 }
@@ -302,19 +350,25 @@ export async function getCachedUserProjects(
     const cached = await cache.get<ProjectMetadata[]>(cacheKey);
     if (cached) {
       const duration = Date.now() - startTime;
-      serverLogger.debug({
-        event: 'cache.hit',
-        key: cacheKey,
-        duration,
-      }, `Cache hit: user projects ${userId} (${duration}ms)`);
+      serverLogger.debug(
+        {
+          event: 'cache.hit',
+          key: cacheKey,
+          duration,
+        },
+        `Cache hit: user projects ${userId} (${duration}ms)`
+      );
       return cached;
     }
 
     // Cache miss - fetch from database
-    serverLogger.debug({
-      event: 'cache.miss',
-      key: cacheKey,
-    }, `Cache miss: fetching user projects ${userId} from database`);
+    serverLogger.debug(
+      {
+        event: 'cache.miss',
+        key: cacheKey,
+      },
+      `Cache miss: fetching user projects ${userId} from database`
+    );
 
     const { data: projects, error } = await supabase
       .from('projects')
@@ -324,12 +378,15 @@ export async function getCachedUserProjects(
 
     if (error) {
       const duration = Date.now() - startTime;
-      serverLogger.error({
-        event: 'cachedData.user_projects.error',
-        userId,
-        error: error.message,
-        duration,
-      }, `Error fetching user projects: ${userId}`);
+      serverLogger.error(
+        {
+          event: 'cachedData.user_projects.error',
+          userId,
+          error: error.message,
+          duration,
+        },
+        `Error fetching user projects: ${userId}`
+      );
       return [];
     }
 
@@ -339,22 +396,28 @@ export async function getCachedUserProjects(
     await cache.set(cacheKey, projectList, CacheTTL.userProjects);
 
     const duration = Date.now() - startTime;
-    serverLogger.debug({
-      event: 'cachedData.user_projects.fetched',
-      userId,
-      count: projectList.length,
-      duration,
-    }, `User projects fetched and cached (${projectList.length} projects, ${duration}ms)`);
+    serverLogger.debug(
+      {
+        event: 'cachedData.user_projects.fetched',
+        userId,
+        count: projectList.length,
+        duration,
+      },
+      `User projects fetched and cached (${projectList.length} projects, ${duration}ms)`
+    );
 
     return projectList;
   } catch (error) {
     const duration = Date.now() - startTime;
-    serverLogger.error({
-      event: 'cachedData.user_projects.error',
-      userId,
-      error,
-      duration,
-    }, 'Error fetching user projects');
+    serverLogger.error(
+      {
+        event: 'cachedData.user_projects.error',
+        userId,
+        error,
+        duration,
+      },
+      'Error fetching user projects'
+    );
     return [];
   }
 }
@@ -375,23 +438,29 @@ export async function getCachedUserSettings(
     const cached = await cache.get<Record<string, unknown>>(cacheKey);
     if (cached) {
       const duration = Date.now() - startTime;
-      serverLogger.debug({
-        event: 'cache.hit',
-        key: cacheKey,
-        duration,
-      }, `Cache hit: user settings ${userId} (${duration}ms)`);
+      serverLogger.debug(
+        {
+          event: 'cache.hit',
+          key: cacheKey,
+          duration,
+        },
+        `Cache hit: user settings ${userId} (${duration}ms)`
+      );
       return cached;
     }
 
     // Cache miss - fetch from database
     // This assumes you might add a user_settings table in the future
-    serverLogger.debug({
-      event: 'cache.miss',
-      key: cacheKey,
-    }, `Cache miss: fetching user settings ${userId} from database`);
+    serverLogger.debug(
+      {
+        event: 'cache.miss',
+        key: cacheKey,
+      },
+      `Cache miss: fetching user settings ${userId} from database`
+    );
 
     const { data: settings, error } = await supabase
-      .from('user_settings')
+      .from('user_preferences')
       .select('*')
       .eq('user_id', userId)
       .single();
@@ -405,21 +474,27 @@ export async function getCachedUserSettings(
     await cache.set(cacheKey, settings, CacheTTL.userSettings);
 
     const duration = Date.now() - startTime;
-    serverLogger.debug({
-      event: 'cachedData.user_settings.fetched',
-      userId,
-      duration,
-    }, `User settings fetched and cached (${duration}ms)`);
+    serverLogger.debug(
+      {
+        event: 'cachedData.user_settings.fetched',
+        userId,
+        duration,
+      },
+      `User settings fetched and cached (${duration}ms)`
+    );
 
     return settings as Record<string, unknown>;
   } catch (error) {
     const duration = Date.now() - startTime;
-    serverLogger.error({
-      event: 'cachedData.user_settings.error',
-      userId,
-      error,
-      duration,
-    }, 'Error fetching user settings');
+    serverLogger.error(
+      {
+        event: 'cachedData.user_settings.error',
+        userId,
+        error,
+        duration,
+      },
+      'Error fetching user settings'
+    );
     return null;
   }
 }
@@ -427,10 +502,7 @@ export async function getCachedUserSettings(
 /**
  * Warm cache for a user (preload commonly accessed data)
  */
-export async function warmUserCache(
-  supabase: SupabaseClient,
-  userId: string
-): Promise<void> {
+export async function warmUserCache(supabase: SupabaseClient, userId: string): Promise<void> {
   const startTime = Date.now();
 
   try {
@@ -442,16 +514,22 @@ export async function warmUserCache(
     ]);
 
     const duration = Date.now() - startTime;
-    serverLogger.info({
-      event: 'cache.warmed',
-      userId,
-      duration,
-    }, `Cache warmed for user ${userId} (${duration}ms)`);
+    serverLogger.info(
+      {
+        event: 'cache.warmed',
+        userId,
+        duration,
+      },
+      `Cache warmed for user ${userId} (${duration}ms)`
+    );
   } catch (error) {
-    serverLogger.error({
-      event: 'cache.warm_error',
-      userId,
-      error,
-    }, 'Error warming cache for user');
+    serverLogger.error(
+      {
+        event: 'cache.warm_error',
+        userId,
+        error,
+      },
+      'Error warming cache for user'
+    );
   }
 }
