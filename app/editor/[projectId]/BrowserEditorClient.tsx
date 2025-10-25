@@ -581,7 +581,6 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
       }
       try {
         await saveTimeline(projectIdParam, timelineToSave);
-        toast.success('Timeline saved');
       } catch (error) {
         browserLogger.error({ error, projectId: projectIdParam }, 'Failed to autosave timeline');
         toast.error('Failed to autosave timeline');
