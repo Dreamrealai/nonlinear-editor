@@ -155,10 +155,13 @@ const mockSupabase = createMockSupabaseClient();
 mockAuthenticatedUser(mockSupabase, { email: 'test@example.com' });
 
 // Mock query response
-mockSupabase.from('projects').select().single.mockResolvedValue({
-  data: { id: '123', title: 'Test Project' },
-  error: null,
-});
+mockSupabase
+  .from('projects')
+  .select()
+  .single.mockResolvedValue({
+    data: { id: '123', title: 'Test Project' },
+    error: null,
+  });
 ```
 
 ### Google AI Mocks
@@ -239,7 +242,7 @@ test('renders component', () => {
 // With router props
 test('renders with routing', () => {
   render(<MyComponent />, {
-    routerProps: { pathname: '/dashboard' }
+    routerProps: { pathname: '/dashboard' },
   });
 });
 
@@ -362,10 +365,13 @@ import { useAssets } from '@/hooks/useAssets';
 
 test('loads assets', async () => {
   const mockSupabase = createMockSupabaseClient();
-  mockSupabase.from().select().mockResolvedValue({
-    data: [{ id: '1', type: 'video' }],
-    error: null,
-  });
+  mockSupabase
+    .from()
+    .select()
+    .mockResolvedValue({
+      data: [{ id: '1', type: 'video' }],
+      error: null,
+    });
 
   const { result } = renderHook(() => useAssets('project-123'), {
     mockSupabase,
@@ -410,11 +416,7 @@ describe('Asset Upload Workflow', () => {
   });
 
   test('uploads and stores asset', async () => {
-    const asset = await env.workflow.uploadAssetWorkflow(
-      'project-123',
-      env.user.id,
-      'video'
-    );
+    const asset = await env.workflow.uploadAssetWorkflow('project-123', env.user.id, 'video');
 
     expect(asset).toBeDefined();
     expect(asset.type).toBe('video');
@@ -526,9 +528,7 @@ moduleNameMapper: {
 **Solution:** Mocks are already configured in `jest.config.js`. Ensure you're using the mocked version:
 
 ```js
-transformIgnorePatterns: [
-  'node_modules/(?!(lucide-react|@radix-ui)/)',
-]
+transformIgnorePatterns: ['node_modules/(?!(lucide-react|@radix-ui)/)'];
 ```
 
 #### 3. Async operations not completing
