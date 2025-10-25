@@ -45,7 +45,8 @@ describe('SignedUrlCacheManager', () => {
     });
 
     // Default mock response for deduplicatedFetch
-    mockDeduplicatedFetch.mockResolvedValue(
+    // Use mockImplementation to create a fresh Response on each call
+    mockDeduplicatedFetch.mockImplementation(async () =>
       createMockResponse({ signedUrl: 'https://example.com/signed', expiresIn: 3600 })
     );
   });
@@ -64,7 +65,7 @@ describe('SignedUrlCacheManager', () => {
 
     it('should generate key from assetId', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () =>
         new Response(
           JSON.stringify({
             signedUrl: 'https://example.com/signed',
@@ -87,7 +88,7 @@ describe('SignedUrlCacheManager', () => {
 
     it('should generate key from storageUrl', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () =>
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: 3600,
@@ -107,7 +108,7 @@ describe('SignedUrlCacheManager', () => {
     it('should return cached URL on cache hit', async () => {
       // Arrange
       const signedUrl = 'https://example.com/signed';
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl,
           expiresIn: 3600,
@@ -126,7 +127,7 @@ describe('SignedUrlCacheManager', () => {
 
     it('should fetch new URL on cache miss', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: 3600,
@@ -151,13 +152,13 @@ describe('SignedUrlCacheManager', () => {
       });
 
       mockDeduplicatedFetch
-        .mockResolvedValueOnce(
+        .mockImplementationOnce(async () =>
           createMockResponse({
             signedUrl: 'https://example.com/signed1',
             expiresIn: shortTTL,
           })
         )
-        .mockResolvedValueOnce(
+        .mockImplementationOnce(async () =>
           createMockResponse({
             signedUrl: 'https://example.com/signed2',
             expiresIn: shortTTL,
@@ -182,7 +183,7 @@ describe('SignedUrlCacheManager', () => {
   describe('Request Parameters', () => {
     it('should include assetId in request params', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: 3600,
@@ -202,7 +203,7 @@ describe('SignedUrlCacheManager', () => {
 
     it('should include storageUrl in request params', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: 3600,
@@ -222,7 +223,7 @@ describe('SignedUrlCacheManager', () => {
 
     it('should include custom TTL in request params', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: 1800,
@@ -244,7 +245,7 @@ describe('SignedUrlCacheManager', () => {
   describe('Cache Invalidation', () => {
     it('should invalidate specific entry', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: 3600,
@@ -272,7 +273,7 @@ describe('SignedUrlCacheManager', () => {
 
     it('should invalidate matching pattern', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: 3600,
@@ -294,7 +295,7 @@ describe('SignedUrlCacheManager', () => {
 
     it('should clear all entries', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: 3600,
@@ -321,7 +322,7 @@ describe('SignedUrlCacheManager', () => {
         enableLogging: false,
       });
 
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: 3600,
@@ -348,7 +349,7 @@ describe('SignedUrlCacheManager', () => {
     it('should prune expired entries', async () => {
       // Arrange
       const shortTTL = 0.5; // 500ms
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: shortTTL,
@@ -372,7 +373,7 @@ describe('SignedUrlCacheManager', () => {
 
     it('should return 0 when no entries are expired', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: 3600,
@@ -392,7 +393,7 @@ describe('SignedUrlCacheManager', () => {
   describe('Statistics', () => {
     it('should return accurate stats', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: 3600,
@@ -418,7 +419,7 @@ describe('SignedUrlCacheManager', () => {
     it('should calculate correct time to expiry', async () => {
       // Arrange
       const ttl = 3600;
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: ttl,
@@ -439,7 +440,7 @@ describe('SignedUrlCacheManager', () => {
   describe('Prefetch', () => {
     it('should prefetch multiple assets', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: 3600,
@@ -460,14 +461,14 @@ describe('SignedUrlCacheManager', () => {
     it('should handle prefetch failures gracefully', async () => {
       // Arrange
       mockDeduplicatedFetch
-        .mockResolvedValueOnce(
+        .mockImplementationOnce(async () =>
           createMockResponse({
             signedUrl: 'https://example.com/signed1',
             expiresIn: 3600,
           })
         )
         .mockRejectedValueOnce(new Error('Network error'))
-        .mockResolvedValueOnce(
+        .mockImplementationOnce(async () =>
           createMockResponse({
             signedUrl: 'https://example.com/signed3',
             expiresIn: 3600,
@@ -488,7 +489,7 @@ describe('SignedUrlCacheManager', () => {
   describe('Error Handling', () => {
     it('should throw error when API response is invalid', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           // Missing signedUrl
           expiresIn: 3600,
@@ -513,7 +514,7 @@ describe('SignedUrlCacheManager', () => {
   describe('Singleton Instance', () => {
     it('should provide working singleton instance', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: 3600,
@@ -531,7 +532,7 @@ describe('SignedUrlCacheManager', () => {
   describe('Edge Cases', () => {
     it('should handle very short TTLs', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: 1,
@@ -547,7 +548,7 @@ describe('SignedUrlCacheManager', () => {
 
     it('should handle very long TTLs', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           expiresIn: 86400, // 24 hours
@@ -563,7 +564,7 @@ describe('SignedUrlCacheManager', () => {
 
     it('should handle missing expiresIn in response', async () => {
       // Arrange
-      mockDeduplicatedFetch.mockResolvedValue(
+      mockDeduplicatedFetch.mockImplementation(async () => 
         createMockResponse({
           signedUrl: 'https://example.com/signed',
           // expiresIn missing
