@@ -6,8 +6,8 @@
  * - Duplicating and splitting clips
  * - Reordering clips
  *
- * NOTE: History management is delegated to the parent store.
- * This slice does NOT manage history directly to avoid duplication.
+ * History tracking is now managed directly in this slice to ensure
+ * all clip operations properly update the undo/redo history.
  */
 
 import type { Clip, Timeline } from '@/types/timeline';
@@ -152,8 +152,17 @@ export const createClipsSlice = (set: SetState, _get?: GetState): ClipsSlice => 
           state.timeline.clips = dedupeClips(state.timeline.clips);
         }
 
-        // NOTE: History is managed by the parent store (useEditorStore)
-        // which calls useHistoryStore.saveToHistory() after clip operations
+        // Save to history (only if clip was found and updated)
+        const cloned = cloneTimeline(state.timeline);
+        if (cloned) {
+          state.history = state.history.slice(0, state.historyIndex + 1);
+          state.history.push(cloned);
+          if (state.history.length > MAX_HISTORY) {
+            state.history.shift();
+          } else {
+            state.historyIndex++;
+          }
+        }
       }
     }),
 
@@ -172,7 +181,17 @@ export const createClipsSlice = (set: SetState, _get?: GetState): ClipsSlice => 
         timelineAnnouncements.clipRemoved(getClipFileName(clipToRemove));
       }
 
-      // NOTE: History is managed by the parent store (useEditorStore)
+      // Save to history
+      const cloned = cloneTimeline(state.timeline);
+      if (cloned) {
+        state.history = state.history.slice(0, state.historyIndex + 1);
+        state.history.push(cloned);
+        if (state.history.length > MAX_HISTORY) {
+          state.history.shift();
+        } else {
+          state.historyIndex++;
+        }
+      }
     }),
 
   duplicateClip: (id): void =>
@@ -208,7 +227,17 @@ export const createClipsSlice = (set: SetState, _get?: GetState): ClipsSlice => 
         );
       }
 
-      // NOTE: History is managed by the parent store (useEditorStore)
+      // Save to history
+      const cloned = cloneTimeline(state.timeline);
+      if (cloned) {
+        state.history = state.history.slice(0, state.historyIndex + 1);
+        state.history.push(cloned);
+        if (state.history.length > MAX_HISTORY) {
+          state.history.shift();
+        } else {
+          state.historyIndex++;
+        }
+      }
     }),
 
   splitClipAtTime: (clipId, time): void =>
@@ -248,7 +277,17 @@ export const createClipsSlice = (set: SetState, _get?: GetState): ClipsSlice => 
       state.timeline.clips.splice(clipIndex + 1, 0, secondClip);
       state.timeline.clips = dedupeClips(state.timeline.clips);
 
-      // NOTE: History is managed by the parent store (useEditorStore)
+      // Save to history
+      const cloned = cloneTimeline(state.timeline);
+      if (cloned) {
+        state.history = state.history.slice(0, state.historyIndex + 1);
+        state.history.push(cloned);
+        if (state.history.length > MAX_HISTORY) {
+          state.history.shift();
+        } else {
+          state.historyIndex++;
+        }
+      }
     }),
 
   updateClipColor: (id, color): void =>
@@ -260,7 +299,17 @@ export const createClipsSlice = (set: SetState, _get?: GetState): ClipsSlice => 
       // Set or clear the color
       clip.color = color || undefined;
 
-      // NOTE: History is managed by the parent store (useEditorStore)
+      // Save to history
+      const cloned = cloneTimeline(state.timeline);
+      if (cloned) {
+        state.history = state.history.slice(0, state.historyIndex + 1);
+        state.history.push(cloned);
+        if (state.history.length > MAX_HISTORY) {
+          state.history.shift();
+        } else {
+          state.historyIndex++;
+        }
+      }
     }),
 
   reorderClips: (ids): void =>
@@ -274,6 +323,16 @@ export const createClipsSlice = (set: SetState, _get?: GetState): ClipsSlice => 
         .filter((clip): clip is Clip => Boolean(clip));
       state.timeline.clips = dedupeClips(state.timeline.clips);
 
-      // NOTE: History is managed by the parent store (useEditorStore)
+      // Save to history
+      const cloned = cloneTimeline(state.timeline);
+      if (cloned) {
+        state.history = state.history.slice(0, state.historyIndex + 1);
+        state.history.push(cloned);
+        if (state.history.length > MAX_HISTORY) {
+          state.history.shift();
+        } else {
+          state.historyIndex++;
+        }
+      }
     }),
 });

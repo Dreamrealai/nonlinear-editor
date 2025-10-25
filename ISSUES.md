@@ -24,7 +24,7 @@
 
 **Build Status:** ✅ All changes verified - TypeScript passes, ESLint passes (on changed files)
 
-**New Issues Identified:** 3 medium-priority issues requiring attention
+**New Issues Identified:** 4 new issues (2 P1, 2 P2) from comprehensive scan
 
 ---
 
@@ -535,6 +535,57 @@ interface ExportJob {
 
 - Agent 4 comprehensive report
 - Supabase docs: https://supabase.com/docs/guides/api/generating-types
+
+---
+
+### Issue #92: ESLint Doesn't Exclude **mocks** Directory
+
+**Status:** Open
+**Priority:** P2 (Medium - Code quality)
+**Impact:** 44 "'jest' is not defined" errors in mock files, pre-commit hook failures
+**Location:** `eslint.config.mjs:69-83`
+**Reported:** 2025-10-24 (10-Agent Comprehensive Scan)
+**Estimated Effort:** 5 minutes
+
+**Description:**
+ESLint configuration excludes test files but not mock files, causing 44 "'jest' is not defined" errors in `__mocks__/browserAPIs.js`.
+
+**Current Configuration:**
+
+```javascript
+// eslint.config.mjs
+export default [
+  {
+    ignores: [
+      '**/__tests__/**',
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      // Missing: __mocks__ directory
+    ],
+  },
+];
+```
+
+**Recommended Fix:**
+
+```javascript
+export default [
+  {
+    ignores: [
+      '**/__tests__/**',
+      '**/__mocks__/**', // Add this line
+      '**/*.test.ts',
+      '**/*.test.tsx',
+    ],
+  },
+];
+```
+
+**Impact:**
+
+- ESLint failures on mock files
+- Pre-commit hook failures
+- CI/CD pipeline warnings
 
 ---
 
