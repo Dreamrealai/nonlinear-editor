@@ -76,6 +76,62 @@ export async function loadTimeline(projectId: string): Promise<Timeline | null> 
 
     const timeline = data.timeline_data as Timeline;
 
+    // Validate asset existence and filter out orphaned clips
+    const originalClipCount = timeline.clips?.length ?? 0;
+    if (originalClipCount > 0) {
+      // Extract unique asset IDs from clips
+      const assetIds = Array.from(new Set(timeline.clips.map((clip) => clip.assetId)));
+
+      // Query assets table to check which assets exist
+      const { data: existingAssets, error: assetsError } = await supabase
+        .from('assets')
+        .select('id')
+        .in('id', assetIds);
+
+      if (assetsError) {
+        browserLogger.warn(
+          { error: assetsError, projectId },
+          'Failed to validate assets - proceeding without validation'
+        );
+      } else {
+        // Create a Set of existing asset IDs for fast lookup
+        const existingAssetIds = new Set(
+          existingAssets?.map((asset: { id: string }) => asset.id) ?? []
+        );
+
+        // Filter out clips with non-existent assets
+        const validClips = timeline.clips.filter((clip) => existingAssetIds.has(clip.assetId));
+        const removedCount = timeline.clips.length - validClips.length;
+
+        if (removedCount > 0) {
+          timeline.clips = validClips;
+          browserLogger.warn(
+            {
+              projectId,
+              removedCount,
+              originalCount: originalClipCount,
+              remainingCount: validClips.length,
+            },
+            `Removed ${removedCount} orphaned clip(s) with missing assets`
+          );
+
+          // Auto-save the cleaned timeline to prevent loading orphaned clips again
+          try {
+            await saveTimeline(projectId, timeline);
+            browserLogger.info(
+              { projectId, removedCount },
+              'Auto-saved timeline after removing orphaned clips'
+            );
+          } catch (saveError) {
+            browserLogger.warn(
+              { error: saveError, projectId },
+              'Failed to auto-save cleaned timeline - orphaned clips may reappear'
+            );
+          }
+        }
+      }
+    }
+
     // Calculate timeline duration from clips
     const calculatedDuration = timeline.clips.reduce((max, clip) => {
       const clipEnd = clip.timelinePosition + (clip.end - clip.start);
