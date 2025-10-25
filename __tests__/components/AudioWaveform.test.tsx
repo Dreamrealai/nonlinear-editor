@@ -100,7 +100,7 @@ describe('AudioWaveform', () => {
     (global as any).webkitAudioContext = mockAudioContextConstructor;
   });
 
-  beforeEach(() => {
+  beforeEach((): void => {
     testCounter++; // Increment counter to ensure unique cache keys per test
 
     // Suppress expected Worker error logs during tests
