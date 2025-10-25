@@ -29,6 +29,16 @@ if (typeof global.ReadableStream === 'undefined') {
   global.TransformStream = TransformStream;
 }
 
+// Polyfill setImmediate (required by worker_threads)
+if (typeof global.setImmediate === 'undefined') {
+  global.setImmediate = (callback, ...args) => {
+    return setTimeout(callback, 0, ...args);
+  };
+  global.clearImmediate = (id) => {
+    clearTimeout(id);
+  };
+}
+
 // Polyfill MessagePort from worker_threads (required by undici)
 if (typeof global.MessagePort === 'undefined') {
   const { MessagePort, MessageChannel } = require('worker_threads');
