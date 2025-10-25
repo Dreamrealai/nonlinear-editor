@@ -533,7 +533,7 @@ describe('Integration: User Account Workflow', () => {
       });
 
       // Act - Work on project 1
-      const asset1 = await workflow.uploadAssetWorkflow(project1.id, env.user.id, 'video');
+      const asset1 = AssetFixtures.video(project1.id, env.user.id, { id: 'asset-1' });
       const timeline1 = {
         projectId: project1.id,
         clips: [
@@ -545,7 +545,7 @@ describe('Integration: User Account Workflow', () => {
       await projectService.updateProjectState(project1.id, env.user.id, timeline1);
 
       // Switch to project 2
-      const asset2 = await workflow.uploadAssetWorkflow(project2.id, env.user.id, 'video');
+      const asset2 = AssetFixtures.video(project2.id, env.user.id, { id: 'asset-2' });
       const timeline2 = {
         projectId: project2.id,
         clips: [

@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import GenerateVideoTab from '@/components/generation/GenerateVideoTab';
+import { GenerateVideoTab } from '@/components/generation/GenerateVideoTab';
 import { useVideoGenerationQueue } from '@/lib/hooks/useVideoGenerationQueue';
 import toast from 'react-hot-toast';
 
@@ -9,8 +9,7 @@ import toast from 'react-hot-toast';
 jest.mock('@/lib/hooks/useVideoGenerationQueue');
 jest.mock('react-hot-toast');
 jest.mock('@/components/generation/VideoGenerationForm', () => ({
-  __esModule: true,
-  default: function MockVideoGenerationForm({ onSubmit }: any) {
+  VideoGenerationForm: function MockVideoGenerationForm({ onSubmit }: any) {
     return (
       <form data-testid="video-generation-form" onSubmit={onSubmit}>
         <button type="submit">Generate Video</button>
@@ -19,14 +18,12 @@ jest.mock('@/components/generation/VideoGenerationForm', () => ({
   },
 }));
 jest.mock('@/components/generation/VideoGenerationSettings', () => ({
-  __esModule: true,
-  default: function MockVideoGenerationSettings() {
+  VideoGenerationSettings: function MockVideoGenerationSettings() {
     return <div data-testid="video-generation-settings">Settings</div>;
   },
 }));
 jest.mock('@/components/generation/VideoGenerationQueue', () => ({
-  __esModule: true,
-  default: function MockVideoGenerationQueue() {
+  VideoGenerationQueue: function MockVideoGenerationQueue() {
     return <div data-testid="video-generation-queue">Queue</div>;
   },
 }));
@@ -51,6 +48,14 @@ describe('GenerateVideoTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseVideoGenerationQueue.mockReturnValue(mockVideoGenerationQueue);
+  });
+
+  afterEach(async () => {
+    cleanup();
+    // Wait for any pending async operations to complete
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    });
   });
 
   describe('Rendering', () => {

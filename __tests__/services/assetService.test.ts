@@ -2,10 +2,12 @@
  * Tests for AssetService
  */
 
-import { AssetService } from '@/lib/services/assetService';
-import { SupabaseClient } from '@supabase/supabase-js';
+// Mock uuid BEFORE any imports that use it
+jest.mock('uuid', () => ({
+  v4: () => 'test-uuid-1234',
+}));
 
-// Mock external modules
+// Mock errorTracking BEFORE imports
 jest.mock('@/lib/errorTracking', () => ({
   trackError: jest.fn(),
   ErrorCategory: {
@@ -18,9 +20,8 @@ jest.mock('@/lib/errorTracking', () => ({
   },
 }));
 
-jest.mock('uuid', () => ({
-  v4: jest.fn(() => 'test-uuid-1234'),
-}));
+import { AssetService } from '@/lib/services/assetService';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 describe('AssetService', () => {
   let mockSupabase: jest.Mocked<SupabaseClient>;

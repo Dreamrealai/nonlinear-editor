@@ -185,11 +185,6 @@ describe('Integration: Complete AI Generation Workflows', () => {
         error: null,
       });
 
-      env.mockSupabase.insert.mockResolvedValueOnce({
-        data: null,
-        error: null,
-      });
-
       const completedStatus = await videoService.checkVideoStatus(
         env.user.id,
         project.id,
@@ -366,11 +361,6 @@ describe('Integration: Complete AI Generation Workflows', () => {
 
       const mockVideoAsset = await workflow.generateVideoWorkflow(project.id, env.user.id);
 
-      env.mockSupabase.single.mockResolvedValueOnce({
-        data: mockVideoAsset,
-        error: null,
-      });
-
       const videoStatus = await videoService.checkVideoStatus(
         env.user.id,
         project.id,
@@ -383,8 +373,6 @@ describe('Integration: Complete AI Generation Workflows', () => {
       const mockAudioAsset = AssetFixtures.audio(project.id, env.user.id, {
         id: 'audio-track',
       });
-
-      await workflow.uploadAssetWorkflow(project.id, env.user.id, 'audio');
 
       // Step 4: Create multi-track timeline
       const timeline = TimelineBuilders.multiTrack(project.id, [mockVideoAsset], [mockAudioAsset]);
@@ -447,11 +435,6 @@ describe('Integration: Complete AI Generation Workflows', () => {
 
         const mockAsset = await workflow.generateVideoWorkflow(project.id, env.user.id);
         mockAsset.id = `segment-asset-${i}`;
-
-        env.mockSupabase.single.mockResolvedValueOnce({
-          data: mockAsset,
-          error: null,
-        });
 
         const status = await videoService.checkVideoStatus(
           env.user.id,
@@ -575,10 +558,26 @@ describe('Integration: Complete AI Generation Workflows', () => {
       const operations = ['operations/poll-1', 'operations/poll-2', 'operations/poll-3'];
 
       // Act - Poll all operations concurrently
+      const videoBase64 = Buffer.from('concurrent-video').toString('base64');
       checkOperationStatus
         .mockResolvedValueOnce({ done: false, metadata: { progressPercentage: 30 } })
         .mockResolvedValueOnce({ done: false, metadata: { progressPercentage: 60 } })
-        .mockResolvedValueOnce({ done: true, response: { videos: [] } });
+        .mockResolvedValueOnce({
+          done: true,
+          response: {
+            videos: [{ bytesBase64Encoded: videoBase64, mimeType: 'video/mp4' }],
+          },
+        });
+
+      // Mock storage and asset creation for the completed operation
+      const mockCompletedAsset = await workflow.generateVideoWorkflow(project.id, env.user.id);
+      env.mockSupabase.storage.upload.mockResolvedValueOnce({
+        data: { path: 'concurrent-video-path' },
+        error: null,
+      });
+      env.mockSupabase.storage.getPublicUrl.mockReturnValue({
+        data: { publicUrl: 'https://example.com/concurrent-video.mp4' },
+      });
 
       const statuses = await Promise.all(
         operations.map((op) => videoService.checkVideoStatus(env.user.id, project.id, op))

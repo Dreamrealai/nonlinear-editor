@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import PlaybackControls from '@/components/preview/PlaybackControls';
+import { PlaybackControls } from '@/components/preview/PlaybackControls';
 
 // Mock video utils
 jest.mock('@/lib/utils/videoUtils', () => ({
@@ -30,9 +30,14 @@ describe('PlaybackControls', () => {
     jest.useFakeTimers();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    cleanup();
     jest.clearAllTimers();
     jest.useRealTimers();
+    // Wait for any pending async operations to complete
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    });
   });
 
   describe('Rendering', () => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AudioEffectsSection } from '@/components/editor/corrections/AudioEffectsSection';
 
@@ -12,11 +12,18 @@ describe('AudioEffectsSection', () => {
   const mockOnReset = jest.fn();
 
   const defaultProps = {
+    volume: 0,
+    mute: false,
+    fadeIn: 0,
+    fadeOut: 0,
     bassGain: 0,
     midGain: 0,
     trebleGain: 0,
     compression: 0,
     normalize: false,
+    onVolumeChange: jest.fn(),
+    onFadeInChange: jest.fn(),
+    onFadeOutChange: jest.fn(),
     onBassGainChange: mockOnBassGainChange,
     onMidGainChange: mockOnMidGainChange,
     onTrebleGainChange: mockOnTrebleGainChange,
@@ -27,6 +34,14 @@ describe('AudioEffectsSection', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(async () => {
+    cleanup();
+    // Wait for any pending async operations to complete
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    });
   });
 
   describe('Rendering', () => {

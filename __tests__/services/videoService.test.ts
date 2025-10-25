@@ -38,7 +38,7 @@ jest.mock('@/lib/fal-video', () => ({
 }));
 
 jest.mock('uuid', () => ({
-  v4: jest.fn(() => 'test-uuid-1234'),
+  v4: () => 'test-uuid-1234',
 }));
 
 describe('VideoService', () => {

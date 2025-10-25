@@ -417,11 +417,6 @@ describe('Integration: Project Workflow', () => {
       // Arrange
       const mockProject = createMockProject({ user_id: mockUser.id });
 
-      mockSupabase.single.mockResolvedValueOnce({
-        data: mockProject,
-        error: null,
-      });
-
       const emptyState = {
         projectId: mockProject.id,
         clips: [],

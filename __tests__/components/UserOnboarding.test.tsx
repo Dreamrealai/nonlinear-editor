@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { UserOnboarding } from '@/components/UserOnboarding';
 import { analyticsService, AnalyticsEvents } from '@/lib/services/analyticsService';

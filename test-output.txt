@@ -1,0 +1,982 @@
+
+> nonlinear-editor@0.1.0 test
+> NODE_OPTIONS='--max-old-space-size=4096' jest --maxWorkers=3 --workerIdleMemoryLimit=1024MB --coverage --json --outputFile=test-results.json
+
+FAIL __tests__/api/video/status.test.ts (260.365 s)
+  ● Console
+
+    console.log
+      NODE_ENV at test time: development
+
+      at Object.log (__tests__/api/video/status.test.ts:191:15)
+
+  ● GET /api/video/status › Authentication › should return 401 when user is not authenticated
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      152 |
+      153 |   describe('Authentication', () => {
+    > 154 |     it('should return 401 when user is not authenticated', async () => {
+          |     ^
+      155 |       mockUnauthenticatedUser(mockSupabase);
+      156 |       mockRequest = createRequest(
+      157 |         '/api/video/status?operationName=test&projectId=123'
+
+      at it (__tests__/api/video/status.test.ts:154:5)
+      at describe (__tests__/api/video/status.test.ts:153:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Authentication › should return 429 when rate limit exceeded
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      163 |     });
+      164 |
+    > 165 |     it('should return 429 when rate limit exceeded', async () => {
+          |     ^
+      166 |       mockAuthenticatedUser(mockSupabase);
+      167 |       (checkRateLimit as jest.Mock).mockResolvedValueOnce({
+      168 |         success: false,
+
+      at it (__tests__/api/video/status.test.ts:165:5)
+      at describe (__tests__/api/video/status.test.ts:153:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Input Validation › should return 400 when operationName is missing
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      185 |
+      186 |   describe('Input Validation', () => {
+    > 187 |     it('should return 400 when operationName is missing', async () => {
+          |     ^
+      188 |       mockAuthenticatedUser(mockSupabase);
+      189 |       mockRequest = createRequest('/api/video/status?projectId=123') as unknown as NextRequest;
+      190 |
+
+      at it (__tests__/api/video/status.test.ts:187:5)
+      at describe (__tests__/api/video/status.test.ts:186:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Input Validation › should return 400 when projectId is missing
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      201 |     });
+      202 |
+    > 203 |     it('should return 400 when projectId is missing', async () => {
+          |     ^
+      204 |       mockAuthenticatedUser(mockSupabase);
+      205 |       mockRequest = createRequest('/api/video/status?operationName=test') as unknown as NextRequest;
+      206 |
+
+      at it (__tests__/api/video/status.test.ts:203:5)
+      at describe (__tests__/api/video/status.test.ts:186:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › FAL Video Status › should check FAL operation status
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      214 |
+      215 |   describe('FAL Video Status', () => {
+    > 216 |     it('should check FAL operation status', async () => {
+          |     ^
+      217 |       mockAuthenticatedUser(mockSupabase);
+      218 |       checkFalVideoStatus.mockResolvedValue({
+      219 |         done: false,
+
+      at it (__tests__/api/video/status.test.ts:216:5)
+      at describe (__tests__/api/video/status.test.ts:215:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › FAL Video Status › should handle completed FAL video generation
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      233 |     });
+      234 |
+    > 235 |     it('should handle completed FAL video generation', async () => {
+          |     ^
+      236 |       const mockUser = mockAuthenticatedUser(mockSupabase);
+      237 |
+      238 |       // Mock FAL result
+
+      at it (__tests__/api/video/status.test.ts:235:5)
+      at describe (__tests__/api/video/status.test.ts:215:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › FAL Video Status › should return error when FAL video generation fails
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      267 |     });
+      268 |
+    > 269 |     it('should return error when FAL video generation fails', async () => {
+          |     ^
+      270 |       mockAuthenticatedUser(mockSupabase);
+      271 |       checkFalVideoStatus.mockResolvedValue({
+      272 |         done: true,
+
+      at it (__tests__/api/video/status.test.ts:269:5)
+      at describe (__tests__/api/video/status.test.ts:215:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › FAL Video Status › should validate FAL operation name format
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      286 |     });
+      287 |
+    > 288 |     it('should validate FAL operation name format', async () => {
+          |     ^
+      289 |       mockAuthenticatedUser(mockSupabase);
+      290 |
+      291 |       mockRequest = createRequest(
+
+      at it (__tests__/api/video/status.test.ts:288:5)
+      at describe (__tests__/api/video/status.test.ts:215:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Veo Video Status › should check Veo operation status
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      300 |
+      301 |   describe('Veo Video Status', () => {
+    > 302 |     it('should check Veo operation status', async () => {
+          |     ^
+      303 |       mockAuthenticatedUser(mockSupabase);
+      304 |       checkOperationStatus.mockResolvedValue({
+      305 |         done: false,
+
+      at it (__tests__/api/video/status.test.ts:302:5)
+      at describe (__tests__/api/video/status.test.ts:301:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Veo Video Status › should handle completed Veo video with base64 data
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      320 |     });
+      321 |
+    > 322 |     it('should handle completed Veo video with base64 data', async () => {
+          |     ^
+      323 |       const mockUser = mockAuthenticatedUser(mockSupabase);
+      324 |
+      325 |       // Mock base64 video data
+
+      at it (__tests__/api/video/status.test.ts:322:5)
+      at describe (__tests__/api/video/status.test.ts:301:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Veo Video Status › should download Veo video from GCS URI
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      350 |     });
+      351 |
+    > 352 |     it('should download Veo video from GCS URI', async () => {
+          |     ^
+      353 |       mockAuthenticatedUser(mockSupabase);
+      354 |
+      355 |       // Mock with complete service account credentials
+
+      at it (__tests__/api/video/status.test.ts:352:5)
+      at describe (__tests__/api/video/status.test.ts:301:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Veo Video Status › should return error when Veo operation fails
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      399 |     });
+      400 |
+    > 401 |     it('should return error when Veo operation fails', async () => {
+          |     ^
+      402 |       mockAuthenticatedUser(mockSupabase);
+      403 |       checkOperationStatus.mockResolvedValue({
+      404 |         done: true,
+
+      at it (__tests__/api/video/status.test.ts:401:5)
+      at describe (__tests__/api/video/status.test.ts:301:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Storage and Database › should upload video to storage and create asset record
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      422 |
+      423 |   describe('Storage and Database', () => {
+    > 424 |     it('should upload video to storage and create asset record', async () => {
+          |     ^
+      425 |       const mockUser = mockAuthenticatedUser(mockSupabase);
+      426 |
+      427 |       const testVideoData = Buffer.from('test video').toString('base64');
+
+      at it (__tests__/api/video/status.test.ts:424:5)
+      at describe (__tests__/api/video/status.test.ts:423:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Storage and Database › should clean up storage on database insert failure
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      462 |     });
+      463 |
+    > 464 |     it('should clean up storage on database insert failure', async () => {
+          |     ^
+      465 |       mockAuthenticatedUser(mockSupabase);
+      466 |
+      467 |       const testVideoData = Buffer.from('test video').toString('base64');
+
+      at it (__tests__/api/video/status.test.ts:464:5)
+      at describe (__tests__/api/video/status.test.ts:423:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Storage and Database › should create activity history entry on success
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      494 |     });
+      495 |
+    > 496 |     it('should create activity history entry on success', async () => {
+          |     ^
+      497 |       mockAuthenticatedUser(mockSupabase);
+      498 |
+      499 |       const testVideoData = Buffer.from('test video').toString('base64');
+
+      at it (__tests__/api/video/status.test.ts:496:5)
+      at describe (__tests__/api/video/status.test.ts:423:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Error Handling › should return 500 when status check fails
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      527 |
+      528 |   describe('Error Handling', () => {
+    > 529 |     it('should return 500 when status check fails', async () => {
+          |     ^
+      530 |       mockAuthenticatedUser(mockSupabase);
+      531 |       checkOperationStatus.mockRejectedValue(new Error('API error'));
+      532 |
+
+      at it (__tests__/api/video/status.test.ts:529:5)
+      at describe (__tests__/api/video/status.test.ts:528:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Error Handling › should handle storage upload failure
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      542 |     });
+      543 |
+    > 544 |     it('should handle storage upload failure', async () => {
+          |     ^
+      545 |       mockAuthenticatedUser(mockSupabase);
+      546 |
+      547 |       checkOperationStatus.mockResolvedValue({
+
+      at it (__tests__/api/video/status.test.ts:544:5)
+      at describe (__tests__/api/video/status.test.ts:528:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Error Handling › should handle external service 429 rate limit (Veo)
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      571 |     });
+      572 |
+    > 573 |     it('should handle external service 429 rate limit (Veo)', async () => {
+          |     ^
+      574 |       mockAuthenticatedUser(mockSupabase);
+      575 |
+      576 |       const rateLimitError = new Error('Quota exceeded');
+
+      at it (__tests__/api/video/status.test.ts:573:5)
+      at describe (__tests__/api/video/status.test.ts:528:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Error Handling › should handle external service 429 rate limit (FAL)
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      589 |     });
+      590 |
+    > 591 |     it('should handle external service 429 rate limit (FAL)', async () => {
+          |     ^
+      592 |       mockAuthenticatedUser(mockSupabase);
+      593 |
+      594 |       const rateLimitError = new Error('Rate limit exceeded on external service');
+
+      at it (__tests__/api/video/status.test.ts:591:5)
+      at describe (__tests__/api/video/status.test.ts:528:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Error Handling › should handle invalid API key for external service
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      607 |     });
+      608 |
+    > 609 |     it('should handle invalid API key for external service', async () => {
+          |     ^
+      610 |       mockAuthenticatedUser(mockSupabase);
+      611 |
+      612 |       const authError = new Error('Invalid API key');
+
+      at it (__tests__/api/video/status.test.ts:609:5)
+      at describe (__tests__/api/video/status.test.ts:528:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Error Handling › should handle malformed video ID
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      625 |     });
+      626 |
+    > 627 |     it('should handle malformed video ID', async () => {
+          |     ^
+      628 |       mockAuthenticatedUser(mockSupabase);
+      629 |
+      630 |       mockRequest = createRequest(
+
+      at it (__tests__/api/video/status.test.ts:627:5)
+      at describe (__tests__/api/video/status.test.ts:528:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Error Handling › should handle invalid FAL endpoint format
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      639 |     });
+      640 |
+    > 641 |     it('should handle invalid FAL endpoint format', async () => {
+          |     ^
+      642 |       mockAuthenticatedUser(mockSupabase);
+      643 |
+      644 |       mockRequest = createRequest(
+
+      at it (__tests__/api/video/status.test.ts:641:5)
+      at describe (__tests__/api/video/status.test.ts:528:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Error Handling › should handle failed video download from FAL
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      653 |     });
+      654 |
+    > 655 |     it('should handle failed video download from FAL', async () => {
+          |     ^
+      656 |       mockAuthenticatedUser(mockSupabase);
+      657 |
+      658 |       checkFalVideoStatus.mockResolvedValue({
+
+      at it (__tests__/api/video/status.test.ts:655:5)
+      at describe (__tests__/api/video/status.test.ts:528:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Error Handling › should handle missing Google service account for GCS download
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      682 |     });
+      683 |
+    > 684 |     it('should handle missing Google service account for GCS download', async () => {
+          |     ^
+      685 |       mockAuthenticatedUser(mockSupabase);
+      686 |
+      687 |       delete process.env.GOOGLE_SERVICE_ACCOUNT;
+
+      at it (__tests__/api/video/status.test.ts:684:5)
+      at describe (__tests__/api/video/status.test.ts:528:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Error Handling › should handle invalid GCS URI format
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      710 |     });
+      711 |
+    > 712 |     it('should handle invalid GCS URI format', async () => {
+          |     ^
+      713 |       mockAuthenticatedUser(mockSupabase);
+      714 |
+      715 |       process.env.GOOGLE_SERVICE_ACCOUNT = JSON.stringify({
+
+      at it (__tests__/api/video/status.test.ts:712:5)
+      at describe (__tests__/api/video/status.test.ts:528:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+  ● GET /api/video/status › Error Handling › should handle no video artifact returned by Veo
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      753 |     });
+      754 |
+    > 755 |     it('should handle no video artifact returned by Veo', async () => {
+          |     ^
+      756 |       mockAuthenticatedUser(mockSupabase);
+      757 |
+      758 |       checkOperationStatus.mockResolvedValue({
+
+      at it (__tests__/api/video/status.test.ts:755:5)
+      at describe (__tests__/api/video/status.test.ts:528:3)
+      at Object.describe (__tests__/api/video/status.test.ts:91:1)
+
+FAIL __tests__/api/history/history.test.ts (310.346 s)
+  ● GET /api/history › Authentication › should return 401 when user is not authenticated
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+       98 |
+       99 |   describe('Authentication', () => {
+    > 100 |     it('should return 401 when user is not authenticated', async () => {
+          |     ^
+      101 |       mockUnauthenticatedUser(mockSupabase);
+      102 |
+      103 |       const response = await GET(mockRequest);
+
+      at it (__tests__/api/history/history.test.ts:100:5)
+      at describe (__tests__/api/history/history.test.ts:99:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● GET /api/history › Authentication › should proceed when user is authenticated
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      108 |     });
+      109 |
+    > 110 |     it('should proceed when user is authenticated', async () => {
+          |     ^
+      111 |       mockAuthenticatedUser(mockSupabase);
+      112 |       mockSupabase.range.mockResolvedValue({
+      113 |         data: [],
+
+      at it (__tests__/api/history/history.test.ts:110:5)
+      at describe (__tests__/api/history/history.test.ts:99:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● GET /api/history › Rate Limiting › should enforce tier3 rate limiting (30/min)
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      122 |
+      123 |   describe('Rate Limiting', () => {
+    > 124 |     it('should enforce tier3 rate limiting (30/min)', async () => {
+          |     ^
+      125 |       mockAuthenticatedUser(mockSupabase);
+      126 |       const { checkRateLimit } = require('@/lib/rateLimit');
+      127 |
+
+      at it (__tests__/api/history/history.test.ts:124:5)
+      at describe (__tests__/api/history/history.test.ts:123:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● GET /api/history › Rate Limiting › should use user-specific rate limit identifier
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      140 |     });
+      141 |
+    > 142 |     it('should use user-specific rate limit identifier', async () => {
+          |     ^
+      143 |       const mockUser = mockAuthenticatedUser(mockSupabase);
+      144 |       const { checkRateLimit } = require('@/lib/rateLimit');
+      145 |
+
+      at it (__tests__/api/history/history.test.ts:142:5)
+      at describe (__tests__/api/history/history.test.ts:123:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● GET /api/history › Pagination › should use default pagination (limit: 50, offset: 0)
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      156 |
+      157 |   describe('Pagination', () => {
+    > 158 |     it('should use default pagination (limit: 50, offset: 0)', async () => {
+          |     ^
+      159 |       mockAuthenticatedUser(mockSupabase);
+      160 |       mockSupabase.range.mockResolvedValue({
+      161 |         data: [],
+
+      at it (__tests__/api/history/history.test.ts:158:5)
+      at describe (__tests__/api/history/history.test.ts:157:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● GET /api/history › Pagination › should accept custom limit parameter
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      168 |     });
+      169 |
+    > 170 |     it('should accept custom limit parameter', async () => {
+          |     ^
+      171 |       mockAuthenticatedUser(mockSupabase);
+      172 |       mockSupabase.range.mockResolvedValue({
+      173 |         data: [],
+
+      at it (__tests__/api/history/history.test.ts:170:5)
+      at describe (__tests__/api/history/history.test.ts:157:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● GET /api/history › Pagination › should accept custom offset parameter
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      184 |     });
+      185 |
+    > 186 |     it('should accept custom offset parameter', async () => {
+          |     ^
+      187 |       mockAuthenticatedUser(mockSupabase);
+      188 |       mockSupabase.range.mockResolvedValue({
+      189 |         data: [],
+
+      at it (__tests__/api/history/history.test.ts:186:5)
+      at describe (__tests__/api/history/history.test.ts:157:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● GET /api/history › Pagination › should accept both limit and offset parameters
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      200 |     });
+      201 |
+    > 202 |     it('should accept both limit and offset parameters', async () => {
+          |     ^
+      203 |       mockAuthenticatedUser(mockSupabase);
+      204 |       mockSupabase.range.mockResolvedValue({
+      205 |         data: [],
+
+      at it (__tests__/api/history/history.test.ts:202:5)
+      at describe (__tests__/api/history/history.test.ts:157:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● GET /api/history › Pagination › should enforce maximum limit of 100
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      216 |     });
+      217 |
+    > 218 |     it('should enforce maximum limit of 100', async () => {
+          |     ^
+      219 |       mockAuthenticatedUser(mockSupabase);
+      220 |       mockSupabase.range.mockResolvedValue({
+      221 |         data: [],
+
+      at it (__tests__/api/history/history.test.ts:218:5)
+      at describe (__tests__/api/history/history.test.ts:157:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● GET /api/history › Pagination › should enforce minimum limit of 1
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      234 |     });
+      235 |
+    > 236 |     it('should enforce minimum limit of 1', async () => {
+          |     ^
+      237 |       mockAuthenticatedUser(mockSupabase);
+      238 |
+      239 |       const requestWithZeroLimit = new NextRequest('http://localhost/api/history?limit=0', {
+
+      at it (__tests__/api/history/history.test.ts:236:5)
+      at describe (__tests__/api/history/history.test.ts:157:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● GET /api/history › Pagination › should enforce minimum offset of 0
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      248 |     });
+      249 |
+    > 250 |     it('should enforce minimum offset of 0', async () => {
+          |     ^
+      251 |       mockAuthenticatedUser(mockSupabase);
+      252 |
+      253 |       const requestWithNegativeOffset = new NextRequest('http://localhost/api/history?offset=-1', {
+
+      at it (__tests__/api/history/history.test.ts:250:5)
+      at describe (__tests__/api/history/history.test.ts:157:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● GET /api/history › Pagination › should reject invalid limit format
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      262 |     });
+      263 |
+    > 264 |     it('should reject invalid limit format', async () => {
+          |     ^
+      265 |       mockAuthenticatedUser(mockSupabase);
+      266 |
+      267 |       const requestWithInvalidLimit = new NextRequest(
+
+      at it (__tests__/api/history/history.test.ts:264:5)
+      at describe (__tests__/api/history/history.test.ts:157:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● GET /api/history › Query Execution › should query user_activity_history table
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      279 |
+      280 |   describe('Query Execution', () => {
+    > 281 |     it('should query user_activity_history table', async () => {
+          |     ^
+      282 |       const mockUser = mockAuthenticatedUser(mockSupabase);
+      283 |       mockSupabase.range.mockResolvedValue({
+      284 |         data: [],
+
+      at it (__tests__/api/history/history.test.ts:281:5)
+      at describe (__tests__/api/history/history.test.ts:280:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● GET /api/history › Query Execution › should order results by created_at descending
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      293 |     });
+      294 |
+    > 295 |     it('should order results by created_at descending', async () => {
+          |     ^
+      296 |       mockAuthenticatedUser(mockSupabase);
+      297 |       mockSupabase.range.mockResolvedValue({
+      298 |         data: [],
+
+      at it (__tests__/api/history/history.test.ts:295:5)
+      at describe (__tests__/api/history/history.test.ts:280:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● GET /api/history › Query Execution › should return history data with count
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      305 |     });
+      306 |
+    > 307 |     it('should return history data with count', async () => {
+          |     ^
+      308 |       mockAuthenticatedUser(mockSupabase);
+      309 |
+      310 |       const mockHistory = [
+
+      at it (__tests__/api/history/history.test.ts:307:5)
+      at describe (__tests__/api/history/history.test.ts:280:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● GET /api/history › Error Handling › should return 500 when database query fails
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      340 |
+      341 |   describe('Error Handling', () => {
+    > 342 |     it('should return 500 when database query fails', async () => {
+          |     ^
+      343 |       mockAuthenticatedUser(mockSupabase);
+      344 |
+      345 |       mockSupabase.range.mockResolvedValue({
+
+      at it (__tests__/api/history/history.test.ts:342:5)
+      at describe (__tests__/api/history/history.test.ts:341:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● GET /api/history › Error Handling › should handle empty results gracefully
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      355 |     });
+      356 |
+    > 357 |     it('should handle empty results gracefully', async () => {
+          |     ^
+      358 |       mockAuthenticatedUser(mockSupabase);
+      359 |
+      360 |       mockSupabase.range.mockResolvedValue({
+
+      at it (__tests__/api/history/history.test.ts:357:5)
+      at describe (__tests__/api/history/history.test.ts:341:3)
+      at Object.describe (__tests__/api/history/history.test.ts:80:1)
+
+  ● DELETE /api/history › Authentication › should return 401 when user is not authenticated
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      393 |
+      394 |   describe('Authentication', () => {
+    > 395 |     it('should return 401 when user is not authenticated', async () => {
+          |     ^
+      396 |       mockUnauthenticatedUser(mockSupabase);
+      397 |
+      398 |       const response = await DELETE(mockRequest);
+
+      at it (__tests__/api/history/history.test.ts:395:5)
+      at describe (__tests__/api/history/history.test.ts:394:3)
+      at Object.describe (__tests__/api/history/history.test.ts:375:1)
+
+  ● DELETE /api/history › Authentication › should proceed when user is authenticated
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      403 |     });
+      404 |
+    > 405 |     it('should proceed when user is authenticated', async () => {
+          |     ^
+      406 |       mockAuthenticatedUser(mockSupabase);
+      407 |       mockSupabase.eq.mockResolvedValue({ error: null });
+      408 |
+
+      at it (__tests__/api/history/history.test.ts:405:5)
+      at describe (__tests__/api/history/history.test.ts:394:3)
+      at Object.describe (__tests__/api/history/history.test.ts:375:1)
+
+  ● DELETE /api/history › Deletion › should delete all activity history for the user
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      414 |
+      415 |   describe('Deletion', () => {
+    > 416 |     it('should delete all activity history for the user', async () => {
+          |     ^
+      417 |       const mockUser = mockAuthenticatedUser(mockSupabase);
+      418 |       mockSupabase.eq.mockResolvedValue({ error: null });
+      419 |
+
+      at it (__tests__/api/history/history.test.ts:416:5)
+      at describe (__tests__/api/history/history.test.ts:415:3)
+      at Object.describe (__tests__/api/history/history.test.ts:375:1)
+
+  ● DELETE /api/history › Deletion › should return success message
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      425 |     });
+      426 |
+    > 427 |     it('should return success message', async () => {
+          |     ^
+      428 |       mockAuthenticatedUser(mockSupabase);
+      429 |       mockSupabase.eq.mockResolvedValue({ error: null });
+      430 |
+
+      at it (__tests__/api/history/history.test.ts:427:5)
+      at describe (__tests__/api/history/history.test.ts:415:3)
+      at Object.describe (__tests__/api/history/history.test.ts:375:1)
+
+  ● DELETE /api/history › Error Handling › should return 500 when deletion fails
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      438 |
+      439 |   describe('Error Handling', () => {
+    > 440 |     it('should return 500 when deletion fails', async () => {
+          |     ^
+      441 |       mockAuthenticatedUser(mockSupabase);
+      442 |
+      443 |       mockSupabase.eq.mockResolvedValue({
+
+      at it (__tests__/api/history/history.test.ts:440:5)
+      at describe (__tests__/api/history/history.test.ts:439:3)
+      at Object.describe (__tests__/api/history/history.test.ts:375:1)
+
+  ● POST /api/history › Authentication › should return 401 when user is not authenticated
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      470 |
+      471 |   describe('Authentication', () => {
+    > 472 |     it('should return 401 when user is not authenticated', async () => {
+          |     ^
+      473 |       mockUnauthenticatedUser(mockSupabase);
+      474 |
+      475 |       mockRequest = new NextRequest('http://localhost/api/history', {
+
+      at it (__tests__/api/history/history.test.ts:472:5)
+      at describe (__tests__/api/history/history.test.ts:471:3)
+      at Object.describe (__tests__/api/history/history.test.ts:456:1)
+
+  ● POST /api/history › Authentication › should proceed when user is authenticated
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      488 |     });
+      489 |
+    > 490 |     it('should proceed when user is authenticated', async () => {
+          |     ^
+      491 |       const mockUser = mockAuthenticatedUser(mockSupabase);
+      492 |
+      493 |       mockSupabase.single.mockResolvedValue({
+
+      at it (__tests__/api/history/history.test.ts:490:5)
+      at describe (__tests__/api/history/history.test.ts:471:3)
+      at Object.describe (__tests__/api/history/history.test.ts:456:1)
+
+  ● POST /api/history › Input Validation › should validate activity_type is required
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      516 |
+      517 |   describe('Input Validation', () => {
+    > 518 |     it('should validate activity_type is required', async () => {
+          |     ^
+      519 |       mockAuthenticatedUser(mockSupabase);
+      520 |
+      521 |       mockRequest = new NextRequest('http://localhost/api/history', {
+
+      at it (__tests__/api/history/history.test.ts:518:5)
+      at describe (__tests__/api/history/history.test.ts:517:3)
+      at Object.describe (__tests__/api/history/history.test.ts:456:1)
+
+  ● POST /api/history › Input Validation › should validate activity_type is a valid enum value
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      533 |     });
+      534 |
+    > 535 |     it('should validate activity_type is a valid enum value', async () => {
+          |     ^
+      536 |       mockAuthenticatedUser(mockSupabase);
+      537 |
+      538 |       mockRequest = new NextRequest('http://localhost/api/history', {
+
+      at it (__tests__/api/history/history.test.ts:535:5)
+      at describe (__tests__/api/history/history.test.ts:517:3)
+      at Object.describe (__tests__/api/history/history.test.ts:456:1)
+
+  ● POST /api/history › Input Validation › should accept valid activity types
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      551 |     });
+      552 |
+    > 553 |     it('should accept valid activity types', async () => {
+          |     ^
+      554 |       const mockUser = mockAuthenticatedUser(mockSupabase);
+      555 |
+      556 |       const validTypes = [
+
+      at it (__tests__/api/history/history.test.ts:553:5)
+      at describe (__tests__/api/history/history.test.ts:517:3)
+      at Object.describe (__tests__/api/history/history.test.ts:456:1)
+
+  ● POST /api/history › Activity Entry Creation › should insert activity with all fields
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      590 |
+      591 |   describe('Activity Entry Creation', () => {
+    > 592 |     it('should insert activity with all fields', async () => {
+          |     ^
+      593 |       const mockUser = mockAuthenticatedUser(mockSupabase);
+      594 |
+      595 |       const activityData = {
+
+      at it (__tests__/api/history/history.test.ts:592:5)
+      at describe (__tests__/api/history/history.test.ts:591:3)
+      at Object.describe (__tests__/api/history/history.test.ts:456:1)
+
+  ● POST /api/history › Activity Entry Creation › should use empty object for metadata if not provided
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      633 |     });
+      634 |
+    > 635 |     it('should use empty object for metadata if not provided', async () => {
+          |     ^
+      636 |       const mockUser = mockAuthenticatedUser(mockSupabase);
+      637 |
+      638 |       mockSupabase.single.mockResolvedValue({
+
+      at it (__tests__/api/history/history.test.ts:635:5)
+      at describe (__tests__/api/history/history.test.ts:591:3)
+      at Object.describe (__tests__/api/history/history.test.ts:456:1)
+
+  ● POST /api/history › Activity Entry Creation › should return created activity in response
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      664 |     });
+      665 |
+    > 666 |     it('should return created activity in response', async () => {
+          |     ^
+      667 |       const mockUser = mockAuthenticatedUser(mockSupabase);
+      668 |
+      669 |       const createdActivity = {
+
+      at it (__tests__/api/history/history.test.ts:666:5)
+      at describe (__tests__/api/history/history.test.ts:591:3)
+      at Object.describe (__tests__/api/history/history.test.ts:456:1)
+
+  ● POST /api/history › Error Handling › should return 500 when database insert fails
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      698 |
+      699 |   describe('Error Handling', () => {
+    > 700 |     it('should return 500 when database insert fails', async () => {
+          |     ^
+      701 |       mockAuthenticatedUser(mockSupabase);
+      702 |
+      703 |       mockSupabase.single.mockResolvedValue({
+
+      at it (__tests__/api/history/history.test.ts:700:5)
+      at describe (__tests__/api/history/history.test.ts:699:3)
+      at Object.describe (__tests__/api/history/history.test.ts:456:1)
+

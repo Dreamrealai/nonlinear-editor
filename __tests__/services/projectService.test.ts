@@ -2,11 +2,7 @@
  * Tests for ProjectService
  */
 
-import { ProjectService } from '@/lib/services/projectService';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { cache } from '@/lib/cache';
-
-// Mock the error tracking module
+// Mock external modules BEFORE imports
 jest.mock('@/lib/errorTracking', () => ({
   trackError: jest.fn(),
   ErrorCategory: {
@@ -17,6 +13,23 @@ jest.mock('@/lib/errorTracking', () => ({
     MEDIUM: 'medium',
   },
 }));
+
+jest.mock('@/lib/serverLogger', () => {
+  const mockLogger = {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+    child: jest.fn().mockReturnThis(),
+  };
+  return {
+    serverLogger: mockLogger,
+  };
+});
+
+import { ProjectService } from '@/lib/services/projectService';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { cache } from '@/lib/cache';
 
 describe('ProjectService', () => {
   let mockSupabase: jest.Mocked<SupabaseClient>;

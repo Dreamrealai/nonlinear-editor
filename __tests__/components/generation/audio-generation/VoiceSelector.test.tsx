@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { VoiceSelector } from '@/components/generation/audio-generation/VoiceSelector';
 
@@ -21,6 +21,14 @@ describe('VoiceSelector', () => {
       render(
         <VoiceSelector
           voices={mockVoices}
+
+  afterEach(async () => {
+    cleanup();
+    // Wait for any pending async operations to complete
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    });
+  });
           selectedVoice="voice-1"
           onVoiceChange={mockOnVoiceChange}
           loadingVoices={false}

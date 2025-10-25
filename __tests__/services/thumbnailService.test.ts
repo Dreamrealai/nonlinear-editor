@@ -6,12 +6,25 @@ import { ThumbnailService } from '@/lib/services/thumbnailService';
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
+import sharp from 'sharp';
 
 describe('ThumbnailService', () => {
   let service: ThumbnailService;
+  let testImageBuffer: Buffer;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     service = new ThumbnailService();
+    // Create a valid test image using sharp
+    testImageBuffer = await sharp({
+      create: {
+        width: 100,
+        height: 100,
+        channels: 3,
+        background: { r: 255, g: 0, b: 0 },
+      },
+    })
+      .png()
+      .toBuffer();
   });
 
   describe('checkFFmpegAvailable', () => {
@@ -24,20 +37,7 @@ describe('ThumbnailService', () => {
 
   describe('generateImageThumbnail', () => {
     it('should generate thumbnail from image buffer', async () => {
-      // Create a simple 1x1 red pixel PNG
-      const redPixel = Buffer.from([
-        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, // PNG signature
-        0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
-        0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-        0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53,
-        0xde, 0x00, 0x00, 0x00, 0x0c, 0x49, 0x44, 0x41, // IDAT chunk
-        0x54, 0x08, 0xd7, 0x63, 0xf8, 0xcf, 0xc0, 0x00,
-        0x00, 0x00, 0x03, 0x00, 0x01, 0x00, 0x18, 0xdd,
-        0x8d, 0xb4, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, // IEND chunk
-        0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
-      ]);
-
-      const result = await service.generateImageThumbnail(redPixel, {
+      const result = await service.generateImageThumbnail(testImageBuffer, {
         width: 100,
         quality: 80,
       });

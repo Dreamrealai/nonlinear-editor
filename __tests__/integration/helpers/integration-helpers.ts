@@ -516,12 +516,6 @@ export class IntegrationWorkflow {
       error: null,
     });
 
-    // Mock activity logging
-    this.mockSupabase.insert.mockResolvedValueOnce({
-      data: null,
-      error: null,
-    });
-
     return mockAsset;
   }
 

@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import TimelineCorrectionsMenu from '@/components/editor/TimelineCorrectionsMenu';
+import { TimelineCorrectionsMenu } from '@/components/editor/TimelineCorrectionsMenu';
 import { useEditorStore } from '@/state/useEditorStore';
 
 // Mock the editor store

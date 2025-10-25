@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { EditControls } from '@/components/keyframes/components/EditControls';
 import type { SceneFrameRow } from '@/components/keyframes/hooks/useFramesData';

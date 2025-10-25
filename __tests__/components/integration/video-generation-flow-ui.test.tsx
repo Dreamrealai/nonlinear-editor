@@ -34,7 +34,7 @@ jest.mock('@/lib/browserLogger', () => ({
 jest.mock('next/image', () => ({
   __esModule: true,
   default: function MockImage({ src, alt, ...props }: any) {
-    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+    // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt={alt} {...props} />;
   },
 }));
@@ -89,7 +89,7 @@ describe('Integration: Video Generation Flow (UI)', () => {
       render(<GenerateVideoTab projectId={projectId} />);
 
       const modelSelect = screen.getByLabelText('Model') as HTMLSelectElement;
-      expect(modelSelect.value).toBe('veo-3-1-generate');
+      expect(modelSelect.value).toBe('veo-3.1-generate-preview');
 
       const aspectRatioSelect = screen.getByLabelText('Aspect Ratio') as HTMLSelectElement;
       expect(aspectRatioSelect.value).toBe('16:9');
@@ -120,14 +120,14 @@ describe('Integration: Video Generation Flow (UI)', () => {
       render(<GenerateVideoTab projectId={projectId} />);
 
       const modelSelect = screen.getByLabelText('Model') as HTMLSelectElement;
-      expect(modelSelect.value).toBe('veo-3-1-generate');
+      expect(modelSelect.value).toBe('veo-3.1-generate-preview');
 
       // Change model
-      await user.selectOptions(modelSelect, 'veo-2-0-generate');
+      await user.selectOptions(modelSelect, 'veo-2.0-generate-001');
 
       // Model should update
       await waitFor(() => {
-        expect(modelSelect.value).toBe('veo-2-0-generate');
+        expect(modelSelect.value).toBe('veo-2.0-generate-001');
       });
     });
 
@@ -168,12 +168,19 @@ describe('Integration: Video Generation Flow (UI)', () => {
     it('should add video to queue when form is submitted', async () => {
       const user = userEvent.setup();
 
-      // Mock successful API response
+      // Mock successful API response for video generation
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          videoId: 'video-123',
-          status: 'pending',
+          operationName: 'operation-video-123',
+        }),
+      });
+
+      // Mock status polling response
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          done: false,
         }),
       });
 
@@ -193,7 +200,7 @@ describe('Integration: Video Generation Flow (UI)', () => {
       // Wait for API call
       await waitFor(() => {
         expect(global.fetch).toHaveBeenCalledWith(
-          '/api/video-generation/generate',
+          '/api/video/generate',
           expect.objectContaining({
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -215,12 +222,19 @@ describe('Integration: Video Generation Flow (UI)', () => {
     it('should reset form after successful submission', async () => {
       const user = userEvent.setup();
 
-      // Mock successful API response
+      // Mock successful API response for video generation
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          videoId: 'video-123',
-          status: 'pending',
+          operationName: 'operation-video-123',
+        }),
+      });
+
+      // Mock status polling response
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          done: false,
         }),
       });
 
@@ -366,13 +380,13 @@ describe('Integration: Video Generation Flow (UI)', () => {
               videoId: 'video-1',
               status: 'pending',
               prompt: 'First video prompt',
-              model: 'veo-3-1-generate',
+              model: 'veo-3.1-generate-preview',
             },
             {
               videoId: 'video-2',
               status: 'processing',
               prompt: 'Second video prompt',
-              model: 'veo-2-0-generate',
+              model: 'veo-2.0-generate-001',
               progress: 50,
             },
           ],
@@ -403,15 +417,15 @@ describe('Integration: Video Generation Flow (UI)', () => {
       const durationSelect = screen.getByLabelText('Duration') as HTMLSelectElement;
 
       // Initial state (Veo 3.1 supports 8 second duration)
-      expect(modelSelect.value).toBe('veo-3-1-generate');
+      expect(modelSelect.value).toBe('veo-3.1-generate-preview');
       expect(durationSelect.value).toBe('8');
 
       // Change to Veo 2.0 (might have different duration options)
-      await user.selectOptions(modelSelect, 'veo-2-0-generate');
+      await user.selectOptions(modelSelect, 'veo-2.0-generate-001');
 
       // Verify model changed
       await waitFor(() => {
-        expect(modelSelect.value).toBe('veo-2-0-generate');
+        expect(modelSelect.value).toBe('veo-2.0-generate-001');
       });
 
       // Duration options should still be available

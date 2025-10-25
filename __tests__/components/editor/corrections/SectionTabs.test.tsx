@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { SectionTabs } from '@/components/editor/corrections/SectionTabs';
 import type { SectionType } from '@/components/editor/corrections/types';

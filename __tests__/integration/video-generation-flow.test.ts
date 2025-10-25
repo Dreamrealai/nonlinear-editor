@@ -185,12 +185,6 @@ describe('Integration: Video Generation Flow', () => {
         error: null,
       });
 
-      // Mock activity logging
-      mockSupabase.insert.mockResolvedValueOnce({
-        data: null,
-        error: null,
-      });
-
       // Act
       const result = await videoService.checkVideoStatus(
         mockUser.id,
@@ -249,12 +243,6 @@ describe('Integration: Video Generation Flow', () => {
 
       mockSupabase.single.mockResolvedValueOnce({
         data: mockVideoAsset,
-        error: null,
-      });
-
-      // Mock activity logging
-      mockSupabase.insert.mockResolvedValueOnce({
-        data: null,
         error: null,
       });
 
@@ -371,12 +359,6 @@ describe('Integration: Video Generation Flow', () => {
 
       mockSupabase.single.mockResolvedValueOnce({
         data: mockVideoAsset,
-        error: null,
-      });
-
-      // Mock activity logging
-      mockSupabase.insert.mockResolvedValueOnce({
-        data: null,
         error: null,
       });
 
@@ -576,11 +558,6 @@ describe('Integration: Video Generation Flow', () => {
         error: null,
       });
 
-      mockSupabase.insert.mockResolvedValueOnce({
-        data: null,
-        error: null,
-      });
-
       // Act - Generate video
       const videoResult = await videoService.checkVideoStatus(
         mockUser.id,
@@ -717,11 +694,6 @@ describe('Integration: Video Generation Flow', () => {
 
       mockSupabase.single.mockResolvedValueOnce({
         data: mockVideoAsset,
-        error: null,
-      });
-
-      mockSupabase.insert.mockResolvedValueOnce({
-        data: null,
         error: null,
       });
 

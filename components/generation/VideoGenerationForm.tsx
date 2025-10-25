@@ -113,18 +113,20 @@ export function VideoGenerationForm({
               disabled={disabled}
               className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {modelConfig.supportedAspectRatios.map((ratio): React.ReactElement => (
-                <option key={ratio} value={ratio}>
-                  {ratio}{' '}
-                  {ratio === '16:9'
-                    ? 'Landscape'
-                    : ratio === '9:16'
-                      ? 'Portrait'
-                      : ratio === '1:1'
-                        ? 'Square'
-                        : ''}
-                </option>
-              ))}
+              {modelConfig.supportedAspectRatios.map(
+                (ratio): React.ReactElement => (
+                  <option key={ratio} value={ratio}>
+                    {ratio}{' '}
+                    {ratio === '16:9'
+                      ? 'Landscape'
+                      : ratio === '9:16'
+                        ? 'Portrait'
+                        : ratio === '1:1'
+                          ? 'Square'
+                          : ''}
+                  </option>
+                )
+              )}
             </select>
           </div>
 
@@ -136,15 +138,19 @@ export function VideoGenerationForm({
             <select
               id="duration"
               value={duration}
-              onChange={(e): void => onDurationChange(parseInt(e.target.value) as 4 | 5 | 6 | 8 | 10)}
+              onChange={(e): void =>
+                onDurationChange(parseInt(e.target.value) as 4 | 5 | 6 | 8 | 10)
+              }
               disabled={disabled}
               className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {modelConfig.supportedDurations.map((dur): React.ReactElement => (
-                <option key={dur} value={dur}>
-                  {dur} seconds
-                </option>
-              ))}
+              {modelConfig.supportedDurations.map(
+                (dur): React.ReactElement => (
+                  <option key={dur} value={dur}>
+                    {dur} seconds
+                  </option>
+                )
+              )}
             </select>
           </div>
         </div>
@@ -186,11 +192,23 @@ export function VideoGenerationForm({
               </div>
             ) : (
               <div className="space-y-3">
-                <button
-                  type="button"
-                  onClick={(): void | undefined => fileInputRef.current?.click()}
-                  disabled={disabled}
-                  className="w-full flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-8 hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                <div
+                  role="button"
+                  tabIndex={disabled ? -1 : 0}
+                  onClick={(): void => {
+                    if (!disabled) {
+                      fileInputRef.current?.click();
+                    }
+                  }}
+                  onKeyDown={(e): void => {
+                    if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      fileInputRef.current?.click();
+                    }
+                  }}
+                  className="w-full flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-8 hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+                  aria-disabled={disabled}
+                  aria-label="Upload reference image"
                 >
                   <svg
                     className="h-10 w-10 text-neutral-500"
@@ -224,7 +242,7 @@ export function VideoGenerationForm({
                       Upload, paste, or select an image from your library to use as a reference
                     </span>
                   </div>
-                </button>
+                </div>
 
                 <input
                   ref={fileInputRef}

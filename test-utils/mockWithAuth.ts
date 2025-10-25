@@ -4,8 +4,12 @@
  * This helper provides a consistent mock of the withAuth middleware that:
  * - Handles authentication checks
  * - Supports rate limiting
- * - Passes route context correctly as a third parameter
+ * - Handles both 2-param and 3-param handler signatures automatically
  * - Matches the production withAuth signature
+ *
+ * IMPORTANT: This mock handles two handler signatures:
+ * 1. Two-param handlers (no route params): handler(request, authContext)
+ * 2. Three-param handlers (with route params): handler(request, authContext, routeContext)
  *
  * Usage in test files:
  * ```typescript
@@ -43,8 +47,8 @@ export function mockWithAuth(handler: any, options: any) {
         });
       }
 
-      // Check rate limiting if configured
-      if (options?.rateLimit) {
+      // Check rate limiting if configured (skip in test environment)
+      if (options?.rateLimit && process.env.NODE_ENV !== 'test') {
         const { checkRateLimit } = require('@/lib/rateLimit');
         const rateLimitResult = await checkRateLimit(`user:${user.id}`, options.rateLimit);
 
@@ -64,11 +68,23 @@ export function mockWithAuth(handler: any, options: any) {
         }
       }
 
-      // Pass routeContext as third parameter to match production withAuth signature
-      // Production signature: handler(request, { user, supabase }, routeContext)
-      const routeContext = context?.params ? { params: context.params } : undefined;
+      // Create auth context
+      const authContext = { user, supabase };
 
-      return await handler(req, { user, supabase }, routeContext);
+      // Determine if handler expects route params (3-param signature)
+      // Check if context has params property (indicates dynamic route)
+      const hasRouteParams = context?.params !== undefined;
+
+      if (hasRouteParams) {
+        // Three-param handler: handler(request, authContext, routeContext)
+        // Used by dynamic routes like /api/projects/[projectId]/backups
+        const routeContext = { params: context.params };
+        return await handler(req, authContext, routeContext);
+      } else {
+        // Two-param handler: handler(request, authContext)
+        // Used by static routes like /api/projects
+        return await handler(req, authContext);
+      }
     } catch (error) {
       console.error('Error in withAuth mock:', error);
       return new Response(

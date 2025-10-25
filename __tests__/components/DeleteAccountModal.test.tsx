@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act, cleanup, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { DeleteAccountModal } from '@/components/DeleteAccountModal';
 
@@ -46,6 +46,14 @@ describe('DeleteAccountModal', () => {
       render(
         <DeleteAccountModal
           open={false}
+
+  afterEach(async () => {
+    cleanup();
+    // Wait for any pending async operations to complete
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    });
+  });
           onOpenChange={mockOnOpenChange}
           onConfirm={mockOnConfirm}
           loading={false}
