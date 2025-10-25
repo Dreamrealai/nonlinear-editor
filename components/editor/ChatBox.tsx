@@ -430,6 +430,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): React.ReactElem
             )}
           </select>
           <button
+            type="button"
             onClick={clearChat}
             className="rounded-lg border border-neutral-300 bg-white p-2 text-neutral-600 hover:bg-neutral-50 hover:text-red-600 transition-colors"
             title="Clear chat history"
@@ -611,6 +612,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): React.ReactElem
                 >
                   <span className="text-xs text-neutral-700">{file.name}</span>
                   <button
+                    type="button"
                     onClick={(): void => removeAttachment(index)}
                     className="text-neutral-400 hover:text-red-600"
                   >
@@ -648,6 +650,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): React.ReactElem
           />
           <div className="flex flex-col gap-2">
             <button
+              type="button"
               onClick={handleSend}
               disabled={isLoading || (!input.trim() && attachments.length === 0)}
               className="rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 p-2 text-white hover:from-blue-700 hover:to-blue-800 disabled:opacity-50"
@@ -664,6 +667,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): React.ReactElem
               </svg>
             </button>
             <button
+              type="button"
               onClick={(): void | undefined => fileInputRef.current?.click()}
               className="rounded-lg border border-neutral-300 bg-white p-2 text-neutral-600 hover:bg-neutral-50"
               aria-label="Attach files"
