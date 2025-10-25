@@ -85,6 +85,20 @@ jobs:
       - name: Check pass rate threshold
         run: node scripts/check-pass-rate.js 75 /tmp/test-results.json
 
+      - name: Collect test metrics
+        if: always()
+        run: node scripts/collect-test-metrics.js /tmp/test-results.json
+
+      - name: Generate test health dashboard
+        if: always() && github.ref == 'refs/heads/main'
+        run: node scripts/generate-dashboard.js
+        continue-on-error: true
+
+      - name: Run health checks
+        if: always()
+        run: node scripts/check-test-health.js
+        continue-on-error: true
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         if: always()
@@ -103,6 +117,8 @@ jobs:
           path: |
             coverage/
             /tmp/test-results.json
+            test-metrics-history.json
+            test-health-dashboard.html
           retention-days: 30
 
   # Build check

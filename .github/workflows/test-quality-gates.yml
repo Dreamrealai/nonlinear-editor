@@ -49,6 +49,20 @@ jobs:
       - name: Check pass rate threshold
         run: node scripts/check-pass-rate.js 75 /tmp/test-results.json
 
+      - name: Collect test metrics
+        if: always()
+        run: node scripts/collect-test-metrics.js /tmp/test-results.json
+
+      - name: Generate test health dashboard
+        if: always()
+        run: node scripts/generate-dashboard.js
+        continue-on-error: true
+
+      - name: Run health checks
+        if: always()
+        run: node scripts/check-test-health.js
+        continue-on-error: true
+
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -57,6 +71,8 @@ jobs:
           path: |
             /tmp/test-results.json
             coverage/
+            test-metrics-history.json
+            test-health-dashboard.html
           retention-days: 30
 
       - name: Generate test health report
