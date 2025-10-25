@@ -120,6 +120,94 @@ echo "Testing production: $PROD_URL"
 https://nonlinear-editor.vercel.app/
 ```
 
+### Step 1.5: Circuit Breaker Check
+
+**Before launching any agents, check circuit breaker state:**
+
+The circuit breaker protects production from being hammered during incidents. See `/utils/circuit-breaker-guide.md` for full implementation details.
+
+**Circuit Breaker States:**
+
+- **CLOSED**: Normal operation - all tests run normally
+- **OPEN**: Production down - block all tests for 60 seconds
+- **HALF_OPEN**: Testing recovery - limited testing to verify health
+
+**Circuit Breaker Logic:**
+
+1. **If CLOSED (Normal):**
+   - Proceed with full agent swarm launch
+   - Monitor failures and successes
+   - Track consecutive production failures
+
+2. **If OPEN (Production Down):**
+   - Check if 60s timeout expired
+   - If not expired:
+     - Log: "Circuit breaker OPEN - Production unavailable"
+     - Log: "Retry in {X} seconds (next attempt: {timestamp})"
+     - ABORT test run
+   - If expired:
+     - Log: "Circuit transitioning to HALF_OPEN - Testing recovery"
+     - Transition to HALF_OPEN
+     - Launch Agent 1 only (authentication test)
+
+3. **If HALF_OPEN (Testing Recovery):**
+   - Log: "Circuit in recovery mode - Limited testing"
+   - Launch Agent 1 (Authentication)
+   - If Agent 1 succeeds: Launch Agent 2
+   - If Agent 2 succeeds: Circuit CLOSED, launch remaining agents
+   - If any fails: Circuit reopens, wait another 60s
+
+**Failure Classification:**
+
+Track only production failures toward circuit breaker:
+
+- **Count toward circuit**: 5xx errors, timeouts, network errors
+- **Don't count**: Transient errors (retry succeeded), 4xx errors, validation errors
+
+**Circuit Configuration:**
+
+```
+Failure Threshold: 5 consecutive failures → OPEN
+Success Threshold: 2 consecutive successes in HALF_OPEN → CLOSED
+Timeout: 60 seconds
+```
+
+**Example Flow:**
+
+```
+Scenario 1: Production Outage
+- Attempt 1: 5 failures → Circuit OPEN
+- Wait 60s
+- Attempt 2: Agent 1 succeeds → Circuit HALF_OPEN
+- Attempt 2: Agent 2 succeeds → Circuit CLOSED
+- Full testing resumes
+
+Scenario 2: Transient Failure
+- Agent 1 fails, retries, succeeds
+- Circuit remains CLOSED (retry fixed issue)
+- Continue normal operation
+
+Scenario 3: Partial Outage
+- Agent 1 succeeds
+- Agents 2-4 fail (3 failures, below threshold)
+- Circuit remains CLOSED
+- Report partial outage in results
+```
+
+**Status Logging:**
+
+Always log circuit state changes for visibility:
+
+```
+[Circuit] State: CLOSED - Normal operation
+[Circuit] Failure count: 3/5
+[Circuit] State: CLOSED → OPEN (5 consecutive failures)
+[Circuit] Next attempt: 2025-10-25T13:45:00Z (in 60s)
+[Circuit] State: OPEN → HALF_OPEN (timeout expired, testing recovery)
+[Circuit] Recovery progress: 1/2 successes
+[Circuit] State: HALF_OPEN → CLOSED (production recovered)
+```
+
 ### Step 2: Launch Agent Swarm
 
 Use Task tool to launch testing agents in parallel and sequential order:
@@ -156,6 +244,24 @@ Return detailed report of:
 - Screenshots of final state"
 ```
 
+**Context Management:**
+
+After Agent 1 completes:
+
+1. Extract essential results:
+   ```json
+   {
+     "authToken": "...",
+     "userId": "...",
+     "sessionId": "..."
+   }
+   ```
+2. Issue: `/clear` command to reset context
+3. Context reduced from ~5,000 tokens to ~500 tokens (90% reduction)
+4. Launch Agent 2 with ONLY essential context above
+
+---
+
 **Agent 2: Asset Upload Tester** (runs after Agent 1 completes)
 
 ```markdown
@@ -184,6 +290,24 @@ Return detailed report of:
 - Any errors encountered
 - Screenshots"
 ```
+
+**Context Management:**
+
+After Agent 2 completes:
+
+1. Extract essential results:
+   ```json
+   {
+     "projectId": "...",
+     "assetIds": ["...", "...", "..."]
+   }
+   ```
+2. Issue: `/clear` command to reset context
+3. Context reduced from ~10,000 tokens to ~500 tokens (95% reduction)
+4. Launch Agents 3-7 in parallel with SAME minimal context
+5. Each agent starts with only 500 tokens (not 15,000+)
+
+---
 
 #### Parallel Agents (Run concurrently after sequential tests pass)
 
@@ -368,6 +492,32 @@ Collect results from all 7 agents:
 Combine with Axiom error data to create comprehensive error list.
 ```
 
+### Context Management Summary
+
+**Token Usage:**
+
+- Without /clear: ~140,000 tokens total
+- With /clear: ~16,000 tokens total
+- **Savings: 88% reduction**
+
+**Response Times:**
+
+- Without /clear: 10-15s per agent
+- With /clear: 3-5s per agent
+- **Speedup: 2-3x faster**
+
+**Best Practices:**
+
+1. Always /clear between sequential phases
+2. Extract only essential data (IDs, tokens, status)
+3. Don't pass full logs or debug info
+4. Parallel agents share same minimal context
+5. Verify 70%+ context reduction achieved
+
+**See:** `/Users/davidchen/Projects/non-linear-editor/.claude/skills/project-testing/utils/context-management-guide.md` for detailed implementation guide.
+
+---
+
 ### Step 5: Analyze and Categorize Errors
 
 **Categorize by severity:**
@@ -482,6 +632,7 @@ After each fix iteration:
    - Take screenshots to verify fixes
 
 5. **Axiom Verification**
+
    ```apl
    ['nonlinear-editor']
    | where ['_time'] > ago(5m)
