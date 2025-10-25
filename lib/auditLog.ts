@@ -324,6 +324,12 @@ export async function auditLog(entry: AuditLogEntry): Promise<void> {
       }
 
       lastError = error;
+
+      // Check if we should retry
+      if (retryCount >= maxRetries) {
+        break; // Exit before incrementing and logging invalid retry count
+      }
+
       retryCount++;
 
       // Log retry attempt

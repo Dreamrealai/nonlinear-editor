@@ -11,7 +11,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Dialog, DialogContent } from '@/components/ui/Dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { ProjectBackupManager } from '@/components/ProjectBackupManager';
 
 interface BackupButtonProps {
@@ -53,6 +53,9 @@ export function BackupButton({
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Project Backups</DialogTitle>
+          </DialogHeader>
           <ProjectBackupManager projectId={projectId} projectTitle={projectTitle} />
         </DialogContent>
       </Dialog>

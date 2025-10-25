@@ -705,10 +705,10 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
     };
   }, [assets, assetsLoaded, timeline, supabase, updateAsset]);
 
-  // Autosave timeline
+  // Autosave timeline with 5-second debounce
   const { lastSaved, isSaving } = useAutosave(
     projectId,
-    2000,
+    5000, // Increased from 2s to 5s to reduce database writes
     async (projectIdParam, timelineToSave): Promise<void> => {
       if (!timelineToSave) {
         browserLogger.warn(

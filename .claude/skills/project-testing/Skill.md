@@ -1,0 +1,905 @@
+---
+name: 'project-testing'
+description: 'Automated production testing with agent swarms that test all key features via Chrome DevTools, monitor Axiom for errors, and recursively fix issues until production is error-free'
+version: '1.0.0'
+dependencies:
+  - 'chrome-devtools-mcp'
+  - 'axiom-mcp'
+  - 'vercel-cli>=latest'
+  - 'git'
+---
+
+# Project Testing Skill
+
+## Purpose
+
+This skill automates comprehensive production testing by:
+
+1. **Navigating to production** - Opens the Vercel production deployment
+2. **Agent swarm testing** - Deploys parallel and sequential agents to test all key features
+3. **Chrome DevTools monitoring** - Uses MCP tools to verify functionality and capture errors
+4. **Axiom error tracking** - Monitors logs for production errors
+5. **Recursive fixing** - Automatically fixes issues, deploys, and re-tests until error-free
+
+## When to Use
+
+**Trigger when:**
+
+- "test production"
+- "run production tests"
+- "check if production is working"
+- "test all features in production"
+- "verify production deployment"
+- "find and fix production errors"
+- "run end-to-end tests"
+
+## Production Environment
+
+**Production URL:** https://nonlinear-editor.vercel.app/
+**Latest Deployment:** Get from `vercel ls --yes | head -2`
+**Axiom Dataset:** `nonlinear-editor`
+
+**Test Credentials:**
+
+- Email: david@dreamreal.ai
+- Password: sc3p4sses
+
+## Key Features to Test
+
+Based on project README, test these features in order:
+
+### Phase 1: Authentication (Sequential)
+
+1. **Login Flow**
+   - Navigate to /login
+   - Fill credentials
+   - Verify redirect to dashboard
+   - Check session persistence
+
+### Phase 2: Asset Management (Sequential - requires auth)
+
+2. **Asset Upload**
+   - Upload video asset
+   - Upload audio asset
+   - Upload image asset
+   - Verify thumbnail generation
+   - Check signed URLs work
+
+### Phase 3: Core Features (Parallel - after assets loaded)
+
+3. **Multi-Track Timeline**
+   - Drag asset to timeline
+   - Create multiple tracks
+   - Verify visual rendering
+   - Test zoom controls
+   - Test snap-to-grid
+
+4. **Advanced Editing**
+   - Clip trimming
+   - Add transitions (crossfade, fade-in, fade-out)
+   - Adjust opacity
+   - Adjust volume
+   - Speed adjustment
+   - Split clip at playhead
+
+5. **Playback Engine**
+   - Play/pause functionality
+   - Seek to position
+   - Multi-track synchronization
+   - Timecode display accuracy
+
+6. **State Management**
+   - Undo operation
+   - Redo operation
+   - Copy clip
+   - Paste clip
+   - Multi-select clips
+   - Verify autosave
+
+7. **AI Assistant**
+   - Open AI chat
+   - Send test message
+   - Verify response
+   - Check context awareness
+
+## Testing Process
+
+### Step 1: Initialize Testing Environment
+
+**Get latest production URL:**
+
+```bash
+# Get most recent deployment
+PROD_URL=$(vercel ls --yes | head -2 | tail -1 | awk '{print $2}')
+echo "Testing production: $PROD_URL"
+```
+
+**Alternative stable URL:**
+
+```
+https://nonlinear-editor.vercel.app/
+```
+
+### Step 2: Launch Agent Swarm
+
+Use Task tool to launch testing agents in parallel and sequential order:
+
+#### Sequential Agents (Must run in order)
+
+**Agent 1: Authentication Tester**
+
+```markdown
+Launch Task with subagent_type="general-purpose":
+
+Prompt: "Test authentication flow on production https://nonlinear-editor.vercel.app/
+
+Use Chrome DevTools MCP tools:
+
+1. Navigate to production URL using mcp**chrome_devtools**navigate_page
+2. Take snapshot using mcp**chrome_devtools**take_snapshot to see current page
+3. Navigate to /login
+4. Fill login form with:
+   - Email: david@dreamreal.ai
+   - Password: sc3p4sses
+     Using mcp**chrome_devtools**fill_form
+5. Click login button using mcp**chrome_devtools**click
+6. Wait for redirect using mcp**chrome_devtools**wait_for with text 'Projects' or 'Dashboard'
+7. Take screenshot using mcp**chrome_devtools**take_screenshot to verify success
+8. Check console for errors using mcp**chrome_devtools**list_console_messages
+9. Check network requests using mcp**chrome_devtools**list_network_requests
+
+Return detailed report of:
+
+- Authentication success/failure
+- Any console errors
+- Any failed network requests
+- Screenshots of final state"
+```
+
+**Agent 2: Asset Upload Tester** (runs after Agent 1 completes)
+
+```markdown
+Launch Task with subagent_type="general-purpose":
+
+Prompt: "Test asset upload on production (already logged in from previous test)
+
+Assumption: Browser is already at dashboard/projects page from Agent 1.
+
+Use Chrome DevTools MCP tools:
+
+1. Take snapshot to verify current page state
+2. Look for 'New Project' or 'Create Project' button
+3. Click to create new project
+4. Look for 'Upload' or 'Add Asset' functionality
+5. Test upload flow (may need to use mcp**chrome_devtools**upload_file if file input exists)
+6. Verify thumbnail generation
+7. Check for console errors
+8. Check network requests for /api/assets or /api/upload endpoints
+
+Return detailed report of:
+
+- Upload success/failure
+- Thumbnail generation working
+- Asset appears in library
+- Any errors encountered
+- Screenshots"
+```
+
+#### Parallel Agents (Run concurrently after sequential tests pass)
+
+**Agent 3: Timeline Features Tester**
+
+```markdown
+Launch Task with subagent_type="general-purpose":
+
+Prompt: "Test multi-track timeline features on production
+
+Prerequisites: User is logged in, project created, assets uploaded
+
+Use Chrome DevTools MCP tools:
+
+1. Take snapshot to find timeline elements
+2. Test drag-and-drop (find asset, find timeline track, use mcp**chrome_devtools**drag)
+3. Test zoom controls (look for zoom buttons/slider)
+4. Test snap-to-grid toggle
+5. Test adding multiple tracks
+6. Check console for errors during interactions
+7. Take screenshots of timeline with clips
+
+Return report on timeline functionality and any errors"
+```
+
+**Agent 4: Editing Features Tester**
+
+```markdown
+Launch Task with subagent_type="general-purpose":
+
+Prompt: "Test advanced editing features on production
+
+Use Chrome DevTools MCP tools:
+
+1. Find a clip on timeline (from Agent 3's work)
+2. Test trim handles (look for resize handles)
+3. Test transitions dropdown/menu
+4. Test opacity slider
+5. Test volume slider
+6. Test speed controls
+7. Test split functionality
+8. Check console errors
+9. Verify operations work correctly
+
+Return report on editing features and errors"
+```
+
+**Agent 5: Playback Engine Tester**
+
+```markdown
+Launch Task with subagent_type="general-purpose":
+
+Prompt: "Test playback engine on production
+
+Use Chrome DevTools MCP tools:
+
+1. Find playback controls (play/pause button)
+2. Click play using mcp**chrome_devtools**click
+3. Wait 2 seconds
+4. Click pause
+5. Test seek by clicking timeline position
+6. Verify timecode updates
+7. Check for video synchronization issues in console
+8. Monitor network requests for video streaming
+9. Check performance using mcp**chrome_devtools**performance_start_trace
+
+Return report on playback functionality and performance"
+```
+
+**Agent 6: State Management Tester**
+
+```markdown
+Launch Task with subagent_type="general-purpose":
+
+Prompt: "Test state management features on production
+
+Use Chrome DevTools MCP tools:
+
+1. Perform an action (e.g., move a clip)
+2. Find and click Undo button
+3. Verify clip position reverted
+4. Click Redo button
+5. Test copy (Ctrl+C or copy button)
+6. Test paste (Ctrl+V or paste button)
+7. Test multi-select (Shift+click or drag select)
+8. Check localStorage/sessionStorage for autosave data using mcp**chrome_devtools**evaluate_script
+9. Check console errors
+
+Return report on state management and undo/redo functionality"
+```
+
+**Agent 7: AI Assistant Tester**
+
+```markdown
+Launch Task with subagent_type="general-purpose":
+
+Prompt: "Test AI assistant on production
+
+Use Chrome DevTools MCP tools:
+
+1. Find AI chat button/panel
+2. Click to open AI assistant
+3. Type test message: 'How do I add a transition?'
+4. Submit message
+5. Wait for response using mcp**chrome_devtools**wait_for
+6. Verify response appears
+7. Check network requests to /api/ai or gemini endpoints
+8. Check console for errors
+
+Return report on AI functionality and errors"
+```
+
+### Step 3: Monitor Axiom for Errors
+
+While agents are running tests, monitor Axiom logs:
+
+```markdown
+Use mcp**axiom**queryApl to check for errors:
+
+Query: ['nonlinear-editor']
+| where ['_time'] > ago(10m)
+| where ['level'] == "error" or ['severity'] == "error" or ['type'] == "error"
+| project ['_time'], ['message'], ['error'], ['stack'], ['url'], ['userId']
+| order by ['_time'] desc
+| take 50
+
+Analyze errors found and categorize by:
+
+- Client-side errors (browser)
+- Server-side errors (API routes)
+- Database errors (Supabase)
+- Third-party service errors (Gemini, etc.)
+```
+
+**Check for specific error patterns:**
+
+```apl
+// Check for authentication errors
+['nonlinear-editor']
+| where ['_time'] > ago(10m)
+| where ['message'] contains "auth" or ['message'] contains "login" or ['message'] contains "session"
+| where ['level'] == "error"
+| summarize error_count=count() by ['message'], ['url']
+
+// Check for asset errors
+['nonlinear-editor']
+| where ['_time'] > ago(10m)
+| where ['message'] contains "asset" or ['message'] contains "upload" or ['message'] contains "storage"
+| where ['level'] == "error"
+| summarize error_count=count() by ['message']
+
+// Check for timeline errors
+['nonlinear-editor']
+| where ['_time'] > ago(10m)
+| where ['message'] contains "timeline" or ['message'] contains "clip" or ['message'] contains "track"
+| where ['level'] == "error"
+| summarize error_count=count() by ['message']
+
+// Check for playback errors
+['nonlinear-editor']
+| where ['_time'] > ago(10m)
+| where ['message'] contains "playback" or ['message'] contains "video" or ['message'] contains "audio"
+| where ['level'] == "error"
+| summarize error_count=count() by ['message']
+```
+
+### Step 4: Consolidate Test Results
+
+Wait for all agents to complete, then consolidate:
+
+```markdown
+Collect results from all 7 agents:
+
+1. Agent 1 (Auth): [Status, Errors, Screenshots]
+2. Agent 2 (Assets): [Status, Errors, Screenshots]
+3. Agent 3 (Timeline): [Status, Errors, Screenshots]
+4. Agent 4 (Editing): [Status, Errors, Screenshots]
+5. Agent 5 (Playback): [Status, Errors, Screenshots]
+6. Agent 6 (State): [Status, Errors, Screenshots]
+7. Agent 7 (AI): [Status, Errors, Screenshots]
+
+Combine with Axiom error data to create comprehensive error list.
+```
+
+### Step 5: Analyze and Categorize Errors
+
+**Categorize by severity:**
+
+- **P0 (Critical)**: Blocks core functionality (login fails, can't create project, can't upload assets)
+- **P1 (High)**: Major features broken (timeline not rendering, playback fails, undo broken)
+- **P2 (Medium)**: Minor features broken (AI chat fails, thumbnail missing, transitions buggy)
+- **P3 (Low)**: UI glitches, console warnings, non-blocking errors
+
+**Categorize by source:**
+
+- **Frontend**: React component errors, state issues, rendering problems
+- **Backend**: API route failures, database errors, authentication issues
+- **Infrastructure**: Vercel deployment issues, environment variable problems
+- **Third-party**: Supabase errors, Gemini API failures, storage issues
+
+### Step 6: Fix Errors (Recursive Loop)
+
+For each error found, fix in priority order:
+
+```python
+max_iterations = 5
+iteration = 0
+errors_remaining = get_all_errors()
+
+while len(errors_remaining) > 0 and iteration < max_iterations:
+    iteration += 1
+    print(f"Fix iteration {iteration}")
+
+    # Sort by priority
+    errors_by_priority = sort_by_priority(errors_remaining)
+
+    # Fix P0 errors first
+    for error in errors_by_priority:
+        # Identify root cause
+        root_cause = analyze_error(error)
+
+        # Apply fix
+        fix_file = identify_file_to_fix(root_cause)
+        apply_fix(fix_file, error)
+
+        # Update ISSUES.md
+        update_issues_md(error, "Fixed", iteration)
+
+    # Build locally to verify
+    run_build()
+
+    if build_failed():
+        fix_build_errors()
+        continue
+
+    # Commit fixes
+    git_add_commit_push(f"Fix production errors - iteration {iteration}")
+
+    # Wait for Vercel deployment
+    wait_for_vercel_deployment(timeout=180)  # 3 minutes
+
+    # Re-run tests
+    rerun_agent_swarm()
+
+    # Check Axiom again
+    errors_remaining = check_axiom_for_new_errors()
+
+    # If no new errors in last 2 minutes, success
+    if no_errors_in_last_2_minutes():
+        print("✅ All errors fixed!")
+        break
+
+if len(errors_remaining) > 0:
+    print(f"⚠️ {len(errors_remaining)} errors remain after {iteration} iterations")
+    print("Manual intervention may be required")
+```
+
+### Step 7: Verification Loop
+
+After each fix iteration:
+
+1. **Build Verification**
+
+   ```bash
+   npm run build
+   ```
+
+   - Must complete without errors
+   - TypeScript check passes
+   - No build-time warnings
+
+2. **Git Workflow** (per CLAUDE.md)
+
+   ```bash
+   git add .
+   git commit -m "Fix: [specific error description] - iteration {N}"
+   git push
+   ```
+
+3. **Vercel Deployment**
+
+   ```bash
+   # Push triggers automatic deployment
+   # Wait for completion
+   sleep 60
+
+   # Check deployment status
+   vercel ls --yes | head -2
+
+   # Verify status is "● Ready"
+   ```
+
+4. **Re-test**
+   - Launch reduced agent swarm (only test areas that had errors)
+   - Check Axiom for new errors in last 5 minutes
+   - Take screenshots to verify fixes
+
+5. **Axiom Verification**
+   ```apl
+   ['nonlinear-editor']
+   | where ['_time'] > ago(5m)
+   | where ['level'] == "error"
+   | summarize error_count=count()
+   | project error_count
+   ```
+
+   - Should return 0 errors
+
+## Output Format
+
+Provide comprehensive test report:
+
+```markdown
+# Production Testing Report
+
+**Status:** [✅ ALL TESTS PASSED | ⚠️ ISSUES FOUND | ❌ CRITICAL FAILURES]
+**Production URL:** [URL tested]
+**Timestamp:** [ISO 8601]
+**Test Duration:** [minutes]
+**Fix Iterations:** [number]
+
+---
+
+## Test Results Summary
+
+| Feature              | Status | Errors | Notes     |
+| -------------------- | ------ | ------ | --------- |
+| Authentication       | ✅/❌  | 0      | [Details] |
+| Asset Upload         | ✅/❌  | 0      | [Details] |
+| Multi-Track Timeline | ✅/❌  | 0      | [Details] |
+| Advanced Editing     | ✅/❌  | 0      | [Details] |
+| Playback Engine      | ✅/❌  | 0      | [Details] |
+| State Management     | ✅/❌  | 0      | [Details] |
+| AI Assistant         | ✅/❌  | 0      | [Details] |
+
+---
+
+## Detailed Test Results
+
+### Phase 1: Authentication (Sequential)
+
+**Agent 1: Authentication Tester**
+
+- **Status:** [✅ Passed | ❌ Failed]
+- **Login Flow:** [Success/Failed]
+- **Session Persistence:** [Working/Broken]
+- **Console Errors:** [List any]
+- **Network Errors:** [List any]
+- **Screenshot:** [Attached]
+
+### Phase 2: Asset Management (Sequential)
+
+**Agent 2: Asset Upload Tester**
+
+- **Status:** [✅ Passed | ❌ Failed]
+- **Upload Working:** [Yes/No]
+- **Thumbnails Generated:** [Yes/No]
+- **Signed URLs Valid:** [Yes/No]
+- **Console Errors:** [List any]
+- **Screenshot:** [Attached]
+
+### Phase 3: Core Features (Parallel)
+
+**Agent 3: Timeline Features**
+
+- **Status:** [✅ Passed | ❌ Failed]
+- **Drag-and-drop:** [Working/Broken]
+- **Zoom Controls:** [Working/Broken]
+- **Snap-to-grid:** [Working/Broken]
+- **Multiple Tracks:** [Working/Broken]
+- **Errors:** [List any]
+
+**Agent 4: Editing Features**
+
+- **Status:** [✅ Passed | ❌ Failed]
+- **Clip Trimming:** [Working/Broken]
+- **Transitions:** [Working/Broken]
+- **Opacity Control:** [Working/Broken]
+- **Volume Control:** [Working/Broken]
+- **Speed Adjustment:** [Working/Broken]
+- **Split Clip:** [Working/Broken]
+- **Errors:** [List any]
+
+**Agent 5: Playback Engine**
+
+- **Status:** [✅ Passed | ❌ Failed]
+- **Play/Pause:** [Working/Broken]
+- **Seek:** [Working/Broken]
+- **Synchronization:** [Good/Issues]
+- **Timecode:** [Accurate/Inaccurate]
+- **Performance:** [Good/Poor]
+- **Errors:** [List any]
+
+**Agent 6: State Management**
+
+- **Status:** [✅ Passed | ❌ Failed]
+- **Undo:** [Working/Broken]
+- **Redo:** [Working/Broken]
+- **Copy/Paste:** [Working/Broken]
+- **Multi-select:** [Working/Broken]
+- **Autosave:** [Working/Broken]
+- **Errors:** [List any]
+
+**Agent 7: AI Assistant**
+
+- **Status:** [✅ Passed | ❌ Failed]
+- **Chat Opens:** [Yes/No]
+- **Response Received:** [Yes/No]
+- **Context Aware:** [Yes/No]
+- **Errors:** [List any]
+
+---
+
+## Axiom Error Analysis
+
+**Total Errors Found:** [number]
+**Error Time Range:** [last N minutes]
+
+### Error Breakdown by Category
+
+| Category       | Count | Severity    | Examples         |
+| -------------- | ----- | ----------- | ---------------- |
+| Authentication | 0     | P0/P1/P2/P3 | [Error messages] |
+| Asset Upload   | 0     | P0/P1/P2/P3 | [Error messages] |
+| Timeline       | 0     | P0/P1/P2/P3 | [Error messages] |
+| Playback       | 0     | P0/P1/P2/P3 | [Error messages] |
+| State Mgmt     | 0     | P0/P1/P2/P3 | [Error messages] |
+| AI Assistant   | 0     | P0/P1/P2/P3 | [Error messages] |
+| Other          | 0     | P0/P1/P2/P3 | [Error messages] |
+
+### Top 10 Errors
+
+1. **[Error Message]**
+   - **Occurrences:** [count]
+   - **Severity:** [P0/P1/P2/P3]
+   - **Source:** [file:line]
+   - **Status:** [Fixed/In Progress/Pending]
+
+2. [...]
+
+---
+
+## Fixes Applied
+
+### Iteration 1
+
+**Errors Fixed:** [count]
+
+1. **[Error description]**
+   - **File:** [path:line]
+   - **Root Cause:** [explanation]
+   - **Fix Applied:** [description]
+   - **Commit:** [commit hash]
+
+2. [...]
+
+**Deployment:** [Vercel URL]
+**Status:** [Success/Failed]
+
+### Iteration 2
+
+[Same format...]
+
+---
+
+## Final Status
+
+**Total Errors Found:** [number]
+**Total Errors Fixed:** [number]
+**Errors Remaining:** [number]
+**Success Rate:** [percentage]
+
+### Remaining Issues
+
+[List any errors that couldn't be fixed automatically]
+
+1. **[Error]**
+   - **Severity:** [P0/P1/P2/P3]
+   - **Requires:** [Manual intervention/Further investigation]
+   - **Recommendation:** [Next steps]
+
+---
+
+## Performance Metrics
+
+- **Total Test Duration:** [minutes]
+- **Agent Execution Time:** [minutes]
+- **Fix Iterations:** [count]
+- **Deployment Time:** [minutes per deployment]
+- **Total Time to Zero Errors:** [minutes]
+
+---
+
+## Recommendations
+
+1. [Recommendation based on findings]
+2. [...]
+
+---
+
+## Screenshots
+
+[Attach all screenshots from agents showing current state]
+
+---
+
+## Next Steps
+
+- [ ] [Action item 1]
+- [ ] [Action item 2]
+- [ ] [...]
+```
+
+## Advanced Features
+
+### Parallel Agent Optimization
+
+Run independent test suites concurrently:
+
+```markdown
+# Group 1: Sequential (Auth → Assets)
+
+Launch Agent 1, wait for completion, then Agent 2
+
+# Group 2: Parallel (All others)
+
+Launch Agents 3-7 simultaneously after Group 1 completes
+
+This reduces total test time from ~15 minutes to ~5 minutes
+```
+
+### Incremental Testing
+
+For faster iterations, test only modified areas:
+
+```bash
+# Get changed files in last commit
+git diff HEAD~1 --name-only
+
+# If only frontend files changed, skip backend tests
+# If only API routes changed, skip UI tests
+```
+
+### Performance Testing
+
+Add performance traces:
+
+```markdown
+Use mcp**chrome_devtools**performance_start_trace:
+
+1. Start trace with reload: true
+2. Navigate and perform actions
+3. Stop trace
+4. Analyze insights for:
+   - Largest Contentful Paint (LCP)
+   - First Input Delay (FID)
+   - Cumulative Layout Shift (CLS)
+   - Time to Interactive (TTI)
+
+Report Core Web Vitals scores.
+```
+
+### Continuous Monitoring
+
+Set up ongoing monitoring:
+
+```apl
+// Create Axiom monitor for error rate
+['nonlinear-editor']
+| where ['_time'] > ago(1h)
+| where ['level'] == "error"
+| summarize error_count=count() by bin(['_time'], 5m)
+| where error_count > 5
+```
+
+## Limitations
+
+- **Chrome DevTools MCP:** May not work with all UI interactions (e.g., canvas operations)
+- **Agent Execution Time:** Full swarm takes ~5-10 minutes
+- **Vercel Deployment:** Takes 1-2 minutes per deployment
+- **Max Iterations:** Limited to 5 to prevent infinite loops
+- **Rate Limits:** Vercel has deployment rate limits
+- **Network Variability:** Production tests depend on network speed
+
+## Error Handling
+
+**If agents timeout:**
+
+```markdown
+Increase timeout or split into smaller tasks
+Use mcp**chrome_devtools**wait_for with longer timeout values
+```
+
+**If deployment fails:**
+
+```markdown
+1. Check Vercel logs: vercel logs [deployment-url]
+2. Verify build locally: npm run build
+3. Check environment variables in Vercel dashboard
+4. Retry deployment
+```
+
+**If Axiom query fails:**
+
+```markdown
+1. Verify AXIOM_TOKEN is valid
+2. Check dataset exists: mcp**axiom**listDatasets
+3. Verify query syntax (use getDatasetSchema first)
+4. Reduce time range if query timeout
+```
+
+**If fixes don't resolve errors:**
+
+```markdown
+1. Check if error is environment-specific (production vs local)
+2. Verify all environment variables set correctly
+3. Check third-party service status (Supabase, Gemini)
+4. Escalate for manual review
+```
+
+## Examples
+
+### Example 1: Full Production Test
+
+**Input:**
+
+```
+User: "Test production and fix all errors"
+```
+
+**Process:**
+
+1. Launch full agent swarm (7 agents)
+2. Sequential: Agent 1 (auth) → Agent 2 (assets)
+3. Parallel: Agents 3-7 (timeline, editing, playback, state, AI)
+4. Query Axiom for all errors in last 10 minutes
+5. Found 12 errors:
+   - 3 P0 (auth session timeout issue)
+   - 5 P1 (timeline rendering bug)
+   - 4 P2 (AI assistant rate limit)
+6. Fix iteration 1: Fix P0 auth issue
+7. Deploy, test, verify
+8. Fix iteration 2: Fix P1 timeline bug
+9. Deploy, test, verify
+10. Fix iteration 3: Fix P2 rate limit handling
+11. Deploy, test, verify
+12. Final verification: 0 errors in Axiom
+13. ✅ All tests passed!
+
+**Duration:** ~25 minutes total
+
+### Example 2: Quick Smoke Test
+
+**Input:**
+
+```
+User: "Quick production smoke test"
+```
+
+**Process:**
+
+1. Launch minimal agent swarm:
+   - Agent 1: Auth only
+   - Agent 3: Timeline basics only
+   - Agent 5: Playback basics only
+2. Quick Axiom check for P0 errors only
+3. Report results
+4. Skip recursive fixes unless critical
+
+**Duration:** ~3 minutes
+
+### Example 3: Targeted Feature Test
+
+**Input:**
+
+```
+User: "Test timeline features in production"
+```
+
+**Process:**
+
+1. Launch single agent (Agent 3: Timeline)
+2. Comprehensive timeline testing
+3. Axiom query for timeline-related errors only
+4. Fix any timeline-specific issues
+5. Report results
+
+**Duration:** ~5 minutes
+
+## Integration with Existing Workflows
+
+Works alongside:
+
+- **code-validator skill**: Validates code before deploying fixes
+- **Git workflow** (CLAUDE.md): Follows build → commit → push pattern
+- **Vercel CI/CD**: Leverages automatic deployments
+- **Axiom monitoring**: Uses existing log infrastructure
+
+## Updates and Maintenance
+
+**Version History:**
+
+- 1.0.0 (2025-10-25): Initial release
+
+**To update this skill:**
+
+1. Modify Skill.md
+2. Test with production deployment
+3. Increment version number
+4. Commit to repository
+
+## References
+
+- `/CLAUDE.md` - Git workflow and best practices
+- `/README.md` - Feature list and tech stack
+- Production URL: https://nonlinear-editor.vercel.app/
+- Axiom dataset: nonlinear-editor
+- Chrome DevTools MCP: https://github.com/modelcontextprotocol/servers/tree/main/src/chrome-devtools
+- Axiom MCP: https://github.com/axiomhq/mcp-server-axiom
