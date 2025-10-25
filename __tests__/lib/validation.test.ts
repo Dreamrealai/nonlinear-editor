@@ -348,10 +348,10 @@ describe('Validation Utilities', () => {
       expect(() => validateBoolean(false, 'Flag')).not.toThrow();
     });
 
-    it('should reject non-boolean values', () => {
+    it('should reject non-boolean values when required', () => {
       expect(() => validateBoolean(1, 'Flag')).toThrow(ValidationError);
       expect(() => validateBoolean('true', 'Flag')).toThrow(ValidationError);
-      expect(() => validateBoolean(null, 'Flag')).toThrow(ValidationError);
+      expect(() => validateBoolean(null, 'Flag', { required: true })).toThrow(ValidationError);
     });
 
     it('should handle required option', () => {

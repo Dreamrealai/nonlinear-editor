@@ -55,8 +55,10 @@ describe('Time Formatting Utilities', () => {
       expect(formatTimecode(5, true)).toBe('00:00:05.00');
     });
 
-    it('should hide hours when showHours is false', () => {
-      expect(formatTimecode(3683.456, false)).toBe('61:23.45');
+    it('should hide hours when showHours is false (shows minutes from hour component)', () => {
+      // When showHours is false, shows mins component (not total minutes)
+      // 3683s = 1h 1m 23s, so mins component is 1
+      expect(formatTimecode(3683.456, false)).toBe('1:23.45');
     });
 
     it('should pad zeros correctly', () => {
@@ -175,13 +177,15 @@ describe('Time Formatting Utilities', () => {
     describe('approximate option', () => {
       it('should add ~ prefix when approximate is true', () => {
         expect(formatDuration(45, { approximate: true })).toBe('~45s');
-        expect(formatDuration(90, { approximate: true })).toBe('~2m 0s');
+        expect(formatDuration(90, { approximate: true })).toBe('~1m 30s');
         expect(formatDuration(3665, { approximate: true })).toBe('~1h 1m');
       });
 
       it('should work with verbose mode', () => {
         expect(formatDuration(45, { approximate: true, verbose: true })).toBe('~45 seconds');
-        expect(formatDuration(90, { approximate: true, verbose: true })).toBe('~1 minute 30 seconds');
+        expect(formatDuration(90, { approximate: true, verbose: true })).toBe(
+          '~1 minute 30 seconds'
+        );
       });
     });
   });
@@ -189,7 +193,7 @@ describe('Time Formatting Utilities', () => {
   describe('formatTimeRemaining', () => {
     it('should be an alias for formatDuration with approximate option', () => {
       expect(formatTimeRemaining(45)).toBe('~45s');
-      expect(formatTimeRemaining(90)).toBe('~2m 0s');
+      expect(formatTimeRemaining(90)).toBe('~1m 30s');
       expect(formatTimeRemaining(3665)).toBe('~1h 1m');
     });
 

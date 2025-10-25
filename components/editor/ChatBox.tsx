@@ -18,8 +18,8 @@ interface ChatBoxProps {
 }
 
 const GEMINI_MODELS = [
-  { id: 'gemini-flash-latest', name: 'Gemini Flash', description: 'Latest & fastest' },
-  { id: 'gemini-2.5-pro', name: 'Gemini Pro', description: 'Advanced thinking & reasoning' },
+  { id: 'gemini-flash-latest', name: 'Gemini Flash', description: 'Fast responses' },
+  { id: 'gemini-pro-latest', name: 'Gemini Pro', description: 'Advanced reasoning' },
 ] as const;
 
 /**
@@ -413,13 +413,18 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): React.ReactElem
         <div className="flex items-center gap-2">
           <select
             value={selectedModel}
-            onChange={(e): void => setSelectedModel(e.target.value)}
+            onChange={(e): void => {
+              const newModel = e.target.value;
+              browserLogger.debug({ oldModel: selectedModel, newModel }, 'Model selection changed');
+              setSelectedModel(newModel);
+            }}
             className="flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            aria-label="Select AI model"
           >
             {GEMINI_MODELS.map(
               (model): React.ReactElement => (
                 <option key={model.id} value={model.id}>
-                  {model.name}
+                  {model.name} {model.id === selectedModel && '(selected)'}
                 </option>
               )
             )}
