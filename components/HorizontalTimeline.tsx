@@ -56,14 +56,21 @@ type HorizontalTimelineProps = {
   splitScenesPending?: boolean;
 };
 
+// CRITICAL: Stable empty arrays to prevent infinite re-renders
+// DO NOT use `?? []` inline as it creates new array references on every call
+const EMPTY_CLIPS: Clip[] = [];
+const EMPTY_TEXT_OVERLAYS: TextOverlay[] = [];
+const EMPTY_GROUPS: ClipGroup[] = [];
+const EMPTY_MARKERS: Marker[] = [];
+
 // Optimized shallow selector - only re-render when clips/textOverlays array changes
 // This prevents re-renders when clip properties change (handled by React.memo in TimelineClipRenderer)
 const selectTimelineData = (state: ReturnType<typeof useEditorStore.getState>): { timeline: Timeline | null; clips: Clip[]; textOverlays: TextOverlay[]; groups: ClipGroup[]; markers: Marker[]; } => ({
   timeline: state.timeline,
-  clips: state.timeline?.clips ?? [],
-  textOverlays: state.timeline?.textOverlays ?? [],
-  groups: state.timeline?.groups ?? [],
-  markers: state.timeline?.markers ?? [],
+  clips: state.timeline?.clips ?? EMPTY_CLIPS,
+  textOverlays: state.timeline?.textOverlays ?? EMPTY_TEXT_OVERLAYS,
+  groups: state.timeline?.groups ?? EMPTY_GROUPS,
+  markers: state.timeline?.markers ?? EMPTY_MARKERS,
 });
 
 // Separate selector for frequently changing values to minimize re-renders

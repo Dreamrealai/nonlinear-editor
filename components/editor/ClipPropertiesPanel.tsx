@@ -5,6 +5,10 @@ import { useEditorStore } from '@/state/useEditorStore';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 import type { Clip } from '@/types/timeline';
 
+// CRITICAL: Stable empty array to prevent infinite re-renders
+// DO NOT use `?? []` inline as it creates new array references on every call
+const EMPTY_CLIPS_ARRAY: Clip[] = [];
+
 /**
  * ClipPropertiesPanel Component (Enhanced)
  *
@@ -18,7 +22,7 @@ import type { Clip } from '@/types/timeline';
  */
 export function ClipPropertiesPanel(): React.ReactElement {
   const selectedClips = useEditorStore((state): Set<string> => state.selectedClipIds);
-  const clips = useEditorStore((state): Clip[] => state.timeline?.clips ?? []);
+  const clips = useEditorStore((state): Clip[] => state.timeline?.clips ?? EMPTY_CLIPS_ARRAY);
   const updateClipStore = useEditorStore((state): (id: string, patch: Partial<Clip>) => void => state.updateClip);
 
   // Stable reference for updateClip
