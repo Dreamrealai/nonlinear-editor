@@ -29,11 +29,21 @@ ALTER TABLE public.rate_limits ENABLE ROW LEVEL SECURITY;
 
 -- Only allow service role to access rate limits (API calls from server)
 -- Regular users should not be able to query or modify rate limits
-CREATE POLICY "Service role can manage rate limits"
-  ON public.rate_limits
-  FOR ALL
-  USING (auth.role() = 'service_role')
-  WITH CHECK (auth.role() = 'service_role');
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+    AND tablename = 'rate_limits'
+    AND policyname = 'Service role can manage rate limits'
+  ) THEN
+    CREATE POLICY "Service role can manage rate limits"
+      ON public.rate_limits
+      FOR ALL
+      USING (auth.role() = 'service_role')
+      WITH CHECK (auth.role() = 'service_role');
+  END IF;
+END $$;
 
 -- Function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION public.update_rate_limits_updated_at()
@@ -45,6 +55,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger to update updated_at on every update
+DROP TRIGGER IF EXISTS update_rate_limits_updated_at_trigger ON public.rate_limits;
 CREATE TRIGGER update_rate_limits_updated_at_trigger
   BEFORE UPDATE ON public.rate_limits
   FOR EACH ROW

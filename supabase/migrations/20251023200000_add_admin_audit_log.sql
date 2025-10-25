@@ -29,28 +29,48 @@ CREATE INDEX IF NOT EXISTS idx_admin_audit_log_admin_created ON admin_audit_log(
 ALTER TABLE admin_audit_log ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Only admins can view audit logs
-CREATE POLICY "Admins can view all audit logs"
-  ON admin_audit_log
-  FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM user_roles
-      WHERE user_roles.user_id = auth.uid()
-      AND user_roles.role = 'admin'
-    )
-  );
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+    AND tablename = 'admin_audit_log'
+    AND policyname = 'Admins can view all audit logs'
+  ) THEN
+    CREATE POLICY "Admins can view all audit logs"
+      ON admin_audit_log
+      FOR SELECT
+      USING (
+        EXISTS (
+          SELECT 1 FROM user_profiles
+          WHERE user_profiles.id = auth.uid()
+          AND user_profiles.tier = 'admin'
+        )
+      );
+  END IF;
+END $$;
 
 -- Policy: Only admins can insert audit logs (system will use service role)
-CREATE POLICY "Admins can insert audit logs"
-  ON admin_audit_log
-  FOR INSERT
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM user_roles
-      WHERE user_roles.user_id = auth.uid()
-      AND user_roles.role = 'admin'
-    )
-  );
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+    AND tablename = 'admin_audit_log'
+    AND policyname = 'Admins can insert audit logs'
+  ) THEN
+    CREATE POLICY "Admins can insert audit logs"
+      ON admin_audit_log
+      FOR INSERT
+      WITH CHECK (
+        EXISTS (
+          SELECT 1 FROM user_profiles
+          WHERE user_profiles.id = auth.uid()
+          AND user_profiles.tier = 'admin'
+        )
+      );
+  END IF;
+END $$;
 
 -- Policy: Audit logs cannot be updated or deleted (immutable for compliance)
 -- No UPDATE or DELETE policies means these operations are denied by default

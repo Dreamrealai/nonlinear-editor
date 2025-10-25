@@ -56,14 +56,7 @@ export class BackupService {
    * Create a new backup of the project
    */
   async createBackup(params: CreateBackupParams): Promise<ProjectBackup> {
-    const {
-      projectId,
-      backupName,
-      backupType,
-      projectData,
-      timelineData,
-      assets,
-    } = params;
+    const { projectId, backupName, backupType, projectData, timelineData, assets } = params;
 
     const name = backupName || this.generateBackupName(backupType);
 
@@ -71,6 +64,7 @@ export class BackupService {
       .from('project_backups')
       .insert({
         project_id: projectId,
+        user_id: projectData.user_id,
         backup_name: name,
         backup_type: backupType,
         project_data: projectData,
@@ -153,13 +147,11 @@ export class BackupService {
     }
 
     // Update timeline data
-    const { error: timelineError } = await this.supabase
-      .from('timelines')
-      .upsert({
-        project_id: projectId,
-        timeline_data: backup.timeline_data,
-        updated_at: new Date().toISOString(),
-      });
+    const { error: timelineError } = await this.supabase.from('timelines').upsert({
+      project_id: projectId,
+      timeline_data: backup.timeline_data,
+      updated_at: new Date().toISOString(),
+    });
 
     if (timelineError) {
       throw new HttpError('Failed to restore timeline', 500);
@@ -174,10 +166,7 @@ export class BackupService {
    * Delete a backup
    */
   async deleteBackup(backupId: string): Promise<void> {
-    const { error } = await this.supabase
-      .from('project_backups')
-      .delete()
-      .eq('id', backupId);
+    const { error } = await this.supabase.from('project_backups').delete().eq('id', backupId);
 
     if (error) {
       throw new HttpError('Failed to delete backup', 500);

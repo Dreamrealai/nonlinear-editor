@@ -215,7 +215,7 @@ begin
   insert into user_profiles (id, email, tier)
   values (
     new.id,
-    new.email,
+    coalesce(new.email, 'user-' || new.id || '@example.com'),
     'free'
   );
   return new;
@@ -334,7 +334,7 @@ create trigger on_user_profile_tier_change_update_limits
 insert into user_profiles (id, email, tier)
 select
   id,
-  email,
+  coalesce(email, 'user-' || id || '@example.com'),
   'free'
 from auth.users
 where not exists (

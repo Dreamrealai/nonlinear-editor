@@ -11,6 +11,66 @@ import { validateUUID, validateInteger } from '@/lib/validation';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
+import { createServiceSupabaseClient, isSupabaseServiceConfigured } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/supabase';
+
+type StorageLocation = {
+  bucket: string;
+  path: string;
+  segments: string[];
+};
+
+function normalizeStorageUrl(rawUrl: string): StorageLocation | null {
+  const trimmed = rawUrl.trim();
+
+  if (trimmed.startsWith('supabase://')) {
+    const normalized = trimmed.replace(/^supabase:\/\//, '');
+    const parts = normalized.split('/').filter(Boolean);
+    if (parts.length < 2) {
+      return null;
+    }
+    const [bucket, ...rest] = parts as [string, ...string[]];
+    return {
+      bucket,
+      path: rest.join('/'),
+      segments: rest,
+    };
+  }
+
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    try {
+      const url = new URL(trimmed);
+      const decodedSegments = url.pathname
+        .split('/')
+        .map((segment) => decodeURIComponent(segment))
+        .filter((segment): segment is string => segment.length > 0);
+
+      const objectIndex = decodedSegments.indexOf('object');
+      if (objectIndex === -1 || decodedSegments.length <= objectIndex + 2) {
+        return null;
+      }
+
+      const bucket = decodedSegments[objectIndex + 2];
+      const rest = decodedSegments.slice(objectIndex + 3);
+
+      if (!bucket || rest.length === 0) {
+        return null;
+      }
+
+      return {
+        bucket,
+        path: rest.join('/'),
+        segments: rest,
+      };
+    } catch (error) {
+      serverLogger.warn({ error, rawUrl }, 'Failed to parse HTTPS storage URL');
+      return null;
+    }
+  }
+
+  return null;
+}
 
 const handleSignUrl: AuthenticatedHandler = async (request, { user, supabase }) => {
   const searchParams = request.nextUrl.searchParams;
@@ -33,8 +93,23 @@ const handleSignUrl: AuthenticatedHandler = async (request, { user, supabase }) 
       validateUUID(assetId, 'assetId');
     }
 
+    let serviceClient: SupabaseClient<Database> | null = null;
+    if (isSupabaseServiceConfigured()) {
+      try {
+        serviceClient = createServiceSupabaseClient();
+      } catch (error) {
+        serverLogger.warn(
+          { error, event: 'assets.sign.service_client_init_failed' },
+          'Failed to initialize Supabase service client, falling back to user client'
+        );
+      }
+    }
+
+    const dbClient: SupabaseClient<Database> = (serviceClient ||
+      supabase) as SupabaseClient<Database>;
+
     if (assetId) {
-      const { data: asset, error: assetError } = await supabase
+      const { data: asset, error: assetError } = await dbClient
         .from('assets')
         .select('storage_url, user_id')
         .eq('id', assetId)
@@ -44,7 +119,6 @@ const handleSignUrl: AuthenticatedHandler = async (request, { user, supabase }) 
         return notFoundResponse('Asset');
       }
 
-      // SECURITY: Verify user owns this asset
       if (asset.user_id !== user.id) {
         return forbiddenResponse('Asset does not belong to user');
       }
@@ -56,35 +130,28 @@ const handleSignUrl: AuthenticatedHandler = async (request, { user, supabase }) 
       return badRequestResponse('storageUrl or assetId required');
     }
 
-    // Validate storageUrl format (must start with supabase://)
-    if (!storageUrl.startsWith('supabase://')) {
-      return errorResponse('Invalid storage URL format. Must start with supabase://', 400, 'storageUrl');
+    if (storageUrl.length > 2048) {
+      return errorResponse('Storage URL too long (max 2048 characters)', 400, 'storageUrl');
     }
 
-    // Validate storageUrl length
-    if (storageUrl.length > 1000) {
-      return errorResponse('Storage URL too long (max 1000 characters)', 400, 'storageUrl');
-    }
+    const location = normalizeStorageUrl(storageUrl);
 
-    // Parse supabase://bucket/path format
-    const normalized = storageUrl.replace(/^supabase:\/\//, '');
-    const [bucket, ...pathParts] = normalized.split('/');
-    const path = pathParts.join('/');
-
-    if (!bucket || !path) {
+    if (!location) {
       return badRequestResponse('Invalid storage URL');
     }
 
-    // SECURITY: Verify user owns this asset (folder structure: bucket/userId/...)
-    // Skip this check if we already verified via assetId lookup
+    const { bucket, path, segments } = location;
+
     if (!assetId) {
-      const userFolder = safeArrayFirst(pathParts);
+      const userFolder = safeArrayFirst(segments);
       if (!userFolder || userFolder !== user.id) {
         return forbiddenResponse('Asset does not belong to user');
       }
     }
 
-    const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, ttl);
+    const storageClient: SupabaseClient<Database> = (serviceClient ||
+      supabase) as SupabaseClient<Database>;
+    const { data, error } = await storageClient.storage.from(bucket).createSignedUrl(path, ttl);
 
     if (error) {
       serverLogger.error(
