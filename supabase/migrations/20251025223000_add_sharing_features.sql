@@ -4,11 +4,14 @@
 -- Adds share links, invites, and activity logging
 -- =============================================================================
 
+-- Ensure pgcrypto extension is enabled for gen_random_bytes
+create extension if not exists "pgcrypto";
+
 -- Share Links Table
 create table if not exists share_links (
   id uuid primary key default gen_random_uuid(),
   project_id uuid not null references projects(id) on delete cascade,
-  token text unique not null default encode(gen_random_bytes(32), 'hex'),
+  token text unique not null default replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''),
   role text not null check (role in ('viewer', 'editor')) default 'viewer',
   created_by uuid not null references auth.users(id) on delete cascade,
   created_at timestamptz default now(),
@@ -28,7 +31,7 @@ create table if not exists project_invites (
   invited_at timestamptz default now(),
   expires_at timestamptz not null default (now() + interval '7 days'),
   accepted_at timestamptz,
-  token text unique not null default encode(gen_random_bytes(32), 'hex'),
+  token text unique not null default replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''),
   status text not null check (status in ('pending', 'accepted', 'expired', 'revoked')) default 'pending',
   unique(project_id, email)
 );
@@ -60,19 +63,15 @@ create index if not exists collaboration_activity_created_idx on collaboration_a
 -- RLS Policies for share_links
 alter table share_links enable row level security;
 
--- Users can see share links for projects they own or have access to
+-- Users can see share links for projects they own
+-- Note: Collaborator access will be added in a later migration
 create policy "share_links_select"
   on share_links for select to authenticated
   using (
     exists (
       select 1 from projects p
       where p.id = share_links.project_id
-        and (p.user_id = auth.uid() or exists (
-          select 1 from project_collaborators pc
-          where pc.project_id = p.id
-            and pc.user_id = auth.uid()
-            and pc.role in ('owner', 'editor')
-        ))
+        and p.user_id = auth.uid()
     )
   );
 

@@ -26,7 +26,7 @@ import {
   Tag,
   X,
 } from 'lucide-react';
-import React, {  useState  } from 'react';
+import React, { useState } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import type { Clip, Timeline } from '@/types/timeline';
 import { formatTimeMMSSCS } from '@/lib/utils/timeFormatting';
@@ -74,13 +74,21 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
 }): React.ReactElement => {
   const [showProperties, setShowProperties] = useState(false);
   const [showColorSubmenu, setShowColorSubmenu] = useState(false);
-  const toggleClipLock = useEditorStore((state): (id: string) => void => state.toggleClipLock);
-  const groupSelectedClips = useEditorStore((state): (name?: string) => void => state.groupSelectedClips);
-  const ungroupClips = useEditorStore((state): (groupId: string) => void => state.ungroupClips);
-  const getClipGroupId = useEditorStore((state): (clipId: string) => string | null => state.getClipGroupId);
+  const toggleClipLock = useEditorStore((state): ((id: string) => void) => state.toggleClipLock);
+  const groupSelectedClips = useEditorStore(
+    (state): ((name?: string) => void) => state.groupSelectedClips
+  );
+  const ungroupClips = useEditorStore((state): ((groupId: string) => void) => state.ungroupClips);
+  const getClipGroupId = useEditorStore(
+    (state): ((clipId: string) => string | null) => state.getClipGroupId
+  );
   const selectedClipIds = useEditorStore((state): Set<string> => state.selectedClipIds);
-  const updateClip = useEditorStore((state): (id: string, patch: Partial<Clip>) => void => state.updateClip);
-  const updateClipColor = useEditorStore((state): (id: string, color: string | null) => void => state.updateClipColor);
+  const updateClip = useEditorStore(
+    (state): ((id: string, patch: Partial<Clip>) => void) => state.updateClip
+  );
+  const updateClipColor = useEditorStore(
+    (state): ((id: string, color: string | null) => void) => state.updateClipColor
+  );
   const clip = useClipData(clipId);
   const isLocked = clip?.locked ?? false;
   const groupId = getClipGroupId(clipId);
@@ -603,7 +611,10 @@ type ClipPropertiesModalProps = {
   onClose: () => void;
 };
 
-const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClose }): React.ReactElement | null => {
+const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({
+  clipId,
+  onClose,
+}): React.ReactElement | null => {
   // Get clip data from store
   const clip = useClipData(clipId);
 
@@ -614,6 +625,7 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({ clipId, onClo
   const duration = clip.end - clip.start;
 
   return (
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       onClick={onClose}

@@ -77,7 +77,10 @@ function getEditModeDescription(mode: EditMode, handle: 'left' | 'right'): strin
   }
 }
 
-export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmingOptions): UseAdvancedTrimmingReturn {
+export function useAdvancedTrimming({
+  timeline,
+  updateClip,
+}: UseAdvancedTrimmingOptions): UseAdvancedTrimmingReturn {
   const [modifiers, setModifiers] = useState<EditModeModifiers>({
     shift: false,
     alt: false,
@@ -89,7 +92,7 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
   const [feedback, setFeedback] = useState<TrimFeedback | null>(null);
 
   // Track keyboard modifiers
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     const handleKeyDown = (e: KeyboardEvent): void => {
       setModifiers({
         shift: e.shiftKey,
@@ -143,7 +146,8 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
       } else {
         // Find clip that starts at or near this clip's end
         return (
-          trackClips.find((c): boolean => Math.abs(c.timelinePosition - clipEnd) < SNAP_INTERVAL) || null
+          trackClips.find((c): boolean => Math.abs(c.timelinePosition - clipEnd) < SNAP_INTERVAL) ||
+          null
         );
       }
     },
@@ -208,11 +212,13 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
       const deltaTime = newDuration - originalDuration;
 
       const followingClips = getFollowingClips(clip);
-      const affectedClips = followingClips.map((c): { clipId: string; originalPosition: number; newPosition: number; } => ({
-        clipId: c.id,
-        originalPosition: c.timelinePosition,
-        newPosition: c.timelinePosition + deltaTime,
-      }));
+      const affectedClips = followingClips.map(
+        (c): { clipId: string; originalPosition: number; newPosition: number } => ({
+          clipId: c.id,
+          originalPosition: c.timelinePosition,
+          newPosition: c.timelinePosition + deltaTime,
+        })
+      );
 
       return {
         clipId: clip.id,
@@ -431,10 +437,11 @@ export function useAdvancedTrimming({ timeline, updateClip }: UseAdvancedTrimmin
           return applyRippleTrim(clip, handle, newStart, newEnd, newPosition);
         case 'roll':
           return applyRollTrim(clip, handle, newStart, newEnd, newPosition);
-        case 'slip':
+        case 'slip': {
           // For slip mode, calculate delta from original position
           const deltaTime = newStart - clip.start;
           return applySlipTrim(clip, deltaTime);
+        }
         case 'normal':
         default:
           return applyNormalTrim(clip, handle, newStart, newEnd, newPosition);

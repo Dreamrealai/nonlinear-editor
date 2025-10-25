@@ -51,28 +51,30 @@ export function useFramesData(
     }
     for (const frameList of byScene.values()) {
       frameList.sort((a, b): number => {
-        const order: Record<SceneFrameRow['kind'], number> = { first: 0, middle: 1, last: 2, custom: 3 };
+        const order: Record<SceneFrameRow['kind'], number> = {
+          first: 0,
+          middle: 1,
+          last: 2,
+          custom: 3,
+        };
         return order[a.kind] - order[b.kind];
       });
     }
     return byScene;
   }, [frames]);
 
-  const clampCrop = useCallback(
-    (next: CropState, frame: SceneFrameRow | null): CropState => {
-      if (!frame) return next;
-      const maxSize = Math.min(frame.width ?? next.size, frame.height ?? next.size);
-      const size = Math.min(next.size, maxSize);
-      const maxX = Math.max(0, (frame.width ?? size) - size);
-      const maxY = Math.max(0, (frame.height ?? size) - size);
-      return {
-        size,
-        x: Math.max(0, Math.min(next.x, maxX)),
-        y: Math.max(0, Math.min(next.y, maxY)),
-      };
-    },
-    []
-  );
+  const clampCrop = useCallback((next: CropState, frame: SceneFrameRow | null): CropState => {
+    if (!frame) return next;
+    const maxSize = Math.min(frame.width ?? next.size, frame.height ?? next.size);
+    const size = Math.min(next.size, maxSize);
+    const maxX = Math.max(0, (frame.width ?? size) - size);
+    const maxY = Math.max(0, (frame.height ?? size) - size);
+    return {
+      size,
+      x: Math.max(0, Math.min(next.x, maxX)),
+      y: Math.max(0, Math.min(next.y, maxY)),
+    };
+  }, []);
 
   const loadScenesAndFrames = useCallback(
     async (assetId: string | null): Promise<void> => {
@@ -110,7 +112,7 @@ export function useFramesData(
       if (frameRows?.length) {
         const urls = Object.fromEntries(
           await Promise.all(
-            frameRows.map(async (frame): Promise<readonly [any, string]> => {
+            frameRows.map(async (frame): Promise<readonly [string, string]> => {
               const url = await signStoragePath(frame.storage_path);
               return [frame.id, url ?? ''] as const;
             })
@@ -122,7 +124,9 @@ export function useFramesData(
         if (preferredFrame) {
           setSelectedFrameId(preferredFrame.id);
           setSelectedFrameUrl(urls[preferredFrame.id] ?? null);
-          setCrop(clampCrop(defaultCrop(preferredFrame.width, preferredFrame.height), preferredFrame));
+          setCrop(
+            clampCrop(defaultCrop(preferredFrame.width, preferredFrame.height), preferredFrame)
+          );
         }
       } else {
         setFrameUrls({});
@@ -138,7 +142,8 @@ export function useFramesData(
   }, [loadScenesAndFrames, selectedAssetId, refreshToken]);
 
   const selectedFrame = useMemo(
-    (): SceneFrameRow | null => frames.find((frame): boolean => frame.id === selectedFrameId) ?? null,
+    (): SceneFrameRow | null =>
+      frames.find((frame): boolean => frame.id === selectedFrameId) ?? null,
     [frames, selectedFrameId]
   );
 

@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 /**
  * HomeHeader - Main header for the projects homepage
@@ -16,7 +18,6 @@ import React from 'react';
  * <HomeHeader />
  * ```
  */
-'use client';
 
 import { UserMenu } from '@/components/UserMenu';
 import { CreateProjectButton } from '@/components/CreateProjectButton';

@@ -11,7 +11,7 @@
  */
 'use client';
 
-import React, {  useState, useEffect, useCallback  } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { UserPreferencesService } from '@/lib/services/userPreferencesService';
 import type { KeyboardShortcutConfig } from '@/types/userPreferences';
@@ -40,7 +40,9 @@ export function KeyboardShortcutsPanel(): React.ReactElement {
       if (!supabaseClient) return;
 
       try {
-        const { data: { user } } = await supabaseClient.auth.getUser();
+        const {
+          data: { user },
+        } = await supabaseClient.auth.getUser();
         if (!user) return;
 
         setUserId(user.id);
@@ -73,9 +75,7 @@ export function KeyboardShortcutsPanel(): React.ReactElement {
         toast.success('Keyboard shortcuts saved');
       } catch (error) {
         browserLogger.error({ error }, 'Failed to save keyboard shortcuts');
-        toast.error(
-          error instanceof Error ? error.message : 'Failed to save keyboard shortcuts'
-        );
+        toast.error(error instanceof Error ? error.message : 'Failed to save keyboard shortcuts');
       } finally {
         setSaving(false);
       }
@@ -86,8 +86,8 @@ export function KeyboardShortcutsPanel(): React.ReactElement {
   // Toggle shortcut enabled state
   const toggleShortcut = useCallback(
     (id: string): void => {
-      const newShortcuts = shortcuts.map((s): KeyboardShortcutConfig =>
-        s.id === id ? { ...s, enabled: !s.enabled } : s
+      const newShortcuts = shortcuts.map(
+        (s): KeyboardShortcutConfig => (s.id === id ? { ...s, enabled: !s.enabled } : s)
       );
       setShortcuts(newShortcuts);
       saveShortcuts(newShortcuts);
@@ -110,7 +110,9 @@ export function KeyboardShortcutsPanel(): React.ReactElement {
   // Start recording key combination
   const startRecording = useCallback((): void => {
     setIsRecording(true);
-    setEditingShortcut((prev): { keys: never[]; id: string; } | null => (prev ? { ...prev, keys: [] } : null));
+    setEditingShortcut((prev): { keys: never[]; id: string } | null =>
+      prev ? { ...prev, keys: [] } : null
+    );
   }, []);
 
   // Handle key press during recording
@@ -131,12 +133,7 @@ export function KeyboardShortcutsPanel(): React.ReactElement {
 
       // Add main key (not modifiers)
       const mainKey = event.key;
-      if (
-        mainKey !== 'Meta' &&
-        mainKey !== 'Control' &&
-        mainKey !== 'Shift' &&
-        mainKey !== 'Alt'
-      ) {
+      if (mainKey !== 'Meta' && mainKey !== 'Control' && mainKey !== 'Shift' && mainKey !== 'Alt') {
         // Normalize special keys
         if (mainKey === ' ') {
           keys.push('Space');
@@ -150,7 +147,10 @@ export function KeyboardShortcutsPanel(): React.ReactElement {
       }
 
       // Only update if we have a complete key combination
-      if (keys.length > 0 && keys.some((k): boolean => !['Meta', 'Control', 'Shift', 'Alt'].includes(k))) {
+      if (
+        keys.length > 0 &&
+        keys.some((k): boolean => !['Meta', 'Control', 'Shift', 'Alt'].includes(k))
+      ) {
         setEditingShortcut({ id: editingShortcut.id, keys });
         setIsRecording(false);
       }
@@ -189,8 +189,9 @@ export function KeyboardShortcutsPanel(): React.ReactElement {
       }
 
       // Update shortcuts
-      const newShortcuts = shortcuts.map((s): KeyboardShortcutConfig =>
-        s.id === editingShortcut.id ? { ...s, keys: editingShortcut.keys } : s
+      const newShortcuts = shortcuts.map(
+        (s): KeyboardShortcutConfig =>
+          s.id === editingShortcut.id ? { ...s, keys: editingShortcut.keys } : s
       );
       setShortcuts(newShortcuts);
       await saveShortcuts(newShortcuts);
@@ -254,131 +255,173 @@ export function KeyboardShortcutsPanel(): React.ReactElement {
 
       {/* Shortcuts list grouped by category */}
       <div className="space-y-6">
-        {Object.entries(groupedShortcuts).map(([category, categoryShortcuts]): React.ReactElement => (
-          <div key={category}>
-            <h4 className="text-sm font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-3">
-              {category}
-            </h4>
-            <div className="space-y-2">
-              {categoryShortcuts.map((shortcut): React.ReactElement | null => {
-                const metadata = SHORTCUT_METADATA[shortcut.id];
-                if (!metadata) return null;
+        {Object.entries(groupedShortcuts).map(
+          ([category, categoryShortcuts]): React.ReactElement => (
+            <div key={category}>
+              <h4 className="text-sm font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-3">
+                {category}
+              </h4>
+              <div className="space-y-2">
+                {categoryShortcuts.map((shortcut): React.ReactElement | null => {
+                  const metadata = SHORTCUT_METADATA[shortcut.id];
+                  if (!metadata) return null;
 
-                const isEditing = editingShortcut?.id === shortcut.id;
-                const displayKeys = isEditing ? editingShortcut.keys : shortcut.keys;
+                  const isEditing = editingShortcut?.id === shortcut.id;
+                  const displayKeys = isEditing ? editingShortcut.keys : shortcut.keys;
 
-                return (
-                  <div
-                    key={shortcut.id}
-                    className="flex items-center justify-between rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 hover:shadow-sm transition-shadow"
-                  >
-                    <div className="flex items-center gap-4 flex-1">
-                      {/* Enable/Disable toggle */}
-                      <button
-                        onClick={(): void => toggleShortcut(shortcut.id)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          shortcut.enabled
-                            ? 'bg-purple-600'
-                            : 'bg-neutral-300 dark:bg-neutral-600'
-                        }`}
-                        aria-label={`${shortcut.enabled ? 'Disable' : 'Enable'} ${metadata.label}`}
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            shortcut.enabled ? 'translate-x-6' : 'translate-x-1'
+                  return (
+                    <div
+                      key={shortcut.id}
+                      className="flex items-center justify-between rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 hover:shadow-sm transition-shadow"
+                    >
+                      <div className="flex items-center gap-4 flex-1">
+                        {/* Enable/Disable toggle */}
+                        <button
+                          onClick={(): void => toggleShortcut(shortcut.id)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            shortcut.enabled
+                              ? 'bg-purple-600'
+                              : 'bg-neutral-300 dark:bg-neutral-600'
                           }`}
-                        />
-                      </button>
+                          aria-label={`${shortcut.enabled ? 'Disable' : 'Enable'} ${metadata.label}`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              shortcut.enabled ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
 
-                      {/* Shortcut info */}
-                      <div className="flex-1">
-                        <div className="font-medium text-neutral-900 dark:text-neutral-100">
-                          {metadata.label}
-                        </div>
-                        <div className="text-sm text-neutral-600 dark:text-neutral-400">
-                          {metadata.description}
+                        {/* Shortcut info */}
+                        <div className="flex-1">
+                          <div className="font-medium text-neutral-900 dark:text-neutral-100">
+                            {metadata.label}
+                          </div>
+                          <div className="text-sm text-neutral-600 dark:text-neutral-400">
+                            {metadata.description}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Key combination display/editor */}
-                    <div className="flex items-center gap-2">
-                      {isEditing ? (
-                        <>
-                          <button
-                            onClick={startRecording}
-                            className={`px-3 py-1.5 rounded-md text-sm font-mono font-medium border-2 transition-all ${
-                              isRecording
-                                ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 animate-pulse'
-                                : 'border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-purple-400'
-                            }`}
-                          >
-                            {isRecording
-                              ? 'Press keys...'
-                              : displayKeys.length > 0
-                                ? formatShortcut(displayKeys)
-                                : 'Click to record'}
-                          </button>
-                          <button
-                            onClick={saveEditedShortcut}
-                            disabled={displayKeys.length === 0 || saving}
-                            className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md disabled:opacity-50 transition-colors"
-                            aria-label="Save shortcut"
-                          >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={cancelEditing}
-                            className="p-2 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-md transition-colors"
-                            aria-label="Cancel editing"
-                          >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <kbd className="px-3 py-1.5 rounded-md bg-neutral-100 dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 text-sm font-mono font-medium text-neutral-700 dark:text-neutral-300">
-                            {formatShortcut(shortcut.keys)}
-                          </kbd>
-                          {metadata.allowCustomization && (
+                      {/* Key combination display/editor */}
+                      <div className="flex items-center gap-2">
+                        {isEditing ? (
+                          <>
                             <button
-                              onClick={(): void => startEditing(shortcut)}
-                              className="p-2 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-md transition-colors"
-                              aria-label={`Edit ${metadata.label} shortcut`}
+                              onClick={startRecording}
+                              className={`px-3 py-1.5 rounded-md text-sm font-mono font-medium border-2 transition-all ${
+                                isRecording
+                                  ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 animate-pulse'
+                                  : 'border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-purple-400'
+                              }`}
                             >
-                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                              {isRecording
+                                ? 'Press keys...'
+                                : displayKeys.length > 0
+                                  ? formatShortcut(displayKeys)
+                                  : 'Click to record'}
+                            </button>
+                            <button
+                              onClick={saveEditedShortcut}
+                              disabled={displayKeys.length === 0 || saving}
+                              className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md disabled:opacity-50 transition-colors"
+                              aria-label="Save shortcut"
+                            >
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
                               </svg>
                             </button>
-                          )}
-                        </>
-                      )}
+                            <button
+                              onClick={cancelEditing}
+                              className="p-2 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-md transition-colors"
+                              aria-label="Cancel editing"
+                            >
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <kbd className="px-3 py-1.5 rounded-md bg-neutral-100 dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 text-sm font-mono font-medium text-neutral-700 dark:text-neutral-300">
+                              {formatShortcut(shortcut.keys)}
+                            </kbd>
+                            {metadata.allowCustomization && (
+                              <button
+                                onClick={(): void => startEditing(shortcut)}
+                                className="p-2 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-md transition-colors"
+                                aria-label={`Edit ${metadata.label} shortcut`}
+                              >
+                                <svg
+                                  className="w-5 h-5"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                                  />
+                                </svg>
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        )}
       </div>
 
       {/* Help text */}
       <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
         <div className="flex gap-3">
-          <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <div className="text-sm text-blue-900 dark:text-blue-200">
             <p className="font-medium mb-1">How to customize shortcuts:</p>
             <ul className="list-disc list-inside space-y-1 text-blue-800 dark:text-blue-300">
               <li>Click the edit icon next to a shortcut</li>
-              <li>Click "Click to record" and press your desired key combination</li>
+              <li>{`Click "Click to record" and press your desired key combination`}</li>
               <li>Press Escape to cancel recording</li>
-              <li>Shortcuts cannot conflict - you'll be warned if a combination is already in use</li>
+              <li>{`Shortcuts cannot conflict - you'll be warned if a combination is already in use`}</li>
             </ul>
           </div>
         </div>

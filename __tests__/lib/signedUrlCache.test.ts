@@ -7,23 +7,36 @@
 import { SignedUrlCacheManager, signedUrlCache } from '@/lib/signedUrlCache';
 
 // Mock browserLogger
-jest.mock('@/lib/browserLogger', (): Record<string, unknown> => ({
-  browserLogger: {
-    debug: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock(
+  '@/lib/browserLogger',
+  (): Record<string, unknown> => ({
+    browserLogger: {
+      debug: jest.fn(),
+      error: jest.fn(),
+    },
+  })
+);
 
 // Mock requestDeduplication
-jest.mock('@/lib/requestDeduplication', (): Record<string, unknown> => ({
-  deduplicatedFetchJSON: jest.fn(),
-}));
+jest.mock(
+  '@/lib/requestDeduplication',
+  (): Record<string, unknown> => ({
+    deduplicatedFetch: jest.fn(),
+    deduplicatedFetchJSON: jest.fn(),
+  })
+);
 
-import { deduplicatedFetchJSON } from '@/lib/requestDeduplication';
+import { deduplicatedFetch } from '@/lib/requestDeduplication';
 
-const mockDeduplicatedFetchJSON = deduplicatedFetchJSON as jest.MockedFunction<
-  typeof deduplicatedFetchJSON
->;
+const mockDeduplicatedFetch = deduplicatedFetch as jest.MockedFunction<typeof deduplicatedFetch>;
+
+// Helper function to create mock Response objects
+function createMockResponse(data: unknown, status = 200): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
 
 describe('SignedUrlCacheManager', () => {
   let cacheManager: SignedUrlCacheManager;
@@ -36,6 +49,11 @@ describe('SignedUrlCacheManager', () => {
       maxCacheSize: 10,
       enableLogging: false,
     });
+
+    // Default mock response for deduplicatedFetch
+    mockDeduplicatedFetch.mockResolvedValue(
+      createMockResponse({ signedUrl: 'https://example.com/signed', expiresIn: 3600 })
+    );
   });
 
   afterEach((): void => {
@@ -52,10 +70,18 @@ describe('SignedUrlCacheManager', () => {
 
     it('should generate key from assetId', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: 3600,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            signedUrl: 'https://example.com/signed',
+            expiresIn: 3600,
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        )
+      );
 
       // Act
       await cacheManager.get('asset123');
@@ -67,10 +93,12 @@ describe('SignedUrlCacheManager', () => {
 
     it('should generate key from storageUrl', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: 3600,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: 3600,
+        })
+      );
 
       // Act
       await cacheManager.get(undefined, 'https://storage.com/file.mp4');
@@ -85,10 +113,12 @@ describe('SignedUrlCacheManager', () => {
     it('should return cached URL on cache hit', async () => {
       // Arrange
       const signedUrl = 'https://example.com/signed';
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl,
-        expiresIn: 3600,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl,
+          expiresIn: 3600,
+        })
+      );
 
       // Act
       const url1 = await cacheManager.get('asset123');
@@ -97,22 +127,24 @@ describe('SignedUrlCacheManager', () => {
       // Assert
       expect(url1).toBe(signedUrl);
       expect(url2).toBe(signedUrl);
-      expect(mockDeduplicatedFetchJSON).toHaveBeenCalledTimes(1);
+      expect(mockDeduplicatedFetch).toHaveBeenCalledTimes(1);
     });
 
     it('should fetch new URL on cache miss', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: 3600,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: 3600,
+        })
+      );
 
       // Act
       const url = await cacheManager.get('asset123');
 
       // Assert
       expect(url).toBe('https://example.com/signed');
-      expect(mockDeduplicatedFetchJSON).toHaveBeenCalledTimes(1);
+      expect(mockDeduplicatedFetch).toHaveBeenCalledTimes(1);
     });
 
     it('should refetch when URL is expired', async () => {
@@ -124,15 +156,19 @@ describe('SignedUrlCacheManager', () => {
         enableLogging: false,
       });
 
-      mockDeduplicatedFetchJSON
-        .mockResolvedValueOnce({
-          signedUrl: 'https://example.com/signed1',
-          expiresIn: shortTTL,
-        })
-        .mockResolvedValueOnce({
-          signedUrl: 'https://example.com/signed2',
-          expiresIn: shortTTL,
-        });
+      mockDeduplicatedFetch
+        .mockResolvedValueOnce(
+          createMockResponse({
+            signedUrl: 'https://example.com/signed1',
+            expiresIn: shortTTL,
+          })
+        )
+        .mockResolvedValueOnce(
+          createMockResponse({
+            signedUrl: 'https://example.com/signed2',
+            expiresIn: shortTTL,
+          })
+        );
 
       // Act
       const url1 = await cacheManager.get('asset123', undefined, shortTTL);
@@ -145,23 +181,25 @@ describe('SignedUrlCacheManager', () => {
       // Assert
       expect(url1).toBe('https://example.com/signed1');
       expect(url2).toBe('https://example.com/signed2');
-      expect(mockDeduplicatedFetchJSON).toHaveBeenCalledTimes(2);
+      expect(mockDeduplicatedFetch).toHaveBeenCalledTimes(2);
     });
   });
 
   describe('Request Parameters', () => {
     it('should include assetId in request params', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: 3600,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: 3600,
+        })
+      );
 
       // Act
       await cacheManager.get('asset123');
 
       // Assert
-      expect(mockDeduplicatedFetchJSON).toHaveBeenCalledWith(
+      expect(mockDeduplicatedFetch).toHaveBeenCalledWith(
         expect.stringContaining('assetId=asset123'),
         undefined,
         expect.any(Object)
@@ -170,16 +208,18 @@ describe('SignedUrlCacheManager', () => {
 
     it('should include storageUrl in request params', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: 3600,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: 3600,
+        })
+      );
 
       // Act
       await cacheManager.get(undefined, 'https://storage.com/file.mp4');
 
       // Assert
-      expect(mockDeduplicatedFetchJSON).toHaveBeenCalledWith(
+      expect(mockDeduplicatedFetch).toHaveBeenCalledWith(
         expect.stringContaining('storageUrl=https%3A%2F%2Fstorage.com%2Ffile.mp4'),
         undefined,
         expect.any(Object)
@@ -188,16 +228,18 @@ describe('SignedUrlCacheManager', () => {
 
     it('should include custom TTL in request params', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: 1800,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: 1800,
+        })
+      );
 
       // Act
       await cacheManager.get('asset123', undefined, 1800);
 
       // Assert
-      expect(mockDeduplicatedFetchJSON).toHaveBeenCalledWith(
+      expect(mockDeduplicatedFetch).toHaveBeenCalledWith(
         expect.stringContaining('ttl=1800'),
         undefined,
         expect.any(Object)
@@ -208,10 +250,12 @@ describe('SignedUrlCacheManager', () => {
   describe('Cache Invalidation', () => {
     it('should invalidate specific entry', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: 3600,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: 3600,
+        })
+      );
 
       await cacheManager.get('asset123');
 
@@ -234,10 +278,12 @@ describe('SignedUrlCacheManager', () => {
 
     it('should invalidate matching pattern', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: 3600,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: 3600,
+        })
+      );
 
       await cacheManager.get('asset1');
       await cacheManager.get('asset2');
@@ -254,10 +300,12 @@ describe('SignedUrlCacheManager', () => {
 
     it('should clear all entries', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: 3600,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: 3600,
+        })
+      );
 
       await cacheManager.get('asset1');
       await cacheManager.get('asset2');
@@ -279,10 +327,12 @@ describe('SignedUrlCacheManager', () => {
         enableLogging: false,
       });
 
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: 3600,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: 3600,
+        })
+      );
 
       // Act
       await smallCache.get('asset1');
@@ -304,10 +354,12 @@ describe('SignedUrlCacheManager', () => {
     it('should prune expired entries', async () => {
       // Arrange
       const shortTTL = 0.5; // 500ms
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: shortTTL,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: shortTTL,
+        })
+      );
 
       await cacheManager.get('asset1', undefined, shortTTL);
       await cacheManager.get('asset2', undefined, 3600);
@@ -326,10 +378,12 @@ describe('SignedUrlCacheManager', () => {
 
     it('should return 0 when no entries are expired', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: 3600,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: 3600,
+        })
+      );
 
       await cacheManager.get('asset1');
 
@@ -344,10 +398,12 @@ describe('SignedUrlCacheManager', () => {
   describe('Statistics', () => {
     it('should return accurate stats', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: 3600,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: 3600,
+        })
+      );
 
       await cacheManager.get('asset1');
       await cacheManager.get('asset2');
@@ -368,10 +424,12 @@ describe('SignedUrlCacheManager', () => {
     it('should calculate correct time to expiry', async () => {
       // Arrange
       const ttl = 3600;
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: ttl,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: ttl,
+        })
+      );
 
       await cacheManager.get('asset1', undefined, ttl);
 
@@ -387,10 +445,12 @@ describe('SignedUrlCacheManager', () => {
   describe('Prefetch', () => {
     it('should prefetch multiple assets', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: 3600,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: 3600,
+        })
+      );
 
       const assets = [{ assetId: 'asset1' }, { assetId: 'asset2' }, { assetId: 'asset3' }];
 
@@ -398,23 +458,27 @@ describe('SignedUrlCacheManager', () => {
       await cacheManager.prefetch(assets);
 
       // Assert
-      expect(mockDeduplicatedFetchJSON).toHaveBeenCalledTimes(3);
+      expect(mockDeduplicatedFetch).toHaveBeenCalledTimes(3);
       const stats = cacheManager.getStats();
       expect(stats.size).toBe(3);
     });
 
     it('should handle prefetch failures gracefully', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON
-        .mockResolvedValueOnce({
-          signedUrl: 'https://example.com/signed1',
-          expiresIn: 3600,
-        })
+      mockDeduplicatedFetch
+        .mockResolvedValueOnce(
+          createMockResponse({
+            signedUrl: 'https://example.com/signed1',
+            expiresIn: 3600,
+          })
+        )
         .mockRejectedValueOnce(new Error('Network error'))
-        .mockResolvedValueOnce({
-          signedUrl: 'https://example.com/signed3',
-          expiresIn: 3600,
-        });
+        .mockResolvedValueOnce(
+          createMockResponse({
+            signedUrl: 'https://example.com/signed3',
+            expiresIn: 3600,
+          })
+        );
 
       const assets = [{ assetId: 'asset1' }, { assetId: 'asset2' }, { assetId: 'asset3' }];
 
@@ -430,10 +494,12 @@ describe('SignedUrlCacheManager', () => {
   describe('Error Handling', () => {
     it('should throw error when API response is invalid', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        // Missing signedUrl
-        expiresIn: 3600,
-      } as unknown as { signedUrl: string; expiresIn: number });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          // Missing signedUrl
+          expiresIn: 3600,
+        } as unknown as { signedUrl: string; expiresIn: number })
+      );
 
       // Act & Assert
       await expect(cacheManager.get('asset123')).rejects.toThrow(
@@ -443,7 +509,7 @@ describe('SignedUrlCacheManager', () => {
 
     it('should propagate fetch errors', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockRejectedValue(new Error('Network error'));
+      mockDeduplicatedFetch.mockRejectedValue(new Error('Network error'));
 
       // Act & Assert
       await expect(cacheManager.get('asset123')).rejects.toThrow('Network error');
@@ -453,10 +519,12 @@ describe('SignedUrlCacheManager', () => {
   describe('Singleton Instance', () => {
     it('should provide working singleton instance', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: 3600,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: 3600,
+        })
+      );
 
       // Act
       const url = await signedUrlCache.get('asset123');
@@ -469,10 +537,12 @@ describe('SignedUrlCacheManager', () => {
   describe('Edge Cases', () => {
     it('should handle very short TTLs', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: 1,
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: 1,
+        })
+      );
 
       // Act
       const url = await cacheManager.get('asset123', undefined, 1);
@@ -483,10 +553,12 @@ describe('SignedUrlCacheManager', () => {
 
     it('should handle very long TTLs', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        expiresIn: 86400, // 24 hours
-      });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          expiresIn: 86400, // 24 hours
+        })
+      );
 
       // Act
       const url = await cacheManager.get('asset123', undefined, 86400);
@@ -497,10 +569,12 @@ describe('SignedUrlCacheManager', () => {
 
     it('should handle missing expiresIn in response', async () => {
       // Arrange
-      mockDeduplicatedFetchJSON.mockResolvedValue({
-        signedUrl: 'https://example.com/signed',
-        // expiresIn missing
-      } as unknown as { signedUrl: string; expiresIn: number });
+      mockDeduplicatedFetch.mockResolvedValue(
+        createMockResponse({
+          signedUrl: 'https://example.com/signed',
+          // expiresIn missing
+        } as unknown as { signedUrl: string; expiresIn: number })
+      );
 
       // Act
       const url = await cacheManager.get('asset123', undefined, 1800);

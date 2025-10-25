@@ -109,7 +109,7 @@ export function useKeyframeData({
       if (frameRows?.length) {
         const urls = Object.fromEntries(
           await Promise.all(
-            frameRows.map(async (frame): Promise<readonly [any, string]> => {
+            frameRows.map(async (frame): Promise<readonly [string, string]> => {
               const url = await signStoragePath(frame.storage_path);
               return [frame.id, url ?? ''] as const;
             })

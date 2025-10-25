@@ -45,7 +45,7 @@ test.describe('Onboarding Tour', () => {
     await page.waitForLoadState('networkidle');
 
     // Check if tour overlay is visible
-    const overlay = page.locator('.fixed.inset-0.bg-black\\/50');
+    const overlay = page.locator('.fixed.inset-0.bg-black\/50');
     await expect(overlay).toBeVisible({ timeout: 5000 });
 
     // Check if tour tooltip is visible
@@ -57,7 +57,7 @@ test.describe('Onboarding Tour', () => {
     await expect(title).toBeVisible();
 
     // Check progress indicator shows 1/7 or similar
-    const progress = page.locator('text=/\\d+\\s*\\/\\s*\\d+/');
+    const progress = page.getByText(/\d+\s*\/\s*\d+/);
     await expect(progress).toBeVisible();
   });
 
@@ -70,7 +70,7 @@ test.describe('Onboarding Tour', () => {
     await expect(tooltip).toBeVisible({ timeout: 5000 });
 
     // Count total steps from progress indicator
-    const progressText = await page.locator('text=/\\d+\\s*\\/\\s*(\\d+)/).textContent();
+    const progressText = await page.getByText(/\d+\s*\/\s*(\d+)/).textContent();
     const totalSteps = progressText ? parseInt(progressText.split('/')[1].trim()) : 0;
 
     expect(totalSteps).toBeGreaterThanOrEqual(5); // At least 5 steps
@@ -115,7 +115,7 @@ test.describe('Onboarding Tour', () => {
     await expect(backButtonFirst).not.toBeVisible();
 
     // Progress should show 1/total
-    const progress = await page.locator('text=/1\\s*\\/\\s*\\d+/').first();
+    const progress = await page.getByText(/1\s*\/\s*\d+/).first();
     await expect(progress).toBeVisible();
   });
 
@@ -135,7 +135,7 @@ test.describe('Onboarding Tour', () => {
     await expect(tooltip).not.toBeVisible({ timeout: 2000 });
 
     // Overlay should disappear
-    const overlay = page.locator('.fixed.inset-0.bg-black\\/50');
+    const overlay = page.locator('.fixed.inset-0.bg-black\/50');
     await expect(overlay).not.toBeVisible();
   });
 
@@ -163,7 +163,7 @@ test.describe('Onboarding Tour', () => {
     await expect(tooltip).toBeVisible({ timeout: 5000 });
 
     // Get total steps
-    const progressText = await page.locator('text=/\\d+\\s*\\/\\s*(\\d+)/).textContent();
+    const progressText = await page.getByText(/\d+\s*\/\s*(\d+)/).textContent();
     const totalSteps = progressText ? parseInt(progressText.split('/')[1].trim()) : 0;
 
     // Complete the tour
@@ -194,7 +194,7 @@ test.describe('Onboarding Tour', () => {
     const tooltip = page.locator('[role="dialog"][aria-labelledby="tour-step-title"]');
     await expect(tooltip).toBeVisible({ timeout: 5000 });
 
-    const progressText = await page.locator('text=/\\d+\\s*\\/\\s*(\\d+)/).textContent();
+    const progressText = await page.getByText(/\d+\s*\/\s*(\d+)/).textContent();
     const totalSteps = progressText ? parseInt(progressText.split('/')[1].trim()) : 0;
 
     for (let i = 0; i < totalSteps - 1; i++) {
@@ -250,7 +250,9 @@ test.describe('Onboarding Tour', () => {
     await expect(tooltip).toBeVisible({ timeout: 5000 });
 
     // Check for highlight border around target element
-    const highlight = page.locator('.fixed.z-\\[9999\\].pointer-events-none.border-2.border-purple-500');
+    const highlight = page.locator(
+      '.fixed.z-\[9999\].pointer-events-none.border-2.border-purple-500'
+    );
     // Highlight may or may not be visible depending on if target element is found
     // Just check it exists in the DOM
     const highlightCount = await highlight.count();
@@ -293,13 +295,18 @@ test.describe('Onboarding Tour', () => {
     await expect(tooltip).toBeVisible({ timeout: 5000 });
 
     // Navigate through steps to find one with keyboard shortcut information
-    const progressText = await page.locator('text=/\\d+\\s*\\/\\s*(\\d+)/).textContent();
+    const progressText = await page.getByText(/\d+\s*\/\s*(\d+)/).textContent();
     const totalSteps = progressText ? parseInt(progressText.split('/')[1].trim()) : 0;
 
     let foundShortcut = false;
     for (let i = 0; i < totalSteps && !foundShortcut; i++) {
       const description = await page.locator('#tour-step-description').textContent();
-      if (description && (description.includes('Cmd') || description.includes('Ctrl') || description.includes('shortcut'))) {
+      if (
+        description &&
+        (description.includes('Cmd') ||
+          description.includes('Ctrl') ||
+          description.includes('shortcut'))
+      ) {
         foundShortcut = true;
       }
 
@@ -321,7 +328,7 @@ test.describe('Onboarding Tour', () => {
     const tooltip = page.locator('[role="dialog"][aria-labelledby="tour-step-title"]');
     await expect(tooltip).toBeVisible({ timeout: 5000 });
 
-    const progressText = await page.locator('text=/\\d+\\s*\\/\\s*(\\d+)/).textContent();
+    const progressText = await page.getByText(/\d+\s*\/\s*(\d+)/).textContent();
     const totalSteps = progressText ? parseInt(progressText.split('/')[1].trim()) : 0;
 
     for (let i = 0; i < totalSteps - 1; i++) {
@@ -333,11 +340,10 @@ test.describe('Onboarding Tour', () => {
     await expect(tooltip).not.toBeVisible();
 
     // Look for "Replay Tutorial" or similar button
-    const replayButton = page.locator('button:has-text("Replay Tutorial")').or(
-      page.locator('button:has-text("Show Tutorial")')
-    ).or(
-      page.locator('button[aria-label*="tutorial"]')
-    );
+    const replayButton = page
+      .locator('button:has-text("Replay Tutorial")')
+      .or(page.locator('button:has-text("Show Tutorial")'))
+      .or(page.locator('button[aria-label*="tutorial"]'));
 
     // If replay button exists, click it and verify tour restarts
     const replayButtonCount = await replayButton.count();
@@ -349,7 +355,7 @@ test.describe('Onboarding Tour', () => {
       await expect(tooltip).toBeVisible({ timeout: 5000 });
 
       // Should be at step 1
-      const progress = await page.locator('text=/1\\s*\\/\\s*\\d+/').first();
+      const progress = await page.getByText(/1\s*\/\s*\d+/).first();
       await expect(progress).toBeVisible();
     }
   });
