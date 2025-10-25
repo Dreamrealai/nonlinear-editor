@@ -138,13 +138,17 @@ export async function safeParseJSON<T = unknown>(
     return { error: sizeError };
   }
 
+  let timeoutId: NodeJS.Timeout | null = null;
   try {
     // Parse JSON with a reasonable timeout
     const body = await Promise.race([
       request.json(),
-      new Promise((_, reject): NodeJS.Timeout =>
-        setTimeout((): void => reject(new Error('Request body parsing timeout')), 30000)
-      ),
+      new Promise((_, reject) => {
+        timeoutId = setTimeout(
+          (): void => reject(new Error('Request body parsing timeout')),
+          30000
+        );
+      }),
     ]);
 
     // Additional size check on parsed body
@@ -194,6 +198,11 @@ export async function safeParseJSON<T = unknown>(
         { status: 400 }
       ),
     };
+  } finally {
+    // Clear timeout to prevent memory leak
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
   }
 }
 

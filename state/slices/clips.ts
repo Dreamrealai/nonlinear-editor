@@ -11,12 +11,21 @@
  */
 
 import type { Clip, Timeline } from '@/types/timeline';
-import { CLIP_CONSTANTS } from '@/lib/constants';
+import { CLIP_CONSTANTS, EDITOR_CONSTANTS } from '@/lib/constants';
 import { timelineAnnouncements } from '@/lib/utils/screenReaderAnnouncer';
 import { getClipFileName } from '@/lib/utils/timelineUtils';
 import type { WritableDraft } from 'immer';
 
 const { MIN_CLIP_DURATION } = CLIP_CONSTANTS;
+const { MAX_HISTORY } = EDITOR_CONSTANTS;
+
+/**
+ * Deep clones a timeline for history snapshots.
+ */
+const cloneTimeline = (timeline: Timeline | null): Timeline | null => {
+  if (!timeline) return null;
+  return structuredClone(timeline);
+};
 
 /**
  * Removes duplicate clips from an array.
@@ -60,6 +69,8 @@ export interface ClipsSlice {
 export interface ClipsSliceState {
   timeline: Timeline | null;
   selectedClipIds: Set<string>;
+  history: Timeline[];
+  historyIndex: number;
 }
 
 /**
@@ -84,8 +95,17 @@ export const createClipsSlice = (set: SetState, _get?: GetState): ClipsSlice => 
         timelineAnnouncements.clipAdded(getClipFileName(clip), clip.trackIndex);
       }
 
-      // NOTE: History is managed by the parent store (useEditorStore)
-      // which calls useHistoryStore.saveToHistory() after clip operations
+      // Save to history
+      const cloned = cloneTimeline(state.timeline);
+      if (cloned) {
+        state.history = state.history.slice(0, state.historyIndex + 1);
+        state.history.push(cloned);
+        if (state.history.length > MAX_HISTORY) {
+          state.history.shift();
+        } else {
+          state.historyIndex++;
+        }
+      }
     }),
 
   updateClip: (id, patch): void =>

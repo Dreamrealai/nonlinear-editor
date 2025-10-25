@@ -32,49 +32,56 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 'welcome',
     title: 'Welcome to the Video Editor!',
-    description: 'Let\'s take a quick tour of the key features. You can skip this anytime or use arrow keys to navigate.',
+    description:
+      "Let's take a quick tour of the key features. You can skip this anytime or use arrow keys to navigate.",
     target: 'body',
     position: 'bottom',
   },
   {
     id: 'asset-panel',
     title: 'Asset Library',
-    description: 'Upload and manage your video clips, images, and audio files here. Drag and drop files or click to browse.',
+    description:
+      'Upload and manage your video clips, images, and audio files here. Drag and drop files or click to browse.',
     target: '[aria-label="Asset panel"]',
     position: 'right',
   },
   {
     id: 'timeline',
     title: 'Timeline',
-    description: 'This is where you arrange your clips. Drag clips from the asset panel to the timeline, trim them, and create your video.',
+    description:
+      'This is where you arrange your clips. Drag clips from the asset panel to the timeline, trim them, and create your video.',
     target: '[aria-label="Timeline workspace"]',
     position: 'top',
   },
   {
     id: 'playback',
     title: 'Preview & Playback',
-    description: 'Watch your video preview here. Use the playback controls to play, pause, and scrub through your timeline.',
+    description:
+      'Watch your video preview here. Use the playback controls to play, pause, and scrub through your timeline.',
     target: '[aria-label="Video preview canvas"]',
     position: 'left',
   },
   {
     id: 'controls',
     title: 'Timeline Controls',
-    description: 'Zoom in/out, undo/redo, split clips, and access advanced features. Press "?" anytime to see keyboard shortcuts.',
+    description:
+      'Zoom in/out, undo/redo, split clips, and access advanced features. Press "?" anytime to see keyboard shortcuts.',
     target: '[title="Zoom in (Cmd+=)"]',
     position: 'bottom',
   },
   {
     id: 'grid-settings',
     title: 'Grid & Snap',
-    description: 'Customize your grid intervals for precise editing. Use Cmd+Shift+S to quickly toggle snap on/off.',
+    description:
+      'Customize your grid intervals for precise editing. Use Cmd+Shift+S to quickly toggle snap on/off.',
     target: '.grid-settings-button',
     position: 'bottom',
   },
   {
     id: 'complete',
-    title: 'You\'re Ready!',
-    description: 'That\'s it! You\'re ready to create amazing videos. Remember, you can press "?" anytime to see keyboard shortcuts. Happy editing!',
+    title: "You're Ready!",
+    description:
+      'That\'s it! You\'re ready to create amazing videos. Remember, you can press "?" anytime to see keyboard shortcuts. Happy editing!',
     target: 'body',
     position: 'bottom',
   },
@@ -87,11 +94,16 @@ type UserOnboardingProps = {
   onComplete?: () => void;
 };
 
-export function UserOnboarding({ forceShow = false, onComplete }: UserOnboardingProps): React.ReactElement | null {
+export function UserOnboarding({
+  forceShow = false,
+  onComplete,
+}: UserOnboardingProps): React.ReactElement | null {
   const [isVisible, setIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [highlightPosition, setHighlightPosition] = useState<DOMRect | null>(null);
-  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(
+    null
+  );
   // const highlightRef = useRef<HTMLDivElement>(null); // TODO: Implement spotlight highlighting
   const [onboardingStartTime, setOnboardingStartTime] = useState<number | null>(null);
   const [stepStartTime, setStepStartTime] = useState<number | null>(null);
@@ -392,19 +404,21 @@ export function UserOnboarding({ forceShow = false, onComplete }: UserOnboarding
             </button>
 
             <div className="flex gap-1">
-              {ONBOARDING_STEPS.map((_, index): React.ReactElement => (
-                <div
-                  key={index}
-                  className={cn(
-                    'h-2 w-2 rounded-full transition-all',
-                    index === currentStep
-                      ? 'bg-blue-600 w-6'
-                      : index < currentStep
-                        ? 'bg-blue-400'
-                        : 'bg-neutral-300 dark:bg-neutral-600'
-                  )}
-                />
-              ))}
+              {ONBOARDING_STEPS.map(
+                (step, index): React.ReactElement => (
+                  <div
+                    key={step.id}
+                    className={cn(
+                      'h-2 w-2 rounded-full transition-all',
+                      index === currentStep
+                        ? 'bg-blue-600 w-6'
+                        : index < currentStep
+                          ? 'bg-blue-400'
+                          : 'bg-neutral-300 dark:bg-neutral-600'
+                    )}
+                  />
+                )
+              )}
             </div>
 
             <button

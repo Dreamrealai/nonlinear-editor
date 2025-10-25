@@ -1,8 +1,8 @@
 # Codebase Issues Tracker
 
-**Last Updated:** 2025-10-24 (11-Agent Comprehensive Sweep Complete ✅)
+**Last Updated:** 2025-10-24 (Consolidated by Agent #5 - Documentation Specialist)
 **Status:** ✅ **BUILD PASSING - All Critical Issues Resolved**
-**Active Issues:** P0: 0 | P1: 2 | P2: 3 | P3: 0 | **Total: 5 open issues**
+**Active Issues:** P0: 0 | P1: 4 | P2: 5 | P3: 0 | **Total: 9 open issues**
 
 > **Note:** Fixed/verified issues have been moved to the "Recently Resolved Issues" section at the bottom.
 
@@ -136,23 +136,30 @@ Agent 9 (Test Quality Agent) identified critical architectural issues preventing
 
 ---
 
-### Issue #78: Component Integration Tests - Comprehensive Improvements
+### Issue #78: Component Integration Tests - React act() and Store Sync Issues
 
-**Status:** ✅ IMPROVED - Multiple issues fixed, pass rate improved +48% (Validated 2025-10-24)
-**Priority:** P1 (Medium - Quality assurance)
-**Impact:** 134 integration tests (86 passing, 64.2% pass rate, up from 43.3%)
+**Status:** Open (Misdiagnosed - API mocking is complete, real issues are React state handling)
+**Priority:** P1 (High - Quality assurance)
+**Impact:** 134 integration tests (58 passing, 43.3% pass rate)
 **Location:** `__tests__/components/integration/*.test.tsx`
 **Reported:** 2025-10-24
-**Updated:** 2025-10-24 (Final Validation by Validation Agent)
+**Updated:** 2025-10-24 (Agent #32 - Corrected diagnosis)
 
-**Latest Validation Results (2025-10-24 - Final):**
+**Root Causes Identified (Agent #32 Verification):**
 
-- **Current Pass Rate**: 95/119 passing (79.8%) - SIGNIFICANT IMPROVEMENT
-- **Total Improvement**: +9 tests passing from previous validation
-- **Failing Tests**: 10 (down from 13)
-- **Skipped Tests**: 14 (down from 35 - many invalid tests removed)
-- **Build Status**: ✅ PASSING (waveformWorker.ts added)
-- **TypeScript Status**: ✅ PASSING (all errors resolved)
+1. **React act() Warnings** (40+ tests affected)
+   - Async state updates not wrapped in act()
+   - State changes from hooks causing console errors
+
+2. **Store State Synchronization** (20 tests affected)
+   - Both usePlaybackStore and useEditorStore tracking currentTime
+   - Race conditions between stores
+
+3. **Async Timing Issues** (16 tests affected)
+   - Missing waitFor() wrappers
+   - State updates not propagated before assertions
+
+**Verified:** ✅ API mocking is COMPLETE (all endpoints properly mocked)
 
 **Latest Round - Targeted Fixes (2025-10-24):**
 
@@ -269,8 +276,100 @@ Agent 7 confirmed:
 2. **Invalid Tests** (14 tests skipped - IMPROVED from 35)
    - Majority cleaned up, remaining are intentionally skipped
 
-**Estimated Effort Remaining:** 1-2 hours
-**Expected Final Pass Rate:** ~85-90% (101-107 passing tests out of 119)
+**Estimated Effort Remaining:** 9-13 hours (per Agent #32 analysis)
+**Expected Final Pass Rate:** ~70% after correct fixes
+
+---
+
+### Issue #90: Promise.race Timeout Memory Leaks
+
+**Status:** Open
+**Priority:** P1 (High - Memory leaks)
+**Impact:** Memory leaks accumulate over time on long-running server processes
+**Location:** Multiple files
+**Reported:** 2025-10-24 (10-Agent Comprehensive Scan)
+**Estimated Effort:** 1 hour
+
+**Description:**
+Promise.race implementations don't clear timeouts when the race completes successfully, causing memory leaks in long-running server processes.
+
+**Files Affected:**
+
+- `app/api/video/split-scenes/route.ts:268-272`
+- `lib/api/bodyLimits.ts:143-148`
+
+**Current Pattern (INCORRECT):**
+
+```typescript
+await Promise.race([
+  operation(),
+  new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 30000)),
+]);
+// Timeout not cleared on success
+```
+
+**Recommended Fix:**
+
+```typescript
+let timeoutId: NodeJS.Timeout;
+try {
+  await Promise.race([
+    operation(),
+    new Promise((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error('Timeout')), 30000);
+    }),
+  ]);
+} finally {
+  clearTimeout(timeoutId!);
+}
+```
+
+---
+
+### Issue #91: Array Index Used as React Key (Anti-pattern)
+
+**Status:** Open
+**Priority:** P1 (High - React best practices)
+**Impact:** Potential UI bugs, state loss, performance issues when items reorder
+**Location:** 10 files with array index keys
+**Reported:** 2025-10-24 (10-Agent Comprehensive Scan)
+**Estimated Effort:** 1 hour
+
+**Description:**
+Using array index as React key can cause state loss and incorrect rendering when items are reordered, added, or removed. This is a common React anti-pattern.
+
+**Files Affected:**
+
+- `components/editor/ChatBox.tsx:530`
+- `components/timeline/KeyboardShortcutsPanel.tsx:180`
+- `components/ui/Skeleton.tsx:68,246`
+- `components/SubscriptionManager.tsx:236,602`
+- `components/ui/Kbd.tsx:76`
+- `components/UserOnboarding.tsx:397`
+- `components/ui/DragDropZone.tsx:337,354`
+
+**Current Pattern (INCORRECT):**
+
+```typescript
+{items.map((item, index) => (
+  <Component key={index} {...item} />
+))}
+```
+
+**Recommended Fix:**
+
+```typescript
+{items.map((item) => (
+  <Component key={item.id || item.name} {...item} />
+))}
+```
+
+**Impact:** Can cause:
+
+- State loss when items reorder
+- Incorrect rendering after add/remove
+- Unnecessary re-renders
+- Form input state bugs
 
 ---
 

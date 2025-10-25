@@ -263,11 +263,15 @@ const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) 
 
   serverLogger.info({ gcsUri, assetId, projectId }, 'Starting video annotation for shot detection');
   let results;
+  let timeoutId: NodeJS.Timeout | null = null;
   try {
     // Add timeout to prevent function from hanging (45 seconds)
-    const timeoutPromise = new Promise<never>((_, reject): NodeJS.Timeout =>
-      setTimeout((): void => reject(new Error('Video analysis timed out after 45 seconds')), 45000)
-    );
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(
+        (): void => reject(new Error('Video analysis timed out after 45 seconds')),
+        45000
+      );
+    });
 
     results = await Promise.race([videoClient.annotateVideo(request), timeoutPromise]);
   } catch (apiError) {
@@ -289,6 +293,11 @@ const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) 
         apiError instanceof Error ? apiError.message : 'Google Cloud Video Intelligence API error',
       details: 'The video format may not be supported or the API credentials may be invalid',
     });
+  } finally {
+    // Clear timeout to prevent memory leak
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
   }
 
   serverLogger.info({ assetId, projectId }, 'Processing video for shot detection');

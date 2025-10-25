@@ -28,7 +28,7 @@
  */
 'use client';
 
-import React, {  useState, useEffect  } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { UserProfile, TIER_LIMITS } from '@/lib/types/subscription';
 import { isPostgresNotFound } from '@/lib/errors/errorCodes';
@@ -129,8 +129,14 @@ export function SubscriptionManager(): React.ReactElement | null {
     return (
       <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div className="flex items-center justify-center gap-3 py-8">
-          <div className="h-6 w-6 animate-spin rounded-full border-3 border-purple-200 border-t-purple-600 motion-reduce:animate-none motion-reduce:border-t-6 dark:border-purple-800 dark:border-t-purple-400" role="status" aria-label="Loading subscription"></div>
-          <div className="text-sm font-medium text-neutral-600 dark:text-neutral-400">Loading subscription...</div>
+          <div
+            className="h-6 w-6 animate-spin rounded-full border-3 border-purple-200 border-t-purple-600 motion-reduce:animate-none motion-reduce:border-t-6 dark:border-purple-800 dark:border-t-purple-400"
+            role="status"
+            aria-label="Loading subscription"
+          ></div>
+          <div className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+            Loading subscription...
+          </div>
         </div>
       </div>
     );
@@ -232,26 +238,28 @@ export function SubscriptionManager(): React.ReactElement | null {
           </div>
 
           <div className="space-y-2.5">
-            {tierLimits.features.map((feature, index): React.ReactElement => (
-              <div key={index} className="flex items-center gap-3 text-sm text-neutral-700">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100">
-                  <svg
-                    className="h-3 w-3 text-green-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={3}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
+            {tierLimits.features.map(
+              (feature): React.ReactElement => (
+                <div key={feature} className="flex items-center gap-3 text-sm text-neutral-700">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100">
+                    <svg
+                      className="h-3 w-3 text-green-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={3}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                  <span className="font-medium">{feature}</span>
                 </div>
-                <span className="font-medium">{feature}</span>
-              </div>
-            ))}
+              )
+            )}
           </div>
 
           {isPremium && profile.subscription_status && (
@@ -598,26 +606,28 @@ export function SubscriptionManager(): React.ReactElement | null {
             </div>
 
             <ul className="space-y-3 mb-5">
-              {TIER_LIMITS.premium.features.map((feature, index): React.ReactElement => (
-                <li key={index} className="flex items-center gap-3 text-sm text-blue-900">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-200">
-                    <svg
-                      className="h-3 w-3 text-blue-700"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={3}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-                  <span className="font-medium">{feature}</span>
-                </li>
-              ))}
+              {TIER_LIMITS.premium.features.map(
+                (feature): React.ReactElement => (
+                  <li key={feature} className="flex items-center gap-3 text-sm text-blue-900">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-200">
+                      <svg
+                        className="h-3 w-3 text-blue-700"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={3}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                    <span className="font-medium">{feature}</span>
+                  </li>
+                )
+              )}
             </ul>
 
             <button

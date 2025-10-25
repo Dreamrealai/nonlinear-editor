@@ -7,11 +7,12 @@
  * - Feature health checks
  * - System resources
  *
+ * IMPORTANT: This endpoint requires admin authentication due to sensitive system information.
+ * For public health checks, use /api/health instead.
+ *
  * Used by:
- * - Monitoring systems (Axiom, UptimeRobot, etc.)
- * - Load balancers
- * - Kubernetes readiness/liveness probes
- * - Internal dashboards
+ * - Internal dashboards (admin only)
+ * - Monitoring systems (with admin credentials)
  */
 
 import { NextResponse } from 'next/server';

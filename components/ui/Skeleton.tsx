@@ -23,7 +23,11 @@ export interface SkeletonProps {
 /**
  * Base Skeleton component
  */
-export function Skeleton({ className, variant = 'default', animate = true }: SkeletonProps): React.ReactElement {
+export function Skeleton({
+  className,
+  variant = 'default',
+  animate = true,
+}: SkeletonProps): React.ReactElement {
   const baseClasses = 'rounded-md bg-neutral-200 dark:bg-neutral-800';
 
   const animationClasses = animate
@@ -63,18 +67,16 @@ export function SkeletonText({
 }: SkeletonTextProps): React.ReactElement {
   return (
     <div className={cn('space-y-2', className)} role="status" aria-label="Loading text">
-      {Array.from({ length: lines }).map((_, i): React.ReactElement => (
-        <Skeleton
-          key={i}
-          variant={variant}
-          animate={animate}
-          className={cn(
-            'h-4',
-            i === lines - 1 ? 'w-4/5' : 'w-full',
-            lineClassName
-          )}
-        />
-      ))}
+      {Array.from({ length: lines }).map(
+        (_, i): React.ReactElement => (
+          <Skeleton
+            key={`skeleton-text-${i}`}
+            variant={variant}
+            animate={animate}
+            className={cn('h-4', i === lines - 1 ? 'w-4/5' : 'w-full', lineClassName)}
+          />
+        )
+      )}
     </div>
   );
 }
@@ -102,26 +104,14 @@ export function SkeletonCard({
   descriptionLines = 2,
 }: SkeletonCardProps): React.ReactElement {
   return (
-    <div className={cn('rounded-lg border border-neutral-200 p-4 dark:border-neutral-800', className)} role="status" aria-label="Loading card">
-      {showImage && (
-        <Skeleton
-          variant={variant}
-          animate={animate}
-          className="mb-4 h-48 w-full"
-        />
-      )}
-      {showTitle && (
-        <Skeleton
-          variant={variant}
-          animate={animate}
-          className="mb-2 h-6 w-3/4"
-        />
-      )}
-      <SkeletonText
-        lines={descriptionLines}
-        variant={variant}
-        animate={animate}
-      />
+    <div
+      className={cn('rounded-lg border border-neutral-200 p-4 dark:border-neutral-800', className)}
+      role="status"
+      aria-label="Loading card"
+    >
+      {showImage && <Skeleton variant={variant} animate={animate} className="mb-4 h-48 w-full" />}
+      {showTitle && <Skeleton variant={variant} animate={animate} className="mb-2 h-6 w-3/4" />}
+      <SkeletonText lines={descriptionLines} variant={variant} animate={animate} />
     </div>
   );
 }
@@ -143,25 +133,17 @@ export function SkeletonListItem({
   showAvatar = true,
 }: SkeletonListItemProps): React.ReactElement {
   return (
-    <div className={cn('flex items-center gap-4', className)} role="status" aria-label="Loading list item">
+    <div
+      className={cn('flex items-center gap-4', className)}
+      role="status"
+      aria-label="Loading list item"
+    >
       {showAvatar && (
-        <Skeleton
-          variant={variant}
-          animate={animate}
-          className="h-12 w-12 rounded-full"
-        />
+        <Skeleton variant={variant} animate={animate} className="h-12 w-12 rounded-full" />
       )}
       <div className="flex-1 space-y-2">
-        <Skeleton
-          variant={variant}
-          animate={animate}
-          className="h-4 w-3/4"
-        />
-        <Skeleton
-          variant={variant}
-          animate={animate}
-          className="h-3 w-1/2"
-        />
+        <Skeleton variant={variant} animate={animate} className="h-4 w-3/4" />
+        <Skeleton variant={variant} animate={animate} className="h-3 w-1/2" />
       </div>
     </div>
   );
@@ -190,28 +172,34 @@ export function SkeletonTable({
     <div className={cn('space-y-3', className)} role="status" aria-label="Loading table">
       {/* Header */}
       <div className="flex gap-4">
-        {Array.from({ length: columns }).map((_, i): React.ReactElement => (
-          <Skeleton
-            key={`header-${i}`}
-            variant={variant}
-            animate={animate}
-            className="h-4 flex-1"
-          />
-        ))}
-      </div>
-      {/* Rows */}
-      {Array.from({ length: rows }).map((_, rowIndex): React.ReactElement => (
-        <div key={`row-${rowIndex}`} className="flex gap-4">
-          {Array.from({ length: columns }).map((_, colIndex): React.ReactElement => (
+        {Array.from({ length: columns }).map(
+          (_, i): React.ReactElement => (
             <Skeleton
-              key={`cell-${rowIndex}-${colIndex}`}
+              key={`header-${i}`}
               variant={variant}
               animate={animate}
-              className="h-6 flex-1"
+              className="h-4 flex-1"
             />
-          ))}
-        </div>
-      ))}
+          )
+        )}
+      </div>
+      {/* Rows */}
+      {Array.from({ length: rows }).map(
+        (_, rowIndex): React.ReactElement => (
+          <div key={`row-${rowIndex}`} className="flex gap-4">
+            {Array.from({ length: columns }).map(
+              (_, colIndex): React.ReactElement => (
+                <Skeleton
+                  key={`cell-${rowIndex}-${colIndex}`}
+                  variant={variant}
+                  animate={animate}
+                  className="h-6 flex-1"
+                />
+              )
+            )}
+          </div>
+        )
+      )}
     </div>
   );
 }
@@ -242,20 +230,14 @@ export function SkeletonTimeline({
 
       {/* Timeline tracks */}
       <div className="space-y-2">
-        {Array.from({ length: clips }).map((_, i): React.ReactElement => (
-          <div key={i} className="flex gap-2">
-            <Skeleton
-              variant={variant}
-              animate={animate}
-              className="h-16 w-20"
-            />
-            <Skeleton
-              variant={variant}
-              animate={animate}
-              className="h-16 flex-1"
-            />
-          </div>
-        ))}
+        {Array.from({ length: clips }).map(
+          (_, i): React.ReactElement => (
+            <div key={`skeleton-timeline-${i}`} className="flex gap-2">
+              <Skeleton variant={variant} animate={animate} className="h-16 w-20" />
+              <Skeleton variant={variant} animate={animate} className="h-16 flex-1" />
+            </div>
+          )
+        )}
       </div>
     </div>
   );

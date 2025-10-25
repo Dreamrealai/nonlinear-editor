@@ -72,18 +72,20 @@ export const Kbd = React.forwardRef<HTMLElement, KbdProps>(
 
     return (
       <span className={cn('inline-flex items-center gap-1', className)}>
-        {keys.map((key, index): React.ReactElement => (
-          <React.Fragment key={index}>
-            {index > 0 && <span className="text-xs text-neutral-500">+</span>}
-            <kbd
-              ref={index === 0 ? ref : undefined}
-              className="inline-flex items-center justify-center rounded border border-neutral-300 bg-neutral-100 px-1.5 py-0.5 text-xs font-mono font-medium text-neutral-700 shadow-sm"
-              {...(index === 0 ? props : {})}
-            >
-              {getModifierKey(key)}
-            </kbd>
-          </React.Fragment>
-        ))}
+        {keys.map(
+          (key, index): React.ReactElement => (
+            <React.Fragment key={`${key}-${index}`}>
+              {index > 0 && <span className="text-xs text-neutral-500">+</span>}
+              <kbd
+                ref={index === 0 ? ref : undefined}
+                className="inline-flex items-center justify-center rounded border border-neutral-300 bg-neutral-100 px-1.5 py-0.5 text-xs font-mono font-medium text-neutral-700 shadow-sm"
+                {...(index === 0 ? props : {})}
+              >
+                {getModifierKey(key)}
+              </kbd>
+            </React.Fragment>
+          )
+        )}
       </span>
     );
   }

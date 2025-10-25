@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import React, {  useState, useRef, useEffect, useCallback  } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import { browserLogger } from '@/lib/browserLogger';
 import clsx from 'clsx';
@@ -66,7 +66,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): React.ReactElem
   const supabase = supabaseClient;
 
   // Cleanup blob URLs on unmount
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     // Copy ref value to local variable for cleanup
     const blobUrlsMap = attachmentBlobUrlsRef.current;
 
@@ -156,7 +156,7 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): React.ReactElem
 
     const userMessageContent = input;
     const attachmentUrls: string[] = [];
-    const userAttachments = attachments.map((file): { name: string; type: string; url: string; } => {
+    const userAttachments = attachments.map((file): { name: string; type: string; url: string } => {
       // Reuse existing blob URL or create new one
       let url = attachmentBlobUrlsRef.current.get(file);
       if (!url) {
@@ -347,11 +347,13 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): React.ReactElem
             onChange={(e): void => setSelectedModel(e.target.value)}
             className="flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           >
-            {GEMINI_MODELS.map((model): React.ReactElement => (
-              <option key={model.id} value={model.id}>
-                {model.name}
-              </option>
-            ))}
+            {GEMINI_MODELS.map(
+              (model): React.ReactElement => (
+                <option key={model.id} value={model.id}>
+                  {model.name}
+                </option>
+              )
+            )}
           </select>
           <button
             onClick={clearChat}
@@ -417,86 +419,88 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): React.ReactElem
             </p>
           </div>
         ) : (
-          messages.map((message): React.ReactElement => (
-            <div
-              key={message.id}
-              className={clsx(
-                'flex gap-3',
-                message.role === 'user' ? 'justify-end' : 'justify-start'
-              )}
-            >
+          messages.map(
+            (message): React.ReactElement => (
               <div
+                key={message.id}
                 className={clsx(
-                  'max-w-[85%] rounded-xl px-4 py-2.5',
-                  message.role === 'user'
-                    ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white'
-                    : 'bg-neutral-100 text-neutral-900'
+                  'flex gap-3',
+                  message.role === 'user' ? 'justify-end' : 'justify-start'
                 )}
               >
-                <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
-                {message.attachments && message.attachments.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {message.attachments.map((attachment, idx): React.ReactElement => {
-                      const isImage = attachment.type.startsWith('image/');
-                      return (
-                        <div
-                          key={idx}
-                          className={clsx(
-                            'overflow-hidden rounded-lg',
-                            isImage
-                              ? 'max-w-[200px] border-2'
-                              : 'flex items-center gap-2 border px-2 py-1',
-                            message.role === 'user'
-                              ? 'border-blue-400/50 bg-blue-500/20'
-                              : 'border-neutral-300 bg-neutral-200/50'
-                          )}
-                        >
-                          {isImage ? (
-                            <Image
-                              src={attachment.url}
-                              alt={attachment.name}
-                              width={200}
-                              height={200}
-                              className="h-auto w-full object-contain"
-                              unoptimized
-                            />
-                          ) : (
-                            <>
-                              <svg
-                                className="h-3 w-3"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                                />
-                              </svg>
-                              <span className="truncate text-xs">{attachment.name}</span>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
                 <div
                   className={clsx(
-                    'mt-1 text-xs',
-                    message.role === 'user' ? 'text-blue-200' : 'text-neutral-500'
+                    'max-w-[85%] rounded-xl px-4 py-2.5',
+                    message.role === 'user'
+                      ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white'
+                      : 'bg-neutral-100 text-neutral-900'
                   )}
                 >
-                  {new Date(message.created_at).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+                  {message.attachments && message.attachments.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {message.attachments.map((attachment): React.ReactElement => {
+                        const isImage = attachment.type.startsWith('image/');
+                        return (
+                          <div
+                            key={attachment.url}
+                            className={clsx(
+                              'overflow-hidden rounded-lg',
+                              isImage
+                                ? 'max-w-[200px] border-2'
+                                : 'flex items-center gap-2 border px-2 py-1',
+                              message.role === 'user'
+                                ? 'border-blue-400/50 bg-blue-500/20'
+                                : 'border-neutral-300 bg-neutral-200/50'
+                            )}
+                          >
+                            {isImage ? (
+                              <Image
+                                src={attachment.url}
+                                alt={attachment.name}
+                                width={200}
+                                height={200}
+                                className="h-auto w-full object-contain"
+                                unoptimized
+                              />
+                            ) : (
+                              <>
+                                <svg
+                                  className="h-3 w-3"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                                  />
+                                </svg>
+                                <span className="truncate text-xs">{attachment.name}</span>
+                              </>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div
+                    className={clsx(
+                      'mt-1 text-xs',
+                      message.role === 'user' ? 'text-blue-200' : 'text-neutral-500'
+                    )}
+                  >
+                    {new Date(message.created_at).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            )
+          )
         )}
         {isLoading && (
           <div className="flex justify-start">
@@ -525,27 +529,29 @@ export function ChatBox({ projectId, collapsed }: ChatBoxProps): React.ReactElem
       {attachments.length > 0 && (
         <div className="border-t border-neutral-200 p-3">
           <div className="flex flex-wrap gap-2">
-            {attachments.map((file, index): React.ReactElement => (
-              <div
-                key={index}
-                className="group relative flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1"
-              >
-                <span className="text-xs text-neutral-700">{file.name}</span>
-                <button
-                  onClick={(): void => removeAttachment(index)}
-                  className="text-neutral-400 hover:text-red-600"
+            {attachments.map(
+              (file, index): React.ReactElement => (
+                <div
+                  key={`${file.name}-${file.size}-${file.lastModified}`}
+                  className="group relative flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1"
                 >
-                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-            ))}
+                  <span className="text-xs text-neutral-700">{file.name}</span>
+                  <button
+                    onClick={(): void => removeAttachment(index)}
+                    className="text-neutral-400 hover:text-red-600"
+                  >
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              )
+            )}
           </div>
         </div>
       )}

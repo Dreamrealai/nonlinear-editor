@@ -235,7 +235,7 @@ export function DragDropZone({
   /**
    * Cleanup previews on unmount
    */
-  React.useEffect((): () => void => {
+  React.useEffect((): (() => void) => {
     return (): void => {
       selectedFiles.forEach((file): void => {
         if (file.preview) {
@@ -291,29 +291,35 @@ export function DragDropZone({
                 : 'text-neutral-400 dark:text-neutral-500'
             )}
           />
-          <p className={cn(
-            'mb-2 text-sm font-semibold transition-colors',
-            isDragActive
-              ? 'text-purple-700 dark:text-purple-300'
-              : 'text-neutral-700 dark:text-neutral-300'
-          )}>
+          <p
+            className={cn(
+              'mb-2 text-sm font-semibold transition-colors',
+              isDragActive
+                ? 'text-purple-700 dark:text-purple-300'
+                : 'text-neutral-700 dark:text-neutral-300'
+            )}
+          >
             {isDragActive ? 'Drop files here' : 'Drag and drop files here'}
           </p>
-          <p className={cn(
-            'text-xs transition-colors',
-            isDragActive
-              ? 'text-purple-600 dark:text-purple-400'
-              : 'text-neutral-500 dark:text-neutral-400'
-          )}>
+          <p
+            className={cn(
+              'text-xs transition-colors',
+              isDragActive
+                ? 'text-purple-600 dark:text-purple-400'
+                : 'text-neutral-500 dark:text-neutral-400'
+            )}
+          >
             {description || `or click to browse (max ${formatFileSize(maxFileSize)})`}
           </p>
           {accept && (
-            <p className={cn(
-              'mt-2 text-xs transition-colors',
-              isDragActive
-                ? 'text-purple-500 dark:text-purple-400'
-                : 'text-neutral-400 dark:text-neutral-500'
-            )}>
+            <p
+              className={cn(
+                'mt-2 text-xs transition-colors',
+                isDragActive
+                  ? 'text-purple-500 dark:text-purple-400'
+                  : 'text-neutral-400 dark:text-neutral-500'
+              )}
+            >
               Accepted: {accept}
             </p>
           )}
@@ -333,11 +339,13 @@ export function DragDropZone({
         <div className="mt-3 rounded-lg bg-red-50 px-4 py-3">
           <p className="text-sm font-semibold text-red-900 mb-1">Upload Errors:</p>
           <ul className="list-disc list-inside space-y-1">
-            {errors.map((error, index): React.ReactElement => (
-              <li key={index} className="text-xs text-red-700">
-                {error}
-              </li>
-            ))}
+            {errors.map(
+              (error): React.ReactElement => (
+                <li key={error} className="text-xs text-red-700">
+                  {error}
+                </li>
+              )
+            )}
           </ul>
         </div>
       )}
@@ -349,38 +357,40 @@ export function DragDropZone({
             Selected Files ({selectedFiles.length})
           </p>
           <div className="space-y-2">
-            {selectedFiles.map((file, index): React.ReactElement => (
-              <div
-                key={index}
-                className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3"
-              >
-                {file.preview ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={file.preview}
-                    alt={file.name}
-                    className="h-12 w-12 rounded object-cover"
-                  />
-                ) : (
-                  getFileIcon(file)
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-neutral-900 truncate">{file.name}</p>
-                  <p className="text-xs text-neutral-500">{formatFileSize(file.size)}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={(e): void => {
-                    e.stopPropagation();
-                    removeFile(index);
-                  }}
-                  className="rounded-full p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 transition-colors"
-                  aria-label={`Remove ${file.name}`}
+            {selectedFiles.map(
+              (file, index): React.ReactElement => (
+                <div
+                  key={`${file.name}-${file.size}-${file.lastModified}`}
+                  className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3"
                 >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
+                  {file.preview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={file.preview}
+                      alt={file.name}
+                      className="h-12 w-12 rounded object-cover"
+                    />
+                  ) : (
+                    getFileIcon(file)
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-neutral-900 truncate">{file.name}</p>
+                    <p className="text-xs text-neutral-500">{formatFileSize(file.size)}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e): void => {
+                      e.stopPropagation();
+                      removeFile(index);
+                    }}
+                    className="rounded-full p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 transition-colors"
+                    aria-label={`Remove ${file.name}`}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )
+            )}
           </div>
         </div>
       )}

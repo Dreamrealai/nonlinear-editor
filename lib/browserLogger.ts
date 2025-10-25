@@ -59,6 +59,11 @@ const BATCH_INTERVAL_MS = 5000;
 // Track if global handlers are installed (singleton)
 let globalHandlersInstalled = false;
 
+// Store original console methods to avoid infinite loops
+// Must be stored at module level before interception
+const originalConsoleError = console.error;
+const originalConsoleWarn = console.warn;
+
 // Generate a unique session ID for tracking user sessions
 const sessionId =
   typeof window !== 'undefined'
@@ -243,14 +248,17 @@ class BrowserLogger {
 
         if (!response.ok) {
           // Re-queue failed logs (only in dev to avoid infinite loops)
+          // CRITICAL: Use originalConsoleError to avoid infinite recursion
+          // Do NOT use console.error here as it's intercepted and calls browserLogger.error again
           if (isDevelopment) {
-            console.error('Failed to send logs to server:', response.statusText);
+            originalConsoleError('Failed to send logs to server:', response.statusText);
           }
         }
       } catch (error) {
         // Silently fail in production (logs are already in console in dev)
+        // CRITICAL: Use originalConsoleError to avoid infinite recursion
         if (isDevelopment) {
-          console.error('Failed to send logs to server:', error);
+          originalConsoleError('Failed to send logs to server:', error);
         }
       }
     };
@@ -424,8 +432,8 @@ if (typeof window !== 'undefined' && !globalHandlersInstalled) {
   });
 
   // Intercept console.error and console.warn for third-party libraries
-  const originalConsoleError = console.error;
-  const originalConsoleWarn = console.warn;
+  // Note: originalConsoleError and originalConsoleWarn are now stored at module level
+  // to prevent infinite loops in flush error handlers
 
   console.error = (...args: unknown[]): void => {
     // Call original console.error

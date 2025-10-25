@@ -158,42 +158,49 @@ const KEYBOARD_SHORTCUTS: ShortcutCategory[] = [
  * @param onOpenChange - Callback when open state changes
  * @returns A modal dialog with categorized keyboard shortcuts
  */
-export function KeyboardShortcutsPanel({ open, onOpenChange }: KeyboardShortcutsPanelProps): React.ReactElement {
+export function KeyboardShortcutsPanel({
+  open,
+  onOpenChange,
+}: KeyboardShortcutsPanelProps): React.ReactElement {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Keyboard Shortcuts</DialogTitle>
           <DialogDescription>
-            All available keyboard shortcuts for the timeline editor. Press{' '}
-            <Kbd keys={['?']} /> to open this dialog anytime.
+            All available keyboard shortcuts for the timeline editor. Press <Kbd keys={['?']} /> to
+            open this dialog anytime.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
-          {KEYBOARD_SHORTCUTS.map((category): React.ReactElement => (
-            <div key={category.title}>
-              <h3 className="text-sm font-semibold text-neutral-900 mb-3">{category.title}</h3>
-              <div className="space-y-2">
-                {category.shortcuts.map((shortcut, index): React.ReactElement => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-neutral-50 transition-colors"
-                  >
-                    <div className="flex-1">
-                      <p className="text-sm text-neutral-700">{shortcut.description}</p>
-                      {shortcut.condition && (
-                        <p className="text-xs text-neutral-500 mt-0.5">
-                          Requires: {shortcut.condition}
-                        </p>
-                      )}
-                    </div>
-                    <Kbd keys={shortcut.keys} />
-                  </div>
-                ))}
+          {KEYBOARD_SHORTCUTS.map(
+            (category): React.ReactElement => (
+              <div key={category.title}>
+                <h3 className="text-sm font-semibold text-neutral-900 mb-3">{category.title}</h3>
+                <div className="space-y-2">
+                  {category.shortcuts.map(
+                    (shortcut): React.ReactElement => (
+                      <div
+                        key={shortcut.keys.join('-')}
+                        className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-neutral-50 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <p className="text-sm text-neutral-700">{shortcut.description}</p>
+                          {shortcut.condition && (
+                            <p className="text-xs text-neutral-500 mt-0.5">
+                              Requires: {shortcut.condition}
+                            </p>
+                          )}
+                        </div>
+                        <Kbd keys={shortcut.keys} />
+                      </div>
+                    )
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          )}
         </div>
 
         <div className="mt-6 pt-4 border-t border-neutral-200">

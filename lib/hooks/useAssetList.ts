@@ -5,7 +5,7 @@
  */
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 import { browserLogger } from '@/lib/browserLogger';
 import { mapAssetRow } from '@/lib/utils/assetUtils';
@@ -57,7 +57,10 @@ export function useAssetList(
   projectId: string,
   pageSize: number = DEFAULT_PAGE_SIZE
 ): UseAssetListReturn {
-  const supabase = createBrowserSupabaseClient();
+  // CRITICAL FIX: Memoize supabase client to prevent recreation on every render
+  // Previously this was recreated on every render, causing loadAssets to be
+  // recreated, which triggered useEffect infinitely
+  const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const [assets, setAssets] = useState<AssetRow[]>([]);
   const [loadingAssets, setLoadingAssets] = useState(false);
   const [assetError, setAssetError] = useState<string | null>(null);
@@ -134,9 +137,14 @@ export function useAssetList(
     await loadAssets(currentPage);
   }, [currentPage, loadAssets]);
 
-  const updateAsset = useCallback((assetId: string, updater: (asset: AssetRow) => AssetRow): void => {
-    setAssets((prev): AssetRow[] => prev.map((asset): AssetRow => (asset.id === assetId ? updater(asset) : asset)));
-  }, []);
+  const updateAsset = useCallback(
+    (assetId: string, updater: (asset: AssetRow) => AssetRow): void => {
+      setAssets((prev): AssetRow[] =>
+        prev.map((asset): AssetRow => (asset.id === assetId ? updater(asset) : asset))
+      );
+    },
+    []
+  );
 
   const removeAsset = useCallback((assetId: string): void => {
     setAssets((prev): AssetRow[] => prev.filter((asset): boolean => asset.id !== assetId));
