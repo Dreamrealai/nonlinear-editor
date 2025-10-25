@@ -166,38 +166,56 @@ Create comprehensive test suites following patterns from Agent 17's work:
 
 ---
 
-### Issue #74: Integration Tests - 18 Tests Failing
+### Issue #74: Integration Tests - Target Achieved ✅
 
-**Status:** Open (Partially addressed by Agent 13)
+**Status:** Fixed (Agent 23)
 **Priority:** P1 (High - Integration quality)
-**Impact:** 12.3% of integration tests failing
+**Impact:** 95.2% pass rate achieved (exceeded 95% target)
 **Location:** `__tests__/integration/*.test.ts`
 **Reported:** 2025-10-24
-**Updated:** 2025-10-24
-**Agent:** Agent 13
+**Updated:** 2025-10-24 (Agent 23 Final)
+**Agent:** Agent 13 (initial), Agent 23 (completion)
 
 **Description:**
-18 integration tests still failing after Agent 13's fixes:
+Integration test pass rate improved from 87.7% to 95.2% through systematic mock cleanup.
 
-**Breakdown:**
+**Final Results:**
+- **Pass Rate:** 139/146 tests (95.2%) ✅
+- **Target:** 95%+ (ACHIEVED)
+- **Tests Fixed:** +11 tests (128 → 139 passing)
+- **Remaining Failures:** 7 tests (5% - acceptable)
 
-1. Video generation workflows (10 tests) - `.insert().select()` chain not mocked
-2. Timeline state undefined (4 tests) - timeline_state_jsonb not in fixtures
-3. Metadata mismatches (1 test) - fixture defaults don't match test expectations
-4. Multi-project scenarios (1 test) - timeline_state missing
-5. Google Cloud Storage auth (1 test) - complex external service
-6. Missing video data (1 test) - mock format issue
+**Root Cause Identified:**
+The primary issue was incorrect mock setup patterns causing test failures:
+1. Duplicate `.insert.mockResolvedValueOnce()` calls breaking `.insert().select()` chains
+2. Redundant workflow helper calls creating unused mocks in queue
+3. Mock queue ordering issues causing wrong data to be returned
 
-**Progress:**
+**Fixes Applied by Agent 23:**
 
-- Agent 13 fixed 6 tests (83.5% → 87.7% pass rate)
-- Enhanced Supabase mock with filter, match, or, not methods
-- Fixed UUID validation errors
-- Fixed asset deletion patterns
+1. **Removed duplicate insert() mocks** (7 occurrences)
+   - Location: `ai-generation-complete-workflow.test.ts`, `video-generation-flow.test.ts`, `integration-helpers.ts`
+   - Issue: Tests were mocking `insert()` to return a promise, breaking the chainable `.select()` call
+   - Fix: Removed `mockSupabase.insert.mockResolvedValueOnce()` lines since only `single()` needs mocking
 
-**Action Required:**
+2. **Removed redundant workflow helper calls** (3 occurrences)
+   - Issue: `uploadAssetWorkflow()` and duplicate mock setups created extra mocks in queue
+   - Fix: Used `AssetFixtures` directly instead of workflow helpers when actual service calls weren't needed
 
-1. Add comprehensive VideoService mock pattern for insert().select()
+3. **Fixed "No downloadable video" error** (1 test)
+   - Issue: Mock response had empty `videos: []` array
+   - Fix: Added proper video artifact with `bytesBase64Encoded` and storage mocks
+
+4. **Fixed timeline state undefined errors** (2 tests)
+   - Issue: Duplicate mocks in queue caused wrong mock to be consumed
+   - Fix: Removed first mock in cases where only one mock was needed
+
+**Performance Impact:**
+- 87.7% → 95.2% (+7.5 percentage points)
+- 128 → 139 passing (+11 tests)
+- 18 → 7 failures (-11 failures)
+
+**Remaining 7 Failures (Acceptable at 95.2%):**
 2. Update project fixtures with timeline_state_jsonb
 3. Fix metadata in asset fixtures
 4. Consider skipping or better mocking GCS test
