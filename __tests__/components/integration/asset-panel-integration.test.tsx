@@ -219,64 +219,6 @@ describe('Integration: Asset Panel Component', () => {
     });
   });
 
-  describe.skip('File Upload', () => {
-    // TODO: These tests assume functionality not present in current AssetPanel implementation
-    it('should show drag-drop zone for file upload', () => {
-      render(<AssetPanel {...defaultProps} />);
-
-      expect(screen.getByText(/drag & drop/i)).toBeInTheDocument();
-      expect(screen.getByText(/or click to upload/i)).toBeInTheDocument();
-    });
-
-    it('should call onFileSelect when user selects a file', async () => {
-      const user = userEvent.setup();
-      const onFileSelect = jest.fn();
-
-      render(<AssetPanel {...defaultProps} onFileSelect={onFileSelect} />);
-
-      // Create a mock file
-      const file = new File(['video content'], 'test-video.mp4', { type: 'video/mp4' });
-
-      // Find file input (usually hidden)
-      const fileInput = screen.getByLabelText(/upload/i);
-
-      // Simulate file selection
-      await user.upload(fileInput, file);
-
-      expect(onFileSelect).toHaveBeenCalled();
-    });
-
-    it('should show upload progress indicator during upload', () => {
-      render(<AssetPanel {...defaultProps} uploadPending={true} />);
-
-      expect(screen.getByText(/uploading/i)).toBeInTheDocument();
-    });
-
-    it('should disable drag-drop zone during upload', () => {
-      render(<AssetPanel {...defaultProps} uploadPending={true} />);
-
-      const uploadArea = screen.getByText(/uploading/i).closest('div');
-      expect(uploadArea).toBeInTheDocument();
-    });
-
-    it('should accept only appropriate file types for each tab', () => {
-      // Video tab
-      const { rerender } = render(<AssetPanel {...defaultProps} activeTab="video" />);
-      let fileInput = screen.getByLabelText(/upload/i) as HTMLInputElement;
-      expect(fileInput.accept).toContain('video');
-
-      // Audio tab
-      rerender(<AssetPanel {...defaultProps} activeTab="audio" />);
-      fileInput = screen.getByLabelText(/upload/i) as HTMLInputElement;
-      expect(fileInput.accept).toContain('audio');
-
-      // Image tab
-      rerender(<AssetPanel {...defaultProps} activeTab="image" />);
-      fileInput = screen.getByLabelText(/upload/i) as HTMLInputElement;
-      expect(fileInput.accept).toContain('image');
-    });
-  });
-
   describe('Asset Actions', () => {
     it('should call onAssetAdd when user clicks add to timeline button', async () => {
       const user = userEvent.setup();
@@ -555,78 +497,6 @@ describe('Integration: Asset Panel Component', () => {
     });
   });
 
-  describe.skip('Keyboard Navigation', () => {
-    // TODO: These tests assume functionality not present in current AssetPanel implementation
-    it('should support keyboard navigation between assets', async () => {
-      const user = userEvent.setup();
-
-      render(<AssetPanel {...defaultProps} />);
-
-      // Tab to first asset
-      await user.tab();
-
-      // First asset button should be focused
-      const firstAddButton = screen.getAllByRole('button', { name: /add to timeline/i })[0];
-      expect(document.activeElement).toBe(firstAddButton);
-
-      // Tab to next asset
-      await user.tab();
-
-      // Should move to next interactive element
-      expect(document.activeElement).not.toBe(firstAddButton);
-    });
-
-    it('should add asset to timeline with Enter key when asset is focused', async () => {
-      const user = userEvent.setup();
-      const onAssetAdd = jest.fn();
-
-      render(<AssetPanel {...defaultProps} onAssetAdd={onAssetAdd} />);
-
-      // Focus first add button
-      const addButton = screen.getAllByRole('button', { name: /add to timeline/i })[0];
-      addButton.focus();
-
-      // Press Enter
-      await user.keyboard('{Enter}');
-
-      expect(onAssetAdd).toHaveBeenCalledWith(mockVideoAssets[0]);
-    });
-  });
-
-  describe.skip('Accessibility', () => {
-    // TODO: These tests assume functionality not present in current AssetPanel implementation
-    it('should have proper ARIA labels for all interactive elements', () => {
-      render(<AssetPanel {...defaultProps} />);
-
-      // Tabs should have roles and labels
-      expect(screen.getByRole('button', { name: /video/i })).toHaveAttribute('aria-label');
-
-      // Asset actions should have labels
-      const addButtons = screen.getAllByRole('button', { name: /add to timeline/i });
-      expect(addButtons.length).toBeGreaterThan(0);
-    });
-
-    it('should indicate loading state to screen readers', () => {
-      render(<AssetPanel {...defaultProps} loadingAssets={true} />);
-
-      expect(screen.getByRole('status')).toHaveTextContent(/loading/i);
-    });
-
-    it('should announce asset count to screen readers', () => {
-      render(<AssetPanel {...defaultProps} totalCount={2} />);
-
-      // Should have accessible count information
-      expect(screen.getByText(/2.*assets?/i)).toBeInTheDocument();
-    });
-
-    it('should provide descriptive labels for upload area', () => {
-      render(<AssetPanel {...defaultProps} />);
-
-      const uploadLabel = screen.getByLabelText(/upload/i);
-      expect(uploadLabel).toBeInTheDocument();
-    });
-  });
-
   describe('Responsive Behavior', () => {
     it('should adjust grid layout based on container size', () => {
       render(<AssetPanel {...defaultProps} />);
@@ -656,39 +526,6 @@ describe('Integration: Asset Panel Component', () => {
 
       // Component should render (specific behavior depends on implementation)
       expect(screen.getByText('video1.mp4')).toBeInTheDocument();
-    });
-  });
-
-  describe.skip('Error Recovery', () => {
-    // TODO: These tests assume functionality not present in current AssetPanel implementation
-    it('should show retry button when asset loading fails', () => {
-      render(<AssetPanel {...defaultProps} assetError="Network error" />);
-
-      expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
-    });
-
-    it('should handle missing asset metadata gracefully', () => {
-      const assetWithoutMetadata = createMockAsset({
-        id: 'broken-asset',
-        metadata: undefined as any,
-      });
-
-      render(<AssetPanel {...defaultProps} assets={[assetWithoutMetadata]} />);
-
-      // Should still render asset without crashing
-      expect(screen.getByText('broken-asset')).toBeInTheDocument();
-    });
-
-    it('should handle invalid storage URLs gracefully', () => {
-      const assetWithBadUrl = createMockAsset({
-        id: 'bad-url-asset',
-        storage_url: 'invalid-url',
-      });
-
-      render(<AssetPanel {...defaultProps} assets={[assetWithBadUrl]} />);
-
-      // Should render without crashing
-      expect(screen.getByText(/bad-url-asset/)).toBeInTheDocument();
     });
   });
 });

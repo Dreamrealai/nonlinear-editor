@@ -78,7 +78,7 @@ async function checkDatabase(): Promise<HealthCheck> {
     );
 
     // Simple query to test connectivity
-    const { error } = await supabase.from('users').select('count').limit(1).single();
+    const { error } = await supabase.from('user_profiles').select('count').limit(1).single();
 
     const latency = Date.now() - start;
 
@@ -468,8 +468,7 @@ async function checkAnalyticsSystem(): Promise<HealthCheck> {
   const start = Date.now();
 
   try {
-    const hasPostHog =
-      process.env.NEXT_PUBLIC_POSTHOG_KEY && process.env.NEXT_PUBLIC_POSTHOG_HOST;
+    const hasPostHog = process.env.NEXT_PUBLIC_POSTHOG_KEY && process.env.NEXT_PUBLIC_POSTHOG_HOST;
     const hasAxiom = process.env.AXIOM_TOKEN && process.env.AXIOM_DATASET;
 
     if (!hasPostHog && !hasAxiom) {
@@ -504,7 +503,9 @@ function getOverallStatus(
   checks: HealthCheckResult['checks'],
   features: HealthCheckResult['features']
 ): 'healthy' | 'degraded' | 'unhealthy' {
-  const allStatuses = [...Object.values(checks), ...Object.values(features)].map((c): "healthy" | "degraded" | "unhealthy" => c.status);
+  const allStatuses = [...Object.values(checks), ...Object.values(features)].map(
+    (c): 'healthy' | 'degraded' | 'unhealthy' => c.status
+  );
 
   if (allStatuses.includes('unhealthy')) {
     return 'unhealthy';
@@ -517,7 +518,10 @@ function getOverallStatus(
   return 'healthy';
 }
 
-export async function GET(): Promise<NextResponse<HealthCheckResult> | NextResponse<{ status: string; timestamp: string; error: string; }>> {
+export async function GET(): Promise<
+  | NextResponse<HealthCheckResult>
+  | NextResponse<{ status: string; timestamp: string; error: string }>
+> {
   const start = Date.now();
 
   try {
@@ -567,17 +571,22 @@ export async function GET(): Promise<NextResponse<HealthCheckResult> | NextRespo
         status: healthData.status,
         latency: totalLatency,
         checks: Object.fromEntries(
-          Object.entries(healthData.checks).map(([key, value]): [string, "healthy" | "degraded" | "unhealthy"] => [key, value.status])
+          Object.entries(healthData.checks).map(
+            ([key, value]): [string, 'healthy' | 'degraded' | 'unhealthy'] => [key, value.status]
+          )
         ),
         features: Object.fromEntries(
-          Object.entries(healthData.features).map(([key, value]): [string, "healthy" | "degraded" | "unhealthy"] => [key, value.status])
+          Object.entries(healthData.features).map(
+            ([key, value]): [string, 'healthy' | 'degraded' | 'unhealthy'] => [key, value.status]
+          )
         ),
       },
       'Health check completed'
     );
 
     // Return appropriate status code based on health
-    const statusCode = healthData.status === 'healthy' ? 200 : healthData.status === 'degraded' ? 207 : 503;
+    const statusCode =
+      healthData.status === 'healthy' ? 200 : healthData.status === 'degraded' ? 207 : 503;
 
     return NextResponse.json(healthData, { status: statusCode });
   } catch (error) {
