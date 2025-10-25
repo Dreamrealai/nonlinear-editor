@@ -711,12 +711,34 @@ export function BrowserEditorClient({ projectId }: BrowserEditorClientProps): Re
     2000,
     async (projectIdParam, timelineToSave): Promise<void> => {
       if (!timelineToSave) {
+        browserLogger.warn(
+          { projectId: projectIdParam },
+          'Autosave called with null/undefined timeline'
+        );
         return;
       }
+
+      browserLogger.debug(
+        {
+          projectId: projectIdParam,
+          timelinePresent: !!timelineToSave,
+          tracksCount: timelineToSave.tracks?.length ?? 0,
+        },
+        'BrowserEditorClient: invoking saveTimeline'
+      );
+
       try {
         await saveTimeline(projectIdParam, timelineToSave);
       } catch (error) {
-        browserLogger.error({ error, projectId: projectIdParam }, 'Failed to autosave timeline');
+        browserLogger.error(
+          {
+            error,
+            projectId: projectIdParam,
+            errorMessage: error instanceof Error ? error.message : String(error),
+            errorStack: error instanceof Error ? error.stack : undefined,
+          },
+          'Failed to autosave timeline'
+        );
         toast.error('Failed to autosave timeline');
       }
     }

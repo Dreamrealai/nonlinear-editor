@@ -21,6 +21,13 @@ export function useAutosave(
 
   useEffect((): (() => void) | undefined => {
     if (!timeline) {
+      // Log why autosave is skipped
+      import('@/lib/browserLogger').then(({ browserLogger }): void => {
+        browserLogger.debug(
+          { projectId, reason: 'no_timeline' },
+          'Autosave skipped: no timeline data'
+        );
+      });
       return;
     }
 
@@ -28,19 +35,50 @@ export function useAutosave(
       clearTimeout(timeoutRef.current);
     }
 
+    // Log that autosave has been scheduled
+    import('@/lib/browserLogger').then(({ browserLogger }): void => {
+      browserLogger.debug(
+        { projectId, delayMs: delay, timelinePresent: !!timeline },
+        'Autosave scheduled'
+      );
+    });
+
     timeoutRef.current = setTimeout((): void => {
+      import('@/lib/browserLogger').then(({ browserLogger }): void => {
+        browserLogger.debug(
+          { projectId, saveFnProvided: !!saveFn },
+          'Autosave timer triggered, starting save operation'
+        );
+      });
+
       const handler = saveFn ?? saveTimeline;
       setIsSaving(true);
       const result = handler(projectId, timeline);
       if (result instanceof Promise) {
         result
           .then((): void => {
-            setLastSaved(new Date());
+            const saveTime = new Date();
+            setLastSaved(saveTime);
             setIsSaving(false);
+            import('@/lib/browserLogger').then(({ browserLogger }): void => {
+              browserLogger.debug(
+                { projectId, savedAt: saveTime.toISOString() },
+                'Autosave completed successfully'
+              );
+            });
           })
           .catch(async (error): Promise<void> => {
             const { browserLogger } = await import('@/lib/browserLogger');
-            browserLogger.error({ error, projectId }, 'Autosave failed');
+            browserLogger.error(
+              {
+                error,
+                projectId,
+                errorType: error instanceof Error ? error.constructor.name : typeof error,
+                errorMessage: error instanceof Error ? error.message : String(error),
+                stackTrace: error instanceof Error ? error.stack : undefined,
+              },
+              'Autosave failed'
+            );
             setSaveError(error instanceof Error ? error.message : 'Failed to save timeline');
             setIsSaving(false);
 
@@ -58,6 +96,12 @@ export function useAutosave(
       } else {
         setLastSaved(new Date());
         setIsSaving(false);
+        import('@/lib/browserLogger').then(({ browserLogger }): void => {
+          browserLogger.debug(
+            { projectId, synchronousSave: true },
+            'Autosave completed (synchronous)'
+          );
+        });
       }
     }, delay);
 
