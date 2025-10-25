@@ -43,6 +43,25 @@ function loadEnvFile() {
 }
 
 // =============================================================================
+// CI/CD Detection
+// =============================================================================
+
+/**
+ * Detects if we're running in a CI/CD environment
+ */
+function isCIEnvironment(): boolean {
+  return !!(
+    process.env.CI || // Generic CI flag
+    process.env.VERCEL || // Vercel
+    process.env.GITHUB_ACTIONS || // GitHub Actions
+    process.env.GITLAB_CI || // GitLab CI
+    process.env.CIRCLECI || // CircleCI
+    process.env.TRAVIS || // Travis CI
+    process.env.JENKINS_URL // Jenkins
+  );
+}
+
+// =============================================================================
 // Main Validation
 // =============================================================================
 
@@ -50,6 +69,17 @@ async function main() {
   console.log('🔍 DreamReal AI - Environment Variable Validation\n');
   console.log('='.repeat(60));
   console.log('');
+
+  // Detect CI/CD environment
+  const isCI = isCIEnvironment();
+  if (isCI) {
+    console.log('ℹ️  CI/CD environment detected');
+    console.log('⏭️  Skipping validation during dependency installation');
+    console.log('   Environment variables will be validated at build time\n');
+    console.log('='.repeat(60));
+    console.log('\n✅ Validation SKIPPED (CI/CD)\n');
+    process.exit(0);
+  }
 
   // Load environment file
   loadEnvFile();

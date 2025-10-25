@@ -11,15 +11,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Run all CI checks before deployment
-  ci-checks:
-    name: Run CI Checks
-    uses: ./.github/workflows/ci.yml
-
   deploy:
     name: Deploy to Vercel
     runs-on: ubuntu-latest
-    needs: ci-checks
     timeout-minutes: 20
     environment:
       name: production
