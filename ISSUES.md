@@ -1,12 +1,61 @@
 # Codebase Issues Tracker
 
-**Last Updated:** 2025-10-24 (Round 4 Completion - Agent 31 Final Validation)
+**Last Updated:** 2025-10-24 (Post-Round 4 - CSP Fix)
 **Status:** ✅ **ROUND 4 COMPLETE - Major Infrastructure Improvements Achieved**
 **Priority Breakdown:** P0: 0 (All Critical Issues Resolved!) | P1: 6 (2 fixed, 4 remain) | P2: 3 (1 fixed) | P3: 3
 
 ---
 
 ## ⚠️ CRITICAL OPEN ISSUES (P0)
+
+### Issue #72: CSP Violation - PostHog Inline Scripts Blocked ✅ RESOLVED
+
+**Status:** Fixed
+**Priority:** P0 (Critical - Blocked analytics in production)
+**Severity:** High - Production CSP violations preventing analytics
+**Location:** [app/layout.tsx](app/layout.tsx)
+**Reported:** 2025-10-24
+**Resolved:** 2025-10-24
+**Time Spent:** 1 hour
+**Commit:** bb4ab64
+
+**Description:**
+PostHog's dynamically injected scripts (pushca.min.js, callable-future.js, auto-sharing.js) were being blocked by CSP violations in production.
+
+**Error Messages:**
+
+```
+Refused to execute inline script because it violates the following Content Security Policy directive:
+"script-src 'self' 'wasm-unsafe-eval' 'nonce-HqotMB6x7LUT2pm2vsLS7w==' https://va.vercel-scripts.com ..."
+Either the 'unsafe-inline' keyword, a hash, or a nonce is required to enable inline execution.
+```
+
+**Root Cause:**
+
+1. **Next.js 15+ Auto-Nonce Generation**: When `headers()` is called in root layout, Next.js automatically generates nonces and applies them to inline scripts
+2. **CSP Spec Behavior**: When nonces are present in CSP, the `'unsafe-inline'` directive is **ignored** per CSP specification
+3. **PostHog Limitation**: PostHog's dynamically injected scripts don't have nonce attributes
+4. **Result**: CSP blocks PostHog scripts even though `'unsafe-inline'` was in [next.config.ts](next.config.ts:92)
+
+**Solution:**
+
+Removed `headers()` call and nonce-reading code from [app/layout.tsx](app/layout.tsx) to prevent Next.js from auto-generating nonces. This allows the `'unsafe-inline'` directive in the CSP (already configured in [next.config.ts](next.config.ts:92)) to work as intended.
+
+**Files Changed:**
+
+- [app/layout.tsx](app/layout.tsx): Removed nonce-reading code, added documentation explaining the fix
+
+**Impact:**
+
+- ✅ Fixed CSP violations for PostHog analytics
+- ✅ Allows inline scripts from trusted third-party services (PostHog, Vercel Analytics)
+- ✅ Next.js framework scripts continue to work normally
+- ✅ Production analytics now functional
+
+**Security Note:**
+Using `'unsafe-inline'` is less secure than nonce-based CSP, but is necessary for PostHog's architecture. The CSP still restricts scripts to specific trusted domains (PostHog, Vercel, self).
+
+---
 
 ### Issue #70: Test Infrastructure - withAuth Mock Failures ✅ RESOLVED
 
