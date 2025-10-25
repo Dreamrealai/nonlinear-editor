@@ -161,11 +161,10 @@ export function useEasterEggs({ enabled = true }: UseEasterEggsOptions = {}): {
       icon: '🕺',
     });
 
-    let interval: NodeJS.Timeout;
     const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#ffd93d', '#6bcf7f', '#a77bca'];
     let colorIndex = 0;
 
-    interval = setInterval((): void => {
+    const interval = setInterval((): void => {
       document.body.style.background = colors[colorIndex % colors.length] || '';
       colorIndex++;
     }, 200);
@@ -489,6 +488,7 @@ function createMatrixRain(): void {
 // Helper: Play secret sound (if audio context available)
 function playSecretSound(): void {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
@@ -502,7 +502,7 @@ function playSecretSound(): void {
 
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 0.5);
-  } catch (error) {
+  } catch {
     // Silently fail if audio not available
   }
 }

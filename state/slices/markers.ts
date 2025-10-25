@@ -23,9 +23,11 @@ export interface MarkersSliceState {
   currentTime: number;
 }
 
-export const createMarkersSlice = (set: any) => ({
-  addMarker: (marker): void =>
-    set((state): void => {
+export const createMarkersSlice = (
+  set: (fn: (state: MarkersSliceState) => void) => void
+): MarkersSlice => ({
+  addMarker: (marker: Marker): void =>
+    set((state: MarkersSliceState): void => {
       if (!state.timeline) return;
       if (!state.timeline.markers) {
         state.timeline.markers = [];
@@ -33,22 +35,22 @@ export const createMarkersSlice = (set: any) => ({
       state.timeline.markers.push(marker);
     }),
 
-  removeMarker: (id): void =>
-    set((state): void => {
+  removeMarker: (id: string): void =>
+    set((state: MarkersSliceState): void => {
       if (!state.timeline?.markers) return;
       state.timeline.markers = state.timeline.markers.filter((m): boolean => m.id !== id);
     }),
 
-  updateMarker: (id, patch): void =>
-    set((state): void => {
+  updateMarker: (id: string, patch: Partial<Marker>): void =>
+    set((state: MarkersSliceState): void => {
       const marker = state.timeline?.markers?.find((m): boolean => m.id === id);
       if (marker) {
         Object.assign(marker, patch);
       }
     }),
 
-  jumpToMarker: (markerId): void =>
-    set((state): void => {
+  jumpToMarker: (markerId: string): void =>
+    set((state: MarkersSliceState): void => {
       const marker = state.timeline?.markers?.find((m): boolean => m.id === markerId);
       if (marker) {
         state.currentTime = marker.time;

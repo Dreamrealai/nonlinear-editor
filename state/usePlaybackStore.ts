@@ -37,7 +37,7 @@ type PlaybackStore = {
   reset: () => void;
 };
 
-export const usePlaybackStore = create<PlaybackStore>()((set): { currentTime: number; zoom: 50; isPlaying: false; setCurrentTime: (time: number) => void; setZoom: (zoom: number) => void; setIsPlaying: (playing: boolean) => void; play: () => void; pause: () => void; togglePlayPause: () => void; } => ({
+export const usePlaybackStore = create<PlaybackStore>()((set): PlaybackStore => ({
   currentTime: 0,
   zoom: DEFAULT_ZOOM,
   isPlaying: false,

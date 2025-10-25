@@ -6,47 +6,38 @@
  * Clears all chat messages for a project
  *
  * Security:
- * - Requires authentication
+ * - Requires authentication via withAuth middleware
+ * - Rate limiting applied (TIER 3 for reads, TIER 4 for deletes)
  * - RLS enforces project ownership
  */
 
-import { NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { NextRequest } from 'next/server';
+import { withAuth, type AuthContext } from '@/lib/api/withAuth';
+import { RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateUUID, ValidationError } from '@/lib/validation';
+import { validationError, errorResponse, successResponse } from '@/lib/api/response';
 
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ projectId: string }> }
-): Promise<NextResponse<{ error: string; }> | NextResponse<{ messages: any[]; }>> {
+async function handleGetChat(
+  _request: NextRequest,
+  context: AuthContext,
+  routeContext?: { params: Promise<{ projectId: string }> }
+): Promise<Response> {
+  const { user, supabase } = context;
+  const params = await routeContext?.params;
+  const projectId = params?.projectId;
+
+  // Validate UUID format
   try {
-    const { projectId } = await params;
-
-    // Validate UUID format
-    try {
-      validateUUID(projectId, 'Project ID');
-    } catch (error) {
-      if (error instanceof ValidationError || (error as Error).name === 'ValidationError') {
-        return NextResponse.json({ error: (error as Error).message }, { status: 400 });
-      }
-      throw error;
+    validateUUID(projectId, 'projectId');
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return validationError(error.message, error.field);
     }
+    throw error;
+  }
 
-    // Create authenticated Supabase client (enforces RLS)
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      serverLogger.warn(
-        { projectId, event: 'chat.load.unauthorized' },
-        'Unauthorized chat access attempt'
-      );
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+  try {
     // Fetch chat messages (RLS ensures user owns this project)
     const { data, error } = await supabase
       .from('chat_messages')
@@ -59,7 +50,7 @@ export async function GET(
         { error, projectId, userId: user.id, event: 'chat.load.error' },
         'Failed to load chat messages'
       );
-      return NextResponse.json({ error: 'Failed to load chat messages' }, { status: 500 });
+      return errorResponse('Failed to load chat messages', 500);
     }
 
     serverLogger.info(
@@ -67,48 +58,36 @@ export async function GET(
       'Chat messages loaded'
     );
 
-    return NextResponse.json({ messages: data || [] }, { status: 200 });
+    return successResponse({ messages: data || [] });
   } catch (error) {
     serverLogger.error(
-      { error, event: 'chat.load.exception' },
+      { error, projectId, userId: user.id, event: 'chat.load.exception' },
       'Unexpected error loading chat messages'
     );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return errorResponse('Internal server error', 500);
   }
 }
 
-export async function DELETE(
-  _request: Request,
-  { params }: { params: Promise<{ projectId: string }> }
-): Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; }>> {
+async function handleDeleteChat(
+  _request: NextRequest,
+  context: AuthContext,
+  routeContext?: { params: Promise<{ projectId: string }> }
+): Promise<Response> {
+  const { user, supabase } = context;
+  const params = await routeContext?.params;
+  const projectId = params?.projectId;
+
+  // Validate UUID format
   try {
-    const { projectId } = await params;
-
-    // Validate UUID format
-    try {
-      validateUUID(projectId, 'Project ID');
-    } catch (error) {
-      if (error instanceof ValidationError || (error as Error).name === 'ValidationError') {
-        return NextResponse.json({ error: (error as Error).message }, { status: 400 });
-      }
-      throw error;
+    validateUUID(projectId, 'projectId');
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return validationError(error.message, error.field);
     }
+    throw error;
+  }
 
-    // Create authenticated Supabase client (enforces RLS)
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      serverLogger.warn(
-        { projectId, event: 'chat.clear.unauthorized' },
-        'Unauthorized chat clear attempt'
-      );
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+  try {
     // Delete all chat messages for this project (RLS ensures ownership)
     const { error: deleteError } = await supabase
       .from('chat_messages')
@@ -120,7 +99,7 @@ export async function DELETE(
         { error: deleteError, projectId, userId: user.id, event: 'chat.clear.error' },
         'Failed to clear chat messages'
       );
-      return NextResponse.json({ error: 'Failed to clear chat messages' }, { status: 500 });
+      return errorResponse('Failed to clear chat messages', 500);
     }
 
     serverLogger.info(
@@ -128,12 +107,23 @@ export async function DELETE(
       'Chat messages cleared'
     );
 
-    return NextResponse.json({ success: true }, { status: 200 });
+    return successResponse({ success: true });
   } catch (error) {
     serverLogger.error(
-      { error, event: 'chat.clear.exception' },
+      { error, projectId, userId: user.id, event: 'chat.clear.exception' },
       'Unexpected error clearing chat messages'
     );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return errorResponse('Internal server error', 500);
   }
 }
+
+// Export with authentication middleware and rate limiting
+export const GET = withAuth<{ projectId: string }>(handleGetChat, {
+  route: '/api/projects/[projectId]/chat',
+  rateLimit: RATE_LIMITS.tier3_status_read, // 30 requests per minute for read operations
+});
+
+export const DELETE = withAuth<{ projectId: string }>(handleDeleteChat, {
+  route: '/api/projects/[projectId]/chat',
+  rateLimit: RATE_LIMITS.tier4_general, // 60 requests per minute for delete operations
+});

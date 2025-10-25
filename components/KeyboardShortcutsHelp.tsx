@@ -89,7 +89,7 @@ export function KeyboardShortcutsHelp({
 
     window.addEventListener('keydown', handleEscape);
     return (): void => window.removeEventListener('keydown', handleEscape);
-  }, [isOpen]);
+  }, [isOpen, handleClose]);
 
   // Prevent body scroll when modal is open
   useEffect((): () => void => {

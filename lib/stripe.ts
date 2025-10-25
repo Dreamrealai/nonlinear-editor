@@ -26,7 +26,7 @@ function getStripeClient(): Stripe {
 
 // Export a getter that initializes Stripe lazily
 export const stripe = new Proxy({} as Stripe, {
-  get: (target, prop) => {
+  get: (_, prop): unknown => {
     const client = getStripeClient();
     return client[prop as keyof Stripe];
   },

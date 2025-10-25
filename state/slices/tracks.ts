@@ -5,6 +5,7 @@
  * - Updating track properties
  * - Auto-creating tracks
  */
+
 import type { Track, Timeline } from '@/types/timeline';
 
 export interface TracksSlice {
@@ -16,15 +17,15 @@ export interface TracksSliceState {
   timeline: Timeline | null;
 }
 
-export const createTracksSlice = (set: any) => ({
-  updateTrack: (trackIndex, patch): void =>
-    set((state): void => {
+export const createTracksSlice = (set: (fn: (state: TracksSliceState) => void) => void): TracksSlice => ({
+  updateTrack: (trackIndex: number, patch: Partial<Track>): void =>
+    set((state: TracksSliceState): void => {
       if (!state.timeline) return;
       if (!state.timeline.tracks) {
         state.timeline.tracks = [];
       }
 
-      let track = state.timeline.tracks.find((t): boolean => t.index === trackIndex);
+      let track = state.timeline.tracks.find((t: Track): boolean => t.index === trackIndex);
       if (!track) {
         // Create track if it doesn't exist
         track = {

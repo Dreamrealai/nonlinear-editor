@@ -7,7 +7,8 @@
  * - Fit to timeline/selection
  * - Snap controls
  */
-import type { Timeline } from '@/types/timeline';
+
+import type { Timeline, Clip } from '@/types/timeline';
 import { ZOOM_CONSTANTS } from '@/lib/constants';
 
 const { MIN_ZOOM, MAX_ZOOM, DEFAULT_ZOOM } = ZOOM_CONSTANTS;
@@ -45,23 +46,23 @@ export interface ZoomSliceState {
   selectedClipIds: Set<string>;
 }
 
-export const createZoomSlice = (set: any, get: any) => ({
+export const createZoomSlice = (set: (fn: (state: ZoomSliceState) => void) => void, get: () => ZoomSliceState): ZoomSlice => ({
   zoom: DEFAULT_ZOOM,
   snapEnabled: true,
   snapGridInterval: 0.1,
 
-  setZoom: (zoom): void =>
-    set((state): void => {
+  setZoom: (zoom: number): void =>
+    set((state: ZoomSliceState): void => {
       state.zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom));
     }),
 
   toggleSnap: (): void =>
-    set((state): void => {
+    set((state: ZoomSliceState): void => {
       state.snapEnabled = !state.snapEnabled;
     }),
 
-  setSnapGridInterval: (interval): void =>
-    set((state): void => {
+  setSnapGridInterval: (interval: number): void =>
+    set((state: ZoomSliceState): void => {
       state.snapGridInterval = Math.max(0.01, Math.min(10, interval));
     }),
 
@@ -72,7 +73,7 @@ export const createZoomSlice = (set: any, get: any) => ({
     }
 
     const timelineDuration = Math.max(
-      ...state.timeline.clips.map((clip): number => clip.timelinePosition + (clip.end - clip.start))
+      ...state.timeline.clips.map((clip: Clip): number => clip.timelinePosition + (clip.end - clip.start))
     );
 
     const padding = 0.1;
@@ -88,7 +89,7 @@ export const createZoomSlice = (set: any, get: any) => ({
       return state.zoom;
     }
 
-    const selectedClips = state.timeline.clips.filter((clip): boolean =>
+    const selectedClips = state.timeline.clips.filter((clip: Clip): boolean =>
       state.selectedClipIds.has(clip.id)
     );
 
@@ -96,9 +97,9 @@ export const createZoomSlice = (set: any, get: any) => ({
       return state.zoom;
     }
 
-    const minPosition = Math.min(...selectedClips.map((clip): number => clip.timelinePosition));
+    const minPosition = Math.min(...selectedClips.map((clip: Clip): number => clip.timelinePosition));
     const maxPosition = Math.max(
-      ...selectedClips.map((clip): number => clip.timelinePosition + (clip.end - clip.start))
+      ...selectedClips.map((clip: Clip): number => clip.timelinePosition + (clip.end - clip.start))
     );
 
     const selectionDuration = maxPosition - minPosition;
@@ -113,7 +114,7 @@ export const createZoomSlice = (set: any, get: any) => ({
   fitToTimeline: (viewportWidth: number): void => {
     const state = get();
     const newZoom = state.calculateFitToTimelineZoom(viewportWidth);
-    set((s): void => {
+    set((s: ZoomSliceState): void => {
       s.zoom = newZoom;
     });
   },
@@ -121,7 +122,7 @@ export const createZoomSlice = (set: any, get: any) => ({
   fitToSelection: (viewportWidth: number): void => {
     const state = get();
     const newZoom = state.calculateFitToSelectionZoom(viewportWidth);
-    set((s): void => {
+    set((s: ZoomSliceState): void => {
       s.zoom = newZoom;
     });
   },
@@ -135,7 +136,7 @@ export const createZoomSlice = (set: any, get: any) => ({
       400: DEFAULT_ZOOM * 4,
     };
     const newZoom = zoomMap[preset];
-    set((state): void => {
+    set((state: ZoomSliceState): void => {
       state.zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newZoom));
     });
   },

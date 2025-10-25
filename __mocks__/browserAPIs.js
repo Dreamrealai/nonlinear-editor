@@ -1,3 +1,5 @@
+/* eslint-env jest */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /**
  * Comprehensive Browser API mocks for Jest tests
  * Includes: AudioContext, Canvas, MediaElement, Observers, Performance

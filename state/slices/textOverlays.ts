@@ -4,6 +4,7 @@
  * Handles text overlay operations including:
  * - Adding, updating, removing text overlays
  */
+
 import type { TextOverlay, Timeline } from '@/types/timeline';
 import { EDITOR_CONSTANTS } from '@/lib/constants';
 
@@ -32,9 +33,9 @@ export interface TextOverlaysSliceState {
   historyIndex: number;
 }
 
-export const createTextOverlaysSlice = (set: any) => ({
-  addTextOverlay: (textOverlay): void =>
-    set((state): void => {
+export const createTextOverlaysSlice = (set: (fn: (state: TextOverlaysSliceState) => void) => void): TextOverlaysSlice => ({
+  addTextOverlay: (textOverlay: TextOverlay): void =>
+    set((state: TextOverlaysSliceState): void => {
       if (!state.timeline) return;
       if (!state.timeline.textOverlays) {
         state.timeline.textOverlays = [];
@@ -54,10 +55,10 @@ export const createTextOverlaysSlice = (set: any) => ({
       }
     }),
 
-  removeTextOverlay: (id): void =>
-    set((state): void => {
+  removeTextOverlay: (id: string): void =>
+    set((state: TextOverlaysSliceState): void => {
       if (!state.timeline?.textOverlays) return;
-      state.timeline.textOverlays = state.timeline.textOverlays.filter((t): boolean => t.id !== id);
+      state.timeline.textOverlays = state.timeline.textOverlays.filter((t: TextOverlay): boolean => t.id !== id);
 
       // Save to history
       const cloned = cloneTimeline(state.timeline);
@@ -72,9 +73,9 @@ export const createTextOverlaysSlice = (set: any) => ({
       }
     }),
 
-  updateTextOverlay: (id, patch): void =>
-    set((state): void => {
-      const textOverlay = state.timeline?.textOverlays?.find((t): boolean => t.id === id);
+  updateTextOverlay: (id: string, patch: Partial<TextOverlay>): void =>
+    set((state: TextOverlaysSliceState): void => {
+      const textOverlay = state.timeline?.textOverlays?.find((t: TextOverlay): boolean => t.id === id);
       if (textOverlay) {
         Object.assign(textOverlay, patch);
 

@@ -13,13 +13,23 @@ export const mockGetMetadata = jest.fn();
 export const mockSetMetadata = jest.fn();
 
 export class Storage {
-  constructor(config?: { projectId?: string; keyFilename?: string }) {
+  constructor(_config?: { projectId?: string; keyFilename?: string }) {
     // Mock constructor
   }
 
-  bucket(name: string) {
+  bucket(
+    _name: string
+  ): {
+    file: (_filename: string) => unknown;
+    upload: typeof mockUpload;
+    getFiles: jest.Mock;
+    deleteFiles: jest.Mock;
+    exists: typeof mockExists;
+    create: jest.Mock;
+    delete: typeof mockDelete;
+  } {
     return {
-      file: (filename: string) => ({
+      file: (_filename: string): unknown => ({
         upload: mockUpload,
         download: mockDownload,
         delete: mockDelete,
@@ -45,7 +55,7 @@ export class Storage {
 /**
  * Helper to mock successful file upload
  */
-export function mockUploadSuccess(publicUrl: string) {
+export function mockUploadSuccess(publicUrl: string): void {
   mockUpload.mockResolvedValue([
     {
       metadata: {
@@ -64,14 +74,14 @@ export function mockUploadSuccess(publicUrl: string) {
 /**
  * Helper to mock file existence check
  */
-export function mockFileExists(exists: boolean) {
+export function mockFileExists(exists: boolean): void {
   mockExists.mockResolvedValue([exists]);
 }
 
 /**
  * Helper to mock file download
  */
-export function mockDownloadSuccess(content: Buffer | string) {
+export function mockDownloadSuccess(content: Buffer | string): void {
   const buffer = typeof content === 'string' ? Buffer.from(content) : content;
   mockDownload.mockResolvedValue([buffer]);
 }
@@ -79,9 +89,9 @@ export function mockDownloadSuccess(content: Buffer | string) {
 /**
  * Helper to mock storage error
  */
-export function mockStorageError(error: string, code = 500) {
+export function mockStorageError(error: string, code = 500): void {
   const errorObj = new Error(error);
-  (errorObj as any).code = code;
+  (errorObj as unknown as { code: number }).code = code;
 
   mockUpload.mockRejectedValue(errorObj);
   mockDownload.mockRejectedValue(errorObj);
@@ -91,7 +101,7 @@ export function mockStorageError(error: string, code = 500) {
 /**
  * Reset all mocks
  */
-export function resetStorageMocks() {
+export function resetStorageMocks(): void {
   mockUpload.mockReset();
   mockDownload.mockReset();
   mockDelete.mockReset();

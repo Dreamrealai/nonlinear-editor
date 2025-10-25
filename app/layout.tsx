@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { PostHogProvider } from '@/components/providers/PostHogProvider';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { WebVitals } from '@/components/WebVitals';
+import { TooltipProvider } from '@/components/ui/Tooltip';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -133,12 +134,14 @@ export default async function RootLayout({
           Skip to main content
         </a>
         <ThemeProvider>
-          <PostHogProvider>
-            <WebVitals />
-            <ErrorBoundary name="RootLayout" context={{ page: 'root' }}>
-              <SupabaseProvider>{children}</SupabaseProvider>
-            </ErrorBoundary>
-          </PostHogProvider>
+          <TooltipProvider>
+            <PostHogProvider>
+              <WebVitals />
+              <ErrorBoundary name="RootLayout" context={{ page: 'root' }}>
+                <SupabaseProvider>{children}</SupabaseProvider>
+              </ErrorBoundary>
+            </PostHogProvider>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

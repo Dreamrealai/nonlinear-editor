@@ -14,6 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { serverLogger } from '@/lib/serverLogger';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 
 /**
  * Web Vitals metric data
@@ -43,6 +44,19 @@ interface WebVitalMetric {
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    // Rate limiting to prevent abuse (use IP-based limiting for public endpoint)
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    const rateLimitResult = await checkRateLimit(`web-vitals:${ip}`, RATE_LIMITS.tier4_general);
+
+    if (!rateLimitResult.success) {
+      serverLogger.warn(
+        { ip, limit: rateLimitResult.limit },
+        'Web vitals rate limit exceeded'
+      );
+      // Return 204 anyway to avoid client-side errors (metrics are non-critical)
+      return new NextResponse(null, { status: 204 });
+    }
+
     // Parse the request body (sendBeacon sends as text/plain)
     const text = await request.text();
 

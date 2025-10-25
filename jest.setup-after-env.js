@@ -1,4 +1,6 @@
 /* eslint-env jest, node */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable no-undef */
 // Learn more: https://github.com/testing-library/jest-dom
 require('@testing-library/jest-dom');
 
@@ -82,15 +84,35 @@ beforeAll(() => {
   };
 });
 
-afterAll(() => {
+afterAll(async () => {
   console.error = originalError;
   console.warn = originalWarn;
+
+  // Flush all remaining microtasks and timers to allow React scheduler to clean up
+  await new Promise((resolve) => {
+    setTimeout(resolve, 0);
+  });
+
+  // Allow any pending MessagePort operations to complete
+  await new Promise((resolve) => {
+    setImmediate(resolve);
+  });
 });
 
 // Global cleanup after each test to prevent memory leaks
-afterEach(() => {
+afterEach(async () => {
   // Clean up all mocks
   jest.clearAllTimers();
+
+  // Flush all pending microtasks and timers to ensure React scheduler completes
+  await new Promise((resolve) => {
+    setTimeout(resolve, 0);
+  });
+
+  // Run all pending timers to completion
+  if (jest.isMockFunction(setTimeout)) {
+    jest.runOnlyPendingTimers();
+  }
 
   // Note: cleanup() is now automatically called by @testing-library/react
   // If you're using an older version, uncomment the following:

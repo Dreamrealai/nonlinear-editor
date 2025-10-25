@@ -22,6 +22,7 @@
 
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
+import type { WritableDraft } from 'immer';
 import type { Timeline, Clip, Marker, Track, TextOverlay, TransitionType } from '@/types/timeline';
 import { CLIP_CONSTANTS } from '@/lib/constants';
 

@@ -4,7 +4,8 @@
  * Handles transition operations including:
  * - Adding transitions to selected clips
  */
-import type { Timeline, TransitionType } from '@/types/timeline';
+
+import type { Timeline, TransitionType, Clip } from '@/types/timeline';
 import { EDITOR_CONSTANTS } from '@/lib/constants';
 
 const { MAX_HISTORY } = EDITOR_CONSTANTS;
@@ -29,13 +30,13 @@ export interface TransitionsSliceState {
   historyIndex: number;
 }
 
-export const createTransitionsSlice = (set: any) => ({
-  addTransitionToSelectedClips: (transitionType, duration): void =>
-    set((state): void => {
+export const createTransitionsSlice = (set: (fn: (state: TransitionsSliceState) => void) => void): TransitionsSlice => ({
+  addTransitionToSelectedClips: (transitionType: TransitionType, duration: number): void =>
+    set((state: TransitionsSliceState): void => {
       if (!state.timeline) return;
 
-      state.selectedClipIds.forEach((clipId): void => {
-        const clip = state.timeline!.clips.find((c): boolean => c.id === clipId);
+      state.selectedClipIds.forEach((clipId: string): void => {
+        const clip = state.timeline!.clips.find((c: Clip): boolean => c.id === clipId);
         if (clip) {
           clip.transitionToNext = { type: transitionType, duration };
         }

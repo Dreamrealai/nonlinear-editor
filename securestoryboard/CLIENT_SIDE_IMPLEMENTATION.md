@@ -1,1 +1,0 @@
-# Client-Side Implementation Guide

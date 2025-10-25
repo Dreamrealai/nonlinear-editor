@@ -9,11 +9,11 @@ export const mockCountTokens = jest.fn();
 export const mockEmbedContent = jest.fn();
 
 export class GoogleGenerativeAI {
-  constructor(apiKey: string) {
+  constructor(_apiKey: string) {
     // Mock constructor
   }
 
-  getGenerativeModel(config: { model: string }) {
+  getGenerativeModel(_config: { model: string }): unknown {
     return {
       generateContent: mockGenerateContent,
       generateContentStream: mockGenerateContentStream,
@@ -45,7 +45,7 @@ export const HarmBlockThreshold = {
 /**
  * Helper to mock successful content generation
  */
-export function mockGenerateContentSuccess(text: string) {
+export function mockGenerateContentSuccess(text: string): void {
   mockGenerateContent.mockResolvedValue({
     response: {
       text: () => text,
@@ -66,14 +66,14 @@ export function mockGenerateContentSuccess(text: string) {
 /**
  * Helper to mock content generation error
  */
-export function mockGenerateContentError(error: string) {
+export function mockGenerateContentError(error: string): void {
   mockGenerateContent.mockRejectedValue(new Error(error));
 }
 
 /**
  * Reset all mocks
  */
-export function resetGoogleAIMocks() {
+export function resetGoogleAIMocks(): void {
   mockGenerateContent.mockReset();
   mockGenerateContentStream.mockReset();
   mockCountTokens.mockReset();

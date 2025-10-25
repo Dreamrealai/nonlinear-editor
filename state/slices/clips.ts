@@ -5,17 +5,18 @@
  * - Adding, updating, removing clips
  * - Duplicating and splitting clips
  * - Reordering clips
+ *
+ * NOTE: History management is delegated to the parent store.
+ * This slice does NOT manage history directly to avoid duplication.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import type { Clip, Timeline } from '@/types/timeline';
-import { CLIP_CONSTANTS, EDITOR_CONSTANTS } from '@/lib/constants';
+import { CLIP_CONSTANTS } from '@/lib/constants';
 import { timelineAnnouncements } from '@/lib/utils/screenReaderAnnouncer';
 import { getClipFileName } from '@/lib/utils/timelineUtils';
+import type { WritableDraft } from 'immer';
 
 const { MIN_CLIP_DURATION } = CLIP_CONSTANTS;
-const { MAX_HISTORY } = EDITOR_CONSTANTS;
 
 /**
  * Removes duplicate clips from an array.
@@ -39,14 +40,6 @@ const dedupeClips = (clips: Clip[]): Clip[] => {
   return deduped.reverse();
 };
 
-/**
- * Deep clones a timeline for history snapshots.
- */
-const cloneTimeline = (timeline: Timeline | null): Timeline | null => {
-  if (!timeline) return null;
-  return structuredClone(timeline);
-};
-
 export interface ClipsSlice {
   /** Add a clip to the timeline */
   addClip: (clip: Clip) => void;
@@ -66,16 +59,22 @@ export interface ClipsSlice {
 
 export interface ClipsSliceState {
   timeline: Timeline | null;
-  history: Timeline[];
-  historyIndex: number;
   selectedClipIds: Set<string>;
 }
 
- 
-export const createClipsSlice = (set: any): ClipsSlice => ({
+/**
+ * Zustand set function type with Immer middleware
+ */
+type SetState = (fn: (state: WritableDraft<ClipsSliceState>) => void) => void;
+
+/**
+ * Zustand get function type
+ */
+type GetState = () => ClipsSliceState;
+
+export const createClipsSlice = (set: SetState, _get?: GetState): ClipsSlice => ({
   addClip: (clip): void =>
-     
-    set((state: any): void => {
+    set((state: WritableDraft<ClipsSliceState>): void => {
       if (!state.timeline) return;
       state.timeline.clips.push(clip);
       state.timeline.clips = dedupeClips(state.timeline.clips);
@@ -85,23 +84,13 @@ export const createClipsSlice = (set: any): ClipsSlice => ({
         timelineAnnouncements.clipAdded(getClipFileName(clip), clip.trackIndex);
       }
 
-      // Save to history
-      const cloned = cloneTimeline(state.timeline);
-      if (cloned) {
-        state.history = state.history.slice(0, state.historyIndex + 1);
-        state.history.push(cloned);
-        if (state.history.length > MAX_HISTORY) {
-          state.history.shift();
-        } else {
-          state.historyIndex++;
-        }
-      }
+      // NOTE: History is managed by the parent store (useEditorStore)
+      // which calls useHistoryStore.saveToHistory() after clip operations
     }),
 
   updateClip: (id, patch): void =>
-     
-    set((state: any): void => {
-      const clip = state.timeline?.clips.find((existing): boolean => existing.id === id);
+    set((state: WritableDraft<ClipsSliceState>): void => {
+      const clip = state.timeline?.clips.find((existing: Clip): boolean => existing.id === id);
       if (clip) {
         Object.assign(clip, patch);
 
@@ -143,29 +132,18 @@ export const createClipsSlice = (set: any): ClipsSlice => ({
           state.timeline.clips = dedupeClips(state.timeline.clips);
         }
 
-        // Save to history immediately for simple clip updates
-        // Note: Debounced history saving is handled in useEditorStore for drag operations
-        const cloned = cloneTimeline(state.timeline);
-        if (cloned) {
-          state.history = state.history.slice(0, state.historyIndex + 1);
-          state.history.push(cloned);
-          if (state.history.length > MAX_HISTORY) {
-            state.history.shift();
-          } else {
-            state.historyIndex++;
-          }
-        }
+        // NOTE: History is managed by the parent store (useEditorStore)
+        // which calls useHistoryStore.saveToHistory() after clip operations
       }
     }),
 
   removeClip: (id): void =>
-     
-    set((state: any): void => {
+    set((state: WritableDraft<ClipsSliceState>): void => {
       if (!state.timeline) return;
 
-      const clipToRemove = state.timeline.clips.find((clip): boolean => clip.id === id);
+      const clipToRemove = state.timeline.clips.find((clip: Clip): boolean => clip.id === id);
 
-      state.timeline.clips = state.timeline.clips.filter((clip): boolean => clip.id !== id);
+      state.timeline.clips = state.timeline.clips.filter((clip: Clip): boolean => clip.id !== id);
       state.timeline.clips = dedupeClips(state.timeline.clips);
       state.selectedClipIds.delete(id);
 
@@ -174,25 +152,14 @@ export const createClipsSlice = (set: any): ClipsSlice => ({
         timelineAnnouncements.clipRemoved(getClipFileName(clipToRemove));
       }
 
-      // Save to history
-      const cloned = cloneTimeline(state.timeline);
-      if (cloned) {
-        state.history = state.history.slice(0, state.historyIndex + 1);
-        state.history.push(cloned);
-        if (state.history.length > MAX_HISTORY) {
-          state.history.shift();
-        } else {
-          state.historyIndex++;
-        }
-      }
+      // NOTE: History is managed by the parent store (useEditorStore)
     }),
 
   duplicateClip: (id): void =>
-     
-    set((state: any): void => {
+    set((state: WritableDraft<ClipsSliceState>): void => {
       if (!state.timeline) return;
 
-      const clipIndex = state.timeline.clips.findIndex((clip): boolean => clip.id === id);
+      const clipIndex = state.timeline.clips.findIndex((clip: Clip): boolean => clip.id === id);
       if (clipIndex === -1) return;
 
       const originalClip = state.timeline.clips[clipIndex];
@@ -235,10 +202,9 @@ export const createClipsSlice = (set: any): ClipsSlice => ({
     }),
 
   splitClipAtTime: (clipId, time): void =>
-     
-    set((state: any): void => {
+    set((state: WritableDraft<ClipsSliceState>): void => {
       if (!state.timeline) return;
-      const clipIndex = state.timeline.clips.findIndex((c): boolean => c.id === clipId);
+      const clipIndex = state.timeline.clips.findIndex((c: Clip): boolean => c.id === clipId);
       if (clipIndex === -1) return;
 
       const originalClip = state.timeline.clips[clipIndex];
@@ -286,10 +252,9 @@ export const createClipsSlice = (set: any): ClipsSlice => ({
     }),
 
   updateClipColor: (id, color): void =>
-     
-    set((state: any): void => {
+    set((state: WritableDraft<ClipsSliceState>): void => {
       if (!state.timeline) return;
-      const clip = state.timeline.clips.find((c): boolean => c.id === id);
+      const clip = state.timeline.clips.find((c: Clip): boolean => c.id === id);
       if (!clip) return;
 
       // Set or clear the color
@@ -309,10 +274,9 @@ export const createClipsSlice = (set: any): ClipsSlice => ({
     }),
 
   reorderClips: (ids): void =>
-     
-    set((state: any): void => {
+    set((state: WritableDraft<ClipsSliceState>): void => {
       if (!state.timeline) return;
-      const clipMap = new Map(state.timeline.clips.map((clip): [string, Clip] => [clip.id, clip]));
+      const clipMap = new Map(state.timeline.clips.map((clip: Clip): [string, Clip] => [clip.id, clip]));
       state.timeline.clips = ids
         .map((id) => clipMap.get(id))
         .filter((clip): clip is Clip => Boolean(clip));

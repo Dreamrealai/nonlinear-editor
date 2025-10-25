@@ -375,15 +375,15 @@ export const useEditorStore = create<EditorStore>()(
       }),
 
     // ===== Slices =====
-    ...createClipsSlice(set, get, {} as any),
-    ...createTracksSlice(set, get, {} as any),
-    ...createMarkersSlice(set, get, {} as any),
-    ...createGuidesSlice(set, get, {} as any),
-    ...createZoomSlice(set, get, {} as any),
-    ...createTextOverlaysSlice(set, get, {} as any),
-    ...createTransitionsSlice(set, get, {} as any),
-    ...createLockSlice(set, get, {} as any),
-    ...createGroupsSlice(set, get, {} as any),
-    ...createPlaybackSlice(set, get, {} as any),
+    ...createClipsSlice(set, get),
+    ...createTracksSlice(set),
+    ...createMarkersSlice(set),
+    ...createGuidesSlice(set),
+    ...createZoomSlice(set, get),
+    ...createTextOverlaysSlice(set),
+    ...createTransitionsSlice(set),
+    ...createLockSlice(set),
+    ...createGroupsSlice(set, get),
+    ...createPlaybackSlice(set),
   }))
 );

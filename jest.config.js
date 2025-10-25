@@ -28,7 +28,7 @@ const customJestConfig = {
   setupFiles: ['<rootDir>/jest.setup.js'],
   // Add more setup options before each test is run
   setupFilesAfterEnv: ['<rootDir>/jest.setup-after-env.js'],
-  testEnvironment: 'jest-environment-jsdom',
+  testEnvironment: '<rootDir>/jest-environment-jsdom-fix.js',
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',
     'components/**/*.{js,jsx,ts,tsx}',
@@ -105,9 +105,9 @@ const customJestConfig = {
   maxConcurrency: 3, // Reduced from 5 to prevent memory spikes
   // Detect memory leaks
   detectLeaks: false, // Keep disabled - it's slow and memory intensive itself
-  detectOpenHandles: false, // Keep disabled in CI
-  // Force exit to prevent hanging
-  forceExit: true,
+  detectOpenHandles: false, // Keep disabled in CI - we handle cleanup properly
+  // Force exit disabled - we clean up properly instead
+  forceExit: false, // Changed to false - proper cleanup prevents hanging
   // Timeout for tests
   testTimeout: 15000, // Increased from 10s to 15s to prevent timeouts during memory cleanup
 };

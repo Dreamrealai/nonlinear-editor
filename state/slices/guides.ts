@@ -6,6 +6,7 @@
  * - Toggling guide visibility
  */
 import type { Guide, Timeline } from '@/types/timeline';
+import type { WritableDraft } from 'immer';
 
 export interface GuidesSlice {
   /** Timeline guides for precise alignment */
@@ -29,10 +30,15 @@ export interface GuidesSliceState {
   guides: Guide[];
 }
 
-export const createGuidesSlice = (set: any) => ({
+/**
+ * Zustand set function type with Immer middleware
+ */
+type SetState = (fn: (state: WritableDraft<GuidesSliceState>) => void) => void;
+
+export const createGuidesSlice = (set: SetState): GuidesSlice => ({
   guides: [],
 
-  addGuide: (guide): void =>
+  addGuide: (guide: Guide): void =>
     set((state): void => {
       if (!state.timeline) return;
       if (!state.timeline.guides) {
@@ -41,23 +47,23 @@ export const createGuidesSlice = (set: any) => ({
       state.timeline.guides.push(guide);
     }),
 
-  removeGuide: (id): void =>
+  removeGuide: (id: string): void =>
     set((state): void => {
       if (!state.timeline?.guides) return;
-      state.timeline.guides = state.timeline.guides.filter((g): boolean => g.id !== id);
+      state.timeline.guides = state.timeline.guides.filter((g: Guide): boolean => g.id !== id);
     }),
 
-  updateGuide: (id, patch): void =>
+  updateGuide: (id: string, patch: Partial<Guide>): void =>
     set((state): void => {
-      const guide = state.timeline?.guides?.find((g): boolean => g.id === id);
+      const guide = state.timeline?.guides?.find((g: Guide): boolean => g.id === id);
       if (guide) {
         Object.assign(guide, patch);
       }
     }),
 
-  toggleGuideVisibility: (id): void =>
+  toggleGuideVisibility: (id: string): void =>
     set((state): void => {
-      const guide = state.timeline?.guides?.find((g): boolean => g.id === id);
+      const guide = state.timeline?.guides?.find((g: Guide): boolean => g.id === id);
       if (guide) {
         guide.visible = !guide.visible;
       }
@@ -66,8 +72,8 @@ export const createGuidesSlice = (set: any) => ({
   toggleAllGuidesVisibility: (): void =>
     set((state): void => {
       if (!state.timeline?.guides) return;
-      const anyVisible = state.timeline.guides.some((g): boolean => g.visible !== false);
-      state.timeline.guides.forEach((guide): void => {
+      const anyVisible = state.timeline.guides.some((g: Guide): boolean => g.visible !== false);
+      state.timeline.guides.forEach((guide: Guide): void => {
         guide.visible = !anyVisible;
       });
     }),

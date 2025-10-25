@@ -62,10 +62,7 @@ const ActivityEntry = React.memo<ActivityEntryProps>(function ActivityEntry({
   formatDate,
 }): React.ReactElement {
   return (
-    <div
-      key={entry.id}
-      className="flex items-start gap-3 rounded-lg border border-neutral-100 p-3 hover:bg-neutral-50 transition-colors"
-    >
+    <div className="flex items-start gap-3 rounded-lg border border-neutral-100 p-3 hover:bg-neutral-50 transition-colors">
       <div className="text-2xl flex-shrink-0">{activityTypeIcons[entry.activity_type] || '📄'}</div>
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">

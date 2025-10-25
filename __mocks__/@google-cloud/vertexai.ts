@@ -8,12 +8,12 @@ export const mockGetOperation = jest.fn();
 export const mockListOperations = jest.fn();
 
 export class VertexAI {
-  constructor(config: { project: string; location: string }) {
+  constructor(_config: { project: string; location: string }) {
     // Mock constructor
   }
 
   preview = {
-    getGenerativeModel: (config: { model: string }) => ({
+    getGenerativeModel: (_config: { model: string }): { generateContent: typeof mockGenerateVideo } => ({
       generateContent: mockGenerateVideo,
     }),
   };
@@ -22,7 +22,7 @@ export class VertexAI {
 /**
  * Helper to mock successful video generation (initiated)
  */
-export function mockVideoGenerationInitiated(operationName: string) {
+export function mockVideoGenerationInitiated(operationName: string): void {
   mockGenerateVideo.mockResolvedValue({
     response: {
       operationName,
@@ -33,7 +33,7 @@ export function mockVideoGenerationInitiated(operationName: string) {
 /**
  * Helper to mock operation in progress
  */
-export function mockOperationInProgress(progressPercentage = 50) {
+export function mockOperationInProgress(progressPercentage = 50): void {
   mockGetOperation.mockResolvedValue({
     done: false,
     metadata: {
@@ -45,7 +45,7 @@ export function mockOperationInProgress(progressPercentage = 50) {
 /**
  * Helper to mock completed operation with video data
  */
-export function mockOperationComplete(videoBase64: string) {
+export function mockOperationComplete(videoBase64: string): void {
   mockGetOperation.mockResolvedValue({
     done: true,
     response: {
@@ -62,7 +62,7 @@ export function mockOperationComplete(videoBase64: string) {
 /**
  * Helper to mock operation error
  */
-export function mockOperationError(error: string) {
+export function mockOperationError(error: string): void {
   mockGetOperation.mockResolvedValue({
     done: true,
     error: {
@@ -75,7 +75,7 @@ export function mockOperationError(error: string) {
 /**
  * Reset all mocks
  */
-export function resetVertexAIMocks() {
+export function resetVertexAIMocks(): void {
   mockGenerateVideo.mockReset();
   mockGetOperation.mockReset();
   mockListOperations.mockReset();

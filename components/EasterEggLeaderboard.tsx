@@ -24,11 +24,7 @@ export function EasterEggLeaderboard({ limit = 50 }: EasterEggLeaderboardProps):
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect((): void => {
-    loadLeaderboard();
-  }, [limit]);
-
-  const loadLeaderboard = async (): Promise<void> => {
+  const loadLeaderboard = React.useCallback(async (): Promise<void> => {
     setIsLoading(true);
     setError(null);
 
@@ -41,7 +37,11 @@ export function EasterEggLeaderboard({ limit = 50 }: EasterEggLeaderboardProps):
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [limit]);
+
+  useEffect((): void => {
+    loadLeaderboard();
+  }, [loadLeaderboard]);
 
   if (isLoading) {
     return (
@@ -195,19 +195,26 @@ export function EasterEggLeaderboard({ limit = 50 }: EasterEggLeaderboardProps):
  *
  * Shows user's own achievements in a compact format.
  */
+interface Achievement {
+  type: string;
+  title: string;
+  icon: string;
+  unlocked: boolean;
+}
+
 export function EasterEggStats(): React.ReactElement | null {
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<{
+    discovered: number;
+    total: number;
+    achievements: Achievement[];
+  }>({
     discovered: 0,
     total: 5,
-    achievements: [] as any[],
+    achievements: [],
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect((): void => {
-    loadStats();
-  }, []);
-
-  const loadStats = async (): Promise<void> => {
+  const loadStats = React.useCallback(async (): Promise<void> => {
     setIsLoading(true);
 
     try {
@@ -224,7 +231,11 @@ export function EasterEggStats(): React.ReactElement | null {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect((): void => {
+    loadStats();
+  }, [loadStats]);
 
   if (isLoading) {
     return null;

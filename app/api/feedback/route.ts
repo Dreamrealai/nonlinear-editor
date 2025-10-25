@@ -29,6 +29,8 @@ import {
   validateString,
   validateInteger,
 } from '@/lib/validation';
+import { withAdminAuth, type AdminAuthContext } from '@/lib/api/withAuth';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -194,6 +196,31 @@ export async function POST(
   | NextResponse<{ success: boolean; error: string }>
 > {
   try {
+    // Rate limiting to prevent spam (use IP-based for anonymous endpoint)
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    const rateLimitResult = await checkRateLimit(`feedback:${ip}`, RATE_LIMITS.tier2_resource_creation);
+
+    if (!rateLimitResult.success) {
+      serverLogger.warn(
+        { ip, limit: rateLimitResult.limit },
+        'Feedback submission rate limit exceeded'
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Too many feedback submissions. Please try again later.',
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
+          },
+        }
+      );
+    }
+
     // Parse and validate request body
     const body = await request.json();
 
@@ -337,70 +364,31 @@ export async function POST(
 
 /**
  * Get feedback statistics (admin only)
+ * Now properly secured with withAdminAuth middleware
  */
-export async function GET(
-  request: NextRequest
-): Promise<
-  | NextResponse<{ success: boolean; error: string }>
-  | NextResponse<{ success: boolean; statistics: unknown }>
-> {
+async function handleGetFeedbackStats(
+  _request: NextRequest,
+  context: AdminAuthContext
+): Promise<NextResponse> {
+  const { supabase } = context;
+
   try {
-    // Verify admin access
-    const authHeader = request.headers.get('authorization');
-
-    if (
-      !authHeader ||
-      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      !process.env.SUPABASE_SERVICE_ROLE_KEY
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Unauthorized',
-        },
-        { status: 401 }
-      );
-    }
-
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    );
-
-    // Get user to verify admin
-    const supabaseAuth = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        global: {
-          headers: {
-            Authorization: authHeader,
-          },
-        },
-      }
-    );
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabaseAuth.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Unauthorized',
-        },
-        { status: 401 }
-      );
-    }
-
-    // Get feedback statistics
+    // Get feedback statistics (admin-only RPC function)
     const { data: feedbackStats, error: statsError } =
       await supabase.rpc('get_feedback_statistics');
 
     if (statsError) {
-      throw statsError;
+      serverLogger.error(
+        { error: statsError },
+        'Failed to retrieve feedback statistics from database'
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to retrieve feedback statistics',
+        },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
@@ -419,3 +407,9 @@ export async function GET(
     );
   }
 }
+
+// Export GET with admin authentication and rate limiting
+export const GET = withAdminAuth(handleGetFeedbackStats, {
+  route: '/api/feedback',
+  rateLimit: { max: 5, windowMs: 60 * 1000 }, // TIER 1: 5 requests per minute for admin operations
+});

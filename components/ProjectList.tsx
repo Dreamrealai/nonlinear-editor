@@ -38,7 +38,7 @@ interface ProjectItemProps {
  */
 const ProjectItem = React.memo<ProjectItemProps>(function ProjectItem({ project, onDelete, isDeleting }): React.ReactElement {
   return (
-    <div key={project.id} className="group relative">
+    <div className="group relative">
       <Link
         href={`/editor/${project.id}`}
         className="block rounded-xl border border-neutral-200 bg-white p-6 shadow-sm transition hover:border-neutral-300 hover:shadow-md"

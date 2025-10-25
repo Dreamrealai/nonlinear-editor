@@ -64,6 +64,65 @@ describe('Integration: Export Modal Workflow', () => {
     ],
   } as Timeline;
 
+  const mockPresets = [
+    {
+      id: '1080p',
+      name: '1080p HD',
+      description: 'Full HD quality',
+      is_platform: true,
+      is_custom: false,
+      platform_type: 'youtube_1080p',
+      settings: {
+        width: 1920,
+        height: 1080,
+        fps: 30,
+        format: 'MP4',
+      },
+    },
+    {
+      id: '720p',
+      name: '720p HD',
+      description: 'HD quality',
+      is_platform: true,
+      is_custom: false,
+      platform_type: 'youtube_720p',
+      settings: {
+        width: 1280,
+        height: 720,
+        fps: 30,
+        format: 'MP4',
+      },
+    },
+    {
+      id: '480p',
+      name: '480p SD',
+      description: 'Standard definition',
+      is_platform: true,
+      is_custom: false,
+      platform_type: 'standard',
+      settings: {
+        width: 854,
+        height: 480,
+        fps: 30,
+        format: 'MP4',
+      },
+    },
+    {
+      id: 'web',
+      name: 'Web Optimized',
+      description: 'Optimized for web',
+      is_platform: true,
+      is_custom: false,
+      platform_type: 'web',
+      settings: {
+        width: 1280,
+        height: 720,
+        fps: 30,
+        format: 'WEBM',
+      },
+    },
+  ];
+
   const defaultProps = {
     isOpen: true,
     onClose: jest.fn(),
@@ -75,71 +134,24 @@ describe('Integration: Export Modal Workflow', () => {
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockReset();
 
-    // Mock /api/export-presets by default
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        data: {
-          presets: [
-            {
-              id: '1080p',
-              name: '1080p HD',
-              description: 'Full HD quality',
-              is_platform: true,
-              is_custom: false,
-              platform_type: 'youtube_1080p',
-              settings: {
-                width: 1920,
-                height: 1080,
-                fps: 30,
-                format: 'MP4',
-              },
+    // Mock fetch to handle both presets and export endpoints intelligently
+    (global.fetch as jest.Mock).mockImplementation(async (url: string): Promise<{ ok: boolean; json: () => Promise<unknown> }> => {
+      // Always return presets for /api/export-presets
+      if (url === '/api/export-presets') {
+        return {
+          ok: true,
+          json: async (): Promise<{ data: { presets: typeof mockPresets } }> => ({
+            data: {
+              presets: mockPresets,
             },
-            {
-              id: '720p',
-              name: '720p HD',
-              description: 'HD quality',
-              is_platform: true,
-              is_custom: false,
-              platform_type: 'youtube_720p',
-              settings: {
-                width: 1280,
-                height: 720,
-                fps: 30,
-                format: 'MP4',
-              },
-            },
-            {
-              id: '480p',
-              name: '480p SD',
-              description: 'Standard definition',
-              is_platform: true,
-              is_custom: false,
-              platform_type: 'standard',
-              settings: {
-                width: 854,
-                height: 480,
-                fps: 30,
-                format: 'MP4',
-              },
-            },
-            {
-              id: 'web',
-              name: 'Web Optimized',
-              description: 'Optimized for web',
-              is_platform: true,
-              is_custom: false,
-              platform_type: 'web',
-              settings: {
-                width: 1280,
-                height: 720,
-                fps: 30,
-                format: 'WEBM',
-              },
-            },
-          ],
-        },
-      }),
+          }),
+        };
+      }
+      // Default response for other endpoints (will be overridden by tests)
+      return {
+        ok: false,
+        json: async (): Promise<{ error: string }> => ({ error: 'Not mocked' }),
+      };
     });
   });
 

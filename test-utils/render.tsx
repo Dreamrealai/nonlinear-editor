@@ -36,7 +36,7 @@ import {
   RenderHookOptions,
 } from '@testing-library/react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { createMockSupabaseClient, MockSupabaseChain } from './mockSupabase';
+import { MockSupabaseChain } from './mockSupabase';
 
 /**
  * Mock router props
@@ -91,8 +91,8 @@ export interface CustomRenderHookOptions<TProps>
 /**
  * Creates a wrapper component with all necessary providers
  */
-function createWrapper(options: CustomRenderOptions = {}) {
-  const { mockSupabase, routerProps, wrapper: CustomWrapper } = options;
+function createWrapper(options: CustomRenderOptions = {}): React.ComponentType<{ children: ReactNode }> {
+  const { routerProps, wrapper: CustomWrapper } = options;
 
   // Setup router mocks
   if (routerProps) {
@@ -109,6 +109,7 @@ function createWrapper(options: CustomRenderOptions = {}) {
     } = routerProps;
 
     // Mock useRouter
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     jest.mocked(useRouter).mockReturnValue({
       push,
       replace,
@@ -119,7 +120,7 @@ function createWrapper(options: CustomRenderOptions = {}) {
       pathname,
       query,
       asPath,
-    } as any);
+    } as unknown as ReturnType<typeof useRouter>); // eslint-disable-line @typescript-eslint/no-explicit-any
 
     // Mock usePathname
     jest.mocked(usePathname).mockReturnValue(pathname);
@@ -131,11 +132,12 @@ function createWrapper(options: CustomRenderOptions = {}) {
         Array.isArray(value) ? value[0] : value,
       ])
     );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     jest.mocked(useSearchParams).mockReturnValue(searchParams as any);
   }
 
   // Create AllTheProviders wrapper
-  const AllTheProviders = ({ children }: { children: ReactNode }) => {
+  const AllTheProviders = ({ children }: { children: ReactNode }): JSX.Element => {
     let wrappedChildren = children;
 
     // Add Supabase provider if mockSupabase is provided
@@ -164,6 +166,7 @@ export function render(
 
   // If mockSupabase is provided, set it globally for the test
   if (mockSupabase) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (globalThis as any).__TEST_SUPABASE_CLIENT__ = mockSupabase;
   }
 
@@ -186,6 +189,7 @@ export function renderHook<TResult, TProps>(
 
   // If mockSupabase is provided, set it globally for the test
   if (mockSupabase) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (globalThis as any).__TEST_SUPABASE_CLIENT__ = mockSupabase;
   }
 

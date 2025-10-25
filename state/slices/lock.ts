@@ -27,25 +27,27 @@ export interface LockSliceState {
   selectedClipIds: Set<string>;
 }
 
-export const createLockSlice = (set: any) => ({
-  lockClip: (id): void =>
-    set((state): void => {
+export const createLockSlice = (
+  set: (fn: (state: LockSliceState) => void) => void
+): LockSlice => ({
+  lockClip: (id: string): void =>
+    set((state: LockSliceState): void => {
       const clip = state.timeline?.clips.find((c): boolean => c.id === id);
       if (clip) {
         clip.locked = true;
       }
     }),
 
-  unlockClip: (id): void =>
-    set((state): void => {
+  unlockClip: (id: string): void =>
+    set((state: LockSliceState): void => {
       const clip = state.timeline?.clips.find((c): boolean => c.id === id);
       if (clip) {
         clip.locked = false;
       }
     }),
 
-  toggleClipLock: (id): void =>
-    set((state): void => {
+  toggleClipLock: (id: string): void =>
+    set((state: LockSliceState): void => {
       const clip = state.timeline?.clips.find((c): boolean => c.id === id);
       if (clip) {
         clip.locked = !clip.locked;
@@ -62,9 +64,9 @@ export const createLockSlice = (set: any) => ({
     }),
 
   lockSelectedClips: (): void =>
-    set((state): void => {
+    set((state: LockSliceState): void => {
       if (!state.timeline) return;
-      state.selectedClipIds.forEach((clipId): void => {
+      state.selectedClipIds.forEach((clipId: string): void => {
         const clip = state.timeline!.clips.find((c): boolean => c.id === clipId);
         if (clip) {
           clip.locked = true;
@@ -73,9 +75,9 @@ export const createLockSlice = (set: any) => ({
     }),
 
   unlockSelectedClips: (): void =>
-    set((state): void => {
+    set((state: LockSliceState): void => {
       if (!state.timeline) return;
-      state.selectedClipIds.forEach((clipId): void => {
+      state.selectedClipIds.forEach((clipId: string): void => {
         const clip = state.timeline!.clips.find((c): boolean => c.id === clipId);
         if (clip) {
           clip.locked = false;

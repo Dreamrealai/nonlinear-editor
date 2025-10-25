@@ -6,8 +6,9 @@
  * - Ungrouping clips
  * - Querying group information
  */
-import type { Timeline } from '@/types/timeline';
+import type { Timeline, Clip, ClipGroup } from '@/types/timeline';
 import { EDITOR_CONSTANTS } from '@/lib/constants';
+import type { WritableDraft } from 'immer';
 
 const { MAX_HISTORY } = EDITOR_CONSTANTS;
 
@@ -39,9 +40,19 @@ export interface GroupsSliceState {
   historyIndex: number;
 }
 
-export const createGroupsSlice = (set: any, get: any) => ({
-  groupSelectedClips: (name): void =>
-    set((state): void => {
+/**
+ * Zustand set function type with Immer middleware
+ */
+type SetState = (fn: (state: WritableDraft<GroupsSliceState>) => void) => void;
+
+/**
+ * Zustand get function type
+ */
+type GetState = () => GroupsSliceState;
+
+export const createGroupsSlice = (set: SetState, get: GetState): GroupsSlice => ({
+  groupSelectedClips: (name?: string): void =>
+    set((state: WritableDraft<GroupsSliceState>): void => {
       if (!state.timeline || state.selectedClipIds.size < 2) return;
 
       if (!state.timeline.groups) {
@@ -58,7 +69,7 @@ export const createGroupsSlice = (set: any, get: any) => ({
         created_at: Date.now(),
       });
 
-      state.timeline.clips.forEach((clip): void => {
+      state.timeline.clips.forEach((clip: Clip): void => {
         if (clipIds.includes(clip.id)) {
           clip.groupId = groupId;
         }
@@ -77,13 +88,13 @@ export const createGroupsSlice = (set: any, get: any) => ({
       }
     }),
 
-  ungroupClips: (groupId): void =>
-    set((state): void => {
+  ungroupClips: (groupId: string): void =>
+    set((state: WritableDraft<GroupsSliceState>): void => {
       if (!state.timeline || !state.timeline.groups) return;
 
-      state.timeline.groups = state.timeline.groups.filter((g): boolean => g.id !== groupId);
+      state.timeline.groups = state.timeline.groups.filter((g: ClipGroup): boolean => g.id !== groupId);
 
-      state.timeline.clips.forEach((clip): void => {
+      state.timeline.clips.forEach((clip: Clip): void => {
         if (clip.groupId === groupId) {
           delete clip.groupId;
         }
@@ -102,27 +113,27 @@ export const createGroupsSlice = (set: any, get: any) => ({
       }
     }),
 
-  getGroupClipIds: (groupId): string[] => {
+  getGroupClipIds: (groupId: string): string[] => {
     const state = get();
     if (!state.timeline || !state.timeline.groups) return [];
 
-    const group = state.timeline.groups.find((g): boolean => g.id === groupId);
+    const group = state.timeline.groups.find((g: ClipGroup): boolean => g.id === groupId);
     return group ? [...group.clipIds] : [];
   },
 
-  isClipGrouped: (clipId): boolean => {
+  isClipGrouped: (clipId: string): boolean => {
     const state = get();
     if (!state.timeline) return false;
 
-    const clip = state.timeline.clips.find((c): boolean => c.id === clipId);
+    const clip = state.timeline.clips.find((c: Clip): boolean => c.id === clipId);
     return Boolean(clip?.groupId);
   },
 
-  getClipGroupId: (clipId): string | null => {
+  getClipGroupId: (clipId: string): string | null => {
     const state = get();
     if (!state.timeline) return null;
 
-    const clip = state.timeline.clips.find((c): boolean => c.id === clipId);
+    const clip = state.timeline.clips.find((c: Clip): boolean => c.id === clipId);
     return clip?.groupId || null;
   },
 });

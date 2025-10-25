@@ -22,24 +22,32 @@ export interface PlaybackSlice {
   toggleAutoScroll: () => void;
 }
 
-export const createPlaybackSlice = (set: any) => ({
+export interface PlaybackSliceState {
+  currentTime: number;
+  timecodeDisplayMode: 'duration' | 'timecode';
+  autoScrollEnabled: boolean;
+}
+
+export const createPlaybackSlice = (
+  set: (fn: (state: PlaybackSliceState) => void) => void
+): PlaybackSlice => ({
   currentTime: 0,
-  timecodeDisplayMode: 'duration',
+  timecodeDisplayMode: 'duration' as const,
   autoScrollEnabled: true,
 
-  setCurrentTime: (time): void =>
-    set((state): void => {
+  setCurrentTime: (time: number): void =>
+    set((state: PlaybackSliceState): void => {
       state.currentTime = time;
     }),
 
   toggleTimecodeDisplayMode: (): void =>
-    set((state): void => {
+    set((state: PlaybackSliceState): void => {
       state.timecodeDisplayMode =
         state.timecodeDisplayMode === 'duration' ? 'timecode' : 'duration';
     }),
 
   toggleAutoScroll: (): void =>
-    set((state): void => {
+    set((state: PlaybackSliceState): void => {
       state.autoScrollEnabled = !state.autoScrollEnabled;
     }),
 });
