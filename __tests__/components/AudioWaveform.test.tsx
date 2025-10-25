@@ -161,14 +161,14 @@ describe('AudioWaveform', () => {
     global.fetch = mockFetch;
   });
 
-  afterEach(async () => {
+  afterEach(async (): Promise<void> => {
     // Give time for any pending async operations to complete
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
     });
   });
 
-  afterAll(() => {
+  afterAll((): void => {
     // Restore original AudioContext
     global.AudioContext = originalAudioContext;
   });
