@@ -1,279 +1,199 @@
 # Documentation Index
 
-This directory contains all project documentation organized for easy discovery and navigation.
+**Complete documentation for the Non-Linear Video Editor project.**
 
-## 🚀 Quick Start
-
-### New to the Project?
-
-Start here for essential onboarding documentation:
-
-1. **[Getting Started](/docs/getting-started/)** - Setup guides and configuration
-2. **[Architecture Overview](/docs/ARCHITECTURE_OVERVIEW.md)** - System design and patterns
-3. **[Coding Best Practices](/docs/CODING_BEST_PRACTICES.md)** - Code standards and patterns
-4. **[Project Status](/docs/PROJECT_STATUS.md)** - Current status and active workstreams
-
-### Looking for Something Specific?
-
-- **APIs** → [`/docs/api/`](#api---api-documentation)
-- **Performance** → [`/docs/guides/PERFORMANCE.md`](/docs/guides/PERFORMANCE.md)
-- **Caching** → [`/docs/guides/CACHING.md`](/docs/guides/CACHING.md)
-- **Security** → [`/docs/security/`](#security---security-documentation)
-- **Testing** → [`/docs/TESTING.md`](/docs/TESTING.md)
-- **Setup** → [`/docs/setup/`](#setup---configuration-guides)
+Last Updated: 2025-10-25
 
 ---
 
-## 📁 Directory Structure
+## Quick Start
 
-### `/guides/` - Implementation Guides
+New to the project? Start here:
 
-**NEW!** Comprehensive guides for key system features:
-
-- **[PERFORMANCE.md](./guides/PERFORMANCE.md)** - Complete performance optimization guide
-  - Web Vitals tracking
-  - React & bundle optimization
-  - Database query optimization
-  - Caching strategies
-  - Memory management
-  - Monitoring & metrics
-
-- **[CACHING.md](./guides/CACHING.md)** - Complete caching layer guide
-  - Quick start & usage
-  - Architecture overview
-  - Implementation details
-  - Cache invalidation strategies
-  - Performance impact (80-90% query reduction)
-  - Monitoring & troubleshooting
-
-### `/getting-started/` - Setup and Configuration
-
-**NEW!** Essential setup documentation for new developers:
-
-- Coming soon: Comprehensive getting-started guides
-- Environment variables documentation (currently in `/setup/`)
-
-### `/api/` - API Documentation
-
-Complete API documentation for all services, endpoints, and external integrations.
-
-**Core API Documentation:**
-
-- [API_DOCUMENTATION.md](./api/API_DOCUMENTATION.md) - Complete API reference for all endpoints
-- [API_DOCUMENTATION_SUMMARY.md](./api/API_DOCUMENTATION_SUMMARY.md) - API documentation summary
-- [API_QUICK_REFERENCE.md](./api/API_QUICK_REFERENCE.md) - Quick reference guide
-- [API_EXAMPLES.md](./api/API_EXAMPLES.md) - Code examples for common API operations
-
-**Service Provider Documentation:**
-
-- **[`/api/providers/google/`](./api/providers/google/)** - Google AI & Cloud services
-  - [VEO2.md](./api/providers/google/VEO2.md) - Veo 2 video generation
-  - [VEO3.md](./api/providers/google/VEO3.md) - Veo 3 video generation
-  - [GEMINI.md](./api/providers/google/GEMINI.md) - Gemini multimodal AI
-  - [IMAGEN.md](./api/providers/google/IMAGEN.md) - Imagen image generation
-  - [CLOUD_VISION.md](./api/providers/google/CLOUD_VISION.md) - Cloud Vision video analysis
-  - [README.md](./api/providers/google/README.md) - Google provider overview
-
-- **[`/api/providers/elevenlabs/`](./api/providers/elevenlabs/)** - Audio generation services
-  - [ELEVENLABS_TTS.md](./api/providers/elevenlabs/ELEVENLABS_TTS.md) - ElevenLabs text-to-speech
-  - [ELEVENLABS_FAL.md](./api/providers/elevenlabs/ELEVENLABS_FAL.md) - FAL ElevenLabs integration
-
-- **[`/api/providers/`](./api/providers/)** - Other providers
-  - [SUNO_COMET.md](./api/providers/SUNO_COMET.md) - Suno/Comet audio generation
-
-**External Service APIs:**
-
-- [axiom-api-docs.md](./api/axiom-api-docs.md) - Axiom logging service
-- [comet-suno-api-docs.md](./api/comet-suno-api-docs.md) - Comet/Suno audio generation
-- [elevenlabs-api-docs.md](./api/elevenlabs-api-docs.md) - ElevenLabs text-to-speech
-- [fal-ai-docs.md](./api/fal-ai-docs.md) - FAL.AI services
-- [google-ai-studio-docs.md](./api/google-ai-studio-docs.md) - Google AI Studio
-- [google-vertex-ai-docs.md](./api/google-vertex-ai-docs.md) - Google Vertex AI
-- [resend-api-docs.md](./api/resend-api-docs.md) - Resend email service
-- [stripe-api-docs.md](./api/stripe-api-docs.md) - Stripe payment integration
-- [supabase-api-docs.md](./api/supabase-api-docs.md) - Supabase database & auth
-- [vercel-api-docs.md](./api/vercel-api-docs.md) - Vercel deployment
-
-**Video Generation APIs:**
-
-- [fal-kling.md](./api/fal-kling.md) - Kling video generation
-- [fal-minimax.md](./api/fal-minimax.md) - Minimax video generation
-- [fal-pixverse.md](./api/fal-pixverse.md) - Pixverse video generation
-- [fal-sora-2.md](./api/fal-sora-2.md) - Sora 2 video generation
-- [minimax.md](./api/minimax.md) - Minimax API
-
-**API Audit Reports:**
-
-- [FIXES_APPLIED.md](./api/FIXES_APPLIED.md) - API fixes applied
-- [MASTER_API_AUDIT_SUMMARY.md](./api/MASTER_API_AUDIT_SUMMARY.md) - Master audit summary
-- [PARAMETER_AUDIT_REPORT.md](./api/PARAMETER_AUDIT_REPORT.md) - Parameter validation audit
-- [VALIDATION_REPORT.md](./api/VALIDATION_REPORT.md) - Validation implementation report
-
-### `/architecture/` - Architecture and Standards
-
-Documentation about the project architecture, coding standards, and design patterns.
-
-- [ARCHITECTURE_STANDARDS.md](./architecture/ARCHITECTURE_STANDARDS.md) - Project architecture standards and guidelines
-- [REACT_PATTERNS.md](./architecture/REACT_PATTERNS.md) - React component patterns and best practices
-
-### `/security/` - Security Documentation
-
-Security policies, audits, and implementation guides.
-
-- [SECURITY.md](./security/SECURITY.md) - Security policy and guidelines
-- [SECURITY_AUDIT.md](./security/SECURITY_AUDIT.md) - Security audit results
-- [CORS_SECURITY_IMPLEMENTATION_SUMMARY.md](./security/CORS_SECURITY_IMPLEMENTATION_SUMMARY.md) - CORS security implementation summary
-
-### `/setup/` - Configuration Guides
-
-Configuration and setup instructions for various services and environments.
-
-- [CONFIGURATION.md](./setup/CONFIGURATION.md) - General configuration guide
-- [ENVIRONMENT_VARIABLES.md](./setup/ENVIRONMENT_VARIABLES.md) - Environment variables documentation
-- [ENV_VARIABLES_SUMMARY.md](./setup/ENV_VARIABLES_SUMMARY.md) - Environment variables summary
-- [RESEND_SETUP.md](./setup/RESEND_SETUP.md) - Resend email service setup
-- [SETUP_LOCAL_EMAIL.md](./setup/SETUP_LOCAL_EMAIL.md) - Local email testing setup
-- [STRIPE_SETUP.md](./setup/STRIPE_SETUP.md) - Stripe payment integration setup
-- [SUBSCRIPTION_SETUP.md](./setup/SUBSCRIPTION_SETUP.md) - Subscription system setup
-- [VERCEL_CONFIGURATION.md](./setup/VERCEL_CONFIGURATION.md) - Vercel deployment configuration
-- [VERCEL_ENV_SETUP.md](./setup/VERCEL_ENV_SETUP.md) - Vercel environment setup
-
-### `/issues/` - Issue Tracking
-
-Issue tracking and resolution reports.
-
-- [ISSUETRACKING.md](./issues/ISSUETRACKING.md) - Main issue tracking document
-- [MED-020-ARCHITECTURE-FIXES-REPORT.md](./issues/MED-020-ARCHITECTURE-FIXES-REPORT.md) - MED-020 architecture fixes
-- [MED-023-ARCHITECTURE-FIXES-REPORT.md](./issues/MED-023-ARCHITECTURE-FIXES-REPORT.md) - MED-023 architecture fixes
-- [MED-023-QUICK-REFERENCE.md](./issues/MED-023-QUICK-REFERENCE.md) - MED-023 quick reference
-- [MED-024_RESOLUTION_REPORT.md](./issues/MED-024_RESOLUTION_REPORT.md) - MED-024 resolution report
-
-### `/reports/` - Audit Reports and Analysis
-
-Comprehensive reports, audit logs, validation reports, and codebase analysis.
-
-**Recent Key Reports:**
-
-- [TEST_SUCCESS_REPORT.md](./reports/TEST_SUCCESS_REPORT.md) - Current test status (87.3% pass rate)
-- [FINAL_QUALITY_AUDIT.md](./reports/FINAL_QUALITY_AUDIT.md) - Code quality assessment (B+ / 7.2/10)
-- [BUNDLE_ANALYSIS.md](./reports/BUNDLE_ANALYSIS.md) - Bundle size optimization analysis
-
-**Implementation Reports:**
-
-- [AUDIT_LOGGING_IMPLEMENTATION.md](./reports/AUDIT_LOGGING_IMPLEMENTATION.md) - Audit logging implementation
-- [CACHING_IMPLEMENTATION.md](./reports/CACHING_IMPLEMENTATION.md) - Caching layer implementation report
-- [E2E-IMPLEMENTATION-REPORT.md](./reports/E2E-IMPLEMENTATION-REPORT.md) - End-to-end testing implementation
-
-**Analysis & Audits:**
-
-- [AUTHENTICATION_AND_SUBSCRIPTION_ANALYSIS.md](./reports/AUTHENTICATION_AND_SUBSCRIPTION_ANALYSIS.md) - Authentication and subscription analysis
-- [CODEBASE_ANALYSIS.md](./reports/CODEBASE_ANALYSIS.md) - Comprehensive codebase analysis
-- [COMPREHENSIVE_EVALUATION_REPORT.md](./reports/COMPREHENSIVE_EVALUATION_REPORT.md) - Comprehensive project evaluation
-- [QUALITY_VALIDATION_REPORT.md](./reports/QUALITY_VALIDATION_REPORT.md) - Quality validation report
-
-**[Full Reports List →](./reports/)**
+1. **[Environment Setup](./setup/ENVIRONMENT_SETUP.md)** - Configure your development environment
+2. **[Supabase Setup](./SUPABASE_SETUP.md)** - Set up database and authentication
+3. **[Testing Guide](./TESTING_GUIDE.md)** - Run and write tests
+4. **[Features](./FEATURES.md)** - Explore available features
 
 ---
 
-## 📖 Core Documentation (Root Level)
+## Core Documentation
 
-Essential guides and references in the docs directory:
+### Getting Started
 
-**System Architecture & Design:**
+- **[Environment Setup](./setup/ENVIRONMENT_SETUP.md)** - Environment variables and configuration
+- **[Supabase Setup](./SUPABASE_SETUP.md)** - Database, auth, and storage setup
+- **[Supabase Auto-Deployment](./setup/SUPABASE_AUTO_DEPLOYMENT.md)** - Automated migration deployment
 
-- [ARCHITECTURE_OVERVIEW.md](./ARCHITECTURE_OVERVIEW.md) - System architecture and design patterns
-- [CODING_BEST_PRACTICES.md](./CODING_BEST_PRACTICES.md) - Essential coding patterns and standards
-- [STYLE_GUIDE.md](./STYLE_GUIDE.md) - Code formatting and conventions
-- [SERVICE_LAYER_GUIDE.md](./SERVICE_LAYER_GUIDE.md) - Service layer architecture guide
+### Architecture & Development
 
-**Infrastructure & Operations:**
+- **[Architecture Overview](./ARCHITECTURE_OVERVIEW.md)** - System design and patterns
+- **[Coding Best Practices](./CODING_BEST_PRACTICES.md)** - TypeScript, React, and service patterns
+- **[Style Guide](./STYLE_GUIDE.md)** - Code formatting and conventions
+- **[Service Layer Guide](./SERVICE_LAYER_GUIDE.md)** - Business logic patterns
 
-- [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) - Infrastructure overview and deployment
-- [AXIOM_SETUP.md](./AXIOM_SETUP.md) - Axiom logging setup guide
-- [LOGGING.md](./LOGGING.md) - Logging implementation guide
-- [RATE_LIMITING.md](./RATE_LIMITING.md) - Rate limiting implementation
-- [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) - Supabase setup and configuration
+### Features & API
 
-**Testing & Quality:**
+- **[Features](./FEATURES.md)** - Complete feature inventory
+- **[Features Backlog](./FEATURES_BACKLOG.md)** - Planned features and roadmap
+- **[API Guide](./api/API_GUIDE.md)** - API documentation and authentication
+- **[API Reference](./api/API_REFERENCE.md)** - Comprehensive API examples
+- **[Webhooks](./api/WEBHOOKS.md)** - Webhook implementation
 
-- [TESTING.md](./TESTING.md) - Testing guide and best practices
-- [TEST_FIXES_GUIDE.md](./TEST_FIXES_GUIDE.md) - Test fixing guide
-- [E2E_TESTING_GUIDE.md](./E2E_TESTING_GUIDE.md) - End-to-end testing guide
-- [E2E_CI_CD_SETUP.md](./E2E_CI_CD_SETUP.md) - E2E CI/CD setup
-- [E2E_TEST_RESULTS.md](./E2E_TEST_RESULTS.md) - E2E test results
+### Testing
 
-**Project Management:**
+- **[Testing Guide](./TESTING_GUIDE.md)** - Complete testing documentation
+- **[Testing Utilities](./TESTING_UTILITIES.md)** - Test helper reference
+- **[Integration Testing](./INTEGRATION_TESTING_GUIDE.md)** - Integration test patterns
+- **[E2E Testing](./E2E_TESTING_GUIDE.md)** - End-to-end testing
+- **[Test Troubleshooting](./TEST_TROUBLESHOOTING.md)** - Common issues and fixes
 
-- [PROJECT_STATUS.md](./PROJECT_STATUS.md) - Comprehensive project status dashboard
-- [KEYBOARD_SHORTCUTS.md](./KEYBOARD_SHORTCUTS.md) - Editor keyboard shortcuts
+### Security
 
-**Feature Documentation:**
+- **[Security Guide](./security/SECURITY_GUIDE.md)** - Security best practices
+- **[Security Deployment](./security/SECURITY_DEPLOYMENT_GUIDE.md)** - Production security
+- **[CORS Implementation](./security/CORS_SECURITY_IMPLEMENTATION_SUMMARY.md)** - CORS configuration
 
-- [FEATURES_BACKLOG.md](./FEATURES_BACKLOG.md) - Feature requests and planned enhancements
-- [FEATURES_COMPREHENSIVE.md](./FEATURES_COMPREHENSIVE.md) - Complete feature documentation
-- [FEATURES_QUICK_REFERENCE.md](./FEATURES_QUICK_REFERENCE.md) - Quick feature reference
-- [USER_FEATURES_AND_FLOWS.md](./USER_FEATURES_AND_FLOWS.md) - User-facing features and workflows
-- [EASTER_EGGS.md](./EASTER_EGGS.md) - Hidden features and Easter eggs
-- [DEPLOYMENT_INSTRUCTIONS.md](./DEPLOYMENT_INSTRUCTIONS.md) - Deployment guide
+### Deployment & Operations
 
-**Security & Compliance:**
+- **[Deployment Instructions](./DEPLOYMENT_INSTRUCTIONS.md)** - Production deployment
+- **[Infrastructure](./INFRASTRUCTURE.md)** - Infrastructure architecture
+- **[Monitoring Integration](./MONITORING_INTEGRATION_EXAMPLES.md)** - Axiom setup
+- **[Regression Prevention](./REGRESSION_PREVENTION.md)** - CI/CD and monitoring
 
-- [SECURITY_AUDIT_REPORT.md](./SECURITY_AUDIT_REPORT.md) - Security audit report
-- [SECURITY_RECOMMENDATIONS.md](./SECURITY_RECOMMENDATIONS.md) - Security recommendations
-- [SECURITY_DEPLOYMENT_GUIDE.md](./SECURITY_DEPLOYMENT_GUIDE.md) - Security deployment guide
-- [SECURITY_TEST_COVERAGE.md](./SECURITY_TEST_COVERAGE.md) - Security test coverage
+### User Documentation
 
-**Performance & Optimization:**
-
-- [MEMORY_OPTIMIZATION_GUIDE.md](./MEMORY_OPTIMIZATION_GUIDE.md) - Memory optimization guide
-- [MEMORY_LEAK_VERIFICATION_REPORT.md](./MEMORY_LEAK_VERIFICATION_REPORT.md) - Memory leak verification
-- [PRODUCTION_MONITORING_MEMORY_LEAKS.md](./PRODUCTION_MONITORING_MEMORY_LEAKS.md) - Production memory monitoring
-- [POLLING_CLEANUP_FIX.md](./POLLING_CLEANUP_FIX.md) - Polling cleanup fixes
-- [ACCESSIBILITY_FIXES.md](./ACCESSIBILITY_FIXES.md) - Accessibility improvements
-
-**API & Integration:**
-
-- [API_VERSIONING.md](./API_VERSIONING.md) - API versioning strategy
+- **[User Features & Flows](./USER_FEATURES_AND_FLOWS.md)** - User-facing features
+- **[Keyboard Shortcuts](./KEYBOARD_SHORTCUTS.md)** - Complete shortcut reference
+- **[FAQ](./user-guide/FAQ.md)** - Frequently asked questions
+- **[Onboarding](./user-guide/ONBOARDING.md)** - User onboarding guide
 
 ---
 
-## 🔍 Quick Links
+## API Documentation
 
-| Category            | Link                                                                                | Description                    |
-| ------------------- | ----------------------------------------------------------------------------------- | ------------------------------ |
-| **Getting Started** | [/setup/](./setup/)                                                                 | Configuration and setup guides |
-| **API Reference**   | [/api/API_QUICK_REFERENCE.md](./api/API_QUICK_REFERENCE.md)                         | Quick API reference            |
-| **Security**        | [/security/SECURITY.md](./security/SECURITY.md)                                     | Security policies              |
-| **Issue Tracking**  | [/issues/ISSUETRACKING.md](./issues/ISSUETRACKING.md)                               | Issue tracking                 |
-| **Architecture**    | [/architecture/ARCHITECTURE_STANDARDS.md](./architecture/ARCHITECTURE_STANDARDS.md) | Architecture standards         |
-| **Performance**     | [/guides/PERFORMANCE.md](./guides/PERFORMANCE.md)                                   | Performance optimization       |
-| **Caching**         | [/guides/CACHING.md](./guides/CACHING.md)                                           | Caching implementation         |
-| **Testing**         | [TESTING.md](./TESTING.md)                                                          | Testing practices              |
+### Main Documentation
 
----
+- **[API Guide](./api/API_GUIDE.md)** - Complete API guide
+- **[API Reference](./api/API_REFERENCE.md)** - All endpoints with examples
+- **[Webhooks](./api/WEBHOOKS.md)** - Webhook integration
 
-## 📚 Historical Documentation
+### Provider-Specific APIs
 
-For historical reports and superseded documentation, see:
-
-- **[/archive/](../archive/)** - Archived reports and session summaries
-- **[/archive/ARCHIVE_INDEX.md](../archive/ARCHIVE_INDEX.md)** - Complete index of archived files
-
-The archive contains completed work, resolved issues, and optimization reports that document the project's journey to production readiness.
+- **[Google AI APIs](./api/providers/google/)** - Imagen, Gemini, Veo
+- **[ElevenLabs](./api/providers/elevenlabs/)** - Text-to-speech
+- **[Fal.ai](./api/fal-ai-docs.md)** - Video generation
+- **[Suno/Comet](./api/comet-suno-api-docs.md)** - Music generation
+- **[Stripe](./api/stripe-api-docs.md)** - Payments
+- **[Axiom](./api/axiom-api-docs.md)** - Logging
 
 ---
 
-## 🧭 Navigation
+## Specialized Guides
 
-Return to the [main README](../README.md) for project overview and getting started information.
+### Performance & Optimization
+
+- **[Memory Optimization](./MEMORY_OPTIMIZATION_GUIDE.md)** - Memory management
+- **[Performance Budget](./PERFORMANCE_BUDGET.md)** - Performance targets
+- **[Caching](./guides/CACHING.md)** - Caching strategies
+
+### Development Tools
+
+- **[Mock Patterns](./MOCK_PATTERNS_DOCUMENTATION.md)** - Testing mock patterns
+- **[Middleware Patterns](./MIDDLEWARE_PATTERNS.md)** - Middleware implementation
+- **[Loading Components](./LOADING_COMPONENTS.md)** - Loading state patterns
+- **[Error Tracking](./guides/ERROR_TRACKING.md)** - Error monitoring
+
+### Feature-Specific
+
+- **[Easter Eggs](./EASTER_EGGS.md)** - Hidden features
+- **[Onboarding Metrics](./ONBOARDING_METRICS.md)** - Onboarding analytics
+- **[Accessibility](./ACCESSIBILITY.md)** - Accessibility implementation
 
 ---
 
-**Last Updated**: 2025-10-25
-**Documentation Files**: 128+ files
-**Key Consolidations**: Performance (2→1), Caching (4→1), API providers (organized by vendor)
-**Recent Changes**:
+## Setup Guides
 
-- Root directory cleaned up: 37 → 5 markdown files
-- Feature documentation moved from root to /docs
-- Temporary reports archived to /archive
+### Services
+
+- **[Environment Setup](./setup/ENVIRONMENT_SETUP.md)** - Complete environment configuration
+- **[Supabase Setup](./SUPABASE_SETUP.md)** - Database and auth
+- **[Supabase Auto-Deployment](./setup/SUPABASE_AUTO_DEPLOYMENT.md)** - GitHub Actions deployment
+- **[Stripe Setup](./setup/STRIPE_SETUP.md)** - Payment integration
+- **[Resend Setup](./setup/RESEND_SETUP.md)** - Email service
+- **[Axiom Setup](./AXIOM_SETUP.md)** - Logging service
+
+### Testing & CI/CD
+
+- **[E2E CI/CD Setup](./E2E_CI_CD_SETUP.md)** - Automated testing
+- **[Regression Prevention](./REGRESSION_PREVENTION.md)** - Test monitoring
+
+---
+
+## Project Status
+
+### Current Status
+
+- **[Project Status](./PROJECT_STATUS.md)** - Overall project health
+- **[Issues](../ISSUES.md)** - Known issues and bugs
+
+### Reports (Archive)
+
+Historical reports are in `/archive/`. Recent important reports:
+
+- **[Agent Validation Reports](./reports/)** - Quality assurance reports
+- **[Service Coverage](./reports/)** - Test coverage reports
+
+---
+
+## Contributing
+
+### Before You Start
+
+1. Read [Coding Best Practices](./CODING_BEST_PRACTICES.md)
+2. Set up your [Environment](./setup/ENVIRONMENT_SETUP.md)
+3. Understand the [Architecture](./ARCHITECTURE_OVERVIEW.md)
+4. Write [Tests](./TESTING_GUIDE.md) for new features
+
+### Workflow
+
+1. Create feature branch
+2. Make changes following style guide
+3. Write tests (coverage target: 70%+ for services)
+4. Run `npm test` and `npm run build`
+5. Commit with descriptive message
+6. Push and create pull request
+
+---
+
+## Quick Links
+
+**Most Frequently Used:**
+
+- [Testing Guide](./TESTING_GUIDE.md)
+- [API Reference](./api/API_REFERENCE.md)
+- [Features](./FEATURES.md)
+- [Coding Best Practices](./CODING_BEST_PRACTICES.md)
+
+**Setup:**
+
+- [Environment Setup](./setup/ENVIRONMENT_SETUP.md)
+- [Supabase Setup](./SUPABASE_SETUP.md)
+
+**Troubleshooting:**
+
+- [Test Troubleshooting](./TEST_TROUBLESHOOTING.md)
+- [Security Guide](./security/SECURITY_GUIDE.md)
+
+---
+
+**Need Help?**
+
+- Check the relevant documentation above
+- Search [Issues](../ISSUES.md) for known problems
+- Create a new issue with details
+
+---
+
+**Documentation Version:** 2.0 (Consolidated)
+**Last Updated:** 2025-10-25

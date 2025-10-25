@@ -2,7 +2,7 @@
 
 ## 🤖 Supabase Auto-Deployment (GitHub Actions)
 
-**STATUS**: ✅ Configured | ⚠️ Secret Required | 📋 [Full Guide](./SUPABASE_AUTO_DEPLOYMENT.md)
+**STATUS**: ✅ Configured | ⚠️ Secret Required | 📋 [Full Guide](./docs/setup/SUPABASE_AUTO_DEPLOYMENT.md)
 
 ### Quick Setup (5 minutes)
 
@@ -56,7 +56,7 @@ git push
 
 - [View Workflows](https://github.com/Dreamrealai/nonlinear-editor/actions)
 - [View Secrets](https://github.com/Dreamrealai/nonlinear-editor/settings/secrets/actions)
-- [Full Documentation](./SUPABASE_AUTO_DEPLOYMENT.md)
+- [Full Documentation](./docs/setup/SUPABASE_AUTO_DEPLOYMENT.md)
 
 ### Migration Workflow (After Setup)
 
@@ -356,7 +356,12 @@ Result: 1 comprehensive document, single source of truth
 - **[Style Guide](/docs/STYLE_GUIDE.md)** - Code formatting and conventions
 - **[Architecture Overview](/docs/ARCHITECTURE_OVERVIEW.md)** - System design and patterns
 - **[Service Layer Guide](/docs/SERVICE_LAYER_GUIDE.md)** - Business logic patterns
-- **[API Documentation](/docs/api/)** - API endpoints and contracts
+- **[Testing Guide](/docs/TESTING_GUIDE.md)** - Complete testing documentation
+- **[API Guide](/docs/api/API_GUIDE.md)** - API documentation and authentication
+- **[API Reference](/docs/api/API_REFERENCE.md)** - API endpoints with examples
+- **[Features](/docs/FEATURES.md)** - Available features and usage
+- **[Security Guide](/docs/security/SECURITY_GUIDE.md)** - Security best practices
+- **[Environment Setup](/docs/setup/ENVIRONMENT_SETUP.md)** - Configuration guide
 
 ### Before Committing Code
 
