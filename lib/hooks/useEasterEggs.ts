@@ -488,8 +488,12 @@ function createMatrixRain(): void {
 // Helper: Play secret sound (if audio context available)
 function playSecretSound(): void {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    // Support for both modern and webkit prefixed AudioContext
+    const AudioContextClass = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) {
+      return; // Audio context not supported
+    }
+    const audioContext = new AudioContextClass();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
 

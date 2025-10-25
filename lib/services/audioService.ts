@@ -45,16 +45,22 @@ export interface TTSAssetMetadata {
   [key: string]: unknown;
 }
 
+export interface AudioAssetRecord {
+  id: string;
+  storage_url: string;
+  metadata: TTSAssetMetadata;
+  type: 'audio';
+  created_at: string;
+  user_id: string;
+  project_id: string;
+  source: string;
+  mime_type: string;
+  [key: string]: unknown;
+}
+
 export interface TTSGenerationResult {
   success: boolean;
-  asset: {
-    id: string;
-    storage_url: string;
-    metadata: TTSAssetMetadata;
-    type: 'audio';
-    created_at: string;
-    [key: string]: unknown;
-  };
+  asset: AudioAssetRecord;
   message: string;
 }
 
@@ -360,7 +366,7 @@ export class AudioService {
       provider: string;
       [key: string]: unknown;
     }
-  ): Promise<any> {
+  ): Promise<AudioAssetRecord> {
     const filePath = `${userId}/${projectId}/audio/${metadata.filename}`;
 
     // Upload to storage

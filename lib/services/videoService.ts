@@ -53,16 +53,28 @@ export interface VideoGenerationResult {
   message: string;
 }
 
+export interface VideoAssetRecord {
+  id: string;
+  type: string;
+  storage_url: string;
+  user_id: string;
+  project_id: string;
+  source: string;
+  metadata: {
+    filename: string;
+    mimeType: string;
+    sourceUrl: string;
+    generator: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
 export interface VideoStatusResult {
   done: boolean;
   progress?: number;
   error?: string;
-  asset?: {
-    id: string;
-    type: string;
-    storage_url: string;
-    [key: string]: unknown;
-  };
+  asset?: VideoAssetRecord;
   storageUrl?: string;
 }
 
@@ -342,7 +354,7 @@ export class VideoService {
     projectId: string,
     videoUrl: string,
     metadata: { mimeType: string; generator: string }
-  ): Promise<any> {
+  ): Promise<VideoAssetRecord> {
     const videoResponse = await fetch(videoUrl);
     if (!videoResponse.ok) {
       throw new Error(`Failed to download video: ${videoResponse.status}`);
@@ -360,7 +372,7 @@ export class VideoService {
     projectId: string,
     videoBinary: Buffer,
     metadata: { mimeType: string; generator: string }
-  ): Promise<any> {
+  ): Promise<VideoAssetRecord> {
     const fileName = `${uuidv4()}.mp4`;
     const storagePath = `${userId}/${projectId}/${fileName}`;
 

@@ -51,7 +51,7 @@ export function useVideoGeneration(
     usePolling<VideoStatusResponse>({
       interval: 10000, // 10 seconds
       maxRetries: 100, // ~16 minutes max
-      pollFn: async (): Promise<any> => {
+      pollFn: async (): Promise<VideoStatusResponse> => {
         if (!videoOperationName) {
           throw new Error('No operation name set');
         }
