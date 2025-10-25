@@ -25,14 +25,14 @@ import { useEditorStore } from '@/state/useEditorStore';
 // Mock Next.js Image
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: function MockImage({ src, alt, ...props }: any) {
+  default: function MockImage({ src, alt, ...props }: any): JSX.Element {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt={alt} {...props} />;
   },
 }));
 
 // Create a wrapper component to test integration
-const PlaybackIntegrationWrapper = () => {
+const PlaybackIntegrationWrapper = (): JSX.Element => {
   const isPlaying = usePlaybackStore((state) => state.isPlaying);
   const currentTime = usePlaybackStore((state) => state.currentTime);
   const timeline = useEditorStore((state) => state.timeline);
@@ -40,29 +40,29 @@ const PlaybackIntegrationWrapper = () => {
   const hasClips = timeline !== null && timeline.clips.length > 0;
   const totalDuration = timeline?.duration || 0;
 
-  const handlePlayPause = () => {
+  const handlePlayPause = (): void => {
     usePlaybackStore.getState().togglePlayPause();
   };
 
-  const handleSeek = (time: number) => {
+  const handleSeek = (time: number): void => {
     usePlaybackStore.getState().setCurrentTime(time);
   };
 
-  const handleToggleFullscreen = () => {
+  const handleToggleFullscreen = (): void => {
     // Mock fullscreen toggle
   };
 
-  const handleZoomIn = () => {
+  const handleZoomIn = (): void => {
     const currentZoom = useEditorStore.getState().zoom;
     useEditorStore.getState().setZoom(currentZoom * 1.2);
   };
 
-  const handleZoomOut = () => {
+  const handleZoomOut = (): void => {
     const currentZoom = useEditorStore.getState().zoom;
     useEditorStore.getState().setZoom(currentZoom / 1.2);
   };
 
-  const handleSplitAtPlayhead = () => {
+  const handleSplitAtPlayhead = (): void => {
     // Mock split functionality
   };
 
@@ -600,7 +600,7 @@ describe('Integration: Timeline and Playback Controls', () => {
       const user = userEvent.setup();
       const renderCount = { current: 0 };
 
-      const TestWrapper = () => {
+      const TestWrapper = (): JSX.Element => {
         renderCount.current++;
         return <PlaybackIntegrationWrapper />;
       };
