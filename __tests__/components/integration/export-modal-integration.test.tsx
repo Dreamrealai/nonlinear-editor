@@ -280,14 +280,19 @@ describe('Integration: Export Modal Workflow', () => {
         expect(screen.getByText('Web Optimized')).toBeInTheDocument();
       });
 
-      // Click Web Optimized preset
+      // Click Web Optimized preset - wait for it to be ready
+      await waitFor(() => {
+        const presetWeb = screen.getByText('Web Optimized').closest('button');
+        expect(presetWeb).toBeInTheDocument();
+      });
+
       const presetWeb = screen.getByText('Web Optimized').closest('button');
       await user.click(presetWeb!);
 
       // Should show WEBM format
       await waitFor(() => {
         expect(screen.getByText('WEBM')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
     });
 
     it('should navigate presets with keyboard', async () => {

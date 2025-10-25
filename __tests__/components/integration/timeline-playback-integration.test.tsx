@@ -301,12 +301,12 @@ describe('Integration: Timeline and Playback Controls', () => {
       const playButton = screen.getByRole('button', { name: 'Play video' });
       await user.click(playButton);
 
-      const initialTime = useEditorStore.getState().currentTime;
+      const initialTime = usePlaybackStore.getState().currentTime;
 
       // Wait for time to advance
       await waitFor(
         () => {
-          const currentTime = useEditorStore.getState().currentTime;
+          const currentTime = usePlaybackStore.getState().currentTime;
           expect(currentTime).toBeGreaterThan(initialTime);
         },
         { timeout: 1000 }
@@ -331,13 +331,13 @@ describe('Integration: Timeline and Playback Controls', () => {
       const pauseButton = screen.getByRole('button', { name: 'Pause video' });
       await user.click(pauseButton);
 
-      const timeWhenPaused = useEditorStore.getState().currentTime;
+      const timeWhenPaused = usePlaybackStore.getState().currentTime;
 
       // Wait a bit more
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Time should not have advanced
-      const timeAfterWaiting = useEditorStore.getState().currentTime;
+      const timeAfterWaiting = usePlaybackStore.getState().currentTime;
       expect(timeAfterWaiting).toBe(timeWhenPaused);
     });
   });
@@ -348,11 +348,11 @@ describe('Integration: Timeline and Playback Controls', () => {
       const user = userEvent.setup();
 
       // Set initial time to 10 seconds
-      useEditorStore.getState().setCurrentTime(10);
+      usePlaybackStore.getState().setCurrentTime(10);
 
       render(<PlaybackIntegrationWrapper />);
 
-      const initialTime = useEditorStore.getState().currentTime;
+      const initialTime = usePlaybackStore.getState().currentTime;
       expect(initialTime).toBe(10);
 
       // Click skip backward
@@ -360,7 +360,7 @@ describe('Integration: Timeline and Playback Controls', () => {
       await user.click(skipBackButton);
 
       await waitFor(() => {
-        const currentTime = useEditorStore.getState().currentTime;
+        const currentTime = usePlaybackStore.getState().currentTime;
         expect(currentTime).toBeLessThan(initialTime);
       });
     });
@@ -369,18 +369,18 @@ describe('Integration: Timeline and Playback Controls', () => {
       const user = userEvent.setup();
 
       // Set initial time
-      useEditorStore.getState().setCurrentTime(5);
+      usePlaybackStore.getState().setCurrentTime(5);
 
       render(<PlaybackIntegrationWrapper />);
 
-      const initialTime = useEditorStore.getState().currentTime;
+      const initialTime = usePlaybackStore.getState().currentTime;
 
       // Click skip forward
       const skipForwardButton = screen.getByRole('button', { name: /skip forward/i });
       await user.click(skipForwardButton);
 
       await waitFor(() => {
-        const currentTime = useEditorStore.getState().currentTime;
+        const currentTime = usePlaybackStore.getState().currentTime;
         expect(currentTime).toBeGreaterThan(initialTime);
       });
     });
@@ -389,7 +389,7 @@ describe('Integration: Timeline and Playback Controls', () => {
       const user = userEvent.setup();
 
       // Set time to 0
-      useEditorStore.getState().setCurrentTime(0);
+      usePlaybackStore.getState().setCurrentTime(0);
 
       render(<PlaybackIntegrationWrapper />);
 
@@ -398,7 +398,7 @@ describe('Integration: Timeline and Playback Controls', () => {
 
       // Time should stay at 0
       await waitFor(() => {
-        const currentTime = useEditorStore.getState().currentTime;
+        const currentTime = usePlaybackStore.getState().currentTime;
         expect(currentTime).toBe(0);
       });
     });

@@ -82,20 +82,18 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
 
   describe('User Profile Validation', () => {
     it('should return 500 when user profile not found', async () => {
-      const user = createTestUser();
-      const supabase = createTestSupabaseClient(user.id);
+      const { request, user } = createAuthenticatedRequest({
+        method: 'POST',
+        url: '/api/stripe/checkout',
+        body: {},
+      });
 
       // Remove user profile from test database
-      const db = require('@/test-utils/testWithAuth').getTestDatabase();
+      const db = getTestDatabase();
       db.delete('user_profiles', user.id);
 
-      const request = new NextRequest('http://localhost/api/stripe/checkout', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-      (request as any).__testUser = user;
-
-      const response = await POST(request, { params: Promise.resolve({}) });
+      const handler = createTestAuthHandler(POST);
+      const response = await handler(request, { params: Promise.resolve({}) });
 
       // The test database returns null when profile not found, which causes handler to throw
       // The error is caught and returns "Failed to create checkout session"
@@ -105,11 +103,14 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
     });
 
     it('should return 400 when user already has active subscription', async () => {
-      const user = createTestUser();
-      const supabase = createTestSupabaseClient(user.id);
+      const { request, user } = createAuthenticatedRequest({
+        method: 'POST',
+        url: '/api/stripe/checkout',
+        body: {},
+      });
 
       // Update user profile to have active premium subscription
-      const db = require('@/test-utils/testWithAuth').getTestDatabase();
+      const db = getTestDatabase();
       db.set('user_profiles', user.id, {
         id: user.id,
         email: user.email,
@@ -120,13 +121,8 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
         updated_at: new Date().toISOString(),
       });
 
-      const request = new NextRequest('http://localhost/api/stripe/checkout', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-      (request as any).__testUser = user;
-
-      const response = await POST(request, { params: Promise.resolve({}) });
+      const handler = createTestAuthHandler(POST);
+      const response = await handler(request, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -134,11 +130,14 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
     });
 
     it('should allow checkout for free tier users', async () => {
-      const user = createTestUser();
-      const supabase = createTestSupabaseClient(user.id);
+      const { request, user } = createAuthenticatedRequest({
+        method: 'POST',
+        url: '/api/stripe/checkout',
+        body: {},
+      });
 
       // Set up user profile with free tier
-      const db = require('@/test-utils/testWithAuth').getTestDatabase();
+      const db = getTestDatabase();
       db.set('user_profiles', user.id, {
         id: user.id,
         email: user.email,
@@ -155,13 +154,8 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
         url: 'https://checkout.stripe.com/test',
       });
 
-      const request = new NextRequest('http://localhost/api/stripe/checkout', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-      (request as any).__testUser = user;
-
-      const response = await POST(request, { params: Promise.resolve({}) });
+      const handler = createTestAuthHandler(POST);
+      const response = await handler(request, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -169,11 +163,14 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
     });
 
     it('should allow checkout for users with canceled subscriptions', async () => {
-      const user = createTestUser();
-      const supabase = createTestSupabaseClient(user.id);
+      const { request, user } = createAuthenticatedRequest({
+        method: 'POST',
+        url: '/api/stripe/checkout',
+        body: {},
+      });
 
       // Set up user profile with canceled subscription
-      const db = require('@/test-utils/testWithAuth').getTestDatabase();
+      const db = getTestDatabase();
       db.set('user_profiles', user.id, {
         id: user.id,
         email: user.email,
@@ -190,13 +187,8 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
         url: 'https://checkout.stripe.com/test',
       });
 
-      const request = new NextRequest('http://localhost/api/stripe/checkout', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-      (request as any).__testUser = user;
-
-      const response = await POST(request, { params: Promise.resolve({}) });
+      const handler = createTestAuthHandler(POST);
+      const response = await handler(request, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
     });
@@ -204,11 +196,14 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
 
   describe('Stripe Customer Creation', () => {
     it('should create new Stripe customer when not exists', async () => {
-      const user = createTestUser();
-      const supabase = createTestSupabaseClient(user.id);
+      const { request, user } = createAuthenticatedRequest({
+        method: 'POST',
+        url: '/api/stripe/checkout',
+        body: {},
+      });
 
       // Set up user profile without Stripe customer
-      const db = require('@/test-utils/testWithAuth').getTestDatabase();
+      const db = getTestDatabase();
       db.set('user_profiles', user.id, {
         id: user.id,
         email: user.email,
@@ -226,13 +221,8 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
         customer: 'cus_new_123',
       });
 
-      const request = new NextRequest('http://localhost/api/stripe/checkout', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-      (request as any).__testUser = user;
-
-      const response = await POST(request, { params: Promise.resolve({}) });
+      const handler = createTestAuthHandler(POST);
+      const response = await handler(request, { params: Promise.resolve({}) });
 
       expect(getOrCreateStripeCustomer).toHaveBeenCalledWith({
         userId: user.id,
@@ -246,11 +236,14 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
     });
 
     it('should use existing Stripe customer when available', async () => {
-      const user = createTestUser();
-      const supabase = createTestSupabaseClient(user.id);
+      const { request, user } = createAuthenticatedRequest({
+        method: 'POST',
+        url: '/api/stripe/checkout',
+        body: {},
+      });
 
       // Set up user profile with existing Stripe customer
-      const db = require('@/test-utils/testWithAuth').getTestDatabase();
+      const db = getTestDatabase();
       db.set('user_profiles', user.id, {
         id: user.id,
         email: user.email,
@@ -268,15 +261,10 @@ describe('POST /api/stripe/checkout - Integration Tests', () => {
         customer: 'cus_existing_123',
       });
 
-      const request = new NextRequest('http://localhost/api/stripe/checkout', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-      (request as any).__testUser = user;
-
       const initialProfile = db.get('user_profiles', user.id);
 
-      await POST(request, { params: Promise.resolve({}) });
+      const handler = createTestAuthHandler(POST);
+      await handler(request, { params: Promise.resolve({}) });
 
       expect(getOrCreateStripeCustomer).toHaveBeenCalledWith({
         userId: user.id,
