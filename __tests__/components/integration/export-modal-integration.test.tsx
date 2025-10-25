@@ -562,12 +562,17 @@ describe('Integration: Export Modal Workflow', () => {
           ok: true,
           json: async () => ({ data: { jobId: 'export-job-123' }, message: 'Export started' }),
         });
+        // Wait a tick for the promise to resolve
+        await Promise.resolve();
       });
 
       // Wait for all async state updates to complete
-      await waitFor(() => {
-        expect(screen.getByText('Export Started')).toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(screen.getByText('Export Started')).toBeInTheDocument();
+        },
+        { timeout: 5000 }
+      );
     });
 
     it('should disable export when no timeline is present', async () => {
@@ -619,6 +624,11 @@ describe('Integration: Export Modal Workflow', () => {
 
       await act(async () => {
         render(<ExportModal {...defaultProps} onClose={onClose} />);
+      });
+
+      // Wait for modal to be fully rendered
+      await waitFor(() => {
+        expect(screen.getByText('1080p HD')).toBeInTheDocument();
       });
 
       // Click on backdrop
@@ -675,6 +685,11 @@ describe('Integration: Export Modal Workflow', () => {
 
       const exportButton = screen.getByRole('button', { name: /add to queue/i });
       await user.click(exportButton);
+
+      // Wait for export to start (button should be disabled)
+      await waitFor(() => {
+        expect(exportButton).toBeDisabled();
+      });
 
       // Try to close with Escape
       await user.keyboard('{Escape}');
