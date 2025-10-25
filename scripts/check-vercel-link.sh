@@ -5,8 +5,8 @@
 
 set -e
 
-EXPECTED_PROJECT="non-linear-editor-nine"
-EXPECTED_TEAM="dream-real-b2bc4dd2"
+EXPECTED_PROJECT="nonlinear-editor"
+EXPECTED_TEAM="team_ra9Xgu9c3IP9hFzqynTmhkwp"
 
 echo "🔍 Checking Vercel project link..."
 
