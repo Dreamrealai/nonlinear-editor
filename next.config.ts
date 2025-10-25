@@ -189,6 +189,8 @@ const nextConfig: NextConfig = {
         runtimeChunk: 'single',
         splitChunks: {
           chunks: 'all',
+          maxInitialRequests: 25,
+          minSize: 20000,
           cacheGroups: {
             // Vendor code splitting
             vendor: {
@@ -214,30 +216,60 @@ const nextConfig: NextConfig = {
               minChunks: 2,
               priority: 5,
               reuseExistingChunk: true,
+              enforce: true,
             },
             // Large libraries that should be split separately
             supabase: {
               test: /[\\/]node_modules[\\/]@supabase[\\/]/,
               name: 'supabase',
               priority: 15,
+              enforce: true,
             },
             posthog: {
               test: /[\\/]node_modules[\\/]posthog-js[\\/]/,
               name: 'posthog',
               priority: 15,
+              enforce: true,
             },
             sentry: {
               test: /[\\/]node_modules[\\/]@sentry[\\/]/,
               name: 'sentry',
               priority: 15,
+              enforce: true,
             },
             google: {
               test: /[\\/]node_modules[\\/]@google[\\/]/,
               name: 'google',
               priority: 15,
+              enforce: true,
+            },
+            // Scalar API reference (large library)
+            scalar: {
+              test: /[\\/]node_modules[\\/]@scalar[\\/]/,
+              name: 'scalar',
+              priority: 15,
+              enforce: true,
+            },
+            // Radix UI components
+            radix: {
+              test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
+              name: 'radix',
+              priority: 15,
+              enforce: true,
             },
           },
         },
+        // Minimize bundle size
+        usedExports: true,
+        sideEffects: true,
+      };
+
+      // Performance budgets - warn when bundles exceed these sizes
+      config.performance = {
+        ...config.performance,
+        hints: 'warning',
+        maxEntrypointSize: 244000, // ~244KB
+        maxAssetSize: 244000, // ~244KB
       };
     }
     return config;

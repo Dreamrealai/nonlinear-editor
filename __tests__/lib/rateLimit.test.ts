@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import {
   checkRateLimit,
   createRateLimiter,
@@ -68,9 +71,8 @@ describe('Rate Limiting', () => {
       let result = await checkRateLimit(uniqueUser, config);
       expect(result.success).toBe(false);
 
-      // Fast-forward past window
-      jest.advanceTimersByTime(1001);
-      await Promise.resolve();
+      // Wait for window to expire (using real timers)
+      await new Promise((resolve) => setTimeout(resolve, 1100));
 
       // Should allow new request
       result = await checkRateLimit(uniqueUser, config);
@@ -150,8 +152,9 @@ describe('Rate Limiting', () => {
     it('should expose tiered presets', () => {
       expect(RATE_LIMITS.tier1_auth_payment).toEqual({ max: 5, windowMs: 60_000 });
       expect(RATE_LIMITS.tier2_resource_creation).toEqual({ max: 10, windowMs: 60_000 });
-      expect(RATE_LIMITS.tier3_status_read).toEqual({ max: 30, windowMs: 60_000 });
-      expect(RATE_LIMITS.tier4_general).toEqual({ max: 60, windowMs: 60_000 });
+      expect(RATE_LIMITS.tier3_status_read).toEqual({ max: 100, windowMs: 60_000 });
+      expect(RATE_LIMITS.tier4_general).toEqual({ max: 200, windowMs: 60_000 });
+      expect(RATE_LIMITS.tier5_high_frequency).toEqual({ max: 500, windowMs: 60_000 });
     });
 
     it('legacy aliases map to tiered presets', () => {
