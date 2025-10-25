@@ -365,6 +365,13 @@ export const useEditorStore = create<EditorStore>()(
         state.copiedClips = [];
         state.history = [];
         state.historyIndex = -1;
+        // Reset playback slice state
+        state.currentTime = 0;
+        state.timecodeDisplayMode = 'duration';
+        state.autoScrollEnabled = true;
+        // Reset zoom slice state
+        state.zoom = 50;
+        state.snapEnabled = true;
       }),
 
     // ===== Slices =====
