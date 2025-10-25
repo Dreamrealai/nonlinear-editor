@@ -24,7 +24,7 @@ const VALID_MODELS = ['minimax', 'mureka-1.5', 'kling-turbo-2.5'] as const;
  * - model: 'minimax' | 'mureka-1.5' | 'kling-turbo-2.5' - Model to use
  * - prompt?: string - Optional text prompt to guide audio generation
  */
-const handleGenerateAudio: AuthenticatedHandler = async (request, { user, supabase }) => {
+const handleGenerateAudio: AuthenticatedHandler = async (request, { user, supabase }): Promise<Response> => {
   const body = await request.json();
   const { assetId, projectId, model = 'minimax', prompt } = body;
 

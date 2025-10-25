@@ -208,6 +208,12 @@ export const TimelineRuler = React.memo<TimelineRulerProps>(function TimelineRul
         className="sticky top-0 z-10 bg-neutral-100 border-b border-neutral-300 cursor-pointer"
         style={{ height: RULER_HEIGHT }}
         onClick={handleRulerClick}
+        onKeyDown={(e): void => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleRulerClick(e as unknown as React.MouseEvent);
+          }
+        }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         role="button"

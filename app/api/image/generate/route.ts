@@ -94,7 +94,7 @@ import type { AuthenticatedHandler } from '@/lib/api/withAuth';
  *   "message": "Generated 2 image(s) successfully"
  * }
  */
-const handleImageGenerate: AuthenticatedHandler = async (req, { user, supabase }) => {
+const handleImageGenerate: AuthenticatedHandler = async (req, { user, supabase }): Promise<Response> => {
   const startTime = Date.now();
   serverLogger.info(
     {

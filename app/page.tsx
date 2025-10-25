@@ -39,7 +39,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/signin');
+    redirect('/auth/sign-in');
   }
 
   // Use ProjectService for database operations

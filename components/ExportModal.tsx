@@ -4,7 +4,7 @@ interface ExportModalProps {
   onExport: (format: 'json' | 'edl' | 'xml' | 'video') => void;
 }
 
-export function ExportModal({ isOpen, onClose, onExport }: ExportModalProps) {
+export function ExportModal({ isOpen, onClose, onExport }: ExportModalProps): React.JSX.Element | null {
   if (!isOpen) {
     return null;
   }

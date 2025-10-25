@@ -161,6 +161,15 @@ export const TimelineTextOverlayTrack = React.memo(function TimelineTextOverlayT
       style={{ top: 0, height: 48, minWidth: timelineWidth }}
       className="relative border-b-2 border-purple-300 bg-gradient-to-b from-purple-50 to-purple-100/50"
       onClick={onTimelineClick}
+      onKeyDown={(e): void => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onTimelineClick(e as unknown as React.MouseEvent);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label="Text overlay track - click to add text overlay"
     >
       <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none z-10">
         <CaseSensitive className="h-4 w-4 text-purple-600" />

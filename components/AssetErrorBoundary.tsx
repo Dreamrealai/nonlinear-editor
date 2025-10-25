@@ -136,7 +136,7 @@ export class AssetErrorBoundary extends React.Component<
     }
   };
 
-  override render() {
+  override render(): React.ReactNode {
     if (this.state.hasError) {
       // Use custom fallback if provided
       if (this.props.fallback) {
@@ -223,6 +223,6 @@ export class AssetErrorBoundary extends React.Component<
  * </AssetErrorBoundaryWrapper>
  * ```
  */
-export function AssetErrorBoundaryWrapper(props: AssetErrorBoundaryProps) {
+export function AssetErrorBoundaryWrapper(props: AssetErrorBoundaryProps): React.JSX.Element {
   return <AssetErrorBoundary {...props} />;
 }

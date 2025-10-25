@@ -537,6 +537,12 @@ export function EditorHeader({
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={(): void => setIsMobileMenuOpen(false)}
+            onKeyDown={(e): void => {
+              if (e.key === 'Escape') setIsMobileMenuOpen(false);
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Close mobile menu overlay"
           />
           <div className="fixed inset-y-0 left-0 w-80 bg-white shadow-xl z-50 lg:hidden overflow-y-auto dark:bg-neutral-900">
             <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">

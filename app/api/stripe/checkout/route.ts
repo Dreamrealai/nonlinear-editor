@@ -16,7 +16,7 @@ import { validateString, ValidationError } from '@/lib/validation';
 import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 
-export const handleStripeCheckout: AuthenticatedHandler = async (request, { user, supabase }) => {
+export const handleStripeCheckout: AuthenticatedHandler = async (request, { user, supabase }): Promise<Response> => {
   const startTime = Date.now();
 
   try {

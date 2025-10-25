@@ -104,7 +104,7 @@ const DEFAULT_VIDEO_MODEL: SupportedVideoModel = 'veo-3.1-generate-preview';
  *   "message": "Video generation started. Use the operation name to check status."
  * }
  */
-const handleVideoGenerate: AuthenticatedHandler = async (req, { user, supabase }) => {
+const handleVideoGenerate: AuthenticatedHandler = async (req, { user, supabase }): Promise<Response> => {
   const startTime = Date.now();
 
   serverLogger.info(

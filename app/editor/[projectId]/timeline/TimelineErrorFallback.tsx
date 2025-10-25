@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 
-export function TimelineErrorFallback() {
-  const handleReload = () => {
+export function TimelineErrorFallback(): React.JSX.Element {
+  const handleReload = (): void => {
     window.location.reload();
   };
 

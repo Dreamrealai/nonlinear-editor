@@ -22,7 +22,7 @@ interface SunoStatusResponse {
   }[];
 }
 
-const handleSunoStatus: AuthenticatedHandler = async (req, { user, supabase }) => {
+const handleSunoStatus: AuthenticatedHandler = async (req, { user, supabase }): Promise<Response> => {
   const apiKey = process.env['COMET_API_KEY'];
 
   if (!apiKey) {

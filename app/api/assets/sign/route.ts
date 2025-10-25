@@ -82,7 +82,7 @@ function normalizeStorageUrl(rawUrl: string): StorageLocation | null {
   return null;
 }
 
-const handleSignUrl: AuthenticatedHandler = async (request, { user, supabase }) => {
+const handleSignUrl: AuthenticatedHandler = async (request, { user, supabase }): Promise<Response> => {
   const searchParams = request.nextUrl.searchParams;
   const assetId = searchParams.get('assetId');
   let storageUrl = searchParams.get('storageUrl');

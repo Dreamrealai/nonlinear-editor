@@ -145,6 +145,16 @@
     ]
   },
   "overrides": {
-    "prismjs": "^1.30.0"
+    "prismjs": "^1.30.0",
+    "gaxios@^7.0.0": {
+      "node-fetch": "file:vendor/node-fetch"
+    },
+    "google-gax": {
+      "node-fetch": "file:vendor/node-fetch"
+    },
+    "teeny-request@^10.0.0": {
+      "node-fetch": "file:vendor/node-fetch"
+    },
+    "test-exclude": "^7.0.1"
   }
 }

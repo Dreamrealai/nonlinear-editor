@@ -9,7 +9,7 @@ export default function EditorError({
 }: {
   error: Error & { digest?: string };
   reset: () => void;
-}) {
+}): React.JSX.Element {
   useEffect(() => {
     browserLogger.error({ error, digest: error.digest }, 'Editor error');
   }, [error]);

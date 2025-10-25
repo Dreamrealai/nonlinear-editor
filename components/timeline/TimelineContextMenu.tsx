@@ -105,8 +105,8 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
 
   return (
     <>
-      <div
-        className="fixed z-50 rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-lg py-1 min-w-[220px] max-h-[80vh] overflow-y-auto"
+      <button
+        className="fixed z-50 rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-lg py-1 min-w-[220px] max-h-[80vh] overflow-y-auto text-left w-auto"
         style={{ left: x, top: y }}
         onClick={(e): void => e.stopPropagation()}
         onKeyDown={(e): void => {
@@ -523,7 +523,7 @@ export const TimelineContextMenu: React.FC<TimelineContextMenuProps> = ({
             setShowProperties(true);
           }}
         />
-      </div>
+      </button>
 
       {/* Properties Modal */}
       {showProperties && (
@@ -625,7 +625,6 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({
   const duration = clip.end - clip.start;
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       onClick={onClose}
@@ -634,14 +633,17 @@ const ClipPropertiesModal: React.FC<ClipPropertiesModalProps> = ({
           onClose();
         }
       }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="clip-properties-title"
-      tabIndex={-1}
+      role="button"
+      tabIndex={0}
+      aria-label="Close clip properties dialog"
     >
       <div
         className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="clip-properties-title"
         onClick={(e): void => e.stopPropagation()}
+        onKeyDown={(e): void => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
           <h2 id="clip-properties-title" className="text-lg font-semibold text-neutral-900">

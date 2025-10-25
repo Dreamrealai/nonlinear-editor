@@ -52,6 +52,21 @@ const nextConfig: NextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
+  async redirects() {
+    return [
+      {
+        source: '/signin',
+        destination: '/auth/sign-in',
+        permanent: true,
+      },
+      {
+        source: '/signup',
+        destination: '/auth/sign-up',
+        permanent: true,
+      },
+    ];
+  },
+
   // Security headers
   async headers() {
     return [

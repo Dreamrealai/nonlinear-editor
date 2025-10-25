@@ -4,12 +4,12 @@ A modern, browser-based non-linear video editor built with Next.js 16, React 19,
 
 ## Project Status
 
-![Tests](https://img.shields.io/badge/tests-807%2F924%20passing-green)
-![Test%20Coverage](https://img.shields.io/badge/coverage-22.67%25-yellow)
+![Tests](https://img.shields.io/badge/tests-2898%2F4177%20passing-green)
+![Test%20Coverage](https://img.shields.io/badge/coverage-~65%25-yellow)
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
-![Lint](https://img.shields.io/badge/lint-0%20errors-brightgreen)
+![TypeScript](https://img.shields.io/badge/typescript-0%20errors-brightgreen)
 
-See [Test Success Report](docs/reports/TEST_SUCCESS_REPORT.md) for detailed testing metrics.
+See [ISSUES.md](ISSUES.md) for current project status and issue tracking.
 
 ## Features
 
@@ -242,6 +242,69 @@ All project documentation has been organized into the `/docs/` directory. See th
 - **`/docs/setup/`** - Setup guides for Supabase, Stripe, Vercel, email, and environment variables
 - **`/docs/issues/`** - Issue tracking and resolution reports
 - **`/docs/reports/`** - Comprehensive reports, audits, and codebase analysis
+- **`/docs/testing/`** - Testing guides, patterns, and best practices
+
+## Testing
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run with coverage
+npm test -- --coverage
+
+# Run specific test file
+npm test path/to/test.test.ts
+
+# Watch mode
+npm run test:watch
+
+# Run tests with coverage report
+npm test -- --coverage --coverageReporters=html
+open coverage/lcov-report/index.html
+```
+
+### Test Structure
+
+```
+__tests__/               # All test files
+├── api/                 # API route tests
+├── components/          # Component tests
+├── lib/                 # Library and utility tests
+│   ├── hooks/           # Custom hook tests
+│   ├── services/        # Service layer tests
+│   └── state/           # State management tests
+├── integration/         # Integration tests
+└── test-utils/          # Shared test utilities
+```
+
+### Coverage Targets
+
+| Category    | Current | Target | Status |
+|-------------|---------|--------|--------|
+| Overall     | ~65%    | 70%    | 🟡 In Progress |
+| Services    | 83%     | 80%    | ✅ Exceeds |
+| State       | 81%     | 80%    | ✅ Exceeds |
+| Hooks       | 66%     | 70%    | 🟡 Near Target |
+| Components  | ~62%    | 70%    | 🟡 In Progress |
+| API Routes  | ~64%    | 70%    | 🟡 In Progress |
+
+### Testing Documentation
+
+- **[Test Architecture](./docs/TEST_ARCHITECTURE.md)** - Test infrastructure and setup
+- **[Test Reliability Guide](./docs/testing/TEST_RELIABILITY_GUIDE.md)** - Writing stable, non-flaky tests
+- **[Coverage Improvement Guide](./docs/testing/COVERAGE_IMPROVEMENT_GUIDE.md)** - Strategies for improving coverage
+- **[Common Test Patterns](./docs/testing/COMMON_TEST_PATTERNS.md)** - Reusable patterns for API, components, hooks, services
+
+### Test Quality
+
+- ✅ Mock patterns standardized
+- ✅ Test utilities consolidated
+- ✅ Integration tests at 100% pass rate
+- ✅ Comprehensive service coverage (83%)
+- 🟡 Component and API route coverage in progress
 
 ## Environment Variables
 

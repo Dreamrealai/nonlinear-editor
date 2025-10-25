@@ -44,7 +44,7 @@ interface ExportJob {
   completedAt: string | null;
 }
 
-const handleGetQueue: AuthenticatedHandler = async (request, { user, supabase }) => {
+const handleGetQueue: AuthenticatedHandler = async (request, { user, supabase }): Promise<Response> => {
   const includeCompleted = request.nextUrl.searchParams.get('includeCompleted') === 'true';
 
   try {

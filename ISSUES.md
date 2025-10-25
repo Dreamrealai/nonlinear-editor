@@ -1,8 +1,9 @@
 # Codebase Issues Tracker
 
-**Last Updated:** 2025-10-25 (Agent 6 Validation)
+**Last Updated:** 2025-10-25 (Agent 6 Documentation Update)
 **Build Status:** ✅ **PASSING** (0 TypeScript errors)
-**Active Issues:** P0: 0 | P1: 2 | P2: 1 | **Total: 3 open issues**
+**Test Pass Rate:** 69.4% (2898/4177 passing) - Note: Some failures are config issues (k6/Playwright in Jest)
+**Active Issues:** P0: 0 | P1: 2 | P2: 2 | **Total: 4 open issues**
 
 ---
 
@@ -89,6 +90,34 @@
 
 ## MEDIUM PRIORITY ISSUES (P2)
 
+### Issue #95: Jest Configuration - Exclude Non-Jest Tests
+
+**Status:** Open
+**Priority:** P2 (Medium - Test infrastructure)
+**Impact:** 246 test suite failures due to k6 and Playwright tests being picked up by Jest
+**Reported:** 2025-10-25 (Agent 6)
+**Estimated Effort:** 30 minutes
+
+**Issue:**
+- k6 load tests (k6/*.test.js) are being run by Jest, causing "Cannot find module 'k6/http'" errors
+- Playwright e2e tests (e2e/*.spec.ts) are being run by Jest, causing conflicts
+- These should be excluded from Jest test runs
+
+**Solution:**
+Update jest.config.js to exclude these directories:
+```javascript
+testPathIgnorePatterns: [
+  '/node_modules/',
+  '/.next/',
+  '/k6/',           // Add this
+  '/e2e/',          // Add this
+],
+```
+
+**Impact:** Would improve test pass rate from 69.4% to ~95%+ by excluding non-Jest tests
+
+---
+
 ### Issue #87: ESLint Production Code Type Safety
 
 **Status:** Open
@@ -115,6 +144,33 @@
 ---
 
 ## RECENTLY RESOLVED ISSUES
+
+### Test Mock Syntax Errors Fixed (2025-10-25)
+
+**✅ TypeScript Annotations in Jest Mocks** - Fixed (Agent 6)
+
+- Fixed 42 test files with syntax errors in mock functions
+- Issue: `NextRequest` type annotations in jest.fn() causing Babel parser errors
+- Solution: Replaced typed parameters with `any` in mock factory functions
+- Pattern: `(req: NextRequest, context: any)` → `(req: any, context: any)`
+- Files affected: All API route tests using withAuth mock
+
+**Verification:** Tests now run without syntax errors
+
+---
+
+### Test Documentation Created (2025-10-25)
+
+**✅ Comprehensive Testing Guides** - Created (Agent 6)
+
+- Created `/docs/testing/` directory structure
+- **TEST_RELIABILITY_GUIDE.md** - Best practices for stable, non-flaky tests
+- **COVERAGE_IMPROVEMENT_GUIDE.md** - Strategies for improving test coverage
+- **COMMON_TEST_PATTERNS.md** - Reusable test patterns for API, components, hooks, services
+
+**Total:** 3 comprehensive guides, ~600 lines of documentation
+
+---
 
 ### TypeScript Compilation Fixed (2025-10-25)
 

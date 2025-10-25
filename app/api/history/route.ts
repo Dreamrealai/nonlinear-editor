@@ -8,7 +8,7 @@ import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 export const dynamic = 'force-dynamic';
 
 // GET /api/history - Fetch user's activity history
-const handleGetHistory: AuthenticatedHandler = async (request, { user, supabase }) => {
+const handleGetHistory: AuthenticatedHandler = async (request, { user, supabase }): Promise<Response> => {
   // Parse query parameters for pagination
   const { searchParams } = new URL(request.url);
   const limit = parseInt(searchParams.get('limit') || '50', 10);
@@ -50,7 +50,7 @@ export const GET = withAuth(handleGetHistory, {
 });
 
 // DELETE /api/history - Clear user's activity history
-const handleDeleteHistory: AuthenticatedHandler = async (_request, { user, supabase }) => {
+const handleDeleteHistory: AuthenticatedHandler = async (_request, { user, supabase }): Promise<Response> => {
   // Delete all activity history for the user
   const { error } = await supabase.from('user_activity_history').delete().eq('user_id', user.id);
 
@@ -81,7 +81,7 @@ const VALID_ACTIVITY_TYPES = [
 ] as const;
 
 // POST /api/history - Add a new activity entry (for manual logging)
-const handleAddHistory: AuthenticatedHandler = async (request, { user, supabase }) => {
+const handleAddHistory: AuthenticatedHandler = async (request, { user, supabase }): Promise<Response> => {
   const body = await request.json();
   const { project_id, activity_type, title, description, model, asset_id, metadata } = body;
 

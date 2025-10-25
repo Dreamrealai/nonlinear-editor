@@ -9,7 +9,7 @@ export default function Error({
 }: {
   error: Error & { digest?: string };
   reset: () => void;
-}) {
+}): React.JSX.Element {
   useEffect(() => {
     // Log the error to an error reporting service
     browserLogger.error({ error, digest: error.digest }, 'Application error');

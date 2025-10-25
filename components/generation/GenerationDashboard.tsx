@@ -248,7 +248,9 @@ export function GenerationDashboard({
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-neutral-200">
         <div>
-          <h2 className="text-lg font-bold text-neutral-900">Generation Dashboard</h2>
+          <h2 id="generation-dashboard-title" className="text-lg font-bold text-neutral-900">
+            Generation Dashboard
+          </h2>
           <p className="text-xs text-neutral-600 mt-0.5">
             {activeJobs.length} active • {completedJobs.length} completed • {failedJobs.length}{' '}
             failed
@@ -404,10 +406,19 @@ export function GenerationDashboard({
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
         onClick={onClose}
+        onKeyDown={(e): void => {
+          if (e.key === 'Escape') onClose();
+        }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="generation-dashboard-title"
+        tabIndex={-1}
       >
         <div
           className="relative w-full max-w-3xl max-h-[90vh] bg-white rounded-xl shadow-2xl overflow-hidden"
           onClick={(e): void => e.stopPropagation()}
+          onKeyDown={(e): void => e.stopPropagation()}
+          role="document"
         >
           {content}
         </div>

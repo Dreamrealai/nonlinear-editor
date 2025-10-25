@@ -99,7 +99,7 @@ const VALID_TRANSITIONS = [
   'zoom-out',
 ] as const;
 
-const handleExportCreate: AuthenticatedHandler = async (request, { user, supabase }) => {
+const handleExportCreate: AuthenticatedHandler = async (request, { user, supabase }): Promise<Response> => {
   const exportEnabled = process.env['VIDEO_EXPORT_ENABLED'] === 'true';
 
   if (!exportEnabled) {
@@ -313,7 +313,7 @@ export const POST = withAuth(handleExportCreate, {
  * GET /api/export?jobId=xxx
  * Check status of export job
  */
-const handleExportStatus: AuthenticatedHandler = async (request, { user, supabase }) => {
+const handleExportStatus: AuthenticatedHandler = async (request, { user, supabase }): Promise<Response> => {
   const jobId = request.nextUrl.searchParams.get('jobId');
 
   if (!jobId) {

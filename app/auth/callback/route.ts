@@ -43,7 +43,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     }
 
     // If there's an error or no code, redirect to sign in
-    return NextResponse.redirect(new URL('/signin?error=auth_failed', requestUrl.origin));
+    return NextResponse.redirect(new URL('/auth/sign-in?error=auth_failed', requestUrl.origin));
   } catch (error) {
     // Log unexpected errors
     serverLogger.error(
@@ -57,6 +57,6 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     // Redirect to sign in with error
     const requestUrl = new URL(request.url);
-    return NextResponse.redirect(new URL('/signin?error=auth_failed', requestUrl.origin));
+    return NextResponse.redirect(new URL('/auth/sign-in?error=auth_failed', requestUrl.origin));
   }
 }

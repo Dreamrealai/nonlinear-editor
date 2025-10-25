@@ -24,7 +24,7 @@ import type { AuthenticatedHandler } from '@/lib/api/withAuth';
  * - targetFps?: number - Target FPS for frame interpolation (optional)
  * - h264Output?: boolean - Use H264 codec instead of H265 (default: false)
  */
-const handleVideoUpscale: AuthenticatedHandler = async (request, { user, supabase }) => {
+const handleVideoUpscale: AuthenticatedHandler = async (request, { user, supabase }): Promise<Response> => {
   const body = await request.json();
   const { assetId, projectId, upscaleFactor = 2, targetFps, h264Output = false } = body;
 

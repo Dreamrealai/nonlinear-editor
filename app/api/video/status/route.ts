@@ -84,7 +84,7 @@ const parseGcsUri = (uri: string): { bucket: string; objectPath: string } | null
  *   "progress": 0
  * }
  */
-const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }) => {
+const handleVideoStatus: AuthenticatedHandler = async (req, { user, supabase }): Promise<Response> => {
   const startTime = Date.now();
 
   serverLogger.info(

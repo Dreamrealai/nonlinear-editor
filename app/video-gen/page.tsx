@@ -41,7 +41,7 @@ export default function VideoGenPage(): React.JSX.Element {
     prompt: string;
     aspectRatio?: '9:16' | '16:9' | '1:1';
     duration?: number;
-  }) => {
+  }): Promise<void> => {
     if (!projectId) {
       toast.error('No project selected');
       return;
@@ -82,7 +82,7 @@ export default function VideoGenPage(): React.JSX.Element {
 
       // Poll for video generation status with cleanup tracking
       const pollInterval = 10000; // 10 seconds
-      const poll = async () => {
+      const poll = async (): Promise<void> => {
         // Check if component is still mounted
         if (!isMountedRef.current) {
           return;
@@ -167,7 +167,7 @@ export default function VideoGenPage(): React.JSX.Element {
     }
   };
 
-  const handleCancelGeneration = () => {
+  const handleCancelGeneration = (): void => {
     // Clear polling timeout
     if (pollingTimeoutRef.current) {
       clearTimeout(pollingTimeoutRef.current);

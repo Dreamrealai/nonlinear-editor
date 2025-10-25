@@ -44,7 +44,7 @@ function formatFileSize(bytes: number): string {
 /**
  * Asset thumbnail with loading and error states
  */
-function AssetThumbnail({ asset }: { asset: AssetRow }) {
+function AssetThumbnail({ asset }: { asset: AssetRow }): React.JSX.Element {
   const { url, state, error, isFallback, retry } = useAssetWithFallback(asset, {
     enableFallback: true,
     enableRetry: true,
@@ -162,7 +162,7 @@ export function AssetCard({
   onAdd,
   onDelete,
   onViewVersions,
-}: AssetCardProps) {
+}: AssetCardProps): React.JSX.Element {
   return (
     <AssetErrorBoundary
       assetId={asset.id}

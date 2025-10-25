@@ -10,7 +10,7 @@ import {
 } from '@/lib/api/response';
 import { validateUUID, ValidationError } from '@/lib/validation';
 
-const handleSplitAudio: AuthenticatedHandler = async (req, { user, supabase }) => {
+const handleSplitAudio: AuthenticatedHandler = async (req, { user, supabase }): Promise<Response> => {
   serverLogger.info({ event: 'split_audio.request_started' }, 'Audio split request received');
 
   const body = await req.json();

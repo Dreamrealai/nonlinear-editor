@@ -90,27 +90,29 @@ export const TimelineMarkers = React.memo<TimelineMarkersProps>(function Timelin
             style={{ left: `${markerLeft}px` }}
           >
             {/* Marker line */}
-            <div
-              className={`absolute top-0 bottom-0 w-0.5 cursor-pointer transition-all ${
+            <button
+              className={`absolute top-0 bottom-0 w-0.5 cursor-pointer transition-all border-none p-0 ${
                 isActive ? 'opacity-100' : 'opacity-60 hover:opacity-100'
               }`}
               style={{ backgroundColor: markerColor }}
               onClick={(): void => onMarkerClick(marker.id)}
               onContextMenu={(e): void => handleContextMenu(e, marker.id)}
+              aria-label={`Jump to marker: ${marker.label}`}
             />
 
             {/* Marker icon/flag at top */}
-            <div
-              className={`absolute -top-1 -left-2 w-4 h-4 cursor-pointer transition-all ${
+            <button
+              className={`absolute -top-1 -left-2 w-4 h-4 cursor-pointer transition-all border-none bg-transparent p-0 ${
                 isActive ? 'scale-110' : 'hover:scale-105'
               }`}
               style={{ color: markerColor }}
               onClick={(): void => onMarkerClick(marker.id)}
               onContextMenu={(e): void => handleContextMenu(e, marker.id)}
               title={marker.label}
+              aria-label={`Marker: ${marker.label}`}
             >
               <Bookmark className="w-4 h-4 fill-current" />
-            </div>
+            </button>
 
             {/* Marker label */}
             {editingMarkerId === marker.id ? (
@@ -142,15 +144,16 @@ export const TimelineMarkers = React.memo<TimelineMarkersProps>(function Timelin
                 </div>
               </div>
             ) : (
-              <div
+              <button
                 className={`absolute top-6 left-0 -translate-x-1/2 px-2 py-0.5 bg-white dark:bg-neutral-800 rounded border text-xs whitespace-nowrap cursor-pointer transition-opacity ${
                   isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                 }`}
                 style={{ borderColor: markerColor, color: markerColor }}
                 onClick={(): void => onMarkerClick(marker.id)}
+                aria-label={`Jump to marker: ${marker.label}`}
               >
                 {marker.label}
-              </div>
+              </button>
             )}
           </div>
         );

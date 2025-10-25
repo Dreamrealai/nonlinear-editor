@@ -105,8 +105,8 @@ export const TimelineTextOverlayRenderer = React.memo<TimelineTextOverlayRendere
           {isSelected && onTrimMouseDown && (
             <>
               {/* Left trim handle */}
-              <div
-                className="absolute left-0 top-0 bottom-0 w-2 bg-purple-600 cursor-ew-resize hover:bg-purple-700 pointer-events-auto"
+              <button
+                className="absolute left-0 top-0 bottom-0 w-2 bg-purple-600 cursor-ew-resize hover:bg-purple-700 pointer-events-auto border-none p-0"
                 onMouseDown={(e): void => {
                   e.stopPropagation();
                   onTrimMouseDown(e, overlay, 'left');
@@ -114,8 +114,8 @@ export const TimelineTextOverlayRenderer = React.memo<TimelineTextOverlayRendere
                 aria-label="Trim start"
               />
               {/* Right trim handle */}
-              <div
-                className="absolute right-0 top-0 bottom-0 w-2 bg-purple-600 cursor-ew-resize hover:bg-purple-700 pointer-events-auto"
+              <button
+                className="absolute right-0 top-0 bottom-0 w-2 bg-purple-600 cursor-ew-resize hover:bg-purple-700 pointer-events-auto border-none p-0"
                 onMouseDown={(e): void => {
                   e.stopPropagation();
                   onTrimMouseDown(e, overlay, 'right');

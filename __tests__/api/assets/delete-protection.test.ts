@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import { createMockSupabaseClient } from '@/lib/test-utils/mockSupabase';
+import { createMockSupabaseClient } from '@/test-utils/mockSupabase';
 import type { Timeline } from '@/types/timeline';
 
 describe('DELETE /api/assets/[assetId] - Timeline Protection', () => {

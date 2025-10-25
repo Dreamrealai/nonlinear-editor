@@ -39,7 +39,7 @@ const parseStorageUrl = (storageUrl: string): { bucket: string; path: string } |
 // Set max duration for Vercel serverless function (10 seconds on hobby, 60 on pro)
 export const maxDuration = 60;
 
-const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }) => {
+const handleSplitScenes: AuthenticatedHandler = async (req, { user, supabase }): Promise<Response> => {
   serverLogger.info('Scene detection request received');
   serverLogger.info({ userId: user.id }, 'User authenticated for scene detection');
 

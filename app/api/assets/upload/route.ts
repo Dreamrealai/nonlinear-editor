@@ -70,7 +70,7 @@ const VALID_ASSET_TYPES = ['image', 'video', 'audio'] as const;
  *   "success": true
  * }
  */
-const handleAssetUpload: AuthenticatedHandler = async (request, { user, supabase }) => {
+const handleAssetUpload: AuthenticatedHandler = async (request, { user, supabase }): Promise<Response> => {
   const startTime = Date.now();
 
   serverLogger.info(
