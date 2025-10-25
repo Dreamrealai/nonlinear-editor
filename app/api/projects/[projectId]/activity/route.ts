@@ -9,12 +9,25 @@ import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
 import { validateInteger, ValidationError } from '@/lib/validation';
+import type { CollaborationActivity } from '@/types/collaboration';
 
 /**
  * GET - Get activity log for a project
  */
 export const GET = withAuth<{ projectId: string }>(
-  async (req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ activities: any[]; total: number; limit: number; offset: number; }>> => {
+  async (
+    req: NextRequest,
+    { user, supabase },
+    routeContext
+  ): Promise<
+    | NextResponse<{ error: string }>
+    | NextResponse<{
+        activities: CollaborationActivity[];
+        total: number;
+        limit: number;
+        offset: number;
+      }>
+  > => {
     const params = await routeContext?.params;
     const projectId = params?.projectId;
 
@@ -72,7 +85,11 @@ export const GET = withAuth<{ projectId: string }>(
       }
 
       // Get activity log
-      const { data: activities, error, count } = await supabase
+      const {
+        data: activities,
+        error,
+        count,
+      } = await supabase
         .from('collaboration_activity')
         .select('*', { count: 'exact' })
         .eq('project_id', projectId)
@@ -97,6 +114,6 @@ export const GET = withAuth<{ projectId: string }>(
   },
   {
     route: '/api/projects/[projectId]/activity',
-    rateLimit: RATE_LIMITS.tier3_status_read
+    rateLimit: RATE_LIMITS.tier3_status_read,
   }
 );

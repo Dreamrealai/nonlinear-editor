@@ -8,12 +8,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 import { serverLogger } from '@/lib/serverLogger';
+import type { ProjectCollaborator } from '@/types/collaboration';
 
 /**
  * GET - List all collaborators for a project
  */
 export const GET = withAuth<{ projectId: string }>(
-  async (_req: NextRequest, { user, supabase }, routeContext): Promise<NextResponse<{ error: string; }> | NextResponse<{ collaborators: any[]; }>> => {
+  async (
+    _req: NextRequest,
+    { user, supabase },
+    routeContext
+  ): Promise<
+    NextResponse<{ error: string }> | NextResponse<{ collaborators: ProjectCollaborator[] }>
+  > => {
     const params = await routeContext?.params;
     const projectId = params?.projectId;
 

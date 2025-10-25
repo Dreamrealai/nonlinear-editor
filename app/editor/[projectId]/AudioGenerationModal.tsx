@@ -4,6 +4,8 @@
  */
 'use client';
 
+import React from 'react';
+
 type AudioGenerationModalProps = {
   isOpen: boolean;
   isPending: boolean;
@@ -30,7 +32,7 @@ export function AudioGenerationModal({
   onModeBack,
   onGenerateSuno,
   onGenerateElevenLabs,
-}: AudioGenerationModalProps) {
+}: AudioGenerationModalProps): React.ReactElement | null {
   if (!isOpen) return null;
 
   return (

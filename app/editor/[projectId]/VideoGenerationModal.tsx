@@ -4,6 +4,8 @@
  */
 'use client';
 
+import React from 'react';
+
 type VideoGenerationModalProps = {
   isOpen: boolean;
   isPending: boolean;
@@ -22,7 +24,7 @@ export function VideoGenerationModal({
   operationName,
   onClose,
   onGenerate,
-}: VideoGenerationModalProps) {
+}: VideoGenerationModalProps): React.ReactElement | null {
   if (!isOpen) return null;
 
   return (

@@ -12,6 +12,38 @@ import { withAuth } from '@/lib/api/withAuth';
 import type { AuthenticatedHandler } from '@/lib/api/withAuth';
 import { RATE_LIMITS } from '@/lib/rateLimit';
 
+// Database types for processing_jobs table
+interface ProcessingJobRow {
+  id: string;
+  user_id: string;
+  project_id: string;
+  job_type: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+  priority: number;
+  progress_percentage: number | null;
+  config: Record<string, unknown> | null;
+  metadata: Record<string, unknown> | null;
+  error_message: string | null;
+  created_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+}
+
+// API response type for export jobs
+interface ExportJob {
+  id: string;
+  projectId: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+  progress: number;
+  priority: number;
+  config: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+  errorMessage: string | null;
+  createdAt: string;
+  startedAt: string | null;
+  completedAt: string | null;
+}
+
 const handleGetQueue: AuthenticatedHandler = async (request, { user, supabase }) => {
   const includeCompleted = request.nextUrl.searchParams.get('includeCompleted') === 'true';
 
@@ -32,39 +64,37 @@ const handleGetQueue: AuthenticatedHandler = async (request, { user, supabase })
     const { data: jobs, error: fetchError } = await query;
 
     if (fetchError) {
-      serverLogger.error(
-        { error: fetchError, userId: user.id },
-        'Failed to fetch render queue'
-      );
+      serverLogger.error({ error: fetchError, userId: user.id }, 'Failed to fetch render queue');
       return errorResponse('Failed to fetch render queue', 500);
     }
 
     // Map database jobs to API response format
-    const mappedJobs = jobs.map((job): { id: any; projectId: any; status: any; progress: any; priority: any; config: any; metadata: any; errorMessage: any; createdAt: any; startedAt: any; completedAt: any; } => ({
-      id: job.id,
-      projectId: job.project_id,
-      status: job.status,
-      progress: job.progress_percentage || 0,
-      priority: job.priority || 0,
-      config: job.config || {},
-      metadata: job.metadata || {},
-      errorMessage: job.error_message,
-      createdAt: job.created_at,
-      startedAt: job.started_at,
-      completedAt: job.completed_at,
-    }));
+    const mappedJobs: ExportJob[] = (jobs as ProcessingJobRow[]).map(
+      (job): ExportJob => ({
+        id: job.id,
+        projectId: job.project_id,
+        status: job.status,
+        progress: job.progress_percentage || 0,
+        priority: job.priority || 0,
+        config: job.config || {},
+        metadata: job.metadata || {},
+        errorMessage: job.error_message,
+        createdAt: job.created_at,
+        startedAt: job.started_at,
+        completedAt: job.completed_at,
+      })
+    );
 
     return successResponse({
       jobs: mappedJobs,
       total: mappedJobs.length,
-      active: mappedJobs.filter(j => j.status === 'pending' || j.status === 'processing').length,
-      completed: mappedJobs.filter(j => j.status === 'completed' || j.status === 'failed' || j.status === 'cancelled').length,
+      active: mappedJobs.filter((j) => j.status === 'pending' || j.status === 'processing').length,
+      completed: mappedJobs.filter(
+        (j) => j.status === 'completed' || j.status === 'failed' || j.status === 'cancelled'
+      ).length,
     });
   } catch (error) {
-    serverLogger.error(
-      { error, userId: user.id },
-      'Unexpected error fetching render queue'
-    );
+    serverLogger.error({ error, userId: user.id }, 'Unexpected error fetching render queue');
     return errorResponse('An unexpected error occurred', 500);
   }
 };
