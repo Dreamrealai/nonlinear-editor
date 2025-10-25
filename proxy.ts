@@ -2,9 +2,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { validateEnv } from './lib/validateEnv';
 import {
+  getSecurityHeaders,
   generateNonce,
   buildCSPHeader,
-  getSecurityHeaders,
   CSP_NONCE_HEADER,
 } from './lib/security/csp';
 
@@ -21,11 +21,15 @@ if (process.env.NODE_ENV === 'development') {
 
 export async function proxy(request: NextRequest) {
   // Generate CSP nonce for this request
+  // Note: The nonce is generated per-request to allow Next.js inline scripts
+  // The CSP header also includes 'unsafe-inline' (configured in next.config.ts)
+  // to allow PostHog's dynamically injected scripts (pushca.min.js, callable-future.js, etc.)
+  // that don't have nonce attributes.
   const nonce = generateNonce();
-  const isDevelopment = process.env.NODE_ENV === 'development';
-
-  // Build CSP header with nonce
-  const cspHeader = buildCSPHeader({ nonce, isDevelopment });
+  const cspHeader = buildCSPHeader({
+    nonce,
+    isDevelopment: process.env.NODE_ENV === 'development',
+  });
 
   // Check if Supabase is configured - if not, allow all requests through
   // This enables development without Supabase and build-time checks
