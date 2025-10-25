@@ -33,7 +33,15 @@ jest.mock('@/lib/browserLogger', () => ({
 // Mock Next.js Image component
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: function MockImage({ src, alt, ...props }: any): JSX.Element {
+  default: function MockImage({
+    src,
+    alt,
+    ...props
+  }: {
+    src: string;
+    alt: string;
+    [key: string]: unknown;
+  }): JSX.Element {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt={alt} {...props} />;
   },
