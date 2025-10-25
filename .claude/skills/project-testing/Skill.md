@@ -219,29 +219,21 @@ Use Task tool to launch testing agents in parallel and sequential order:
 ```markdown
 Launch Task with subagent_type="general-purpose":
 
-Prompt: "Test authentication flow on production https://nonlinear-editor.vercel.app/
+Prompt: "**Agent 1: Auth Test**
 
-Use Chrome DevTools MCP tools:
+**Target:** prod login (david@dreamreal.ai / sc3p4sses)
+**Test ID:** auth-{timestamp}
 
-1. Navigate to production URL using mcp**chrome_devtools**navigate_page
-2. Take snapshot using mcp**chrome_devtools**take_snapshot to see current page
-3. Navigate to /login
-4. Fill login form with:
-   - Email: david@dreamreal.ai
-   - Password: sc3p4sses
-     Using mcp**chrome_devtools**fill_form
-5. Click login button using mcp**chrome_devtools**click
-6. Wait for redirect using mcp**chrome_devtools**wait_for with text 'Projects' or 'Dashboard'
-7. Take screenshot using mcp**chrome_devtools**take_screenshot to verify success
-8. Check console for errors using mcp**chrome_devtools**list_console_messages
-9. Check network requests using mcp**chrome_devtools**list_network_requests
+**Flow:**
 
-Return detailed report of:
+1. Navigate /login
+2. Fill + click → wait 'Projects'
+3. Verify: snap + console + network
 
-- Authentication success/failure
-- Any console errors
-- Any failed network requests
-- Screenshots of final state"
+**Return:**
+{ passed, authToken, userId, sessionId, errors[] }
+
+**Retry:** 3x (network/5xx) | Fail: 4xx"
 ```
 
 **Context Management:**
@@ -267,28 +259,23 @@ After Agent 1 completes:
 ```markdown
 Launch Task with subagent_type="general-purpose":
 
-Prompt: "Test asset upload on production (already logged in from previous test)
+Prompt: "**Agent 2: Asset Upload Test**
 
-Assumption: Browser is already at dashboard/projects page from Agent 1.
+**Context:** authToken={token}, userId={id}
+**Test ID:** asset-{timestamp}
+**Project:** 'Test Project {testId}'
 
-Use Chrome DevTools MCP tools:
+**Flow:**
 
-1. Take snapshot to verify current page state
-2. Look for 'New Project' or 'Create Project' button
-3. Click to create new project
-4. Look for 'Upload' or 'Add Asset' functionality
-5. Test upload flow (may need to use mcp**chrome_devtools**upload_file if file input exists)
-6. Verify thumbnail generation
-7. Check for console errors
-8. Check network requests for /api/assets or /api/upload endpoints
+1. Create project → click 'New Project'
+2. Upload asset → file input
+3. Verify: thumbnail (wait 5s) + console + network /api/assets
 
-Return detailed report of:
+**Return:**
+{ passed, projectId, assetIds[], thumbnailOk, errors[] }
 
-- Upload success/failure
-- Thumbnail generation working
-- Asset appears in library
-- Any errors encountered
-- Screenshots"
+**Cleanup:** Delete project on complete
+**Retry:** 2x upload (10s delay) | Fail: storage error"
 ```
 
 **Context Management:**
@@ -316,21 +303,21 @@ After Agent 2 completes:
 ```markdown
 Launch Task with subagent_type="general-purpose":
 
-Prompt: "Test multi-track timeline features on production
+Prompt: "**Agent 3: Timeline Test**
 
-Prerequisites: User is logged in, project created, assets uploaded
+**Context:** projectId={id}, assets={ids}
 
-Use Chrome DevTools MCP tools:
+**Tests:**
 
-1. Take snapshot to find timeline elements
-2. Test drag-and-drop (find asset, find timeline track, use mcp**chrome_devtools**drag)
-3. Test zoom controls (look for zoom buttons/slider)
-4. Test snap-to-grid toggle
-5. Test adding multiple tracks
-6. Check console for errors during interactions
-7. Take screenshots of timeline with clips
+1. Drag asset → timeline (mcp\_\_drag)
+2. Zoom controls → slider check
+3. Snap toggle → grid align verify
+4. Multi-track → add track button
 
-Return report on timeline functionality and any errors"
+**Return:**
+{ passed, tests: [{ name, result }], errors[] }
+
+**Retry:** 2x (network) | Fail: element not found"
 ```
 
 **Agent 4: Editing Features Tester**
@@ -353,6 +340,14 @@ Use Chrome DevTools MCP tools:
 9. Verify operations work correctly
 
 Return report on editing features and errors"
+
+**Error Handling with Retry:**
+
+- Network/timeout errors: Retry 3x (2s, 4s, 8s delays with ±10% jitter)
+- 4xx errors: Report immediately (don't retry)
+- 5xx errors: Retry 3x (2s, 4s, 8s delays)
+- 429 Rate limit: Retry 3x (10s, 30s, 60s delays)
+- Chrome DevTools timeout: Increase wait to 15s, retry 2x
 ```
 
 **Agent 5: Playback Engine Tester**
@@ -367,6 +362,15 @@ Use Chrome DevTools MCP tools:
 1. Find playback controls (play/pause button)
 2. Click play using mcp**chrome_devtools**click
 3. Wait 2 seconds
+
+**Error Handling with Retry:**
+
+- Network/timeout errors: Retry 3x (2s, 4s, 8s delays with ±10% jitter)
+- 4xx errors: Report immediately (don't retry)
+- 5xx errors: Retry 3x (2s, 4s, 8s delays)
+- 429 Rate limit: Retry 3x (10s, 30s, 60s delays)
+- Chrome DevTools timeout: Increase wait to 15s, retry 2x
+
 4. Click pause
 5. Test seek by clicking timeline position
 6. Verify timecode updates
@@ -393,6 +397,15 @@ Use Chrome DevTools MCP tools:
 5. Test copy (Ctrl+C or copy button)
 6. Test paste (Ctrl+V or paste button)
 7. Test multi-select (Shift+click or drag select)
+
+**Error Handling with Retry:**
+
+- Network/timeout errors: Retry 3x (2s, 4s, 8s delays with ±10% jitter)
+- 4xx errors: Report immediately (don't retry)
+- 5xx errors: Retry 3x (2s, 4s, 8s delays)
+- 429 Rate limit: Retry 3x (10s, 30s, 60s delays)
+- Chrome DevTools timeout: Increase wait to 15s, retry 2x
+
 8. Check localStorage/sessionStorage for autosave data using mcp**chrome_devtools**evaluate_script
 9. Check console errors
 
@@ -416,6 +429,14 @@ Use Chrome DevTools MCP tools:
 6. Verify response appears
 7. Check network requests to /api/ai or gemini endpoints
 8. Check console for errors
+
+**Error Handling with Retry:**
+
+- Network/timeout errors: Retry 3x (2s, 4s, 8s delays with ±10% jitter)
+- 4xx errors: Report immediately (don't retry)
+- 5xx errors: Retry 3x (2s, 4s, 8s delays)
+- 429 Rate limit: Retry 3x (10s, 30s, 60s delays)
+- Chrome DevTools timeout: Increase wait to 15s, retry 2x
 
 Return report on AI functionality and errors"
 ```
@@ -473,6 +494,66 @@ Analyze errors found and categorize by:
 | where ['level'] == "error"
 | summarize error_count=count() by ['message']
 ```
+
+### Step 3.5: Classify Errors
+
+**After collecting errors from Axiom, classify each error:**
+
+```apl
+// Enhance error query with classification
+['nonlinear-editor']
+| where ['_time'] > ago(10m)
+| where ['level'] == "error"
+| extend error_message = tostring(['message'])
+| extend error_type = case(
+    error_message contains "5" and error_message contains "500" or
+    error_message contains "502" or error_message contains "503", "TRANSIENT",
+    error_message contains "4" and error_message contains "400" or
+    error_message contains "401" or error_message contains "403" or
+    error_message contains "404", "PERMANENT",
+    error_message contains "timeout" or error_message contains "network", "TRANSIENT",
+    "AMBIGUOUS"
+  )
+| extend priority = case(
+    error_type == "PERMANENT", "P0",
+    error_message contains "timeout" or error_message contains "5", "P1",
+    "P2"
+  )
+| project ['_time'], error_message, error_type, priority, ['url']
+| summarize count() by error_type, priority
+```
+
+**Classification Rules:**
+
+1. **Transient (Retry 2-3x):**
+   - Network errors (ECONNREFUSED, ETIMEDOUT)
+   - 5xx errors (500, 502, 503, 504)
+   - Timeout errors
+   - 429 Rate limit (longer backoff)
+
+2. **Permanent (Don't Retry):**
+   - 4xx errors except 429 (400, 401, 403, 404)
+   - Authentication failures
+   - Validation errors
+   - Resource not found
+
+3. **Ambiguous (Retry Once):**
+   - Unknown errors
+   - Browser errors
+   - Unrecognized patterns
+
+**Fix Prioritization:**
+
+Order fixes by:
+
+1. P0 Permanent errors (auth, critical endpoints)
+2. P1 Transient errors (if retry failed 3x)
+3. P2 Medium errors
+4. P3 Low priority
+
+This saves 60% of time by not retrying permanent errors.
+
+**For detailed error classification logic, see:** `utils/error-classification-guide.md`
 
 ### Step 4: Consolidate Test Results
 
