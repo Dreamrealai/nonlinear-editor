@@ -42,14 +42,17 @@ BEGIN
 END $$;
 
 -- =============================================================================
--- 2. Ensure project_backups table exists
+-- 2. Ensure project_backups table exists with CORRECT schema
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS project_backups (
   id uuid primary key default gen_random_uuid(),
   project_id uuid not null references projects(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
-  backup_type text not null check (backup_type in ('manual', 'auto')),
-  backup_data jsonb not null,
+  backup_name text not null,
+  backup_type text check (backup_type in ('auto', 'manual')) not null default 'auto',
+  project_data jsonb not null,
+  timeline_data jsonb not null,
+  assets_snapshot jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now()
 );
 
@@ -95,6 +98,38 @@ BEGIN
           AND projects.user_id = auth.uid()
         )
       );
+  END IF;
+END $$;
+
+-- Function to clean up old auto backups (keep only last 10 per project)
+CREATE OR REPLACE FUNCTION cleanup_old_auto_backups()
+RETURNS trigger AS $$
+BEGIN
+  DELETE FROM project_backups
+  WHERE id IN (
+    SELECT id
+    FROM project_backups
+    WHERE project_id = NEW.project_id
+      AND backup_type = 'auto'
+    ORDER BY created_at DESC
+    OFFSET 10
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to auto-cleanup after insert
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger
+    WHERE tgname = 'cleanup_old_auto_backups_trigger'
+  ) THEN
+    CREATE TRIGGER cleanup_old_auto_backups_trigger
+      AFTER INSERT ON project_backups
+      FOR EACH ROW
+      WHEN (NEW.backup_type = 'auto')
+      EXECUTE FUNCTION cleanup_old_auto_backups();
   END IF;
 END $$;
 
@@ -166,3 +201,103 @@ WHERE NOT EXISTS (SELECT 1 FROM export_presets WHERE is_custom = false LIMIT 1);
 COMMENT ON TABLE export_presets IS 'Video export presets for different platforms and custom user presets';
 COMMENT ON TABLE project_backups IS 'Project backup storage for manual and automatic backups';
 COMMENT ON TABLE processing_jobs IS 'Background job queue for video exports and processing';
+
+-- =============================================================================
+-- 4. Ensure rate limiting function exists
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS rate_limits (
+  id uuid primary key default gen_random_uuid(),
+  rate_key text not null,
+  window_start timestamptz not null,
+  request_count integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+
+  constraint rate_limits_unique_key_window unique (rate_key, window_start)
+);
+
+CREATE INDEX IF NOT EXISTS idx_rate_limits_key_window ON rate_limits(rate_key, window_start DESC);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_window_start ON rate_limits(window_start);
+
+CREATE OR REPLACE FUNCTION public.increment_rate_limit(
+  rate_key TEXT,
+  window_seconds INTEGER
+)
+RETURNS INTEGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  window_start_time TIMESTAMPTZ;
+  current_count INTEGER;
+  result_count INTEGER;
+BEGIN
+  window_start_time := DATE_TRUNC('second', NOW() - INTERVAL '1 second' * (EXTRACT(EPOCH FROM NOW())::INTEGER % window_seconds));
+
+  INSERT INTO rate_limits (rate_key, window_start, request_count, updated_at)
+  VALUES (increment_rate_limit.rate_key, window_start_time, 1, NOW())
+  ON CONFLICT (rate_key, window_start)
+  DO UPDATE SET
+    request_count = rate_limits.request_count + 1,
+    updated_at = NOW()
+  RETURNING request_count INTO result_count;
+
+  DELETE FROM rate_limits WHERE window_start < NOW() - INTERVAL '1 hour';
+
+  RETURN result_count;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.increment_rate_limit(TEXT, INTEGER) TO service_role;
+
+COMMENT ON FUNCTION public.increment_rate_limit IS 'Increments rate limit counter for a given key and returns current count';
+
+-- =============================================================================
+-- 5. Ensure audit_logs table exists
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
+  action text not null,
+  resource_type text not null,
+  resource_id text,
+  metadata jsonb default '{}'::jsonb,
+  ip_address inet,
+  user_agent text,
+  created_at timestamptz not null default now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_resource ON audit_logs(resource_type, resource_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action);
+
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+
+-- Admin users can view all logs, regular users can view their own
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+    AND tablename = 'audit_logs'
+    AND policyname = 'Users can view their own audit logs'
+  ) THEN
+    CREATE POLICY "Users can view their own audit logs"
+      ON audit_logs FOR SELECT
+      USING (auth.uid() = user_id);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+    AND tablename = 'audit_logs'
+    AND policyname = 'Service role can insert audit logs'
+  ) THEN
+    CREATE POLICY "Service role can insert audit logs"
+      ON audit_logs FOR INSERT
+      TO service_role
+      WITH CHECK (true);
+  END IF;
+END $$;
+
+COMMENT ON TABLE audit_logs IS 'Audit trail for user actions and system events';
