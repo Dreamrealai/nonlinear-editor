@@ -386,6 +386,31 @@ Updated jest.config.js with realistic thresholds (global: 50/40/45/50%, services
 
 ---
 
+### Priority 3 - Low (Recently Resolved)
+
+#### Issue #85: Google Cloud Storage Test Properly Mocked ✅ FIXED
+
+**Status:** Fixed
+**Resolved:** 2025-10-24
+**Commit:** c97b96b
+**Time Spent:** Included in auth bypass commit
+
+**Problem:**
+The "should handle Veo video from GCS URI" test was skipped due to complex GCS authentication mocking. The test attempted to use actual Google Cloud Storage credentials and would fail in integration tests.
+
+**Solution:**
+Implemented comprehensive mocking for Google Cloud Storage:
+- Added `@google-cloud/storage` mock to test setup
+- Implemented fetch mock for GCS download API calls
+- Added GOOGLE_SERVICE_ACCOUNT environment variable mock
+- Created complete test case for GCS URI video download path
+- Test now verifies GCS authentication and download flow
+
+**Result:**
+Test coverage improved from 18 passed + 1 skipped to 19 passed (100% pass rate).
+
+---
+
 ## Quick Reference
 
 ### When Adding New Issues
