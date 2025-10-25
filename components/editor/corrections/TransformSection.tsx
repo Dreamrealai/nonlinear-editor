@@ -2,13 +2,15 @@ import React from 'react';
 /**
  * TransformSection - Clip transformation and orientation controls
  *
- * Provides controls for rotating, scaling, and flipping video clips.
- * Features a two-column layout with rotation/scale on the left and
+ * Provides controls for rotating, scaling, adjusting opacity, speed, and flipping video clips.
+ * Features a two-column layout with rotation/scale/opacity/speed on the left and
  * flip controls on the right.
  *
  * Features:
  * - Rotation control (0-360 degrees)
  * - Scale control (0.1x to 3x)
+ * - Opacity control (0-100%)
+ * - Speed control (0.25x to 4x) for slow-motion/time-lapse
  * - Horizontal flip toggle
  * - Vertical flip toggle
  * - Visual feedback with gradient sliders
@@ -16,10 +18,14 @@ import React from 'react';
  *
  * @param rotation - Current rotation angle in degrees (0-360)
  * @param scale - Current scale multiplier (0.1-3.0)
+ * @param opacity - Current opacity percentage (0-100)
+ * @param speed - Current playback speed multiplier (0.25-4.0)
  * @param flipHorizontal - Whether clip is flipped horizontally
  * @param flipVertical - Whether clip is flipped vertically
  * @param onRotationChange - Callback when rotation changes
  * @param onScaleChange - Callback when scale changes
+ * @param onOpacityChange - Callback when opacity changes
+ * @param onSpeedChange - Callback when speed changes
  * @param onFlipUpdate - Callback for flip property updates
  * @param onReset - Callback to reset all transformations
  *
@@ -28,10 +34,14 @@ import React from 'react';
  * <TransformSection
  *   rotation={0}
  *   scale={1.0}
+ *   opacity={100}
+ *   speed={1.0}
  *   flipHorizontal={false}
  *   flipVertical={false}
  *   onRotationChange={(r) => setRotation(r)}
  *   onScaleChange={(s) => setScale(s)}
+ *   onOpacityChange={(o) => setOpacity(o)}
+ *   onSpeedChange={(s) => setSpeed(s)}
  *   onFlipUpdate={(flip) => updateFlip(flip)}
  *   onReset={() => resetTransforms()}
  * />
@@ -42,10 +52,14 @@ import type { Transform } from '@/types/timeline';
 interface TransformSectionProps {
   rotation: number;
   scale: number;
+  opacity: number;
+  speed: number;
   flipHorizontal: boolean;
   flipVertical: boolean;
   onRotationChange: (value: number) => void;
   onScaleChange: (value: number) => void;
+  onOpacityChange: (value: number) => void;
+  onSpeedChange: (value: number) => void;
   onFlipUpdate: (updates: Partial<Transform>) => void;
   onReset: () => void;
 }
@@ -53,10 +67,14 @@ interface TransformSectionProps {
 export function TransformSection({
   rotation,
   scale,
+  opacity,
+  speed,
   flipHorizontal,
   flipVertical,
   onRotationChange,
   onScaleChange,
+  onOpacityChange,
+  onSpeedChange,
   onFlipUpdate,
   onReset,
 }: TransformSectionProps): React.ReactElement {
@@ -130,6 +148,106 @@ export function TransformSection({
             className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-indigo-400 to-purple-500"
             style={{ accentColor: '#3b82f6' }}
           />
+        </div>
+
+        {/* Opacity */}
+        <div className="group">
+          <label className="mb-2 flex items-center justify-between text-xs font-medium text-neutral-700">
+            <span className="flex items-center gap-2">
+              <svg
+                className="h-4 w-4 text-purple-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
+              </svg>
+              Opacity
+            </span>
+            <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">
+              {Math.round(opacity)}%
+            </span>
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            value={opacity}
+            onChange={(e): void => onOpacityChange(parseFloat(e.target.value))}
+            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-purple-400 to-pink-500"
+            style={{ accentColor: '#3b82f6' }}
+          />
+        </div>
+
+        {/* Speed */}
+        <div className="group">
+          <label className="mb-2 flex items-center justify-between text-xs font-medium text-neutral-700">
+            <span className="flex items-center gap-2">
+              <svg
+                className="h-4 w-4 text-orange-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+              Speed
+            </span>
+            <span className="rounded bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white">
+              {speed.toFixed(2)}x
+            </span>
+          </label>
+          <input
+            type="range"
+            min="0.25"
+            max="4"
+            step="0.05"
+            value={speed}
+            onChange={(e): void => onSpeedChange(parseFloat(e.target.value))}
+            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-orange-400 to-red-500"
+            style={{ accentColor: '#3b82f6' }}
+          />
+          {/* Speed presets */}
+          <div className="mt-2 flex gap-2">
+            <button
+              type="button"
+              onClick={(): void => onSpeedChange(0.5)}
+              className="flex-1 rounded bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700 transition hover:bg-neutral-200"
+            >
+              0.5x
+            </button>
+            <button
+              type="button"
+              onClick={(): void => onSpeedChange(1.0)}
+              className="flex-1 rounded bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700 transition hover:bg-neutral-200"
+            >
+              1x
+            </button>
+            <button
+              type="button"
+              onClick={(): void => onSpeedChange(2.0)}
+              className="flex-1 rounded bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700 transition hover:bg-neutral-200"
+            >
+              2x
+            </button>
+          </div>
         </div>
       </div>
 

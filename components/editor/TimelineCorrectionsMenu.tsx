@@ -1,6 +1,6 @@
 'use client';
 
-import React, {  useState, useCallback  } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useEditorStore } from '@/state/useEditorStore';
 import { useCorrectionSync } from './corrections/useCorrectionSync';
 import { useCorrectionHandlers } from './corrections/useCorrectionHandlers';
@@ -31,7 +31,9 @@ export function TimelineCorrectionsMenu(): React.ReactElement | null {
 
   const selectedClips = useEditorStore((state): Set<string> => state.selectedClipIds);
   const clips = useEditorStore((state): Clip[] => state.timeline?.clips ?? EMPTY_CLIPS_ARRAY);
-  const updateClipStore = useEditorStore((state): (id: string, patch: Partial<Clip>) => void => state.updateClip);
+  const updateClipStore = useEditorStore(
+    (state): ((id: string, patch: Partial<Clip>) => void) => state.updateClip
+  );
 
   // Stable reference for updateClip
   const updateClip = useCallback(
@@ -141,10 +143,14 @@ export function TimelineCorrectionsMenu(): React.ReactElement | null {
             <TransformSection
               rotation={local.rotation}
               scale={local.scale}
+              opacity={local.opacity}
+              speed={local.speed}
               flipHorizontal={transform.flipHorizontal}
               flipVertical={transform.flipVertical}
               onRotationChange={setters.setRotation}
               onScaleChange={setters.setScale}
+              onOpacityChange={setters.setOpacity}
+              onSpeedChange={setters.setSpeed}
               onFlipUpdate={updateTransform}
               onReset={resetTransform}
             />

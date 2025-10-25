@@ -19,6 +19,8 @@ interface CorrectionHandlersProps {
     midGain: number;
     trebleGain: number;
     compression: number;
+    opacity: number;
+    speed: number;
   };
   setters: {
     setBrightness: (val: number) => void;
@@ -35,6 +37,8 @@ interface CorrectionHandlersProps {
     setMidGain: (val: number) => void;
     setTrebleGain: (val: number) => void;
     setCompression: (val: number) => void;
+    setOpacity: (val: number) => void;
+    setSpeed: (val: number) => void;
   };
 }
 
@@ -46,7 +50,14 @@ export function useCorrectionHandlers({
   updateClip,
   debounced,
   setters,
-}: CorrectionHandlersProps): { updateTransform: (updates: Partial<Transform>) => void; updateAudioEffects: (updates: Partial<AudioEffects>) => void; resetColorCorrection: () => void; applyVideoEffectsPreset: (effects: VideoEffects) => void; resetTransform: () => void; resetAudioEffects: () => void; } {
+}: CorrectionHandlersProps): {
+  updateTransform: (updates: Partial<Transform>) => void;
+  updateAudioEffects: (updates: Partial<AudioEffects>) => void;
+  resetColorCorrection: () => void;
+  applyVideoEffectsPreset: (effects: VideoEffects) => void;
+  resetTransform: () => void;
+  resetAudioEffects: () => void;
+} {
   // Apply debounced video effects updates
   useEffect((): void => {
     if (selectedClip) {
@@ -106,6 +117,36 @@ export function useCorrectionHandlers({
       }
     }
   }, [debounced.rotation, debounced.scale, selectedClip, updateClip]);
+
+  // Apply debounced opacity updates
+  useEffect((): void => {
+    if (selectedClip) {
+      const currentOpacity = selectedClip.opacity ?? 1.0;
+      // Convert from 0-100 percentage to 0-1 decimal
+      const targetOpacity = debounced.opacity / 100;
+      if (Math.abs(currentOpacity - targetOpacity) > 0.001) {
+        // Clamp opacity to valid range (0-1)
+        const clampedOpacity = Math.max(0, Math.min(1.0, targetOpacity));
+        updateClip(selectedClip.id, {
+          opacity: clampedOpacity,
+        });
+      }
+    }
+  }, [debounced.opacity, selectedClip, updateClip]);
+
+  // Apply debounced speed updates
+  useEffect((): void => {
+    if (selectedClip) {
+      const currentSpeed = selectedClip.speed ?? 1.0;
+      if (currentSpeed !== debounced.speed) {
+        // Clamp speed to valid range (0.25-4)
+        const clampedSpeed = Math.max(0.25, Math.min(4.0, debounced.speed));
+        updateClip(selectedClip.id, {
+          speed: clampedSpeed,
+        });
+      }
+    }
+  }, [debounced.speed, selectedClip, updateClip]);
 
   // Apply debounced audio effects updates
   useEffect((): void => {
@@ -225,8 +266,12 @@ export function useCorrectionHandlers({
     if (!selectedClip) return;
     setters.setRotation(0);
     setters.setScale(1.0);
+    setters.setOpacity(100);
+    setters.setSpeed(1.0);
     updateClip(selectedClip.id, {
       transform: { rotation: 0, flipHorizontal: false, flipVertical: false, scale: 1.0 },
+      opacity: 1.0,
+      speed: 1.0,
     });
   }, [selectedClip, updateClip, setters]);
 
